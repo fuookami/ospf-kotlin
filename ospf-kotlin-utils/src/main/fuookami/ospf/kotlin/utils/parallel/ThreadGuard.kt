@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.parallel
 // RAII Thread Wrapper
 class ThreadGuard(
     val thread: Thread
-): AutoCloseable {
+) : AutoCloseable {
     override fun close() {
         thread.join()
     }

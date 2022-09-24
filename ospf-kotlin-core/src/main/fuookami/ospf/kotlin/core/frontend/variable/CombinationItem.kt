@@ -68,11 +68,20 @@ typealias TerVariableView3 = CombinationView3<UInt8, Ternary>
 typealias TerVariableView4 = CombinationView4<UInt8, Ternary>
 typealias TerBinVariableView = DynCombinationView<UInt8, Ternary>
 
-class BTerVariable1(name: String = "", shape: Shape1) : Combination1<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
-class BTerVariable2(name: String = "", shape: Shape2) : Combination2<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
-class BTerVariable3(name: String = "", shape: Shape3) : Combination3<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
-class BTerVariable4(name: String = "", shape: Shape4) : Combination4<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
-class BTerVariable(name: String = "", shape: DynShape) : DynCombination<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
+class BTerVariable1(name: String = "", shape: Shape1) :
+    Combination1<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
+
+class BTerVariable2(name: String = "", shape: Shape2) :
+    Combination2<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
+
+class BTerVariable3(name: String = "", shape: Shape3) :
+    Combination3<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
+
+class BTerVariable4(name: String = "", shape: Shape4) :
+    Combination4<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
+
+class BTerVariable(name: String = "", shape: DynShape) :
+    DynCombination<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape)
 typealias BTerVariableView = CombinationView<Int8, BalancedTernary>
 typealias BTerVariableView1 = CombinationView1<Int8, BalancedTernary>
 typealias BTerVariableView2 = CombinationView2<Int8, BalancedTernary>
@@ -84,7 +93,8 @@ class PctVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, Perce
 class PctVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, Percentage>(Percentage, name, Flt64, shape)
 class PctVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, Percentage>(Percentage, name, Flt64, shape)
 class PctVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, Percentage>(Percentage, name, Flt64, shape)
-class PctVariable(name: String = "", shape: DynShape) : DynCombination<Flt64, Percentage>(Percentage, name, Flt64, shape)
+class PctVariable(name: String = "", shape: DynShape) :
+    DynCombination<Flt64, Percentage>(Percentage, name, Flt64, shape)
 typealias PctVariableView = CombinationView<Flt64, Percentage>
 typealias PctVariableView1 = CombinationView1<Flt64, Percentage>
 typealias PctVariableView2 = CombinationView2<Flt64, Percentage>
@@ -116,23 +126,25 @@ typealias UIntVariableView3 = CombinationView3<UInt64, UInteger>
 typealias UIntVariableView4 = CombinationView4<UInt64, UInteger>
 typealias DynUIntVariableView = DynCombinationView<UInt64, UInteger>
 
-class RealVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, Continues>(Continues, name, Flt64, shape)
-class RealVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, Continues>(Continues, name, Flt64, shape)
-class RealVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, Continues>(Continues, name, Flt64, shape)
-class RealVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, Continues>(Continues, name, Flt64, shape)
-class RealVariable(name: String = "", shape: DynShape) : DynCombination<Flt64, Continues>(Continues, name, Flt64, shape)
-typealias RealVariableView = CombinationView<Flt64, Continues>
-typealias RealVariableView1 = CombinationView1<Flt64, Continues>
-typealias RealVariableView2 = CombinationView2<Flt64, Continues>
-typealias RealVariableView3 = CombinationView3<Flt64, Continues>
-typealias RealVariableView4 = CombinationView4<Flt64, Continues>
-typealias DynRealVariableView = DynCombinationView<Flt64, Continues>
+class RealVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, Continuous>(Continuous, name, Flt64, shape)
+class RealVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, Continuous>(Continuous, name, Flt64, shape)
+class RealVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, Continuous>(Continuous, name, Flt64, shape)
+class RealVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, Continuous>(Continuous, name, Flt64, shape)
+class RealVariable(name: String = "", shape: DynShape) :
+    DynCombination<Flt64, Continuous>(Continuous, name, Flt64, shape)
+typealias RealVariableView = CombinationView<Flt64, Continuous>
+typealias RealVariableView1 = CombinationView1<Flt64, Continuous>
+typealias RealVariableView2 = CombinationView2<Flt64, Continuous>
+typealias RealVariableView3 = CombinationView3<Flt64, Continuous>
+typealias RealVariableView4 = CombinationView4<Flt64, Continuous>
+typealias DynRealVariableView = DynCombinationView<Flt64, Continuous>
 
 class URealVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, UContinues>(UContinues, name, Flt64, shape)
 class URealVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, UContinues>(UContinues, name, Flt64, shape)
 class URealVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, UContinues>(UContinues, name, Flt64, shape)
 class URealVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, UContinues>(UContinues, name, Flt64, shape)
-class URealVariable(name: String = "", shape: DynShape) : DynCombination<Flt64, UContinues>(UContinues, name, Flt64, shape)
+class URealVariable(name: String = "", shape: DynShape) :
+    DynCombination<Flt64, UContinues>(UContinues, name, Flt64, shape)
 typealias URealVariableView = CombinationView<Flt64, UContinues>
 typealias URealVariableView1 = CombinationView1<Flt64, UContinues>
 typealias URealVariableView2 = CombinationView2<Flt64, UContinues>

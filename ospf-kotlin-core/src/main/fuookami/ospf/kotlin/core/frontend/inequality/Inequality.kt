@@ -27,43 +27,46 @@ class LinearInequality(
     override var name: String = "",
     override var displayName: String? = null
 ) : Inequality<Linear> {
-    override val cells: List<LinearMonomialCell> get() {
-        val cells = HashMap<ItemKey, LinearMonomialCell>()
-        var constant = Flt64.zero
-        for (cell in lhs.cells) {
-            when (val temp = (cell as LinearMonomialCell).cell) {
-                is Either.Left -> {
-                    if (cells.containsKey(temp.value.variable.key)) {
-                        cells[temp.value.variable.key]!! += cell
-                    } else {
-                        cells[temp.value.variable.key] = cell
+    override val cells: List<LinearMonomialCell>
+        get() {
+            val cells = HashMap<ItemKey, LinearMonomialCell>()
+            var constant = Flt64.zero
+            for (cell in lhs.cells) {
+                when (val temp = (cell as LinearMonomialCell).cell) {
+                    is Either.Left -> {
+                        if (cells.containsKey(temp.value.variable.key)) {
+                            cells[temp.value.variable.key]!! += cell
+                        } else {
+                            cells[temp.value.variable.key] = cell
+                        }
+                    }
+
+                    is Either.Right -> {
+                        constant += temp.value
                     }
                 }
-                is Either.Right -> {
-                    constant += temp.value
-                }
             }
-        }
-        for (cell in rhs.cells) {
-            when (val temp = (cell as LinearMonomialCell).cell) {
-                is Either.Left -> {
-                    if (cells.containsKey(temp.value.variable.key)) {
-                        cells[temp.value.variable.key]!! -= cell
-                    } else {
-                        val copy = cell.clone()
-                        copy *= -Flt64.one
-                        cells[temp.value.variable.key] = copy
+            for (cell in rhs.cells) {
+                when (val temp = (cell as LinearMonomialCell).cell) {
+                    is Either.Left -> {
+                        if (cells.containsKey(temp.value.variable.key)) {
+                            cells[temp.value.variable.key]!! -= cell
+                        } else {
+                            val copy = cell.clone()
+                            copy *= -Flt64.one
+                            cells[temp.value.variable.key] = copy
+                        }
+                    }
+
+                    is Either.Right -> {
+                        constant -= temp.value
                     }
                 }
-                is Either.Right -> {
-                    constant -= temp.value
-                }
             }
+            val ret = cells.map { it.value }.toMutableList()
+            ret.add(LinearMonomialCell(constant))
+            return ret
         }
-        val ret = cells.map { it.value }.toMutableList()
-        ret.add(LinearMonomialCell(constant))
-        return ret
-    }
 
     override fun toString() = "$lhs $sign $rhs"
 }
@@ -236,11 +239,15 @@ infix fun Item<*, *>.geq(rhs: Item<*, *>) =
 
 // symbol and variable
 
-infix fun Symbol<Linear>.ls(rhs: Item<*, *>) = LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Less)
+infix fun Symbol<Linear>.ls(rhs: Item<*, *>) =
+    LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Less)
+
 infix fun Symbol<Linear>.leq(rhs: Item<*, *>) =
     LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.LessEqual)
 
-infix fun Symbol<Linear>.eq(rhs: Item<*, *>) = LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Equal)
+infix fun Symbol<Linear>.eq(rhs: Item<*, *>) =
+    LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Equal)
+
 infix fun Symbol<Linear>.neq(rhs: Item<*, *>) =
     LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Unequal)
 
@@ -250,11 +257,15 @@ infix fun Symbol<Linear>.gr(rhs: Item<*, *>) =
 infix fun Symbol<Linear>.geq(rhs: Item<*, *>) =
     LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.GreaterEqual)
 
-infix fun Item<*, *>.ls(rhs: Symbol<Linear>) = LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Less)
+infix fun Item<*, *>.ls(rhs: Symbol<Linear>) =
+    LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Less)
+
 infix fun Item<*, *>.leq(rhs: Symbol<Linear>) =
     LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.LessEqual)
 
-infix fun Item<*, *>.eq(rhs: Symbol<Linear>) = LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Equal)
+infix fun Item<*, *>.eq(rhs: Symbol<Linear>) =
+    LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Equal)
+
 infix fun Item<*, *>.neq(rhs: Symbol<Linear>) =
     LinearInequality(LinearPolynomial(this), LinearPolynomial(rhs), Sign.Unequal)
 

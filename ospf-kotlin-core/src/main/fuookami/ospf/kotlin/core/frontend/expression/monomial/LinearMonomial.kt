@@ -12,7 +12,7 @@ private typealias ExprSymbol = Symbol<Linear>
 data class LinearCellPair(
     var coefficient: Flt64,
     val variable: Item<*, *>
-): Cloneable<LinearCellPair> {
+) : Cloneable<LinearCellPair> {
     operator fun plus(rhs: LinearCellPair): LinearCellPair {
         if (variable != rhs.variable) {
             throw IllegalArgumentException("Invalid argument of LinearCellPair.plus: not same variable.")
@@ -73,16 +73,19 @@ class LinearMonomialCell internal constructor(
                     is Either.Left -> {
                         cell.value += rhs.cell.value
                     }
+
                     is Either.Right -> {
                         throw IllegalArgumentException("Invalid argument of LinearMonomialCell.plus: monomial and constant.")
                     }
                 }
             }
+
             is Either.Right -> {
                 when (rhs.cell) {
                     is Either.Left -> {
                         throw IllegalArgumentException("Invalid argument of LinearMonomialCell.plus: monomial and constant.")
                     }
+
                     is Either.Right -> {
                         cell.value += rhs.cell.value
                     }
@@ -103,16 +106,19 @@ class LinearMonomialCell internal constructor(
                     is Either.Left -> {
                         cell.value -= rhs.cell.value
                     }
+
                     is Either.Right -> {
                         throw IllegalArgumentException("Invalid argument of LinearMonomialCell.plus: monomial and constant.")
                     }
                 }
             }
+
             is Either.Right -> {
                 when (rhs.cell) {
                     is Either.Left -> {
                         throw IllegalArgumentException("Invalid argument of LinearMonomialCell.plus: monomial and constant.")
                     }
+
                     is Either.Right -> {
                         cell.value -= rhs.cell.value
                     }
@@ -126,6 +132,7 @@ class LinearMonomialCell internal constructor(
             is Either.Left -> {
                 cell.value *= rhs.toFlt64()
             }
+
             is Either.Right -> {
                 cell.value *= rhs.toFlt64()
             }
@@ -137,6 +144,7 @@ class LinearMonomialCell internal constructor(
             is Either.Left -> {
                 LinearMonomialCell(cell.value.coefficient, cell.value.variable)
             }
+
             is Either.Right -> {
                 LinearMonomialCell(cell.value)
             }
@@ -167,6 +175,7 @@ class LinearMonomialSymbol(
             is Either.Left -> {
                 symbol.value.name
             }
+
             is Either.Right -> {
                 symbol.value.name
             }
@@ -177,6 +186,7 @@ class LinearMonomialSymbol(
             is Either.Left -> {
                 symbol.value.range.valueRange
             }
+
             is Either.Right -> {
                 symbol.value.range
             }
@@ -187,6 +197,7 @@ class LinearMonomialSymbol(
             is Either.Left -> {
                 symbol.value.lowerBound
             }
+
             is Either.Right -> {
                 symbol.value.lowerBound
             }
@@ -196,6 +207,7 @@ class LinearMonomialSymbol(
             is Either.Left -> {
                 symbol.value.upperBound
             }
+
             is Either.Right -> {
                 symbol.value.upperBound
             }
@@ -209,18 +221,20 @@ class LinearMonomialSymbol(
         is Either.Left -> {
             arrayListOf(LinearMonomialCell(Flt64.one, symbol.value))
         }
+
         is Either.Right -> {
-            symbol.value.cells.asSequence().map{ it.clone() }.toList()
+            symbol.value.cells.asSequence().map { it.clone() }.toList()
         }
     }
 
     override fun partialEq(rhs: LinearMonomialSymbol) = variable() == rhs.variable()
-        && exprSymbol() == rhs.exprSymbol()
+            && exprSymbol() == rhs.exprSymbol()
 
     override fun toString() = when (symbol) {
         is Either.Left -> {
             symbol.value.name
         }
+
         is Either.Right -> {
             "(${symbol.value.toRawString()})"
         }
@@ -230,6 +244,7 @@ class LinearMonomialSymbol(
         is Either.Left -> {
             symbol.value.hashCode()
         }
+
         is Either.Right -> {
             symbol.value.name.hashCode()
         }
@@ -284,8 +299,17 @@ class LinearMonomial(
         coefficient /= rhs.toFlt64()
     }
 
-    override fun toString() = if (coefficient eq Flt64.one) { symbol.name } else { "$coefficient * ${symbol.name}" }
-    override fun toRawString() = if (coefficient eq Flt64.one) { symbol.toString() } else { "$coefficient * $symbol" }
+    override fun toString() = if (coefficient eq Flt64.one) {
+        symbol.name
+    } else {
+        "$coefficient * ${symbol.name}"
+    }
+
+    override fun toRawString() = if (coefficient eq Flt64.one) {
+        symbol.toString()
+    } else {
+        "$coefficient * $symbol"
+    }
 
     private fun cells(): MutableList<MonomialCell<Linear>> {
         val ret = symbol.cells().toMutableList()
@@ -300,16 +324,23 @@ class LinearMonomial(
 
 operator fun <T : RealNumber<T>> Item<*, *>.times(rhs: T) = LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
 operator fun <T : RealNumber<T>> T.times(rhs: Item<*, *>) = LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs))
-operator fun <T : RealNumber<T>> Item<*, *>.div(rhs: T) = LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
+operator fun <T : RealNumber<T>> Item<*, *>.div(rhs: T) =
+    LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 
 // symbol and constant
 
 operator fun <T : RealNumber<T>> ExprSymbol.times(rhs: T) = LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
 operator fun <T : RealNumber<T>> T.times(rhs: ExprSymbol) = LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs))
-operator fun <T : RealNumber<T>> ExprSymbol.div(rhs: T) = LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
+operator fun <T : RealNumber<T>> ExprSymbol.div(rhs: T) =
+    LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 
 // monomial and constant
 
-operator fun <T : RealNumber<T>> LinearMonomial.times(rhs: T) = LinearMonomial(this.coefficient * rhs.toFlt64(), this.symbol)
-operator fun <T : RealNumber<T>> T.times(rhs: LinearMonomial) = LinearMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
-operator fun <T : RealNumber<T>> LinearMonomial.div(rhs: T) = LinearMonomial(this.coefficient / rhs.toFlt64(), this.symbol)
+operator fun <T : RealNumber<T>> LinearMonomial.times(rhs: T) =
+    LinearMonomial(this.coefficient * rhs.toFlt64(), this.symbol)
+
+operator fun <T : RealNumber<T>> T.times(rhs: LinearMonomial) =
+    LinearMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
+
+operator fun <T : RealNumber<T>> LinearMonomial.div(rhs: T) =
+    LinearMonomial(this.coefficient / rhs.toFlt64(), this.symbol)

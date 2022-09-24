@@ -26,9 +26,11 @@ enum class GurobiConstraintSign {
                 Sign.GreaterEqual -> {
                     GreaterEqual
                 }
+
                 Sign.Equal -> {
                     Equal
                 }
+
                 Sign.LessEqual -> {
                     LessEqual
                 }

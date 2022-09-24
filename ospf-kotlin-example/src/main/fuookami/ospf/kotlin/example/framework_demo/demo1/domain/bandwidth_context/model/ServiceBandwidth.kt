@@ -19,7 +19,8 @@ class ServiceBandwidth(
 
     fun register(model: LinearMetaModel): Try<Error> {
         val y = edgeBandwidth.y
-        val to: (Node) -> Predicate<Edge> = { fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model.to(it) }
+        val to: (Node) -> Predicate<Edge> =
+            { fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model.to(it) }
 
         if (!this::inDegree.isInitialized) {
             inDegree = LinearSymbols2("bandwidth_indegree_service", Shape2(graph.nodes.size, services.size))

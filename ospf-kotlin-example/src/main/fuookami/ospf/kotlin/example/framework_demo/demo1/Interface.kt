@@ -110,11 +110,13 @@ class ConsoleApplication {
             )
             clientNodes.add(clientNodeData)
         }
-        return Ok(Input(
-            serviceCost,
-            normalNodeAmount,
-            edges,
-            clientNodes
-        ))
+        return Ok(
+            Input(
+                serviceCost,
+                normalNodeAmount,
+                edges,
+                clientNodes
+            )
+        )
     }
 }

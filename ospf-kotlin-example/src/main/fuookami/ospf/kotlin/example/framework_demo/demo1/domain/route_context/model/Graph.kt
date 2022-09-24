@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.Predicate
 sealed class Node(
     override val index: Int,
     val id: UInt64
-): Indexed {
+) : Indexed {
     val edges: MutableList<Edge> = ArrayList()
 
     fun add(edge: Edge) {
@@ -18,7 +18,7 @@ sealed class Node(
 class NormalNode(
     index: Int,
     id: UInt64
-): Node(index, id) {
+) : Node(index, id) {
     override fun toString() = "N$id"
 }
 
@@ -26,7 +26,7 @@ class ClientNode(
     index: Int,
     id: UInt64,
     val demand: UInt64
-): Node(index, id) {
+) : Node(index, id) {
     override fun toString() = "C$id"
 }
 
@@ -39,7 +39,7 @@ class Edge(
     val to: Node,
     val maxBandwidth: UInt64,
     val costPerBandwidth: UInt64
-): Indexed {
+) : Indexed {
     override fun toString() = "E($from,$to)"
 }
 

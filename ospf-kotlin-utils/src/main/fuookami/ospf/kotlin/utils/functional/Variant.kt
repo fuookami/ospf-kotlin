@@ -16,6 +16,7 @@ sealed class Variant2<T1, T2> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -29,6 +30,7 @@ sealed class Variant2<T1, T2> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -58,6 +60,7 @@ class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
         is Variant2.V1 -> {
             callBack1(value.value)
         }
+
         is Variant2.V2 -> {
             callBack2(value.value)
         }
@@ -76,6 +79,7 @@ sealed class Variant3<T1, T2, T3> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -89,6 +93,7 @@ sealed class Variant3<T1, T2, T3> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -102,6 +107,7 @@ sealed class Variant3<T1, T2, T3> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -137,9 +143,11 @@ class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, T3>) 
         is Variant3.V1 -> {
             callBack1(value.value)
         }
+
         is Variant3.V2 -> {
             callBack2(value.value)
         }
+
         is Variant3.V3 -> {
             callBack3(value.value)
         }
@@ -159,6 +167,7 @@ sealed class Variant4<T1, T2, T3, T4> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -172,6 +181,7 @@ sealed class Variant4<T1, T2, T3, T4> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -185,6 +195,7 @@ sealed class Variant4<T1, T2, T3, T4> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -198,6 +209,7 @@ sealed class Variant4<T1, T2, T3, T4> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -239,12 +251,15 @@ class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, T2, T
         is Variant4.V1 -> {
             callBack1(value.value)
         }
+
         is Variant4.V2 -> {
             callBack2(value.value)
         }
+
         is Variant4.V3 -> {
             callBack3(value.value)
         }
+
         is Variant4.V4 -> {
             callBack4(value.value)
         }
@@ -265,6 +280,7 @@ sealed class Variant5<T1, T2, T3, T4, T5> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -278,6 +294,7 @@ sealed class Variant5<T1, T2, T3, T4, T5> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -291,6 +308,7 @@ sealed class Variant5<T1, T2, T3, T4, T5> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -304,6 +322,7 @@ sealed class Variant5<T1, T2, T3, T4, T5> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -317,6 +336,7 @@ sealed class Variant5<T1, T2, T3, T4, T5> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -364,15 +384,19 @@ class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<T1, T
         is Variant5.V1 -> {
             callBack1(value.value)
         }
+
         is Variant5.V2 -> {
             callBack2(value.value)
         }
+
         is Variant5.V3 -> {
             callBack3(value.value)
         }
+
         is Variant5.V4 -> {
             callBack4(value.value)
         }
+
         is Variant5.V5 -> {
             callBack5(value.value)
         }
@@ -394,6 +418,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -407,6 +432,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -420,6 +446,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -433,6 +460,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -446,6 +474,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -459,6 +488,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -512,18 +542,23 @@ class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Variant6<T
         is Variant6.V1 -> {
             callBack1(value.value)
         }
+
         is Variant6.V2 -> {
             callBack2(value.value)
         }
+
         is Variant6.V3 -> {
             callBack3(value.value)
         }
+
         is Variant6.V4 -> {
             callBack4(value.value)
         }
+
         is Variant6.V5 -> {
             callBack5(value.value)
         }
+
         is Variant6.V6 -> {
             callBack6(value.value)
         }
@@ -546,6 +581,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -559,6 +595,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -572,6 +609,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -585,6 +623,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -598,6 +637,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -611,6 +651,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -624,6 +665,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -683,21 +725,27 @@ class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: Varian
         is Variant7.V1 -> {
             callBack1(value.value)
         }
+
         is Variant7.V2 -> {
             callBack2(value.value)
         }
+
         is Variant7.V3 -> {
             callBack3(value.value)
         }
+
         is Variant7.V4 -> {
             callBack4(value.value)
         }
+
         is Variant7.V5 -> {
             callBack5(value.value)
         }
+
         is Variant7.V6 -> {
             callBack6(value.value)
         }
+
         is Variant7.V7 -> {
             callBack7(value.value)
         }
@@ -721,6 +769,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -734,6 +783,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -747,6 +797,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -760,6 +811,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -773,6 +825,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -786,6 +839,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -799,6 +853,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -812,6 +867,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -877,24 +933,31 @@ class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val value: Va
         is Variant8.V1 -> {
             callBack1(value.value)
         }
+
         is Variant8.V2 -> {
             callBack2(value.value)
         }
+
         is Variant8.V3 -> {
             callBack3(value.value)
         }
+
         is Variant8.V4 -> {
             callBack4(value.value)
         }
+
         is Variant8.V5 -> {
             callBack5(value.value)
         }
+
         is Variant8.V6 -> {
             callBack6(value.value)
         }
+
         is Variant8.V7 -> {
             callBack7(value.value)
         }
+
         is Variant8.V8 -> {
             callBack8(value.value)
         }
@@ -919,6 +982,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -932,6 +996,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -945,6 +1010,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -958,6 +1024,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -971,6 +1038,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -984,6 +1052,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -997,6 +1066,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1010,6 +1080,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1023,6 +1094,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1094,27 +1166,35 @@ class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val value
         is Variant9.V1 -> {
             callBack1(value.value)
         }
+
         is Variant9.V2 -> {
             callBack2(value.value)
         }
+
         is Variant9.V3 -> {
             callBack3(value.value)
         }
+
         is Variant9.V4 -> {
             callBack4(value.value)
         }
+
         is Variant9.V5 -> {
             callBack5(value.value)
         }
+
         is Variant9.V6 -> {
             callBack6(value.value)
         }
+
         is Variant9.V7 -> {
             callBack7(value.value)
         }
+
         is Variant9.V8 -> {
             callBack8(value.value)
         }
+
         is Variant9.V9 -> {
             callBack9(value.value)
         }
@@ -1159,6 +1239,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1173,6 +1254,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1187,6 +1269,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1201,6 +1284,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1215,6 +1299,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1229,6 +1314,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1243,6 +1329,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1257,6 +1344,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1271,6 +1359,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1285,6 +1374,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1363,30 +1453,39 @@ class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(private val
         is Variant10.V1 -> {
             callBack1(value.value)
         }
+
         is Variant10.V2 -> {
             callBack2(value.value)
         }
+
         is Variant10.V3 -> {
             callBack3(value.value)
         }
+
         is Variant10.V4 -> {
             callBack4(value.value)
         }
+
         is Variant10.V5 -> {
             callBack5(value.value)
         }
+
         is Variant10.V6 -> {
             callBack6(value.value)
         }
+
         is Variant10.V7 -> {
             callBack7(value.value)
         }
+
         is Variant10.V8 -> {
             callBack8(value.value)
         }
+
         is Variant10.V9 -> {
             callBack9(value.value)
         }
+
         is Variant10.V10 -> {
             callBack10(value.value)
         }
@@ -1434,6 +1533,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1448,6 +1548,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1462,6 +1563,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1476,6 +1578,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1490,6 +1593,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1504,6 +1608,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1518,6 +1623,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1532,6 +1638,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1546,6 +1653,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1560,6 +1668,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1574,6 +1683,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1658,33 +1768,43 @@ class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(privat
         is Variant11.V1 -> {
             callBack1(value.value)
         }
+
         is Variant11.V2 -> {
             callBack2(value.value)
         }
+
         is Variant11.V3 -> {
             callBack3(value.value)
         }
+
         is Variant11.V4 -> {
             callBack4(value.value)
         }
+
         is Variant11.V5 -> {
             callBack5(value.value)
         }
+
         is Variant11.V6 -> {
             callBack6(value.value)
         }
+
         is Variant11.V7 -> {
             callBack7(value.value)
         }
+
         is Variant11.V8 -> {
             callBack8(value.value)
         }
+
         is Variant11.V9 -> {
             callBack9(value.value)
         }
+
         is Variant11.V10 -> {
             callBack10(value.value)
         }
+
         is Variant11.V11 -> {
             callBack11(value.value)
         }
@@ -1735,6 +1855,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1749,6 +1870,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1763,6 +1885,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1777,6 +1900,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1791,6 +1915,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1805,6 +1930,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1819,6 +1945,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1833,6 +1960,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1847,6 +1975,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1861,6 +1990,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1875,6 +2005,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1889,6 +2020,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -1979,36 +2111,47 @@ class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(p
         is Variant12.V1 -> {
             callBack1(value.value)
         }
+
         is Variant12.V2 -> {
             callBack2(value.value)
         }
+
         is Variant12.V3 -> {
             callBack3(value.value)
         }
+
         is Variant12.V4 -> {
             callBack4(value.value)
         }
+
         is Variant12.V5 -> {
             callBack5(value.value)
         }
+
         is Variant12.V6 -> {
             callBack6(value.value)
         }
+
         is Variant12.V7 -> {
             callBack7(value.value)
         }
+
         is Variant12.V8 -> {
             callBack8(value.value)
         }
+
         is Variant12.V9 -> {
             callBack9(value.value)
         }
+
         is Variant12.V10 -> {
             callBack10(value.value)
         }
+
         is Variant12.V11 -> {
             callBack11(value.value)
         }
+
         is Variant12.V12 -> {
             callBack12(value.value)
         }
@@ -2062,6 +2205,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2076,6 +2220,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2090,6 +2235,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2104,6 +2250,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2118,6 +2265,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2132,6 +2280,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2146,6 +2295,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2160,6 +2310,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2174,6 +2325,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2188,6 +2340,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2202,6 +2355,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2216,6 +2370,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2230,6 +2385,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2326,39 +2482,51 @@ class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, R
         is Variant13.V1 -> {
             callBack1(value.value)
         }
+
         is Variant13.V2 -> {
             callBack2(value.value)
         }
+
         is Variant13.V3 -> {
             callBack3(value.value)
         }
+
         is Variant13.V4 -> {
             callBack4(value.value)
         }
+
         is Variant13.V5 -> {
             callBack5(value.value)
         }
+
         is Variant13.V6 -> {
             callBack6(value.value)
         }
+
         is Variant13.V7 -> {
             callBack7(value.value)
         }
+
         is Variant13.V8 -> {
             callBack8(value.value)
         }
+
         is Variant13.V9 -> {
             callBack9(value.value)
         }
+
         is Variant13.V10 -> {
             callBack10(value.value)
         }
+
         is Variant13.V11 -> {
             callBack11(value.value)
         }
+
         is Variant13.V12 -> {
             callBack12(value.value)
         }
+
         is Variant13.V13 -> {
             callBack13(value.value)
         }
@@ -2415,6 +2583,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2429,6 +2598,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2443,6 +2613,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2457,6 +2628,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2471,6 +2643,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2485,6 +2658,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2499,6 +2673,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2513,6 +2688,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2527,6 +2703,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2541,6 +2718,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2555,6 +2733,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2569,6 +2748,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2583,6 +2763,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2597,6 +2778,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2699,42 +2881,55 @@ class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant14.V1 -> {
             callBack1(value.value)
         }
+
         is Variant14.V2 -> {
             callBack2(value.value)
         }
+
         is Variant14.V3 -> {
             callBack3(value.value)
         }
+
         is Variant14.V4 -> {
             callBack4(value.value)
         }
+
         is Variant14.V5 -> {
             callBack5(value.value)
         }
+
         is Variant14.V6 -> {
             callBack6(value.value)
         }
+
         is Variant14.V7 -> {
             callBack7(value.value)
         }
+
         is Variant14.V8 -> {
             callBack8(value.value)
         }
+
         is Variant14.V9 -> {
             callBack9(value.value)
         }
+
         is Variant14.V10 -> {
             callBack10(value.value)
         }
+
         is Variant14.V11 -> {
             callBack11(value.value)
         }
+
         is Variant14.V12 -> {
             callBack12(value.value)
         }
+
         is Variant14.V13 -> {
             callBack13(value.value)
         }
+
         is Variant14.V14 -> {
             callBack14(value.value)
         }
@@ -2794,6 +2989,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2808,6 +3004,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2822,6 +3019,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2836,6 +3034,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2850,6 +3049,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2864,6 +3064,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2878,6 +3079,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2892,6 +3094,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2906,6 +3109,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2920,6 +3124,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2934,6 +3139,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2948,6 +3154,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2962,6 +3169,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2976,6 +3184,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -2990,6 +3199,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V15 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3098,45 +3308,59 @@ class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant15.V1 -> {
             callBack1(value.value)
         }
+
         is Variant15.V2 -> {
             callBack2(value.value)
         }
+
         is Variant15.V3 -> {
             callBack3(value.value)
         }
+
         is Variant15.V4 -> {
             callBack4(value.value)
         }
+
         is Variant15.V5 -> {
             callBack5(value.value)
         }
+
         is Variant15.V6 -> {
             callBack6(value.value)
         }
+
         is Variant15.V7 -> {
             callBack7(value.value)
         }
+
         is Variant15.V8 -> {
             callBack8(value.value)
         }
+
         is Variant15.V9 -> {
             callBack9(value.value)
         }
+
         is Variant15.V10 -> {
             callBack10(value.value)
         }
+
         is Variant15.V11 -> {
             callBack11(value.value)
         }
+
         is Variant15.V12 -> {
             callBack12(value.value)
         }
+
         is Variant15.V13 -> {
             callBack13(value.value)
         }
+
         is Variant15.V14 -> {
             callBack14(value.value)
         }
+
         is Variant15.V15 -> {
             callBack15(value.value)
         }
@@ -3199,6 +3423,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3213,6 +3438,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3227,6 +3453,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3241,6 +3468,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3255,6 +3483,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3269,6 +3498,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3283,6 +3513,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3297,6 +3528,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3311,6 +3543,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3325,6 +3558,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3339,6 +3573,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3353,6 +3588,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3367,6 +3603,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3381,6 +3618,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3395,6 +3633,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V15 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3409,6 +3648,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V16 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3523,48 +3763,63 @@ class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant16.V1 -> {
             callBack1(value.value)
         }
+
         is Variant16.V2 -> {
             callBack2(value.value)
         }
+
         is Variant16.V3 -> {
             callBack3(value.value)
         }
+
         is Variant16.V4 -> {
             callBack4(value.value)
         }
+
         is Variant16.V5 -> {
             callBack5(value.value)
         }
+
         is Variant16.V6 -> {
             callBack6(value.value)
         }
+
         is Variant16.V7 -> {
             callBack7(value.value)
         }
+
         is Variant16.V8 -> {
             callBack8(value.value)
         }
+
         is Variant16.V9 -> {
             callBack9(value.value)
         }
+
         is Variant16.V10 -> {
             callBack10(value.value)
         }
+
         is Variant16.V11 -> {
             callBack11(value.value)
         }
+
         is Variant16.V12 -> {
             callBack12(value.value)
         }
+
         is Variant16.V13 -> {
             callBack13(value.value)
         }
+
         is Variant16.V14 -> {
             callBack14(value.value)
         }
+
         is Variant16.V15 -> {
             callBack15(value.value)
         }
+
         is Variant16.V16 -> {
             callBack16(value.value)
         }
@@ -3630,6 +3885,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3646,6 +3902,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3662,6 +3919,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3678,6 +3936,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3694,6 +3953,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3710,6 +3970,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3726,6 +3987,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3742,6 +4004,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3758,6 +4021,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3774,6 +4038,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3790,6 +4055,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3806,6 +4072,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3822,6 +4089,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3838,6 +4106,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3854,6 +4123,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V15 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3870,6 +4140,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V16 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -3886,6 +4157,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V17 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4008,51 +4280,67 @@ class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant17.V1 -> {
             callBack1(value.value)
         }
+
         is Variant17.V2 -> {
             callBack2(value.value)
         }
+
         is Variant17.V3 -> {
             callBack3(value.value)
         }
+
         is Variant17.V4 -> {
             callBack4(value.value)
         }
+
         is Variant17.V5 -> {
             callBack5(value.value)
         }
+
         is Variant17.V6 -> {
             callBack6(value.value)
         }
+
         is Variant17.V7 -> {
             callBack7(value.value)
         }
+
         is Variant17.V8 -> {
             callBack8(value.value)
         }
+
         is Variant17.V9 -> {
             callBack9(value.value)
         }
+
         is Variant17.V10 -> {
             callBack10(value.value)
         }
+
         is Variant17.V11 -> {
             callBack11(value.value)
         }
+
         is Variant17.V12 -> {
             callBack12(value.value)
         }
+
         is Variant17.V13 -> {
             callBack13(value.value)
         }
+
         is Variant17.V14 -> {
             callBack14(value.value)
         }
+
         is Variant17.V15 -> {
             callBack15(value.value)
         }
+
         is Variant17.V16 -> {
             callBack16(value.value)
         }
+
         is Variant17.V17 -> {
             callBack17(value.value)
         }
@@ -4121,6 +4409,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4137,6 +4426,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4153,6 +4443,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4169,6 +4460,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4185,6 +4477,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4201,6 +4494,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4217,6 +4511,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4233,6 +4528,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4249,6 +4545,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4265,6 +4562,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4281,6 +4579,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4297,6 +4596,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4313,6 +4613,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4329,6 +4630,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4345,6 +4647,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V15 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4361,6 +4664,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V16 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4377,6 +4681,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V17 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4393,6 +4698,7 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V18 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4521,54 +4827,71 @@ class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant18.V1 -> {
             callBack1(value.value)
         }
+
         is Variant18.V2 -> {
             callBack2(value.value)
         }
+
         is Variant18.V3 -> {
             callBack3(value.value)
         }
+
         is Variant18.V4 -> {
             callBack4(value.value)
         }
+
         is Variant18.V5 -> {
             callBack5(value.value)
         }
+
         is Variant18.V6 -> {
             callBack6(value.value)
         }
+
         is Variant18.V7 -> {
             callBack7(value.value)
         }
+
         is Variant18.V8 -> {
             callBack8(value.value)
         }
+
         is Variant18.V9 -> {
             callBack9(value.value)
         }
+
         is Variant18.V10 -> {
             callBack10(value.value)
         }
+
         is Variant18.V11 -> {
             callBack11(value.value)
         }
+
         is Variant18.V12 -> {
             callBack12(value.value)
         }
+
         is Variant18.V13 -> {
             callBack13(value.value)
         }
+
         is Variant18.V14 -> {
             callBack14(value.value)
         }
+
         is Variant18.V15 -> {
             callBack15(value.value)
         }
+
         is Variant18.V16 -> {
             callBack16(value.value)
         }
+
         is Variant18.V17 -> {
             callBack17(value.value)
         }
+
         is Variant18.V18 -> {
             callBack18(value.value)
         }
@@ -4640,6 +4963,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4656,6 +4980,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4672,6 +4997,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4688,6 +5014,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4704,6 +5031,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4720,6 +5048,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4736,6 +5065,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4752,6 +5082,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4768,6 +5099,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4784,6 +5116,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4800,6 +5133,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4816,6 +5150,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4832,6 +5167,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4848,6 +5184,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4864,6 +5201,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V15 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4880,6 +5218,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V16 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4896,6 +5235,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V17 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4912,6 +5252,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V18 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -4928,6 +5269,7 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V19 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5064,57 +5406,75 @@ class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant19.V1 -> {
             callBack1(value.value)
         }
+
         is Variant19.V2 -> {
             callBack2(value.value)
         }
+
         is Variant19.V3 -> {
             callBack3(value.value)
         }
+
         is Variant19.V4 -> {
             callBack4(value.value)
         }
+
         is Variant19.V5 -> {
             callBack5(value.value)
         }
+
         is Variant19.V6 -> {
             callBack6(value.value)
         }
+
         is Variant19.V7 -> {
             callBack7(value.value)
         }
+
         is Variant19.V8 -> {
             callBack8(value.value)
         }
+
         is Variant19.V9 -> {
             callBack9(value.value)
         }
+
         is Variant19.V10 -> {
             callBack10(value.value)
         }
+
         is Variant19.V11 -> {
             callBack11(value.value)
         }
+
         is Variant19.V12 -> {
             callBack12(value.value)
         }
+
         is Variant19.V13 -> {
             callBack13(value.value)
         }
+
         is Variant19.V14 -> {
             callBack14(value.value)
         }
+
         is Variant19.V15 -> {
             callBack15(value.value)
         }
+
         is Variant19.V16 -> {
             callBack16(value.value)
         }
+
         is Variant19.V17 -> {
             callBack17(value.value)
         }
+
         is Variant19.V18 -> {
             callBack18(value.value)
         }
+
         is Variant19.V19 -> {
             callBack19(value.value)
         }
@@ -5189,6 +5549,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V1 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5205,6 +5566,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V2 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5221,6 +5583,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V3 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5237,6 +5600,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V4 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5253,6 +5617,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V5 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5269,6 +5634,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V6 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5285,6 +5651,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V7 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5301,6 +5668,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V8 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5317,6 +5685,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V9 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5333,6 +5702,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V10 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5349,6 +5719,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V11 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5365,6 +5736,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V12 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5381,6 +5753,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V13 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5397,6 +5770,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V14 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5413,6 +5787,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V15 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5429,6 +5804,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V16 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5445,6 +5821,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V17 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5461,6 +5838,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V18 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5477,6 +5855,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V19 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5493,6 +5872,7 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is V20 -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -5635,60 +6015,79 @@ class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
         is Variant20.V1 -> {
             callBack1(value.value)
         }
+
         is Variant20.V2 -> {
             callBack2(value.value)
         }
+
         is Variant20.V3 -> {
             callBack3(value.value)
         }
+
         is Variant20.V4 -> {
             callBack4(value.value)
         }
+
         is Variant20.V5 -> {
             callBack5(value.value)
         }
+
         is Variant20.V6 -> {
             callBack6(value.value)
         }
+
         is Variant20.V7 -> {
             callBack7(value.value)
         }
+
         is Variant20.V8 -> {
             callBack8(value.value)
         }
+
         is Variant20.V9 -> {
             callBack9(value.value)
         }
+
         is Variant20.V10 -> {
             callBack10(value.value)
         }
+
         is Variant20.V11 -> {
             callBack11(value.value)
         }
+
         is Variant20.V12 -> {
             callBack12(value.value)
         }
+
         is Variant20.V13 -> {
             callBack13(value.value)
         }
+
         is Variant20.V14 -> {
             callBack14(value.value)
         }
+
         is Variant20.V15 -> {
             callBack15(value.value)
         }
+
         is Variant20.V16 -> {
             callBack16(value.value)
         }
+
         is Variant20.V17 -> {
             callBack17(value.value)
         }
+
         is Variant20.V18 -> {
             callBack18(value.value)
         }
+
         is Variant20.V19 -> {
             callBack19(value.value)
         }
+
         is Variant20.V20 -> {
             callBack20(value.value)
         }

@@ -9,11 +9,11 @@ data class Product(
     override val index: Int,
     val length: UInt64,
     val demand: UInt64
-): Indexed
+) : Indexed
 
 data class CuttingPlan(
-    val products: Map<fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product, UInt64>,
-    override val index: Int = fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlanIndexGenerator()
-): Indexed
+    val products: Map<Product, UInt64>,
+    override val index: Int = CuttingPlanIndexGenerator()
+) : Indexed
 
-class SPM: ShadowPriceMap<fuookami.ospf.kotlin.example.column_generation_demo.demo1.SPM>() {}
+class SPM : ShadowPriceMap<SPM>() {}

@@ -98,12 +98,12 @@ $$
 ##### 4. 净流出带宽
 
 $$
-Bandwidth^{OutFlow, Service}_{is} = Bandwidth^{Outdegree, Service}_{is} - Bandwidth^{Indegree, Service}_{is}, \; \forall i \in N^{N}, \; \forall s \in S \\ \; \\
+Bandwidth^{OutFlow, Service}_{is} = Bandwidth^{Outdegree, Service}_{is} - Bandwidth^{Indegree, Service}_{is}, \; \forall
+i \in N^{N}, \; \forall s \in S \\ \; \\
 Bandwidth^{OutFlow, Node}_{i} = \sum_{s \in S} Bandwidth^{OutFlow, Service}_{is}, \; \forall i \in N^{N}
 $$
 
 #### (3) 目标函数
-
 
 ##### 1. 链路带宽使用成本最小
 
@@ -116,7 +116,8 @@ $$
 ##### 1. 使用带宽不超过链路最大值，且只有服务器可以使用带宽
 
 $$
-s.t. \quad Bandwidth^{Max}_{e_{ij}} \cdot (1 - Assignment^{Service}_{s}) + y_{e_{ij}, s} \leq Bandwidth^{Max}_{e_{ij}}, \; \forall i \in N^{N}, \; \forall j \in N, \; \forall s \in S
+s.t. \quad Bandwidth^{Max}_{e_{ij}} \cdot (1 - Assignment^{Service}_{s}) + y_{e_{ij}, s} \leq Bandwidth^{Max}_{e_{ij}},
+\; \forall i \in N^{N}, \; \forall j \in N, \; \forall s \in S
 $$
 
 ##### 2. 要满足消费节点需求
@@ -128,7 +129,8 @@ $$
 ##### 3. 中转节点流量平衡
 
 $$
-s.t. \quad Bandwidth^{Max, Outdegree}_{i} \cdot (1 - Assignment^{Node}_{i}) + Bandwidth^{OutFlow, Node}_{i} \leq Bandwidth^{Max, Outdegree}_{i}, \; \forall i \in N^{N} \\ \; \\
+s.t. \quad Bandwidth^{Max, Outdegree}_{i} \cdot (1 - Assignment^{Node}_{i}) + Bandwidth^{OutFlow, Node}_{i} \leq
+Bandwidth^{Max, Outdegree}_{i}, \; \forall i \in N^{N} \\ \; \\
 \Rightarrow (1 - Assignment^{Node}_{i}) \cdot Bandwidth^{OutFlow, Node}_{i} = 0 \\ \; \\ \; \\
 其中，Bandwidth^{Max, Outdegree}_{i} = \sum_{j \in N} Bandwidth^{Max}_{e_{ij}}, \; \forall i \in N^{N}
 $$
@@ -136,5 +138,6 @@ $$
 ##### 4. 服务器节点净输出不大于服务器能力
 
 $$
-s.t. \quad Capacity_{s} \cdot (1 - x_{is}) + Bandwidth^{OutFlow, Service}_{is} \leq Capacity_{s}, \; \forall i \in N^{N}, \; \forall s \in S
+s.t. \quad Capacity_{s} \cdot (1 - x_{is}) + Bandwidth^{OutFlow, Service}_{is} \leq Capacity_{s}, \; \forall i \in
+N^{N}, \; \forall s \in S
 $$

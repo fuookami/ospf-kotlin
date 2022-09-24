@@ -11,11 +11,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 // import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
+import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
-import fuookami.ospf.kotlin.core.backend.solver.config.LinearSolverConfig
-import fuookami.ospf.kotlin.core.backend.plugins.scip.SCIPLinearSolver
 
 class Demo1 {
     data class Company(
@@ -23,7 +23,7 @@ class Demo1 {
         val capital: Flt64,
         val liability: Flt64,
         val profit: Flt64
-    ): Indexed
+    ) : Indexed
 
     private val companies: ArrayList<Company> = ArrayList()
     private val minCapital: Flt64 = Flt64(10.0)
@@ -58,8 +58,11 @@ class Demo1 {
     operator fun invoke(): Try<Error> {
         for (process in subProcesses) {
             when (val result = process(this)) {
-                is Failed -> { return Failed(result.error) }
-                else -> { }
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
             }
         }
         return Ok(success)
@@ -111,12 +114,14 @@ class Demo1 {
 
     fun solve(): Try<Error> {
         // val solver = GurobiLinearSolver(LinearSolverConfig())
-        val solver = SCIPLinearSolver(LinearSolverConfig())
-        val model = fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel(LinearModel(metaModel))
+        // val solver = SCIPLinearSolver(LinearSolverConfig())
+        val solver = CplexLinearSolver(LinearSolverConfig())
+        val model = LinearTriadModel(LinearModel(metaModel))
         when (val ret = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.results)
             }
+
             is Failed -> {
                 return Failed(ret.error)
             }

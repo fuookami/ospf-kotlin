@@ -31,7 +31,7 @@ abstract class BivariateLinearPiecewiseFunction(
     val y: LinearPolynomial,
     override var name: String,
     override var displayName: String? = "${name}(${x.name}, ${y.name})"
-): Function<Linear> {
+) : Function<Linear> {
 
     companion object {
         fun triangulate(points: List<Point>): List<Triangle> {
@@ -46,13 +46,16 @@ abstract class BivariateLinearPiecewiseFunction(
     abstract fun triangle(i: Int): Triangle
 
     override val possibleRange: ValueRange<Flt64> get() = symbols.z.possibleRange
-    override var range: ValueRange<Flt64> get() = symbols.z.range
-        set(value) { symbols.z.range = value }
+    override var range: ValueRange<Flt64>
+        get() = symbols.z.range
+        set(value) {
+            symbols.z.range = value
+        }
 
     override val cells: List<MonomialCell<Linear>> get() = symbols.z.cells
 
     override val lowerBound: Flt64 get() = symbols.z.lowerBound
-    override  val upperBound: Flt64 get() = symbols.z.upperBound
+    override val upperBound: Flt64 get() = symbols.z.upperBound
 
     override fun intersectRange(range: ValueRange<Flt64>) = symbols.z.intersectRange(range)
     override fun rangeLess(value: Flt64) = symbols.z.rangeLess(value)
@@ -130,8 +133,8 @@ abstract class BivariateLinearPiecewiseFunction(
             ) {
                 val triangle = this.triangle(i)
                 return triangle.p1.z +
-                    (triangle.p2.z - triangle.p1.z) * u +
-                    (triangle.p3.z - triangle.p1.z) * v
+                        (triangle.p2.z - triangle.p1.z) * u +
+                        (triangle.p3.z - triangle.p1.z) * v
             }
         }
         throw IllegalArgumentException("Out of domain!")

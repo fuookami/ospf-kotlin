@@ -40,7 +40,7 @@ class LinearPolynomial(
     }
 
     constructor(polynomial: LinearPolynomial) : this(polynomial.constant) {
-        monomials.addAll(polynomial.monomials.asIterable().map{ LinearMonomial(it) })
+        monomials.addAll(polynomial.monomials.asIterable().map { LinearMonomial(it) })
         name = polynomial.name
         displayName = polynomial.displayName
     }
@@ -70,7 +70,7 @@ class LinearPolynomial(
     }
 
     operator fun plusAssign(rhs: LinearPolynomial) {
-        monomials.addAll(rhs.monomials.asIterable().map{ LinearMonomial(it) })
+        monomials.addAll(rhs.monomials.asIterable().map { LinearMonomial(it) })
         constant += rhs.constant
     }
 
@@ -138,7 +138,7 @@ class LinearPolynomial(
                 if (cell.isConstant()) {
                     constant += cell.constant()!!
                 } else {
-                    val sameCell = cells.find{ it == cell }
+                    val sameCell = cells.find { it == cell }
                     if (sameCell != null) {
                         sameCell += cell
                     } else {
@@ -153,19 +153,19 @@ class LinearPolynomial(
     }
 }
 
-operator fun <T: RealNumber<T>> LinearPolynomial.times(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearPolynomial.times(rhs: T): LinearPolynomial {
     val poly = LinearPolynomial(this)
     poly *= rhs
     return poly
 }
 
-operator fun <T: RealNumber<T>> LinearPolynomial.div(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearPolynomial.div(rhs: T): LinearPolynomial {
     val poly = LinearPolynomial(this)
     poly /= rhs
     return poly
 }
 
-operator fun <T: RealNumber<T>> T.times(rhs: LinearPolynomial): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.times(rhs: LinearPolynomial): LinearPolynomial {
     val poly = LinearPolynomial(rhs)
     poly *= this
     return poly
@@ -225,25 +225,25 @@ operator fun <T : RealNumber<T>> T.minus(rhs: ExprSymbol): LinearPolynomial {
 
 // monomial and constant
 
-operator fun <T: RealNumber<T>> LinearMonomial.plus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearMonomial.plus(rhs: T): LinearPolynomial {
     val poly = LinearPolynomial(this)
     poly += rhs.toFlt64()
     return poly
 }
 
-operator fun <T: RealNumber<T>> LinearMonomial.minus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearMonomial.minus(rhs: T): LinearPolynomial {
     val poly = LinearPolynomial(this)
     poly -= rhs.toFlt64()
     return poly
 }
 
-operator fun <T: RealNumber<T>> T.plus(rhs: LinearMonomial): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.plus(rhs: LinearMonomial): LinearPolynomial {
     val poly = LinearPolynomial(this.toFlt64())
     poly += rhs
     return poly
 }
 
-operator fun <T: RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial {
     val poly = LinearPolynomial(this.toFlt64())
     poly -= rhs
     return poly
@@ -251,25 +251,25 @@ operator fun <T: RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial {
 
 // polynomial and constant
 
-operator fun <T: RealNumber<T>> LinearPolynomial.plus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearPolynomial.plus(rhs: T): LinearPolynomial {
     val poly = LinearPolynomial(this)
     poly += rhs
     return poly
 }
 
-operator fun <T: RealNumber<T>> LinearPolynomial.minus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearPolynomial.minus(rhs: T): LinearPolynomial {
     val poly = LinearPolynomial(this)
     poly -= rhs
     return poly
 }
 
-operator fun <T: RealNumber<T>> T.plus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.plus(rhs: LinearPolynomial): LinearPolynomial {
     val poly = LinearPolynomial(this.toFlt64())
     poly += rhs
     return poly
 }
 
-operator fun <T: RealNumber<T>> T.minus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.minus(rhs: LinearPolynomial): LinearPolynomial {
     val poly = LinearPolynomial(this.toFlt64())
     poly -= rhs
     return poly

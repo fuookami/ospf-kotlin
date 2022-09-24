@@ -31,8 +31,8 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>cplex</groupId>
-            <artifactId>cplex</artifactId>
+            <groupId>ilog</groupId>
+            <artifactId>ilog</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
             <systemPath>${env.CPLEX_HOME}/lib/cplex.jar</systemPath>

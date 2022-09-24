@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 
-class Rectangle<P: Point>(
+class Rectangle<P : Point>(
     val p1: P,
     val p2: P,
     val p3: P,

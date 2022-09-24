@@ -5,6 +5,6 @@ interface Exp<out Ret> {
 }
 
 fun <Index, Ret> exp(index: Index): Ret
-    where Index : Exp<Ret> {
+        where Index : Exp<Ret> {
     return index.exp()
 }

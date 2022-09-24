@@ -1,21 +1,21 @@
-package fuookami.ospf.kotlin.core.backend.plugins.scip
+package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import jscip.*;
+import ilog.concert.*
 
-enum class SCIPVariable {
+enum class CplexVariable {
     Binary {
-        override fun toSCIPVar(): SCIP_Vartype = SCIP_Vartype.SCIP_VARTYPE_BINARY
+        override fun toCplexVar(): IloNumVarType = IloNumVarType.Bool
     },
     Integer {
-        override fun toSCIPVar(): SCIP_Vartype = SCIP_Vartype.SCIP_VARTYPE_INTEGER
+        override fun toCplexVar(): IloNumVarType = IloNumVarType.Int
     },
     Continuous {
-        override fun toSCIPVar(): SCIP_Vartype = SCIP_Vartype.SCIP_VARTYPE_CONTINUOUS
+        override fun toCplexVar(): IloNumVarType = IloNumVarType.Float
     };
 
     companion object {
-        operator fun invoke(type: VariableType<*>): SCIPVariable {
+        operator fun invoke(type: VariableType<*>): CplexVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.frontend.variable.Binary -> {
                     Binary
@@ -32,5 +32,5 @@ enum class SCIPVariable {
         }
     }
 
-    abstract fun toSCIPVar(): SCIP_Vartype
+    abstract fun toCplexVar(): IloNumVarType
 }

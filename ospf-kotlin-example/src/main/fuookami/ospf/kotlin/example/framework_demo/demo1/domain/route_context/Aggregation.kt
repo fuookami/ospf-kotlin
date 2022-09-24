@@ -17,8 +17,11 @@ class Aggregation(
 
         for (subprocess in subprocesses) {
             when (val result = subprocess()) {
-                is Failed -> { return Failed(result.error) }
-                is Ok -> { }
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Ok -> {}
             }
         }
         return Ok(success)

@@ -34,6 +34,7 @@ sealed class Either<L, R> {
         is Left -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -43,6 +44,7 @@ sealed class Either<L, R> {
         is Right -> {
             this.value
         }
+
         else -> {
             null
         }
@@ -70,6 +72,7 @@ class EitherMatcher<L, R, Ret>(private val value: Either<L, R>) {
     operator fun invoke(): Ret = when (value) {
         is Either.Left -> {
             leftCallBack(value.value); }
+
         is Either.Right -> {
             rightCallBack(value.value); }
     }
@@ -88,6 +91,7 @@ fun <L : fuookami.ospf.kotlin.utils.concept.Cloneable<L>, R : fuookami.ospf.kotl
         is Either.Left -> {
             Either.Left(clone(value.value))
         }
+
         is Either.Right -> {
             Either.Right(clone(value.value))
         }
@@ -97,6 +101,7 @@ fun <L : Movable<L>, R : Movable<R>> Either<L, R>.move(value: Either<L, R>): Eit
     is Either.Left -> {
         Either.Left(move(value.value))
     }
+
     is Either.Right -> {
         Either.Right(move(value.value))
     }

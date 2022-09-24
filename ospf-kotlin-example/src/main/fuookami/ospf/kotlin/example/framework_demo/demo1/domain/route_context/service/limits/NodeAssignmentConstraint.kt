@@ -12,7 +12,7 @@ class NodeAssignmentConstraint(
     private val nodes: List<Node>,
     private val assignment: Assignment,
     override val name: String = "node_assignment"
-): Pipeline<LinearMetaModel> {
+) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try<Error> {
         for (node in nodes.asSequence().filter(normal)) {
             model.addConstraint(

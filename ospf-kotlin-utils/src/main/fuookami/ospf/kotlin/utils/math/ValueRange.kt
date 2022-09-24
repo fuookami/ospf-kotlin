@@ -93,7 +93,7 @@ sealed class ValueWrapper<T>(
 ) : Cloneable<ValueWrapper<T>>, Ord<ValueWrapper<T>>, Eq<ValueWrapper<T>>,
     Plus<ValueWrapper<T>, ValueWrapper<T>>, Minus<ValueWrapper<T>, ValueWrapper<T>>,
     Times<ValueWrapper<T>, ValueWrapper<T>>, Div<ValueWrapper<T>, ValueWrapper<T>>
-    where T : RealNumber<T>, T : NumberField<T> {
+        where T : RealNumber<T>, T : NumberField<T> {
 
     companion object {
         @Throws(IllegalArgumentException::class)
@@ -177,6 +177,7 @@ sealed class ValueWrapper<T>(
             } else {
                 ValueWrapper(constants.zero, constants)
             }
+
             is NegativeInfinity -> if (value < constants.zero) {
                 ValueWrapper(Infinity, constants)
             } else if (value > constants.zero) {
@@ -196,6 +197,7 @@ sealed class ValueWrapper<T>(
             } else {
                 ValueWrapper(constants.zero, constants)
             }
+
             is NegativeInfinity -> if (value < constants.zero) {
                 ValueWrapper(constants.epsilon, constants)
             } else if (value > constants.zero) {
@@ -270,6 +272,7 @@ sealed class ValueWrapper<T>(
             } else {
                 ValueWrapper(constants.zero, constants)
             }
+
             is Infinity -> ValueWrapper(Infinity, constants)
             is NegativeInfinity -> ValueWrapper(NegativeInfinity, constants)
         }
@@ -296,6 +299,7 @@ sealed class ValueWrapper<T>(
             } else {
                 throw IllegalArgumentException("Invalid div between inf and 0!!!")
             }
+
             is Infinity -> throw IllegalArgumentException("Invalid div between inf and inf!!!")
             is NegativeInfinity -> throw IllegalArgumentException("Invalid div between inf and -inf!!!")
         }
@@ -365,6 +369,7 @@ sealed class ValueWrapper<T>(
             } else {
                 ValueWrapper(constants.zero, constants)
             }
+
             is Infinity -> ValueWrapper(NegativeInfinity, constants)
             is NegativeInfinity -> ValueWrapper(Infinity, constants)
         }
@@ -391,6 +396,7 @@ sealed class ValueWrapper<T>(
             } else {
                 throw IllegalArgumentException("Invalid div between -inf and 0!!!")
             }
+
             is Infinity -> throw IllegalArgumentException("Invalid div between -inf and inf!!!")
             is NegativeInfinity -> throw IllegalArgumentException("Invalid div between -inf and -inf!!!")
         }
@@ -457,7 +463,7 @@ class ValueRange<T> constructor(
 ) : Cloneable<ValueRange<T>>, Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>, PlusAssign<T>,
     MinusAssign<T>,
     Times<T, ValueRange<T>>, TimesAssign<T>, Div<T, ValueRange<T>>, DivAssign<T>
-    where T : RealNumber<T>, T : NumberField<T> {
+        where T : RealNumber<T>, T : NumberField<T> {
 
     val lowerBound: ValueWrapper<T>
         get() {
@@ -482,64 +488,64 @@ class ValueRange<T> constructor(
         lowerBound: T, upperBound: T, lowerInterval: IntervalType, upperInterval: IntervalType,
         constants: RealNumberConstants<T>
     ) :
-        this(
-            ValueWrapper(lowerBound, constants),
-            ValueWrapper(upperBound, constants),
-            lowerInterval,
-            upperInterval,
-            constants
-        )
+            this(
+                ValueWrapper(lowerBound, constants),
+                ValueWrapper(upperBound, constants),
+                lowerInterval,
+                upperInterval,
+                constants
+            )
 
     constructor(lowerBound: T, upperBound: T, constants: RealNumberConstants<T>) :
-        this(
-            ValueWrapper(lowerBound, constants),
-            ValueWrapper(upperBound, constants),
-            IntervalType.Closed,
-            IntervalType.Closed,
-            constants
-        )
+            this(
+                ValueWrapper(lowerBound, constants),
+                ValueWrapper(upperBound, constants),
+                IntervalType.Closed,
+                IntervalType.Closed,
+                constants
+            )
 
     constructor(
         _inf: GlobalNegativeInfinity, upperBound: T, lowerInterval: IntervalType, upperInterval: IntervalType,
         constants: RealNumberConstants<T>
     ) :
-        this(
-            ValueWrapper(_inf, constants),
-            ValueWrapper(upperBound, constants),
-            lowerInterval,
-            upperInterval,
-            constants
-        )
+            this(
+                ValueWrapper(_inf, constants),
+                ValueWrapper(upperBound, constants),
+                lowerInterval,
+                upperInterval,
+                constants
+            )
 
     constructor(_inf: GlobalNegativeInfinity, upperBound: T, constants: RealNumberConstants<T>) :
-        this(
-            ValueWrapper(_inf, constants),
-            ValueWrapper(upperBound, constants),
-            IntervalType.Closed,
-            IntervalType.Closed,
-            constants
-        )
+            this(
+                ValueWrapper(_inf, constants),
+                ValueWrapper(upperBound, constants),
+                IntervalType.Closed,
+                IntervalType.Closed,
+                constants
+            )
 
     constructor(
         lowerBound: T, _inf: GlobalInfinity, lowerInterval: IntervalType, upperInterval: IntervalType,
         constants: RealNumberConstants<T>
     ) :
-        this(
-            ValueWrapper(lowerBound, constants),
-            ValueWrapper(_inf, constants),
-            lowerInterval,
-            upperInterval,
-            constants
-        )
+            this(
+                ValueWrapper(lowerBound, constants),
+                ValueWrapper(_inf, constants),
+                lowerInterval,
+                upperInterval,
+                constants
+            )
 
     constructor(lowerBound: T, _inf: GlobalInfinity, constants: RealNumberConstants<T>) :
-        this(
-            ValueWrapper(lowerBound, constants),
-            ValueWrapper(_inf, constants),
-            IntervalType.Closed,
-            IntervalType.Closed,
-            constants
-        )
+            this(
+                ValueWrapper(lowerBound, constants),
+                ValueWrapper(_inf, constants),
+                IntervalType.Closed,
+                IntervalType.Closed,
+                constants
+            )
 
     override fun clone() = ValueRange(
         _lowerBound,
@@ -550,10 +556,10 @@ class ValueRange<T> constructor(
     )
 
     fun fixed() = lowerInterval == IntervalType.Closed
-        && upperInterval == IntervalType.Closed
-        && !lowerBound.isInfinityOrNegativeInfinity()
-        && !upperBound.isInfinityOrNegativeInfinity()
-        && lowerBound eq upperBound
+            && upperInterval == IntervalType.Closed
+            && !lowerBound.isInfinityOrNegativeInfinity()
+            && !upperBound.isInfinityOrNegativeInfinity()
+            && lowerBound eq upperBound
 
     fun empty(): Boolean {
         return if (lowerInterval == IntervalType.Closed && upperInterval == IntervalType.Closed) {
@@ -630,6 +636,7 @@ class ValueRange<T> constructor(
             upperInterval,
             constants
         )
+
         else -> ValueRange(
             lowerBound * rhs,
             upperBound * rhs,
@@ -657,6 +664,7 @@ class ValueRange<T> constructor(
             upperInterval,
             constants
         )
+
         else -> ValueRange(
             lowerBound / rhs,
             upperBound / rhs,

@@ -20,10 +20,12 @@ enum class GurobiVariable {
                 is fuookami.ospf.kotlin.core.frontend.variable.Binary -> {
                     Binary
                 }
+
                 is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer, is UInteger -> {
                     Integer
                 }
-                is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continues, is UContinues -> {
+
+                is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continuous, is UContinues -> {
                     Continuous
                 }
             }

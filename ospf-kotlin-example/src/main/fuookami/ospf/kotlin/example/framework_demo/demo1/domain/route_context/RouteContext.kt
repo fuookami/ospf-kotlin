@@ -82,12 +82,18 @@ class RouteContext {
     fun construct(model: LinearMetaModel): Try<Error> {
         val generator = PipelineListGenerator(aggregation)
         when (val pipelines = generator()) {
-            is Failed -> { return Failed(pipelines.error) }
+            is Failed -> {
+                return Failed(pipelines.error)
+            }
+
             is Ok -> {
                 for (pipeline in pipelines.value) {
                     when (val result = pipeline(model)) {
-                        is Failed -> { return Failed(result.error) }
-                        is Ok -> { }
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+
+                        is Ok -> {}
                     }
                 }
             }

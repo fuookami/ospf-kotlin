@@ -75,7 +75,7 @@ object UInteger : VariableType<UInt64>(UInt64), UIntegerVariableType<UInt64> {
     override fun toString(): String = "UInteger"
 }
 
-object Continues : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
+object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
     override fun toString(): String = "Continues"
 }
 

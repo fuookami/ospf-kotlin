@@ -13,7 +13,7 @@ fun <T> permute(input: List<T>): List<List<T>> {
     val perms = ArrayList<List<T>>()
     perms.add(a.toList())
 
-    var i  = 1;
+    var i = 1;
     while (i < input.size) {
         if (p[i] < i) {
             val j = i % 2 * p[i]
@@ -39,7 +39,7 @@ fun <T> permuteAsync(input: List<T>): ChannelGuard<List<T>> {
             promise.send(a.toList())
         }
 
-        var i  = 1;
+        var i = 1;
         while (i < input.size && !promise.isClosedForSend) {
             if (p[i] < i) {
                 val j = i % 2 * p[i]

@@ -15,7 +15,7 @@ class AbsFunction(
     val x: LinearPolynomial,
     override var name: String = "${x.name}_abs",
     override var displayName: String? = "|${x.name}|"
-): Function<Linear> {
+) : Function<Linear> {
 
     class Symbols() {
         lateinit var neg: URealVar

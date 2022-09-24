@@ -44,6 +44,7 @@ data class Shape1(private val d1: Int) : Shape {
             } else {
                 vector[0]
             }
+
             else -> throw DimensionMismatchingException(1, vector.size)
         }
     }
@@ -80,6 +81,7 @@ data class Shape2(private val d1: Int, private val d2: Int) : Shape {
             } else {
                 vector[0] * d2 + vector[1]
             }
+
             else -> throw DimensionMismatchingException(2, vector.size)
         }
     }
@@ -119,6 +121,7 @@ data class Shape3(private val d1: Int, private val d2: Int, private val d3: Int)
             } else {
                 (vector[0] * d2 + vector[1]) * d3 + vector[2]
             }
+
             else -> throw DimensionMismatchingException(3, vector.size)
         }
     }
@@ -169,6 +172,7 @@ data class Shape4(private val d1: Int, private val d2: Int, private val d3: Int,
             } else {
                 ((vector[0] * d2 + vector[1]) * d3 + vector[2]) * d4 + vector[3]
             }
+
             else -> throw DimensionMismatchingException(4, vector.size)
         }
     }

@@ -13,10 +13,12 @@ private fun <I> getProgressionLastElement(
         if (start >= end) end
         else end - (end - start) % step
     }
+
     step < constants.zero -> {
         if (start <= end) end
         else end + (start - end) % -step
     }
+
     else -> throw IllegalArgumentException("Step is zero.")
 }
 

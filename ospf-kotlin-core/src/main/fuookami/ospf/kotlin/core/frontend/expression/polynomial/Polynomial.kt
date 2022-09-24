@@ -33,8 +33,7 @@ internal class PolynomialImpl<M : Monomial<C>, C : Category>(
         }
 
     fun flush() {
-        if (this::_cells.isInitialized)
-        {
+        if (this::_cells.isInitialized) {
             _cells.clear()
             for (monomial in monomials) {
                 monomial.flush()

@@ -15,7 +15,7 @@ abstract class UnivariateLinearPiecewiseFunction(
     val size: Int,
     final override var name: String,
     final override var displayName: String? = "${name}(${x.name})"
-): Function<Linear> {
+) : Function<Linear> {
 
     class Symbols() {
         lateinit var k: PctVariable1
@@ -117,6 +117,6 @@ abstract class MonotoneUnivariateLinearPiecewiseFunction(
     size: Int,
     name: String,
     displayName: String? = "${name}(${x.name})"
-): UnivariateLinearPiecewiseFunction(x, size, name, displayName) {
+) : UnivariateLinearPiecewiseFunction(x, size, name, displayName) {
 
 }

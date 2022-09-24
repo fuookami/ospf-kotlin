@@ -12,10 +12,10 @@ class ServiceCostObjective(
     private val services: List<Service>,
     private val assignment: Assignment,
     override val name: String = "service_cost"
-): Pipeline<LinearMetaModel> {
+) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try<Error> {
         val poly = LinearPolynomial()
-        for(service in services){
+        for (service in services) {
             poly += service.cost * assignment.serviceAssignment[service]!!
         }
         model.minimize(poly, "service cost")

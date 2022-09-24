@@ -14,7 +14,7 @@ class BandwidthCostObjective(
     private val edges: List<Edge>,
     private val edgeBandwidth: EdgeBandwidth,
     override val name: String = "bandwidth_cost"
-): Pipeline<LinearMetaModel> {
+) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try<Error> {
         val poly = LinearPolynomial()
         for (edge in edges.asSequence().filter(from(normal))) {

@@ -1,4 +1,5 @@
 # Core Demo
+
 [toc]
 
 ## Demo1（下料问题）
@@ -71,7 +72,7 @@ $$
 ###### 1. Reduced Cost 最小
 
 $$
-Min \quad 1 - \sum_{p \in P} \lambda_{p} \cdot y_{p} 
+Min \quad 1 - \sum_{p \in P} \lambda_{p} \cdot y_{p}
 $$
 
 ##### (4) 约束

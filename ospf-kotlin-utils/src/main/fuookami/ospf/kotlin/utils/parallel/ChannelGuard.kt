@@ -4,7 +4,7 @@ import kotlinx.coroutines.channels.*
 
 class ChannelGuard<T>(
     val channel: Channel<T>
-): AutoCloseable {
+) : AutoCloseable {
     override fun close() {
         channel.close()
     }

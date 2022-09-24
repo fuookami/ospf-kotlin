@@ -21,13 +21,19 @@ class SSP {
 
     operator fun invoke(input: Input): Result<Output, Error> {
         when (val result = init(input)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> { }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
         val model = LinearMetaModel("demo1")
         when (val result = construct(model)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> { }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
         val result = solve(model)
         if (result is Failed) {
@@ -46,12 +52,18 @@ class SSP {
         bandwidthContext = BandwidthContext(routeContext)
 
         when (val result = routeContext.init(input)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> { }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
         when (val result = bandwidthContext.init(input)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> { }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
 
         return Ok(success)
@@ -59,21 +71,33 @@ class SSP {
 
     private fun construct(model: LinearMetaModel): Try<Error> {
         when (val result = routeContext.register(model)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> {  }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
         when (val result = bandwidthContext.register(model)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> {  }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
 
         when (val result = routeContext.construct(model)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> {  }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
         when (val result = bandwidthContext.construct(model)) {
-            is Failed -> { return Failed(result.error) }
-            is Ok -> {  }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Ok -> {}
         }
 
         return Ok(success)
@@ -85,7 +109,7 @@ class SSP {
         }).use {
             // val solver = GurobiLinearSolver()
             val solver = SCIPLinearSolver(LinearSolverConfig())
-            val model = fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel(LinearModel(metaModel))
+            val model = LinearTriadModel(LinearModel(metaModel))
             ThreadGuard(Thread {
                 model.export(Path("."), ModelFileFormat.LP)
             }).use {
@@ -94,6 +118,7 @@ class SSP {
                         metaModel.tokens.setSolution(ret.value.results)
                         Ok(ret.value.results)
                     }
+
                     is Failed -> {
                         Failed(ret.error)
                     }

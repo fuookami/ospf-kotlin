@@ -122,7 +122,7 @@ interface IntegerNumber<Self : IntegerNumber<Self>> : Integer<Self>, NumberField
 interface UIntegerNumber<Self : UIntegerNumber<Self>> : Integer<Self>, NumberField<Self>, Pow<Self>
 
 interface RationalNumber<Self : RationalNumber<Self, I>, I> : RealNumber<Self>, NumberField<Self>, Pow<Self>
-    where I : Integer<I>, I : NumberField<I>
+        where I : Integer<I>, I : NumberField<I>
 
 interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, NumberField<Self>, Pow<Self> {
     override val constants: FloatingNumberConstants<Self>

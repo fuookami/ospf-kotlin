@@ -14,7 +14,7 @@ class ShadowPrice(
 
 typealias Extractor<M> = (ShadowPriceMap<M>, Array<out Any?>) -> Flt64
 
-open class ShadowPriceMap<M: ShadowPriceMap<M>>(
+open class ShadowPriceMap<M : ShadowPriceMap<M>>(
     val map: MutableMap<ShadowPriceKey, ShadowPrice> = HashMap(),
     private val extractors: MutableList<Extractor<M>> = ArrayList()
 ) {

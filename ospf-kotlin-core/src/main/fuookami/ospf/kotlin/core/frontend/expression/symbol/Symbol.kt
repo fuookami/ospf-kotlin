@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.utils.math.*
 
-interface Symbol<C: Category>: Expression {
+interface Symbol<C : Category> : Expression {
     val cells: List<MonomialCell<C>>
 
     val lowerBound: Flt64
@@ -19,7 +19,7 @@ class SimpleSymbol<C : Category>(
     val polynomial: Polynomial<C>,
     override var name: String = "",
     override var displayName: String? = null
-): Symbol<C> {
+) : Symbol<C> {
 
     private val impl = ExpressionImpl { getPossibleValueRange() }
 
@@ -27,7 +27,9 @@ class SimpleSymbol<C : Category>(
     override var range: ValueRange<Flt64> by impl::range
 
     override val cells: List<MonomialCell<C>> get() = polynomial.cells
-    fun flush() { polynomial.flush() }
+    fun flush() {
+        polynomial.flush()
+    }
 
     override val lowerBound: Flt64 get() = range.lowerBound.toFlt64()
     override val upperBound: Flt64 get() = range.upperBound.toFlt64()

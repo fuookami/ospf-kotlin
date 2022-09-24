@@ -14,14 +14,14 @@ import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 
 data class ProductDemandShadowPriceKey(
-    val product: fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product
-): ShadowPriceKey(ProductDemandShadowPriceKey::class.java)
+    val product: Product
+) : ShadowPriceKey(ProductDemandShadowPriceKey::class.java)
 
 class RMP(
-    private val products: List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product>,
-    initialCuttingPlans: List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan>
+    private val products: List<Product>,
+    initialCuttingPlans: List<CuttingPlan>
 ) {
-    private val cuttingPlans: MutableList<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan> = ArrayList()
+    private val cuttingPlans: MutableList<CuttingPlan> = ArrayList()
     private val x: MutableList<UIntVar> = ArrayList()
     private val cost = LinearSymbol(LinearPolynomial(), "cost")
     private val output = LinearSymbols1("output", Shape1(products.size))
@@ -43,7 +43,7 @@ class RMP(
         addColumns(initialCuttingPlans)
     }
 
-    fun addColumn(cuttingPlan: fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan, flush: Boolean = true): Boolean {
+    fun addColumn(cuttingPlan: CuttingPlan, flush: Boolean = true): Boolean {
         if (cuttingPlans.find { it.products == cuttingPlan.products } != null) {
             return false
         }
@@ -66,7 +66,7 @@ class RMP(
         return true
     }
 
-    fun addColumns(cuttingPlans: List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan>) {
+    fun addColumns(cuttingPlans: List<CuttingPlan>) {
         for (cuttingPlan in cuttingPlans) {
             addColumn(cuttingPlan, false)
         }
@@ -74,23 +74,33 @@ class RMP(
     }
 
     // solve lp
-    operator fun invoke(iteration: UInt64): Result<fuookami.ospf.kotlin.example.column_generation_demo.demo1.SPM, Error> {
+    operator fun invoke(iteration: UInt64): Result<SPM, Error> {
         return when (val result = solveLP("demo1-rmp-$iteration", metaModel)) {
-            is Ok -> { Ok(extracShadowPriceMap(result.value.dualResult)) }
-            is Failed -> { Failed(result.error) }
+            is Ok -> {
+                Ok(extractShadowPriceMap(result.value.dualResult))
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
         }
     }
 
     // solve ip
-    operator fun invoke(): Result<Map<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan, UInt64>, Error> {
+    operator fun invoke(): Result<Map<CuttingPlan, UInt64>, Error> {
         return when (val result = solveMIP("demo1-rmp-ip", metaModel)) {
-            is Ok -> { Ok(analyzeSolution(result.value)) }
-            is Failed -> { Failed(result.error) }
+            is Ok -> {
+                Ok(analyzeSolution(result.value))
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
         }
     }
 
-    private fun extracShadowPriceMap(dualResult: List<Flt64>): fuookami.ospf.kotlin.example.column_generation_demo.demo1.SPM {
-        val ret = fuookami.ospf.kotlin.example.column_generation_demo.demo1.SPM()
+    private fun extractShadowPriceMap(dualResult: List<Flt64>): SPM {
+        val ret = SPM()
 
         var i = 0
         for (j in metaModel.constraints.indices) {
@@ -99,15 +109,16 @@ class RMP(
                 ++i
             }
         }
-        ret.put { map, args -> 
-            map.map[ProductDemandShadowPriceKey(args[0] as fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product)]?.price ?: Flt64.zero
+        ret.put { map, args ->
+            map.map[ProductDemandShadowPriceKey(args[0] as Product)]?.price
+                ?: Flt64.zero
         }
 
         return ret
     }
 
-    private fun analyzeSolution(result: List<Flt64>): Map<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan, UInt64> {
-        val solution = HashMap<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan, UInt64>()
+    private fun analyzeSolution(result: List<Flt64>): Map<CuttingPlan, UInt64> {
+        val solution = HashMap<CuttingPlan, UInt64>()
         for (token in metaModel.tokens.tokens) {
             if (result[token.solverIndex] geq Flt64.one) {
                 for (i in cuttingPlans.indices) {

@@ -15,7 +15,7 @@ fun <T : Ord<T>> minOf(lhs: T, vararg rhs: T): T {
     return min
 }
 
-fun <T: Ord<T>> minOf(list: Collection<T>): T? {
+fun <T : Ord<T>> minOf(list: Collection<T>): T? {
     if (list.isEmpty()) {
         return null
     }
@@ -30,7 +30,7 @@ fun <T: Ord<T>> minOf(list: Collection<T>): T? {
     return min
 }
 
-fun <T: Ord<T>, U> minOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): T {
+fun <T : Ord<T>, U> minOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): T {
     var min = extractor(lhs)
     for (e in rhs) {
         val v = extractor(e)
@@ -41,7 +41,7 @@ fun <T: Ord<T>, U> minOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): T {
     return min
 }
 
-fun <T: Ord<T>, U> minOf(list: Collection<U>, extractor: Extractor<T, U>): T? {
+fun <T : Ord<T>, U> minOf(list: Collection<U>, extractor: Extractor<T, U>): T? {
     if (list.isEmpty()) {
         return null
     }
@@ -58,7 +58,7 @@ fun <T: Ord<T>, U> minOf(list: Collection<U>, extractor: Extractor<T, U>): T? {
 
 fun <T : Ord<T>> max(lhs: T, rhs: T): T = if (lhs > rhs) lhs else rhs
 
-fun <T: Ord<T>> maxOf(lhs: T, vararg rhs: T): T {
+fun <T : Ord<T>> maxOf(lhs: T, vararg rhs: T): T {
     var max = lhs
     for (e in rhs) {
         if (e geq max) {
@@ -68,7 +68,7 @@ fun <T: Ord<T>> maxOf(lhs: T, vararg rhs: T): T {
     return max
 }
 
-fun <T: Ord<T>> maxOf(list: Collection<T>): T? {
+fun <T : Ord<T>> maxOf(list: Collection<T>): T? {
     if (list.isEmpty()) {
         return null
     }
@@ -83,7 +83,7 @@ fun <T: Ord<T>> maxOf(list: Collection<T>): T? {
     return max
 }
 
-fun <T: Ord<T>, U> maxOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): T {
+fun <T : Ord<T>, U> maxOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): T {
     var max = extractor(lhs)
     for (e in rhs) {
         val v = extractor(e)
@@ -94,7 +94,7 @@ fun <T: Ord<T>, U> maxOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): T {
     return max
 }
 
-fun <T: Ord<T>, U> maxOf(list: Collection<U>, extractor: Extractor<T, U>): T? {
+fun <T : Ord<T>, U> maxOf(list: Collection<U>, extractor: Extractor<T, U>): T? {
     if (list.isEmpty()) {
         return null
     }
@@ -109,7 +109,7 @@ fun <T: Ord<T>, U> maxOf(list: Collection<U>, extractor: Extractor<T, U>): T? {
     return max
 }
 
-fun <T: Ord<T>> minMaxOf(lhs: T, vararg rhs: T): Pair<T, T> {
+fun <T : Ord<T>> minMaxOf(lhs: T, vararg rhs: T): Pair<T, T> {
     var min = lhs
     var max = lhs
     for (e in rhs) {
@@ -123,7 +123,7 @@ fun <T: Ord<T>> minMaxOf(lhs: T, vararg rhs: T): Pair<T, T> {
     return Pair(min, max)
 }
 
-fun <T: Ord<T>> minMaxOf(list: Collection<T>): Pair<T, T>? {
+fun <T : Ord<T>> minMaxOf(list: Collection<T>): Pair<T, T>? {
     if (list.isEmpty()) {
         return null
     }
@@ -142,7 +142,7 @@ fun <T: Ord<T>> minMaxOf(list: Collection<T>): Pair<T, T>? {
     return Pair(min, max)
 }
 
-fun <T: Ord<T>, U> minMaxOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): Pair<T, T> {
+fun <T : Ord<T>, U> minMaxOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): Pair<T, T> {
     var min = extractor(lhs)
     var max = min
     for (e in rhs) {
@@ -157,7 +157,7 @@ fun <T: Ord<T>, U> minMaxOf(lhs: U, vararg rhs: U, extractor: Extractor<T, U>): 
     return Pair(min, max)
 }
 
-fun <T: Ord<T>, U> minMaxOf(list: Collection<U>, extractor: Extractor<T, U>): Pair<T, T>? {
+fun <T : Ord<T>, U> minMaxOf(list: Collection<U>, extractor: Extractor<T, U>): Pair<T, T>? {
     if (list.isEmpty()) {
         return null
     }

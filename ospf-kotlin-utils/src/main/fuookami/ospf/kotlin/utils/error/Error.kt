@@ -25,7 +25,7 @@ class Err internal constructor(
 ) : Error() {
     companion object {
         operator fun invoke(code: ErrorCode, message: String? = null): Err {
-            return if(message == null) {
+            return if (message == null) {
                 Err(code, code.toString())
             } else {
                 Err(code, message)

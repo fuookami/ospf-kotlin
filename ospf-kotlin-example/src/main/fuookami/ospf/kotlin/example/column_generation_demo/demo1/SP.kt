@@ -12,12 +12,15 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 object InitialSolutionGenerator {
-    operator fun invoke(length: UInt64, products: List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product>): Result<List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan>, Error> {
-        val solution = ArrayList<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan>()
+    operator fun invoke(
+        length: UInt64,
+        products: List<Product>
+    ): Result<List<CuttingPlan>, Error> {
+        val solution = ArrayList<CuttingPlan>()
         for (product in products) {
             val amount = length / product.length
             solution.add(
-                fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan(
+                CuttingPlan(
                     mapOf(
                         Pair(
                             product,
@@ -32,7 +35,12 @@ object InitialSolutionGenerator {
 }
 
 class SP {
-    operator fun invoke(iteration: UInt64, length: UInt64, products: List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product>, shadowPrice: fuookami.ospf.kotlin.example.column_generation_demo.demo1.SPM): Result<fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan, Error> {
+    operator fun invoke(
+        iteration: UInt64,
+        length: UInt64,
+        products: List<Product>,
+        shadowPrice: SPM
+    ): Result<CuttingPlan, Error> {
         val model = LinearMetaModel("demo1-sp-$iteration")
 
         val y = UIntVariable1("y", Shape1(products.size))
@@ -57,19 +65,28 @@ class SP {
         model.addConstraint(use leq length, "use")
 
         return when (val result = solveMIP("demo1-sp-$iteration", model)) {
-            is Failed -> { Failed(result.error) }
-            is Ok -> { Ok(analyze(model, products, result.value)) }
+            is Failed -> {
+                Failed(result.error)
+            }
+
+            is Ok -> {
+                Ok(analyze(model, products, result.value))
+            }
         }
     }
 
-    private fun analyze(model: LinearMetaModel, products: List<fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product>, result: List<Flt64>): fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan {
-        val cuttingPlan = HashMap<fuookami.ospf.kotlin.example.column_generation_demo.demo1.Product, UInt64>()
+    private fun analyze(
+        model: LinearMetaModel,
+        products: List<Product>,
+        result: List<Flt64>
+    ): CuttingPlan {
+        val cuttingPlan = HashMap<Product, UInt64>()
         for (token in model.tokens.tokens) {
             if (result[token.solverIndex] geq Flt64.one) {
                 val vector = token.variable.vectorView
                 cuttingPlan[products[vector[0]]] = result[token.solverIndex].toUInt64()
             }
         }
-        return fuookami.ospf.kotlin.example.column_generation_demo.demo1.CuttingPlan(cuttingPlan)
+        return CuttingPlan(cuttingPlan)
     }
 }

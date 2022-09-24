@@ -10,6 +10,7 @@ sealed class Result<T, E : Error> {
         is Ok -> {
             this.value
         }
+
         is Failed -> {
             null
         }

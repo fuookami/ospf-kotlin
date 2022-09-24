@@ -5,9 +5,10 @@ import fuookami.ospf.kotlin.utils.concept.Cloneable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-sealed interface MonomialCell<C : Category>: Cloneable<MonomialCell<C>> {
+sealed interface MonomialCell<C : Category> : Cloneable<MonomialCell<C>> {
     @Throws(IllegalArgumentException::class)
     operator fun plusAssign(rhs: MonomialCell<C>)
+
     @Throws(IllegalArgumentException::class)
     operator fun minusAssign(rhs: MonomialCell<C>)
     operator fun <T : RealNumber<T>> timesAssign(rhs: T)
@@ -29,7 +30,7 @@ interface Monomial<C : Category> : Expression, Neg<Monomial<C>> {
     fun flush()
 }
 
-sealed interface SimpleMonomial<C: Category> : Monomial<C> {
+sealed interface SimpleMonomial<C : Category> : Monomial<C> {
     var coefficient: Flt64
     val symbol: MonomialSymbol<C>
     val cells: List<MonomialCell<C>>
@@ -56,7 +57,11 @@ internal class MonomialImpl<S : MonomialSymbol<C>, C : Category>(
             return _cells
         }
 
-    fun flush() { if (this::_cells.isInitialized) { _cells.clear() } }
+    fun flush() {
+        if (this::_cells.isInitialized) {
+            _cells.clear()
+        }
+    }
 
     fun intersectRange(range: ValueRange<Flt64>) = impl.intersectRange(range)
     fun rangeLess(value: Flt64) = impl.rangeLess(value)

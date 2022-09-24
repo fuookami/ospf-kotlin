@@ -17,7 +17,7 @@ class EdgeBandwidthConstraint(
     private val assignment: Assignment,
     private val edgeBandwidth: EdgeBandwidth,
     override val name: String = "edge_bandwidth_constraint"
-): Pipeline<LinearMetaModel> {
+) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try<Error> {
         val y = edgeBandwidth.y
         val assignment = assignment.serviceAssignment

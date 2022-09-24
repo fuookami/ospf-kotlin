@@ -42,7 +42,7 @@ internal fun solveMIP(name: String, metaModel: LinearMetaModel): Result<List<Flt
 //    }
 //    val solver = SCIPLinearSolver(LinearSolverConfig(), callBack)
         val solver = SCIPLinearSolver(LinearSolverConfig())
-        val model = fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel(LinearModel(metaModel))
+        val model = LinearTriadModel(LinearModel(metaModel))
         ThreadGuard(Thread {
             model.export("$name.lp", ModelFileFormat.LP)
         }).use {
@@ -51,6 +51,7 @@ internal fun solveMIP(name: String, metaModel: LinearMetaModel): Result<List<Flt
                     metaModel.tokens.setSolution(ret.value.results)
                     Ok(ret.value.results)
                 }
+
                 is Failed -> {
                     Failed(ret.error)
                 }
@@ -69,9 +70,9 @@ internal fun solveLP(name: String, metaModel: LinearMetaModel): Result<LPResult,
         metaModel.export("$name.opm")
     }).use {
         val solver = SCIPLinearSolver(LinearSolverConfig())
-        val model = fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel(LinearModel(metaModel))
+        val model = LinearTriadModel(LinearModel(metaModel))
         model.linearRelax()
-        lateinit var dualModel: fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
+        lateinit var dualModel: LinearTriadModel
 
         ThreadGuard(Thread {
             model.export("$name.lp", ModelFileFormat.LP)
@@ -97,6 +98,7 @@ internal fun solveLP(name: String, metaModel: LinearMetaModel): Result<LPResult,
                         metaModel.tokens.setSolution(ret.value()!!.results)
                         Ok(LPResult(ret.value()!!.results, dualRet.value.results))
                     }
+
                     is Failed -> {
                         Failed(dualRet.error)
                     }

@@ -18,8 +18,12 @@ data class LinearSolverConfig(
     val threadNum: UInt64 by basicConfig::threadNum
 
     companion object {
-        operator fun invoke(time: Duration = 30.seconds, threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors().toULong()),
-                            gap: Flt64 = Flt64.zero, extraConfig: Any? = null) =
+        operator fun invoke(
+            time: Duration = 30.seconds,
+            threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors().toULong()),
+            gap: Flt64 = Flt64.zero,
+            extraConfig: Any? = null
+        ) =
             LinearSolverConfig(SolverConfig(time, threadNum), gap, extraConfig)
     }
 }

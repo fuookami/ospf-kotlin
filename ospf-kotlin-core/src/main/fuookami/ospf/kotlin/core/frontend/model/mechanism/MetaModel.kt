@@ -12,8 +12,8 @@ import java.nio.file.*
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isRegularFile
 
-sealed interface MetaModel<C: Category> {
-    class SubObject<C: Category>(
+sealed interface MetaModel<C : Category> {
+    class SubObject<C : Category>(
         val category: ObjectCategory,
         val polynomial: Polynomial<C>,
         val name: String = polynomial.name
@@ -25,15 +25,33 @@ sealed interface MetaModel<C: Category> {
     val subObjects: MutableList<SubObject<C>>
     val tokens: TokenTable<C>
 
-    fun addVar(item: Item<*, *>) { tokens.add(item) }
-    fun addVars(items: Combination<*, *, *>) { tokens.add(items) }
-    fun addVars(items: CombinationView<*, *>) { tokens.add(items) }
+    fun addVar(item: Item<*, *>) {
+        tokens.add(item)
+    }
 
-    fun remove(item: Item<*, *>) { tokens.remove(item) }
+    fun addVars(items: Combination<*, *, *>) {
+        tokens.add(items)
+    }
 
-    fun addSymbol(symbol: Symbol<C>) { tokens.add(symbol) }
-    fun addSymbols(symbols: SymbolCombination<C, *>) { tokens.add(symbols) }
-    fun addSymbols(symbols: SymbolView<C>) { tokens.add(symbols) }
+    fun addVars(items: CombinationView<*, *>) {
+        tokens.add(items)
+    }
+
+    fun remove(item: Item<*, *>) {
+        tokens.remove(item)
+    }
+
+    fun addSymbol(symbol: Symbol<C>) {
+        tokens.add(symbol)
+    }
+
+    fun addSymbols(symbols: SymbolCombination<C, *>) {
+        tokens.add(symbols)
+    }
+
+    fun addSymbols(symbols: SymbolView<C>) {
+        tokens.add(symbols)
+    }
 
     fun addConstraint(inequality: Inequality<C>, name: String? = null, displayName: String? = null) {
         if (name != null) {
@@ -45,7 +63,12 @@ sealed interface MetaModel<C: Category> {
         constraints.add(inequality)
     }
 
-    fun addObject(category: ObjectCategory, polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) {
+    fun addObject(
+        category: ObjectCategory,
+        polynomial: Polynomial<C>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
         if (name != null) {
             polynomial.name = name
         }
@@ -54,8 +77,14 @@ sealed interface MetaModel<C: Category> {
         }
         subObjects.add(SubObject(category, polynomial))
     }
-    fun minimize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) { addObject(ObjectCategory.Minimum, polynomial, name, displayName) }
-    fun maximize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) { addObject(ObjectCategory.Maximum, polynomial, name, displayName) }
+
+    fun minimize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) {
+        addObject(ObjectCategory.Minimum, polynomial, name, displayName)
+    }
+
+    fun maximize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) {
+        addObject(ObjectCategory.Maximum, polynomial, name, displayName)
+    }
 
     fun flush() {
         for (constraint in constraints) {
@@ -76,15 +105,23 @@ sealed interface MetaModel<C: Category> {
     }
 
     fun export(path: Path): Try<Error> {
-        val file = if (path.isDirectory()) { path.resolve("$name.opm").toFile() } else { path.toFile() }
+        val file = if (path.isDirectory()) {
+            path.resolve("$name.opm").toFile()
+        } else {
+            path.toFile()
+        }
         if (!file.exists()) {
             file.createNewFile()
         }
         val writer = FileWriter(file)
         val result = when (file.extension) {
-            "opm" -> { exportOpm(writer) }
+            "opm" -> {
+                exportOpm(writer)
+            }
             // todo: raise error with unknown format
-            else -> { Ok(success) }
+            else -> {
+                Ok(success)
+            }
         }
         writer.flush()
         writer.close()
@@ -142,5 +179,9 @@ class LinearMetaModel(
 ) : MetaModel<Linear> {
     override val constraints: ArrayList<Inequality<Linear>> = ArrayList()
     override val subObjects: ArrayList<MetaModel.SubObject<Linear>> = ArrayList()
-    override val tokens: TokenTable<Linear> = if (manualTokenAddition) { ManualAddTokenTable() } else { AutoAddTokenTable() }
+    override val tokens: TokenTable<Linear> = if (manualTokenAddition) {
+        ManualAddTokenTable()
+    } else {
+        AutoAddTokenTable()
+    }
 }

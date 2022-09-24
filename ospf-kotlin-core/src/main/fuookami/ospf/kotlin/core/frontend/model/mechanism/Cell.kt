@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.math.Flt64
 
-sealed interface Cell<C: Category> {
+sealed interface Cell<C : Category> {
     fun value(): Flt64?
     fun value(solution: List<Flt64>): Flt64?
     fun value(solution: Map<ItemKey, Flt64>): Flt64?

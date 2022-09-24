@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.utils.math.*
 
-sealed class SubObject<C: Category>(
+sealed class SubObject<C : Category>(
     val category: ObjectCategory,
     val name: String = ""
 ) {
@@ -19,7 +19,12 @@ class LinearSubObject(
     name: String = ""
 ) : SubObject<Linear>(category, name) {
     companion object {
-        operator fun invoke(category: ObjectCategory, poly: Polynomial<Linear>, tokens: TokenTable<Linear>, name: String): LinearSubObject {
+        operator fun invoke(
+            category: ObjectCategory,
+            poly: Polynomial<Linear>,
+            tokens: TokenTable<Linear>,
+            name: String
+        ): LinearSubObject {
             val cells = ArrayList<LinearCell>()
             var constant = Flt64.zero
             for (cell in poly.cells) {

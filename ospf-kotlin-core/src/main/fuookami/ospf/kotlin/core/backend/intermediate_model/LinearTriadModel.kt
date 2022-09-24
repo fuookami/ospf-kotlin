@@ -16,8 +16,8 @@ data class Variable(
     var upperBound: Flt64,
     var type: VariableType<*>,
     val name: String
-): fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.Variable> {
-    override fun clone()=
+) : fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.Variable> {
+    override fun clone() =
         fuookami.ospf.kotlin.core.backend.intermediate_model.Variable(index, lowerBound, upperBound, type, name)
 
     override fun toString() = name
@@ -27,7 +27,7 @@ data class ConstraintCell(
     val rowIndex: Int,
     val colIndex: Int,
     val coefficient: Flt64
-): fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.ConstraintCell> {
+) : fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.ConstraintCell> {
     override fun clone() =
         fuookami.ospf.kotlin.core.backend.intermediate_model.ConstraintCell(rowIndex, colIndex, coefficient.clone())
 }
@@ -37,7 +37,7 @@ data class Constraint(
     val signs: MutableList<Sign>,
     val rhs: MutableList<Flt64>,
     val names: MutableList<String>
-): fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.Constraint> {
+) : fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.Constraint> {
     val size: Int get() = rhs.size
 
     override fun clone() =
@@ -50,7 +50,7 @@ data class Constraint(
 data class ObjectiveCell(
     val colIndex: Int,
     var coefficient: Flt64
-): fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.ObjectiveCell> {
+) : fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.ObjectiveCell> {
     override fun clone() =
         fuookami.ospf.kotlin.core.backend.intermediate_model.ObjectiveCell(colIndex, coefficient.clone())
 }
@@ -58,7 +58,7 @@ data class ObjectiveCell(
 data class Objective(
     val category: ObjectCategory,
     val obj: List<fuookami.ospf.kotlin.core.backend.intermediate_model.ObjectiveCell>
-): fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.Objective> {
+) : fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.Objective> {
     override fun clone() = fuookami.ospf.kotlin.core.backend.intermediate_model.Objective(category, obj.toList())
 }
 
@@ -77,13 +77,19 @@ interface LinearTraitModelView {
     }
 
     fun export(path: Path, format: fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat): Try<Error> {
-        val file = if (path.isDirectory()) { path.resolve("$name.${format}").toFile() } else { path.toFile() }
+        val file = if (path.isDirectory()) {
+            path.resolve("$name.${format}").toFile()
+        } else {
+            path.toFile()
+        }
         if (!file.exists()) {
             file.createNewFile()
         }
         val writer = FileWriter(file)
         val result = when (format) {
-            fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat.LP -> { exportLP(writer) }
+            fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat.LP -> {
+                exportLP(writer)
+            }
         }
         writer.flush()
         writer.close()
@@ -97,7 +103,7 @@ class BasicLinearTriadModel(
     val variables: List<fuookami.ospf.kotlin.core.backend.intermediate_model.Variable>,
     val constraints: fuookami.ospf.kotlin.core.backend.intermediate_model.Constraint,
     val name: String
-): fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.BasicLinearTriadModel> {
+) : fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.BasicLinearTriadModel> {
     override fun clone() = fuookami.ospf.kotlin.core.backend.intermediate_model.BasicLinearTriadModel(
         variables.map { it.clone() },
         constraints.clone(),
@@ -124,18 +130,23 @@ class BasicLinearTriadModel(
     }
 
     fun linearRelax() {
-        variables.forEach { when(it.type) {
-            is Binary -> {
-                it.type = Percentage
+        variables.forEach {
+            when (it.type) {
+                is Binary -> {
+                    it.type = Percentage
+                }
+
+                is Ternary, is UInteger -> {
+                    it.type = UContinues
+                }
+
+                is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer -> {
+                    it.type = Continuous
+                }
+
+                else -> {}
             }
-            is Ternary, is UInteger -> {
-                it.type = UContinues
-            }
-            is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer -> {
-                it.type = Continues
-            }
-            else -> { }
-        } }
+        }
     }
 
     fun normalize() {
@@ -244,7 +255,8 @@ class BasicLinearTriadModel(
 data class LinearTriadModel(
     private val impl: fuookami.ospf.kotlin.core.backend.intermediate_model.BasicLinearTriadModel,
     override val objective: fuookami.ospf.kotlin.core.backend.intermediate_model.Objective,
-): fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTraitModelView, fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel> {
+) : fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTraitModelView,
+    fuookami.ospf.kotlin.utils.concept.Cloneable<fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel> {
     override val variables: List<fuookami.ospf.kotlin.core.backend.intermediate_model.Variable> by impl::variables
     override val constraints: fuookami.ospf.kotlin.core.backend.intermediate_model.Constraint by impl::constraints
     override val name: String by impl::name
@@ -299,17 +311,17 @@ data class LinearTriadModel(
                 )
             }
             for (subObject in model.objectFunction.subObjects) {
-                 if (subObject.category == model.objectFunction.category) {
-                     for (cell in subObject.cells) {
-                         val temp = cell as LinearCell
-                         objective[solverIndexes[temp.token.solverIndex]!!].coefficient += temp.coefficient
-                     }
-                 } else {
-                     for (cell in subObject.cells) {
-                         val temp = cell as LinearCell
-                         objective[solverIndexes[temp.token.solverIndex]!!].coefficient -= temp.coefficient
-                     }
-                 }
+                if (subObject.category == model.objectFunction.category) {
+                    for (cell in subObject.cells) {
+                        val temp = cell as LinearCell
+                        objective[solverIndexes[temp.token.solverIndex]!!].coefficient += temp.coefficient
+                    }
+                } else {
+                    for (cell in subObject.cells) {
+                        val temp = cell as LinearCell
+                        objective[solverIndexes[temp.token.solverIndex]!!].coefficient -= temp.coefficient
+                    }
+                }
             }
 
             return fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel(
@@ -329,9 +341,17 @@ data class LinearTriadModel(
     fun containsBinary(): Boolean = impl.containsBinary()
     fun containsInteger(): Boolean = impl.containsInteger()
     fun containsNotBinaryInteger(): Boolean = impl.containsNotBinaryInteger()
-    fun normalized() { impl.normalized() }
-    fun linearRelax() { impl.linearRelax() }
-    fun normalize() { impl.normalize() }
+    fun normalized() {
+        impl.normalized()
+    }
+
+    fun linearRelax() {
+        impl.linearRelax()
+    }
+
+    fun normalize() {
+        impl.normalize()
+    }
 
     fun dual(): fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel {
         val variables = ArrayList<fuookami.ospf.kotlin.core.backend.intermediate_model.Variable>()
@@ -339,16 +359,22 @@ data class LinearTriadModel(
             var lowerBound = Flt64.negativeInfinity
             var upperBound = Flt64.infinity
             when (this.constraints.signs[i]) {
-                Sign.LessEqual -> { upperBound = Flt64.zero }
-                Sign.GreaterEqual -> { lowerBound = Flt64.zero }
-                else -> { }
+                Sign.LessEqual -> {
+                    upperBound = Flt64.zero
+                }
+
+                Sign.GreaterEqual -> {
+                    lowerBound = Flt64.zero
+                }
+
+                else -> {}
             }
             variables.add(
                 fuookami.ospf.kotlin.core.backend.intermediate_model.Variable(
                     i,
                     lowerBound,
                     upperBound,
-                    Continues,
+                    Continuous,
                     "${this.constraints.names[i]}_dual"
                 )
             )
@@ -437,8 +463,13 @@ data class LinearTriadModel(
         writer.append("\n\n")
 
         return when (val result = impl.exportLP(writer)) {
-            is Failed -> { Failed(result.error) }
-            is Ok -> { Ok(success) }
+            is Failed -> {
+                Failed(result.error)
+            }
+
+            is Ok -> {
+                Ok(success)
+            }
         }
     }
 }

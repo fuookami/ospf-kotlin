@@ -43,14 +43,25 @@ class BandwidthContext(
     fun construct(model: LinearMetaModel): Try<Error> {
         val routeAggregation = routeContext.aggregation
 
-        val generator = PipelineListGenerator(aggregation, routeAggregation.graph, routeAggregation.services, routeAggregation.assignment)
+        val generator = PipelineListGenerator(
+            aggregation,
+            routeAggregation.graph,
+            routeAggregation.services,
+            routeAggregation.assignment
+        )
         when (val pipelines = generator()) {
-            is Failed -> { return Failed(pipelines.error) }
+            is Failed -> {
+                return Failed(pipelines.error)
+            }
+
             is Ok -> {
                 for (pipeline in pipelines.value) {
                     when (val result = pipeline(model)) {
-                        is Failed -> { return Failed(result.error) }
-                        is Ok -> { }
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+
+                        is Ok -> {}
                     }
                 }
             }
@@ -61,7 +72,12 @@ class BandwidthContext(
     fun analyze(model: LinearMetaModel, result: List<Flt64>): Result<List<List<Node>>, Error> {
         val routeAggregation = routeContext.aggregation
 
-        val analyzer = SolutionAnalyzer(routeAggregation.graph, routeAggregation.services, routeAggregation.assignment, aggregation)
+        val analyzer = SolutionAnalyzer(
+            routeAggregation.graph,
+            routeAggregation.services,
+            routeAggregation.assignment,
+            aggregation
+        )
         return analyzer(model, result)
     }
 }

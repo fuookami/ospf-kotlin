@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.*
 
-class Triangle<P: Point>(
+class Triangle<P : Point>(
     val p1: P,
     val p2: P,
     val p3: P

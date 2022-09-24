@@ -8,10 +8,10 @@ data class Equal<T, U>(
 
     companion object {
         operator fun <T, U> invoke(precision: U): Equal<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Equal(precision)
+                where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Equal(precision)
 
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Equal<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             Equal(constants.decimalPrecision)
     }
 
@@ -27,10 +27,10 @@ data class Unequal<T, U>(
 
     companion object {
         operator fun <T, U> invoke(precision: U): Unequal<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Unequal(precision)
+                where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Unequal(precision)
 
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Unequal<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             Unequal(constants.decimalPrecision)
     }
 
@@ -46,11 +46,11 @@ data class Less<T, U>(
 
     companion object {
         operator fun <T, U> invoke(precision: U): Less<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T>, U : Neg<U> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T>, U : Neg<U> =
             Less(precision)
 
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Less<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T>, U : Neg<U> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T>, U : Neg<U> =
             Less(constants.decimalPrecision)
     }
 
@@ -66,10 +66,10 @@ data class LessEqual<T, U>(
 
     companion object {
         operator fun <T, U> invoke(precision: U): LessEqual<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = LessEqual(precision)
+                where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = LessEqual(precision)
 
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): LessEqual<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             LessEqual(constants.decimalPrecision)
     }
 
@@ -85,10 +85,10 @@ data class Greater<T, U>(
 
     companion object {
         operator fun <T, U> invoke(precision: U): Greater<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Greater(precision)
+                where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Greater(precision)
 
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Greater<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             Greater(constants.decimalPrecision)
     }
 
@@ -104,11 +104,11 @@ data class GreaterEqual<T, U>(
 
     companion object {
         operator fun <T, U> invoke(precision: U): GreaterEqual<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> =
             GreaterEqual(precision)
 
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): GreaterEqual<T, U>
-            where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T>, U : Neg<U> =
+                where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T>, U : Neg<U> =
             GreaterEqual(constants.decimalPrecision)
     }
 

@@ -24,7 +24,8 @@ class SolutionAnalyzer(
             if (token.variable.identifier == assignment.x.identifier) {
                 if (result[token.solverIndex] eq Flt64.one) {
                     val vector = token.variable.vectorView
-                    nodeSolution[services.find { it.index == vector[1] }!!] = graph.nodes.find{ it.index == vector[0] }!!
+                    nodeSolution[services.find { it.index == vector[1] }!!] =
+                        graph.nodes.find { it.index == vector[0] }!!
                 }
             }
         }
@@ -34,9 +35,19 @@ class SolutionAnalyzer(
                     val vector = token.variable.vectorView
                     val service = services[vector[1]]
                     if (edgeSolution.containsKey(service)) {
-                        edgeSolution[service]!!.add(Pair(graph.edges.find{ it.index == vector[0] }!!, result[token.solverIndex].toUInt64()))
+                        edgeSolution[service]!!.add(
+                            Pair(
+                                graph.edges.find { it.index == vector[0] }!!,
+                                result[token.solverIndex].toUInt64()
+                            )
+                        )
                     } else {
-                        edgeSolution[service] = arrayListOf(Pair(graph.edges.find{ it.index == vector[0] }!!, result[token.solverIndex].toUInt64()))
+                        edgeSolution[service] = arrayListOf(
+                            Pair(
+                                graph.edges.find { it.index == vector[0] }!!,
+                                result[token.solverIndex].toUInt64()
+                            )
+                        )
                     }
                 }
             }
@@ -67,13 +78,19 @@ class SolutionAnalyzer(
     }
 
     // DFS
-    private fun findLink(edges: List<Pair<Edge, UInt64>>, currentNode: Node, currentLike: List<Node>, links: MutableList<List<Node>>) {
+    private fun findLink(
+        edges: List<Pair<Edge, UInt64>>,
+        currentNode: Node,
+        currentLike: List<Node>,
+        links: MutableList<List<Node>>
+    ) {
         if (currentNode is ClientNode) {
             links.add(currentLike)
         } else {
             for (edge in edges) {
                 if (edge.first.from == currentNode
-                    && !currentLike.contains(edge.first.to)) {
+                    && !currentLike.contains(edge.first.to)
+                ) {
                     val link = currentLike.asIterable().toMutableList()
                     link.add(edge.first.to)
                     findLink(edges, edge.first.to, link, links)
