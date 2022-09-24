@@ -1,0 +1,483 @@
+package fuookami.ospf.kotlin.utils.math
+
+import java.math.*
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.concept.*
+
+interface NumericInteger<Self, I>
+    : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
+
+    override fun inc() = this + constants.one
+    override fun dec() = this - constants.one
+
+    override fun lg() = log(Flt64(10.0))
+    override fun ln() = log(Flt64.e)
+
+    override fun square() = pow(2)
+    override fun cubic() = pow(3)
+
+    override fun sqr() = pow(Flt64(1.0 / 2.0))
+    override fun cbr() = pow(Flt64(1.0 / 3.0))
+}
+
+abstract class NumericIntegerConstants<Self, I>(
+    private val ctor: (I) -> Self,
+    private val constants: RealNumberConstants<I>
+) : RealNumberConstants<Self> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
+
+    override val zero: Self get() = ctor(constants.zero)
+    override val one: Self get() = ctor(constants.one)
+    override val two: Self get() = ctor(constants.two)
+    override val three: Self get() = ctor(constants.three)
+    override val ten: Self get() = ctor(constants.ten)
+    override val minimum: Self get() = ctor(constants.minimum)
+    override val maximum: Self get() = ctor(constants.maximum)
+}
+
+object NInt8Serializer : RealNumberKSerializer<NInt8> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt8", PrimitiveKind.INT)
+    override val constants = NInt8
+
+    override fun serialize(encoder: Encoder, value: NInt8) {
+        encoder.encodeInt(value.value.value.toInt())
+    }
+
+    override fun deserialize(decoder: Decoder): NInt8 {
+        return NInt8(Int8(decoder.decodeInt().toByte()))
+    }
+}
+
+@JvmInline
+@Serializable(with = NInt8Serializer::class)
+value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8> {
+    companion object : NumericIntegerConstants<NInt8, Int8>(NInt8::invoke, Int8) {
+        operator fun invoke(value: Int8) = NInt8(value)
+    }
+
+    override val constants: RealNumberConstants<NInt8> get() = NInt8
+
+    override fun clone() = NInt8(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: NInt8) = value.compareTo(rhs.value)
+    override fun partialEq(rhs: NInt8) = (value.compareTo(rhs.value) == 0)
+
+    override fun reciprocal() = Rtn8(Int8.one, value)
+    override fun unaryMinus() = NInt8(-value)
+    override fun abs() = NInt8(value.abs())
+
+    override fun plus(rhs: NInt8) = NInt8(value + rhs.value)
+    override fun minus(rhs: NInt8) = NInt8(value - rhs.value)
+    override fun times(rhs: NInt8) = NInt8(value * rhs.value)
+    override fun div(rhs: NInt8) = Rtn8(value, rhs.value)
+    override fun rem(rhs: NInt8) = NInt8(value % rhs.value)
+    override fun intDiv(rhs: NInt8) = NInt8(value / rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt8.log: ${base.javaClass}")
+    }
+
+    override fun pow(index: Int): Rtn8 {
+        return if (index >= 1) {
+            Rtn8(value.pow(index), Int8.one)
+        } else if (index <= -1) {
+            Rtn8(Int8.one, value.pow(index))
+        } else {
+            Rtn8.one
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt8.log: ${index.javaClass}")
+    }
+
+    override fun exp() = toFlt64().exp()
+
+    override fun rangeTo(rhs: NInt8) = IntegerRange(clone(), rhs, one, NInt8)
+
+    override fun toInt8() = value.toInt8()
+    override fun toInt16() = value.toInt16()
+    override fun toInt32() = value.toInt32()
+    override fun toInt64() = value.toInt64()
+    override fun toIntX() = value.toIntX()
+
+    override fun toUInt8() = value.toUInt8()
+    override fun toUInt16() = value.toUInt16()
+    override fun toUInt32() = value.toUInt32()
+    override fun toUInt64() = value.toUInt64()
+    override fun toUIntX() = value.toUIntX()
+
+    override fun toFlt32() = value.toFlt32()
+    override fun toFlt64() = value.toFlt64()
+    override fun toFltX() = value.toFltX()
+}
+
+object NInt16Serializer : RealNumberKSerializer<NInt16> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt16", PrimitiveKind.INT)
+    override val constants = NInt16
+
+    override fun serialize(encoder: Encoder, value: NInt16) {
+        encoder.encodeInt(value.value.value.toInt())
+    }
+
+    override fun deserialize(decoder: Decoder): NInt16 {
+        return NInt16(Int16(decoder.decodeInt().toShort()))
+    }
+}
+
+@JvmInline
+@Serializable(with = NInt16Serializer::class)
+value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<NInt16> {
+    companion object : NumericIntegerConstants<NInt16, Int16>(NInt16::invoke, Int16) {
+        operator fun invoke(value: Int16) = NInt16(value)
+    }
+
+    override val constants: RealNumberConstants<NInt16> get() = NInt16
+
+    override fun clone() = NInt16(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: NInt16) = value.compareTo(rhs.value)
+    override fun partialEq(rhs: NInt16) = (value.compareTo(rhs.value) == 0)
+
+    override fun reciprocal() = Rtn16(Int16.one, value)
+    override fun unaryMinus() = NInt16(-value)
+    override fun abs() = NInt16(value.abs())
+
+    override fun plus(rhs: NInt16) = NInt16(value + rhs.value)
+    override fun minus(rhs: NInt16) = NInt16(value - rhs.value)
+    override fun times(rhs: NInt16) = NInt16(value * rhs.value)
+    override fun div(rhs: NInt16) = Rtn16(value, rhs.value)
+    override fun rem(rhs: NInt16) = NInt16(value % rhs.value)
+    override fun intDiv(rhs: NInt16) = NInt16(value / rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt16.log: ${base.javaClass}")
+    }
+
+    override fun pow(index: Int): Rtn16 {
+        return if (index >= 1) {
+            Rtn16(value.pow(index), Int16.one)
+        } else if (index <= -1) {
+            Rtn16(Int16.one, value.pow(index))
+        } else {
+            Rtn16.one
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt16.log: ${index.javaClass}")
+    }
+
+    override fun exp() = toFlt64().exp()
+
+    override fun rangeTo(rhs: NInt16) = IntegerRange(clone(), rhs, one, NInt16)
+
+    override fun toInt8() = value.toInt8()
+    override fun toInt16() = value.toInt16()
+    override fun toInt32() = value.toInt32()
+    override fun toInt64() = value.toInt64()
+    override fun toIntX() = value.toIntX()
+
+    override fun toUInt8() = value.toUInt8()
+    override fun toUInt16() = value.toUInt16()
+    override fun toUInt32() = value.toUInt32()
+    override fun toUInt64() = value.toUInt64()
+    override fun toUIntX() = value.toUIntX()
+
+    override fun toFlt32() = value.toFlt32()
+    override fun toFlt64() = value.toFlt64()
+    override fun toFltX() = value.toFltX()
+}
+
+object NInt32Serializer : RealNumberKSerializer<NInt32> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt32", PrimitiveKind.INT)
+    override val constants = NInt32
+
+    override fun serialize(encoder: Encoder, value: NInt32) {
+        encoder.encodeInt(value.value.value)
+    }
+
+    override fun deserialize(decoder: Decoder): NInt32 {
+        return NInt32(Int32(decoder.decodeInt()))
+    }
+}
+
+@JvmInline
+@Serializable(with = NInt32Serializer::class)
+value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<NInt32> {
+    companion object : NumericIntegerConstants<NInt32, Int32>(NInt32::invoke, Int32) {
+        operator fun invoke(value: Int32) = NInt32(value)
+    }
+
+    override val constants: RealNumberConstants<NInt32> get() = NInt32
+
+    override fun clone(): NInt32 = NInt32(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: NInt32) = value.compareTo(rhs.value)
+    override fun partialEq(rhs: NInt32) = (value.compareTo(rhs.value) == 0)
+
+    override fun reciprocal() = Rtn32(Int32.one, value)
+    override fun unaryMinus() = NInt32(-value)
+    override fun abs() = NInt32(value.abs())
+
+    override fun plus(rhs: NInt32) = NInt32(value + rhs.value)
+    override fun minus(rhs: NInt32) = NInt32(value - rhs.value)
+    override fun times(rhs: NInt32) = NInt32(value * rhs.value)
+    override fun div(rhs: NInt32) = Rtn32(value, rhs.value)
+    override fun rem(rhs: NInt32) = NInt32(value % rhs.value)
+    override fun intDiv(rhs: NInt32) = NInt32(value / rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt32.log: ${base.javaClass}")
+    }
+
+    override fun pow(index: Int): Rtn32 {
+        return if (index >= 1) {
+            Rtn32(value.pow(index), Int32.one)
+        } else if (index <= -1) {
+            Rtn32(Int32.one, value.pow(index))
+        } else {
+            Rtn32.one
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt32.log: ${index.javaClass}")
+    }
+
+    override fun exp() = toFlt64().exp()
+
+    override fun rangeTo(rhs: NInt32) = IntegerRange(clone(), rhs, one, NInt32)
+
+    override fun toInt8() = value.toInt8()
+    override fun toInt16() = value.toInt16()
+    override fun toInt32() = value.toInt32()
+    override fun toInt64() = value.toInt64()
+    override fun toIntX() = value.toIntX()
+
+    override fun toUInt8() = value.toUInt8()
+    override fun toUInt16() = value.toUInt16()
+    override fun toUInt32() = value.toUInt32()
+    override fun toUInt64() = value.toUInt64()
+    override fun toUIntX() = value.toUIntX()
+
+    override fun toFlt32() = value.toFlt32()
+    override fun toFlt64() = value.toFlt64()
+    override fun toFltX() = value.toFltX()
+}
+
+object NInt64Serializer : RealNumberKSerializer<NInt64> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt64", PrimitiveKind.LONG)
+    override val constants: RealNumberConstants<NInt64> = NInt64
+
+    override fun serialize(encoder: Encoder, value: NInt64) {
+        encoder.encodeLong(value.value.value)
+    }
+
+    override fun deserialize(decoder: Decoder): NInt64 {
+        return NInt64(Int64(decoder.decodeLong()))
+    }
+}
+
+@JvmInline
+@Serializable(with = NInt64Serializer::class)
+value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<NInt64> {
+    companion object : NumericIntegerConstants<NInt64, Int64>(NInt64::invoke, Int64) {
+        operator fun invoke(value: Int64) = NInt64(value)
+    }
+
+    override val constants: RealNumberConstants<NInt64> get() = NInt64
+
+    override fun clone(): NInt64 = NInt64(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: NInt64) = value.compareTo(rhs.value)
+    override fun partialEq(rhs: NInt64) = (value.compareTo(rhs.value) == 0)
+
+    override fun reciprocal() = Rtn64(Int64.one, value)
+    override fun unaryMinus() = NInt64(-value)
+    override fun abs() = NInt64(value.abs())
+
+    override fun plus(rhs: NInt64) = NInt64(value + rhs.value)
+    override fun minus(rhs: NInt64) = NInt64(value - rhs.value)
+    override fun times(rhs: NInt64) = NInt64(value * rhs.value)
+    override fun div(rhs: NInt64) = Rtn64(value, rhs.value)
+    override fun rem(rhs: NInt64) = NInt64(value % rhs.value)
+    override fun intDiv(rhs: NInt64) = NInt64(value / rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt64.log: ${base.javaClass}")
+    }
+
+    override fun pow(index: Int): Rtn64 {
+        return if (index >= 1) {
+            Rtn64(value.pow(index), Int64.one)
+        } else if (index <= -1) {
+            Rtn64(Int64.one, value.pow(index))
+        } else {
+            Rtn64.one
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NInt64.log: ${index.javaClass}")
+    }
+
+    override fun exp() = toFlt64().exp()
+
+    override fun rangeTo(rhs: NInt64) = IntegerRange(clone(), rhs, one, NInt64)
+
+    override fun toInt8() = value.toInt8()
+    override fun toInt16() = value.toInt16()
+    override fun toInt32() = value.toInt32()
+    override fun toInt64() = value.toInt64()
+    override fun toIntX() = value.toIntX()
+
+    override fun toUInt8() = value.toUInt8()
+    override fun toUInt16() = value.toUInt16()
+    override fun toUInt32() = value.toUInt32()
+    override fun toUInt64() = value.toUInt64()
+    override fun toUIntX() = value.toUIntX()
+
+    override fun toFlt32() = value.toFlt32()
+    override fun toFlt64() = value.toFlt64()
+    override fun toFltX() = value.toFltX()
+}
+
+object NIntXSerializer : RealNumberKSerializer<NIntX> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NIntX", PrimitiveKind.STRING)
+    override val constants = NIntX
+
+    override fun serialize(encoder: Encoder, value: NIntX) {
+        encoder.encodeString(value.value.toString(10))
+    }
+
+    override fun deserialize(decoder: Decoder): NIntX {
+        return NIntX(IntX(BigInteger(decoder.decodeString())))
+    }
+}
+
+@JvmInline
+@Serializable(NIntXSerializer::class)
+value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX> {
+    companion object : NumericIntegerConstants<NIntX, IntX>(NIntX::invoke, IntX) {
+        operator fun invoke(value: IntX) = NIntX(value)
+    }
+
+    override val constants: RealNumberConstants<NIntX> get() = NIntX
+
+    override fun clone(): NIntX = NIntX(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: NIntX) = value.compareTo(rhs.value)
+    override fun partialEq(rhs: NIntX) = (value.compareTo(rhs.value) == 0)
+
+    override fun reciprocal() = RtnX(IntX.one, value)
+    override fun unaryMinus() = NIntX(-value)
+    override fun abs() = NIntX(value.abs())
+
+    override fun plus(rhs: NIntX) = NIntX(value + rhs.value)
+    override fun minus(rhs: NIntX) = NIntX(value - rhs.value)
+    override fun times(rhs: NIntX) = NIntX(value * rhs.value)
+    override fun div(rhs: NIntX) = RtnX(value, rhs.value)
+    override fun rem(rhs: NIntX) = NIntX(value % rhs.value)
+    override fun intDiv(rhs: NIntX) = NIntX(value / rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NIntX.log: ${base.javaClass}")
+    }
+
+    override fun lg() = log(FltX(10.0))
+    override fun ln() = log(FltX.e)
+
+    override fun pow(index: Int): RtnX {
+        return if (index >= 1) {
+            RtnX(value.pow(index), IntX.one)
+        } else if (index <= -1) {
+            RtnX(IntX.one, value.pow(index))
+        } else {
+            RtnX.one
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NIntX.log: ${index.javaClass}")
+    }
+
+    override fun sqr() = pow(FltX(1.0 / 2.0))
+    override fun cbr() = pow(FltX(1.0 / 3.0))
+
+    override fun exp() = toFlt64().exp()
+
+    override fun rangeTo(rhs: NIntX) = IntegerRange(clone(), rhs, one, NIntX)
+
+    override fun toInt8() = value.toInt8()
+    override fun toInt16() = value.toInt16()
+    override fun toInt32() = value.toInt32()
+    override fun toInt64() = value.toInt64()
+    override fun toIntX() = value.toIntX()
+
+    override fun toUInt8() = value.toUInt8()
+    override fun toUInt16() = value.toUInt16()
+    override fun toUInt32() = value.toUInt32()
+    override fun toUInt64() = value.toUInt64()
+    override fun toUIntX() = value.toUIntX()
+
+    override fun toFlt32() = value.toFlt32()
+    override fun toFlt64() = value.toFlt64()
+    override fun toFltX() = value.toFltX()
+}
