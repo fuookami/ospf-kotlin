@@ -128,7 +128,6 @@ private class CplexLinearSolverImpl(
 
     private fun solve(): Try<Error> {
         try {
-            cplex.exportModel("1.lp")
             cplex.solve()
         } catch (e: IloException) {
             return Failed(Err(ErrorCode.OREngineSolvingException, e.message))
