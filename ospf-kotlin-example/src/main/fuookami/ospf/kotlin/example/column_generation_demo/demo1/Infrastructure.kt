@@ -10,18 +10,6 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.SCIPLinearSolver
 
-object CuttingPlanIndexGenerator {
-    private var nextIndex = 0
-
-    fun flush() {
-        nextIndex = 0
-    }
-
-    operator fun invoke(): Int {
-        return nextIndex++
-    }
-}
-
 internal fun solveMIP(name: String, metaModel: LinearMetaModel): Result<List<Flt64>, Error> {
     ThreadGuard(Thread {
         metaModel.export("$name.opm")
