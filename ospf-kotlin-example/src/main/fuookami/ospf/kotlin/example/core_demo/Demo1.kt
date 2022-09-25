@@ -19,11 +19,10 @@ import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 
 class Demo1 {
     data class Company(
-        override val index: Int,
         val capital: Flt64,
         val liability: Flt64,
         val profit: Flt64
-    ) : Indexed
+    ) : AutoIndexed(Company::class)
 
     private val companies: ArrayList<Company> = ArrayList()
     private val minCapital: Flt64 = Flt64(10.0)
@@ -48,11 +47,11 @@ class Demo1 {
     }
 
     init {
-        companies.add(Company(0, Flt64(3.48), Flt64(1.28), Flt64(5400.0)))
-        companies.add(Company(1, Flt64(5.62), Flt64(2.53), Flt64(2300.0)))
-        companies.add(Company(2, Flt64(7.33), Flt64(1.02), Flt64(4600.0)))
-        companies.add(Company(3, Flt64(6.27), Flt64(3.55), Flt64(3300.0)))
-        companies.add(Company(4, Flt64(2.14), Flt64(0.53), Flt64(980.0)))
+        companies.add(Company(Flt64(3.48), Flt64(1.28), Flt64(5400.0)))
+        companies.add(Company(Flt64(5.62), Flt64(2.53), Flt64(2300.0)))
+        companies.add(Company(Flt64(7.33), Flt64(1.02), Flt64(4600.0)))
+        companies.add(Company(Flt64(6.27), Flt64(3.55), Flt64(3300.0)))
+        companies.add(Company(Flt64(2.14), Flt64(0.53), Flt64(980.0)))
     }
 
     operator fun invoke(): Try<Error> {

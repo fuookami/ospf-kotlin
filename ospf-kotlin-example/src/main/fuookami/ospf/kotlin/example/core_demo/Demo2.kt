@@ -17,14 +17,11 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 
 class Demo2 {
-    data class Product(
-        override val index: Int
-    ) : Indexed
+    class Product: AutoIndexed(Product::class)
 
     data class Company(
-        override val index: Int,
         val cost: Map<Product, Flt64>
-    ) : Indexed
+    ) : AutoIndexed(Company::class)
 
     val products: ArrayList<Product> = ArrayList()
     val companies: ArrayList<Company> = ArrayList()
@@ -48,14 +45,14 @@ class Demo2 {
     }
 
     init {
-        products.add(Product(0))
-        products.add(Product(1))
-        products.add(Product(2))
-        products.add(Product(3))
+        products.add(Product())
+        products.add(Product())
+        products.add(Product())
+        products.add(Product())
 
         companies.add(
             Company(
-                0, mapOf(
+                mapOf(
                     products[0] to Flt64(920.0),
                     products[1] to Flt64(480.0),
                     products[2] to Flt64(650.0),
@@ -66,7 +63,7 @@ class Demo2 {
 
         companies.add(
             Company(
-                1, mapOf(
+                mapOf(
                     products[0] to Flt64(870.0),
                     products[1] to Flt64(510.0),
                     products[2] to Flt64(700.0),
@@ -77,7 +74,7 @@ class Demo2 {
 
         companies.add(
             Company(
-                2, mapOf(
+                mapOf(
                     products[0] to Flt64(880.0),
                     products[1] to Flt64(500.0),
                     products[2] to Flt64(720.0),
@@ -88,7 +85,7 @@ class Demo2 {
 
         companies.add(
             Company(
-                3, mapOf(
+                mapOf(
                     products[0] to Flt64(930.0),
                     products[1] to Flt64(490.0),
                     products[2] to Flt64(680.0),
@@ -140,7 +137,7 @@ class Demo2 {
             for (p in products) {
                 assignmentCompanyPoly += UInt64.one * x[c, p]!!
             }
-            assignmentCompany[c.index] = LinearSymbol(assignmentCompanyPoly, "assignment_company_${c.index}")
+            assignmentCompany[c] = LinearSymbol(assignmentCompanyPoly, "assignment_company_${c.index}")
         }
         metaModel.addSymbols(assignmentCompany)
 
@@ -151,7 +148,7 @@ class Demo2 {
             for (c in companies) {
                 assignmentProductPoly += UInt64.one * x[c, p]!!
             }
-            assignmentProduct[p.index] = LinearSymbol(assignmentProductPoly, "assignment_product_${p.index}")
+            assignmentProduct[p] = LinearSymbol(assignmentProductPoly, "assignment_product_${p.index}")
         }
         metaModel.addSymbols(assignmentProduct)
         return Ok(success)

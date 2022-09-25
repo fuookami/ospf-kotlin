@@ -19,16 +19,16 @@ class RouteContext {
 
         val services: ArrayList<Service> = arrayListOf()
         for (i in 0 until input.normalNodeAmount.toString().toInt() / 2) {
-            services.add(Service(i, UInt64(i.toULong()), totalDemand, input.serviceCost))
+            services.add(Service(UInt64(i.toULong()), totalDemand, input.serviceCost))
         }
 
         val nodes: ArrayList<Node> = ArrayList()
         for (i in 0 until input.normalNodeAmount.toString().toInt()) {
-            nodes.add(NormalNode(i, UInt64(i.toULong())))
+            nodes.add(NormalNode(UInt64(i.toULong())))
         }
         for (i in 0 until input.clientNodes.size) {
             val node = input.clientNodes[i]
-            nodes.add(ClientNode(input.normalNodeAmount.toString().toInt() + i, node.id, node.demand))
+            nodes.add(ClientNode(node.id, node.demand))
         }
 
         val edges: ArrayList<Edge> = ArrayList()
@@ -36,7 +36,6 @@ class RouteContext {
             val edge = input.edges[i]
             edges.add(
                 Edge(
-                    i * 2,
                     nodes[edge.fromNodeId.toString().toInt()],
                     nodes[edge.toNodeId.toString().toInt()],
                     edge.maxBandwidth,
@@ -45,7 +44,6 @@ class RouteContext {
             )
             edges.add(
                 Edge(
-                    i * 2 + 1,
                     nodes[edge.toNodeId.toString().toInt()],
                     nodes[edge.fromNodeId.toString().toInt()],
                     edge.maxBandwidth,
@@ -60,7 +58,6 @@ class RouteContext {
             val node = input.clientNodes[i]
             edges.add(
                 Edge(
-                    input.edges.size * 2 + i,
                     nodes[node.normalNodeId.toString().toInt()],
                     nodes[(input.normalNodeAmount + node.id).toString().toInt()],
                     node.demand,

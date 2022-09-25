@@ -7,10 +7,10 @@ import fuookami.ospf.kotlin.framework.model.*
 data class Product(
     val length: UInt64,
     val demand: UInt64
-) : AutoIndexed()
+) : AutoIndexed(Product::class)
 
 data class CuttingPlan(
     val products: Map<Product, UInt64>
-) : AutoIndexed()
+) : AutoIndexed(CuttingPlan::class)
 
 class SPM : ShadowPriceMap<SPM>() {}
