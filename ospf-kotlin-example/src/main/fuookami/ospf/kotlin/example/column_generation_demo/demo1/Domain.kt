@@ -5,14 +5,12 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.framework.model.*
 
 data class Product(
-    override val index: Int,
     val length: UInt64,
     val demand: UInt64
-) : Indexed
+) : AutoIndexed()
 
 data class CuttingPlan(
-    val products: Map<Product, UInt64>,
-    override val index: Int = Indexed.nextIndex<CuttingPlan>()
-) : Indexed
+    val products: Map<Product, UInt64>
+) : AutoIndexed()
 
 class SPM : ShadowPriceMap<SPM>() {}

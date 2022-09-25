@@ -7,10 +7,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 class CSP {
     private val length = UInt64(1000UL)
     private val products: List<Product> = arrayListOf(
-        Product(0, UInt64(450UL), UInt64(97UL)),
-        Product(1, UInt64(360UL), UInt64(610UL)),
-        Product(2, UInt64(310UL), UInt64(395UL)),
-        Product(3, UInt64(140UL), UInt64(211UL)),
+        Product(UInt64(450UL), UInt64(97UL)),
+        Product(UInt64(360UL), UInt64(610UL)),
+        Product(UInt64(310UL), UInt64(395UL)),
+        Product(UInt64(140UL), UInt64(211UL)),
     )
 
     operator fun invoke(): Try<Error> {
