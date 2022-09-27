@@ -25,7 +25,7 @@ enum class CplexVariable {
                     Integer
                 }
 
-                is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continuous, is UContinues -> {
+                is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continuous, is UContinuous -> {
                     Continuous
                 }
             }

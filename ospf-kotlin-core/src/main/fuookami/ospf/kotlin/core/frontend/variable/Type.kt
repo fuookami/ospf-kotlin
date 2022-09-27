@@ -79,6 +79,6 @@ object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
     override fun toString(): String = "Continues"
 }
 
-object UContinues : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+object UContinuous : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
     override fun toString(): String = "UContinues"
 }

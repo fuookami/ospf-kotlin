@@ -20,4 +20,4 @@ class PctVar(name: String = "") : IndependentItem<Flt64, Percentage>(Percentage,
 class IntVar(name: String = "") : IndependentItem<Int64, Integer>(Integer, name, Int64)
 class UIntVar(name: String = "") : IndependentItem<UInt64, UInteger>(UInteger, name, UInt64)
 class RealVar(name: String = "") : IndependentItem<Flt64, Continuous>(Continuous, name, Flt64)
-class URealVar(name: String = "") : IndependentItem<Flt64, UContinues>(UContinues, name, Flt64)
+class URealVar(name: String = "") : IndependentItem<Flt64, UContinuous>(UContinuous, name, Flt64)

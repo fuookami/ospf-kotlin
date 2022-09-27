@@ -219,7 +219,7 @@ private class GurobiLinearSolverImpl(
         return try {
             if (status.succeeded()) {
                 output = LinearSolverOutput(
-                    Flt64(grbModel.get(GRB.DoubleAttr.Obj)),
+                    Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
                     grbVars.map { Flt64(grbModel.get(GRB.DoubleAttr.X)) },
                     (grbModel.get(GRB.DoubleAttr.Runtime) * 1000.0).toLong().milliseconds,
                     Flt64(grbModel.get(GRB.DoubleAttr.ObjBound)),

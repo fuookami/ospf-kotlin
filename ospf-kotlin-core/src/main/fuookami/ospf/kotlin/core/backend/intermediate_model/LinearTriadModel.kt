@@ -137,7 +137,7 @@ class BasicLinearTriadModel(
                 }
 
                 is Ternary, is UInteger -> {
-                    it.type = UContinues
+                    it.type = UContinuous
                 }
 
                 is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer -> {

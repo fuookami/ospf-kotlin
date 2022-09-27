@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
-// import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
-// import fuookami.ospf.kotlin.core.backend.plugins.scip.*
+import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
+import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import kotlin.io.path.Path
 
@@ -108,8 +108,8 @@ class SSP {
             metaModel.export("demo1.opm")
         }).use {
             // val solver = GurobiLinearSolver()
-            // val solver = SCIPLinearSolver(LinearSolverConfig())
-            val solver = CplexLinearSolver(LinearSolverConfig())
+            val solver = SCIPLinearSolver(LinearSolverConfig())
+            // val solver = CplexLinearSolver(LinearSolverConfig())
             val model = LinearTriadModel(LinearModel(metaModel))
             ThreadGuard(Thread {
                 model.export(Path("."), ModelFileFormat.LP)

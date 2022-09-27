@@ -139,15 +139,15 @@ typealias RealVariableView3 = CombinationView3<Flt64, Continuous>
 typealias RealVariableView4 = CombinationView4<Flt64, Continuous>
 typealias DynRealVariableView = DynCombinationView<Flt64, Continuous>
 
-class URealVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, UContinues>(UContinues, name, Flt64, shape)
-class URealVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, UContinues>(UContinues, name, Flt64, shape)
-class URealVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, UContinues>(UContinues, name, Flt64, shape)
-class URealVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, UContinues>(UContinues, name, Flt64, shape)
+class URealVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
+class URealVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
+class URealVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
+class URealVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
 class URealVariable(name: String = "", shape: DynShape) :
-    DynCombination<Flt64, UContinues>(UContinues, name, Flt64, shape)
-typealias URealVariableView = CombinationView<Flt64, UContinues>
-typealias URealVariableView1 = CombinationView1<Flt64, UContinues>
-typealias URealVariableView2 = CombinationView2<Flt64, UContinues>
-typealias URealVariableView3 = CombinationView3<Flt64, UContinues>
-typealias URealVariableView4 = CombinationView4<Flt64, UContinues>
-typealias DynURealVariableView = DynCombinationView<Flt64, UContinues>
+    DynCombination<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
+typealias URealVariableView = CombinationView<Flt64, UContinuous>
+typealias URealVariableView1 = CombinationView1<Flt64, UContinuous>
+typealias URealVariableView2 = CombinationView2<Flt64, UContinuous>
+typealias URealVariableView3 = CombinationView3<Flt64, UContinuous>
+typealias URealVariableView4 = CombinationView4<Flt64, UContinuous>
+typealias DynURealVariableView = DynCombinationView<Flt64, UContinuous>

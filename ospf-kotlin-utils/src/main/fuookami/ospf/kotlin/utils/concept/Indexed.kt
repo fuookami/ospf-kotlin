@@ -1,47 +1,50 @@
 package fuookami.ospf.kotlin.utils.concept
 
 import kotlin.reflect.KClass
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 
-val impls = HashMap<KClass<*>, Int>()
+val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
 
 sealed class IndexedImpl {
     inline fun <reified T> nextIndex(): Int {
-        val ret = impls[T::class] ?: 0
-        impls[T::class] = (impls[T::class] ?: 0) + 1
-        return ret
+        return nextIndex(T::class)
     }
 
     fun nextIndex(cls: KClass<*>): Int {
-        val ret = impls[cls] ?: 0
-        impls[cls] = (impls[cls] ?: 0) + 1
-        return ret
+        return impls.getOrPut(cls) { AtomicInteger(0) }.getAndIncrement()
     }
 
     inline fun <reified T> flush() {
-        impls[T::class] = 0
+        flush(T::class)
     }
 
     fun flush(cls: KClass<*>) {
-        impls[cls] = 0
+        impls[cls] = AtomicInteger(0)
     }
 }
 
 interface Indexed {
     val index: Int
+
+    companion object: IndexedImpl()
 }
 
 open class ManualIndexed internal constructor(
     private var mIndex: Int? = null
 ): Indexed {
-    override val index: Int get() = this.mIndex!!
+    val indexed = mIndex != null
+    override val index: Int get() {
+        assert(indexed)
+        return this.mIndex!!
+    }
 
     constructor(): this(null)
 
     companion object: IndexedImpl()
 
-    fun indexed(): Boolean = mIndex != null
     fun setIndexed() {
-        assert(!indexed())
+        assert(!indexed)
         mIndex = nextIndex(this::class)
     }
 }

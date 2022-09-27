@@ -22,13 +22,13 @@
         <dependency>
             <groupId>fuookami</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>fuookami</groupId>
             <artifactId>ospf-kotlin-core</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
