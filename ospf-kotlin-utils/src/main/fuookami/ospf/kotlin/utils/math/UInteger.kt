@@ -20,11 +20,15 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     override fun lg(): FloatingNumber<*> = log(Flt64(10.0))
     override fun ln(): FloatingNumber<*> = log(Flt64.e)
 
+    override fun pow(index: Int) = pow(clone(), index, constants)
     override fun square() = pow(2)
     override fun cubic() = pow(3)
 
     override fun sqr() = pow(Flt64(1.0 / 2.0))
     override fun cbr() = pow(Flt64(1.0 / 3.0))
+
+    override fun rangeTo(rhs: Self) = IntegerRange(clone(), rhs, constants.one, constants)
+    override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
 }
 
 object UInt8Serializer : RealNumberKSerializer<UInt8> {
@@ -79,8 +83,6 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
         else -> throw IllegalArgumentException("Unknown argument type to UInt8.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, UInt8)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -90,8 +92,6 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: UInt8) = IntegerRange(clone(), rhs, one, UInt8)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
@@ -162,8 +162,6 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
         else -> throw IllegalArgumentException("Unknown argument type to UInt16.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, UInt16)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -173,8 +171,6 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: UInt16) = IntegerRange(clone(), rhs, one, UInt16)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
@@ -245,8 +241,6 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
         else -> throw IllegalArgumentException("Unknown argument type to UInt32.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, UInt32)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -256,8 +250,6 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: UInt32) = IntegerRange(clone(), rhs, one, UInt32)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
@@ -328,8 +320,6 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
         else -> throw IllegalArgumentException("Unknown argument type to UInt64.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, UInt64)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -339,8 +329,6 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: UInt64) = IntegerRange(clone(), rhs, one, UInt64)
 
     fun toInt() = value.toInt()
 
@@ -401,7 +389,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun clone() = UIntX(value)
 
     override fun toString() = value.toString()
-    fun toString(radix: Int) = value.toString(radix)
+    fun toString(radix: Int): String = value.toString(radix)
 
     override fun partialOrd(rhs: UIntX) = value.compareTo(rhs.value)
     override fun partialEq(rhs: UIntX) = (value.compareTo(rhs.value) == 0)
@@ -425,8 +413,6 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun lg() = log(FltX(10.0)) as FltX
     override fun ln() = log(FltX.e) as FltX
 
-    override fun pow(index: Int) = pow(clone(), index, UIntX)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> toFltX().pow(index)
@@ -435,14 +421,9 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
         else -> throw IllegalArgumentException("Unknown argument type to UIntX.pow: ${index.javaClass}")
     }
 
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
-
     override fun sqr() = pow(FltX(1.0 / 2.0)) as FltX
     override fun cbr() = pow(FltX(1.0 / 3.0)) as FltX
     override fun exp() = toFltX().exp()
-
-    override fun rangeTo(rhs: UIntX) = IntegerRange(clone(), rhs, one, UIntX)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())

@@ -107,6 +107,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun exp() = toFlt64().exp()
 
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(clone(), rhs, one, UInt8, UInt8::toNUInt8, NUInt8::toUInt8)
+    override infix fun until(rhs: NUInt8) = rangeTo((rhs - constants.one).toNUInt8())
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -198,6 +199,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
 
     override fun rangeTo(rhs: NUInt16) =
         NumericUIntegerRange(clone(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
+    override infix fun until(rhs: NUInt16) = rangeTo((rhs - constants.one).toNUInt16())
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -289,6 +291,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
 
     override fun rangeTo(rhs: NUInt32) =
         NumericUIntegerRange(clone(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
+    override infix fun until(rhs: NUInt32) = rangeTo((rhs - constants.one).toNUInt32())
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -380,6 +383,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
 
     override fun rangeTo(rhs: NUInt64) =
         NumericUIntegerRange(clone(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
+    override infix fun until(rhs: NUInt64) = rangeTo((rhs - constants.one).toNUInt64())
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -475,10 +479,10 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
 
     override fun sqr() = pow(FltX(1.0 / 2.0))
     override fun cbr() = pow(FltX(1.0 / 3.0))
-
     override fun exp() = toFltX().exp()
 
     override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(clone(), rhs, one, UIntX, UIntX::toNUIntX, NUIntX::toUIntX)
+    override infix fun until(rhs: NUIntX) = rangeTo((rhs - constants.one).toNUIntX())
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()

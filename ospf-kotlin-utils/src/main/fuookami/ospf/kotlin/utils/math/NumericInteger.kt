@@ -20,6 +20,9 @@ interface NumericInteger<Self, I>
 
     override fun sqr() = pow(Flt64(1.0 / 2.0))
     override fun cbr() = pow(Flt64(1.0 / 3.0))
+
+    override fun rangeTo(rhs: Self) = IntegerRange(clone(), rhs, constants.one, constants)
+    override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
 }
 
 abstract class NumericIntegerConstants<Self, I>(
@@ -104,8 +107,6 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: NInt8) = IntegerRange(clone(), rhs, one, NInt8)
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -193,8 +194,6 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
 
     override fun exp() = toFlt64().exp()
 
-    override fun rangeTo(rhs: NInt16) = IntegerRange(clone(), rhs, one, NInt16)
-
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
     override fun toInt32() = value.toInt32()
@@ -281,8 +280,6 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
 
     override fun exp() = toFlt64().exp()
 
-    override fun rangeTo(rhs: NInt32) = IntegerRange(clone(), rhs, one, NInt32)
-
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
     override fun toInt32() = value.toInt32()
@@ -368,8 +365,6 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: NInt64) = IntegerRange(clone(), rhs, one, NInt64)
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -460,10 +455,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
 
     override fun sqr() = pow(FltX(1.0 / 2.0))
     override fun cbr() = pow(FltX(1.0 / 3.0))
-
-    override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: NIntX) = IntegerRange(clone(), rhs, one, NIntX)
+    override fun exp() = toFltX().exp()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()

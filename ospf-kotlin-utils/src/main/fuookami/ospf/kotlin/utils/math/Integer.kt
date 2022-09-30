@@ -19,11 +19,15 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
     override fun lg() = log(Flt64(10.0))
     override fun ln() = log(Flt64.e)
 
+    override fun pow(index: Int) = pow(clone(), index, constants)
     override fun square() = pow(2)
     override fun cubic() = pow(3)
 
     override fun sqr() = pow(Flt64(1.0 / 2.0))
     override fun cbr() = pow(Flt64(1.0 / 3.0))
+
+    override fun rangeTo(rhs: Self) = IntegerRange(clone(), rhs, constants.one, constants)
+    override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
 }
 
 object Int8Serializer : RealNumberKSerializer<Int8> {
@@ -79,8 +83,6 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
         else -> throw IllegalArgumentException("Unknown argument type to Int8.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, Int8)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -90,8 +92,6 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: Int8) = IntegerRange(clone(), rhs, one, Int8)
 
     override fun toInt8() = clone()
     override fun toInt16() = Int16(value.toShort())
@@ -163,8 +163,6 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
         else -> throw IllegalArgumentException("Unknown argument type to Int16.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, Int16)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -174,8 +172,6 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: Int16) = IntegerRange(clone(), rhs, one, Int16)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = clone()
@@ -247,8 +243,6 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
         else -> throw IllegalArgumentException("Unknown argument type to Int32.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, Int32)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -258,8 +252,6 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: Int32) = IntegerRange(clone(), rhs, one, Int32)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
@@ -331,8 +323,6 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
         else -> throw IllegalArgumentException("Unknown argument type to Int64.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(clone(), index, Int64)
-
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> Flt32(value.toFloat().pow(index.value))
@@ -342,8 +332,6 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
     }
 
     override fun exp() = toFlt64().exp()
-
-    override fun rangeTo(rhs: Int64) = IntegerRange(clone(), rhs, one, Int64)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
@@ -419,10 +407,7 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
     }
 
     override fun lg() = log(FltX(10.0)) as FltX
-
     override fun ln() = log(FltX.e) as FltX
-
-    override fun pow(index: Int) = pow(clone(), index, IntX)
 
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
@@ -432,14 +417,9 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
         else -> throw IllegalArgumentException("Unknown argument type to IntX.pow: ${index.javaClass}")
     }
 
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
-
     override fun sqr() = pow(FltX(1.0 / 2.0)) as FltX
     override fun cbr() = pow(FltX(1.0 / 3.0)) as FltX
     override fun exp() = toFltX().exp()
-
-    override fun rangeTo(rhs: IntX) = IntegerRange(clone(), rhs, one, IntX)
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
