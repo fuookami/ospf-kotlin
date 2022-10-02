@@ -18,7 +18,6 @@ class LinearModel(
     override val objectFunction: SingleObject<Linear>,
     override val tokens: TokenTable<Linear>
 ) : Model<Linear> {
-
     companion object {
         operator fun invoke(metaModel: LinearMetaModel): LinearModel {
             val constraints = ArrayList<LinearConstraint>()

@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.framework.model
 
+import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.utils.math.*
 
 open class ShadowPriceKey(
-    val limit: Class<*>
+    val limit: KClass<*>
 )
 
 class ShadowPrice(
@@ -19,6 +20,8 @@ open class ShadowPriceMap<M : ShadowPriceMap<M>>(
     private val extractors: MutableList<Extractor<M>> = ArrayList()
 ) {
     operator fun invoke(vararg args: Any?) = Flt64(extractors.sumOf { it(this, args).toDouble() })
+
+    operator fun get(key: ShadowPriceKey): ShadowPrice? = map[key]
 
     fun put(price: ShadowPrice) {
         map[price.key] = price

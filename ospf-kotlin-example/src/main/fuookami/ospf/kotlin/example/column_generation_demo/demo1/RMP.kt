@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 
 data class ProductDemandShadowPriceKey(
     val product: Product
-) : ShadowPriceKey(ProductDemandShadowPriceKey::class.java)
+) : ShadowPriceKey(ProductDemandShadowPriceKey::class)
 
 class RMP(
     private val products: List<Product>,

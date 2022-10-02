@@ -74,14 +74,14 @@ sealed class TokenList {
     }
 }
 
-class AutoAddTokenTokenList() : TokenList() {
+class AutoAddTokenTokenList: TokenList() {
     override fun find(item: Item<*, *>): Token? {
         add(item)
         return list[item.key]
     }
 }
 
-class ManualAddTokenTokenList() : TokenList() {
+class ManualAddTokenTokenList: TokenList() {
     override fun find(item: Item<*, *>): Token? {
         return list[item.key]
     }
