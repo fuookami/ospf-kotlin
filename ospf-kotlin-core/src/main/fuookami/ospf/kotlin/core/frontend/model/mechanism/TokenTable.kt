@@ -20,6 +20,7 @@ sealed class TokenTable<C : Category>(
 ) {
     val tokens: Collection<Token> get() = _tokens.tokens
     val symbols: Collection<Symbol<C>> get() = _symbols.values
+    val solverIndexMap get() = _tokens.solverIndexMap
 
     fun token(item: Item<*, *>): Token? = _tokens.find(item)
     fun setSolution(solution: List<Flt64>) = _tokens.setResults(solution)
@@ -62,33 +63,15 @@ sealed class TokenTable<C : Category>(
 
     @Throws(RepeatedSymbolException::class)
     fun add(symbols: SymbolCombination<C, *>): TokenTable<C> {
-        for (symbol in symbols) {
-            add(symbol!!)
-        }
+        symbols.iterator().forEach { add(it!!) }
         return this
     }
 
     @JvmName("addSymbolView")
     @Throws(RepeatedSymbolException::class)
     fun add(symbols: SymbolView<C>): TokenTable<C> {
-        for (symbol in symbols) {
-            add(symbol!!)
-        }
+        symbols.iterator().forEach { add(it!!) }
         return this
-    }
-
-    fun solverIndexMap(): Map<Int, Int> {
-        val solverIndexes = ArrayList<Int>()
-        for (token in tokens) {
-            solverIndexes.add(token.solverIndex)
-        }
-        solverIndexes.sort()
-
-        val ret = TreeMap<Int, Int>()
-        for ((index, solverIndex) in solverIndexes.withIndex()) {
-            ret[solverIndex] = index
-        }
-        return ret
     }
 }
 
