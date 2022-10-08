@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context
 
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.service.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
@@ -78,20 +79,19 @@ class RouteContext {
 
     fun construct(model: LinearMetaModel): Try<Error> {
         val generator = PipelineListGenerator(aggregation)
-        when (val pipelines = generator()) {
+        when (val pipelinesRet = generator()) {
             is Failed -> {
-                return Failed(pipelines.error)
+                return Failed(pipelinesRet.error)
             }
 
             is Ok -> {
-                for (pipeline in pipelines.value) {
-                    when (val result = pipeline(model)) {
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-
-                        is Ok -> {}
+                val pipelines = pipelinesRet.value
+                when (val result = pipelines(model)) {
+                    is Failed -> {
+                        return Failed(result.error)
                     }
+
+                    is Ok -> {}
                 }
             }
         }

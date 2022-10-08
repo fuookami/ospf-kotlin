@@ -11,6 +11,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 interface Pipeline<M : MetaModel<*>> {
     val name: String
 
+    fun register(model: M) {
+        model.registerConstraintGroup(name)
+    }
+
     operator fun invoke(model: M): Try<Error>
 }
 
@@ -57,5 +61,17 @@ interface HAPipeline<M : MetaModel<*>> : Pipeline<M> {
 }
 
 typealias PipelineList<M> = List<Pipeline<M>>
+
+operator fun <M: MetaModel<*>> PipelineList<M>.invoke(model: M): Try<Error> {
+    for (pipeline in this) {
+        pipeline.register(model)
+        when (val ret = pipeline(model)) {
+            is Ok -> { }
+            is Failed -> { return Failed(ret.error) }
+        }
+    }
+    return Ok(success)
+}
+
 typealias CGPipelineList<Model, Map> = List<CGPipeline<Model, Map>>
 typealias HAPipelineList<M> = List<HAPipeline<M>>

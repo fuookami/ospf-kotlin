@@ -36,6 +36,7 @@ class RMP(
         metaModel.addSymbols(output)
 
         metaModel.minimize(LinearPolynomial(cost))
+        metaModel.registerConstraintGroup("product_demand")
         for (product in products) {
             metaModel.addConstraint(output[product]!! geq product.demand, "product_demand_${product.index}")
         }
@@ -102,12 +103,8 @@ class RMP(
     private fun extractShadowPriceMap(dualResult: List<Flt64>): SPM {
         val ret = SPM()
 
-        var i = 0
-        for (j in metaModel.constraints.indices) {
-            if (metaModel.constraints[j].name.startsWith("product_demand")) {
-                ret.put(ShadowPrice(ProductDemandShadowPriceKey(products[i]), dualResult[j]))
-                ++i
-            }
+        for ((i, j) in metaModel.indicesOfConstraintGroup("product_demand")!!.withIndex()) {
+            ret.put(ShadowPrice(ProductDemandShadowPriceKey(products[i]), dualResult[j]))
         }
         ret.put { map, args ->
             map.map[ProductDemandShadowPriceKey(args[0] as Product)]?.price

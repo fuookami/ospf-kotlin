@@ -63,6 +63,9 @@ sealed interface MetaModel<C : Category> {
         constraints.add(inequality)
     }
 
+    fun registerConstraintGroup(name: String)
+    fun indicesOfConstraintGroup(name: String): IntRange?
+
     fun addObject(
         category: ObjectCategory,
         polynomial: Polynomial<C>,
@@ -183,5 +186,30 @@ class LinearMetaModel(
         ManualAddTokenTable()
     } else {
         AutoAddTokenTable()
+    }
+
+    private var currentConstraintGroup: String? = null
+    private var currentConstraintGroupIndexLowerBound: Int? = null
+    private val constraintGroupIndexMap = HashMap<String, IntRange>()
+
+    override fun registerConstraintGroup(name: String) {
+        if (currentConstraintGroup != null) {
+            assert(currentConstraintGroupIndexLowerBound != null)
+
+            constraintGroupIndexMap[currentConstraintGroup!!] = currentConstraintGroupIndexLowerBound!! until constraints.size
+        }
+        currentConstraintGroup = name
+        currentConstraintGroupIndexLowerBound = constraints.size
+    }
+
+    override fun indicesOfConstraintGroup(name: String): IntRange? {
+        if (currentConstraintGroup != null) {
+            assert(currentConstraintGroupIndexLowerBound != null)
+
+            constraintGroupIndexMap[currentConstraintGroup!!] = currentConstraintGroupIndexLowerBound!! until constraints.size
+            currentConstraintGroup = null
+            currentConstraintGroupIndexLowerBound = null
+        }
+        return constraintGroupIndexMap[name]
     }
 }
