@@ -31,7 +31,7 @@ class LinearSubObject(
                 if ((cell as LinearMonomialCell).isPair()) {
                     val pair = cell.pair()!!
                     val token = tokens.token(pair.variable)
-                    if (token != null) {
+                    if (token != null && pair.coefficient neq Flt64.zero) {
                         cells.add(LinearCell(pair.coefficient, token))
                     }
                 } else {

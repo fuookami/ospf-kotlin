@@ -28,7 +28,7 @@ class LinearConstraint(
                 when (val temp = (cell as LinearMonomialCell).cell) {
                     is Either.Left -> {
                         val token = tokens.token(temp.value.variable)
-                        if (token != null) {
+                        if (token != null && temp.value.coefficient neq Flt64.zero) {
                             lhs.add(LinearCell(temp.value.coefficient, token))
                         }
                     }

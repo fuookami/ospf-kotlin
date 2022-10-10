@@ -187,22 +187,22 @@ class BasicLinearTriadModel(
             var flag = false
             var k = 0
             while (j != constraints.lhs.size && i == constraints.lhs[j].rowIndex) {
-                if (k != 0) {
+                val coefficient = if (k != 0) {
                     if (constraints.lhs[j].coefficient leq Flt64.zero) {
                         writer.append(" - ")
                     } else {
                         writer.append(" + ")
                     }
-                    val coefficient = abs(constraints.lhs[j].coefficient)
-                    if (!(coefficient eq Flt64.one)) {
+                    abs(constraints.lhs[j].coefficient)
+                } else {
+                    constraints.lhs[j].coefficient
+                }
+                if (coefficient neq Flt64.zero) {
+                    if (coefficient neq Flt64.one) {
                         writer.append("$coefficient ")
                     }
-                } else {
-                    if (!(constraints.lhs[j].coefficient eq Flt64.one)) {
-                        writer.append("${constraints.lhs[j].coefficient} ")
-                    }
+                    writer.append("${variables[constraints.lhs[j].colIndex]}")
                 }
-                writer.append("${variables[constraints.lhs[j].colIndex]}")
                 flag = true
                 ++j
                 ++k
@@ -439,23 +439,22 @@ data class LinearTriadModel(
             if (cell.coefficient eq Flt64.zero) {
                 continue
             }
-            if (i != 0) {
+            val coefficient = if (i != 0) {
                 if (cell.coefficient leq Flt64.zero) {
                     writer.append(" - ")
                 } else {
                     writer.append(" + ")
                 }
-
-                val coefficient = abs(cell.coefficient)
-                if (!(coefficient eq Flt64.one)) {
+                abs(cell.coefficient)
+            } else {
+                cell.coefficient
+            }
+            if (coefficient neq Flt64.one) {
+                if (coefficient neq Flt64.one) {
                     writer.append("$coefficient ")
                 }
-            } else {
-                if (!(cell.coefficient eq Flt64.one)) {
-                    writer.append("${cell.coefficient} ")
-                }
+                writer.append("${variables[cell.colIndex]}")
             }
-            writer.append("${variables[cell.colIndex]}")
             ++i
         }
         writer.append("\n\n")
