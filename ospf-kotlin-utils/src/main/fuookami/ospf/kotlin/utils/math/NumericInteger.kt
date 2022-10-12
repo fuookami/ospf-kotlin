@@ -4,7 +4,6 @@ import java.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
 
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
@@ -21,7 +20,7 @@ interface NumericInteger<Self, I>
     override fun sqr() = pow(Flt64(1.0 / 2.0))
     override fun cbr() = pow(Flt64(1.0 / 3.0))
 
-    override fun rangeTo(rhs: Self) = IntegerRange(clone(), rhs, constants.one, constants)
+    override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
 }
 
@@ -54,14 +53,14 @@ object NInt8Serializer : RealNumberKSerializer<NInt8> {
 
 @JvmInline
 @Serializable(with = NInt8Serializer::class)
-value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8> {
+value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8> {
     companion object : NumericIntegerConstants<NInt8, Int8>(NInt8::invoke, Int8) {
         operator fun invoke(value: Int8) = NInt8(value)
     }
 
     override val constants: RealNumberConstants<NInt8> get() = NInt8
 
-    override fun clone() = NInt8(value)
+    override fun copy() = NInt8(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -140,14 +139,14 @@ object NInt16Serializer : RealNumberKSerializer<NInt16> {
 
 @JvmInline
 @Serializable(with = NInt16Serializer::class)
-value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<NInt16> {
+value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16> {
     companion object : NumericIntegerConstants<NInt16, Int16>(NInt16::invoke, Int16) {
         operator fun invoke(value: Int16) = NInt16(value)
     }
 
     override val constants: RealNumberConstants<NInt16> get() = NInt16
 
-    override fun clone() = NInt16(value)
+    override fun copy() = NInt16(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -226,14 +225,14 @@ object NInt32Serializer : RealNumberKSerializer<NInt32> {
 
 @JvmInline
 @Serializable(with = NInt32Serializer::class)
-value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<NInt32> {
+value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32> {
     companion object : NumericIntegerConstants<NInt32, Int32>(NInt32::invoke, Int32) {
         operator fun invoke(value: Int32) = NInt32(value)
     }
 
     override val constants: RealNumberConstants<NInt32> get() = NInt32
 
-    override fun clone(): NInt32 = NInt32(value)
+    override fun copy(): NInt32 = NInt32(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -312,14 +311,14 @@ object NInt64Serializer : RealNumberKSerializer<NInt64> {
 
 @JvmInline
 @Serializable(with = NInt64Serializer::class)
-value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<NInt64> {
+value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64> {
     companion object : NumericIntegerConstants<NInt64, Int64>(NInt64::invoke, Int64) {
         operator fun invoke(value: Int64) = NInt64(value)
     }
 
     override val constants: RealNumberConstants<NInt64> get() = NInt64
 
-    override fun clone(): NInt64 = NInt64(value)
+    override fun copy(): NInt64 = NInt64(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -398,14 +397,14 @@ object NIntXSerializer : RealNumberKSerializer<NIntX> {
 
 @JvmInline
 @Serializable(NIntXSerializer::class)
-value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX> {
+value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX> {
     companion object : NumericIntegerConstants<NIntX, IntX>(NIntX::invoke, IntX) {
         operator fun invoke(value: IntX) = NIntX(value)
     }
 
     override val constants: RealNumberConstants<NIntX> get() = NIntX
 
-    override fun clone(): NIntX = NIntX(value)
+    override fun copy(): NIntX = NIntX(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)

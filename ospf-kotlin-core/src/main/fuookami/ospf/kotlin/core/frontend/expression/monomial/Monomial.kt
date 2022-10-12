@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.utils.concept.Cloneable
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.core.frontend.expression.*
 
-sealed interface MonomialCell<C : Category> : Cloneable<MonomialCell<C>> {
+sealed interface MonomialCell<C : Category> : Cloneable, Copyable<MonomialCell<C>> {
     @Throws(IllegalArgumentException::class)
     operator fun plusAssign(rhs: MonomialCell<C>)
 

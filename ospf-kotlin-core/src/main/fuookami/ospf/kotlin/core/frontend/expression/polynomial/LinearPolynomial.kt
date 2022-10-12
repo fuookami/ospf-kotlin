@@ -142,7 +142,7 @@ class LinearPolynomial(
                     if (sameCell != null) {
                         sameCell += cell
                     } else {
-                        cells.add(cell.clone())
+                        cells.add(cell.copy())
                     }
                 }
             }

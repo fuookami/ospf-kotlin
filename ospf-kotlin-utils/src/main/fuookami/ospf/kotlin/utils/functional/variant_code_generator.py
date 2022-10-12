@@ -123,23 +123,23 @@ fun <%s, Ret> match(value: Variant%d<%s>%s): Ret {
        gen_variantn_match(i))
 
 
-def gen_variantn_clone_invoke(i):
-    code = "is Variant%d.V1 -> Variant%d.V1(this.value.clone())" % (i, i)
+def gen_variantn_copy_invoke(i):
+    code = "is Variant%d.V1 -> Variant%d.V1(this.value.copy())" % (i, i)
     for j in range(1, i):
         code += \
             """
-                is Variant%d.V%d -> Variant%d.V%d(this.value.clone())""" % (i, j + 1, i, j + 1)
+                is Variant%d.V%d -> Variant%d.V%d(this.value.copy())""" % (i, j + 1, i, j + 1)
     return code
 
 
-def gen_variantn_clone_code(i):
+def gen_variantn_copy_code(i):
     return """
-@JvmName("Variant%dClone")
-fun <%s> Variant%d<%s>.clone(): Variant%d<%s> = when (this) {
+@JvmName("Variant%dCopy")
+fun <%s> Variant%d<%s>.copy(): Variant%d<%s> = when (this) {
     %s
 }
-""" % (i, gen_variantn_generic_parameter_with_base(i, "opf.kotlin.utils.concept.Cloneable"), i,
-       gen_variantn_generic_parameter(i), i, gen_variantn_generic_parameter(i), gen_variantn_clone_invoke(i))
+""" % (i, gen_variantn_generic_parameter_with_base(i, "Copyable"), i,
+       gen_variantn_generic_parameter(i), i, gen_variantn_generic_parameter(i), gen_variantn_copy_invoke(i))
 
 
 def gen_variantn_move_invoke(i):
@@ -199,11 +199,10 @@ def gen_variant_code():
 def gen_code(num):
     code = \
         """package fuookami.opf.utils.functional
-        
-        import fuookami.ospf.kotlin.utils.concept.Movable
-        import fuookami.ospf.kotlin.utils.concept.Copyable
-        import kotlin.reflect.KClass
-        import kotlin.collections.*;
+
+        import kotlin.reflect.*
+        import kotlin.collections.*
+        import fuookami.ospf.kotlin.utils.concept.*
         """
     for i in range(2, num + 1):
         code += gen_variantn_code(i)
@@ -212,7 +211,7 @@ def gen_code(num):
     for i in range(2, num + 1):
         code += gen_variantn_match_code(i)
     for i in range(2, num + 1):
-        code += gen_variantn_clone_code(i)
+        code += gen_variantn_copy_code(i)
     for i in range(2, num + 1):
         code += gen_variantn_move_code(i)
     return code

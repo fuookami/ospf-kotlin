@@ -1,14 +1,15 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
+import java.io.*
+import java.nio.file.*
+import kotlin.io.path.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import java.io.FileWriter
-import java.nio.file.Path
-import kotlin.io.path.isDirectory
 
 data class Variable(
     val index: Int,
@@ -16,8 +17,9 @@ data class Variable(
     var upperBound: Flt64,
     var type: VariableType<*>,
     val name: String
-) : fuookami.ospf.kotlin.utils.concept.Cloneable<Variable> {
-    override fun clone() = Variable(index, lowerBound, upperBound, type, name)
+) : Cloneable, Copyable<Variable> {
+    override fun copy() = Variable(index, lowerBound, upperBound, type, name)
+    override fun clone() = copy()
 
     override fun toString() = name
 }
@@ -26,8 +28,9 @@ data class ConstraintCell(
     val rowIndex: Int,
     val colIndex: Int,
     val coefficient: Flt64
-) : fuookami.ospf.kotlin.utils.concept.Cloneable<ConstraintCell> {
-    override fun clone() = ConstraintCell(rowIndex, colIndex, coefficient.clone())
+) : Cloneable, Copyable<ConstraintCell> {
+    override fun copy() = ConstraintCell(rowIndex, colIndex, coefficient.copy())
+    override fun clone() = copy()
 }
 
 data class Constraint(
@@ -35,29 +38,32 @@ data class Constraint(
     val signs: MutableList<Sign>,
     val rhs: MutableList<Flt64>,
     val names: MutableList<String>
-) : fuookami.ospf.kotlin.utils.concept.Cloneable<Constraint> {
+) : Cloneable, Copyable<Constraint> {
     val size: Int get() = rhs.size
 
-    override fun clone() = Constraint(
-        lhs.asSequence().map { it.clone() }.toMutableList(), 
+    override fun copy() = Constraint(
+        lhs.asSequence().map { it.copy() }.toMutableList(), 
         signs.toMutableList(),
-        rhs.asSequence().map { it.clone() }.toMutableList(), 
+        rhs.asSequence().map { it.copy() }.toMutableList(), 
         names.toMutableList()
     )
+    override fun clone() = copy()
 }
 
 data class ObjectiveCell(
     val colIndex: Int,
     var coefficient: Flt64
-) : fuookami.ospf.kotlin.utils.concept.Cloneable<ObjectiveCell> {
-    override fun clone() = ObjectiveCell(colIndex, coefficient.clone())
+) : Cloneable, Copyable<ObjectiveCell> {
+    override fun copy() = ObjectiveCell(colIndex, coefficient.copy())
+    override fun clone() = copy()
 }
 
 data class Objective(
     val category: ObjectCategory,
     val obj: List<ObjectiveCell>
-) : fuookami.ospf.kotlin.utils.concept.Cloneable<Objective> {
-    override fun clone() = Objective(category, obj.toList())
+) : Cloneable, Copyable<Objective> {
+    override fun copy() = Objective(category, obj.toList())
+    override fun clone() = copy()
 }
 
 interface LinearTraitModelView {
@@ -101,12 +107,13 @@ class BasicLinearTriadModel(
     val variables: List<Variable>,
     val constraints: Constraint,
     val name: String
-) : fuookami.ospf.kotlin.utils.concept.Cloneable<BasicLinearTriadModel> {
-    override fun clone() = BasicLinearTriadModel(
-        variables.map { it.clone() },
-        constraints.clone(),
+) : Cloneable, Copyable<BasicLinearTriadModel> {
+    override fun copy() = BasicLinearTriadModel(
+        variables.map { it.copy() },
+        constraints.copy(),
         name
     )
+    override fun clone() = copy()
 
     fun containsBinary(): Boolean {
         return variables.any { it.type.isBinaryType() }
@@ -253,8 +260,7 @@ class BasicLinearTriadModel(
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
     override val objective: Objective,
-) : LinearTraitModelView,
-    fuookami.ospf.kotlin.utils.concept.Cloneable<LinearTriadModel> {
+) : LinearTraitModelView, Cloneable, Copyable<LinearTriadModel> {
     override val variables: List<Variable> by impl::variables
     override val constraints: Constraint by impl::constraints
     override val name: String by impl::name
@@ -333,8 +339,8 @@ data class LinearTriadModel(
         }
     }
 
-    override fun clone() =
-        LinearTriadModel(impl.clone(), objective.clone())
+    override fun copy() = LinearTriadModel(impl.copy(), objective.copy())
+    override fun clone() = copy()
 
     fun containsBinary(): Boolean = impl.containsBinary()
     fun containsInteger(): Boolean = impl.containsInteger()

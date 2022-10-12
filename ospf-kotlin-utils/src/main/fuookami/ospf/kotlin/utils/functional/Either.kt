@@ -84,16 +84,16 @@ fun <L, R, Ret> match(value: Either<L, R>, leftCallBack: (L) -> Ret, rightCallBa
     return matcher()
 }
 
-fun <L : fuookami.ospf.kotlin.utils.concept.Cloneable<L>, R : fuookami.ospf.kotlin.utils.concept.Cloneable<R>> Either<L, R>.clone(
+fun <L : Copyable<L>, R : Copyable<R>> Either<L, R>.copy(
     value: Either<L, R>
 ): Either<L, R> =
     when (value) {
         is Either.Left -> {
-            Either.Left(clone(value.value))
+            Either.Left(copy(value.value))
         }
 
         is Either.Right -> {
-            Either.Right(clone(value.value))
+            Either.Right(copy(value.value))
         }
     }
 

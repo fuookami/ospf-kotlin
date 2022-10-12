@@ -2,15 +2,14 @@ package fuookami.ospf.kotlin.utils.math
 
 import java.math.*
 import kotlin.math.*
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
-import kotlinx.serialization.Serializable
 
 interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self> {
-    override fun abs() = clone()
-    override fun reciprocal() = constants.zero.clone()
+    override fun abs() = copy()
+    override fun reciprocal() = constants.zero.copy()
 
     override fun intDiv(rhs: Self) = this / rhs
 
@@ -20,14 +19,14 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     override fun lg(): FloatingNumber<*> = log(Flt64(10.0))
     override fun ln(): FloatingNumber<*> = log(Flt64.e)
 
-    override fun pow(index: Int) = pow(clone(), index, constants)
+    override fun pow(index: Int) = pow(copy(), index, constants)
     override fun square() = pow(2)
     override fun cubic() = pow(3)
 
     override fun sqr() = pow(Flt64(1.0 / 2.0))
     override fun cbr() = pow(Flt64(1.0 / 3.0))
 
-    override fun rangeTo(rhs: Self) = IntegerRange(clone(), rhs, constants.one, constants)
+    override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
 }
 
@@ -46,7 +45,7 @@ object UInt8Serializer : RealNumberKSerializer<UInt8> {
 
 @JvmInline
 @Serializable(with = UInt8Serializer::class)
-value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyable<UInt8> {
+value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8> {
     companion object : RealNumberConstants<UInt8> {
         override val zero: UInt8 get() = UInt8(0U)
         override val one: UInt8 get() = UInt8(1U)
@@ -59,7 +58,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
 
     override val constants: RealNumberConstants<UInt8> get() = Companion
 
-    override fun clone() = UInt8(value)
+    override fun copy() = UInt8(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int): String = value.toString(radix)
@@ -99,7 +98,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     override fun toInt64() = Int64(value.toLong())
     override fun toIntX() = IntX(value.toLong())
 
-    override fun toUInt8() = clone()
+    override fun toUInt8() = copy()
     override fun toUInt16() = UInt16(value.toUShort())
     override fun toUInt32() = UInt32(value.toUInt())
     override fun toUInt64() = UInt64(value.toULong())
@@ -125,7 +124,7 @@ object UInt16Serializer : RealNumberKSerializer<UInt16> {
 
 @JvmInline
 @Serializable(with = UInt16Serializer::class)
-value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Copyable<UInt16> {
+value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16> {
     companion object : RealNumberConstants<UInt16> {
         override val zero: UInt16 get() = UInt16(0U)
         override val one: UInt16 get() = UInt16(1U)
@@ -138,7 +137,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
 
     override val constants: RealNumberConstants<UInt16> get() = Companion
 
-    override fun clone() = UInt16(value)
+    override fun copy() = UInt16(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -179,7 +178,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
     override fun toIntX() = IntX(value.toLong())
 
     override fun toUInt8() = UInt8(value.toUByte())
-    override fun toUInt16() = clone()
+    override fun toUInt16() = copy()
     override fun toUInt32() = UInt32(value.toUInt())
     override fun toUInt64() = UInt64(value.toULong())
     override fun toUIntX() = UIntX(value.toLong())
@@ -204,7 +203,7 @@ object UInt32Serializer : RealNumberKSerializer<UInt32> {
 
 @JvmInline
 @Serializable(with = UInt32Serializer::class)
-value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copyable<UInt32> {
+value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32> {
     companion object : RealNumberConstants<UInt32> {
         override val zero: UInt32 get() = UInt32(0U)
         override val one: UInt32 get() = UInt32(1U)
@@ -217,7 +216,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
 
     override val constants: RealNumberConstants<UInt32> get() = UInt32
 
-    override fun clone() = UInt32(value)
+    override fun copy() = UInt32(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -259,7 +258,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
 
     override fun toUInt8() = UInt8(value.toUByte())
     override fun toUInt16() = UInt16(value.toUShort())
-    override fun toUInt32() = clone()
+    override fun toUInt32() = copy()
     override fun toUInt64() = UInt64(value.toULong())
     override fun toUIntX() = UIntX(value.toLong())
 
@@ -283,7 +282,7 @@ object UInt64Serializer : RealNumberKSerializer<UInt64> {
 
 @JvmInline
 @Serializable(with = UInt64Serializer::class)
-value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copyable<UInt64> {
+value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64> {
     companion object : RealNumberConstants<UInt64> {
         override val zero: UInt64 get() = UInt64(0UL)
         override val one: UInt64 get() = UInt64(1UL)
@@ -296,7 +295,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
 
     override val constants: RealNumberConstants<UInt64> get() = UInt64
 
-    override fun clone() = UInt64(value)
+    override fun copy() = UInt64(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
@@ -341,7 +340,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     override fun toUInt8() = UInt8(value.toUByte())
     override fun toUInt16() = UInt16(value.toUShort())
     override fun toUInt32() = UInt32(value.toUInt())
-    override fun toUInt64() = clone()
+    override fun toUInt64() = copy()
     override fun toUIntX() = UIntX(value.toString())
 
     override fun toFlt32() = Flt32(value.toFloat())
@@ -364,7 +363,7 @@ object UIntXSerializer : RealNumberKSerializer<UIntX> {
 
 @JvmInline
 @Serializable(with = UIntXSerializer::class)
-value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {
+value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX> {
     companion object : RealNumberConstants<UIntX> {
         override val zero: UIntX get() = UIntX(0L)
         override val one: UIntX get() = UIntX(1L)
@@ -386,7 +385,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
 
     override val constants: RealNumberConstants<UIntX> get() = UIntX
 
-    override fun clone() = UIntX(value)
+    override fun copy() = UIntX(value)
 
     override fun toString() = value.toString()
     fun toString(radix: Int): String = value.toString(radix)
@@ -435,7 +434,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun toUInt16() = UInt16(value.toLong().toUShort())
     override fun toUInt32() = UInt32(value.toLong().toUInt())
     override fun toUInt64() = UInt64(value.toLong().toULong())
-    override fun toUIntX() = clone()
+    override fun toUIntX() = copy()
 
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())

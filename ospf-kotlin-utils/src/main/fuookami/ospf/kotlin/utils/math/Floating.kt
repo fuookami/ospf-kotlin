@@ -5,7 +5,6 @@ import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
@@ -95,7 +94,7 @@ object Flt32Serializer : RealNumberKSerializer<Flt32> {
 
 @JvmInline
 @Serializable(with = Flt32Serializer::class)
-value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt32> {
+value class Flt32(internal val value: Float) : FloatingImpl<Flt32> {
     companion object : FloatingNumberConstants<Flt32> {
         override val zero: Flt32 get() = Flt32(0.0F)
         override val one: Flt32 get() = Flt32(1.0F)
@@ -117,7 +116,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
 
     override val constants: FloatingNumberConstants<Flt32> get() = Companion
 
-    override fun clone() = Flt32(value)
+    override fun copy() = Flt32(value)
 
     override fun toString() = value.toString()
 
@@ -143,7 +142,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
         else -> throw IllegalArgumentException("Unknown argument type to Flt32.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = fuookami.ospf.kotlin.utils.math.ordinary.pow(clone(), index, Flt32)
+    override fun pow(index: Int) = pow(copy(), index, Flt32)
 
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
@@ -167,7 +166,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
     override fun toUInt64() = UInt64(value.toULong())
     override fun toUIntX() = UIntX(value.toString())
 
-    override fun toFlt32() = clone()
+    override fun toFlt32() = copy()
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = FltX(value.toDouble())
 }
@@ -187,7 +186,7 @@ object Flt64Serializer : RealNumberKSerializer<Flt64> {
 
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
-value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Flt64> {
+value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
     companion object : FloatingNumberConstants<Flt64> {
         override val zero: Flt64 get() = Flt64(0.0)
         override val one: Flt64 get() = Flt64(1.0)
@@ -209,7 +208,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
 
     override val constants: FloatingNumberConstants<Flt64> get() = Flt64
 
-    override fun clone() = Flt64(value)
+    override fun copy() = Flt64(value)
 
     override fun toString() = value.toString()
 
@@ -235,7 +234,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
         else -> throw IllegalArgumentException("Unknown argument type to Flt64.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = fuookami.ospf.kotlin.utils.math.ordinary.pow(clone(), index, Flt64)
+    override fun pow(index: Int) = pow(copy(), index, Flt64)
 
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
@@ -260,7 +259,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
     override fun toUIntX() = UIntX(value.toString())
 
     override fun toFlt32() = Flt32(value.toFloat())
-    override fun toFlt64() = clone()
+    override fun toFlt64() = copy()
     override fun toFltX() = FltX(value)
 
     fun toDouble() = value
@@ -281,7 +280,7 @@ object FltXSerializer : RealNumberKSerializer<FltX> {
 
 @JvmInline
 @Serializable(with = FltXSerializer::class)
-value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<FltX> {
+value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
     companion object : FloatingNumberConstants<FltX> {
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
         override val one: FltX get() = FltX(BigDecimal.ONE)
@@ -304,7 +303,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
 
     override val constants: FloatingNumberConstants<FltX> get() = Companion
 
-    override fun clone() = FltX(value)
+    override fun copy() = FltX(value)
 
     override fun toString() = value.toString()
 
@@ -334,9 +333,9 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
 
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FltX = when (index) {
-        is Flt32 -> fuookami.ospf.kotlin.utils.math.ordinary.pow(this, index.toFltX(), FltX)
-        is Flt64 -> fuookami.ospf.kotlin.utils.math.ordinary.pow(this, index.toFltX(), FltX)
-        is FltX -> fuookami.ospf.kotlin.utils.math.ordinary.pow(this, index, FltX)
+        is Flt32 -> pow(this, index.toFltX(), FltX)
+        is Flt64 -> pow(this, index.toFltX(), FltX)
+        is FltX -> pow(this, index, FltX)
         else -> throw IllegalArgumentException("Unknown argument type to FltX.pow: ${index.javaClass}")
     }
 
@@ -356,5 +355,5 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
 
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())
-    override fun toFltX() = clone()
+    override fun toFltX() = copy()
 }

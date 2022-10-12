@@ -66,7 +66,7 @@ internal fun solveLP(name: String, metaModel: LinearMetaModel): Result<LPResult,
             model.export("$name.lp", ModelFileFormat.LP)
         }).use {
             val dualModelGenerator = ThreadGuard(Thread {
-                val temp = model.clone()
+                val temp = model.copy()
                 temp.normalize()
                 dualModel = temp.dual()
             })

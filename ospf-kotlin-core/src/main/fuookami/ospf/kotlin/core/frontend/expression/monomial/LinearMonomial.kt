@@ -1,18 +1,18 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.variable.Item
-import fuookami.ospf.kotlin.utils.concept.Cloneable
-import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 private typealias ExprSymbol = Symbol<Linear>
 
 data class LinearCellPair(
     var coefficient: Flt64,
     val variable: Item<*, *>
-) : Cloneable<LinearCellPair> {
+) : Cloneable, Copyable<LinearCellPair> {
     operator fun plus(rhs: LinearCellPair): LinearCellPair {
         if (variable != rhs.variable) {
             throw IllegalArgumentException("Invalid argument of LinearCellPair.plus: not same variable.")
@@ -29,9 +29,10 @@ data class LinearCellPair(
 
     operator fun times(rhs: Flt64) = LinearCellPair(coefficient * rhs, variable)
 
-    override fun clone(): LinearCellPair {
+    override fun copy(): LinearCellPair {
         return LinearCellPair(coefficient, variable)
     }
+    override fun clone() = copy()
 
     override fun hashCode(): Int = variable.hashCode()
     override fun equals(other: Any?): Boolean {
@@ -139,7 +140,7 @@ class LinearMonomialCell internal constructor(
         }
     }
 
-    override fun clone(): LinearMonomialCell {
+    override fun copy(): LinearMonomialCell {
         return when (cell) {
             is Either.Left -> {
                 LinearMonomialCell(cell.value.coefficient, cell.value.variable)
@@ -150,6 +151,7 @@ class LinearMonomialCell internal constructor(
             }
         }
     }
+    override fun clone() = copy()
 
     override fun hashCode(): Int = cell.hashCode()
     override fun equals(other: Any?): Boolean {
@@ -223,7 +225,7 @@ class LinearMonomialSymbol(
         }
 
         is Either.Right -> {
-            symbol.value.cells.asSequence().map { it.clone() }.toList()
+            symbol.value.cells.asSequence().map { it.copy() }.toList()
         }
     }
 

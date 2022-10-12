@@ -5,7 +5,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
-import fuookami.ospf.kotlin.utils.concept.Cloneable
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
@@ -90,7 +90,7 @@ class ValueWrapperSerializer<T>(
 @Serializable(with = ValueWrapperSerializer::class)
 sealed class ValueWrapper<T>(
     internal val constants: RealNumberConstants<T>
-) : Cloneable<ValueWrapper<T>>, Ord<ValueWrapper<T>>, Eq<ValueWrapper<T>>,
+) : Cloneable, Copyable<ValueWrapper<T>>, Ord<ValueWrapper<T>>, Eq<ValueWrapper<T>>,
     Plus<ValueWrapper<T>, ValueWrapper<T>>, Minus<ValueWrapper<T>, ValueWrapper<T>>,
     Times<ValueWrapper<T>, ValueWrapper<T>>, Div<ValueWrapper<T>, ValueWrapper<T>>
         where T : RealNumber<T>, T : NumberField<T> {
@@ -140,7 +140,8 @@ sealed class ValueWrapper<T>(
             assert(value != constants.nan)
         }
 
-        override fun clone() = Value(value.clone(), constants)
+        override fun copy() = Value(value.copy(), constants)
+        override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = when (rhs) {
             is Value -> value.eq(rhs.value)
@@ -214,7 +215,8 @@ sealed class ValueWrapper<T>(
     class Infinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
 
-        override fun clone() = Infinity(constants)
+        override fun copy() = Infinity(constants)
+        override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is Infinity
         override fun partialOrd(rhs: ValueWrapper<T>): Int = when (rhs) {
@@ -311,7 +313,8 @@ sealed class ValueWrapper<T>(
     class NegativeInfinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
 
-        override fun clone() = Infinity(constants)
+        override fun copy() = Infinity(constants)
+        override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is NegativeInfinity
         override fun partialOrd(rhs: ValueWrapper<T>): Int = when (rhs) {
@@ -409,7 +412,6 @@ sealed class ValueWrapper<T>(
 class ValueRangeSerializer<T>(
     private val valueSerializer: ValueWrapperSerializer<T>
 ) : KSerializer<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ValueRange<T>") {
         element<JsonElement>("lowerBound")
         element<JsonElement>("upperBound")
@@ -460,7 +462,7 @@ class ValueRange<T> constructor(
     private var _lowerInterval: IntervalType,
     private var _upperInterval: IntervalType,
     val constants: RealNumberConstants<T>
-) : Cloneable<ValueRange<T>>, Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>, PlusAssign<T>,
+) : Cloneable, Copyable<ValueRange<T>>, Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>, PlusAssign<T>,
     MinusAssign<T>,
     Times<T, ValueRange<T>>, TimesAssign<T>, Div<T, ValueRange<T>>, DivAssign<T>
         where T : RealNumber<T>, T : NumberField<T> {
@@ -547,13 +549,14 @@ class ValueRange<T> constructor(
                 constants
             )
 
-    override fun clone() = ValueRange(
+    override fun copy() = ValueRange(
         _lowerBound,
         _upperBound,
         _lowerInterval,
         _upperInterval,
         constants
     )
+    override fun clone() = copy()
 
     fun fixed() = lowerInterval == IntervalType.Closed
             && upperInterval == IntervalType.Closed

@@ -1,11 +1,8 @@
 package fuookami.ospf.kotlin.utils.concept
 
-interface Cloneable<Self> {
-    fun clone(): Self
+interface Copyable<Self> : Movable<Self> {
+    override fun move() = copy()
+    fun copy(): Self
 }
 
-interface Copyable<Self> : Cloneable<Self>, Movable<Self> {
-    override fun move() = clone()
-}
-
-fun <T : Cloneable<T>> clone(ele: T) = ele.clone()
+fun <T : Copyable<T>> copy(ele: T) = ele.copy()

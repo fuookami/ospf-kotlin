@@ -4,7 +4,7 @@ import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-interface Arithmetic<Self> : fuookami.ospf.kotlin.utils.concept.Cloneable<Self>, Movable<Self>, PartialEq<Self> {
+interface Arithmetic<Self> : Copyable<Self>, Movable<Self>, PartialEq<Self> {
     val constants: ArithmeticConstants<Self>
 
     infix fun equiv(rhs: Self): Boolean

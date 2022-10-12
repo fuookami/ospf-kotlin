@@ -52,7 +52,7 @@ class LinearInequality(
                         if (cells.containsKey(temp.value.variable.key)) {
                             cells[temp.value.variable.key]!! -= cell
                         } else {
-                            val copy = cell.clone()
+                            val copy = cell.copy()
                             copy *= -Flt64.one
                             cells[temp.value.variable.key] = copy
                         }
