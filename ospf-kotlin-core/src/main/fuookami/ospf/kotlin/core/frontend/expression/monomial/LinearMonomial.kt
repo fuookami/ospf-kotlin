@@ -62,6 +62,19 @@ class LinearMonomialCell internal constructor(
     fun pair() = cell.left()
     override fun constant() = cell.right()
 
+    override fun value(tokenList: TokenList): Flt64? {
+        return when (cell) {
+            is Either.Left -> { tokenList.find(cell.value.variable)?.result }
+            is Either.Right -> { cell.value }
+        }
+    }
+    override fun value(results: List<Flt64>, tokenList: TokenList): Flt64 {
+        return when (cell) {
+            is Either.Left -> { tokenList.find(cell.value.variable)!!.let { results[tokenList.solverIndexMap[it.solverIndex]!!] } }
+            is Either.Right -> { cell.value }
+        }
+    }
+
     @Throws(IllegalArgumentException::class)
     override operator fun plusAssign(rhs: MonomialCell<Linear>) {
         if (rhs !is LinearMonomialCell) {

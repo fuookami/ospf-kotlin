@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.inequality
 
-import fuookami.ospf.kotlin.utils.functional.Comparator
-import fuookami.ospf.kotlin.utils.operator.Ord
+import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 enum class Sign {
     Less {
@@ -36,4 +36,5 @@ enum class Sign {
     };
 
     abstract fun <T : Ord<T>> operator(): Comparator<T>;
+    operator fun <T: Ord<T>> invoke(lhs: T, rhs: T) = this.operator<T>()(lhs, rhs)
 }

@@ -19,9 +19,8 @@ class LinearConstraint(
     rhs: Flt64,
     name: String = ""
 ) : Constraint<Linear>(lhs, sign, rhs, name) {
-
     companion object {
-        operator fun invoke(inequality: Inequality<Linear>, tokens: TokenTable<Linear>): LinearConstraint {
+        operator fun invoke(parent: LinearMetaModel, inequality: Inequality<Linear>, tokens: TokenTable<Linear>): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
             var rhs = Flt64.zero
             for (cell in inequality.cells) {
@@ -29,7 +28,7 @@ class LinearConstraint(
                     is Either.Left -> {
                         val token = tokens.token(temp.value.variable)
                         if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(LinearCell(temp.value.coefficient, token))
+                            lhs.add(LinearCell(parent, temp.value.coefficient, token))
                         }
                     }
 
@@ -40,5 +39,13 @@ class LinearConstraint(
             }
             return LinearConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name)
         }
+    }
+
+    fun isTrue(): Boolean? {
+        var lhsValue = Flt64.zero
+        for (cell in lhs) {
+            lhsValue += cell.value() ?: return null
+        }
+        return sign(lhsValue, rhs)
     }
 }

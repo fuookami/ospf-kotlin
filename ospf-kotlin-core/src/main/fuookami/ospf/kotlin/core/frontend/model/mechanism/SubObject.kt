@@ -10,6 +10,21 @@ sealed class SubObject<C : Category>(
 ) {
     abstract val cells: List<Cell<C>>
     abstract val constant: Flt64
+
+    fun value(): Flt64? {
+        var ret = constant
+        for (cell in cells) {
+            ret += cell.value() ?: return null
+        }
+        return ret
+    }
+    fun value(results: List<Flt64>): Flt64 {
+        var ret = constant
+        for (cell in cells) {
+            ret += cell.value(results)
+        }
+        return ret
+    }
 }
 
 class LinearSubObject(
@@ -20,6 +35,7 @@ class LinearSubObject(
 ) : SubObject<Linear>(category, name) {
     companion object {
         operator fun invoke(
+            parent: LinearMetaModel,
             category: ObjectCategory,
             poly: Polynomial<Linear>,
             tokens: TokenTable<Linear>,
@@ -32,7 +48,7 @@ class LinearSubObject(
                     val pair = cell.pair()!!
                     val token = tokens.token(pair.variable)
                     if (token != null && pair.coefficient neq Flt64.zero) {
-                        cells.add(LinearCell(pair.coefficient, token))
+                        cells.add(LinearCell(parent, pair.coefficient, token))
                     }
                 } else {
                     constant = cell.constant()!!

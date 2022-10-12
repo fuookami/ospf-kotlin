@@ -1,14 +1,11 @@
 package fuookami.ospf.kotlin.core.frontend.inequality
 
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.Symbol
-import fuookami.ospf.kotlin.core.frontend.variable.Item
-import fuookami.ospf.kotlin.core.frontend.variable.ItemKey
-import fuookami.ospf.kotlin.utils.functional.Either
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 interface Inequality<C : Category> {
     val lhs: Polynomial<C>
@@ -18,6 +15,17 @@ interface Inequality<C : Category> {
     var displayName: String?
 
     val cells: List<MonomialCell<C>>
+
+    fun isTrue(tokenList: TokenList): Boolean? {
+        val lhsValue = lhs.value(tokenList) ?: return null
+        val rhsValue = rhs.value(tokenList) ?: return null
+        return sign(lhsValue, rhsValue)
+    }
+    fun isTrue(result: List<Flt64>, tokenList: TokenList): Boolean {
+        val lhsValue = lhs.value(result, tokenList)
+        val rhsValue = rhs.value(result, tokenList)
+        return sign(lhsValue, rhsValue)
+    }
 }
 
 class LinearInequality(

@@ -1,5 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import java.io.*
+import java.nio.file.*
+import kotlin.io.path.*
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -7,17 +11,21 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
-import java.io.FileWriter
-import java.nio.file.*
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
 
 sealed interface MetaModel<C : Category> {
     class SubObject<C : Category>(
+        val parent: MetaModel<C>,
         val category: ObjectCategory,
         val polynomial: Polynomial<C>,
         val name: String = polynomial.name
-    )
+    ) {
+        fun value(): Flt64? {
+            return polynomial.value(parent.tokens._tokens)
+        }
+        fun value(results: List<Flt64>): Flt64 {
+            return polynomial.value(results, parent.tokens._tokens)
+        }
+    }
 
     val name: String
     val constraints: MutableList<Inequality<C>>
@@ -78,7 +86,7 @@ sealed interface MetaModel<C : Category> {
         if (displayName != null) {
             polynomial.displayName = displayName
         }
-        subObjects.add(SubObject(category, polynomial))
+        subObjects.add(SubObject(this, category, polynomial))
     }
 
     fun minimize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) {

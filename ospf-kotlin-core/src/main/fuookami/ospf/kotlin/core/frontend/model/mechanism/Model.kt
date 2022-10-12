@@ -13,6 +13,7 @@ sealed interface Model<C : Category> {
 }
 
 class LinearModel(
+    private val parent: LinearMetaModel,
     override var name: String,
     override val constraints: ArrayList<LinearConstraint>,
     override val objectFunction: SingleObject<Linear>,
@@ -22,12 +23,13 @@ class LinearModel(
         operator fun invoke(metaModel: LinearMetaModel): LinearModel {
             val constraints = ArrayList<LinearConstraint>()
             for (constraint in metaModel.constraints) {
-                constraints.add(LinearConstraint(constraint, metaModel.tokens))
+                constraints.add(LinearConstraint(metaModel, constraint, metaModel.tokens))
             }
             val subObjects = ArrayList<LinearSubObject>()
             for (subObject in metaModel.subObjects) {
                 subObjects.add(
                     LinearSubObject(
+                        metaModel,
                         subObject.category,
                         subObject.polynomial,
                         metaModel.tokens,
@@ -36,6 +38,7 @@ class LinearModel(
                 )
             }
             return LinearModel(
+                metaModel,
                 metaModel.name,
                 constraints,
                 SingleObject(metaModel.objectCategory, subObjects),
@@ -54,7 +57,7 @@ class LinearModel(
 
     override fun addConstraint(constraint: Inequality<Linear>, name: String) {
         constraint.name = name
-        constraints.add(LinearConstraint(constraint, tokens))
+        constraints.add(LinearConstraint(parent, constraint, tokens))
     }
 }
 

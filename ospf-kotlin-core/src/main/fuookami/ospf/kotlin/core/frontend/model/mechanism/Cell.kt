@@ -6,33 +6,24 @@ import fuookami.ospf.kotlin.utils.math.Flt64
 
 sealed interface Cell<C : Category> {
     fun value(): Flt64?
-    fun value(solution: List<Flt64>): Flt64?
+    fun value(solution: List<Flt64>): Flt64
     fun value(solution: Map<ItemKey, Flt64>): Flt64?
 }
 
 class LinearCell(
+    private val parent: LinearMetaModel,
     val coefficient: Flt64,
     val token: Token
 ) : Cell<Linear> {
     override fun value(): Flt64? {
-        val result = token.result
-        return if (result != null) {
-            coefficient * result
-        } else {
-            null
-        }
+        return token.result?.let { coefficient * it}
     }
 
     override fun value(solution: List<Flt64>): Flt64 {
-        return coefficient * solution[token.solverIndex]
+        return coefficient * solution[parent.tokens.solverIndexMap[token.solverIndex]!!]
     }
 
     override fun value(solution: Map<ItemKey, Flt64>): Flt64? {
-        val result = solution[token.key]
-        return if (result != null) {
-            coefficient * result
-        } else {
-            null
-        }
+        return solution[token.key]?.let { coefficient * it }
     }
 }

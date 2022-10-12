@@ -15,7 +15,7 @@ class RepeatedSymbolException(
 }
 
 sealed class TokenTable<C : Category>(
-    protected val _tokens: TokenList,
+    internal val _tokens: TokenList,
     private val _symbols: HashMap<String, Symbol<C>> = HashMap()
 ) {
     val tokens: Collection<Token> get() = _tokens.tokens
