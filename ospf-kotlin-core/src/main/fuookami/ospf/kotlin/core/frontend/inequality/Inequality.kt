@@ -16,9 +16,9 @@ interface Inequality<C : Category> {
 
     val cells: List<MonomialCell<C>>
 
-    fun isTrue(tokenList: TokenList): Boolean? {
-        val lhsValue = lhs.value(tokenList) ?: return null
-        val rhsValue = rhs.value(tokenList) ?: return null
+    fun isTrue(tokenList: TokenList): Boolean {
+        val lhsValue = lhs.value(tokenList)
+        val rhsValue = rhs.value(tokenList)
         return sign(lhsValue, rhsValue)
     }
     fun isTrue(result: List<Flt64>, tokenList: TokenList): Boolean {

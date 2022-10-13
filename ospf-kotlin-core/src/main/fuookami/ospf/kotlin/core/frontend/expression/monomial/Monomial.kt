@@ -17,7 +17,7 @@ sealed interface MonomialCell<C : Category> : Cloneable, Copyable<MonomialCell<C
     fun isConstant(): Boolean
     fun constant(): Flt64?
 
-    fun value(tokenList: TokenList): Flt64?
+    fun value(tokenList: TokenList): Flt64
     fun value(results: List<Flt64>, tokenList: TokenList): Flt64
 }
 

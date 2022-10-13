@@ -13,10 +13,10 @@ sealed interface Polynomial<C : Category> : Expression {
     fun flush()
     fun toRawString(): String
 
-    fun value(tokenList: TokenList): Flt64? {
+    fun value(tokenList: TokenList): Flt64 {
         var ret = constant
         for (cell in cells) {
-            ret += cell.value(tokenList) ?: return null
+            ret += cell.value(tokenList)
         }
         return ret
     }

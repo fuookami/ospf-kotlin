@@ -19,7 +19,7 @@ sealed interface MetaModel<C : Category> {
         val polynomial: Polynomial<C>,
         val name: String = polynomial.name
     ) {
-        fun value(): Flt64? {
+        fun value(): Flt64 {
             return polynomial.value(parent.tokens._tokens)
         }
         fun value(results: List<Flt64>): Flt64 {

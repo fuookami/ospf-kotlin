@@ -27,6 +27,8 @@ hs_err_pid*
 [Oo]ut/
 [Ll]og/
 [Tt]arget/
+.idea/
 .vs/
+.vscode/
 *.opm
 *.lp
