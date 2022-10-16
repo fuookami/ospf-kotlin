@@ -246,6 +246,10 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
 
     override fun exp() = Flt64(exp(value))
 
+    fun floor() = Flt64(floor(value))
+    fun ceil() = Flt64(ceil(value))
+    fun round() = Flt64(round(value))
+
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())

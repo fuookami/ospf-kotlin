@@ -12,20 +12,23 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class GurobiLinearSolver(
-    private val config: LinearSolverConfig
+    private val config: LinearSolverConfig,
+    private val callBack: GurobiSolverCallBack? = null
 ) {
     operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Err> {
-        val impl = GurobiLinearSolverImpl(config)
+        val impl = GurobiLinearSolverImpl(config, callBack)
         return impl(model)
     }
 }
 
 private class GurobiLinearSolverImpl(
-    private val config: LinearSolverConfig
+    private val config: LinearSolverConfig,
+    private val callBack: GurobiSolverCallBack? = null
 ) {
     lateinit var env: GRBEnv
     lateinit var grbModel: GRBModel
-    lateinit var grbVars: Array<GRBVar>
+    lateinit var grbVars: List<GRBVar>
+    lateinit var grbConstraints: List<GRBConstr>
     lateinit var status: SolvingStatus
     lateinit var output: LinearSolverOutput
 
@@ -112,23 +115,23 @@ private class GurobiLinearSolverImpl(
                 model.variables.map { it.name }.toTypedArray(),
                 0,
                 model.variables.size
-            )
+            ).toList()
 
-            var i = 0
             var j = 0
-            while (i != model.constraints.size) {
+            val constraints = ArrayList<GRBConstr>()
+            for (i in 0 until model.constraints.size) {
                 val lhs = GRBLinExpr()
                 while (j != model.constraints.lhs.size && i == model.constraints.lhs[j].rowIndex) {
                     val cell = model.constraints.lhs[j]
                     lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
                     ++j
                 }
-                grbModel.addConstr(
+                constraints.add(grbModel.addConstr(
                     lhs, GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
                     model.constraints.rhs[i].toDouble(), model.constraints.names[i]
-                )
-                ++i
+                ))
             }
+            grbConstraints = constraints
 
             val obj = GRBLinExpr()
             for (cell in model.objective.obj) {
@@ -146,6 +149,7 @@ private class GurobiLinearSolverImpl(
                 }
             )
 
+            callBack?.execIfContain(Point.AfterModeling, grbModel, grbVars, grbConstraints)
             Ok(success)
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
@@ -159,6 +163,7 @@ private class GurobiLinearSolverImpl(
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
 
+            callBack?.execIfContain(Point.Configuration, grbModel, grbVars, grbConstraints)
             Ok(success)
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
@@ -235,6 +240,7 @@ private class GurobiLinearSolverImpl(
                 // to do
             }
 
+            callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)
             Ok(success)
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
