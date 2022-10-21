@@ -64,13 +64,13 @@ class LinearMonomialCell internal constructor(
 
     override fun value(tokenList: TokenList): Flt64 {
         return when (cell) {
-            is Either.Left -> { tokenList.find(cell.value.variable)?.result ?: Flt64.zero }
+            is Either.Left -> { cell.value.coefficient * (tokenList.find(cell.value.variable)?.result ?: Flt64.zero) }
             is Either.Right -> { cell.value }
         }
     }
     override fun value(results: List<Flt64>, tokenList: TokenList): Flt64 {
         return when (cell) {
-            is Either.Left -> { tokenList.find(cell.value.variable)?.let { results[tokenList.solverIndexMap[it.solverIndex]!!] } ?: Flt64.zero }
+            is Either.Left -> { tokenList.find(cell.value.variable)?.let { cell.value.coefficient * results[tokenList.solverIndexMap[it.solverIndex]!!] } ?: Flt64.zero }
             is Either.Right -> { cell.value }
         }
     }
