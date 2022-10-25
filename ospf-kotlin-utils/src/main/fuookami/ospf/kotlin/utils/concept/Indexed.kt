@@ -47,6 +47,11 @@ open class ManualIndexed internal constructor(
         assert(!indexed)
         mIndex = nextIndex(this::class)
     }
+
+    fun setIndexed(cls: KClass<*>) {
+        assert(!indexed)
+        mIndex = nextIndex(cls)
+    }
 }
 
 open class AutoIndexed internal constructor(
