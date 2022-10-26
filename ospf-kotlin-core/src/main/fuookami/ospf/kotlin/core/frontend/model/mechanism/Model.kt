@@ -40,6 +40,7 @@ class LinearModel(
                         }
                         promise.send(constraints)
                     }
+                    constraintPromises.add(promise)
                 }
 
                 val subObjects = ArrayList<LinearSubObject>()
