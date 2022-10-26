@@ -3,6 +3,8 @@ package fuookami.ospf.kotlin.core.backend.intermediate_model
 import java.io.*
 import java.nio.file.*
 import kotlin.io.path.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -266,75 +268,88 @@ data class LinearTriadModel(
     override val name: String by impl::name
 
     companion object {
+        @OptIn(DelicateCoroutinesApi::class)
         operator fun invoke(model: LinearModel): LinearTriadModel {
             val tokens = model.tokens.tokens
             val solverIndexes = model.tokens.solverIndexMap
 
-            val variables = ArrayList<Variable?>()
-            for (i in tokens.indices) {
-                variables.add(null)
-            }
-            for (token in tokens) {
-                val index = solverIndexes[token.solverIndex]!!
-                variables[index] = Variable(
-                    index,
-                    token.lowerBound,
-                    token.upperBound,
-                    token.variable.type,
-                    token.variable.name
-                )
+            val variablePromise = Channel<List<Variable>>()
+            GlobalScope.launch {
+                val variables = ArrayList<Variable?>()
+                for (i in tokens.indices) {
+                    variables.add(null)
+                }
+                for (token in tokens) {
+                    val index = solverIndexes[token.solverIndex]!!
+                    variables[index] = Variable(
+                        index,
+                        token.lowerBound,
+                        token.upperBound,
+                        token.variable.type,
+                        token.variable.name
+                    )
+                }
+                variablePromise.send(variables.map { it!! })
             }
 
-            val lhs = ArrayList<ConstraintCell>()
-            val signs = ArrayList<Sign>()
-            val rhs = ArrayList<Flt64>()
-            val names = ArrayList<String>()
-            for ((index, constraint) in model.constraints.withIndex()) {
-                for (cell in constraint.lhs) {
-                    val temp = cell as LinearCell
-                    lhs.add(
-                        ConstraintCell(
-                            index,
-                            solverIndexes[temp.token.solverIndex]!!,
-                            temp.coefficient
+            val constraintPromise = Channel<Constraint>()
+            GlobalScope.launch {
+                val lhs = ArrayList<ConstraintCell>()
+                val signs = ArrayList<Sign>()
+                val rhs = ArrayList<Flt64>()
+                val names = ArrayList<String>()
+                for ((index, constraint) in model.constraints.withIndex()) {
+                    for (cell in constraint.lhs) {
+                        val temp = cell as LinearCell
+                        lhs.add(
+                            ConstraintCell(
+                                index,
+                                solverIndexes[temp.token.solverIndex]!!,
+                                temp.coefficient
+                            )
+                        )
+                    }
+                    signs.add(constraint.sign)
+                    rhs.add(constraint.rhs)
+                    names.add(constraint.name)
+                }
+                constraintPromise.send(Constraint(lhs, signs, rhs, names))
+            }
+
+            val objectivePromise = Channel<List<ObjectiveCell>>()
+            GlobalScope.launch {
+                val objective = ArrayList<ObjectiveCell>()
+                for (i in tokens.indices) {
+                    objective.add(
+                        ObjectiveCell(
+                            i,
+                            Flt64.zero
                         )
                     )
                 }
-                signs.add(constraint.sign)
-                rhs.add(constraint.rhs)
-                names.add(constraint.name)
-            }
-
-            val objective = ArrayList<ObjectiveCell>()
-            for (i in tokens.indices) {
-                objective.add(
-                    ObjectiveCell(
-                        i,
-                        Flt64.zero
-                    )
-                )
-            }
-            for (subObject in model.objectFunction.subObjects) {
-                if (subObject.category == model.objectFunction.category) {
-                    for (cell in subObject.cells) {
-                        val temp = cell as LinearCell
-                        objective[solverIndexes[temp.token.solverIndex]!!].coefficient += temp.coefficient
-                    }
-                } else {
-                    for (cell in subObject.cells) {
-                        val temp = cell as LinearCell
-                        objective[solverIndexes[temp.token.solverIndex]!!].coefficient -= temp.coefficient
+                for (subObject in model.objectFunction.subObjects) {
+                    if (subObject.category == model.objectFunction.category) {
+                        for (cell in subObject.cells) {
+                            val temp = cell as LinearCell
+                            objective[solverIndexes[temp.token.solverIndex]!!].coefficient += temp.coefficient
+                        }
+                    } else {
+                        for (cell in subObject.cells) {
+                            val temp = cell as LinearCell
+                            objective[solverIndexes[temp.token.solverIndex]!!].coefficient -= temp.coefficient
+                        }
                     }
                 }
+                objectivePromise.send(objective)
             }
 
             return LinearTriadModel(
                 BasicLinearTriadModel(
-                    variables.map { it!! },
-                    Constraint(lhs, signs, rhs, names),
+                    runBlocking { variablePromise.receive() },
+                    runBlocking { constraintPromise.receive() },
                     model.name
                 ),
-                Objective(model.objectFunction.category, objective)
+                Objective(model.objectFunction.category, runBlocking { objectivePromise.receive() })
             )
         }
     }

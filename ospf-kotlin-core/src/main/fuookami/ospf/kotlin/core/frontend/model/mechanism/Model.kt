@@ -1,7 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 
 sealed interface Model<C : Category> {
     val name: String
@@ -20,23 +22,65 @@ class LinearModel(
     override val tokens: TokenTable<Linear>
 ) : Model<Linear> {
     companion object {
+        @OptIn(DelicateCoroutinesApi::class)
         operator fun invoke(metaModel: LinearMetaModel): LinearModel {
-            val constraints = ArrayList<LinearConstraint>()
-            for (constraint in metaModel.constraints) {
-                constraints.add(LinearConstraint(metaModel, constraint, metaModel.tokens))
+            for (symbol in metaModel.tokens.symbols) {
+                symbol.cells
             }
-            val subObjects = ArrayList<LinearSubObject>()
-            for (subObject in metaModel.subObjects) {
-                subObjects.add(
-                    LinearSubObject(
-                        metaModel,
-                        subObject.category,
-                        subObject.polynomial,
-                        metaModel.tokens,
-                        subObject.name
+
+            val (constraints, subObjects) = if (metaModel.constraints.size > 100) {
+                val constraintPromises = ArrayList<Channel<List<LinearConstraint>>>()
+                val eighthLength = metaModel.constraints.size / 8 + 1
+                for (i in 0 until 8) {
+                    val promise = Channel<List<LinearConstraint>>()
+                    GlobalScope.launch {
+                        val constraints = ArrayList<LinearConstraint>()
+                        for (j in (i * eighthLength) until minOf((i + 1) * eighthLength, metaModel.constraints.size)) {
+                            constraints.add(LinearConstraint(metaModel, metaModel.constraints[j], metaModel.tokens))
+                        }
+                        promise.send(constraints)
+                    }
+                }
+
+                val subObjects = ArrayList<LinearSubObject>()
+                for (subObject in metaModel.subObjects) {
+                    subObjects.add(
+                        LinearSubObject(
+                            metaModel,
+                            subObject.category,
+                            subObject.polynomial,
+                            metaModel.tokens,
+                            subObject.name
+                        )
                     )
-                )
+                }
+
+                val constraints = ArrayList<LinearConstraint>()
+                for (promise in constraintPromises) {
+                    constraints.addAll(runBlocking { promise.receive() })
+                }
+                Pair(constraints, subObjects)
+            } else {
+                val constraints = ArrayList<LinearConstraint>()
+                for (constraint in metaModel.constraints) {
+                    constraints.add(LinearConstraint(metaModel, constraint, metaModel.tokens))
+                }
+
+                val subObjects = ArrayList<LinearSubObject>()
+                for (subObject in metaModel.subObjects) {
+                    subObjects.add(
+                        LinearSubObject(
+                            metaModel,
+                            subObject.category,
+                            subObject.polynomial,
+                            metaModel.tokens,
+                            subObject.name
+                        )
+                    )
+                }
+                Pair(constraints, subObjects)
             }
+
             return LinearModel(
                 metaModel,
                 metaModel.name,
