@@ -29,4 +29,6 @@ class Token(
 
         return true
     }
+
+    override fun toString() = "$name: ${result?.toString() ?: "?"}"
 }
