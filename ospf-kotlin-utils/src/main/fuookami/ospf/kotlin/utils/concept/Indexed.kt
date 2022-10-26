@@ -33,7 +33,7 @@ interface Indexed {
 open class ManualIndexed internal constructor(
     private var mIndex: Int? = null
 ): Indexed {
-    val indexed = mIndex != null
+    val indexed get() = mIndex != null
     override val index: Int get() {
         assert(indexed)
         return this.mIndex!!
