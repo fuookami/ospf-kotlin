@@ -11,6 +11,7 @@ class ShadowPrice(
     val key: ShadowPriceKey,
     val price: Flt64
 ) {
+    override fun toString() = "$key: $price"
 }
 
 typealias Extractor<M> = (ShadowPriceMap<M>, Array<out Any?>) -> Flt64

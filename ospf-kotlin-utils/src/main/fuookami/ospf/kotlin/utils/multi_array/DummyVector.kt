@@ -8,4 +8,4 @@ class MapIndex
 
 class MultiArrayVector
 
-val _a = DummyIndex(null)
+val `_` = DummyIndex(null)
