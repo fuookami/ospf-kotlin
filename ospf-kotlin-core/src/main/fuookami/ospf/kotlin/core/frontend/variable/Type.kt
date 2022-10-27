@@ -9,7 +9,7 @@ sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberFie
 
     fun isBinaryType() = false
     fun isIntegerType() = false
-    fun isNotBinaryIntegerType() = isBinaryType() && !isIntegerType()
+    fun isNotBinaryIntegerType() = !isBinaryType() && isIntegerType()
 }
 
 sealed interface IntegerVariableType<T : IntegerNumber<T>> : VariableTypeInterface<T> {

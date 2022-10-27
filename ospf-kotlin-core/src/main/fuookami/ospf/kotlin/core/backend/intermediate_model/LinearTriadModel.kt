@@ -244,10 +244,20 @@ class BasicLinearTriadModel(
         }
         writer.append("\n")
 
+        if (containsBinary()) {
+            writer.append("Binaries\n")
+            for (variable in variables) {
+                if (variable.type.isBinaryType()) {
+                    writer.append(" $variable")
+                }
+            }
+            writer.append("\n")
+        }
+
         if (containsNotBinaryInteger()) {
             writer.append("Generals\n")
             for (variable in variables) {
-                if (variable.type != Binary && variable.type.isIntegerType()) {
+                if (variable.type.isNotBinaryIntegerType()) {
                     writer.append(" $variable")
                 }
             }
