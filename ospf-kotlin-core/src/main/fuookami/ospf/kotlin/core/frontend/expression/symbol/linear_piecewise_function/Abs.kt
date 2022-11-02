@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_piecewise_function
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -17,18 +17,26 @@ class AbsFunction(
     override var displayName: String? = "|${x.name}|"
 ) : Function<Linear> {
 
-    class Symbols() {
-        lateinit var neg: URealVar
-        lateinit var pos: URealVar
+    class Symbols {
+        lateinit var neg: PctVar
+        lateinit var zero: PctVar
+        lateinit var pos: PctVar
+
+        lateinit var n: BinVar
+        lateinit var p: BinVar
 
         lateinit var y: LinearSymbol
     }
 
     val symbols = Symbols()
+    private val m = max(abs(x.range.lowerBound.toFlt64()), abs(x.range.upperBound.toFlt64()))
 
     init {
-        symbols.neg = URealVar("${x.name}_neg")
-        symbols.pos = URealVar("${x.name}_pos")
+        symbols.neg = PctVar("${x.name}_neg")
+        symbols.zero = PctVar("${x.name}_zero")
+        symbols.pos = PctVar("${x.name}_pos")
+        symbols.n = BinVar("${x.name}_n")
+        symbols.p = BinVar("${x.name}_p")
         symbols.y = LinearSymbol(polyY(), "${x.name}_abs_y")
     }
 
@@ -50,25 +58,45 @@ class AbsFunction(
 
     override fun register(tokenTable: TokenTable<Linear>) {
         tokenTable.add(symbols.neg)
+        tokenTable.add(symbols.zero)
         tokenTable.add(symbols.pos)
+        tokenTable.add(symbols.n)
+        tokenTable.add(symbols.p)
         tokenTable.add(symbols.y)
     }
 
     override fun register(model: Model<Linear>) {
         model.addConstraint(
-            symbols.pos geq x,
-            "${name}_pos"
+            x eq (-m * symbols.neg + m * symbols.pos),
+            name
         )
         model.addConstraint(
-            symbols.neg geq (-Flt64.one * x),
-            "${name}_neg"
+            (symbols.neg + symbols.zero + symbols.pos) eq Flt64.one,
+            "$${name}_k"
+        )
+        model.addConstraint(
+            (symbols.n + symbols.p) eq Flt64.one,
+            "${name}_b"
+        )
+        model.addConstraint(
+            symbols.neg leq symbols.n,
+            "${name}_n"
+        )
+//        Certainly, always stand up
+//        model.addConstraint(
+//            symbols.zero leq (symbols.n + symbols.p),
+//            "${name}_z"
+//        )
+        model.addConstraint(
+            symbols.pos leq symbols.p,
+            "${name}_p"
         )
     }
 
     private fun polyY(): Polynomial<Linear> {
         val poly = LinearPolynomial()
-        poly += symbols.pos
-        poly += symbols.neg
+        poly += m * symbols.pos
+        poly += m * symbols.neg
         return poly
     }
 }
