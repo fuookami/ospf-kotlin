@@ -80,7 +80,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8> {
     override fun intDiv(rhs: NInt8) = NInt8(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -166,7 +166,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16> {
     override fun intDiv(rhs: NInt16) = NInt16(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -252,7 +252,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32> {
     override fun intDiv(rhs: NInt32) = NInt32(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -338,7 +338,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64> {
     override fun intDiv(rhs: NInt64) = NInt64(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -424,7 +424,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX> {
     override fun intDiv(rhs: NIntX) = NIntX(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)

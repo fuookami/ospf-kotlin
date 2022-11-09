@@ -75,7 +75,7 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8> {
     override fun rem(rhs: Int8) = Int8((value % rhs.value).toByte())
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -155,7 +155,7 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16> {
     override fun rem(rhs: Int16) = Int16((value % rhs.value).toShort())
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -235,7 +235,7 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32> {
     override fun rem(rhs: Int32) = Int32(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -315,7 +315,7 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64> {
     override fun rem(rhs: Int64) = Int64(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -398,7 +398,7 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX> {
     override fun rem(rhs: IntX) = IntX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFltX().log(base)
         is Flt64 -> toFltX().log(base)
         is FltX -> toFltX().log(base)

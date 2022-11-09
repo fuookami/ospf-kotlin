@@ -16,8 +16,8 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     override fun inc(): Self = this + constants.one
     override fun dec(): Self = this - constants.one
 
-    override fun lg(): FloatingNumber<*> = log(Flt64(10.0))
-    override fun ln(): FloatingNumber<*> = log(Flt64.e)
+    override fun lg(): FloatingNumber<*>? = log(Flt64(10.0))
+    override fun ln(): FloatingNumber<*>? = log(Flt64.e)
 
     override fun pow(index: Int) = pow(copy(), index, constants)
     override fun square() = pow(2)
@@ -75,7 +75,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8> {
     override fun rem(rhs: UInt8) = UInt8((value % rhs.value).toUByte())
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -154,7 +154,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16> {
     override fun rem(rhs: UInt16) = UInt16((value % rhs.value).toUShort())
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -233,7 +233,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32> {
     override fun rem(rhs: UInt32) = UInt32(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -312,7 +312,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64> {
     override fun rem(rhs: UInt64) = UInt64(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value.toFloat(), base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -402,7 +402,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX> {
     override fun rem(rhs: UIntX) = UIntX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFltX().log(base)
         is Flt64 -> toFltX().log(base)
         is FltX -> toFltX().log(base)

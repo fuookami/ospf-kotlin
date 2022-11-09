@@ -73,9 +73,9 @@ abstract class Rational<Self, I> protected constructor(
         return ctor(divisor.num / divisor.den, integerConstants.one);
     }
 
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = toFltX().log(base)
-    override fun lg(): FloatingNumber<*> = log(FltX.ten)
-    override fun ln(): FloatingNumber<*> = log(FltX.e)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = toFltX().log(base)
+    override fun lg(): FloatingNumber<*>? = log(FltX.ten)
+    override fun ln(): FloatingNumber<*>? = log(FltX.e)
 
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = toFltX().pow(index)
     override fun pow(index: Int) = fuookami.ospf.kotlin.utils.math.ordinary.pow(copy(), index, constants)

@@ -77,7 +77,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8> {
     override fun intDiv(rhs: NUInt8) = NUInt8(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -168,7 +168,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16> {
     override fun intDiv(rhs: NUInt16) = NUInt16(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -260,7 +260,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32> {
     override fun intDiv(rhs: NUInt32) = NUInt32(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -352,7 +352,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64> {
     override fun intDiv(rhs: NUInt64) = NUInt64(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt64().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
@@ -447,7 +447,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
     override fun cubic() = pow(3)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFltX().log(base)
         is Flt64 -> toFltX().log(base)
         is FltX -> toFltX().log(base)

@@ -53,8 +53,8 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override fun sqr(): FloatingNumber<*> = pow(constants.one / constants.two)
     override fun cbr(): FloatingNumber<*> = pow(constants.one / constants.three)
 
-    override fun lg(): FloatingNumber<*> = log(constants.ten)
-    override fun ln(): FloatingNumber<*> = log(constants.e)
+    override fun lg(): FloatingNumber<*>? = log(constants.ten)
+    override fun ln(): FloatingNumber<*>? = log(constants.e)
 
     override fun toRtn8() = floatingToRational(value(), { Int8(it.toByte()) }, { Int8(it.toByte()) }, Rtn8::invoke)
     override fun toRtn16() =
@@ -135,7 +135,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32> {
     override fun rem(rhs: Flt32) = Flt32(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value, base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
@@ -227,7 +227,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
     override fun rem(rhs: Flt64) = Flt64(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*> = when (base) {
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt64(log(value, base.value.toDouble()))
         is Flt64 -> Flt64(log(value, base.value))
         is FltX -> toFltX().log(base)
@@ -326,7 +326,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
     override fun rem(rhs: FltX) = FltX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FltX = when (base) {
+    override fun log(base: FloatingNumber<*>): FltX? = when (base) {
         is Flt32 -> log(this, base.toFltX(), FltX)
         is Flt64 -> log(this, base.toFltX(), FltX)
         is FltX -> log(this, base, FltX)
