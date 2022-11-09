@@ -15,36 +15,36 @@ class RepeatedSymbolException(
 }
 
 sealed class TokenTable<C : Category>(
-    internal val _tokens: TokenList,
+    val tokenList: TokenList,
     private val _symbols: HashMap<String, Symbol<C>> = HashMap()
 ) {
-    val tokens: Collection<Token> get() = _tokens.tokens
+    val tokens: Collection<Token> get() = tokenList.tokens
     val symbols: Collection<Symbol<C>> get() = _symbols.values
-    val solverIndexMap get() = _tokens.solverIndexMap
+    val solverIndexMap get() = tokenList.solverIndexMap
 
-    fun token(item: Item<*, *>): Token? = _tokens.find(item)
-    fun setSolution(solution: List<Flt64>) = _tokens.setResults(solution)
-    fun clearSolution() = _tokens.clearResults()
+    fun token(item: Item<*, *>): Token? = tokenList.find(item)
+    fun setSolution(solution: List<Flt64>) = tokenList.setResults(solution)
+    fun clearSolution() = tokenList.clearResults()
 
     fun add(item: Item<*, *>): TokenTable<C> {
-        _tokens.add(item)
+        tokenList.add(item)
         return this
     }
 
     fun add(items: Combination<*, *, *>): TokenTable<C> {
-        _tokens.add(items)
+        tokenList.add(items)
         return this
     }
 
     @JvmName("addVarView")
     fun add(items: CombinationView<*, *>): TokenTable<C> {
-        _tokens.add(items)
+        tokenList.add(items)
         return this
     }
 
 
     fun remove(item: Item<*, *>): TokenTable<C> {
-        _tokens.remove(item)
+        tokenList.remove(item)
         return this
     }
 

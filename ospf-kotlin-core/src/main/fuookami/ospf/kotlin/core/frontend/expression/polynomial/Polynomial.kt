@@ -14,14 +14,14 @@ sealed interface Polynomial<C : Category> : Expression {
     fun toRawString(): String
 
     fun value(tokenList: TokenList): Flt64 {
-        var ret = constant
+        var ret = Flt64.zero
         for (cell in cells) {
             ret += cell.value(tokenList)
         }
         return ret
     }
     fun value(result: List<Flt64>, tokenList: TokenList): Flt64 {
-        var ret = constant
+        var ret = Flt64.zero
         for (cell in cells) {
             ret += cell.value(result, tokenList)
         }

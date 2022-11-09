@@ -86,7 +86,7 @@ abstract class UnivariateLinearPiecewiseFunction(
             }
             model.addConstraint(
                 symbols.k[i]!! leq poly,
-                "${name}_kb_i"
+                "${name}_kb_${i}"
             )
         }
     }
