@@ -52,12 +52,32 @@ open class ManualIndexed internal constructor(
         assert(!indexed)
         mIndex = nextIndex(cls)
     }
+
+    fun refreshIndex() {
+        assert(indexed)
+        mIndex = nextIndex(this::class)
+    }
+
+    fun refreshIndex(cls: KClass<*>) {
+        assert(indexed)
+        mIndex = nextIndex(cls)
+    }
 }
 
 open class AutoIndexed internal constructor(
-    override val index: Int
+    private var mIndex: Int
 ): Indexed {
+    override val index: Int get() = mIndex
+
     constructor(cls: KClass<*>): this(nextIndex(cls))
 
     companion object: IndexedImpl()
+
+    fun refreshIndex() {
+        mIndex = nextIndex(this::class)
+    }
+
+    fun refreshIndex(cls: KClass<*>) {
+        mIndex = nextIndex(cls)
+    }
 }
