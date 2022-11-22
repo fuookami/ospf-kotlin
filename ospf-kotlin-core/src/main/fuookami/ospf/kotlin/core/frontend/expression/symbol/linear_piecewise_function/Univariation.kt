@@ -24,8 +24,8 @@ abstract class UnivariateLinearPiecewiseFunction(
     private lateinit var y: LinearSymbol
 
     val empty: Boolean get() = size == 0
-    val fixed: Boolean get() = size == 0
-    val piecewise: Boolean get() = size == 0
+    val fixed: Boolean get() = size == 1
+    val piecewise: Boolean get() = size >= 2
 
     abstract fun pointX(i: Int): Flt64
     abstract fun pointY(i: Int): Flt64
