@@ -72,7 +72,7 @@ class AbsFunction(
         )
         model.addConstraint(
             (symbols.neg + symbols.zero + symbols.pos) eq Flt64.one,
-            "$${name}_k"
+            "${name}_k"
         )
         model.addConstraint(
             (symbols.n + symbols.p) eq Flt64.one,

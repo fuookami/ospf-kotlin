@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_piecewise_function
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -17,14 +18,10 @@ abstract class UnivariateLinearPiecewiseFunction(
     final override var displayName: String? = "${name}(${x.name})"
 ) : Function<Linear> {
 
-    class Symbols() {
-        lateinit var k: PctVariable1
-        lateinit var b: BinVariable1
+    private val k: PctVariable1 = PctVariable1("${name}_k", Shape1(size))
+    private val b: BinVariable1 = BinVariable1("${name}_b", Shape1(size - 1))
 
-        lateinit var y: LinearSymbol
-    }
-
-    val symbols = Symbols()
+    private lateinit var y: LinearSymbol
 
     val empty: Boolean get() = size == 0
     val fixed: Boolean get() = size == 0
@@ -33,32 +30,31 @@ abstract class UnivariateLinearPiecewiseFunction(
     abstract fun pointX(i: Int): Flt64
     abstract fun pointY(i: Int): Flt64
 
-    init {
-        symbols.k = PctVariable1("${name}_k", Shape1(size))
-        symbols.b = BinVariable1("${name}_b", Shape1(size - 1))
-        symbols.y = LinearSymbol(polyY(), "${name}_y")
-    }
+    override val possibleRange: ValueRange<Flt64> get() = y.possibleRange
+    override var range: ValueRange<Flt64>
+        get() = if (this::y.isInitialized) { y.range } else { ValueRange(Flt64.minimum, Flt64.maximum, Flt64) }
+        set(range) { y.range = range }
 
-    override val possibleRange: ValueRange<Flt64> by symbols.y::possibleRange
-    override var range: ValueRange<Flt64> by symbols.y::range
+    override val cells: List<MonomialCell<Linear>> get() = y.cells
 
-    override val cells: List<MonomialCell<Linear>> by symbols.y::cells
+    override val lowerBound: Flt64 get() = y.lowerBound
+    override val upperBound: Flt64 get() = y.upperBound
 
-    override val lowerBound: Flt64 by symbols.y::lowerBound
-    override val upperBound: Flt64 by symbols.y::upperBound
-
-    override fun intersectRange(range: ValueRange<Flt64>) = symbols.y.intersectRange(range)
-    override fun rangeLess(value: Flt64) = symbols.y.rangeLess(value)
-    override fun rangeLessEqual(value: Flt64) = symbols.y.rangeLessEqual(value)
-    override fun rangeGreater(value: Flt64) = symbols.y.rangeGreater(value)
-    override fun rangeGreaterEqual(value: Flt64) = symbols.y.rangeGreaterEqual(value)
+    override fun intersectRange(range: ValueRange<Flt64>) = y.intersectRange(range)
+    override fun rangeLess(value: Flt64) = y.rangeLess(value)
+    override fun rangeLessEqual(value: Flt64) = y.rangeLessEqual(value)
+    override fun rangeGreater(value: Flt64) = y.rangeGreater(value)
+    override fun rangeGreaterEqual(value: Flt64) = y.rangeGreaterEqual(value)
 
     override fun toRawString() = displayName ?: name
 
     override fun register(tokenTable: TokenTable<Linear>) {
-        tokenTable.add(symbols.k)
-        tokenTable.add(symbols.b)
-        tokenTable.add(symbols.y)
+        tokenTable.add(k)
+        tokenTable.add(b)
+        if (!this::y.isInitialized) {
+            y = LinearSymbol(polyY(), "${name}_y")
+        }
+        tokenTable.add(y)
     }
 
     override fun register(model: Model<Linear>) {
@@ -68,25 +64,25 @@ abstract class UnivariateLinearPiecewiseFunction(
         )
 
         model.addConstraint(
-            sum(symbols.k) leq Flt64.one,
+            sum(k) leq Flt64.one,
             "${name}_k"
         )
         model.addConstraint(
-            sum(symbols.b) leq Flt64.one,
+            sum(b) leq Flt64.one,
             "${name}_b"
         )
 
         for (i in 0 until size) {
             val poly = LinearPolynomial()
             if (i != 0) {
-                poly += symbols.b[i - 1]!!
+                poly += b[i - 1]!!
             }
             if (i != (size - 1)) {
-                poly += symbols.b[i]!!
+                poly += b[i]!!
             }
             model.addConstraint(
-                symbols.k[i]!! leq poly,
-                "${name}_kb_${i}"
+                k[i]!! leq poly,
+                "${name}_kb_i"
             )
         }
     }
@@ -96,7 +92,7 @@ abstract class UnivariateLinearPiecewiseFunction(
 
         val poly = LinearPolynomial()
         for (i in 0 until size) {
-            poly += pointX(i) * symbols.k[i]!!
+            poly += pointX(i) * k[i]!!
         }
         return poly
     }
@@ -106,9 +102,24 @@ abstract class UnivariateLinearPiecewiseFunction(
 
         val poly = LinearPolynomial()
         for (i in 0 until size) {
-            poly += pointY(i) * symbols.k[i]!!
+            poly += pointY(i) * k[i]!!
         }
         return poly
+    }
+}
+
+class NormalUnivariateLinearPiecewiseFunction(
+    x: LinearPolynomial,
+    val points: List<Point2>,
+    name: String,
+    displayName: String? = "${name}(${x.name})"
+): UnivariateLinearPiecewiseFunction(x, points.size, name, displayName) {
+    override fun pointX(i: Int): Flt64 {
+        return points[i].x
+    }
+
+    override fun pointY(i: Int): Flt64 {
+        return points[i].y
     }
 }
 
