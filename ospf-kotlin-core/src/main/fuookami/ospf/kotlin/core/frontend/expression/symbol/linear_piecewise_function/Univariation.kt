@@ -64,11 +64,11 @@ abstract class UnivariateLinearPiecewiseFunction(
         )
 
         model.addConstraint(
-            sum(k) leq Flt64.one,
+            sum(k) eq Flt64.one,
             "${name}_k"
         )
         model.addConstraint(
-            sum(b) leq Flt64.one,
+            sum(b) eq Flt64.one,
             "${name}_b"
         )
 
