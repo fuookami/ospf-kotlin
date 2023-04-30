@@ -1,47 +1,47 @@
 package fuookami.ospf.kotlin.utils.error
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.*
 
-enum class ErrorCode(private val code: UInt64) {
-    None(UInt64(0x00U)),
+enum class ErrorCode(private val code: UInt8) {
+    None(UInt8(0x00U)),
 
-    NotAFile(UInt64(0x100U)),
-    NotADirectory(UInt64(0x101U)),
-    FileNotFound(UInt64(0x102U)),
-    DirectoryUnusable(UInt64(0x103U)),
-    FileExtensionNotMatched(UInt64(0x104U)),
-    DataNotFound(UInt64(0x105U)),
-    DataEmpty(UInt64(0x106U)),
-    EnumVisitorEmpty(UInt64(0x107U)),
-    UniqueBoxLocked(UInt64(0x108U)),
-    UniqueRefLocked(UInt64(0x109U)),
-    SerializationFail(UInt64(0x10aU)),
-    DeserializationFail(UInt64(0x10bU)),
+    NotAFile(UInt8(0x10U)),
+    NotADirectory(UInt8(0x11U)),
+    FileNotFound(UInt8(0x12U)),
+    DirectoryUnusable(UInt8(0x13U)),
+    FileExtensionNotMatched(UInt8(0x14U)),
+    DataNotFound(UInt8(0x15U)),
+    DataEmpty(UInt8(0x16U)),
+    EnumVisitorEmpty(UInt8(0x17U)),
+    UniqueBoxLocked(UInt8(0x18U)),
+    UniqueRefLocked(UInt8(0x19U)),
+    SerializationFailed(UInt8(0x1aU)),
+    DeserializationFailed(UInt8(0x1bU)),
 
-    LackOfPipelines(UInt64(0x1000U)),
-    SolverNotFound(UInt64(0x1001U)),
-    OREngineEnvironmentLost(UInt64(0x1002U)),
-    OREngineConnectionOvertime(UInt64(0x1003U)),
-    OREngineModelingException(UInt64(0x1004U)),
-    OREngineSolvingException(UInt64(0x1005U)),
-    OREngineTerminated(UInt64(0x1006U)),
-    ORModelNoSolution(UInt64(0x1007U)),
-    ORModelUnbounded(UInt64(0x1008U)),
-    ORSolutionInvalid(UInt64(0x1009U)),
+    LackOfPipelines(UInt8(0x20U)),
+    SolverNotFound(UInt8(0x21U)),
+    OREngineEnvironmentLost(UInt8(0x22U)),
+    OREngineConnectionOvertime(UInt8(0x23U)),
+    OREngineModelingException(UInt8(0x24U)),
+    OREngineSolvingException(UInt8(0x25U)),
+    OREngineTerminated(UInt8(0x26U)),
+    ORModelNoSolution(UInt8(0x27U)),
+    ORModelUnbounded(UInt8(0x28U)),
+    ORSolutionInvalid(UInt8(0x29U)),
 
-    ApplicationFail(UInt64(0x10000U)),
-    ApplicationError(UInt64(0x10001U)),
-    ApplicationException(UInt64(0x10002U)),
-    ApplicationStop(UInt64(0x10003U)),
+    ApplicationFailed(UInt8(0x30U)),
+    ApplicationError(UInt8(0x31U)),
+    ApplicationException(UInt8(0x32U)),
+    ApplicationStopped(UInt8(0x33U)),
 
-    Other(UInt64.maximum - UInt64.one),
-    Unknown(UInt64.maximum);
+    Other(UInt8.maximum - UInt8.one),
+    Unknown(UInt8.maximum);
 
     companion object {
-        fun from(code: UInt64) = ErrorCode.values().first { it.code == code }
+        fun from(code: UInt8) = ErrorCode.values().first { it.code == code }
     }
 
-    fun toUInt64() = this.code
+    fun toUInt8() = this.code
 }
 
 // todo: find localize way to set default message
