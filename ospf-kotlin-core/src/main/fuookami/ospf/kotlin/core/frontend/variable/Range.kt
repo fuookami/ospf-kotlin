@@ -46,12 +46,15 @@ data class Range<T, V>(
         _range = range
     }
 
-    fun intersectWith(range: ValueRange<V>) {
+    fun intersectWith(range: ValueRange<V>): Boolean {
         _range = _range.intersect(range)
+        return !_range.empty()
     }
 
-    infix fun ls(value: Invariant<V>) {
-        if (!empty()) {
+    infix fun ls(value: Invariant<V>): Boolean {
+        return if (range.empty()) {
+            false
+        } else {
             intersectWith(
                 ValueRange(
                     lowerBound!!,
@@ -64,12 +67,14 @@ data class Range<T, V>(
         }
     }
 
-    infix fun leq(value: Invariant<V>) {
-        ls(value)
+    infix fun leq(value: Invariant<V>): Boolean {
+        return ls(value)
     }
 
-    infix fun gr(value: Invariant<V>) {
-        if (!empty()) {
+    infix fun gr(value: Invariant<V>): Boolean {
+        return if (range.empty()) {
+            false
+        } else {
             intersectWith(
                 ValueRange(
                     ValueWrapper(value.value(), constants),
@@ -82,12 +87,14 @@ data class Range<T, V>(
         }
     }
 
-    infix fun geq(value: Invariant<V>) {
-        gr(value)
+    infix fun geq(value: Invariant<V>): Boolean {
+        return gr(value)
     }
 
-    infix fun eq(value: Invariant<V>) {
-        if (!empty()) {
+    infix fun eq(value: Invariant<V>): Boolean {
+        return if (range.empty()) {
+            false
+        } else {
             intersectWith(
                 ValueRange(
                     ValueWrapper(value.value(), constants),
@@ -100,8 +107,10 @@ data class Range<T, V>(
         }
     }
 
-    fun intersectWith(lb: Invariant<V>, ub: Invariant<V>) {
-        if (!empty()) {
+    fun intersectWith(lb: Invariant<V>, ub: Invariant<V>): Boolean {
+        return if (range.empty()) {
+            false
+        } else {
             intersectWith(
                 ValueRange(
                     ValueWrapper(lb.value(), constants),
