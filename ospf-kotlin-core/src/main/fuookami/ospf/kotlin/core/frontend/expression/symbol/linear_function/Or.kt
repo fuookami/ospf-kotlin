@@ -11,7 +11,6 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class OrFunction(
     /** all polys must be ∈ {0, 1} */
     val polys: List<LinearPolynomial>,
-    val exact: Boolean = false,
     override var name: String,
     override var displayName: String? = name
 ) : Function<Linear> {
