@@ -32,7 +32,7 @@ class LinearModel(
                 val constraintPromises = ArrayList<Channel<List<LinearConstraint>>>()
                 val eighthLength = metaModel.constraints.size / 8 + 1
                 for (i in 0 until 8) {
-                    val promise = Channel<List<LinearConstraint>>()
+                    val promise = Channel<List<LinearConstraint>>(Channel.CONFLATED)
                     GlobalScope.launch {
                         val constraints = ArrayList<LinearConstraint>()
                         for (j in (i * eighthLength) until minOf((i + 1) * eighthLength, metaModel.constraints.size)) {

@@ -283,7 +283,7 @@ data class LinearTriadModel(
             val tokens = model.tokens.tokens
             val solverIndexes = model.tokens.solverIndexMap
 
-            val variablePromise = Channel<List<Variable>>()
+            val variablePromise = Channel<List<Variable>>(Channel.CONFLATED)
             GlobalScope.launch {
                 val variables = ArrayList<Variable?>()
                 for (i in tokens.indices) {
@@ -302,7 +302,7 @@ data class LinearTriadModel(
                 variablePromise.send(variables.map { it!! })
             }
 
-            val constraintPromise = Channel<Constraint>()
+            val constraintPromise = Channel<Constraint>(Channel.CONFLATED)
             GlobalScope.launch {
                 val lhs = ArrayList<ConstraintCell>()
                 val signs = ArrayList<Sign>()
@@ -326,7 +326,7 @@ data class LinearTriadModel(
                 constraintPromise.send(Constraint(lhs, signs, rhs, names))
             }
 
-            val objectivePromise = Channel<List<ObjectiveCell>>()
+            val objectivePromise = Channel<List<ObjectiveCell>>(Channel.CONFLATED)
             GlobalScope.launch {
                 val objective = ArrayList<ObjectiveCell>()
                 for (i in tokens.indices) {

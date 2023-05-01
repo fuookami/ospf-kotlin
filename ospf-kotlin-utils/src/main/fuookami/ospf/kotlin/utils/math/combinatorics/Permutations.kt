@@ -31,7 +31,7 @@ fun <T> permute(input: List<T>): List<List<T>> {
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 fun <T> permuteAsync(input: List<T>): ChannelGuard<List<T>> {
-    val promise = Channel<List<T>>()
+    val promise = Channel<List<T>>(Channel.CONFLATED)
     GlobalScope.launch {
         val a = input.toList()
         val p = input.indices.map { 0 }.toMutableList()
