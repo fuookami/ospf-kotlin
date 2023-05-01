@@ -30,8 +30,8 @@ fun <T> permute(input: List<T>): List<List<T>> {
     return perms
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
-fun <T> permuteAsync(input: List<T>, scope: CoroutineScope): ChannelGuard<List<T>> {
+@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): ChannelGuard<List<T>> {
     val logger = logger("Permutations")
 
     val promise = Channel<List<T>>(Channel.UNLIMITED)
