@@ -31,41 +31,35 @@ fun <T> permute(input: List<T>): List<List<T>> {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-suspend fun <T> permuteAsync(input: List<T>): ChannelGuard<List<T>> {
+fun <T> permuteAsync(input: List<T>, scope: CoroutineScope): ChannelGuard<List<T>> {
     val logger = logger("Permutations")
 
     val promise = Channel<List<T>>(Channel.UNLIMITED)
-    coroutineScope {
-        launch {
-            try {
-                val a = input.toList()
-                val p = input.indices.map { 0 }.toMutableList()
-                if (!promise.isClosedForSend) {
-                    promise.send(a.toList())
-                }
+    scope.launch {
+        try {
+            val a = input.toList()
+            val p = input.indices.map { 0 }.toMutableList()
+            promise.send(a.toList())
 
-                var i = 1;
-                while (i < input.size && !promise.isClosedForSend) {
-                    if (p[i] < i) {
-                        val j = i % 2 * p[i]
-                        swap(a, i, j)
-                        if (!promise.isClosedForSend) {
-                            promise.send(a.toList())
-                        }
-                        p[i] += 1;
-                        i = 1
-                    } else {
-                        p[i] = 0;
-                        ++i;
-                    }
+            var i = 1;
+            while (i < input.size && !promise.isClosedForSend) {
+                if (p[i] < i) {
+                    val j = i % 2 * p[i]
+                    swap(a, i, j)
+                    promise.send(a.toList())
+                    p[i] += 1;
+                    i = 1
+                } else {
+                    p[i] = 0;
+                    ++i;
                 }
-            } catch (e: ClosedSendChannelException) {
-                logger.debug { "Permutation generation was stopped by controller." }
-            } catch (e: Exception) {
-                logger.debug { "Permutation generation Error ${e.message}" }
-            }finally {
-                promise.close()
             }
+        } catch (e: ClosedSendChannelException) {
+            logger.debug { "Permutation generation was stopped by controller." }
+        } catch (e: Exception) {
+            logger.debug { "Permutation generation Error ${e.message}" }
+        }finally {
+            promise.close()
         }
     }
     return ChannelGuard(promise)
