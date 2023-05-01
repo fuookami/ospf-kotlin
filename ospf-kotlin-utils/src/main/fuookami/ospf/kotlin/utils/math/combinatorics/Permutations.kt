@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.combinatorics
 
 import java.util.Collections.*
+import org.apache.logging.log4j.kotlin.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import fuookami.ospf.kotlin.utils.parallel.*
@@ -29,32 +30,43 @@ fun <T> permute(input: List<T>): List<List<T>> {
     return perms
 }
 
-@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-fun <T> permuteAsync(input: List<T>): ChannelGuard<List<T>> {
-    val promise = Channel<List<T>>(Channel.CONFLATED)
-    GlobalScope.launch {
-        val a = input.toList()
-        val p = input.indices.map { 0 }.toMutableList()
-        if (!promise.isClosedForSend) {
-            promise.send(a.toList())
-        }
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun <T> permuteAsync(input: List<T>): ChannelGuard<List<T>> {
+    val logger = logger("Permutations")
 
-        var i = 1;
-        while (i < input.size && !promise.isClosedForSend) {
-            if (p[i] < i) {
-                val j = i % 2 * p[i]
-                swap(a, i, j)
+    val promise = Channel<List<T>>(Channel.UNLIMITED)
+    coroutineScope {
+        launch {
+            try {
+                val a = input.toList()
+                val p = input.indices.map { 0 }.toMutableList()
                 if (!promise.isClosedForSend) {
                     promise.send(a.toList())
                 }
-                p[i] += 1;
-                i = 1
-            } else {
-                p[i] = 0;
-                ++i;
+
+                var i = 1;
+                while (i < input.size && !promise.isClosedForSend) {
+                    if (p[i] < i) {
+                        val j = i % 2 * p[i]
+                        swap(a, i, j)
+                        if (!promise.isClosedForSend) {
+                            promise.send(a.toList())
+                        }
+                        p[i] += 1;
+                        i = 1
+                    } else {
+                        p[i] = 0;
+                        ++i;
+                    }
+                }
+            } catch (e: ClosedSendChannelException) {
+                logger.debug { "Permutation generation was stopped by controller." }
+            } catch (e: Exception) {
+                logger.debug { "Permutation generation Error ${e.message}" }
+            }finally {
+                promise.close()
             }
         }
-        promise.close()
     }
     return ChannelGuard(promise)
 }

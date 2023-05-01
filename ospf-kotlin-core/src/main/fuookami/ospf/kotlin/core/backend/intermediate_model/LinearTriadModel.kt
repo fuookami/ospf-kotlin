@@ -278,89 +278,96 @@ data class LinearTriadModel(
     override val name: String by impl::name
 
     companion object {
-        @OptIn(DelicateCoroutinesApi::class)
         operator fun invoke(model: LinearModel): LinearTriadModel {
             val tokens = model.tokens.tokens
             val solverIndexes = model.tokens.solverIndexMap
 
-            val variablePromise = Channel<List<Variable>>(Channel.CONFLATED)
-            GlobalScope.launch {
-                val variables = ArrayList<Variable?>()
-                for (i in tokens.indices) {
-                    variables.add(null)
-                }
-                for (token in tokens) {
-                    val index = solverIndexes[token.solverIndex]!!
-                    variables[index] = Variable(
-                        index,
-                        token.lowerBound,
-                        token.upperBound,
-                        token.variable.type,
-                        token.variable.name
-                    )
-                }
-                variablePromise.send(variables.map { it!! })
-            }
+            return runBlocking {
+                val variablePromise = Channel<List<Variable>>(Channel.CONFLATED)
+                val constraintPromise = Channel<Constraint>(Channel.CONFLATED)
+                val objectivePromise = Channel<List<ObjectiveCell>>(Channel.CONFLATED)
 
-            val constraintPromise = Channel<Constraint>(Channel.CONFLATED)
-            GlobalScope.launch {
-                val lhs = ArrayList<ConstraintCell>()
-                val signs = ArrayList<Sign>()
-                val rhs = ArrayList<Flt64>()
-                val names = ArrayList<String>()
-                for ((index, constraint) in model.constraints.withIndex()) {
-                    for (cell in constraint.lhs) {
-                        val temp = cell as LinearCell
-                        lhs.add(
-                            ConstraintCell(
+                coroutineScope {
+                    launch {
+                        val variables = ArrayList<Variable?>()
+                        for (i in tokens.indices) {
+                            variables.add(null)
+                        }
+                        for (token in tokens) {
+                            val index = solverIndexes[token.solverIndex]!!
+                            variables[index] = Variable(
                                 index,
-                                solverIndexes[temp.token.solverIndex]!!,
-                                temp.coefficient
+                                token.lowerBound,
+                                token.upperBound,
+                                token.variable.type,
+                                token.variable.name
                             )
-                        )
-                    }
-                    signs.add(constraint.sign)
-                    rhs.add(constraint.rhs)
-                    names.add(constraint.name)
-                }
-                constraintPromise.send(Constraint(lhs, signs, rhs, names))
-            }
-
-            val objectivePromise = Channel<List<ObjectiveCell>>(Channel.CONFLATED)
-            GlobalScope.launch {
-                val objective = ArrayList<ObjectiveCell>()
-                for (i in tokens.indices) {
-                    objective.add(
-                        ObjectiveCell(
-                            i,
-                            Flt64.zero
-                        )
-                    )
-                }
-                for (subObject in model.objectFunction.subObjects) {
-                    if (subObject.category == model.objectFunction.category) {
-                        for (cell in subObject.cells) {
-                            val temp = cell as LinearCell
-                            objective[solverIndexes[temp.token.solverIndex]!!].coefficient += temp.coefficient
                         }
-                    } else {
-                        for (cell in subObject.cells) {
-                            val temp = cell as LinearCell
-                            objective[solverIndexes[temp.token.solverIndex]!!].coefficient -= temp.coefficient
+                        variablePromise.send(variables.map { it!! })
+                        variablePromise.close()
+                    }
+
+                    launch {
+                        val lhs = ArrayList<ConstraintCell>()
+                        val signs = ArrayList<Sign>()
+                        val rhs = ArrayList<Flt64>()
+                        val names = ArrayList<String>()
+                        for ((index, constraint) in model.constraints.withIndex()) {
+                            for (cell in constraint.lhs) {
+                                val temp = cell as LinearCell
+                                lhs.add(
+                                    ConstraintCell(
+                                        index,
+                                        solverIndexes[temp.token.solverIndex]!!,
+                                        temp.coefficient
+                                    )
+                                )
+                            }
+                            signs.add(constraint.sign)
+                            rhs.add(constraint.rhs)
+                            names.add(constraint.name)
                         }
+                        constraintPromise.send(Constraint(lhs, signs, rhs, names))
+                        constraintPromise.close()
+                    }
+
+                    launch {
+                        val objective = ArrayList<ObjectiveCell>()
+                        for (i in tokens.indices) {
+                            objective.add(
+                                ObjectiveCell(
+                                    i,
+                                    Flt64.zero
+                                )
+                            )
+                        }
+                        for (subObject in model.objectFunction.subObjects) {
+                            if (subObject.category == model.objectFunction.category) {
+                                for (cell in subObject.cells) {
+                                    val temp = cell as LinearCell
+                                    objective[solverIndexes[temp.token.solverIndex]!!].coefficient += temp.coefficient
+                                }
+                            } else {
+                                for (cell in subObject.cells) {
+                                    val temp = cell as LinearCell
+                                    objective[solverIndexes[temp.token.solverIndex]!!].coefficient -= temp.coefficient
+                                }
+                            }
+                        }
+                        objectivePromise.send(objective)
+                        objectivePromise.close()
                     }
                 }
-                objectivePromise.send(objective)
-            }
 
-            return LinearTriadModel(
-                BasicLinearTriadModel(
-                    runBlocking { variablePromise.receive() },
-                    runBlocking { constraintPromise.receive() },
-                    model.name
-                ),
-                Objective(model.objectFunction.category, runBlocking { objectivePromise.receive() })
-            )
+                return@runBlocking LinearTriadModel(
+                    BasicLinearTriadModel(
+                        variablePromise.receive(),
+                        constraintPromise.receive(),
+                        model.name
+                    ),
+                    Objective(model.objectFunction.category, objectivePromise.receive())
+                )
+            }
         }
     }
 
