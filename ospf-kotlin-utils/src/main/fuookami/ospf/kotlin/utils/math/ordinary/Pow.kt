@@ -31,7 +31,7 @@ fun <T> pow(base: T, index: Int, constants: RealNumberConstants<T>): T where T :
     }
 }
 
-fun <T : FloatingNumber<T>> pow(base: T, index: T, constants: FloatingNumberConstants<*>): T {
+fun <T : FloatingNumber<T>> pow(base: T, index: T, constants: FloatingNumberConstants<T>): T {
     // todo: use taylor formula to replace it
     return base
 }

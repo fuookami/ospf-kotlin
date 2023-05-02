@@ -35,7 +35,7 @@ fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): Chann
     val logger = logger("Permutations")
 
     val promise = Channel<List<T>>(Channel.UNLIMITED)
-    scope.launch {
+    scope.launch(Dispatchers.Default) {
         try {
             val a = input.toList()
             val p = input.indices.map { 0 }.toMutableList()
