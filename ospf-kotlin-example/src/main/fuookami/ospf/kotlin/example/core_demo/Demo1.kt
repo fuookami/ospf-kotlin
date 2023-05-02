@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 // import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
+import kotlinx.coroutines.runBlocking
 
 class Demo1 {
     data class Company(
@@ -115,7 +116,7 @@ class Demo1 {
         // val solver = GurobiLinearSolver(LinearSolverConfig())
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
-        val model = LinearTriadModel(LinearModel(metaModel))
+        val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
         when (val ret = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.results)

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -64,7 +65,7 @@ class SP {
 
         model.addConstraint(use leq length, "use")
 
-        return when (val result = solveMIP("demo1-sp-$iteration", model)) {
+        return when (val result = runBlocking { solveMIP("demo1-sp-$iteration", model) }) {
             is Failed -> {
                 Failed(result.error)
             }

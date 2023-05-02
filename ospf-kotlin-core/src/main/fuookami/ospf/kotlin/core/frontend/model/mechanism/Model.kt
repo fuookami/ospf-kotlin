@@ -22,45 +22,43 @@ class LinearModel(
     override val tokens: TokenTable<Linear>
 ) : Model<Linear> {
     companion object {
-        operator fun invoke(metaModel: LinearMetaModel): LinearModel {
+        private val segmentAmount = 8
+
+        suspend operator fun invoke(metaModel: LinearMetaModel): LinearModel {
             for (symbol in metaModel.tokens.symbols) {
                 symbol.cells
             }
 
             val (constraints, subObjects) = if (metaModel.constraints.size > 100) {
-                runBlocking {
-                    coroutineScope {
-                        val constraintPromises = ArrayList<Deferred<List<LinearConstraint>>>()
-                        val eighthLength = metaModel.constraints.size / 8 + 1
-                        for (i in 0 until 8) {
-                            constraintPromises.add(async(Dispatchers.Default) {
-                                val constraints = ArrayList<LinearConstraint>()
-                                for (j in (i * eighthLength) until minOf((i + 1) * eighthLength, metaModel.constraints.size)) {
-                                    constraints.add(LinearConstraint(metaModel, metaModel.constraints[j], metaModel.tokens))
-                                }
-                                constraints
-                            })
-                        }
-
-                        val subObjects = ArrayList<LinearSubObject>()
-                        for (subObject in metaModel.subObjects) {
-                            subObjects.add(
-                                LinearSubObject(
-                                    metaModel,
-                                    subObject.category,
-                                    subObject.polynomial,
-                                    metaModel.tokens,
-                                    subObject.name
-                                )
-                            )
-                        }
-
-                        val constraints = ArrayList<LinearConstraint>()
-                        for (promise in constraintPromises) {
-                            constraints.addAll(promise.await())
-                        }
-                        Pair(constraints, subObjects)
+                coroutineScope {
+                    val constraintPromises = ArrayList<Deferred<List<LinearConstraint>>>()
+                    val segmentSize = metaModel.constraints.size / segmentAmount
+                    for (i in 0 until segmentAmount) {
+                        val lb = i * segmentSize
+                        val ub = if (i == segmentAmount - 1) { metaModel.constraints.size } else { (i + 1) * segmentSize }
+                        constraintPromises.add(async(Dispatchers.Default) {
+                            metaModel.constraints.subList(lb, ub).map { LinearConstraint(metaModel, it, metaModel.tokens) }
+                        })
                     }
+
+                    val subObjects = ArrayList<LinearSubObject>()
+                    for (subObject in metaModel.subObjects) {
+                        subObjects.add(
+                            LinearSubObject(
+                                metaModel,
+                                subObject.category,
+                                subObject.polynomial,
+                                metaModel.tokens,
+                                subObject.name
+                            )
+                        )
+                    }
+
+                    val constraints = ArrayList<LinearConstraint>()
+                    for (promise in constraintPromises) {
+                        constraints.addAll(promise.await())
+                    }
+                    return@coroutineScope Pair(constraints, subObjects)
                 }
             } else {
                 val constraints = ArrayList<LinearConstraint>()

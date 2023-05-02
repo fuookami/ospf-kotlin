@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -76,7 +77,7 @@ class RMP(
 
     // solve lp
     operator fun invoke(iteration: UInt64): Result<SPM, Error> {
-        return when (val result = solveLP("demo1-rmp-$iteration", metaModel)) {
+        return when (val result = runBlocking { solveLP("demo1-rmp-$iteration", metaModel) }) {
             is Ok -> {
                 Ok(extractShadowPriceMap(result.value.dualResult))
             }
@@ -89,7 +90,7 @@ class RMP(
 
     // solve ip
     operator fun invoke(): Result<Map<CuttingPlan, UInt64>, Error> {
-        return when (val result = solveMIP("demo1-rmp-ip", metaModel)) {
+        return when (val result = runBlocking { solveMIP("demo1-rmp-ip", metaModel) }) {
             is Ok -> {
                 Ok(analyzeSolution(result.value))
             }

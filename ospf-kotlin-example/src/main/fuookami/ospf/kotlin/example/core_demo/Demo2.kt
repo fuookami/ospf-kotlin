@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 // import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
+import kotlinx.coroutines.runBlocking
 
 class Demo2 {
     class Product: AutoIndexed(Product::class)
@@ -172,7 +173,7 @@ class Demo2 {
     fun solve(): Try<Error> {
         // val solver = GurobiLinearSolver()
         val solver = SCIPLinearSolver(LinearSolverConfig())
-        val model = LinearTriadModel(LinearModel(metaModel))
+        val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
         when (val ret = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.results)

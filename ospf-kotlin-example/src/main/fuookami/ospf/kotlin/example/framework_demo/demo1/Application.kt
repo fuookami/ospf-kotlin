@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1
 
+import kotlin.io.path.*
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.parallel.*
@@ -13,7 +15,6 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
-import kotlin.io.path.Path
 
 class SSP {
     lateinit var routeContext: RouteContext
@@ -103,27 +104,24 @@ class SSP {
         return Ok(success)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun solve(metaModel: LinearMetaModel): Result<List<Flt64>, Error> {
-        ThreadGuard(Thread {
-            metaModel.export("demo1.opm")
-        }).use {
-            // val solver = GurobiLinearSolver()
-            val solver = SCIPLinearSolver(LinearSolverConfig())
-            // val solver = CplexLinearSolver(LinearSolverConfig())
-            val model = LinearTriadModel(LinearModel(metaModel))
-            ThreadGuard(Thread {
-                model.export(Path("."), ModelFileFormat.LP)
-            }).use {
-                return when (val ret = solver(model)) {
-                    is Ok -> {
-                        metaModel.tokens.setSolution(ret.value.results)
-                        Ok(ret.value.results)
-                    }
+        GlobalScope.launch(Dispatchers.IO) { metaModel.export("demo1.opm") }
 
-                    is Failed -> {
-                        Failed(ret.error)
-                    }
-                }
+        // val solver = GurobiLinearSolver()
+        // val solver = SCIPLinearSolver(LinearSolverConfig())
+        val solver = CplexLinearSolver(LinearSolverConfig())
+        val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
+        GlobalScope.launch(Dispatchers.IO) { model.export(Path("."), ModelFileFormat.LP) }
+
+        return when (val ret = solver(model)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(ret.value.results)
+                Ok(ret.value.results)
+            }
+
+            is Failed -> {
+                Failed(ret.error)
             }
         }
     }

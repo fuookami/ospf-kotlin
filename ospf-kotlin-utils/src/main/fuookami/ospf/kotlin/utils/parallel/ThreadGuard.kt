@@ -1,9 +1,16 @@
 package fuookami.ospf.kotlin.utils.parallel
 
 // RAII Thread Wrapper
-class ThreadGuard(
-    val thread: Thread
+class Async<T>(
+    val task: () -> T
 ) : AutoCloseable {
+    private var result: T? = null
+
+    val thread = Thread {
+        val result = task()
+        this.result = result
+    }
+
     override fun close() {
         thread.join()
     }
@@ -12,7 +19,10 @@ class ThreadGuard(
         thread.start()
     }
 
-    fun join() {
+    fun join(): T {
         thread.join()
+        return result!!
     }
 }
+
+typealias ThreadGuard = Async<Unit>
