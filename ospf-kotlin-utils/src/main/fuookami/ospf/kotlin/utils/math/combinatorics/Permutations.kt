@@ -30,6 +30,40 @@ fun <T> permute(input: List<T>): List<List<T>> {
     return perms
 }
 
+fun <T> permuteCallBack(
+    input: List<T>,
+    callBack: (List<T>) -> Unit,
+    stopped: ((List<T>) -> Boolean)? = null
+) {
+    var value: List<T>
+
+    val a = input.toList()
+    val p = input.indices.map { 0 }.toMutableList()
+    value = a.toList()
+    callBack(value)
+    if (stopped?.invoke(value) == true) {
+        return
+    }
+
+    var i = 1;
+    while (i < input.size) {
+        if (p[i] < i) {
+            val j = i % 2 * p[i]
+            swap(a, i, j)
+            value = a.toList()
+            callBack(value)
+            if (stopped?.invoke(value) == true) {
+                return
+            }
+            p[i] += 1;
+            i = 1
+        } else {
+            p[i] = 0;
+            ++i;
+        }
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): ChannelGuard<List<T>> {
     val logger = logger("Permutations")
@@ -39,13 +73,18 @@ fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): Chann
         try {
             val a = input.toList()
             val p = input.indices.map { 0 }.toMutableList()
-            promise.send(a.toList())
+            if (!promise.isClosedForSend) {
+                promise.send(a.toList())
+            }
 
             var i = 1;
             while (i < input.size && !promise.isClosedForSend) {
                 if (p[i] < i) {
                     val j = i % 2 * p[i]
                     swap(a, i, j)
+                    if (promise.isClosedForSend) {
+                        break
+                    }
                     promise.send(a.toList())
                     p[i] += 1;
                     i = 1
@@ -58,7 +97,7 @@ fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): Chann
             logger.debug { "Permutation generation was stopped by controller." }
         } catch (e: Exception) {
             logger.debug { "Permutation generation Error ${e.message}" }
-        }finally {
+        } finally {
             promise.close()
         }
     }
