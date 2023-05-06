@@ -1,10 +1,11 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
-import fuookami.ospf.kotlin.core.frontend.expression.Expression
-import fuookami.ospf.kotlin.core.frontend.expression.ExpressionImpl
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 interface Symbol<C : Category> : Expression {
     val cells: List<MonomialCell<C>>
@@ -43,8 +44,12 @@ class SimpleSymbol<C : Category>(
     override fun toString() = polynomial.toString()
     override fun toRawString() = polynomial.toRawString()
 
-    private fun getPossibleValueRange() = polynomial.possibleRange
+    fun value(tokenList: TokenList) = polynomial.value(tokenList)
+    fun value(tokenTable: TokenTable<C>) = polynomial.value(tokenTable)
+    fun value(results: List<Flt64>, tokenList: TokenList) = polynomial.value(results, tokenList)
+    fun value(results: List<Flt64>, tokenTable: TokenTable<C>) = polynomial.value(results, tokenTable)
 
+    private fun getPossibleValueRange() = polynomial.possibleRange
 }
 
 typealias LinearSymbol = SimpleSymbol<Linear>

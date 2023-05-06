@@ -2,6 +2,9 @@ package fuookami.ospf.kotlin.framework.model
 
 import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 open class ShadowPriceKey(
     val limit: KClass<*>
@@ -35,4 +38,23 @@ open class ShadowPriceMap<M : ShadowPriceMap<M>>(
     fun remove(key: ShadowPriceKey) {
         map.remove(key)
     }
+}
+
+fun <Model : MetaModel<*>, Map : ShadowPriceMap<Map>> extractShadowPrice(
+    shadowPriceMap: Map,
+    pipelineList: CGPipelineList<Model, Map>,
+    model: Model,
+    shadowPrices: List<Flt64>
+): Try<Error> {
+    for (pipeline in pipelineList) {
+        when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices)) {
+            is Ok -> {}
+            is Failed -> {
+                return Failed(ret.error)
+            }
+        }
+        val extractor = pipeline.extractor() ?: continue
+        shadowPriceMap.put(extractor)
+    }
+    return Ok(success)
 }

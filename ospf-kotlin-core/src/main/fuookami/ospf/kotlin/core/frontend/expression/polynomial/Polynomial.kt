@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.variable.TokenList
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed interface Polynomial<C : Category> : Expression {
     val monomials: List<Monomial<Linear>>
@@ -20,6 +21,9 @@ sealed interface Polynomial<C : Category> : Expression {
         }
         return ret
     }
+
+    fun value(tokenTable: TokenTable<C>) = value(tokenTable.tokenList)
+
     fun value(result: List<Flt64>, tokenList: TokenList): Flt64 {
         var ret = Flt64.zero
         for (cell in cells) {
@@ -27,6 +31,8 @@ sealed interface Polynomial<C : Category> : Expression {
         }
         return ret
     }
+
+    fun value(result: List<Flt64>, tokenTable: TokenTable<C>) = value(result, tokenTable.tokenList)
 }
 
 internal class PolynomialImpl<M : Monomial<C>, C : Category>(
