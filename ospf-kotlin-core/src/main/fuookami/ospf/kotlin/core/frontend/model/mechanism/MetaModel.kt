@@ -31,7 +31,7 @@ sealed interface MetaModel<C : Category> : ModelInterface {
 
     val name: String
     val constraints: MutableList<Inequality<C>>
-    val objectCategory: ObjectCategory
+    override val objectCategory: ObjectCategory
     val subObjects: MutableList<SubObject<C>>
     val tokens: TokenTable<C>
 

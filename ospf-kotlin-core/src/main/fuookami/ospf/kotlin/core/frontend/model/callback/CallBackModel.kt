@@ -22,6 +22,7 @@ class FunctionalCallBackModelPolicy(
 }
 
 class CallBackModel internal constructor(
+    override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     override val tokens: TokenList = ManualAddTokenTokenList(),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
@@ -34,9 +35,9 @@ class CallBackModel internal constructor(
         }
 
         operator fun invoke(
-            category: ObjectCategory = ObjectCategory.Minimum,
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<Solution?, UInt64> = { (UInt64.zero until it).map { Flt64.zero } }
-        ) = CallBackModel(policy = FunctionalCallBackModelPolicy(dumpObjectiveComparator(category), initialSolutionGenerator))
+        ) = CallBackModel(objectCategory = objectCategory, policy = FunctionalCallBackModelPolicy(dumpObjectiveComparator(objectCategory), initialSolutionGenerator))
 
         operator fun invoke(
             objectiveComparator: PartialComparator<Flt64>,
@@ -64,6 +65,7 @@ class CallBackModel internal constructor(
                 )
             }.toMutableList()
             return CallBackModel(
+                model.objectCategory,
                 tokens,
                 constraints,
                 objectiveFunction,
@@ -108,7 +110,13 @@ class CallBackModel internal constructor(
     override fun addObject(category: ObjectCategory, polynomial: Polynomial<*>, name: String?, displayName: String?) {
         _objectiveFunctions.add(
             Pair<Extractor<Flt64?, Solution>, String>(
-                { solution: Solution -> polynomial.value(solution, tokens) },
+                { solution: Solution ->
+                    if (category == objectCategory) {
+                        polynomial.value(solution, tokens)
+                    } else {
+                        -polynomial.value(solution, tokens)
+                    }
+                },
                 name ?: String()
             )
         )

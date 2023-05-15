@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 typealias Solution = List<Flt64>
 
 interface ModelInterface {
+    val objectCategory: ObjectCategory
+
     fun addVar(item: Item<*, *>)
     fun addVars(items: Combination<*, *, *>)
     fun addVars(items: CombinationView<*, *>)

@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.model.callback
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 
 interface CallBackModelBaseInterface<Obj> : ModelInterface {
     val tokens: TokenList
