@@ -1,18 +1,18 @@
 package fuookami.ospf.kotlin.framework.model
 
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-interface Pipeline<M : MetaModel<*>> {
+interface Pipeline<M : ModelInterface> {
     val name: String
 
     fun register(model: M) {
-        model.registerConstraintGroup(name)
+        if (model is MetaModel<*>) {
+            model.registerConstraintGroup(name)
+        }
     }
 
     operator fun invoke(model: M): Try<Error>
@@ -28,7 +28,7 @@ interface CGPipeline<Model : MetaModel<*>, Map : ShadowPriceMap<Map>> : Pipeline
     }
 }
 
-interface HAPipeline<M : MetaModel<*>> : Pipeline<M> {
+interface HAPipeline<M : ModelInterface> : Pipeline<M> {
     data class Obj(
         val tag: String,
         val value: Flt64
@@ -62,7 +62,7 @@ interface HAPipeline<M : MetaModel<*>> : Pipeline<M> {
 
 typealias PipelineList<M> = List<Pipeline<M>>
 
-operator fun <M : MetaModel<*>> PipelineList<M>.invoke(model: M): Try<Error> {
+operator fun <M : ModelInterface> PipelineList<M>.invoke(model: M): Try<Error> {
     for (pipeline in this) {
         pipeline.register(model)
         when (val ret = pipeline(model)) {
