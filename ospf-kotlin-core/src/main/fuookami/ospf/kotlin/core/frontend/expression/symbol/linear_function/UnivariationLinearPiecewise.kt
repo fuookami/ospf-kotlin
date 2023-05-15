@@ -32,8 +32,14 @@ abstract class UnivariateLinearPiecewiseFunction(
 
     override val possibleRange: ValueRange<Flt64> get() = y.possibleRange
     override var range: ValueRange<Flt64>
-        get() = if (this::y.isInitialized) { y.range } else { ValueRange(Flt64.minimum, Flt64.maximum, Flt64) }
-        set(range) { y.range = range }
+        get() = if (this::y.isInitialized) {
+            y.range
+        } else {
+            ValueRange(Flt64.minimum, Flt64.maximum, Flt64)
+        }
+        set(range) {
+            y.range = range
+        }
 
     override val cells: List<MonomialCell<Linear>> get() = y.cells
 
@@ -113,7 +119,7 @@ class NormalUnivariateLinearPiecewiseFunction(
     val points: List<Point2>,
     name: String,
     displayName: String? = "${name}(${x.name})"
-): UnivariateLinearPiecewiseFunction(x, points.size, name, displayName) {
+) : UnivariateLinearPiecewiseFunction(x, points.size, name, displayName) {
     override fun pointX(i: Int): Flt64 {
         return points[i].x
     }

@@ -18,6 +18,7 @@ sealed class SubObject<C : Category>(
         }
         return ret
     }
+
     fun value(results: List<Flt64>): Flt64 {
         var ret = constant
         for (cell in cells) {

@@ -44,11 +44,12 @@ data class Constraint(
     val size: Int get() = rhs.size
 
     override fun copy() = Constraint(
-        lhs.asSequence().map { it.copy() }.toMutableList(), 
+        lhs.asSequence().map { it.copy() }.toMutableList(),
         signs.toMutableList(),
-        rhs.asSequence().map { it.copy() }.toMutableList(), 
+        rhs.asSequence().map { it.copy() }.toMutableList(),
         names.toMutableList()
     )
+
     override fun clone() = copy()
 }
 
@@ -115,6 +116,7 @@ class BasicLinearTriadModel(
         constraints.copy(),
         name
     )
+
     override fun clone() = copy()
 
     fun containsBinary(): Boolean {

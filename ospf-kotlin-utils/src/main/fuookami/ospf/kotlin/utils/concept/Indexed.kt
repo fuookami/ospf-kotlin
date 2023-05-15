@@ -27,21 +27,22 @@ sealed class IndexedImpl {
 interface Indexed {
     val index: Int
 
-    companion object: IndexedImpl()
+    companion object : IndexedImpl()
 }
 
 open class ManualIndexed internal constructor(
     private var mIndex: Int? = null
-): Indexed {
+) : Indexed {
     val indexed get() = mIndex != null
-    override val index: Int get() {
-        assert(indexed)
-        return this.mIndex!!
-    }
+    override val index: Int
+        get() {
+            assert(indexed)
+            return this.mIndex!!
+        }
 
-    constructor(): this(null)
+    constructor() : this(null)
 
-    companion object: IndexedImpl()
+    companion object : IndexedImpl()
 
     fun setIndexed() {
         assert(!indexed)
@@ -66,12 +67,12 @@ open class ManualIndexed internal constructor(
 
 open class AutoIndexed internal constructor(
     private var mIndex: Int
-): Indexed {
+) : Indexed {
     override val index: Int get() = mIndex
 
-    constructor(cls: KClass<*>): this(nextIndex(cls))
+    constructor(cls: KClass<*>) : this(nextIndex(cls))
 
-    companion object: IndexedImpl()
+    companion object : IndexedImpl()
 
     fun refreshIndex() {
         mIndex = nextIndex(this::class)

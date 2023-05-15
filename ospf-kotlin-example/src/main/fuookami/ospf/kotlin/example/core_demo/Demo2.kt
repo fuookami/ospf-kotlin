@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import kotlinx.coroutines.runBlocking
 
 class Demo2 {
-    class Product: AutoIndexed(Product::class)
+    class Product : AutoIndexed(Product::class)
 
     data class Company(
         val cost: Map<Product, Flt64>

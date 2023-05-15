@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.functional.Predicate
 
 sealed class Node(
     val id: UInt64
-): AutoIndexed(Node::class) {
+) : AutoIndexed(Node::class) {
     val edges: MutableList<Edge> = ArrayList()
 
     fun add(edge: Edge) {

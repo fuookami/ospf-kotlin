@@ -2,11 +2,11 @@ package fuookami.ospf.kotlin.core.frontend.model.callback
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 
-typealias Solution = List<Flt64>
-
-interface CallBackModelBaseInterface<Obj> {
-    val variables: List<Variable>
+interface CallBackModelBaseInterface<Obj> : ModelInterface {
+    val tokens: TokenList
     val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
 
     fun initialSolution(): Solution?
@@ -18,8 +18,13 @@ interface CallBackModelBaseInterface<Obj> {
         for ((constraint, _) in constraints) {
             when (constraint(solution)) {
                 true -> {}
-                false -> { return false }
-                null -> { return null }
+                false -> {
+                    return false
+                }
+
+                null -> {
+                    return null
+                }
             }
         }
         return true

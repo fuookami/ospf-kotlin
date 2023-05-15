@@ -556,6 +556,7 @@ class ValueRange<T> constructor(
         _upperInterval,
         constants
     )
+
     override fun clone() = copy()
 
     fun fixed() = lowerInterval == IntervalType.Closed

@@ -35,7 +35,12 @@ class MinFunction(
         }
     }
 
-    override val possibleRange: ValueRange<Flt64> get() = ValueRange(polys.minOf { it.possibleRange.lowerBound }.toFlt64(), polys.maxOf { it.possibleRange.lowerBound }.toFlt64(), Flt64)
+    override val possibleRange: ValueRange<Flt64>
+        get() = ValueRange(
+            polys.minOf { it.possibleRange.lowerBound }.toFlt64(),
+            polys.maxOf { it.possibleRange.lowerBound }.toFlt64(),
+            Flt64
+        )
     override var range: ValueRange<Flt64> = possibleRange
 
     override val cells: List<MonomialCell<Linear>> get() = listOf(LinearMonomialCell(Flt64.one, symbols.y))

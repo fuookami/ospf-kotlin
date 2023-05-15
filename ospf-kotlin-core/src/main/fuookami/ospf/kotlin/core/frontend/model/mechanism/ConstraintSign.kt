@@ -38,5 +38,5 @@ enum class Sign {
     }
 
     abstract fun <T : Ord<T>> operator(): Comparator<T>;
-    operator fun <T: Ord<T>> invoke(lhs: T, rhs: T) = this.operator<T>()(lhs, rhs)
+    operator fun <T : Ord<T>> invoke(lhs: T, rhs: T) = this.operator<T>()(lhs, rhs)
 }

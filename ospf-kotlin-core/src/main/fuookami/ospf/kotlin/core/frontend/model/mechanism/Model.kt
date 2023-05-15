@@ -35,7 +35,11 @@ class LinearModel(
                     val segmentSize = metaModel.constraints.size / segmentAmount
                     for (i in 0 until segmentAmount) {
                         val lb = i * segmentSize
-                        val ub = if (i == segmentAmount - 1) { metaModel.constraints.size } else { (i + 1) * segmentSize }
+                        val ub = if (i == segmentAmount - 1) {
+                            metaModel.constraints.size
+                        } else {
+                            (i + 1) * segmentSize
+                        }
                         constraintPromises.add(async(Dispatchers.Default) {
                             metaModel.constraints.subList(lb, ub).map { LinearConstraint(metaModel, it, metaModel.tokens) }
                         })

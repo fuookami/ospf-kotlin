@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.*
 
-fun <T: FloatingNumber<T>> ln(x: T, constants: FloatingNumberConstants<T>): T? {
+fun <T : FloatingNumber<T>> ln(x: T, constants: FloatingNumberConstants<T>): T? {
     return if (x leq constants.zero) {
         constants.nan
     } else {
@@ -38,9 +38,9 @@ fun <T: FloatingNumber<T>> ln(x: T, constants: FloatingNumberConstants<T>): T? {
 }
 
 fun <T : FloatingNumber<T>> log(x: T, base: T, constants: FloatingNumberConstants<T>): T? {
-    return ln(x, constants)?.let {
-            lhs -> ln(base, constants)?.let {
-        lhs / it
-    }
+    return ln(x, constants)?.let { lhs ->
+        ln(base, constants)?.let {
+            lhs / it
+        }
     } ?: constants.nan
 }

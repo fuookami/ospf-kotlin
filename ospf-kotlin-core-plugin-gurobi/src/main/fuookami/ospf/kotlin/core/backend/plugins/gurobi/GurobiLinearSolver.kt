@@ -126,10 +126,12 @@ private class GurobiLinearSolverImpl(
                     lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
                     ++j
                 }
-                constraints.add(grbModel.addConstr(
-                    lhs, GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
-                    model.constraints.rhs[i].toDouble(), model.constraints.names[i]
-                ))
+                constraints.add(
+                    grbModel.addConstr(
+                        lhs, GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
+                        model.constraints.rhs[i].toDouble(), model.constraints.names[i]
+                    )
+                )
             }
             grbConstraints = constraints
 

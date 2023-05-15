@@ -11,8 +11,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 
-sealed interface MetaModel<C : Category> {
+sealed interface MetaModel<C : Category> : ModelInterface {
     class SubObject<C : Category>(
         val parent: MetaModel<C>,
         val category: ObjectCategory,
@@ -20,10 +21,11 @@ sealed interface MetaModel<C : Category> {
         val name: String = polynomial.name
     ) {
         fun value(): Flt64 {
-            return polynomial.value(parent.tokens.tokenList)
+            return polynomial.value(parent.tokens)
         }
+
         fun value(results: List<Flt64>): Flt64 {
-            return polynomial.value(results, parent.tokens.tokenList)
+            return polynomial.value(results, parent.tokens)
         }
     }
 
@@ -33,19 +35,19 @@ sealed interface MetaModel<C : Category> {
     val subObjects: MutableList<SubObject<C>>
     val tokens: TokenTable<C>
 
-    fun addVar(item: Item<*, *>) {
+    override fun addVar(item: Item<*, *>) {
         tokens.add(item)
     }
 
-    fun addVars(items: Combination<*, *, *>) {
+    override fun addVars(items: Combination<*, *, *>) {
         tokens.add(items)
     }
 
-    fun addVars(items: CombinationView<*, *>) {
+    override fun addVars(items: CombinationView<*, *>) {
         tokens.add(items)
     }
 
-    fun remove(item: Item<*, *>) {
+    override fun remove(item: Item<*, *>) {
         tokens.remove(item)
     }
 
@@ -61,7 +63,10 @@ sealed interface MetaModel<C : Category> {
         tokens.add(symbols)
     }
 
-    fun addConstraint(inequality: Inequality<C>, name: String? = null, displayName: String? = null) {
+    @Suppress("UNCHECKED_CAST")
+    override fun addConstraint(inequality: Inequality<*>, name: String?, displayName: String?) {
+        inequality as Inequality<C>
+
         if (name != null) {
             inequality.name = name
         }
@@ -74,12 +79,10 @@ sealed interface MetaModel<C : Category> {
     fun registerConstraintGroup(name: String)
     fun indicesOfConstraintGroup(name: String): IntRange?
 
-    fun addObject(
-        category: ObjectCategory,
-        polynomial: Polynomial<C>,
-        name: String? = null,
-        displayName: String? = null
-    ) {
+    @Suppress("UNCHECKED_CAST")
+    override fun addObject(category: ObjectCategory, polynomial: Polynomial<*>, name: String?, displayName: String?) {
+        polynomial as Polynomial<C>
+
         if (name != null) {
             polynomial.name = name
         }
@@ -89,12 +92,12 @@ sealed interface MetaModel<C : Category> {
         subObjects.add(SubObject(this, category, polynomial))
     }
 
-    fun minimize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) {
-        addObject(ObjectCategory.Minimum, polynomial, name, displayName)
+    override fun setSolution(solution: Solution) {
+        tokens.setSolution(solution)
     }
 
-    fun maximize(polynomial: Polynomial<C>, name: String? = null, displayName: String? = null) {
-        addObject(ObjectCategory.Maximum, polynomial, name, displayName)
+    override fun clearSolution() {
+        tokens.clearSolution()
     }
 
     fun flush() {

@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 def gen_variantn_generic_parameter(i):
     code = "T1"
     for j in range(1, i):

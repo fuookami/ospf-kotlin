@@ -197,6 +197,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16> {
 
     override fun rangeTo(rhs: NUInt16) =
         NumericUIntegerRange(copy(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
+
     override infix fun until(rhs: NUInt16) = rangeTo((rhs - constants.one).toNUInt16())
 
     override fun toInt8() = value.toInt8()
@@ -289,6 +290,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32> {
 
     override fun rangeTo(rhs: NUInt32) =
         NumericUIntegerRange(copy(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
+
     override infix fun until(rhs: NUInt32) = rangeTo((rhs - constants.one).toNUInt32())
 
     override fun toInt8() = value.toInt8()
@@ -381,6 +383,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64> {
 
     override fun rangeTo(rhs: NUInt64) =
         NumericUIntegerRange(copy(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
+
     override infix fun until(rhs: NUInt64) = rangeTo((rhs - constants.one).toNUInt64())
 
     override fun toInt8() = value.toInt8()

@@ -62,12 +62,14 @@ interface HAPipeline<M : MetaModel<*>> : Pipeline<M> {
 
 typealias PipelineList<M> = List<Pipeline<M>>
 
-operator fun <M: MetaModel<*>> PipelineList<M>.invoke(model: M): Try<Error> {
+operator fun <M : MetaModel<*>> PipelineList<M>.invoke(model: M): Try<Error> {
     for (pipeline in this) {
         pipeline.register(model)
         when (val ret = pipeline(model)) {
-            is Ok -> { }
-            is Failed -> { return Failed(ret.error) }
+            is Ok -> {}
+            is Failed -> {
+                return Failed(ret.error)
+            }
         }
     }
     return Ok(success)

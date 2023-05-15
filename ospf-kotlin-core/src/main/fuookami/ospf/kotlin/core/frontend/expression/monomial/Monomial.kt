@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed interface MonomialCell<C : Category> : Cloneable, Copyable<MonomialCell<C>> {
     @Throws(IllegalArgumentException::class)
@@ -18,7 +19,9 @@ sealed interface MonomialCell<C : Category> : Cloneable, Copyable<MonomialCell<C
     fun constant(): Flt64?
 
     fun value(tokenList: TokenList): Flt64
+    fun value(tokenTable: TokenTable<*>): Flt64 = value(tokenTable.tokenList)
     fun value(results: List<Flt64>, tokenList: TokenList): Flt64
+    fun value(results: List<Flt64>, tokenTable: TokenTable<*>): Flt64 = value(results, tokenTable.tokenList)
 }
 
 sealed interface MonomialSymbol<C : Category> {

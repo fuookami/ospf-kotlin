@@ -6,14 +6,17 @@ class Token(
     val variable: Item<*, *>,
     val solverIndex: Int
 ) {
-    val key: ItemKey get() = variable.key
+    val key: ItemKey by variable::key
     var result: Flt64? = null
 
-    val name: String get() = variable.name
-    val type: VariableType<*> get() = variable.type
+    val name: String by variable::name
+    val type: VariableType<*> by variable::type
     val range: ValueRange<Flt64> get() = variable.range.valueRange
-    val lowerBound: Flt64 get() = variable.lowerBound
-    val upperBound: Flt64 get() = variable.upperBound
+    val identifier: UInt64 by variable::identifier
+    val index: Int by variable::index
+    val vector: IntArray by variable::vectorView
+    val lowerBound: Flt64 by variable::lowerBound
+    val upperBound: Flt64 by variable::upperBound
 
     override fun hashCode(): Int {
         return key.hashCode()

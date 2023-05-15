@@ -32,6 +32,7 @@ data class LinearCellPair(
     override fun copy(): LinearCellPair {
         return LinearCellPair(coefficient, variable)
     }
+
     override fun clone() = copy()
 
     override fun hashCode(): Int = variable.hashCode()
@@ -64,14 +65,28 @@ class LinearMonomialCell internal constructor(
 
     override fun value(tokenList: TokenList): Flt64 {
         return when (cell) {
-            is Either.Left -> { cell.value.coefficient * (tokenList.find(cell.value.variable)?.result ?: Flt64.zero) }
-            is Either.Right -> { cell.value }
+            is Either.Left -> {
+                val token = tokenList.find(cell.value.variable) ?: return Flt64.zero
+                return token.result?.let { cell.value.coefficient * it }!!
+            }
+
+            is Either.Right -> {
+                cell.value
+            }
         }
     }
+
     override fun value(results: List<Flt64>, tokenList: TokenList): Flt64 {
         return when (cell) {
-            is Either.Left -> { tokenList.find(cell.value.variable)?.let { cell.value.coefficient * results[tokenList.solverIndexMap[it.solverIndex]!!] } ?: Flt64.zero }
-            is Either.Right -> { cell.value }
+            is Either.Left -> {
+                val solverIndexes = tokenList.solverIndexMap
+                val token = tokenList.find(cell.value.variable) ?: return Flt64.zero
+                return cell.value.coefficient * results[solverIndexes[token.solverIndex]!!]
+            }
+
+            is Either.Right -> {
+                cell.value
+            }
         }
     }
 
@@ -164,6 +179,7 @@ class LinearMonomialCell internal constructor(
             }
         }
     }
+
     override fun clone() = copy()
 
     override fun hashCode(): Int = cell.hashCode()

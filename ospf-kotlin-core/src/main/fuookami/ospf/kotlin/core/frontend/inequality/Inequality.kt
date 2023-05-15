@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 interface Inequality<C : Category> {
     val lhs: Polynomial<C>
@@ -21,10 +22,19 @@ interface Inequality<C : Category> {
         val rhsValue = rhs.value(tokenList)
         return sign(lhsValue, rhsValue)
     }
+
+    fun isTrue(tokenTable: TokenTable<*>): Boolean {
+        return isTrue(tokenTable.tokenList)
+    }
+
     fun isTrue(result: List<Flt64>, tokenList: TokenList): Boolean {
         val lhsValue = lhs.value(result, tokenList)
         val rhsValue = rhs.value(result, tokenList)
         return sign(lhsValue, rhsValue)
+    }
+
+    fun isTrue(result: List<Flt64>, tokenTable: TokenTable<*>): Boolean {
+        return isTrue(result, tokenTable.tokenList)
     }
 }
 

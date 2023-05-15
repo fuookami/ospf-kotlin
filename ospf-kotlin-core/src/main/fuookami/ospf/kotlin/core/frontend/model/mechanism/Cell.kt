@@ -16,7 +16,7 @@ class LinearCell(
     val token: Token
 ) : Cell<Linear> {
     override fun value(): Flt64? {
-        return token.result?.let { coefficient * it}
+        return token.result?.let { coefficient * it }
     }
 
     override fun value(solution: List<Flt64>): Flt64 {

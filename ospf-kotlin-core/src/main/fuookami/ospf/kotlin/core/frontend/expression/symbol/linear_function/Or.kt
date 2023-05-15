@@ -26,7 +26,12 @@ class OrFunction(
         symbols.y = BinVar("${name}_y")
     }
 
-    override val possibleRange: ValueRange<Flt64> get() = ValueRange(polys.minOf { it.possibleRange.lowerBound }.toFlt64(), polys.maxOf { it.possibleRange.lowerBound }.toFlt64(), Flt64)
+    override val possibleRange: ValueRange<Flt64>
+        get() = ValueRange(
+            polys.minOf { it.possibleRange.lowerBound }.toFlt64(),
+            polys.maxOf { it.possibleRange.lowerBound }.toFlt64(),
+            Flt64
+        )
     override var range: ValueRange<Flt64> = possibleRange
 
     override val cells: List<MonomialCell<Linear>> get() = listOf(LinearMonomialCell(Flt64.one, symbols.y))
@@ -34,7 +39,9 @@ class OrFunction(
     override val lowerBound: Flt64 by symbols.y::lowerBound
     override val upperBound: Flt64 by symbols.y::upperBound
 
-    override fun intersectRange(range: ValueRange<Flt64>) = symbols.y.range.intersectWith(ValueRange(range.lowerBound.toFlt64().toUInt8(), range.upperBound.toFlt64().toUInt8(), UInt8))
+    override fun intersectRange(range: ValueRange<Flt64>) =
+        symbols.y.range.intersectWith(ValueRange(range.lowerBound.toFlt64().toUInt8(), range.upperBound.toFlt64().toUInt8(), UInt8))
+
     override fun rangeLess(value: Flt64) = symbols.y.range.ls(value.toUInt8())
     override fun rangeLessEqual(value: Flt64) = symbols.y.range.leq(value.toUInt8())
     override fun rangeGreater(value: Flt64) = symbols.y.range.gr(value.toUInt8())
