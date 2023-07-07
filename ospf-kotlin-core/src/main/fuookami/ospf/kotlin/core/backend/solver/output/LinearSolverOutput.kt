@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.solver.output
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import kotlin.time.Duration
+import kotlin.time.*
+import fuookami.ospf.kotlin.utils.math.*
 
 data class LinearSolverOutput(
     val obj: Flt64,

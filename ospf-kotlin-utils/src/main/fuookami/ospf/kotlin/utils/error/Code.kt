@@ -42,6 +42,10 @@ enum class ErrorCode(private val code: UInt8) {
     }
 
     fun toUInt8() = this.code
+
+    override fun toString(): String {
+        return this.name
+    }
 }
 
 // todo: find localize way to set default message

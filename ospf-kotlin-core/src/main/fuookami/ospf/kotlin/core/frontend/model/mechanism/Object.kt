@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.Category
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 
 sealed interface Object<C : Category>
 

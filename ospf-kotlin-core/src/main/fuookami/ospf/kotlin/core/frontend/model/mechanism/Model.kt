@@ -1,9 +1,8 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.inequality.*
 
 sealed interface Model<C : Category> {
     val name: String
@@ -14,13 +13,17 @@ sealed interface Model<C : Category> {
     fun addConstraint(constraint: Inequality<Linear>, name: String = "")
 }
 
+interface SingleObjectModel<C : Category> : Model<C> {
+    override val objectFunction: SingleObject<C>
+}
+
 class LinearModel(
     private val parent: LinearMetaModel,
     override var name: String,
     override val constraints: ArrayList<LinearConstraint>,
     override val objectFunction: SingleObject<Linear>,
     override val tokens: TokenTable<Linear>
-) : Model<Linear> {
+) : SingleObjectModel<Linear> {
     companion object {
         private val segmentAmount = 8
 

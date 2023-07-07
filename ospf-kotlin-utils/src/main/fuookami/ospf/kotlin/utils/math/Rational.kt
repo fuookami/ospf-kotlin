@@ -5,6 +5,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 abstract class RationalSerializer<Self, I>(
     name: String,
@@ -53,7 +54,7 @@ abstract class Rational<Self, I> protected constructor(
     override fun toString() = "($num / $den)"
     abstract fun toString(radix: Int): String;
 
-    override fun partialOrd(rhs: Self) = (num * rhs.den).compareTo(den * rhs.num)
+    override fun partialOrd(rhs: Self) = orderOf((num * rhs.den).compareTo(den * rhs.num))
     override fun partialEq(rhs: Self) = num.eq(rhs.num) && den.eq(rhs.den)
 
     override fun unaryMinus() = ctor(-num, den)

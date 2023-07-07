@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed class SubObject<C : Category>(
     val category: ObjectCategory,
@@ -19,7 +20,7 @@ sealed class SubObject<C : Category>(
         return ret
     }
 
-    fun value(results: List<Flt64>): Flt64 {
+    fun value(results: Solution): Flt64 {
         var ret = constant
         for (cell in cells) {
             ret += cell.value(results)

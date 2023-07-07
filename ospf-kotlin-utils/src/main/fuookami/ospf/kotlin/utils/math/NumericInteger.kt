@@ -4,6 +4,7 @@ import java.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
@@ -65,7 +66,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: NInt8) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NInt8) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NInt8) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn8(Int8.one, value)
@@ -151,7 +152,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: NInt16) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NInt16) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NInt16) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn16(Int16.one, value)
@@ -237,7 +238,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: NInt32) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NInt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NInt32) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn32(Int32.one, value)
@@ -323,7 +324,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: NInt64) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NInt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NInt64) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn64(Int64.one, value)
@@ -409,7 +410,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: NIntX) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NIntX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NIntX) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = RtnX(IntX.one, value)

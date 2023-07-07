@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
-import fuookami.ospf.kotlin.utils.math.*
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
+import fuookami.ospf.kotlin.utils.math.*
 
 sealed class TokenList {
     private var currentIndex: Int = 0

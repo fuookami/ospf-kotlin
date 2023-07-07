@@ -15,11 +15,17 @@ sealed class Result<T, E : Error> {
             null
         }
     }
+
+    abstract fun <U> map(transform: (T) -> U): Result<U, E>
 }
 
 class Ok<T, E : Error>(
     val value: T
-) : Result<T, E>() {}
+) : Result<T, E>() {
+    override fun <U> map(transform: Extractor<U, T>): Result<U, E> {
+        return Ok(transform(value))
+    }
+}
 
 class Failed<T, E : Error>(
     val error: E
@@ -29,6 +35,10 @@ class Failed<T, E : Error>(
 
     fun withValue() = this.error.withValue()
     fun errValue() = this.error.value()
+
+    override fun <U> map(transform: (T) -> U): Result<U, E> {
+        return Failed(error)
+    }
 }
 
 class Success

@@ -6,6 +6,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self> {
     override fun abs() = copy()
@@ -63,7 +64,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8> {
     override fun toString() = value.toString()
     fun toString(radix: Int): String = value.toString(radix)
 
-    override fun partialOrd(rhs: UInt8) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: UInt8) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt8) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = maximum - this
@@ -142,7 +143,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: UInt16) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: UInt16) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt16) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = maximum - this
@@ -221,7 +222,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: UInt32) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: UInt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt32) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = maximum - this
@@ -300,7 +301,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64> {
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun partialOrd(rhs: UInt64) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: UInt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt64) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = maximum - this
@@ -390,7 +391,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX> {
     override fun toString() = value.toString()
     fun toString(radix: Int): String = value.toString(radix)
 
-    override fun partialOrd(rhs: UIntX) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: UIntX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UIntX) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = maximum - this

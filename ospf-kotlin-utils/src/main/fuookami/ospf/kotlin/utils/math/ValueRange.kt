@@ -148,10 +148,10 @@ sealed class ValueWrapper<T>(
             else -> false
         }
 
-        override fun partialOrd(rhs: ValueWrapper<T>): Int = when (rhs) {
+        override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
             is Value -> value.ord(rhs.value)
-            is Infinity -> -1
-            is NegativeInfinity -> 1
+            is Infinity -> orderOf(-1)
+            is NegativeInfinity -> orderOf(1)
         }
 
         override fun plus(rhs: T): ValueWrapper<T> = ValueWrapper(value + rhs, constants)
@@ -219,9 +219,9 @@ sealed class ValueWrapper<T>(
         override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is Infinity
-        override fun partialOrd(rhs: ValueWrapper<T>): Int = when (rhs) {
-            is Infinity -> 0
-            else -> 1
+        override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
+            is Infinity -> orderOf(0)
+            else -> orderOf(1)
         }
 
         @Throws(IllegalArgumentException::class)
@@ -317,9 +317,9 @@ sealed class ValueWrapper<T>(
         override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is NegativeInfinity
-        override fun partialOrd(rhs: ValueWrapper<T>): Int = when (rhs) {
-            is NegativeInfinity -> 0
-            else -> -1
+        override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
+            is NegativeInfinity -> orderOf(0)
+            else -> orderOf(-1)
         }
 
         @Throws(IllegalArgumentException::class)

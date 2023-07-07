@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 
 class SymbolCombination<C : Category, S : Shape>(
     val name: String = "",

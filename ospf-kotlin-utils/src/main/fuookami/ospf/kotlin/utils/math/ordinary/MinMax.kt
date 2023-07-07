@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.operator.Ord
-import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 fun <T : Ord<T>> min(lhs: T, rhs: T): T = if (lhs < rhs) lhs else rhs
 

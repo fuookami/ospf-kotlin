@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.utils.math
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 interface NumericUInteger<Self, I>
     : NumericUIntegerNumber<Self, I> where Self : NumericUInteger<Self, I>, I : UIntegerNumber<I>, I : NumberField<I> {
@@ -62,7 +63,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8> {
 
     override fun dec(): NUInt8 = NUInt8(value - UInt8.one)
 
-    override fun partialOrd(rhs: NUInt8) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NUInt8) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt8) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn8(UInt8.one, value)
@@ -153,7 +154,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16> {
 
     override fun dec(): NUInt16 = NUInt16(value - UInt16.one)
 
-    override fun partialOrd(rhs: NUInt16) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NUInt16) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt16) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn16(UInt16.one, value)
@@ -246,7 +247,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32> {
 
     override fun dec(): NUInt32 = NUInt32(value - UInt32.one)
 
-    override fun partialOrd(rhs: NUInt32) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NUInt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt32) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn32(UInt32.one, value)
@@ -339,7 +340,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64> {
 
     override fun dec(): NUInt64 = NUInt64(value - UInt64.one)
 
-    override fun partialOrd(rhs: NUInt64) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NUInt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt64) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn64(UInt64.one, value)
@@ -432,7 +433,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
 
     override fun dec(): NUIntX = NUIntX(value - UIntX.one)
 
-    override fun partialOrd(rhs: NUIntX) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: NUIntX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUIntX) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtnX(UIntX.one, value)

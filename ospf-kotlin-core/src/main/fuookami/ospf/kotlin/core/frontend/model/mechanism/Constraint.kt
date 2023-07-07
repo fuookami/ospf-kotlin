@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
-import fuookami.ospf.kotlin.utils.functional.Either
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed class Constraint<C : Category>(
     val lhs: List<Cell<C>>,
@@ -11,6 +12,21 @@ sealed class Constraint<C : Category>(
     val rhs: Flt64,
     val name: String = ""
 ) {
+    fun isTrue(): Boolean? {
+        var lhsValue = Flt64.zero
+        for (cell in lhs) {
+            lhsValue += cell.value() ?: return null
+        }
+        return sign(lhsValue, rhs)
+    }
+
+    fun isTrue(results: Solution): Boolean {
+        var lhsValue = Flt64.zero
+        for (cell in lhs) {
+            lhsValue += cell.value(results)
+        }
+        return sign(lhsValue, rhs)
+    }
 }
 
 class LinearConstraint(
@@ -39,13 +55,5 @@ class LinearConstraint(
             }
             return LinearConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name)
         }
-    }
-
-    fun isTrue(): Boolean? {
-        var lhsValue = Flt64.zero
-        for (cell in lhs) {
-            lhsValue += cell.value() ?: return null
-        }
-        return sign(lhsValue, rhs)
     }
 }

@@ -12,7 +12,9 @@
         <module>ospf-kotlin-core-plugin-scip</module>
         <module>ospf-kotlin-core-plugin-gurobi</module>
         <module>ospf-kotlin-core-plugin-cplex</module>
+        <module>ospf-kotlin-core-plugin-heuristic</module>
         <module>ospf-kotlin-example</module>
+        <module>ospf-kotlin-framework-gantt-scheduling</module>
     </modules>
     <groupId>fuookami</groupId>
     <version>1.0.0</version>

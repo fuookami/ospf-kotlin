@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.utils.math.combinatorics
 
-import java.util.Collections.*
-import org.apache.logging.log4j.kotlin.*
+import java.util.Collections.swap
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.parallel.*
 
 // A Counting QuickPerm Algorithm

@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.core.backend.solver.config
 
-import fuookami.ospf.kotlin.utils.math.*
-import kotlin.time.Duration
+import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.utils.math.*
 
 data class SolverConfig(
     val time: Duration,

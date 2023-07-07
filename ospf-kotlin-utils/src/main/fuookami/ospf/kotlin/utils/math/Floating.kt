@@ -6,6 +6,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
     f: F,
@@ -101,11 +102,11 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32> {
         override val two: Flt32 get() = Flt32(2.0F)
         override val three: Flt32 get() = Flt32(3.0F)
         override val ten: Flt32 get() = Flt32(10.0F)
-        override val minimum: Flt32 get() = Flt32(Float.MIN_VALUE)
+        override val minimum: Flt32 get() = Flt32(-Float.MAX_VALUE)
         override val maximum: Flt32 get() = Flt32(Float.MAX_VALUE)
         override val decimalDigits: Int get() = 6
         override val decimalPrecision: Flt32 get() = Flt32(1.19209e-07F)
-        override val epsilon: Flt32 get() = Flt32(1.17549e-38F)
+        override val epsilon: Flt32 get() = Flt32(Float.MIN_VALUE)
         override val nan: Flt32 get() = Flt32(Float.NaN)
         override val infinity: Flt32 get() = Flt32(Float.POSITIVE_INFINITY)
         override val negativeInfinity: Flt32 get() = Flt32(Float.NEGATIVE_INFINITY)
@@ -120,7 +121,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32> {
 
     override fun toString() = value.toString()
 
-    override fun partialOrd(rhs: Flt32) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: Flt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: Flt32) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = Flt32(-value)
@@ -193,11 +194,11 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
         override val two: Flt64 get() = Flt64(2.0)
         override val three: Flt64 get() = Flt64(3.0)
         override val ten: Flt64 get() = Flt64(10.0)
-        override val minimum: Flt64 get() = Flt64(Double.MIN_VALUE)
+        override val minimum: Flt64 get() = Flt64(-Double.MAX_VALUE)
         override val maximum: Flt64 get() = Flt64(Double.MAX_VALUE)
         override val decimalDigits: Int get() = 15
         override val decimalPrecision: Flt64 get() = Flt64(2.22045e-16)
-        override val epsilon: Flt64 get() = Flt64(2.22507e-308)
+        override val epsilon: Flt64 get() = Flt64(Double.MIN_VALUE)
         override val nan: Flt64 get() = Flt64(Double.NaN)
         override val infinity: Flt64 get() = Flt64(Double.POSITIVE_INFINITY)
         override val negativeInfinity: Flt64 get() = Flt64(Double.NEGATIVE_INFINITY)
@@ -212,7 +213,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
 
     override fun toString() = value.toString()
 
-    override fun partialOrd(rhs: Flt64) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: Flt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: Flt64) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = Flt64(-value)
@@ -291,7 +292,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
         override val two: FltX get() = FltX(2L)
         override val three: FltX get() = FltX(3L)
         override val ten: FltX get() = FltX(10L)
-        override val minimum: FltX get() = FltX(Double.MIN_VALUE)
+        override val minimum: FltX get() = FltX(-Double.MAX_VALUE)
         override val maximum: FltX get() = FltX(Double.MAX_VALUE)
         override val decimalDigits: Int get() = 18
         override val decimalPrecision: FltX get() = FltX(1e-18)
@@ -311,7 +312,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
 
     override fun toString() = value.toString()
 
-    override fun partialOrd(rhs: FltX) = value.compareTo(rhs.value)
+    override fun partialOrd(rhs: FltX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: FltX) = (value.compareTo(rhs.value) == 0)
 
     override fun unaryMinus() = FltX(-value)

@@ -3,11 +3,11 @@ package fuookami.ospf.kotlin.utils.math.ordinary
 import fuookami.ospf.kotlin.utils.math.*
 
 private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(value: T, base: T, index: Int): T =
-    if (index == 1) value
+    if (index == 1) value * base
     else powPosImpl(value * base, base, index - 1)
 
 private tailrec fun <T : TimesGroup<T>> powNegImpl(value: T, base: T, index: Int): T =
-    if (index == 1) value
+    if (index == -1) value / base
     else powNegImpl(value / base, base, index + 1)
 
 @Throws(IllegalArgumentException::class)
