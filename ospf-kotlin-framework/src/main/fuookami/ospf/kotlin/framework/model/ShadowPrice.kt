@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.model
 
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*

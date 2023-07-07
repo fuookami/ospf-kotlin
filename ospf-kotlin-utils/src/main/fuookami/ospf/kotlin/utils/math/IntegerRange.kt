@@ -1,6 +1,6 @@
 package  fuookami.ospf.kotlin.utils.math
 
-import fuookami.ospf.kotlin.utils.operator.Rem
+import fuookami.ospf.kotlin.utils.operator.*
 
 @Throws(IllegalArgumentException::class)
 private fun <I> getProgressionLastElement(

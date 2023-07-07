@@ -165,7 +165,7 @@ private class CplexLinearSolverImpl(
     }
 
     private fun analyzeSolution(): Try<Error> {
-        return if (status.succeeded()) {
+        return if (status.succeeded) {
             output = LinearSolverOutput(
                 Flt64(cplex.objValue),
                 cplexVars.map { Flt64(cplex.getValue(it)) },
@@ -183,7 +183,7 @@ private class CplexLinearSolverImpl(
             callBack?.execIfContain(Point.AnalyzingSolution, cplex, cplexVars, cplexConstraint)
             Ok(success)
         } else {
-            Failed(Err(status.errCode()!!))
+            Failed(Err(status.errCode!!))
         }
     }
 }

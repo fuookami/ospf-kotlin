@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.*
 
 sealed class Result<T, E : Error> {
     fun isOk() = this is Ok
@@ -30,11 +29,11 @@ class Ok<T, E : Error>(
 class Failed<T, E : Error>(
     val error: E
 ) : Result<T, E>() {
-    val code: ErrorCode get() = this.error.code()
-    val message: String get() = this.error.message()
+    val code: ErrorCode get() = this.error.code
+    val message: String get() = this.error.message
 
-    fun withValue() = this.error.withValue()
-    fun errValue() = this.error.value()
+    fun withValue() = this.error.withValue
+    fun errValue() = this.error.value
 
     override fun <U> map(transform: (T) -> U): Result<U, E> {
         return Failed(error)

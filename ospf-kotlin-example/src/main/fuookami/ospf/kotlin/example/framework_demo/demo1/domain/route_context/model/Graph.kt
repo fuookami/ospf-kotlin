@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.Predicate
+import fuookami.ospf.kotlin.utils.functional.*
 
 sealed class Node(
     val id: UInt64

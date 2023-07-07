@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.Category
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.utils.math.*
 import java.util.*
 import kotlin.collections.*
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.Category
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 class RepeatedSymbolException(
     val repeatedSymbol: Symbol<*>,

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.concept.*
 
 open class MultiArray<T : Any, S : Shape>(
     val shape: S

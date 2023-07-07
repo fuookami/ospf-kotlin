@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.Integer
-import fuookami.ospf.kotlin.utils.operator.Rem
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 private fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     val remainder = x % y

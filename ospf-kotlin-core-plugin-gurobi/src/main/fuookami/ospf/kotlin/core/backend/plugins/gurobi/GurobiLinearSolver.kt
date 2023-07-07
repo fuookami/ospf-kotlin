@@ -224,7 +224,7 @@ private class GurobiLinearSolverImpl(
 
     private fun analyzeSolution(): Try<Err> {
         return try {
-            if (status.succeeded()) {
+            if (status.succeeded) {
                 output = LinearSolverOutput(
                     Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
                     grbVars.map { Flt64(grbModel.get(GRB.DoubleAttr.X)) },

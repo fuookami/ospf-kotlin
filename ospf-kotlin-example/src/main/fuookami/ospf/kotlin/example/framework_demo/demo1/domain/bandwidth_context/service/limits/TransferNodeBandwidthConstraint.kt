@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
 
 fun Node.maxOutDegree(): UInt64 {
     var bandwidth = UInt64.zero

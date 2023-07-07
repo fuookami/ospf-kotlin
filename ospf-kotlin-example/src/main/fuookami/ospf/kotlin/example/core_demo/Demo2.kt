@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -15,7 +16,6 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 // import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
-import kotlinx.coroutines.runBlocking
 
 class Demo2 {
     class Product : AutoIndexed(Product::class)

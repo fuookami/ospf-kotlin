@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.*
 
 sealed class Category {
     abstract val code: UInt64

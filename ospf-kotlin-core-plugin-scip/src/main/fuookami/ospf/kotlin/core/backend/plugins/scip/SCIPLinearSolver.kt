@@ -188,7 +188,7 @@ private class SCIPLinearSolverImpl(
     }
 
     private fun analyzeSolution(): Try<Error> {
-        return if (status.succeeded()) {
+        return if (status.succeeded) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()
             for (scipVar in scipVars) {
@@ -212,7 +212,7 @@ private class SCIPLinearSolverImpl(
             callBack?.execIfContain(Point.AnalyzingSolution, scip, scipVars, scipConstraints)
             return Ok(success)
         } else {
-            Failed(Err(status.errCode()!!))
+            Failed(Err(status.errCode!!))
         }
     }
 }

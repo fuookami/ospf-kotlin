@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
 
 class ServiceCapacityConstraint(
     private val nodes: List<Node>,

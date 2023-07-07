@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import ilog.concert.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 
 enum class CplexVariable {
     Binary {

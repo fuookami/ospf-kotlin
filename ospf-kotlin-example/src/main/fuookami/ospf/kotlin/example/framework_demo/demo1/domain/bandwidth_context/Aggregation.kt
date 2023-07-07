@@ -3,9 +3,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_conte
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model.EdgeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model.NodeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model.ServiceBandwidth
+import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model.*
 
 class Aggregation(
     val edgeBandwidth: EdgeBandwidth,

@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.utils.math.*
 
 private typealias ExprSymbol = Symbol<Linear>
 private typealias ExprSymbols = SymbolCombination<Linear, *>
