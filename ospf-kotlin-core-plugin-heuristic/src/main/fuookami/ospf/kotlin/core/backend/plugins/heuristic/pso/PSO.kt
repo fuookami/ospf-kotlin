@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.solver.heuristic.pso
+package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
 
 import kotlin.time.*
 import kotlin.random.*

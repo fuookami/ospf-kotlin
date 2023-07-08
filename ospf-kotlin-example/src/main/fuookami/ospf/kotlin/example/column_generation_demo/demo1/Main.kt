@@ -22,7 +22,7 @@ class CSP {
 
             is Ok -> {}
         }
-        val rmp = RMP(products, initialCuttingPlans.value()!!)
+        val rmp = RMP(products, initialCuttingPlans.value)
         val sp = SP()
         var i = UInt64.zero
         while (true) {
@@ -34,7 +34,7 @@ class CSP {
 
                 is Ok -> {}
             }
-            val newCuttingPlan = sp(i, length, products, spm.value()!!)
+            val newCuttingPlan = sp(i, length, products, spm.value)
             when (newCuttingPlan) {
                 is Failed -> {
                     return Failed(newCuttingPlan.error)
@@ -42,8 +42,8 @@ class CSP {
 
                 is Ok -> {}
             }
-            if (reducedCost(newCuttingPlan.value()!!, spm.value()!!) geq Flt64.zero
-                || !rmp.addColumn(newCuttingPlan.value()!!)
+            if (reducedCost(newCuttingPlan.value, spm.value) geq Flt64.zero
+                || !rmp.addColumn(newCuttingPlan.value)
             ) {
                 break
             }

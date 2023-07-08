@@ -104,8 +104,8 @@ internal suspend fun solveLP(name: String, metaModel: LinearMetaModel): Result<L
 
     return when (val ret = solver(model)) {
         is Ok -> {
-            metaModel.tokens.setSolution(ret.value()!!.results)
-            Ok(LPResult(ret.value()!!.results, dualResult))
+            metaModel.tokens.setSolution(ret.value.results)
+            Ok(LPResult(ret.value.results, dualResult))
         }
 
         is Failed -> {

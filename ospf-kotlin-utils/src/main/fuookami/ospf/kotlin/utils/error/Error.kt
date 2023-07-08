@@ -1,27 +1,24 @@
 package fuookami.ospf.kotlin.utils.error
 
 sealed class Error {
-    fun code(): ErrorCode = when (this) {
-        is Err -> this.code
-        is ExErr<*> -> this.code
-    }
+    abstract val code: ErrorCode
+    abstract val message: String
+    open val value: Any? = null
 
-    fun message() = when (this) {
-        is Err -> this.message
-        is ExErr<*> -> this.message
-    }
+    val withValue get() = value != null
 
-    fun withValue() = this is ExErr<*>
-
-    fun value(): Any? = when (this) {
-        is Err -> null
-        is ExErr<*> -> this.value
+    override fun toString(): String {
+        return if (value != null) {
+            "$code: $message($value)"
+        } else {
+            "$code: $message"
+        }
     }
 }
 
 class Err internal constructor(
-    val code: ErrorCode,
-    val message: String
+    override val code: ErrorCode,
+    override val message: String
 ) : Error() {
     companion object {
         operator fun invoke(code: ErrorCode, message: String? = null): Err {
@@ -35,9 +32,9 @@ class Err internal constructor(
 }
 
 class ExErr<T>(
-    val code: ErrorCode,
-    val message: String,
-    val value: T
+    override val code: ErrorCode,
+    override val message: String,
+    override val value: T
 ) : Error() {
     constructor(code: ErrorCode, value: T) : this(code, code.toString(), value)
 }

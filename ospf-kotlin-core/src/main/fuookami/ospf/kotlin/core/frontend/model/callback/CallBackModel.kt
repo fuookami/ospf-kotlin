@@ -93,11 +93,13 @@ class CallBackModel internal constructor(
             }.toMutableList()
             val objectiveFunction = model.objectFunction.subObjects.map { objective ->
                 Pair<Extractor<Flt64?, Solution>, String>(
-                    { solution: Solution -> if (objective.category == model.objectFunction.category) {
-                        objective.value(solution)
-                    } else {
-                        -objective.value(solution)
-                    } },
+                    { solution: Solution ->
+                        if (objective.category == model.objectFunction.category) {
+                            objective.value(solution)
+                        } else {
+                            -objective.value(solution)
+                        }
+                    },
                     objective.name
                 )
             }.toMutableList()

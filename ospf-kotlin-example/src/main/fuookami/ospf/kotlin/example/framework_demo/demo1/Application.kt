@@ -37,15 +37,17 @@ class SSP {
             is Ok -> {}
         }
         val result = solve(model)
-        if (result is Failed) {
-            return Failed(result.error)
+        when (result) {
+            is Failed -> { return Failed(result.error) }
+            is Ok -> {}
         }
-        val solution = bandwidthContext.analyze(model, result.value()!!)
-        if (solution is Failed) {
-            return Failed(solution.error)
+        val solution = bandwidthContext.analyze(model, result.value)
+        when (solution) {
+            is Failed -> { return Failed(solution.error) }
+            is Ok -> {}
         }
 
-        return Ok(Output(solution.value()!!.map { list -> list.map { it.id } }))
+        return Ok(Output(solution.value.map { list -> list.map { it.id } }))
     }
 
     private fun init(input: Input): Try<Error> {

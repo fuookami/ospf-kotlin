@@ -30,7 +30,7 @@ fun orderOf(value: Int): Order {
     }
 }
 
-fun <T: Comparable<T>> orderBetween(lhs: T, rhs: T): Order {
+fun <T : Comparable<T>> orderBetween(lhs: T, rhs: T): Order {
     return orderOf(lhs.compareTo(rhs))
 }
 

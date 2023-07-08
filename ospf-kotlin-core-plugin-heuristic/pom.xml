@@ -18,6 +18,21 @@
         <kotlin.version>1.8.10</kotlin.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>fuookami</groupId>
+            <artifactId>ospf-kotlin-utils</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>fuookami</groupId>
+            <artifactId>ospf-kotlin-core</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
     <build>
         <sourceDirectory>src/main</sourceDirectory>
         <testSourceDirectory>src/test</testSourceDirectory>
