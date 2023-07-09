@@ -1,0 +1,33 @@
+{
+  "name": "aps-interface-gantt-scheduling-renderer",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "serve": "vite preview",
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@mdi/font": "5.9.55",
+    "@tauri-apps/api": "^1.2.0",
+    "color": "^4.2.3",
+    "dayjs": "^1.11.7",
+    "roboto-fontface": "*",
+    "vue": "^3.2.45",
+    "vue-clipboard3": "^2.0.0",
+    "vue-resize-observer": "^2.0.15",
+    "vuetify": "^3.3.2",
+    "webfontloader": "^1.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.2.2",
+    "@vitejs/plugin-vue": "^4.0.0",
+    "vite": "^4.0.0",
+    "vite-plugin-vuetify": "^1.0.0-alpha.12",
+    "vue-cli-plugin-vuetify": "~2.5.8",
+    "webpack-plugin-vuetify": "^2.0.0-alpha.0"
+  },
+  "type": "module"
+}

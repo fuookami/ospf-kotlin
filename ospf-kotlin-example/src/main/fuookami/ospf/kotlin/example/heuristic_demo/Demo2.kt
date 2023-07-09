@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.pso.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
+import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.*
 
 class Demo2 {
     operator fun invoke(): Try<Error> {

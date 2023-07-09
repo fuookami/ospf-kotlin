@@ -57,6 +57,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>fuookami</groupId>
+            <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>5.9.0</version>

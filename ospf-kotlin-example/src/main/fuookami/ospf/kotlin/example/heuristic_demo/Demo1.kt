@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.pso.*
+import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.*
 
 class Demo1 {
     operator fun invoke(): Try<Error> {

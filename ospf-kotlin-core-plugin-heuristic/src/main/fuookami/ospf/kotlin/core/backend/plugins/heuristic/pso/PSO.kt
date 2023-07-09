@@ -77,8 +77,8 @@ open class CommonPSOPolicy(
         return particle.new(
             (0 until particle.size).map {
                 val newVelocity = w * particle.velocity[it] +
-                        c1 * randomGenerator() * (particle.currentBest?.position?.get(it)?.let { pos -> pos - particle.position[it] } ?: Flt64.zero) +
-                        c2 * randomGenerator() * (bestPartial.position[it] - particle.position[it])
+                        c1 * randomGenerator()!! * (particle.currentBest?.position?.get(it)?.let { pos -> pos - particle.position[it] } ?: Flt64.zero) +
+                        c2 * randomGenerator()!! * (bestPartial.position[it] - particle.position[it])
                 if (newVelocity gr maxVelocity) {
                     maxVelocity
                 } else if (newVelocity ls -maxVelocity) {

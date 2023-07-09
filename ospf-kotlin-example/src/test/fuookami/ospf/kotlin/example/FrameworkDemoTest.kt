@@ -7,6 +7,6 @@ class FrameworkDemoTest {
     @Test
     fun runDemo1() {
         val demo = Demo1()
-        assert(demo().isOk())
+        assert(demo().ok)
     }
 }

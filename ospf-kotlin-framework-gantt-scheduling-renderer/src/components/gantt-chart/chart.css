@@ -1,0 +1,53 @@
+.gantt_header {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.gantt_header::-webkit-scrollbar {
+    display: none;
+}
+
+.gantt_meta_line {
+    height: 1.5em;
+    display: flex;
+    margin: 0;
+}
+
+.gantt_meta_line:last-child {
+    border-bottom: 1px dotted #5a5a5a;
+}
+
+.gantt_meta_line>* {
+    display: block;
+    text-align: center;
+    border-right: 1px dotted #5a5a5a;
+}
+
+.gantt_meta_line>*:first-child {
+    border-left: 1px dotted #5a5a5a;
+}
+
+.gantt_actor {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.gantt_actor::-webkit-scrollbar {
+    display: none;
+}
+
+.gantt_actor>* {
+    text-align: center;
+    min-height: 3.5em;
+    padding: .25em 0 .25em 0;
+    border-bottom: 1px dotted #5a5a5a;
+    border-right: 1px dotted #5a5a5a;
+}
+
+.gantt_actor>*:first-child {
+    border-top: 1px dotted #5a5a5a;
+}
+
+.gantt_actor>*:last-child {
+    margin-bottom: 1.1em;
+}

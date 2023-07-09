@@ -7,12 +7,12 @@ class HeuristicDemoTest {
     @Test
     fun runDemo1() {
         val demo = Demo1()
-        assert(demo().isOk())
+        assert(demo().ok)
     }
 
     @Test
     fun runDemo2() {
         val demo = Demo2()
-        assert(demo().isOk())
+        assert(demo().ok)
     }
 }
