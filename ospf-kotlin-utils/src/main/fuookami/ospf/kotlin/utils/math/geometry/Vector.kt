@@ -3,8 +3,19 @@ package fuookami.ospf.kotlin.utils.math.geometry
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-interface Vector {
+private fun normOf(vector: List<Flt64>): Flt64 {
+    return Flt64(vector.sumOf { it.sqr().toFlt64().toDouble() }).sqrt().toFlt64()
+}
+
+private fun unitOf(vector: List<Flt64>): List<Flt64> {
+    val norm = normOf(vector)
+    return vector.map { it / norm }
+}
+
+interface Vector<T : Vector<T>> {
     val size: Int
+    val norm: Flt64
+    val unit: T
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     operator fun get(i: Int): Flt64
@@ -13,12 +24,15 @@ interface Vector {
 data class Vector2(
     val x: Flt64 = Flt64.zero,
     val y: Flt64 = Flt64.zero
-) : Vector, Plus<Vector2, Vector2>, Minus<Vector2, Vector2> {
+) : Vector<Vector2>, Plus<Vector2, Vector2>, Minus<Vector2, Vector2> {
     companion object {
         operator fun invoke(edge: Edge2): Vector2 = edge.vector
+        operator fun invoke(vector: List<Flt64>): Vector2 = Vector2(vector[0], vector[1])
     }
 
     override val size = 2
+    override val norm = normOf(listOf(x, y))
+    override val unit = Vector2(unitOf(listOf(x, y)))
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     override fun get(i: Int): Flt64 {
@@ -39,12 +53,15 @@ data class Vector3(
     val x: Flt64 = Flt64.zero,
     val y: Flt64 = Flt64.zero,
     val z: Flt64 = Flt64.zero
-) : Vector, Plus<Vector3, Vector3>, Minus<Vector3, Vector3> {
+) : Vector<Vector3>, Plus<Vector3, Vector3>, Minus<Vector3, Vector3> {
     companion object {
         operator fun invoke(edge: Edge3): Vector3 = edge.vector
+        operator fun invoke(vector: List<Flt64>): Vector3 = Vector3(vector[0], vector[1], vector[2])
     }
 
     override val size = 3
+    override val norm = normOf(listOf(x, y, z))
+    override val unit = Vector3(unitOf(listOf(x, y, z)))
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     override fun get(i: Int): Flt64 {

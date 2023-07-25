@@ -36,6 +36,7 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
     return ctor(converter2(num), converter2(den))
 }
 
+@Suppress("UNCHECKED_CAST")
 interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override infix fun eq(rhs: Self) = (this - rhs).abs() <= this.constants.decimalPrecision
     override infix fun neq(rhs: Self) = !this.eq(rhs)
@@ -48,14 +49,14 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override fun inc(): Self = this + constants.one
     override fun dec(): Self = this - constants.one
 
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
+    override fun sqr() = pow(2)
+    override fun cub() = pow(3)
 
-    override fun sqr(): FloatingNumber<*> = pow(constants.one / constants.two)
-    override fun cbr(): FloatingNumber<*> = pow(constants.one / constants.three)
+    override fun sqrt(): Self = pow(constants.one / constants.two) as Self
+    override fun cbrt(): Self = pow(constants.one / constants.three) as Self
 
-    override fun lg(): FloatingNumber<*>? = log(constants.ten)
-    override fun ln(): FloatingNumber<*>? = log(constants.e)
+    override fun lg(): Self? = log(constants.ten) as Self?
+    override fun ln(): Self? = log(constants.e) as Self?
 
     override fun toRtn8() = floatingToRational(value(), { Int8(it.toByte()) }, { Int8(it.toByte()) }, Rtn8::invoke)
     override fun toRtn16() =

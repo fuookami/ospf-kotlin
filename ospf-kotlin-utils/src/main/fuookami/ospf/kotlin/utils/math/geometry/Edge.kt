@@ -1,9 +1,8 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import kotlin.math.*
 import fuookami.ospf.kotlin.utils.math.*
 
-data class Edge<P: Point>(
+data class Edge<P : Point>(
     val from: P,
     val to: P
 ) {
@@ -11,7 +10,7 @@ data class Edge<P: Point>(
         assert(from.size == to.size)
     }
 
-    val length = Flt64((0 until from.size).sumOf { sqrt((to[it] - from[it]).toDouble()) })
+    val length = (0 until from.size).sumOf(Flt64) { (to[it] - from[it]).sqrt() }
 }
 
 typealias Edge2 = Edge<Point2>

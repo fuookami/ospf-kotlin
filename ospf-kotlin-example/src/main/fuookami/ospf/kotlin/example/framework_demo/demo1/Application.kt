@@ -38,12 +38,18 @@ class SSP {
         }
         val result = solve(model)
         when (result) {
-            is Failed -> { return Failed(result.error) }
+            is Failed -> {
+                return Failed(result.error)
+            }
+
             is Ok -> {}
         }
         val solution = bandwidthContext.analyze(model, result.value)
         when (solution) {
-            is Failed -> { return Failed(solution.error) }
+            is Failed -> {
+                return Failed(solution.error)
+            }
+
             is Ok -> {}
         }
 

@@ -15,11 +15,11 @@ interface NumericInteger<Self, I>
     override fun lg() = log(Flt64(10.0))
     override fun ln() = log(Flt64.e)
 
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
+    override fun sqr() = pow(2)
+    override fun cub() = pow(3)
 
-    override fun sqr() = pow(Flt64(1.0 / 2.0))
-    override fun cbr() = pow(Flt64(1.0 / 3.0))
+    override fun sqrt() = pow(Flt64(1.0 / 2.0))
+    override fun cbrt() = pow(Flt64(1.0 / 3.0))
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
@@ -453,8 +453,8 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX> {
         else -> throw IllegalArgumentException("Unknown argument type to NIntX.log: ${index.javaClass}")
     }
 
-    override fun sqr() = pow(FltX(1.0 / 2.0))
-    override fun cbr() = pow(FltX(1.0 / 3.0))
+    override fun sqrt() = pow(FltX(1.0 / 2.0))
+    override fun cbrt() = pow(FltX(1.0 / 3.0))
     override fun exp() = toFltX().exp()
 
     override fun toInt8() = value.toInt8()

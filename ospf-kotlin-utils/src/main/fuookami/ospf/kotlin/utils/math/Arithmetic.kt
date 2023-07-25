@@ -154,3 +154,39 @@ object Infinity {
 object NegativeInfinity {
     override fun toString() = "-inf"
 }
+
+fun <T> Collection<T>.sumOf(constant: ArithmeticConstants<T>): T
+        where T : Arithmetic<T>, T : Plus<T, T> {
+    var sum = constant.zero
+    for (element in this) {
+        sum += element
+    }
+    return sum
+}
+
+inline fun <T, U> Collection<T>.sumOf(constant: ArithmeticConstants<U>, selector: (T) -> U): U
+where U : Arithmetic<U>, U : Plus<U, U> {
+    var sum = constant.zero
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+fun <T> Iterable<T>.sumOf(constant: ArithmeticConstants<T>): T
+        where T : Arithmetic<T>, T : Plus<T, T> {
+    var sum = constant.zero
+    for (element in this) {
+        sum += element
+    }
+    return sum
+}
+
+inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, selector: (T) -> U): U
+where U : Arithmetic<U>, U : Plus<U, U> {
+    var sum = constant.zero
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}

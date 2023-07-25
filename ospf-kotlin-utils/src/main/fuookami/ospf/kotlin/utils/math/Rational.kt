@@ -80,11 +80,11 @@ abstract class Rational<Self, I> protected constructor(
 
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = toFltX().pow(index)
     override fun pow(index: Int) = fuookami.ospf.kotlin.utils.math.ordinary.pow(copy(), index, constants)
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
+    override fun sqr() = pow(2)
+    override fun cub() = pow(3)
 
-    override fun sqr(): FloatingNumber<*> = pow(FltX.one / FltX.two)
-    override fun cbr(): FloatingNumber<*> = pow(FltX.one / FltX.three)
+    override fun sqrt(): FloatingNumber<*> = pow(FltX.one / FltX.two)
+    override fun cbrt(): FloatingNumber<*> = pow(FltX.one / FltX.three)
 
     override fun exp(): FloatingNumber<*> = toFltX().exp()
 

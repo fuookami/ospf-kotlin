@@ -13,11 +13,11 @@ interface NumericUInteger<Self, I>
     override fun lg() = log(Flt64(10.0))
     override fun ln() = log(Flt64.e)
 
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
+    override fun sqr() = pow(2)
+    override fun cub() = pow(3)
 
-    override fun sqr() = pow(Flt64(1.0 / 2.0))
-    override fun cbr() = pow(Flt64(1.0 / 3.0))
+    override fun sqrt() = pow(Flt64(1.0 / 2.0))
+    override fun cbrt() = pow(Flt64(1.0 / 3.0))
 }
 
 abstract class NumericUIntegerConstants<Self, I>(
@@ -447,8 +447,8 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
     override fun rem(rhs: NUIntX) = NUIntX(value % rhs.value)
     override fun intDiv(rhs: NUIntX) = NUIntX(value / rhs.value)
 
-    override fun square() = pow(2)
-    override fun cubic() = pow(3)
+    override fun sqr() = pow(2)
+    override fun cub() = pow(3)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
@@ -479,8 +479,8 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
         else -> throw IllegalArgumentException("Unknown argument type to NUIntX.pow: ${index.javaClass}")
     }
 
-    override fun sqr() = pow(FltX(1.0 / 2.0))
-    override fun cbr() = pow(FltX(1.0 / 3.0))
+    override fun sqrt() = pow(FltX(1.0 / 2.0))
+    override fun cbrt() = pow(FltX(1.0 / 3.0))
     override fun exp() = toFltX().exp()
 
     override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(copy(), rhs, one, UIntX, UIntX::toNUIntX, NUIntX::toUIntX)

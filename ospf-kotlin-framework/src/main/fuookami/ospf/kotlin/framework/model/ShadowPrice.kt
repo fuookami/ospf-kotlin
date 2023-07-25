@@ -23,7 +23,7 @@ open class ShadowPriceMap<M : ShadowPriceMap<M>>(
     val map: MutableMap<ShadowPriceKey, ShadowPrice> = HashMap(),
     private val extractors: MutableList<Extractor<M>> = ArrayList()
 ) {
-    operator fun invoke(vararg args: Any?) = Flt64(extractors.sumOf { it(this, args).toDouble() })
+    operator fun invoke(vararg args: Any?) = extractors.sumOf(Flt64) { it(this, args) }
 
     operator fun get(key: ShadowPriceKey): ShadowPrice? = map[key]
 

@@ -52,6 +52,6 @@ data class Point3(
     override fun plus(rhs: Point3) = Point3(x + rhs.x, y + rhs.y, z + rhs.z)
     override fun minus(rhs: Point3) = Point3(x - rhs.x, y - rhs.y, z - rhs.z)
 
-    operator fun plus(rhs: Vector3) = Point3(x + rhs.x, y + rhs.y, z+ rhs.z)
+    operator fun plus(rhs: Vector3) = Point3(x + rhs.x, y + rhs.y, z + rhs.z)
     operator fun minus(rhs: Vector3) = Point3(x - rhs.x, y - rhs.y, z - rhs.z)
 }

@@ -3,8 +3,8 @@ package fuookami.ospf.kotlin.utils.operator
 interface Pow<out Ret> {
     fun pow(index: Int): Ret
 
-    fun square(): Ret
-    fun cubic(): Ret
+    fun sqr(): Ret
+    fun cub(): Ret
 }
 
 interface PowFun<Self, out Ret> {
@@ -25,21 +25,21 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> pow(base: Base, index: Int, func: Func
     }
 }
 
-fun <Base, Ret> square(base: Base): Ret
+fun <Base, Ret> sqr(base: Base): Ret
         where Base : Pow<Ret> {
-    return base.square()
+    return base.sqr()
 }
 
-fun <Base, Ret> cubic(base: Base): Ret
+fun <Base, Ret> cub(base: Base): Ret
         where Base : Pow<Ret> {
-    return base.cubic()
+    return base.cub()
 }
 
 interface PowF<in Index, out Ret> {
     fun pow(index: Index): Ret
 
-    fun sqr(): Ret
-    fun cbr(): Ret
+    fun sqrt(): Ret
+    fun cbrt(): Ret
 }
 
 fun <Base, Index, Ret> pow(base: Base, index: Index): Ret
@@ -47,12 +47,12 @@ fun <Base, Index, Ret> pow(base: Base, index: Index): Ret
     return base.pow(index)
 }
 
-fun <Base, Index, Ret> sqr(base: Base): Ret
+fun <Base, Index, Ret> sqrt(base: Base): Ret
         where Base : PowF<Index, Ret> {
-    return base.sqr()
+    return base.sqrt()
 }
 
-fun <Base, Index, Ret> cbr(base: Base): Ret
+fun <Base, Index, Ret> cbrt(base: Base): Ret
         where Base : PowF<Index, Ret> {
-    return base.cbr()
+    return base.cbrt()
 }

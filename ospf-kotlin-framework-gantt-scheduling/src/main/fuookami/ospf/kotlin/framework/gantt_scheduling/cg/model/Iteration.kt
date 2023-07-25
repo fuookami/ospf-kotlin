@@ -34,7 +34,7 @@ class Iteration<E : Executor>(
     private var upperBound: Flt64? = null
     val optimalRate: Flt64
         get() {
-            val actualOptimalRate = ((lowerBound + Flt64.one) / (bestObj + Flt64.one)).sqr() as Flt64
+            val actualOptimalRate = ((lowerBound + Flt64.one) / (bestObj + Flt64.one)).sqrt()
             return min(Flt64.one, upperBound?.let { max(actualOptimalRate, (it - bestObj) / it) } ?: actualOptimalRate)
         }
 
@@ -45,7 +45,7 @@ class Iteration<E : Executor>(
             bestReducedCost[bunch.executor] = bestReducedCost[bunch.executor]?.let { min(reducedCost, it) } ?: reducedCost
         }
 
-        val currentDualObj = prevLpObj + Flt64(bestReducedCost.values.sumOf { it.toDouble() })
+        val currentDualObj = prevLpObj + bestReducedCost.values.sumOf(Flt64)
         if (bestDualObj ls currentDualObj && currentDualObj ls bestObj) {
             logger.debug { "best dual obj: $bestDualObj -> $currentDualObj" }
             bestDualObj = currentDualObj
