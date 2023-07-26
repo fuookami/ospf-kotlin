@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 private fun normOf(vector: List<Flt64>): Flt64 {
-    return Flt64(vector.sumOf { it.sqr().toFlt64().toDouble() }).sqrt().toFlt64()
+    return (vector.sumOf(Flt64) { it.sqr() }).sqrt()
 }
 
 private fun unitOf(vector: List<Flt64>): List<Flt64> {
@@ -32,7 +32,7 @@ data class Vector2(
 
     override val size = 2
     override val norm = normOf(listOf(x, y))
-    override val unit = Vector2(unitOf(listOf(x, y)))
+    override val unit get() = Vector2(unitOf(listOf(x, y)))
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     override fun get(i: Int): Flt64 {
@@ -61,7 +61,7 @@ data class Vector3(
 
     override val size = 3
     override val norm = normOf(listOf(x, y, z))
-    override val unit = Vector3(unitOf(listOf(x, y, z)))
+    override val unit get() = Vector3(unitOf(listOf(x, y, z)))
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     override fun get(i: Int): Flt64 {

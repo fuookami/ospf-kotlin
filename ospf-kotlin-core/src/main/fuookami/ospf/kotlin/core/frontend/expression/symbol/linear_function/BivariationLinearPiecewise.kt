@@ -32,14 +32,6 @@ abstract class BivariateLinearPiecewiseFunction(
     override var name: String,
     override var displayName: String? = "${name}(${x.name}, ${y.name})"
 ) : Function<Linear> {
-
-    companion object {
-        fun triangulate(points: List<Point>): List<Triangle> {
-            // todo
-            return ArrayList()
-        }
-    }
-
     abstract val size: Int
     private lateinit var symbols: BivariateSymbols
 
@@ -230,5 +222,35 @@ abstract class BivariateLinearPiecewiseFunction(
         }
 
         return maxOf(minX.abs(), maxX.abs(), minY.abs(), maxY.abs())
+    }
+}
+
+class NormalBivariateLinearPiecewiseFunction(
+    x: LinearPolynomial,
+    y: LinearPolynomial,
+    val points: List<Point3>,
+    val triangles: List<Triangle3>,
+    name: String,
+    displayName: String? = "${name}(${x.name}, ${y.name})"
+) : BivariateLinearPiecewiseFunction(x, y, name, displayName) {
+    constructor(
+        x: LinearPolynomial,
+        y: LinearPolynomial,
+        points: List<Point3>,
+        name: String,
+        displayName: String? = "${name}(${x.name}, ${y.name})"
+    ): this(
+        x = x,
+        y = y,
+        points = points,
+        triangles = triangulate(points),
+        name = name,
+        displayName = displayName
+    )
+
+    override val size = triangles.size
+
+    override fun triangle(i: Int): Triangle {
+        return triangles[i]
     }
 }

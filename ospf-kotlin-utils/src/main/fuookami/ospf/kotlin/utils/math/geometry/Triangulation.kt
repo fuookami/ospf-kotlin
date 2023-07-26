@@ -63,7 +63,7 @@ object Delaunay {
                 }
             }
         }
-        return edges.indices.filter { duplication[it] }.map { edges[it] }
+        return edges.indices.filter { !duplication[it] }.map { edges[it] }
     }
 
     private fun updateTriangles(triangles: MutableList<Triangle2>, point: Point2, edges: List<Edge2>) {
