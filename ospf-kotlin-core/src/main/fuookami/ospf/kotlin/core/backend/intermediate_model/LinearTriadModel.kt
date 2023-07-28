@@ -41,6 +41,7 @@ data class Constraint(
     val names: MutableList<String>
 ) : Cloneable, Copyable<Constraint> {
     val size: Int get() = rhs.size
+    val indices: IntRange get() = rhs.indices
 
     override fun copy() = Constraint(
         lhs.asSequence().map { it.copy() }.toMutableList(),
@@ -382,11 +383,10 @@ data class LinearTriadModel(
     }
 
     fun dual(): LinearTriadModel {
-        val variables = ArrayList<Variable>()
-        for (i in 0 until this.constraints.size) {
+        val variables = constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
             var upperBound = Flt64.infinity
-            when (this.constraints.signs[i]) {
+            when (this.constraints.signs[it]) {
                 Sign.LessEqual -> {
                     upperBound = Flt64.zero
                 }
@@ -397,65 +397,53 @@ data class LinearTriadModel(
 
                 else -> {}
             }
-            variables.add(
-                Variable(
-                    i,
-                    lowerBound,
-                    upperBound,
-                    Continuous,
-                    "${this.constraints.names[i]}_dual"
-                )
+
+            Variable(
+                it,
+                lowerBound,
+                upperBound,
+                Continuous,
+                "${this.constraints.names[it]}_dual"
             )
         }
 
-        val coefficients = ArrayList<ArrayList<Pair<Int, Flt64>>>()
-        for (i in 0 until this.constraints.size) {
-            coefficients.add(ArrayList())
+        val cellGroups = constraints.lhs.groupBy { it.colIndex }
+        val coefficients = constraints.indices.map {
+            cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
         }
-        for (cell in this.constraints.lhs) {
-            coefficients[cell.colIndex].add(Pair(cell.rowIndex, cell.coefficient))
-        }
-        val lhs = ArrayList<ConstraintCell>()
-        for (i in 0 until this.variables.size) {
-            for (coefficient in coefficients[i]) {
-                lhs.add(
-                    ConstraintCell(
-                        i,
-                        coefficient.first,
-                        coefficient.second
-                    )
+        val lhs = variables.indices.flatMap {
+            coefficients[it].map { cell ->
+                ConstraintCell(
+                    it,
+                    cell.first,
+                    cell.second
                 )
             }
         }
-        val signs = ArrayList<Sign>()
-        val rhs = ArrayList<Flt64>()
-        val names = ArrayList<String>()
-        for (variable in this.variables) {
-            if (variable.lowerBound.isNegativeInfinity() && variable.upperBound.isInfinity()) {
-                signs.add(Sign.Equal)
-            } else if (variable.lowerBound.isNegativeInfinity()) {
-                signs.add(Sign.GreaterEqual)
-            } else if (variable.upperBound.isInfinity()) {
-                signs.add(Sign.LessEqual)
+        val signs = variables.map {
+            if (it.lowerBound.isNegativeInfinity() && it.upperBound.isInfinity()) {
+                Sign.Equal
+            } else if (it.lowerBound.isNegativeInfinity()) {
+                Sign.GreaterEqual
+            } else if (it.upperBound.isInfinity()) {
+                Sign.LessEqual
+            } else {
+                Sign.Equal
             }
-            rhs.add(this.objective.obj[variable.index].coefficient)
-            names.add("${variable.name}_dual")
         }
-
-        val objective = ArrayList<ObjectiveCell>()
-        for (i in 0 until this.constraints.size) {
-            objective.add(
-                ObjectiveCell(
-                    i,
-                    this.constraints.rhs[i]
-                )
+        val rhs = variables.map { this.objective.obj[it.index].coefficient }
+        val names = variables.map { "${it.name}_dual" }
+        val objective = this.constraints.indices.map {
+            ObjectiveCell(
+                it,
+                this.constraints.rhs[it]
             )
         }
 
         return LinearTriadModel(
             BasicLinearTriadModel(
                 variables,
-                Constraint(lhs, signs, rhs, names),
+                Constraint(lhs.toMutableList(), signs.toMutableList(), rhs.toMutableList(), names.toMutableList()),
                 "$name-dual"
             ),
             Objective(this.objective.category.reverse(), objective)
