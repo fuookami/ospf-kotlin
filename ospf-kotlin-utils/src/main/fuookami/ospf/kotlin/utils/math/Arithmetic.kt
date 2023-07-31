@@ -173,6 +173,24 @@ inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, selector: 
     return sum
 }
 
+fun <K, V> Map<K, V>.sumOf(constant: ArithmeticConstants<V>): V
+        where V : Arithmetic<V>, V : Plus<V, V> {
+    var sum = constant.zero
+    for (element in this) {
+        sum += element.value
+    }
+    return sum
+}
+
+fun <K, V, T> Map<K, V>.sumOf(constant: ArithmeticConstants<T>, selector: (Map.Entry<K, V>) -> T): T
+        where T : Arithmetic<T>, T : Plus<T, T> {
+    var sum = constant.zero
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
 fun <T> Iterator<T>.sumOf(constant: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
