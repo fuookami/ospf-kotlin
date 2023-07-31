@@ -328,24 +328,24 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
     override fun rem(rhs: FltX) = FltX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FltX? = when (base) {
+    override fun log(base: FloatingNumber<*>) = when (base) {
         is Flt32 -> log(this, base.toFltX(), FltX)
         is Flt64 -> log(this, base.toFltX(), FltX)
         is FltX -> log(this, base, FltX)
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int): FltX = FltX(value.pow(index))
+    override fun pow(index: Int) = FltX(value.pow(index))
 
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FltX = when (index) {
+    override fun pow(index: FloatingNumber<*>) = when (index) {
         is Flt32 -> pow(this, index.toFltX(), FltX)
         is Flt64 -> pow(this, index.toFltX(), FltX)
         is FltX -> pow(this, index, FltX)
         else -> throw IllegalArgumentException("Unknown argument type to FltX.pow: ${index.javaClass}")
     }
 
-    override fun exp(): FltX = FltX(exp(value.toDouble()))
+    override fun exp() = FltX(exp(value.toDouble()))
 
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())

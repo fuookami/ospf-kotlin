@@ -74,19 +74,19 @@ abstract class Rational<Self, I> protected constructor(
         return ctor(divisor.num / divisor.den, integerConstants.one);
     }
 
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = toFltX().log(base)
-    override fun lg(): FloatingNumber<*>? = log(FltX.ten)
-    override fun ln(): FloatingNumber<*>? = log(FltX.e)
+    override fun log(base: FloatingNumber<*>) = toFltX().log(base)
+    override fun lg() = log(FltX.ten)
+    override fun ln() = log(FltX.e)
 
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = toFltX().pow(index)
-    override fun pow(index: Int) = fuookami.ospf.kotlin.utils.math.ordinary.pow(copy(), index, constants)
+    override fun pow(index: FloatingNumber<*>) = toFltX().pow(index)
+    override fun pow(index: Int) = pow(copy(), index, constants)
     override fun sqr() = pow(2)
     override fun cub() = pow(3)
 
-    override fun sqrt(): FloatingNumber<*> = pow(FltX.one / FltX.two)
-    override fun cbrt(): FloatingNumber<*> = pow(FltX.one / FltX.three)
+    override fun sqrt() = pow(FltX.one / FltX.two)
+    override fun cbrt() = pow(FltX.one / FltX.three)
 
-    override fun exp(): FloatingNumber<*> = toFltX().exp()
+    override fun exp() = toFltX().exp()
 
     override fun toInt8() = (num / den).toInt8()
     override fun toInt16() = (num / den).toInt16()
