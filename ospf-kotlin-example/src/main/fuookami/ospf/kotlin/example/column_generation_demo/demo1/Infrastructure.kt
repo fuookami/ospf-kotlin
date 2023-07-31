@@ -26,7 +26,7 @@ data class SolverParameter(
 )
 
 @OptIn(DelicateCoroutinesApi::class)
-suspend fun solveMIP(name: String, metaModel: LinearMetaModel, parameter: SolverParameter, config: LinearSolverConfig = LinearSolverConfig()): Result<List<Flt64>, Error> {
+suspend fun solveMIP(name: String, metaModel: LinearMetaModel, parameter: SolverParameter = SolverParameter(), config: LinearSolverConfig = LinearSolverConfig()): Result<List<Flt64>, Error> {
     // GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
     val model = LinearTriadModel(LinearModel(metaModel))
     // GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
@@ -62,7 +62,7 @@ suspend fun solveMIP(name: String, metaModel: LinearMetaModel, parameter: Solver
     }
 }
 
-suspend fun solveMIP(name: String, metaModel: LinearMetaModel, parameter: SolverParameter, amount: UInt64): Result<List<List<Flt64>>, Error> {
+suspend fun solveMIP(name: String, metaModel: LinearMetaModel, amount: UInt64, parameter: SolverParameter= SolverParameter()): Result<List<List<Flt64>>, Error> {
     val results = ArrayList<List<Flt64>>()
     val model = LinearTriadModel(LinearModel(metaModel))
 
@@ -145,7 +145,7 @@ data class LPResult(
     val dualResult: List<Flt64>
 )
 
-suspend fun solveLP(name: String, metaModel: LinearMetaModel, parameter: SolverParameter): Result<LPResult, Error> {
+suspend fun solveLP(name: String, metaModel: LinearMetaModel, parameter: SolverParameter = SolverParameter()): Result<LPResult, Error> {
     // GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
     lateinit var dualResult: List<Flt64>
     val model = LinearTriadModel(LinearModel(metaModel))
