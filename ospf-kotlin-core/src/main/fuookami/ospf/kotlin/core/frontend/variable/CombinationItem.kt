@@ -130,8 +130,7 @@ class RealVariable1(name: String = "", shape: Shape1) : Combination1<Flt64, Cont
 class RealVariable2(name: String = "", shape: Shape2) : Combination2<Flt64, Continuous>(Continuous, name, Flt64, shape)
 class RealVariable3(name: String = "", shape: Shape3) : Combination3<Flt64, Continuous>(Continuous, name, Flt64, shape)
 class RealVariable4(name: String = "", shape: Shape4) : Combination4<Flt64, Continuous>(Continuous, name, Flt64, shape)
-class RealVariable(name: String = "", shape: DynShape) :
-    DynCombination<Flt64, Continuous>(Continuous, name, Flt64, shape)
+class RealVariable(name: String = "", shape: DynShape) : DynCombination<Flt64, Continuous>(Continuous, name, Flt64, shape)
 typealias RealVariableView = CombinationView<Flt64, Continuous>
 typealias RealVariableView1 = CombinationView1<Flt64, Continuous>
 typealias RealVariableView2 = CombinationView2<Flt64, Continuous>

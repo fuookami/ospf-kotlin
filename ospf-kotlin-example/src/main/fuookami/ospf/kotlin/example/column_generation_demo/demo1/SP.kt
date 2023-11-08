@@ -13,23 +13,11 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 object InitialSolutionGenerator {
-    operator fun invoke(
-        length: UInt64,
-        products: List<Product>
-    ): Result<List<CuttingPlan>, Error> {
+    operator fun invoke(length: UInt64, products: List<Product>): Result<List<CuttingPlan>, Error> {
         val solution = ArrayList<CuttingPlan>()
         for (product in products) {
             val amount = length / product.length
-            solution.add(
-                CuttingPlan(
-                    mapOf(
-                        Pair(
-                            product,
-                            amount
-                        )
-                    )
-                )
-            )
+            solution.add(CuttingPlan(mapOf(Pair(product, amount))))
         }
         return Ok(solution)
     }
@@ -76,11 +64,7 @@ class SP {
         }
     }
 
-    private fun analyze(
-        model: LinearMetaModel,
-        products: List<Product>,
-        result: List<Flt64>
-    ): CuttingPlan {
+    private fun analyze(model: LinearMetaModel, products: List<Product>, result: List<Flt64>): CuttingPlan {
         val cuttingPlan = HashMap<Product, UInt64>()
         for (token in model.tokens.tokens) {
             if (result[token.solverIndex] geq Flt64.one) {

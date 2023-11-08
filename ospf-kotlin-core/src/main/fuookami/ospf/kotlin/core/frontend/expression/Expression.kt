@@ -29,7 +29,7 @@ internal class ExpressionImpl(
     var range: ValueRange<Flt64>
         get() {
             if (!this::_range.isInitialized) {
-                _range = possibleRange.copy()
+                _range = possibleRange.clone()
             }
             return _range
         }

@@ -1,8 +1,10 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 
-class Triangle<P : Point>(
+class Triangle<P : Point<D>, D: Dimension>(
     val p1: P,
     val p2: P,
     val p3: P
@@ -12,9 +14,9 @@ class Triangle<P : Point>(
         assert(p2.size == p3.size)
     }
 
-    val e1: Edge<P> get() = Edge(p1, p2)
-    val e2: Edge<P> get() = Edge(p2, p3)
-    val e3: Edge<P> get() = Edge(p3, p1)
+    val e1: Edge<P, D> get() = Edge(p1, p2)
+    val e2: Edge<P, D> get() = Edge(p2, p3)
+    val e3: Edge<P, D> get() = Edge(p3, p1)
 
     // Heron's formula
     val area: Flt64
@@ -38,5 +40,5 @@ class Triangle<P : Point>(
         }
 }
 
-typealias Triangle2 = Triangle<Point2>
-typealias Triangle3 = Triangle<Point3>
+typealias Triangle2 = Triangle<Point2, Dim2>
+typealias Triangle3 = Triangle<Point3, Dim3>

@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.math.*
 
 data class SolverConfig(
     val time: Duration,
-    val threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors().toULong())
+    val threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors())
 )
 
 data class LinearSolverConfig(
@@ -20,7 +20,7 @@ data class LinearSolverConfig(
     companion object {
         operator fun invoke(
             time: Duration = 30.seconds,
-            threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors().toULong()),
+            threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors()),
             gap: Flt64 = Flt64.zero,
             extraConfig: Any? = null
         ) =

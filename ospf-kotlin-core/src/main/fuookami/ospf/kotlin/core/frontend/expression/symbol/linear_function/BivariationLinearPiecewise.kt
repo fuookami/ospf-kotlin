@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -10,13 +12,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.Function
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-
-typealias Point = Point3
-typealias Triangle = fuookami.ospf.kotlin.utils.math.geometry.Triangle<Point>
-
-fun Triangle.area(): Flt64 {
-    return Flt64(.5) * (-p2.y * p3.x + p1.y * (-p2.x + p3.x) + p1.x * (p2.y - p3.y) + p2.x * p3.y);
-}
 
 class BivariateSymbols {
     lateinit var u: PctVariable1
@@ -32,10 +27,34 @@ abstract class BivariateLinearPiecewiseFunction(
     override var name: String,
     override var displayName: String? = "${name}(${x.name}, ${y.name})"
 ) : Function<Linear> {
-    abstract val size: Int
+    companion object {
+        fun Triangle3.bottomArea(): Flt64 {
+            return Flt64(.5) * (-p2.y * p3.x + p1.y * (-p2.x + p3.x) + p1.x * (p2.y - p3.y) + p2.x * p3.y);
+        }
+
+        infix fun <D: Dimension> Point<D>.ord(rhs: Point<D>): Order {
+            for (i in indices) {
+                when (val result = (this[i] ord rhs[i])) {
+                    Order.Equal -> {}
+                    else -> {
+                        return result
+                    }
+                }
+            }
+            return Order.Equal
+        }
+
+        infix fun <P: Point<D>, D: Dimension> Triangle<P, D>.ord(rhs: Triangle<P, D>): Order {
+            val lhsLestPoint = listOf(p1, p2, p3).sortedWithThreeWayComparator { lhsPoint, rhsPoint -> lhsPoint ord rhsPoint }.first()
+            val rhsLestPoint = listOf(rhs.p1, rhs.p2, rhs.p3).sortedWithThreeWayComparator { lhsPoint, rhsPoint -> lhsPoint ord rhsPoint }.first()
+            return lhsLestPoint ord rhsLestPoint
+        }
+    }
+
+    abstract val triangles: List<Triangle3>
     private lateinit var symbols: BivariateSymbols
 
-    abstract fun triangle(i: Int): Triangle
+    val size get() = triangles.size
 
     override val possibleRange: ValueRange<Flt64> get() = symbols.z.possibleRange
     override var range: ValueRange<Flt64>
@@ -123,7 +142,7 @@ abstract class BivariateLinearPiecewiseFunction(
                 && (Flt64.zero leq v) && (v leq Flt64.one)
                 && (Flt64.zero leq (u + v)) && ((u + v) leq Flt64.one)
             ) {
-                val triangle = this.triangle(i)
+                val triangle = triangles[i]
                 return triangle.p1.z +
                         (triangle.p2.z - triangle.p1.z) * u +
                         (triangle.p3.z - triangle.p1.z) * v
@@ -135,7 +154,7 @@ abstract class BivariateLinearPiecewiseFunction(
     private fun polyZ(): LinearPolynomial {
         val poly = LinearPolynomial()
         for (i in 0 until size) {
-            val triangle = this.triangle(i)
+            val triangle = triangles[i]
 
             poly += triangle.p1.z * symbols.w[i]!!
             poly += (triangle.p2.z - triangle.p1.z) * symbols.u[i]!!
@@ -145,8 +164,8 @@ abstract class BivariateLinearPiecewiseFunction(
     }
 
     private fun u(i: Int, x: Flt64, y: Flt64): Flt64 {
-        val triangle = this.triangle(i)
-        val area = triangle.area()
+        val triangle = triangles[i]
+        val area = triangle.bottomArea()
         val coefficient = Flt64(.5) / area
 
         var ret = Flt64.zero
@@ -157,8 +176,8 @@ abstract class BivariateLinearPiecewiseFunction(
     }
 
     private fun polyU(i: Int): LinearPolynomial {
-        val triangle = this.triangle(i)
-        val area = triangle.area()
+        val triangle = triangles[i]
+        val area = triangle.bottomArea()
         val coefficient = Flt64(.5) / area
 
         val poly = LinearPolynomial()
@@ -169,8 +188,8 @@ abstract class BivariateLinearPiecewiseFunction(
     }
 
     private fun v(i: Int, x: Flt64, y: Flt64): Flt64 {
-        val triangle = this.triangle(i)
-        val area = triangle.area()
+        val triangle = triangles[i]
+        val area = triangle.bottomArea()
         val coefficient = Flt64(.5) / area
 
         var ret = Flt64.zero
@@ -181,8 +200,8 @@ abstract class BivariateLinearPiecewiseFunction(
     }
 
     private fun polyV(i: Int): LinearPolynomial {
-        val triangle = this.triangle(i)
-        val area = triangle.area()
+        val triangle = triangles[i]
+        val area = triangle.bottomArea()
         val coefficient = Flt64(.5) / area
 
         val poly = LinearPolynomial()
@@ -198,8 +217,7 @@ abstract class BivariateLinearPiecewiseFunction(
         var minY = Flt64.maximum
         var maxY = Flt64.minimum
 
-        for (i in 0 until size) {
-            val triangle = this.triangle(i)
+        for (triangle in triangles) {
             minX = minOf(minX, triangle.p1.x, triangle.p2.x, triangle.p3.x)
             maxX = maxOf(maxX, triangle.p1.x, triangle.p2.x, triangle.p3.x)
             minY = minOf(minY, triangle.p1.y, triangle.p2.y, triangle.p3.y)
@@ -211,7 +229,7 @@ abstract class BivariateLinearPiecewiseFunction(
         var minV = Flt64.maximum
         var maxV = Flt64.minimum
 
-        for (i in 0 until size) {
+        for (i in triangles.indices) {
             val u = arrayOf(this.u(i, minX, minY), this.u(i, minX, maxY), this.u(i, maxX, minY), this.u(i, maxX, maxY))
             minU = minOf(minU, u.minOf { it })
             maxU = maxOf(maxU, u.maxOf { it })
@@ -225,32 +243,64 @@ abstract class BivariateLinearPiecewiseFunction(
     }
 }
 
-class NormalBivariateLinearPiecewiseFunction(
+class CommonBivariateLinearPiecewiseFunction(
     x: LinearPolynomial,
     y: LinearPolynomial,
     val points: List<Point3>,
-    val triangles: List<Triangle3>,
+    override val triangles: List<Triangle3>,
     name: String,
     displayName: String? = "${name}(${x.name}, ${y.name})"
 ) : BivariateLinearPiecewiseFunction(x, y, name, displayName) {
-    constructor(
-        x: LinearPolynomial,
-        y: LinearPolynomial,
-        points: List<Point3>,
-        name: String,
-        displayName: String? = "${name}(${x.name}, ${y.name})"
-    ): this(
-        x = x,
-        y = y,
-        points = points,
-        triangles = triangulate(points),
-        name = name,
-        displayName = displayName
-    )
+    companion object {
+        operator fun invoke(
+            x: LinearPolynomial,
+            y: LinearPolynomial,
+            points: List<Point3>,
+            name: String,
+            displayName: String? = "${name}(${x.name}, ${y.name})"
+        ): CommonBivariateLinearPiecewiseFunction {
+            val sortedPoints = points.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }
+            val triangles = triangulate(sortedPoints)
+            return CommonBivariateLinearPiecewiseFunction(
+                x = x,
+                y = y,
+                points = sortedPoints,
+                triangles = triangles,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
 
-    override val size = triangles.size
-
-    override fun triangle(i: Int): Triangle {
-        return triangles[i]
+class IsolineBivariateLinearPiecewiseFunction(
+    x: LinearPolynomial,
+    y: LinearPolynomial,
+    val isolines: List<Pair<Flt64, List<Point2>>>,
+    override val triangles: List<Triangle3>,
+    name: String,
+    displayName: String? = "${name}(${x.name}, ${y.name})"
+) : BivariateLinearPiecewiseFunction(x, y, name, displayName) {
+    companion object {
+        operator fun invoke(
+            x: LinearPolynomial,
+            y: LinearPolynomial,
+            isolines: List<Pair<Flt64, List<Point2>>>,
+            name: String,
+            displayName: String? = "${name}(${x.name}, ${y.name})"
+        ): IsolineBivariateLinearPiecewiseFunction {
+            val sortedIsolines = isolines
+                .map { Pair(it.first, it.second.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }) }
+                .sortedWithThreeWayComparator { lhs, rhs -> lhs.first ord rhs.first }
+            val triangles = triangulate(sortedIsolines)
+            return IsolineBivariateLinearPiecewiseFunction(
+                x = x,
+                y = y,
+                isolines = sortedIsolines,
+                triangles = triangles,
+                name = name,
+                displayName = displayName
+            )
+        }
     }
 }

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 
 object Delaunay {
@@ -86,11 +86,11 @@ object Delaunay {
     }
 
     private fun getSuperTriangle(points: List<Point2>): Triangle2 {
-        val (minX, maxX) = minMaxOf(points) { point: Point2 -> point.x }!!
+        val (minX, maxX) = points.minMaxOf { point: Point2 -> point.x }
         val dx = maxX - minX
         val midX = (maxX + minX) / Flt64.two
 
-        val (minY, maxY) = minMaxOf(points) { point: Point2 -> point.y }!!
+        val (minY, maxY) = points.minMaxOf { point: Point2 -> point.y }
         val dy = maxY - minY
         val midY = (maxY + minY) / Flt64.two
 
@@ -108,7 +108,7 @@ fun triangulate(points: List<Point2>): List<Triangle2> {
     return Delaunay(points)
 }
 
-@JvmName("triangulate3")
+@JvmName("triangulate3Points")
 fun triangulate(points: List<Point3>): List<Triangle3> {
     fun get(point2: Point2): Point3 {
         return points.find { (it.x eq point2.x) && (it.y eq point2.y) }!!
@@ -118,4 +118,16 @@ fun triangulate(points: List<Point3>): List<Triangle3> {
     return triangles.map {
         Triangle3(get(it.p1), get(it.p2), get(it.p3))
     }
+}
+
+@JvmName("triangulate3Isolines")
+fun triangulate(isolines: List<Pair<Flt64, List<Point2>>>): List<Triangle3> {
+    val triangles = ArrayList<Triangle3>()
+    for (i in 0 until (isolines.size - 1)) {
+        val thisLine = isolines[i]
+        val nextLine = isolines[i + 1]
+        val points = (thisLine.second.map { point3(it.x, it.y, thisLine.first) } + nextLine.second.map { point3(it.x, it.y, thisLine.first) })
+        triangles.addAll(triangulate(points))
+    }
+    return triangles
 }

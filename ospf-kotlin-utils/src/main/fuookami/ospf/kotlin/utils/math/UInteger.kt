@@ -6,6 +6,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self> {
@@ -28,7 +29,7 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     override fun cbrt() = pow(Flt64(1.0 / 3.0))
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
-    override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
+    override infix fun until(rhs: Self) = if (rhs == constants.zero) { this.rangeTo(rhs) } else { this.rangeTo(rhs - constants.one) }
 }
 
 object UInt8Serializer : RealNumberKSerializer<UInt8> {
@@ -46,7 +47,7 @@ object UInt8Serializer : RealNumberKSerializer<UInt8> {
 
 @JvmInline
 @Serializable(with = UInt8Serializer::class)
-value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8> {
+value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyable<UInt8> {
     companion object : RealNumberConstants<UInt8> {
         override val zero: UInt8 get() = UInt8(0U)
         override val one: UInt8 get() = UInt8(1U)
@@ -125,7 +126,7 @@ object UInt16Serializer : RealNumberKSerializer<UInt16> {
 
 @JvmInline
 @Serializable(with = UInt16Serializer::class)
-value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16> {
+value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Copyable<UInt16> {
     companion object : RealNumberConstants<UInt16> {
         override val zero: UInt16 get() = UInt16(0U)
         override val one: UInt16 get() = UInt16(1U)
@@ -204,7 +205,7 @@ object UInt32Serializer : RealNumberKSerializer<UInt32> {
 
 @JvmInline
 @Serializable(with = UInt32Serializer::class)
-value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32> {
+value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copyable<UInt32> {
     companion object : RealNumberConstants<UInt32> {
         override val zero: UInt32 get() = UInt32(0U)
         override val one: UInt32 get() = UInt32(1U)
@@ -277,13 +278,15 @@ object UInt64Serializer : RealNumberKSerializer<UInt64> {
     }
 
     override fun deserialize(decoder: Decoder): UInt64 {
-        return UInt64(decoder.decodeInt().toULong())
+        return UInt64(decoder.decodeInt())
     }
 }
 
 @JvmInline
 @Serializable(with = UInt64Serializer::class)
-value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64> {
+value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copyable<UInt64> {
+    constructor(value: Int) : this(value.toULong()) {}
+
     companion object : RealNumberConstants<UInt64> {
         override val zero: UInt64 get() = UInt64(0UL)
         override val one: UInt64 get() = UInt64(1UL)
@@ -364,7 +367,7 @@ object UIntXSerializer : RealNumberKSerializer<UIntX> {
 
 @JvmInline
 @Serializable(with = UIntXSerializer::class)
-value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX> {
+value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {
     companion object : RealNumberConstants<UIntX> {
         override val zero: UIntX get() = UIntX(0L)
         override val one: UIntX get() = UIntX(1L)
@@ -402,7 +405,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX> {
     override fun div(rhs: UIntX) = UIntX(value / rhs.value)
     override fun rem(rhs: UIntX) = UIntX(value % rhs.value)
 
-    @Throws(IllegalArgumentException::class)
+    @kotlin.jvm.Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFltX().log(base)
         is Flt64 -> toFltX().log(base)
@@ -413,7 +416,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX> {
     override fun lg() = log(FltX(10.0)) as FltX
     override fun ln() = log(FltX.e) as FltX
 
-    @Throws(IllegalArgumentException::class)
+    @kotlin.jvm.Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> toFltX().pow(index)
         is Flt64 -> toFltX().pow(index)

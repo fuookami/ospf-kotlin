@@ -4,6 +4,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
@@ -144,7 +145,7 @@ object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke) {
 data class Rtn8 internal constructor(
     override val num: Int8,
     override val den: Int8
-) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8) {
+) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8), Copyable<Rtn8> {
 
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
@@ -177,7 +178,7 @@ object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::invoke
 data class Rtn16 internal constructor(
     override val num: Int16,
     override val den: Int16
-) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16) {
+) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16), Copyable<Rtn16> {
 
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
@@ -205,7 +206,7 @@ object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::invoke
 data class Rtn32 internal constructor(
     override val num: Int32,
     override val den: Int32
-) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32) {
+) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32), Copyable<Rtn32> {
 
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
@@ -233,7 +234,7 @@ object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::invoke
 data class Rtn64 internal constructor(
     override val num: Int64,
     override val den: Int64
-) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64) {
+) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
 
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64) {
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
@@ -261,7 +262,7 @@ object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke) {
 data class RtnX internal constructor(
     override val num: IntX,
     override val den: IntX
-) : Rational<RtnX, IntX>(RtnX::invoke, IntX) {
+) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
 
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX) {
         operator fun invoke(num: IntX, den: IntX): RtnX {
@@ -289,7 +290,7 @@ object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::invoke
 data class URtn8 internal constructor(
     override val num: UInt8,
     override val den: UInt8
-) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8) {
+) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8), Copyable<URtn8> {
 
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
@@ -317,7 +318,7 @@ object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::i
 data class URtn16 internal constructor(
     override val num: UInt16,
     override val den: UInt16
-) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16) {
+) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16), Copyable<URtn16> {
 
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
@@ -345,7 +346,7 @@ object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::i
 data class URtn32 internal constructor(
     override val num: UInt32,
     override val den: UInt32
-) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32) {
+) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32), Copyable<URtn32> {
 
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
@@ -373,7 +374,7 @@ object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::i
 data class URtn64 internal constructor(
     override val num: UInt64,
     override val den: UInt64
-) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64) {
+) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64), Copyable<URtn64> {
 
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
@@ -401,7 +402,7 @@ object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::invoke
 data class URtnX internal constructor(
     override val num: UIntX,
     override val den: UIntX
-) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX) {
+) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX), Copyable<URtnX> {
 
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         operator fun invoke(num: UIntX, den: UIntX): URtnX {

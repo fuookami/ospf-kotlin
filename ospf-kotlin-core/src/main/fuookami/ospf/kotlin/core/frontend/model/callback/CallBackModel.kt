@@ -119,7 +119,7 @@ class CallBackModel internal constructor(
     override val constraints by this::_constraints
     override val objectiveFunctions by this::_objectiveFunctions
 
-    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> = policy.initialSolutions(initialSolutionAmount, UInt64(tokens.solverIndexMap.size.toULong()))
+    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> = policy.initialSolutions(initialSolutionAmount, UInt64(tokens.solverIndexMap.size))
 
     override fun compareObjective(lhs: Flt64?, rhs: Flt64?): Order? = policy.compareObjective(lhs, rhs)
 

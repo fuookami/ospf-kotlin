@@ -13,4 +13,4 @@ data class CuttingPlan(
     val products: Map<Product, UInt64>
 ) : AutoIndexed(CuttingPlan::class)
 
-class SPM : ShadowPriceMap<SPM>() {}
+class SPM : ShadowPriceMap<SPM>()

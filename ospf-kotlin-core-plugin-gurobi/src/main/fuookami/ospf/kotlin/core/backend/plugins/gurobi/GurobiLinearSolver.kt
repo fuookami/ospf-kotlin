@@ -33,8 +33,8 @@ private class GurobiLinearSolverImpl(
     lateinit var output: LinearSolverOutput
 
     protected fun finalize() {
-        grbModel.dispose();
-        env.dispose();
+        grbModel.dispose()
+        env.dispose()
     }
 
     operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Err> {
@@ -58,7 +58,7 @@ private class GurobiLinearSolverImpl(
                 }
             },
             { it.dump(model) },
-            GurobiLinearSolverImpl::configure,
+            GurobiLinearSolverImpl::configurate,
             GurobiLinearSolverImpl::solve,
             GurobiLinearSolverImpl::analyzeStatus,
             GurobiLinearSolverImpl::analyzeSolution
@@ -105,7 +105,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun dump(model: fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel): Try<Err> {
+    private fun dump(model: LinearTriadModel): Try<Err> {
         return try {
             grbVars = grbModel.addVars(
                 model.variables.map { it.lowerBound.toDouble() }.toDoubleArray(),
@@ -117,9 +117,10 @@ private class GurobiLinearSolverImpl(
                 model.variables.size
             ).toList()
 
+            var i = 0
             var j = 0
             val constraints = ArrayList<GRBConstr>()
-            for (i in 0 until model.constraints.size) {
+            while (i != model.constraints.size) {
                 val lhs = GRBLinExpr()
                 while (j != model.constraints.lhs.size && i == model.constraints.lhs[j].rowIndex) {
                     val cell = model.constraints.lhs[j]
@@ -132,6 +133,7 @@ private class GurobiLinearSolverImpl(
                         model.constraints.rhs[i].toDouble(), model.constraints.names[i]
                     )
                 )
+                ++i
             }
             grbConstraints = constraints
 
@@ -160,7 +162,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun configure(): Try<Err> {
+    private fun configurate(): Try<Err> {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
@@ -224,11 +226,15 @@ private class GurobiLinearSolverImpl(
 
     private fun analyzeSolution(): Try<Err> {
         return try {
-            if (status.succeeded) {
+            if (status.succeeded()) {
+                val results = ArrayList<Flt64>()
+                for (grbVar in grbVars) {
+                    results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
+                }
                 output = LinearSolverOutput(
                     Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
-                    grbVars.map { Flt64(grbModel.get(GRB.DoubleAttr.X)) },
-                    (grbModel.get(GRB.DoubleAttr.Runtime) * 1000.0).toLong().milliseconds,
+                    results,
+                    grbModel.get(GRB.DoubleAttr.Runtime).toLong().milliseconds,
                     Flt64(grbModel.get(GRB.DoubleAttr.ObjBound)),
                     Flt64(
                         if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
@@ -238,12 +244,12 @@ private class GurobiLinearSolverImpl(
                         }
                     )
                 )
+                callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)
+                Ok(success)
             } else {
-                // to do
+                callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)
+                Failed(Err(status.errCode()!!))
             }
-
-            callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)
-            Ok(success)
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
         } catch (e: Exception) {

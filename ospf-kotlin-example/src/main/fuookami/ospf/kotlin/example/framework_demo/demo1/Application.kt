@@ -116,7 +116,7 @@ class SSP {
     private fun solve(metaModel: LinearMetaModel): Result<List<Flt64>, Error> {
         GlobalScope.launch(Dispatchers.IO) { metaModel.export("demo1.opm") }
 
-        // val solver = GurobiLinearSolver()
+        // val solver = GurobiLinearSolver(LinearSolverConfig())
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }

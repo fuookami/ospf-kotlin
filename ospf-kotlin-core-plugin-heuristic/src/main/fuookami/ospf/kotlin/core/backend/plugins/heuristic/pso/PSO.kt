@@ -117,16 +117,16 @@ class PSO(
                         model.objective(it)
                     } else {
                         null
-                    }, it, it.indices.map { index -> initialVelocityGenerator(UInt64(index.toULong())) })
+                    }, it, it.indices.map { index -> initialVelocityGenerator(UInt64(index)) })
             }
-            .sortedWith { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness)?.value ?: 0 }
+            .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
         var bestParticles = particles.first()
-        val goodParticles = particles.subList(0, min(UInt64(particles.size.toULong()), solutionAmount).toInt()).toMutableList()
+        val goodParticles = particles.subList(0, min(UInt64(particles.size), solutionAmount).toInt()).toMutableList()
 
         while (!policy.finished(iteration)) {
             val newParticles = particles
                 .map { policy.transformPartial(it, bestParticles, model) }
-                .sortedWith { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness)?.value ?: 0 }
+                .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
             val newBestParticle = newParticles.first()
             particles = newParticles
             if (model.compareObjective(newBestParticle.fitness, bestParticles.fitness) is Order.Less) {
@@ -153,8 +153,8 @@ class PSO(
         if (j != newParticles.size) {
             goodParticles.addAll(newParticles.subList(j, minOf(newParticles.size, maxOf(j, solutionAmount.toInt() - goodParticles.size))))
         }
-        if (UInt64(goodParticles.size.toULong()) > solutionAmount) {
-            (UInt64.zero until UInt64(goodParticles.size.toULong()) - solutionAmount).forEach { _ ->
+        if (UInt64(goodParticles.size) > solutionAmount) {
+            (UInt64.zero until UInt64(goodParticles.size) - solutionAmount).forEach { _ ->
                 goodParticles.removeLast()
             }
         }

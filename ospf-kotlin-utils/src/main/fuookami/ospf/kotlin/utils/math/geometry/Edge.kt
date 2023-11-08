@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.*
 
-data class Edge<P : Point>(
+data class Edge<P : Point<D>, D: Dimension>(
     val from: P,
     val to: P
 ) {
@@ -10,11 +10,15 @@ data class Edge<P : Point>(
         assert(from.size == to.size)
     }
 
-    val length = (0 until from.size).sumOf(Flt64) { (to[it] - from[it]).sqrt() }
+    val length = from distance to
+    fun length(distance: Distance = Distance.Euclidean): Flt64 {
+        return distance.distanceBetween(from, to)
+    }
+
+    val vector = Vector(from.indices.map { to[it] - from[it] }, from.dim)
+
+    override fun toString() = "$from -> $to"
 }
 
-typealias Edge2 = Edge<Point2>
-typealias Edge3 = Edge<Point3>
-
-val Edge2.vector get() = Vector2(to.x - from.x, to.y - from.y)
-val Edge3.vector get() = Vector3(to.x - from.x, to.y - from.y, to.z - from.z)
+typealias Edge2 = Edge<Point2, Dim2>
+typealias Edge3 = Edge<Point3, Dim3>

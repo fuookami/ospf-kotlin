@@ -38,7 +38,7 @@ enum class ErrorCode(private val code: UInt8) {
     Unknown(UInt8.maximum);
 
     companion object {
-        fun from(code: UInt8) = ErrorCode.values().first { it.code == code }
+        fun from(code: UInt8) = ErrorCode.entries.first { it.code == code }
     }
 
     fun toUInt8() = this.code

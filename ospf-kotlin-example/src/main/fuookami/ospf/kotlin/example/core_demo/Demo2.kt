@@ -12,10 +12,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 // import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
+import fuookami.ospf.kotlin.core.backend.solver.config.*
 
 class Demo2 {
     class Product : AutoIndexed(Product::class)
@@ -138,7 +138,7 @@ class Demo2 {
             for (p in products) {
                 assignmentCompanyPoly += UInt64.one * x[c, p]!!
             }
-            assignmentCompany[c] = LinearSymbol(assignmentCompanyPoly, "assignment_company_${c.index}")
+            assignmentCompany[c.index] = LinearSymbol(assignmentCompanyPoly, "assignment_company_${c.index}")
         }
         metaModel.addSymbols(assignmentCompany)
 
@@ -149,7 +149,7 @@ class Demo2 {
             for (c in companies) {
                 assignmentProductPoly += UInt64.one * x[c, p]!!
             }
-            assignmentProduct[p] = LinearSymbol(assignmentProductPoly, "assignment_product_${p.index}")
+            assignmentProduct[p.index] = LinearSymbol(assignmentProductPoly, "assignment_product_${p.index}")
         }
         metaModel.addSymbols(assignmentProduct)
         return Ok(success)

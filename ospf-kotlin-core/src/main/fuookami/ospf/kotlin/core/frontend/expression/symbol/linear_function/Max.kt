@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.Function
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOf
 
 class MaxFunction(
     val polys: List<LinearPolynomial>,
@@ -36,11 +37,10 @@ class MaxFunction(
     }
 
     override val possibleRange: ValueRange<Flt64>
-        get() = ValueRange(
-            polys.minOf { it.possibleRange.upperBound }.toFlt64(),
-            polys.maxOf { it.possibleRange.upperBound }.toFlt64(),
-            Flt64
-        )
+        get() {
+            val (min, max) = polys.minMaxOf { it.possibleRange.upperBound.toFlt64() }
+            return ValueRange(min, max, Flt64)
+        }
     override var range: ValueRange<Flt64> = possibleRange
 
     override val cells: List<MonomialCell<Linear>> get() = listOf(LinearMonomialCell(Flt64.one, symbols.y))

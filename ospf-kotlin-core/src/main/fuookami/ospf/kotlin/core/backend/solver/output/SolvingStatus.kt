@@ -4,22 +4,42 @@ import fuookami.ospf.kotlin.utils.error.*
 
 enum class SolvingStatus {
     Optimal {
-        override val succeeded = true
+        override fun succeeded(): Boolean {
+            return true
+        }
     },
     Feasible {
-        override val succeeded = true
+        override fun succeeded(): Boolean {
+            return true
+        }
     },
     NoSolution {
-        override val errCode: ErrorCode = ErrorCode.ORModelNoSolution
+        override fun errCode(): ErrorCode {
+            return ErrorCode.ORModelNoSolution
+        }
     },
     Unbounded {
-        override val errCode: ErrorCode = ErrorCode.ORModelUnbounded
+        override fun errCode(): ErrorCode {
+            return ErrorCode.ORModelUnbounded
+        }
     },
     SolvingException {
-        override val errCode: ErrorCode = ErrorCode.OREngineSolvingException
+        override fun errCode(): ErrorCode {
+            return ErrorCode.OREngineSolvingException
+        }
     };
 
     open val succeeded: Boolean = false
-    open val failed: Boolean get() = !succeeded
-    open val errCode: ErrorCode? = null
+
+    open fun succeeded(): Boolean {
+        return false
+    }
+
+    open fun failed(): Boolean {
+        return !succeeded()
+    }
+
+    open fun errCode(): ErrorCode? {
+        return null
+    }
 }

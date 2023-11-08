@@ -18,15 +18,15 @@ enum class GurobiVariable {
         operator fun invoke(type: VariableType<*>): GurobiVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.frontend.variable.Binary -> {
-                    Binary
+                    GurobiVariable.Binary
                 }
 
                 is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer, is UInteger -> {
-                    Integer
+                    GurobiVariable.Integer
                 }
 
                 is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continuous, is UContinuous -> {
-                    Continuous
+                    GurobiVariable.Continuous
                 }
             }
         }

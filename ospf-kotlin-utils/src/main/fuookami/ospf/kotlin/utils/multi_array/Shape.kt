@@ -9,10 +9,10 @@ class DimensionMismatchingException(
 
 class OutOfShapeException(
     val dimension: Int,
-    val vectorIndex: Int,
-    val length: Int,
+    val index: Int,
+    val vectorIndex: Int
 ) : Throwable() {
-    override val message: String = "Length of dimension $dimension is $length, but it get $vectorIndex."
+    override val message: String = "Length of dimension $dimension is $index, but it get $vectorIndex."
 }
 
 interface Shape {

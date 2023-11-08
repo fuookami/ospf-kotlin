@@ -20,12 +20,12 @@ class RouteContext {
 
         val services: ArrayList<Service> = arrayListOf()
         for (i in 0 until input.normalNodeAmount.toString().toInt() / 2) {
-            services.add(Service(UInt64(i.toULong()), totalDemand, input.serviceCost))
+            services.add(Service(UInt64(i), totalDemand, input.serviceCost))
         }
 
         val nodes: ArrayList<Node> = ArrayList()
         for (i in 0 until input.normalNodeAmount.toString().toInt()) {
-            nodes.add(NormalNode(UInt64(i.toULong())))
+            nodes.add(NormalNode(UInt64(i)))
         }
         for (i in 0 until input.clientNodes.size) {
             val node = input.clientNodes[i]

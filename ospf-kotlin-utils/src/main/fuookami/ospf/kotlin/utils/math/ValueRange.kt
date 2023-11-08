@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-object IntervalTypeSerializer : KSerializer<IntervalType> {
+private object IntervalTypeSerializer : KSerializer<IntervalType> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntervalType", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: IntervalType) {
@@ -45,6 +45,7 @@ enum class IntervalType {
 
 private typealias GlobalInfinity = fuookami.ospf.kotlin.utils.math.Infinity
 private typealias GlobalNegativeInfinity = fuookami.ospf.kotlin.utils.math.NegativeInfinity
+
 
 class ValueWrapperSerializer<T>(
     private val dataSerializer: RealNumberKSerializer<T>
@@ -115,7 +116,7 @@ sealed class ValueWrapper<T>(
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> = Infinity(constants)
 
         operator fun <T> invoke(
-            _inf: GlobalNegativeInfinity,
+            _negInf: GlobalNegativeInfinity,
             constants: RealNumberConstants<T>
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> = NegativeInfinity(constants)
     }
@@ -141,7 +142,7 @@ sealed class ValueWrapper<T>(
         }
 
         override fun copy() = Value(value.copy(), constants)
-        override fun clone() = copy()
+        public override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = when (rhs) {
             is Value -> value.eq(rhs.value)
@@ -216,7 +217,7 @@ sealed class ValueWrapper<T>(
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
 
         override fun copy() = Infinity(constants)
-        override fun clone() = copy()
+        public override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is Infinity
         override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
@@ -314,7 +315,7 @@ sealed class ValueWrapper<T>(
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
 
         override fun copy() = Infinity(constants)
-        override fun clone() = copy()
+        public override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is NegativeInfinity
         override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
@@ -557,7 +558,7 @@ class ValueRange<T> constructor(
         constants
     )
 
-    override fun clone() = copy()
+    public override fun clone() = copy()
 
     fun fixed() = lowerInterval == IntervalType.Closed
             && upperInterval == IntervalType.Closed

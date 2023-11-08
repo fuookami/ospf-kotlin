@@ -17,22 +17,24 @@ sealed interface Polynomial<C : Category> : Expression {
     fun value(tokenList: TokenList): Flt64 {
         var ret = Flt64.zero
         for (cell in cells) {
-            ret += cell.value(tokenList)
+            val thisValue = cell.value(tokenList)
+            ret += thisValue
         }
         return ret
     }
 
     fun value(tokenTable: TokenTable<C>) = value(tokenTable.tokenList)
 
-    fun value(result: List<Flt64>, tokenList: TokenList): Flt64 {
+    fun value(results: List<Flt64>, tokenList: TokenList): Flt64 {
         var ret = Flt64.zero
         for (cell in cells) {
-            ret += cell.value(result, tokenList)
+            val thisValue = cell.value(results, tokenList)
+            ret += thisValue
         }
         return ret
     }
 
-    fun value(result: List<Flt64>, tokenTable: TokenTable<C>) = value(result, tokenTable.tokenList)
+    fun value(results: List<Flt64>, tokenTable: TokenTable<C>) = value(results, tokenTable.tokenList)
 }
 
 internal class PolynomialImpl<M : Monomial<C>, C : Category>(

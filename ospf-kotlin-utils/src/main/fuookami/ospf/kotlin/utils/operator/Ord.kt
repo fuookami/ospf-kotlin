@@ -34,7 +34,29 @@ fun <T : Comparable<T>> orderBetween(lhs: T, rhs: T): Order {
     return orderOf(lhs.compareTo(rhs))
 }
 
+@JvmName("comparableOrd")
+infix fun <T: Comparable<T>> T.ord(rhs: T): Order {
+    return orderOf(this.compareTo(rhs))
+}
+
+@JvmName("comparableNullableOrd")
+infix fun <T: Comparable<T>> T?.ord(rhs: T?): Order {
+    return if (this == null && rhs != null) {
+        Order.Less()
+    } else if (this != null && rhs == null) {
+        Order.Greater()
+    } else if (this != null && rhs != null) {
+        this ord rhs
+    } else {
+        Order.Equal
+    }
+}
+
 interface PartialOrd<Self> : PartialEq<Self> {
+    override fun partialEq(rhs: Self): Boolean? {
+        return partialOrd(rhs)?.let { it is Order.Equal }
+    }
+
     infix fun partialOrd(rhs: Self): Order?
 }
 
@@ -61,5 +83,29 @@ interface Ord<Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
 
     infix fun geq(rhs: Self): Boolean {
         return this >= rhs
+    }
+}
+
+infix fun <T: PartialOrd<T>> T?.partialOrd(rhs: T?): Order? {
+    return if (this == null && rhs != null) {
+        Order.Less()
+    } else if (this != null && rhs == null) {
+        Order.Greater()
+    } else if (this != null && rhs != null) {
+        this partialOrd rhs
+    } else {
+        Order.Equal
+    }
+}
+
+infix fun <T: Ord<T>> T?.ord(rhs: T?): Order {
+    return if (this == null && rhs != null) {
+        Order.Less()
+    } else if (this != null && rhs == null) {
+        Order.Greater()
+    } else if (this != null && rhs != null) {
+        this ord rhs
+    } else {
+        Order.Equal
     }
 }

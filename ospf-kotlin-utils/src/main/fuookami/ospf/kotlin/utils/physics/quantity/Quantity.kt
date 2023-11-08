@@ -1,4 +1,4 @@
-package com.sfa.opf.kotlin.utils.physics.quantity
+package fuookami.ospf.kotlin.utils.physics.quantity
 
 /*
 class Quantity<T>(val value: T, val unit: PhysicsUnit): Arithmetic<T> where T: Arithmetic<T> {

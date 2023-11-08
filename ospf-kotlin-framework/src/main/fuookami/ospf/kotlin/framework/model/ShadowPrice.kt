@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.model
 
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -14,7 +14,6 @@ class ShadowPrice(
     val key: ShadowPriceKey,
     val price: Flt64
 ) {
-    override fun toString() = "$key: $price"
 }
 
 typealias Extractor<M> = (ShadowPriceMap<M>, Array<out Any?>) -> Flt64

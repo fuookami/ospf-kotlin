@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*

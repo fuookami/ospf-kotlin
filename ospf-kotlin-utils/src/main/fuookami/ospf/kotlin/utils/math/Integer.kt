@@ -5,6 +5,7 @@ import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
@@ -27,7 +28,7 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
     override fun cbrt() = pow(Flt64(1.0 / 3.0))
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
-    override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
+    override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
 
 object Int8Serializer : RealNumberKSerializer<Int8> {
@@ -45,7 +46,7 @@ object Int8Serializer : RealNumberKSerializer<Int8> {
 
 @JvmInline
 @Serializable(with = Int8Serializer::class)
-value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8> {
+value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<Int8> {
     companion object : RealNumberConstants<Int8> {
         override val zero: Int8 get() = Int8(0)
         override val one: Int8 get() = Int8(1)
@@ -125,7 +126,7 @@ object Int16Serializer : RealNumberKSerializer<Int16> {
 
 @JvmInline
 @Serializable(with = Int16Serializer::class)
-value class Int16(internal val value: Short) : IntegerNumberImpl<Int16> {
+value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyable<Int16> {
     companion object : RealNumberConstants<Int16> {
         override val zero: Int16 get() = Int16(0)
         override val one: Int16 get() = Int16(1)
@@ -205,7 +206,7 @@ object Int32Serializer : RealNumberKSerializer<Int32> {
 
 @JvmInline
 @Serializable(with = Int32Serializer::class)
-value class Int32(val value: Int) : IntegerNumberImpl<Int32> {
+value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
     companion object : RealNumberConstants<Int32> {
         override val zero: Int32 get() = Int32(0)
         override val one: Int32 get() = Int32(1)
@@ -285,7 +286,7 @@ object Int64Serializer : RealNumberKSerializer<Int64> {
 
 @JvmInline
 @Serializable(with = Int64Serializer::class)
-value class Int64(internal val value: Long) : IntegerNumberImpl<Int64> {
+value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable<Int64> {
     companion object : RealNumberConstants<Int64> {
         override val zero: Int64 get() = Int64(0L)
         override val one: Int64 get() = Int64(1L)
@@ -365,7 +366,7 @@ object IntXSerializer : RealNumberKSerializer<IntX> {
 
 @JvmInline
 @Serializable(with = IntXSerializer::class)
-value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX> {
+value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copyable<IntX> {
     companion object : RealNumberConstants<IntX> {
         override val zero: IntX get() = IntX(0L)
         override val one: IntX get() = IntX(1L)

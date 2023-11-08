@@ -1,8 +1,10 @@
 package fuookami.ospf.kotlin.utils.math
 
+import java.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 interface NumericUInteger<Self, I>
@@ -49,7 +51,7 @@ object NUInt8Serializer : RealNumberKSerializer<NUInt8> {
 
 @JvmInline
 @Serializable(with = NUInt8Serializer::class)
-value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8> {
+value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<NUInt8> {
     companion object : NumericUIntegerConstants<NUInt8, UInt8>(NUInt8::invoke, UInt8) {
         operator fun invoke(value: UInt8) = NUInt8(value)
     }
@@ -106,7 +108,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8> {
     override fun exp() = toFlt64().exp()
 
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(copy(), rhs, one, UInt8, UInt8::toNUInt8, NUInt8::toUInt8)
-    override infix fun until(rhs: NUInt8) = rangeTo((rhs - constants.one).toNUInt8())
+    override infix fun until(rhs: NUInt8) = if (rhs == NUInt8.zero) { rangeTo(NUInt8.zero) } else { rangeTo((rhs - NUInt8.one).toNUInt8()) }
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -140,7 +142,7 @@ object NUInt16Serializer : RealNumberKSerializer<NUInt16> {
 
 @JvmInline
 @Serializable(with = NUInt16Serializer::class)
-value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16> {
+value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copyable<NUInt16> {
     companion object : NumericUIntegerConstants<NUInt16, UInt16>(NUInt16::invoke, UInt16) {
         operator fun invoke(value: UInt16) = NUInt16(value)
     }
@@ -196,10 +198,8 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16> {
 
     override fun exp() = toFlt64().exp()
 
-    override fun rangeTo(rhs: NUInt16) =
-        NumericUIntegerRange(copy(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
-
-    override infix fun until(rhs: NUInt16) = rangeTo((rhs - constants.one).toNUInt16())
+    override fun rangeTo(rhs: NUInt16) = NumericUIntegerRange(copy(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
+    override infix fun until(rhs: NUInt16) = if (rhs == NUInt16.zero) { rangeTo(NUInt16.zero) } else { rangeTo((rhs - NUInt16.one).toNUInt16()) }
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -233,7 +233,7 @@ object NUInt32Serializer : RealNumberKSerializer<NUInt32> {
 
 @JvmInline
 @Serializable(with = NUInt32Serializer::class)
-value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32> {
+value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copyable<NUInt32> {
     companion object : NumericUIntegerConstants<NUInt32, UInt32>(NUInt32::invoke, UInt32) {
         operator fun invoke(value: UInt32) = NUInt32(value)
     }
@@ -289,10 +289,8 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32> {
 
     override fun exp() = toFlt64().exp()
 
-    override fun rangeTo(rhs: NUInt32) =
-        NumericUIntegerRange(copy(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
-
-    override infix fun until(rhs: NUInt32) = rangeTo((rhs - constants.one).toNUInt32())
+    override fun rangeTo(rhs: NUInt32) = NumericUIntegerRange(copy(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
+    override infix fun until(rhs: NUInt32) = if (rhs == NUInt32.zero) { rangeTo(NUInt32.zero) } else { rangeTo((rhs - NUInt32.one).toNUInt32()) }
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -326,7 +324,7 @@ object NUInt64Serializer : RealNumberKSerializer<NUInt64> {
 
 @JvmInline
 @Serializable(with = NUInt64Serializer::class)
-value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64> {
+value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copyable<NUInt64> {
     companion object : NumericUIntegerConstants<NUInt64, UInt64>(NUInt64::invoke, UInt64) {
         operator fun invoke(value: UInt64) = NUInt64(value)
     }
@@ -382,10 +380,8 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64> {
 
     override fun exp() = toFlt64().exp()
 
-    override fun rangeTo(rhs: NUInt64) =
-        NumericUIntegerRange(copy(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
-
-    override infix fun until(rhs: NUInt64) = rangeTo((rhs - constants.one).toNUInt64())
+    override fun rangeTo(rhs: NUInt64) = NumericUIntegerRange(copy(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
+    override infix fun until(rhs: NUInt64) = if (rhs == NUInt64.zero) { rangeTo(NUInt64.zero) } else { rangeTo((rhs - NUInt64.one).toNUInt64()) }
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -419,7 +415,7 @@ class NUIntXSerializer : RealNumberKSerializer<NUIntX> {
 
 @JvmInline
 @Serializable(with = NUIntXSerializer::class)
-value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
+value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<NUIntX> {
     companion object : NumericUIntegerConstants<NUIntX, UIntX>(NUIntX::invoke, UIntX) {
         operator fun invoke(value: UIntX) = NUIntX(value)
     }
@@ -429,7 +425,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
     override fun copy(): NUIntX = NUIntX(value)
 
     override fun toString() = value.toString()
-    fun toString(radix: Int): String = value.toString(radix)
+    fun toString(radix: Int) = value.toString(radix)
 
     override fun dec(): NUIntX = NUIntX(value - UIntX.one)
 
@@ -481,10 +477,11 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX> {
 
     override fun sqrt() = pow(FltX(1.0 / 2.0))
     override fun cbrt() = pow(FltX(1.0 / 3.0))
+
     override fun exp() = toFltX().exp()
 
     override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(copy(), rhs, one, UIntX, UIntX::toNUIntX, NUIntX::toUIntX)
-    override infix fun until(rhs: NUIntX) = rangeTo((rhs - constants.one).toNUIntX())
+    override infix fun until(rhs: NUIntX) = if (rhs == NUIntX.zero) { rangeTo(NUIntX.zero) } else { rangeTo((rhs - NUIntX.one).toNUIntX()) }
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()

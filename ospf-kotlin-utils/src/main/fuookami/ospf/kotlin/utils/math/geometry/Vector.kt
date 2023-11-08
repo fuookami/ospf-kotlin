@@ -12,69 +12,66 @@ private fun unitOf(vector: List<Flt64>): List<Flt64> {
     return vector.map { it / norm }
 }
 
-interface Vector<T : Vector<T>> {
-    val size: Int
-    val norm: Flt64
-    val unit: T
-
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    operator fun get(i: Int): Flt64
+private fun timesBetween(lhs: List<Flt64>, rhs: List<Flt64>): Flt64 {
+    assert(lhs.size == rhs.size)
+    return lhs.indices.sumOf(Flt64) { lhs[it] * rhs[it] }
 }
 
-data class Vector2(
-    val x: Flt64 = Flt64.zero,
-    val y: Flt64 = Flt64.zero
-) : Vector<Vector2>, Plus<Vector2, Vector2>, Minus<Vector2, Vector2> {
+open class Vector<D: Dimension> (
+    val vector: List<Flt64>,
+    val dim: D
+) : Plus<Vector<D>, Vector<D>>, Minus<Vector<D>, Vector<D>>, Times<Vector<D>, Flt64> {
     companion object {
-        operator fun invoke(edge: Edge2): Vector2 = edge.vector
-        operator fun invoke(vector: List<Flt64>): Vector2 = Vector2(vector[0], vector[1])
-    }
+        operator fun invoke(x: Flt64, y: Flt64): Vector2 {
+            return Vector2(listOf(x, y), Dim2)
+        }
 
-    override val size = 2
-    override val norm = normOf(listOf(x, y))
-    override val unit get() = Vector2(unitOf(listOf(x, y)))
-
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun get(i: Int): Flt64 {
-        return when (i) {
-            0 -> x
-            1 -> y
-            else -> throw ArrayIndexOutOfBoundsException(i)
+        operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Vector3 {
+            return Vector3(listOf(x, y, z), Dim3)
         }
     }
 
-    override fun plus(rhs: Vector2) = Vector2(x + rhs.x, y + rhs.y)
-    override fun minus(rhs: Vector2) = Vector2(x - rhs.x, y - rhs.y)
+    val size by vector::size
+    val indices by vector::indices
+    val norm: Flt64 = normOf(vector)
+    open val unit: Vector<D> get() = Vector(unitOf(vector), dim)
 
-    operator fun plus(rhs: Point2) = Point2(x + rhs.x, y + rhs.y)
-}
-
-data class Vector3(
-    val x: Flt64 = Flt64.zero,
-    val y: Flt64 = Flt64.zero,
-    val z: Flt64 = Flt64.zero
-) : Vector<Vector3>, Plus<Vector3, Vector3>, Minus<Vector3, Vector3> {
-    companion object {
-        operator fun invoke(edge: Edge3): Vector3 = edge.vector
-        operator fun invoke(vector: List<Flt64>): Vector3 = Vector3(vector[0], vector[1], vector[2])
+    init {
+        assert (vector.size == dim.size)
     }
-
-    override val size = 3
-    override val norm = normOf(listOf(x, y, z))
-    override val unit get() = Vector3(unitOf(listOf(x, y, z)))
 
     @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun get(i: Int): Flt64 {
-        return when (i) {
-            0 -> x
-            1 -> y
-            2 -> z
-            else -> throw ArrayIndexOutOfBoundsException(i)
-        }
+    operator fun get(i: Int): Flt64 {
+        return vector[i]
     }
 
-    override fun plus(rhs: Vector3) = Vector3(x + rhs.x, y + rhs.y, z + rhs.z)
-    override fun minus(rhs: Vector3) = Vector3(x - rhs.x, y - rhs.y, z - rhs.z)
+    override operator fun plus(rhs: Vector<D>) = Vector(indices.map { this[it] + rhs[it] }, dim)
+    override operator fun minus(rhs: Vector<D>) = Vector(indices.map { this[it] + rhs[it] }, dim)
+    override operator fun times(rhs: Vector<D>) = timesBetween(vector, rhs.vector)
 
-    operator fun plus(rhs: Point3) = Point3(x + rhs.x, y + rhs.y, z + rhs.z)
+    operator fun plus(rhs: Point<D>) = Point(indices.map { this[it] + rhs[it] }, dim)
+
+    override fun toString() = vector.joinToString(",", "[", "]")
+}
+
+typealias Vector2 = Vector<Dim2>
+@get:JvmName("Vector2X")
+val Vector2.x get() = this[0]
+@get:JvmName("Vector2Y")
+val Vector2.y get() = this[1]
+
+fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector2 {
+    return Vector2(x, y)
+}
+
+typealias Vector3 = Vector<Dim3>
+@get:JvmName("Vector3X")
+val Vector3.x get() = this[0]
+@get:JvmName("Vector3Y")
+val Vector3.y get() = this[1]
+@get:JvmName("Vector3Z")
+val Vector3.z get() = this[2]
+
+fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector3 {
+    return Vector3(x, y, z)
 }

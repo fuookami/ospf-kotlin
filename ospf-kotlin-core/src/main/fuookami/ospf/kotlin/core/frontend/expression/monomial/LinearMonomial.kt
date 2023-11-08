@@ -33,7 +33,7 @@ data class LinearCellPair(
         return LinearCellPair(coefficient, variable)
     }
 
-    override fun clone() = copy()
+    public override fun clone() = copy()
 
     override fun hashCode(): Int = variable.hashCode()
     override fun equals(other: Any?): Boolean {
@@ -179,8 +179,6 @@ class LinearMonomialCell internal constructor(
             }
         }
     }
-
-    override fun clone() = copy()
 
     override fun hashCode(): Int = cell.hashCode()
     override fun equals(other: Any?): Boolean {

@@ -1,3 +1,3 @@
-package com.sfa.opf.kotlin.utils.physics.unit
+package fuookami.ospf.kotlin.utils.physics.unit
 
 interface PhysicsUnit

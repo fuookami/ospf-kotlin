@@ -199,8 +199,8 @@ def gen_variant_code():
 
 def gen_code(num):
     code = \
-        """package fuookami.opf.utils.functional
-
+        """package fuookami.ospf.kotlin.utils.functional
+        
         import kotlin.reflect.*
         import kotlin.collections.*
         import fuookami.ospf.kotlin.utils.concept.*

@@ -4,6 +4,7 @@ import java.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 interface NumericInteger<Self, I>
@@ -22,7 +23,7 @@ interface NumericInteger<Self, I>
     override fun cbrt() = pow(Flt64(1.0 / 3.0))
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
-    override infix fun until(rhs: Self) = rangeTo(rhs - constants.one)
+    override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
 
 abstract class NumericIntegerConstants<Self, I>(
@@ -54,7 +55,7 @@ object NInt8Serializer : RealNumberKSerializer<NInt8> {
 
 @JvmInline
 @Serializable(with = NInt8Serializer::class)
-value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8> {
+value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8> {
     companion object : NumericIntegerConstants<NInt8, Int8>(NInt8::invoke, Int8) {
         operator fun invoke(value: Int8) = NInt8(value)
     }
@@ -140,7 +141,7 @@ object NInt16Serializer : RealNumberKSerializer<NInt16> {
 
 @JvmInline
 @Serializable(with = NInt16Serializer::class)
-value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16> {
+value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<NInt16> {
     companion object : NumericIntegerConstants<NInt16, Int16>(NInt16::invoke, Int16) {
         operator fun invoke(value: Int16) = NInt16(value)
     }
@@ -226,7 +227,7 @@ object NInt32Serializer : RealNumberKSerializer<NInt32> {
 
 @JvmInline
 @Serializable(with = NInt32Serializer::class)
-value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32> {
+value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<NInt32> {
     companion object : NumericIntegerConstants<NInt32, Int32>(NInt32::invoke, Int32) {
         operator fun invoke(value: Int32) = NInt32(value)
     }
@@ -312,7 +313,7 @@ object NInt64Serializer : RealNumberKSerializer<NInt64> {
 
 @JvmInline
 @Serializable(with = NInt64Serializer::class)
-value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64> {
+value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<NInt64> {
     companion object : NumericIntegerConstants<NInt64, Int64>(NInt64::invoke, Int64) {
         operator fun invoke(value: Int64) = NInt64(value)
     }
@@ -398,7 +399,7 @@ object NIntXSerializer : RealNumberKSerializer<NIntX> {
 
 @JvmInline
 @Serializable(NIntXSerializer::class)
-value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX> {
+value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX> {
     companion object : NumericIntegerConstants<NIntX, IntX>(NIntX::invoke, IntX) {
         operator fun invoke(value: IntX) = NIntX(value)
     }
@@ -455,7 +456,8 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX> {
 
     override fun sqrt() = pow(FltX(1.0 / 2.0))
     override fun cbrt() = pow(FltX(1.0 / 3.0))
-    override fun exp() = toFltX().exp()
+
+    override fun exp() = toFlt64().exp()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()

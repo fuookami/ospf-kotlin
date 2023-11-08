@@ -82,9 +82,9 @@ class IntegerRange<I>(
     override fun iterator(): Iterator<I> = IntegerIterator(first, last, step, constants)
 
     override fun contains(value: I) = if (step > constants.zero) {
-        first <= value && value <= last
+        value in first..last
     } else {
-        last <= value && value <= first
+        value in last..first
     }
 
     override fun isEmpty() = if (step > constants.zero) {
@@ -146,9 +146,9 @@ class NumericUIntegerRange<NI, I>(
     override fun contains(value: NI): Boolean {
         val actualValue = converter(value)
         return if (step > constants.zero) {
-            first <= actualValue && actualValue <= last
+            actualValue in first..last
         } else {
-            last <= actualValue && actualValue <= first
+            actualValue in last..first
         }
     }
 

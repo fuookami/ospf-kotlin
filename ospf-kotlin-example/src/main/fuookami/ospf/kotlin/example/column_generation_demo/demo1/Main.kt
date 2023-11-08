@@ -60,6 +60,6 @@ class CSP {
     }
 
     private fun reducedCost(cuttingPlan: CuttingPlan, shadowPrices: SPM) = Flt64.one /
-            -cuttingPlan.products.asIterable()
+            cuttingPlan.products.asIterable()
                 .sumOf(Flt64) { (product, amount) -> (shadowPrices(product) * amount.toFlt64()) }
 }

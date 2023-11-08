@@ -8,7 +8,8 @@ typealias Function = (GRBModel, List<GRBVar>, List<GRBConstr>) -> Unit
 enum class Point {
     AfterModeling,
     Configuration,
-    AnalyzingSolution
+    AnalyzingSolution,
+    AfterFailure
 }
 
 class GurobiSolverCallBack(
@@ -22,6 +23,7 @@ class GurobiSolverCallBack(
     fun afterModeling(function: Function) = set(Point.AfterModeling, function)
     fun configuration(function: Function) = set(Point.Configuration, function)
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
+    fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
     fun contain(point: Point) = map.containsKey(point)
     fun get(point: Point): Function? = map[point]

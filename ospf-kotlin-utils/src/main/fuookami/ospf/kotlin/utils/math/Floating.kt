@@ -5,6 +5,7 @@ import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
@@ -96,7 +97,7 @@ object Flt32Serializer : RealNumberKSerializer<Flt32> {
 
 @JvmInline
 @Serializable(with = Flt32Serializer::class)
-value class Flt32(internal val value: Float) : FloatingImpl<Flt32> {
+value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt32> {
     companion object : FloatingNumberConstants<Flt32> {
         override val zero: Flt32 get() = Flt32(0.0F)
         override val one: Flt32 get() = Flt32(1.0F)
@@ -188,7 +189,7 @@ object Flt64Serializer : RealNumberKSerializer<Flt64> {
 
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
-value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
+value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Flt64> {
     companion object : FloatingNumberConstants<Flt64> {
         override val zero: Flt64 get() = Flt64(0.0)
         override val one: Flt64 get() = Flt64(1.0)
@@ -248,10 +249,6 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
 
     override fun exp() = Flt64(exp(value))
 
-    fun floor() = Flt64(floor(value))
-    fun ceil() = Flt64(ceil(value))
-    fun round() = Flt64(round(value))
-
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -269,6 +266,9 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64> {
     override fun toFltX() = FltX(value)
 
     fun toDouble() = value
+    fun floor() = Flt64(floor(value))
+    fun ceil() = Flt64(ceil(value))
+    fun round() = Flt64(round(value))
 }
 
 object FltXSerializer : RealNumberKSerializer<FltX> {
@@ -286,7 +286,7 @@ object FltXSerializer : RealNumberKSerializer<FltX> {
 
 @JvmInline
 @Serializable(with = FltXSerializer::class)
-value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
+value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<FltX> {
     companion object : FloatingNumberConstants<FltX> {
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
         override val one: FltX get() = FltX(BigDecimal.ONE)
@@ -328,7 +328,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
     override fun rem(rhs: FltX) = FltX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>) = when (base) {
+    override fun log(base: FloatingNumber<*>): FltX? = when (base) {
         is Flt32 -> log(this, base.toFltX(), FltX)
         is Flt64 -> log(this, base.toFltX(), FltX)
         is FltX -> log(this, base, FltX)
@@ -338,7 +338,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX> {
     override fun pow(index: Int) = FltX(value.pow(index))
 
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>) = when (index) {
+    override fun pow(index: FloatingNumber<*>): FltX = when (index) {
         is Flt32 -> pow(this, index.toFltX(), FltX)
         is Flt64 -> pow(this, index.toFltX(), FltX)
         is FltX -> pow(this, index, FltX)

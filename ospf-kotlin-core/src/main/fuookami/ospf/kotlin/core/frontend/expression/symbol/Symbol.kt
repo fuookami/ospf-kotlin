@@ -44,12 +44,12 @@ class SimpleSymbol<C : Category>(
     override fun toString() = polynomial.toString()
     override fun toRawString() = polynomial.toRawString()
 
+    private fun getPossibleValueRange() = polynomial.possibleRange
+
     fun value(tokenList: TokenList) = polynomial.value(tokenList)
     fun value(tokenTable: TokenTable<C>) = polynomial.value(tokenTable)
     fun value(results: List<Flt64>, tokenList: TokenList) = polynomial.value(results, tokenList)
     fun value(results: List<Flt64>, tokenTable: TokenTable<C>) = polynomial.value(results, tokenTable)
-
-    private fun getPossibleValueRange() = polynomial.possibleRange
 }
 
 typealias LinearSymbol = SimpleSymbol<Linear>

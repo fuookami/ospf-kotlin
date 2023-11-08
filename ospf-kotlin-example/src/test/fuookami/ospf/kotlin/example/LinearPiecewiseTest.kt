@@ -24,9 +24,9 @@ class LinearPiecewiseTest {
         val ulp = NormalUnivariateLinearPiecewiseFunction(
             x = LinearPolynomial(x),
             points = listOf(
-                Point2(Flt64.zero, Flt64.zero),
-                Point2(Flt64.one, Flt64.two),
-                Point2(Flt64.two, Flt64.one)
+                point2(),
+                point2(x = Flt64.one, y = Flt64.two),
+                point2(x = Flt64.two, y = Flt64.one)
             ),
             name = "y"
         )
@@ -51,15 +51,15 @@ class LinearPiecewiseTest {
         metaModel.addVar(x)
         metaModel.addVar(y)
 
-        val blp = NormalBivariateLinearPiecewiseFunction(
+        val blp = CommonBivariateLinearPiecewiseFunction(
             x = LinearPolynomial(x),
             y = LinearPolynomial(y),
             points = listOf(
-                Point3(Flt64.zero, Flt64.zero, Flt64.zero),
-                Point3(Flt64.two, Flt64.zero, Flt64.zero),
-                Point3(Flt64.zero, Flt64.two, Flt64.zero),
-                Point3(Flt64.two, Flt64.two, Flt64.zero),
-                Point3(Flt64.one, Flt64.one, Flt64.one)
+                point3(),
+                point3(x = Flt64.two),
+                point3(y = Flt64.two),
+                point3(x = Flt64.two, y = Flt64.two),
+                point3(x = Flt64.one, y = Flt64.one, z = Flt64.one)
             ),
             name = "z"
         )

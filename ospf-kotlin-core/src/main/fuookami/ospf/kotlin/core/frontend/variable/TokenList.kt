@@ -11,7 +11,7 @@ sealed class TokenList {
     private var _solverIndexMap: MutableMap<Int, Int> = hashMapOf()
     internal val solverIndexMap: Map<Int, Int>
         get() {
-            if (this._solverIndexMap.isEmpty()) {
+            if (_solverIndexMap.isEmpty()) {
                 _solverIndexMap = this.solverIndexMap()
             }
             return _solverIndexMap
@@ -29,12 +29,16 @@ sealed class TokenList {
     }
 
     fun add(items: Combination<*, *, *>): TokenList {
-        items.iterator().forEach { add(it!!) }
+        for (item in items) {
+            add(item!!)
+        }
         return this
     }
 
     fun add(items: CombinationView<*, *>): TokenList {
-        items.iterator().forEach { add(it!!) }
+        for (item in items) {
+            add(item!!)
+        }
         return this
     }
 
@@ -63,23 +67,27 @@ sealed class TokenList {
 
     private fun solverIndexMap(): MutableMap<Int, Int> {
         val solverIndexes = ArrayList<Int>()
-        tokens.forEach { solverIndexes.add(it.solverIndex) }
+        for (token in tokens) {
+            solverIndexes.add(token.solverIndex)
+        }
         solverIndexes.sort()
 
         val ret = TreeMap<Int, Int>()
-        solverIndexes.withIndex().forEach { (index, solverIndex) -> ret[solverIndex] = index }
+        for ((index, solverIndex) in solverIndexes.withIndex()) {
+            ret[solverIndex] = index
+        }
         return ret
     }
 }
 
-class AutoAddTokenTokenList : TokenList() {
+class AutoAddTokenTokenList() : TokenList() {
     override fun find(item: Item<*, *>): Token? {
         add(item)
         return list[item.key]
     }
 }
 
-class ManualAddTokenTokenList : TokenList() {
+class ManualAddTokenTokenList() : TokenList() {
     override fun find(item: Item<*, *>): Token? {
         return list[item.key]
     }
