@@ -11,15 +11,6 @@
 
     <artifactId>ospf-kotlin-framework-gantt-scheduling</artifactId>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.code.style>official</kotlin.code.style>
-        <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <kotlin.version>1.8.20</kotlin.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>fuookami</groupId>
@@ -61,7 +52,6 @@
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>
-        <testSourceDirectory>src/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -74,6 +64,9 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration>
+                            <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>test-compile</id>
@@ -83,8 +76,19 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <compilerPlugins>
+                        <plugin>kotlinx-serialization</plugin>
+                    </compilerPlugins>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-serialization</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
-
 </project>

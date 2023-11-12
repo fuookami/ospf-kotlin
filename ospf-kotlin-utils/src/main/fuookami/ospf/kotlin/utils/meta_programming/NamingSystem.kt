@@ -1,37 +1,53 @@
 package fuookami.ospf.kotlin.utils.meta_programming
 
+import java.util.*
+
+/**
+ * 命名系统
+ */
 enum class NamingSystem {
-    /** 蛇式命名法：play_station */
+    /**
+     * 蛇式命名法：play_station
+     */
     Underscore {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
-            TODO("Not yet implemented")
+            return name.split("_")
         }
 
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
-            TODO("Not yet implemented")
+            return words.joinToString("_")
         }
     },
-    /** 大蛇式命名法：PLAY_STATION */
+
+    /**
+     * 大蛇式命名法：PLAY_STATION
+     */
     UpperUnderscore {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
-            TODO("Not yet implemented")
+            return name.split("_").map { it.lowercase(Locale.getDefault()) }
         }
 
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
-            TODO("Not yet implemented")
+            return words.joinToString("_") { it.uppercase(Locale.getDefault()) }
         }
     },
-    /** 烤肉串命名法：play-station */
+
+    /**
+     * 烤肉串命名法：play-station
+     */
     KebabCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
-            TODO("Not yet implemented")
+            return name.split("-")
         }
 
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
-            TODO("Not yet implemented")
+            return words.joinToString("-")
         }
     },
-    /** 驼峰式命名法：playStation */
+
+    /**
+     * 驼峰式命名法：playStation
+     */
     CamelCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             TODO("Not yet implemented")
@@ -41,7 +57,10 @@ enum class NamingSystem {
             TODO("Not yet implemented")
         }
     },
-    /** 大驼峰式命名法：PlayStation */
+
+    /**
+     * 大驼峰式命名法：PlayStation
+     */
     PascalCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             TODO("Not yet implemented")
