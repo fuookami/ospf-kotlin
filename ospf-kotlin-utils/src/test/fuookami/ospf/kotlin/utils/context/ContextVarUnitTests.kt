@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.context
 
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.*
 
 class ContextVarUnitTests {
     val contextVar = ContextVar(1)

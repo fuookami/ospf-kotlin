@@ -48,10 +48,18 @@ suspend inline fun <T> Collection<T>.anyParallelly(parallel: UInt64, crossinline
 }
 
 suspend inline fun <T> List<T>.anyParallelly(crossinline predicate: Predicate<T>): Boolean {
-    return this.anyParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return this.anyParallelly(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {

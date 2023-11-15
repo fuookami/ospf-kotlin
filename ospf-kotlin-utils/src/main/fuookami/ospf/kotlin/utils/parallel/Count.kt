@@ -37,10 +37,18 @@ suspend inline fun <T> Collection<T>.countParallelly(concurrentAmount: UInt64, c
 }
 
 suspend inline fun <T> List<T>.countParallelly(crossinline predicate: Predicate<T>): Int {
-    return this.countParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return this.countParallelly(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> List<T>.countParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Int {
@@ -57,7 +65,7 @@ suspend inline fun <T> List<T>.countParallelly(concurrentAmount: UInt64, crossin
             promises.add(async(Dispatchers.Default) {
                 this@countParallelly.subList(j, k).count(predicate)
             })
-            i + k
+            i = k
         }
         promises.sumOf { it.await() }
     }

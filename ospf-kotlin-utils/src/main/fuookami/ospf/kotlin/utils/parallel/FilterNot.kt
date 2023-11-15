@@ -39,10 +39,18 @@ suspend inline fun <T> Collection<T>.filterNotParallelly(concurrentAmount: UInt6
 }
 
 suspend inline fun <T> List<T>.filterNotParallelly(crossinline predicate: Predicate<T>): List<T> {
-    return this.filterNotParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return this.filterNotParallelly(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> List<T>.filterNotParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): List<T> {

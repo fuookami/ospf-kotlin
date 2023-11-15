@@ -109,8 +109,9 @@ object MongoDB {
     }
 }
 
-private val json = Json { ignoreUnknownKeys = true }
-
+private val json = Json {
+    ignoreUnknownKeys = true
+}
 
 @Synchronized
 fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, data: T) {

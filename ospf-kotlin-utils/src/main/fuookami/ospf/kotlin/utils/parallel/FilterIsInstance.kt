@@ -39,10 +39,17 @@ suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(concurre
 }
 
 suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(): List<T> {
-    return this.filterIsInstanceParallelly<T>(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )))
+    return this.filterIsInstanceParallelly<T>(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        )
+    )
 }
 
 suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(concurrentAmount: UInt64): List<T> {

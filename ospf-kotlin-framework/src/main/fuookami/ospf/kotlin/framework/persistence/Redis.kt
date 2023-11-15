@@ -15,6 +15,7 @@ data class RedisClientKey(
 data class RedisConfigBuilder(
     var urls: List<String>? = null,
     var name: String? = null,
+    var masterName: String? = null,
     var database: Int? = null,
     var password: String? = null
 ) {
@@ -23,6 +24,7 @@ data class RedisConfigBuilder(
             RedisConfig(
                 urls = urls!!,
                 name = name!!,
+                masterName = masterName,
                 database = database!!,
                 password = password!!
             )
@@ -36,6 +38,7 @@ data class RedisConfigBuilder(
 data class RedisConfig(
     val urls: List<String>,
     val name: String,
+    val masterName: String?,
     val database: Int,
     val password: String
 ) {
@@ -69,7 +72,7 @@ object Redis {
 
         return try {
             val pool = JedisSentinelPool(
-                "master",
+                config.masterName ?: "master",
                 config.urls.toSet(),
                 // todo: pool config
                 JedisPoolConfig(),
