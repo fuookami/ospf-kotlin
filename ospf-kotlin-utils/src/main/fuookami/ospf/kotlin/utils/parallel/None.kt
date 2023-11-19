@@ -37,10 +37,15 @@ suspend inline fun <T> Iterable<T>.noneParallelly(segment: UInt64, crossinline p
 }
 
 suspend inline fun <T> Collection<T>.noneParallelly(crossinline predicate: Predicate<T>): Boolean {
-    return this.noneParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return this.noneParallelly(
+        UInt64(
+            minOf(
+                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                Runtime.getRuntime().availableProcessors()
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> Collection<T>.noneParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {

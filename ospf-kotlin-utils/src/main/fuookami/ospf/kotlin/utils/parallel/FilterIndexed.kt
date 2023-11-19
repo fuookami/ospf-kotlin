@@ -12,15 +12,17 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(segment: UInt64, cros
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterIndexedParallelly.iterator()
+        var i = 0
         while (iterator.hasNext()) {
-            val thisSegment = ArrayList<T>()
-            var i = UInt64.zero
-            while (iterator.hasNext() && i != segment) {
-                thisSegment.add(iterator.next())
+            val thisSegment = ArrayList<Pair<Int, T>>()
+            var j = UInt64.zero
+            while (iterator.hasNext() && j != segment) {
+                thisSegment.add(Pair(i, iterator.next()))
                 ++i
+                ++j
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.filterIndexed(predicate)
+                thisSegment.filter { predicate(it.first, it.second) }.map { it.second }
             })
         }
         promises.flatMap { it.await() }
@@ -28,10 +30,15 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(segment: UInt64, cros
 }
 
 suspend inline fun <T> Collection<T>.filterIndexedParallelly(crossinline predicate: IndexedPredicate<T>): List<T> {
-    return this.filterIndexedParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return this.filterIndexedParallelly(
+        UInt64(
+            minOf(
+                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                Runtime.getRuntime().availableProcessors()
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> Collection<T>.filterIndexedParallelly(concurrentAmount: UInt64, crossinline predicate: IndexedPredicate<T>): List<T> {
@@ -65,7 +72,7 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(concurrentAmount: UInt64,
                 this@filterIndexedParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@filterIndexedParallelly.subList(j, k).filterIndexed(predicate)
+                this@filterIndexedParallelly.subList(j, k).filterIndexed { i, v -> predicate(i + j, v) }
             })
             i = k
         }

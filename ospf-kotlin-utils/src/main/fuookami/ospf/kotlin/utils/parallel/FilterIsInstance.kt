@@ -28,10 +28,14 @@ suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(segment: U
 }
 
 suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(): List<T> {
-    return this.filterIsInstanceParallelly<T>(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )))
+    return this.filterIsInstanceParallelly<T>(
+        UInt64(
+            minOf(
+                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                Runtime.getRuntime().availableProcessors()
+            )
+        )
+    )
 }
 
 suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(concurrentAmount: UInt64): List<T> {

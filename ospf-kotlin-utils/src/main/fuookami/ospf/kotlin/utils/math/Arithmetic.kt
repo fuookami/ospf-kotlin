@@ -182,7 +182,7 @@ fun <K, V> Map<K, V>.sumOf(constant: ArithmeticConstants<V>): V
     return sum
 }
 
-fun <K, V, T> Map<K, V>.sumOf(constant: ArithmeticConstants<T>, selector: (Map.Entry<K, V>) -> T): T
+fun <K, V, T> HashMap<K, V>.sumOf(constant: ArithmeticConstants<T>, selector: (Map.Entry<K, V>) -> T): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {

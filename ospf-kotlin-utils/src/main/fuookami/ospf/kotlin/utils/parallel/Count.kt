@@ -26,10 +26,15 @@ suspend inline fun <T> Iterable<T>.countParallelly(segment: UInt64, crossinline 
 }
 
 suspend inline fun <T> Collection<T>.countParallelly(crossinline predicate: Predicate<T>): Int {
-    return this.countParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return this.countParallelly(
+        UInt64(
+            minOf(
+                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                Runtime.getRuntime().availableProcessors()
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> Collection<T>.countParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Int {

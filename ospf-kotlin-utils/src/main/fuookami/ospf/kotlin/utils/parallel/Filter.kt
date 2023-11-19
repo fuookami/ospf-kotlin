@@ -28,10 +28,15 @@ suspend inline fun <T> Iterable<T>.filterParallelly(segment: UInt64, crossinline
 }
 
 suspend inline fun <T> Collection<T>.filterParallelly(crossinline predicate: Predicate<T>): List<T> {
-    return this.filterParallelly(UInt64(minOf(
-        Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-        Runtime.getRuntime().availableProcessors()
-    )), predicate)
+    return (this as Iterable<T>).filterParallelly(
+        UInt64(
+            minOf(
+                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                Runtime.getRuntime().availableProcessors()
+            )
+        ),
+        predicate
+    )
 }
 
 suspend inline fun <T> Collection<T>.filterParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): List<T> {

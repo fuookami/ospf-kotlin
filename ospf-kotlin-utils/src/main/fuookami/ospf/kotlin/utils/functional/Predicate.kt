@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 typealias Predicate<T> = (T) -> Boolean
 typealias IndexedPredicate<T> = (Int, T) -> Boolean
 typealias Extractor<Ret, T> = (T) -> Ret
+typealias IndexedExtractor<Ret, T> = (Int, T) -> Ret
 typealias Mapper<Ret, T> = (T) -> Ret
 typealias Comparator<T> = (T, T) -> Boolean
 typealias PartialComparator<T> = (T, T) -> Boolean?
