@@ -23,13 +23,13 @@ suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline p
                 thisSegment.lastOrNull(predicate)
             })
         }
-
         for (promise in promises.reversed()) {
             val result = promise.await()
             if (result != null) {
                 return@coroutineScope result
             }
         }
+
         throw NoSuchElementException("Collection contains no element matching the predicate.")
     }
 }
@@ -37,9 +37,12 @@ suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline p
 suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: Predicate<T>): T {
     return (this as Iterable<T>).lastParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         predicate
@@ -95,6 +98,7 @@ suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinl
                 }
             }
         }
+
         throw NoSuchElementException("Collection contains no element matching the predicate.")
     } catch (e: CancellationException) {
         result!!

@@ -30,6 +30,7 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(segment: UInt64, c
                 return@coroutineScope result
             }
         }
+
         throw NoSuchElementException("Collection contains no element matching the predicate.")
     }
 }
@@ -37,9 +38,12 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(segment: UInt64, c
 suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(crossinline extractor: Extractor<R?, T>): R {
     return (this as Iterable<T>).lastNotNullOfParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         extractor
@@ -91,6 +95,7 @@ suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(concurrentAmount: UInt
                 }
             }
         }
+
         throw NoSuchElementException("Collection contains no element matching the predicate.")
     } catch (e: CancellationException) {
         result!!

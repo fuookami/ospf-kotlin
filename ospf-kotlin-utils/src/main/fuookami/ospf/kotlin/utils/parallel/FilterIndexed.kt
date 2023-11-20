@@ -25,6 +25,7 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(segment: UInt64, cros
                 thisSegment.filter { predicate(it.first, it.second) }.map { it.second }
             })
         }
+
         promises.flatMap { it.await() }
     }
 }
@@ -32,9 +33,12 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(segment: UInt64, cros
 suspend inline fun <T> Collection<T>.filterIndexedParallelly(crossinline predicate: IndexedPredicate<T>): List<T> {
     return this.filterIndexedParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         predicate
@@ -76,6 +80,7 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(concurrentAmount: UInt64,
             })
             i = k
         }
+
         promises.flatMap { it.await() }
     }
 }

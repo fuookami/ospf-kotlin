@@ -23,13 +23,13 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(segment: UInt64, crossin
                 thisSegment.lastOrNull(predicate)
             })
         }
-
         for (promise in promises.reversed()) {
             val result = promise.await()
             if (result != null) {
                 return@coroutineScope result
             }
         }
+
         null
     }
 }
@@ -37,9 +37,12 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(segment: UInt64, crossin
 suspend inline fun <T> Collection<T>.lastOrNullParallelly(crossinline predicate: Predicate<T>): T? {
     return (this as Iterable<T>).lastOrNullParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         predicate
@@ -95,6 +98,7 @@ suspend inline fun <T> List<T>.lastOrNullParallelly(concurrentAmount: UInt64, cr
                 }
             }
         }
+
         null
     } catch (e: CancellationException) {
         result

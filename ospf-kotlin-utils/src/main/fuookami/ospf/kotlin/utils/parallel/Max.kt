@@ -30,9 +30,12 @@ suspend inline fun <T: Comparable<T>> Iterable<T>.maxParallelly(segment: UInt64)
 suspend inline fun <T: Comparable<T>> Collection<T>.maxParallelly(): T {
     return (this as Iterable<T>).maxParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         )
     )
@@ -72,6 +75,7 @@ suspend inline fun <T: Comparable<T>> List<T>.maxParallelly(concurrentAmount: UI
             })
             i = k
         }
+
         promises.mapNotNull { it.await() }.maxOrNull()
     } ?: throw NoSuchElementException()
 }

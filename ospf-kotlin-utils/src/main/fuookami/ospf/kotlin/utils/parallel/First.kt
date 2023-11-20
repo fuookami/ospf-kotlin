@@ -38,6 +38,7 @@ suspend inline fun <T> Iterable<T>.firstParallelly(concurrentAmount: UInt64, cro
                 }
             }
         }
+
         throw NoSuchElementException("Collection contains no element matching the predicate.")
     } catch (e: CancellationException) {
         result!!

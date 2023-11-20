@@ -23,6 +23,7 @@ suspend inline fun <T> Iterable<T?>.filterNotNullParallelly(segment: UInt64): Li
                 thisSegment.filterNotNull()
             })
         }
+
         promises.flatMap { it.await() }
     }
 }
@@ -30,9 +31,12 @@ suspend inline fun <T> Iterable<T?>.filterNotNullParallelly(segment: UInt64): Li
 suspend inline fun <T> Collection<T?>.filterNotNullParallelly(): List<T> {
     return this.filterNotNullParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         )
     )
@@ -72,6 +76,7 @@ suspend inline fun <T> List<T?>.filterNotNullParallelly(concurrentAmount: UInt64
             })
             i = k
         }
+
         promises.flatMap { it.await() }
     }
 }

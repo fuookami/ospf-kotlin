@@ -29,6 +29,7 @@ suspend inline fun <T> Iterable<T>.anyParallelly(segment: UInt64, crossinline pr
                     cancel()
                 }
             }
+
             false
         }
     } catch (e: CancellationException) {
@@ -39,9 +40,12 @@ suspend inline fun <T> Iterable<T>.anyParallelly(segment: UInt64, crossinline pr
 suspend inline fun <T> Collection<T>.anyParallelly(crossinline predicate: Predicate<T>): Boolean {
     return this.anyParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         predicate
@@ -89,6 +93,7 @@ suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinli
                     cancel()
                 }
             }
+
             false
         }
     } catch (e: CancellationException) {

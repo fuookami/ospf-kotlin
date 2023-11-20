@@ -23,6 +23,7 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(segment: UInt64, cr
                 thisSegment.map(extractor)
             })
         }
+
         promises.flatMap { it.await() }.toMap()
     }
 }
@@ -30,9 +31,12 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(segment: UInt64, cr
 suspend inline fun <K, V, T> Collection<T>.associateParallelly(crossinline extractor: Extractor<Pair<K, V>, T>): Map<K, V> {
     return this.associateParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         extractor
@@ -74,6 +78,7 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(concurrentAmount: UInt6
             })
             i = k
         }
+
         promises.flatMap { it.await() }.toMap()
     }
 }

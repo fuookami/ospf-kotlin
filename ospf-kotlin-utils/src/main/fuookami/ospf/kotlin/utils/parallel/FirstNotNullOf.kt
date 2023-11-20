@@ -34,6 +34,7 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(concurrentAmount:
                 }
             }
         }
+
         throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
     } catch (e: CancellationException) {
         result!!

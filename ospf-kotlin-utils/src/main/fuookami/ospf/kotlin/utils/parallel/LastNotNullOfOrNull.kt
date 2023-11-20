@@ -23,13 +23,13 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(segment: UIn
                 thisSegment.lastNotNullOf(extractor)
             })
         }
-
         for (promise in promises.reversed()) {
             val result = promise.await()
             if (result != null) {
                 return@coroutineScope result
             }
         }
+
         null
     }
 }
@@ -37,9 +37,12 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(segment: UIn
 suspend inline fun <R, T> Collection<T>.lastNotNullOfOrNullParallelly(crossinline extractor: Extractor<R?, T>): R? {
     return (this as Iterable<T>).lastNotNullOfOrNullParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         extractor
@@ -91,6 +94,7 @@ suspend inline fun <R, T> List<T>.lastNotNullOfOrNullParallelly(concurrentAmount
                 }
             }
         }
+
         null
     } catch (e: CancellationException) {
         result!!

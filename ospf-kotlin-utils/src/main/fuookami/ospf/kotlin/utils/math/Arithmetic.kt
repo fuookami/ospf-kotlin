@@ -155,7 +155,7 @@ object NegativeInfinity {
     override fun toString() = "-inf"
 }
 
-fun <T> Iterable<T>.sumOf(constant: ArithmeticConstants<T>): T
+fun <T> Iterable<T>.sum(constant: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {
@@ -173,7 +173,7 @@ inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, selector: 
     return sum
 }
 
-fun <K, V> Map<K, V>.sumOf(constant: ArithmeticConstants<V>): V
+fun <K, V> Map<K, V>.sum(constant: ArithmeticConstants<V>): V
         where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = constant.zero
     for (element in this) {
@@ -191,7 +191,7 @@ fun <K, V, T> HashMap<K, V>.sumOf(constant: ArithmeticConstants<T>, selector: (M
     return sum
 }
 
-fun <T> Iterator<T>.sumOf(constant: ArithmeticConstants<T>): T
+fun <T> Iterator<T>.sum(constant: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {
@@ -209,7 +209,7 @@ inline fun <T, U> Iterator<T>.sumOf(constant: ArithmeticConstants<U>, selector: 
     return sum
 }
 
-fun <T> Sequence<T>.sumOf(constant: ArithmeticConstants<T>): T
+fun <T> Sequence<T>.sum(constant: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {

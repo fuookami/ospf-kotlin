@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOfWithOrNull
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 
 fun <T> Iterable<T>.minMaxWithComparatorOrNull(comparator: Comparator<T>): Pair<T, T>? {
     return this.minMaxOfWithOrNull({ lhs: T, rhs: T ->

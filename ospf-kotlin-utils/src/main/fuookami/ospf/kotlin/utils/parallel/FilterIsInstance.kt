@@ -23,6 +23,7 @@ suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(segment: U
                 thisSegment.filterIsInstance<T>()
             })
         }
+
         promises.flatMap { it.await() }
     }
 }
@@ -30,9 +31,12 @@ suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(segment: U
 suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(): List<T> {
     return this.filterIsInstanceParallelly<T>(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         )
     )
@@ -72,6 +76,7 @@ suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(concurrentAmou
             })
             i = k
         }
+
         promises.flatMap { it.await() }
     }
 }

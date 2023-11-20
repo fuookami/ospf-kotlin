@@ -23,6 +23,7 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(segment: UInt64, crossin
                 thisSegment.flatMap(extractor)
             })
         }
+
         promises.flatMap { it.await() }
     }
 }
@@ -30,9 +31,12 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(segment: UInt64, crossin
 suspend inline fun <R, T> Collection<T>.flatMapParallelly(crossinline extractor: Extractor<Iterable<R>, T>): List<R> {
     return this.flatMapParallelly(
         UInt64(
-            minOf(
-                Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                Runtime.getRuntime().availableProcessors()
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
             )
         ),
         extractor
@@ -74,6 +78,7 @@ suspend inline fun <R, T> List<T>.flatMapParallelly(concurrentAmount: UInt64, cr
             })
             i = k
         }
+
         promises.flatMap { it.await() }
     }
 }

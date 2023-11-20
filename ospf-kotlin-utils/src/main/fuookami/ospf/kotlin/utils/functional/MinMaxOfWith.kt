@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOfWith
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 
 fun <T, U> Iterable<U>.minMaxOfWithComparator(comparator: Comparator<T>, extractor: Extractor<T, U>): Pair<T, T> {
     return this.minMaxOfWith({ lhs, rhs ->
