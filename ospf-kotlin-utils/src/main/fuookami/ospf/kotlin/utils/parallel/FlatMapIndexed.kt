@@ -49,6 +49,21 @@ suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(concurrentAmoun
     return (this as Iterable<T>).flatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
+suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
+    return this.flatMapIndexedParallelly(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        ),
+        extractor
+    )
+}
+
 suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(concurrentAmount: UInt64, crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()

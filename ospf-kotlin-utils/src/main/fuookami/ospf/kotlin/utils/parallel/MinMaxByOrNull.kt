@@ -4,32 +4,33 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOfOrNullParallelly(crossinline extractor: Extractor<R, T>): Pair<R, R>? {
-    return this.minMaxOfOrNullParallelly(UInt64.ten, extractor)
+suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxByOrNullParallelly(crossinline extractor: Extractor<R, T>): Pair<T, T>? {
+    return this.minMaxByOrNullParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOfOrNullParallelly(segment: UInt64, crossinline extractor: Extractor<R, T>): Pair<R, R>? {
+suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxByOrNullParallelly(segment: UInt64, crossinline extractor: Extractor<R, T>): Pair<T, T>? {
     return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<R, R>?>>()
-        val iterator = this@minMaxOfOrNullParallelly.iterator()
+        val promises = ArrayList<Deferred<Pair<Pair<T, R>, Pair<T, R>>?>>()
+        val iterator = this@minMaxByOrNullParallelly.iterator()
         while (iterator.hasNext()) {
-            val thisSegment = ArrayList<R>()
+            val thisSegment = ArrayList<Pair<T, R>>()
             var i = UInt64.zero
             while (iterator.hasNext() && i != segment) {
-                thisSegment.add(extractor(iterator.next()))
+                val v = iterator.next()
+                thisSegment.add(Pair(v, extractor(v)))
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.minMaxOrNull()
+                thisSegment.minMaxByOrNull { it.second }
             })
         }
 
         val segmentResults = promises.mapNotNull { it.await() }
         val minPromise = async(Dispatchers.Default) {
-            segmentResults.minOfOrNull { it.first }
+            segmentResults.map { it.first }.minByOrNull { it.second }
         }
         val maxPromise = async(Dispatchers.Default) {
-            segmentResults.maxOfOrNull { it.second }
+            segmentResults.map { it.second }.maxByOrNull { it.second }
         }
 
         val min = when (val min = minPromise.await()) {
@@ -38,7 +39,7 @@ suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOfOrNullParallelly(se
             }
 
             else -> {
-                min
+                min.first
             }
         }
 
@@ -48,7 +49,7 @@ suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOfOrNullParallelly(se
             }
 
             else -> {
-                max
+                max.first
             }
         }
 
@@ -56,8 +57,8 @@ suspend inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOfOrNullParallelly(se
     }
 }
 
-suspend inline fun <T, R: Comparable<R>> Collection<T>.minMaxOfOrNullParallelly(crossinline extractor: Extractor<R, T>): Pair<R, R>? {
-    return (this as Iterable<T>).minMaxOfOrNullParallelly(
+suspend inline fun <T, R: Comparable<R>> Collection<T>.minMaxByOrNullParallelly(crossinline extractor: Extractor<R, T>): Pair<T, T>? {
+    return (this as Iterable<T>).minMaxByOrNullParallelly(
         UInt64(
             maxOf(
                 minOf(
@@ -71,12 +72,12 @@ suspend inline fun <T, R: Comparable<R>> Collection<T>.minMaxOfOrNullParallelly(
     )
 }
 
-suspend inline fun <T, R: Comparable<R>> Collection<T>.minMaxOfOrNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R, T>): Pair<R, R>? {
-    return (this as Iterable<T>).minMaxOfOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+suspend inline fun <T, R: Comparable<R>> Collection<T>.minMaxByOrNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R, T>): Pair<T, T>? {
+    return (this as Iterable<T>).minMaxByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <T, R: Comparable<R>> List<T>.minMaxOfOrNullParallelly(crossinline extractor: Extractor<R, T>): Pair<R, R>? {
-    return this.minMaxOfOrNullParallelly(
+suspend inline fun <T, R: Comparable<R>> List<T>.minMaxByOrNullParallelly(crossinline extractor: Extractor<R, T>): Pair<T, T>? {
+    return this.minMaxByOrNullParallelly(
         UInt64(
             maxOf(
                 minOf(
@@ -90,29 +91,29 @@ suspend inline fun <T, R: Comparable<R>> List<T>.minMaxOfOrNullParallelly(crossi
     )
 }
 
-suspend inline fun <T, R: Comparable<R>> List<T>.minMaxOfOrNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R, T>): Pair<R, R>? {
+suspend inline fun <T, R: Comparable<R>> List<T>.minMaxByOrNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R, T>): Pair<T, T>? {
     return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<R, R>?>>()
-        val segmentAmount = this@minMaxOfOrNullParallelly.size / concurrentAmount.toInt()
+        val promises = ArrayList<Deferred<Pair<Pair<T, R>, Pair<T, R>>?>>()
+        val segmentAmount = this@minMaxByOrNullParallelly.size / concurrentAmount.toInt()
         var i = 0
-        while (i != this@minMaxOfOrNullParallelly.size) {
+        while (i != this@minMaxByOrNullParallelly.size) {
             val j = i
             val k = i + minOf(
                 segmentAmount,
-                this@minMaxOfOrNullParallelly.size - i
+                this@minMaxByOrNullParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@minMaxOfOrNullParallelly.subList(j, k).map { extractor(it) }.minMaxOrNull()
+                this@minMaxByOrNullParallelly.subList(j, k).map { Pair(it, extractor(it)) }.minMaxByOrNull { it.second }
             })
             i = k
         }
 
         val segmentResults = promises.mapNotNull { it.await() }
         val minPromise = async(Dispatchers.Default) {
-            segmentResults.minOfOrNull { it.first }
+            segmentResults.map { it.first }.minByOrNull { it.second }
         }
         val maxPromise = async(Dispatchers.Default) {
-            segmentResults.maxOfOrNull { it.second }
+            segmentResults.map { it.second }.maxByOrNull { it.second }
         }
 
         val min = when (val min = minPromise.await()) {
@@ -121,7 +122,7 @@ suspend inline fun <T, R: Comparable<R>> List<T>.minMaxOfOrNullParallelly(concur
             }
 
             else -> {
-                min
+                min.first
             }
         }
 
@@ -131,7 +132,7 @@ suspend inline fun <T, R: Comparable<R>> List<T>.minMaxOfOrNullParallelly(concur
             }
 
             else -> {
-                max
+                max.first
             }
         }
 

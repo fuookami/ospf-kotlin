@@ -12,11 +12,9 @@ inline fun <R, T> Iterable<T>.lastNotNullOfOrNull(extractor: Extractor<R?, T>): 
 }
 
 inline fun <R, T> List<T>.lastNotNullOfOrNull(extractor: Extractor<R?, T>): R? {
-    var result: R? = null
-
     val iterator = this.listIterator()
     while (iterator.hasPrevious()) {
-        result = extractor(iterator.next())
+        val result = extractor(iterator.next())
 
         if (result != null) {
             return result
