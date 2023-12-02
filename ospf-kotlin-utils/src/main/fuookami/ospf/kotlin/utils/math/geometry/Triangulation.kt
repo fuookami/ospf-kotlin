@@ -13,8 +13,13 @@ object Delaunay {
 
         val sortedPoints = points.sortedWith { lhs, rhs ->
             when (val result = lhs.x.compareTo(rhs.x)) {
-                0 -> { lhs.y.compareTo(rhs.y) }
-                else -> { result }
+                0 -> {
+                    lhs.y.compareTo(rhs.y)
+                }
+
+                else -> {
+                    result
+                }
             }
         }
         val superTriangle = getSuperTriangle(sortedPoints)
@@ -126,7 +131,13 @@ fun triangulate(isolines: List<Pair<Flt64, List<Point2>>>): List<Triangle3> {
     for (i in 0 until (isolines.size - 1)) {
         val thisLine = isolines[i]
         val nextLine = isolines[i + 1]
-        val points = (thisLine.second.map { point3(it.x, it.y, thisLine.first) } + nextLine.second.map { point3(it.x, it.y, thisLine.first) })
+        val points = (thisLine.second.map { point3(it.x, it.y, thisLine.first) } + nextLine.second.map {
+            point3(
+                it.x,
+                it.y,
+                thisLine.first
+            )
+        })
         triangles.addAll(triangulate(points))
     }
     return triangles

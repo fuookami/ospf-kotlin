@@ -3,11 +3,11 @@ package fuookami.ospf.kotlin.utils.parallel
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 
-suspend inline fun <T: Comparable<T>> Iterable<T>.maxOrNullParallelly(): T? {
+suspend inline fun <T : Comparable<T>> Iterable<T>.maxOrNullParallelly(): T? {
     return this.maxOrNullParallelly(UInt64.ten)
 }
 
-suspend inline fun <T: Comparable<T>> Iterable<T>.maxOrNullParallelly(segment: UInt64): T? {
+suspend inline fun <T : Comparable<T>> Iterable<T>.maxOrNullParallelly(segment: UInt64): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val iterator = this@maxOrNullParallelly.iterator()
@@ -23,11 +23,11 @@ suspend inline fun <T: Comparable<T>> Iterable<T>.maxOrNullParallelly(segment: U
             })
         }
 
-        promises.mapNotNull{ it.await() }.maxOrNull()
+        promises.mapNotNull { it.await() }.maxOrNull()
     }
 }
 
-suspend inline fun <T: Comparable<T>> Collection<T>.maxOrNullParallelly(): T? {
+suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(): T? {
     return (this as Iterable<T>).maxOrNullParallelly(
         UInt64(
             maxOf(
@@ -41,11 +41,11 @@ suspend inline fun <T: Comparable<T>> Collection<T>.maxOrNullParallelly(): T? {
     )
 }
 
-suspend inline fun <T: Comparable<T>> Collection<T>.maxOrNullParallelly(concurrentAmount: UInt64): T? {
+suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(concurrentAmount: UInt64): T? {
     return (this as Iterable<T>).maxOrNullParallelly(UInt64(this.size) / concurrentAmount)
 }
 
-suspend inline fun <T: Comparable<T>> List<T>.maxOrNullParallelly(): T? {
+suspend inline fun <T : Comparable<T>> List<T>.maxOrNullParallelly(): T? {
     return this.maxOrNullParallelly(
         UInt64(
             maxOf(
@@ -59,7 +59,7 @@ suspend inline fun <T: Comparable<T>> List<T>.maxOrNullParallelly(): T? {
     )
 }
 
-suspend inline fun <T: Comparable<T>> List<T>.maxOrNullParallelly(concurrentAmount: UInt64): T? {
+suspend inline fun <T : Comparable<T>> List<T>.maxOrNullParallelly(concurrentAmount: UInt64): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val segmentAmount = this@maxOrNullParallelly.size / concurrentAmount.toInt()

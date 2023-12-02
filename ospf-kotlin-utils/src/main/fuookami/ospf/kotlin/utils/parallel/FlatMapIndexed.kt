@@ -2,13 +2,17 @@ package fuookami.ospf.kotlin.utils.parallel
 
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
     return this.flatMapIndexedParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(segment: UInt64, crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
+    segment: UInt64,
+    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val iterator = this@flatMapIndexedParallelly.iterator()
@@ -30,6 +34,53 @@ suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(segment: UInt64, 
     }
 }
 
+suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(crossinline extractor: TryIndexedExtractor<Iterable<R>, T>): Result<List<R>, Error> {
+    return this.flatMapIndexedParallelly(UInt64.ten, extractor)
+}
+
+suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
+    segment: UInt64,
+    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+): Result<List<R>, Error> {
+    var error: Error? = null
+
+    return try {
+        coroutineScope {
+            val promises = ArrayList<Deferred<List<R>>>()
+            val iterator = this@flatMapIndexedParallelly.iterator()
+            var i = 0
+            while (iterator.hasNext()) {
+                val thisSegment = ArrayList<Pair<Int, T>>()
+                var j = UInt64.zero
+                while (iterator.hasNext() && j != segment) {
+                    thisSegment.add(Pair(i, iterator.next()))
+                    ++i
+                    ++j
+                }
+                promises.add(async(Dispatchers.Default) {
+                    thisSegment.flatMap {
+                        when (val result = extractor(it.first, it.second)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                error = result.error
+                                cancel()
+                                emptyList()
+                            }
+                        }
+                    }
+                })
+            }
+
+            Ok(promises.flatMap { it.await() })
+        }
+    } catch (e: CancellationException) {
+        error?.let { Failed(it) } ?: Ok(emptyList())
+    }
+}
+
 suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
     return (this as Iterable<T>).flatMapIndexedParallelly(
         UInt64(
@@ -45,7 +96,32 @@ suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(crossinline ext
     )
 }
 
-suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(concurrentAmount: UInt64, crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+): List<R> {
+    return (this as Iterable<T>).flatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+}
+
+suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(crossinline extractor: TryIndexedExtractor<Iterable<R>, T>): Result<List<R>, Error> {
+    return (this as Iterable<T>).flatMapIndexedParallelly(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        ),
+        extractor
+    )
+}
+
+suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+): Result<List<R>, Error> {
     return (this as Iterable<T>).flatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -64,7 +140,10 @@ suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor
     )
 }
 
-suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(concurrentAmount: UInt64, crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val segmentAmount = this@flatMapIndexedParallelly.size / concurrentAmount.toInt()
@@ -82,5 +161,62 @@ suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(concurrentAmount: UIn
         }
 
         promises.flatMap { it.await() }
+    }
+}
+
+suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor: TryIndexedExtractor<Iterable<R>, T>): Result<List<R>, Error> {
+    return this.flatMapIndexedParallelly(
+        UInt64(
+            maxOf(
+                minOf(
+                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
+                    Runtime.getRuntime().availableProcessors()
+                ),
+                1
+            )
+        ),
+        extractor
+    )
+}
+
+suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+): Result<List<R>, Error> {
+    var error: Error? = null
+
+    return try {
+        coroutineScope {
+            val promises = ArrayList<Deferred<List<R>>>()
+            val segmentAmount = this@flatMapIndexedParallelly.size / concurrentAmount.toInt()
+            var i = 0
+            while (i != this@flatMapIndexedParallelly.size) {
+                val j = i
+                val k = i + minOf(
+                    segmentAmount,
+                    this@flatMapIndexedParallelly.size - j
+                )
+                promises.add(async(Dispatchers.Default) {
+                    this@flatMapIndexedParallelly.flatMapIndexed { i, v ->
+                        when (val result = extractor(i + j, v)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                error = result.error
+                                cancel()
+                                emptyList()
+                            }
+                        }
+                    }
+                })
+                i = k
+            }
+
+            Ok(promises.flatMap { it.await() })
+        }
+    } catch (e: CancellationException) {
+        error?.let { Failed(it) } ?: Ok(emptyList())
     }
 }

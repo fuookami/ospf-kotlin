@@ -3,11 +3,14 @@ package fuookami.ospf.kotlin.utils.parallel
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 
-suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterNotNullToParallelly(destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotNullToParallelly(destination: C): C {
     return this.filterNotNullToParallelly(UInt64.ten, destination)
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterNotNullToParallelly(segment: UInt64, destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotNullToParallelly(
+    segment: UInt64,
+    destination: C
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterNotNullToParallelly.iterator()
@@ -27,7 +30,7 @@ suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterNotNullToPa
     }
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterNotNullToParallelly(destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotNullToParallelly(destination: C): C {
     return (this as Iterable<T>).filterNotNullToParallelly(
         UInt64(
             maxOf(
@@ -42,11 +45,14 @@ suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterNotNullTo
     )
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterNotNullToParallelly(concurrentAmount: UInt64, destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotNullToParallelly(
+    concurrentAmount: UInt64,
+    destination: C
+): C {
     return (this as Iterable<T>).filterNotNullToParallelly(UInt64(this.size) / concurrentAmount, destination)
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterNotNullToParallelly(destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotNullToParallelly(destination: C): C {
     return this.filterNotNullToParallelly(
         UInt64(
             maxOf(
@@ -61,7 +67,10 @@ suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterNotNullToParall
     )
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterNotNullToParallelly(concurrentAmount: UInt64, destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotNullToParallelly(
+    concurrentAmount: UInt64,
+    destination: C
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterNotNullToParallelly.size / concurrentAmount.toInt()

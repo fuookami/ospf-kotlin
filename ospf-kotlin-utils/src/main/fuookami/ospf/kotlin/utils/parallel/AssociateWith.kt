@@ -9,7 +9,10 @@ suspend inline fun <T, V> Iterable<T>.associateWithParallelly(crossinline extrac
     return this.associateWithParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <T, V> Iterable<T>.associateWithParallelly(segment: UInt64, crossinline extractor: Extractor<V, T>): Map<T, V> {
+suspend inline fun <T, V> Iterable<T>.associateWithParallelly(
+    segment: UInt64,
+    crossinline extractor: Extractor<V, T>
+): Map<T, V> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<T, V>>>>()
         val iterator = this@associateWithParallelly.iterator()
@@ -33,7 +36,10 @@ suspend inline fun <T, V> Iterable<T>.associateWithParallelly(crossinline extrac
     return this.associateWithParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <T, V> Iterable<T>.associateWithParallelly(segment: UInt64, crossinline extractor: TryExtractor<V, T>): Result<Map<T, V>, Error> {
+suspend inline fun <T, V> Iterable<T>.associateWithParallelly(
+    segment: UInt64,
+    crossinline extractor: TryExtractor<V, T>
+): Result<Map<T, V>, Error> {
     var error: Error? = null
 
     return try {
@@ -86,7 +92,10 @@ suspend inline fun <T, V> Collection<T>.associateWithParallelly(crossinline extr
     )
 }
 
-suspend inline fun <T, V> Collection<T>.associateWithParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<V, T>): Map<T, V> {
+suspend inline fun <T, V> Collection<T>.associateWithParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: Extractor<V, T>
+): Map<T, V> {
     return (this as Iterable<T>).associateWithParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -105,7 +114,10 @@ suspend inline fun <T, V> Collection<T>.associateWithParallelly(crossinline extr
     )
 }
 
-suspend inline fun <T, V> Collection<T>.associateWithParallelly(concurrentAmount: UInt64, crossinline extractor: TryExtractor<V, T>): Result<Map<T, V>, Error> {
+suspend inline fun <T, V> Collection<T>.associateWithParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: TryExtractor<V, T>
+): Result<Map<T, V>, Error> {
     return (this as Iterable<T>).associateWithParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -124,7 +136,10 @@ suspend inline fun <T, V> List<T>.associateWithParallelly(crossinline extractor:
     )
 }
 
-suspend inline fun <T, V> List<T>.associateWithParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<V, T>): Map<T, V> {
+suspend inline fun <T, V> List<T>.associateWithParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: Extractor<V, T>
+): Map<T, V> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<T, V>>>>()
         val segmentAmount = this@associateWithParallelly.size / concurrentAmount.toInt()
@@ -160,7 +175,10 @@ suspend inline fun <T, V> List<T>.associateWithParallelly(crossinline extractor:
     )
 }
 
-suspend inline fun <T, V> List<T>.associateWithParallelly(concurrentAmount: UInt64, crossinline extractor: TryExtractor<V, T>): Result<Map<T, V>, Error> {
+suspend inline fun <T, V> List<T>.associateWithParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: TryExtractor<V, T>
+): Result<Map<T, V>, Error> {
     var error: Error? = null
 
     return try {

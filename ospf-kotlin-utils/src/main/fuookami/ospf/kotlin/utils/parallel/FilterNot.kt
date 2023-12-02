@@ -33,7 +33,10 @@ suspend inline fun <T> Iterable<T>.filterNotParallelly(crossinline predicate: Tr
     return this.filterNotParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.filterNotParallelly(segment: UInt64, crossinline predicate: TryPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> Iterable<T>.filterNotParallelly(
+    segment: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<List<T>, Error> {
     var error: Error? = null
 
     return try {
@@ -48,17 +51,19 @@ suspend inline fun <T> Iterable<T>.filterNotParallelly(segment: UInt64, crossinl
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.filterNot { when (val result = predicate(it)) {
-                        is Ok -> {
-                            result.value
-                        }
+                    thisSegment.filterNot {
+                        when (val result = predicate(it)) {
+                            is Ok -> {
+                                result.value
+                            }
 
-                        is Failed -> {
-                            error = result.error
-                            cancel()
-                            true
+                            is Failed -> {
+                                error = result.error
+                                cancel()
+                                true
+                            }
                         }
-                    } }
+                    }
                 })
             }
 
@@ -84,7 +89,10 @@ suspend inline fun <T> Collection<T>.filterNotParallelly(crossinline predicate: 
     )
 }
 
-suspend inline fun <T> Collection<T>.filterNotParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> Collection<T>.filterNotParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): List<T> {
     return (this as Iterable<T>).filterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -103,7 +111,10 @@ suspend inline fun <T> Collection<T>.filterNotParallelly(crossinline predicate: 
     )
 }
 
-suspend inline fun <T> Collection<T>.filterNotParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> Collection<T>.filterNotParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<List<T>, Error> {
     return (this as Iterable<T>).filterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -122,7 +133,10 @@ suspend inline fun <T> List<T>.filterNotParallelly(crossinline predicate: Predic
     )
 }
 
-suspend inline fun <T> List<T>.filterNotParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> List<T>.filterNotParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterNotParallelly.size / concurrentAmount.toInt()
@@ -158,7 +172,10 @@ suspend inline fun <T> List<T>.filterNotParallelly(crossinline predicate: TryPre
     )
 }
 
-suspend inline fun <T> List<T>.filterNotParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> List<T>.filterNotParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<List<T>, Error> {
     var error: Error? = null
 
     return try {

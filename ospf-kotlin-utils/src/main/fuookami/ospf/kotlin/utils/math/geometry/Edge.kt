@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.*
 
-data class Edge<P : Point<D>, D: Dimension>(
+data class Edge<P : Point<D>, D : Dimension>(
     val from: P,
     val to: P
 ) {

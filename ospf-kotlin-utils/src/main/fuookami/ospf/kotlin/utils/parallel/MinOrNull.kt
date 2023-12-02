@@ -3,11 +3,11 @@ package fuookami.ospf.kotlin.utils.parallel
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 
-suspend inline fun <T: Comparable<T>> Iterable<T>.minOrNullParallelly(): T? {
+suspend inline fun <T : Comparable<T>> Iterable<T>.minOrNullParallelly(): T? {
     return this.minOrNullParallelly(UInt64.ten)
 }
 
-suspend inline fun <T: Comparable<T>> Iterable<T>.minOrNullParallelly(segment: UInt64): T? {
+suspend inline fun <T : Comparable<T>> Iterable<T>.minOrNullParallelly(segment: UInt64): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val iterator = this@minOrNullParallelly.iterator()
@@ -27,7 +27,7 @@ suspend inline fun <T: Comparable<T>> Iterable<T>.minOrNullParallelly(segment: U
     }
 }
 
-suspend inline fun <T: Comparable<T>> Collection<T>.minOrNullParallelly(): T? {
+suspend inline fun <T : Comparable<T>> Collection<T>.minOrNullParallelly(): T? {
     return (this as Iterable<T>).minOrNullParallelly(
         UInt64(
             maxOf(
@@ -41,11 +41,11 @@ suspend inline fun <T: Comparable<T>> Collection<T>.minOrNullParallelly(): T? {
     )
 }
 
-suspend inline fun <T: Comparable<T>> Collection<T>.minOrNullParallelly(concurrentAmount: UInt64): T? {
+suspend inline fun <T : Comparable<T>> Collection<T>.minOrNullParallelly(concurrentAmount: UInt64): T? {
     return (this as Iterable<T>).minOrNullParallelly(UInt64(this.size) / concurrentAmount)
 }
 
-suspend inline fun <T: Comparable<T>> List<T>.minOrNullParallelly(): T? {
+suspend inline fun <T : Comparable<T>> List<T>.minOrNullParallelly(): T? {
     return this.minOrNullParallelly(
         UInt64(
             maxOf(
@@ -59,7 +59,7 @@ suspend inline fun <T: Comparable<T>> List<T>.minOrNullParallelly(): T? {
     )
 }
 
-suspend inline fun <T: Comparable<T>> List<T>.minOrNullParallelly(concurrentAmount: UInt64): T? {
+suspend inline fun <T : Comparable<T>> List<T>.minOrNullParallelly(concurrentAmount: UInt64): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val segmentAmount = this@minOrNullParallelly.size / concurrentAmount.toInt()

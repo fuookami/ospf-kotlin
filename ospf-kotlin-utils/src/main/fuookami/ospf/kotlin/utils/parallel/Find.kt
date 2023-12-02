@@ -16,6 +16,9 @@ suspend inline fun <T> Iterable<T>.findParallelly(crossinline predicate: TryPred
     return this.firstParallelly(predicate)
 }
 
-suspend inline fun <T> Iterable<T>.findParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> Iterable<T>.findParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<T, Error> {
     return this.firstParallelly(concurrentAmount, predicate)
 }

@@ -463,7 +463,8 @@ class ValueRange<T> constructor(
     private var _lowerInterval: IntervalType,
     private var _upperInterval: IntervalType,
     val constants: RealNumberConstants<T>
-) : Cloneable, Copyable<ValueRange<T>>, Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>, PlusAssign<T>,
+) : Cloneable, Copyable<ValueRange<T>>, Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
+    PlusAssign<T>,
     MinusAssign<T>,
     Times<T, ValueRange<T>>, TimesAssign<T>, Div<T, ValueRange<T>>, DivAssign<T>
         where T : RealNumber<T>, T : NumberField<T> {

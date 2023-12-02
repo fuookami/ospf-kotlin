@@ -4,11 +4,18 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <R, T, C: MutableCollection<in R>> Iterable<T>.mapToParallelly(destination: C, crossinline extractor: Extractor<R, T>): C {
+suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
+    destination: C,
+    crossinline extractor: Extractor<R, T>
+): C {
     return this.mapToParallelly(UInt64.ten, destination, extractor)
 }
 
-suspend inline fun <R, T, C: MutableCollection<in R>> Iterable<T>.mapToParallelly(segment: UInt64, destination: C, crossinline extractor: Extractor<R, T>): C {
+suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
+    segment: UInt64,
+    destination: C,
+    crossinline extractor: Extractor<R, T>
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val iterator = this@mapToParallelly.iterator()
@@ -28,7 +35,10 @@ suspend inline fun <R, T, C: MutableCollection<in R>> Iterable<T>.mapToParallell
     }
 }
 
-suspend inline fun <R, T, C: MutableCollection<in R>> Collection<T>.mapToParallelly(destination: C, crossinline extractor: Extractor<R, T>): C {
+suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParallelly(
+    destination: C,
+    crossinline extractor: Extractor<R, T>
+): C {
     return this.mapToParallelly(
         UInt64(
             maxOf(
@@ -44,11 +54,18 @@ suspend inline fun <R, T, C: MutableCollection<in R>> Collection<T>.mapToParalle
     )
 }
 
-suspend inline fun <R, T, C: MutableCollection<in R>> Collection<T>.mapToParallelly(concurrentAmount: UInt64, destination: C, crossinline extractor: Extractor<R, T>): C {
+suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParallelly(
+    concurrentAmount: UInt64,
+    destination: C,
+    crossinline extractor: Extractor<R, T>
+): C {
     return (this as Iterable<T>).mapToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
-suspend inline fun <R, T, C: MutableCollection<in R>> List<T>.mapToParallelly(destination: C, crossinline extractor: Extractor<R, T>): C {
+suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
+    destination: C,
+    crossinline extractor: Extractor<R, T>
+): C {
     return this.mapToParallelly(
         UInt64(
             maxOf(
@@ -64,7 +81,11 @@ suspend inline fun <R, T, C: MutableCollection<in R>> List<T>.mapToParallelly(de
     )
 }
 
-suspend inline fun <R, T, C: MutableCollection<in R>> List<T>.mapToParallelly(concurrentAmount: UInt64, destination: C, crossinline extractor: Extractor<R, T>): C {
+suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
+    concurrentAmount: UInt64,
+    destination: C,
+    crossinline extractor: Extractor<R, T>
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val segmentAmount = this@mapToParallelly.size / concurrentAmount.toInt()

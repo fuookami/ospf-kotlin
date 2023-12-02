@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.*
 
-data class Circle<P : Point<D>, V : Vector<D>, D: Dimension>(
+data class Circle<P : Point<D>, V : Vector<D>, D : Dimension>(
     val center: P,
     val direction: V,
     val radius: Flt64
@@ -18,6 +18,7 @@ data class Circle<P : Point<D>, V : Vector<D>, D: Dimension>(
 }
 
 typealias Circle2 = Circle<Point2, Vector2, Dim2>
+
 val Circle2.x: Flt64 get() = center.x
 val Circle2.y: Flt64 get() = center.y
 
@@ -31,7 +32,7 @@ fun Circle.Companion.circumCircleOf(triangle: Triangle2): Circle2 {
     val u = triangle.p3.x.sqr() - triangle.p1.x.sqr() + triangle.p3.y.sqr() - triangle.p1.y.sqr()
     val s = Flt64.one / (Flt64.two * (ax * by - ay * bx))
 
-    val x = ((triangle.p3.y - triangle.p1.y) * m  + (triangle.p1.y - triangle.p2.y) * u) * s
+    val x = ((triangle.p3.y - triangle.p1.y) * m + (triangle.p1.y - triangle.p2.y) * u) * s
     val y = ((triangle.p1.x - triangle.p3.x) * m + (triangle.p2.x - triangle.p1.x) * u) * s
     val r = ((triangle.p1.x - x).sqr() + (triangle.p1.y - y).sqr()).sqrt()
 

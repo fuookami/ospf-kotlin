@@ -5,11 +5,18 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(destination: M, crossinline extractor: Extractor<V, T>): M {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
+    destination: M,
+    crossinline extractor: Extractor<V, T>
+): M {
     return this.associateWithToParallelly(UInt64.ten, destination, extractor)
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(segment: UInt64, destination: M, crossinline extractor: Extractor<V, T>): M {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
+    segment: UInt64,
+    destination: M,
+    crossinline extractor: Extractor<V, T>
+): M {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<T, V>>>>()
         val iterator = this@associateWithToParallelly.iterator()
@@ -29,11 +36,18 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
     }
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(destination: M, crossinline extractor: TryExtractor<V, T>): Result<M, Error> {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
+    destination: M,
+    crossinline extractor: TryExtractor<V, T>
+): Result<M, Error> {
     return this.associateWithToParallelly(UInt64.ten, destination, extractor)
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(segment: UInt64, destination: M, crossinline extractor: TryExtractor<V, T>): Result<M, Error> {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
+    segment: UInt64,
+    destination: M,
+    crossinline extractor: TryExtractor<V, T>
+): Result<M, Error> {
     var error: Error? = null
 
     return try {
@@ -71,7 +85,10 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
     }
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(destination: M, crossinline extractor: Extractor<V, T>): M {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(
+    destination: M,
+    crossinline extractor: Extractor<V, T>
+): M {
     return (this as Iterable<T>).associateWithToParallelly(
         UInt64(
             maxOf(
@@ -87,11 +104,18 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWit
     )
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(concurrentAmount: UInt64, destination: M, crossinline extractor: Extractor<V, T>): M {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(
+    concurrentAmount: UInt64,
+    destination: M,
+    crossinline extractor: Extractor<V, T>
+): M {
     return (this as Iterable<T>).associateWithToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(destination: M, crossinline extractor: TryExtractor<V, T>): Result<M, Error> {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(
+    destination: M,
+    crossinline extractor: TryExtractor<V, T>
+): Result<M, Error> {
     return (this as Iterable<T>).associateWithToParallelly(
         UInt64(
             maxOf(
@@ -107,11 +131,18 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWit
     )
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(concurrentAmount: UInt64, destination: M, crossinline extractor: TryExtractor<V, T>): Result<M, Error> {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(
+    concurrentAmount: UInt64,
+    destination: M,
+    crossinline extractor: TryExtractor<V, T>
+): Result<M, Error> {
     return (this as Iterable<T>).associateWithToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(destination: M, crossinline extractor: Extractor<V, T>): M {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(
+    destination: M,
+    crossinline extractor: Extractor<V, T>
+): M {
     return this.associateWithToParallelly(
         UInt64(
             maxOf(
@@ -127,7 +158,11 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToPar
     )
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(concurrentAmount: UInt64, destination: M, crossinline extractor: Extractor<V, T>): M {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(
+    concurrentAmount: UInt64,
+    destination: M,
+    crossinline extractor: Extractor<V, T>
+): M {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<T, V>>>>()
         val segmentAmount = this@associateWithToParallelly.size / concurrentAmount.toInt()
@@ -148,7 +183,10 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToPar
     }
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(destination: M, crossinline extractor: TryExtractor<V, T>): Result<M, Error> {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(
+    destination: M,
+    crossinline extractor: TryExtractor<V, T>
+): Result<M, Error> {
     return this.associateWithToParallelly(
         UInt64(
             maxOf(
@@ -164,7 +202,11 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToPar
     )
 }
 
-suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(concurrentAmount: UInt64, destination: M, crossinline extractor: TryExtractor<V, T>): Result<M, Error> {
+suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(
+    concurrentAmount: UInt64,
+    destination: M,
+    crossinline extractor: TryExtractor<V, T>
+): Result<M, Error> {
     var error: Error? = null
 
     return try {

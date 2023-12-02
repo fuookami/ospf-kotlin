@@ -4,11 +4,14 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T, R: Comparable<R>> Iterable<T>.minByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
     return this.minByOrNullParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <T, R: Comparable<R>> Iterable<T>.minByOrNullParallelly(segment: UInt64, crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
+    segment: UInt64,
+    crossinline extractor: Extractor<R, T>
+): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, R>?>>()
         val iterator = this@minByOrNullParallelly.iterator()
@@ -29,7 +32,7 @@ suspend inline fun <T, R: Comparable<R>> Iterable<T>.minByOrNullParallelly(segme
     }
 }
 
-suspend inline fun <T, R: Comparable<R>> Collection<T>.minByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> Collection<T>.minByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
     return (this as Iterable<T>).minByOrNullParallelly(
         UInt64(
             maxOf(
@@ -44,11 +47,14 @@ suspend inline fun <T, R: Comparable<R>> Collection<T>.minByOrNullParallelly(cro
     )
 }
 
-suspend inline fun <T, R: Comparable<R>> Collection<T>.minByOrNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> Collection<T>.minByOrNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: Extractor<R, T>
+): T? {
     return (this as Iterable<T>).minByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <T, R: Comparable<R>> List<T>.minByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> List<T>.minByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
     return this.minByOrNullParallelly(
         UInt64(
             maxOf(
@@ -63,7 +69,10 @@ suspend inline fun <T, R: Comparable<R>> List<T>.minByOrNullParallelly(crossinli
     )
 }
 
-suspend inline fun <T, R: Comparable<R>> List<T>.minByOrNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> List<T>.minByOrNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: Extractor<R, T>
+): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, R>?>>()
         val segmentAmount = this@minByOrNullParallelly.size / concurrentAmount.toInt()

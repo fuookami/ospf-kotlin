@@ -10,7 +10,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 class JsonNamingPolicy(
     val frontend: NamingSystem,
     val backend: NamingSystem
-): JsonNamingStrategy {
+) : JsonNamingStrategy {
     val transfer = NameTransfer(frontend, backend)
 
     override fun serialNameForJson(descriptor: SerialDescriptor, elementIndex: Int, serialName: String): String {
@@ -48,7 +48,12 @@ fun <T> writeJsonToFile(path: String, serializer: KSerializer<T>, value: T, nami
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-fun <T> writeJsonToStream(stream: OutputStream, serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null) {
+fun <T> writeJsonToStream(
+    stream: OutputStream,
+    serializer: KSerializer<T>,
+    value: T,
+    namingPolicy: JsonNamingPolicy? = null
+) {
     val json = Json {
         ignoreUnknownKeys = true
         if (namingPolicy != null) {

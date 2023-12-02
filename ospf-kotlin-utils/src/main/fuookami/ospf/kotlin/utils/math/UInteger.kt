@@ -29,7 +29,11 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     override fun cbrt() = pow(Flt64(1.0 / 3.0))
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
-    override infix fun until(rhs: Self) = if (rhs == constants.zero) { this.rangeTo(rhs) } else { this.rangeTo(rhs - constants.one) }
+    override infix fun until(rhs: Self) = if (rhs == constants.zero) {
+        this.rangeTo(rhs)
+    } else {
+        this.rangeTo(rhs - constants.one)
+    }
 }
 
 object UInt8Serializer : RealNumberKSerializer<UInt8> {

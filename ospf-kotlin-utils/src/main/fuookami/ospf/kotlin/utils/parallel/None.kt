@@ -52,7 +52,10 @@ suspend inline fun <T> Collection<T>.noneParallelly(crossinline predicate: Predi
     )
 }
 
-suspend inline fun <T> Collection<T>.noneParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Collection<T>.noneParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return (this as Iterable<T>).noneParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -94,7 +97,7 @@ suspend inline fun <T> List<T>.noneParallelly(concurrentAmount: UInt64, crossinl
                 }
             }
         }
-        
+
         true
     } catch (e: CancellationException) {
         false

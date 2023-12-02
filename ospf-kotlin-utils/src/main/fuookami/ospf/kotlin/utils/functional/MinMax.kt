@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.functional
 
-fun <T: Comparable<T>> Iterable<T>.minMax(): Pair<T, T> {
+fun <T : Comparable<T>> Iterable<T>.minMax(): Pair<T, T> {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         throw NoSuchElementException()
@@ -20,7 +20,7 @@ fun <T: Comparable<T>> Iterable<T>.minMax(): Pair<T, T> {
     return Pair(min, max)
 }
 
-fun <T: Comparable<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
+fun <T : Comparable<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null
@@ -40,7 +40,7 @@ fun <T: Comparable<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     return Pair(min, max)
 }
 
-inline fun <T, R: Comparable<R>> Iterable<T>.minMaxBy(crossinline extractor: Extractor<R, T>): Pair<T, T> {
+inline fun <T, R : Comparable<R>> Iterable<T>.minMaxBy(crossinline extractor: Extractor<R, T>): Pair<T, T> {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         throw NoSuchElementException()
@@ -63,7 +63,7 @@ inline fun <T, R: Comparable<R>> Iterable<T>.minMaxBy(crossinline extractor: Ext
     return Pair(min.first, max.first)
 }
 
-inline fun <T, R: Comparable<R>> Iterable<T>.minMaxByOrNull(crossinline extractor: Extractor<R, T>): Pair<T, T>? {
+inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByOrNull(crossinline extractor: Extractor<R, T>): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null
@@ -86,7 +86,7 @@ inline fun <T, R: Comparable<R>> Iterable<T>.minMaxByOrNull(crossinline extracto
     return Pair(min.first, max.first)
 }
 
-inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOf(crossinline extractor: Extractor<R, T>): Pair<R, R> {
+inline fun <T, R : Comparable<R>> Iterable<T>.minMaxOf(crossinline extractor: Extractor<R, T>): Pair<R, R> {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         throw NoSuchElementException()
@@ -106,7 +106,7 @@ inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOf(crossinline extractor: Ext
     return Pair(min, max)
 }
 
-inline fun <T, R: Comparable<R>> Iterable<T>.minMaxOfOrNull(crossinline extractor: Extractor<R, T>): Pair<R, R>? {
+inline fun <T, R : Comparable<R>> Iterable<T>.minMaxOfOrNull(crossinline extractor: Extractor<R, T>): Pair<R, R>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null

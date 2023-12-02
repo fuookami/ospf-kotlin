@@ -3,11 +3,11 @@ package fuookami.ospf.kotlin.utils.parallel
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 
-suspend inline fun <T: Comparable<T>> Iterable<T>.maxParallelly(): T {
+suspend inline fun <T : Comparable<T>> Iterable<T>.maxParallelly(): T {
     return this.maxParallelly(UInt64.ten)
 }
 
-suspend inline fun <T: Comparable<T>> Iterable<T>.maxParallelly(segment: UInt64): T {
+suspend inline fun <T : Comparable<T>> Iterable<T>.maxParallelly(segment: UInt64): T {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val iterator = this@maxParallelly.iterator()
@@ -27,7 +27,7 @@ suspend inline fun <T: Comparable<T>> Iterable<T>.maxParallelly(segment: UInt64)
     } ?: throw NoSuchElementException()
 }
 
-suspend inline fun <T: Comparable<T>> Collection<T>.maxParallelly(): T {
+suspend inline fun <T : Comparable<T>> Collection<T>.maxParallelly(): T {
     return (this as Iterable<T>).maxParallelly(
         UInt64(
             maxOf(
@@ -41,11 +41,11 @@ suspend inline fun <T: Comparable<T>> Collection<T>.maxParallelly(): T {
     )
 }
 
-suspend inline fun <T: Comparable<T>> Collection<T>.maxParallelly(concurrentAmount: UInt64): T {
+suspend inline fun <T : Comparable<T>> Collection<T>.maxParallelly(concurrentAmount: UInt64): T {
     return (this as Iterable<T>).maxParallelly(UInt64(this.size) / concurrentAmount)
 }
 
-suspend inline fun <T: Comparable<T>> List<T>.maxParallelly(): T {
+suspend inline fun <T : Comparable<T>> List<T>.maxParallelly(): T {
     return this.maxParallelly(
         UInt64(
             maxOf(
@@ -59,7 +59,7 @@ suspend inline fun <T: Comparable<T>> List<T>.maxParallelly(): T {
     )
 }
 
-suspend inline fun <T: Comparable<T>> List<T>.maxParallelly(concurrentAmount: UInt64): T {
+suspend inline fun <T : Comparable<T>> List<T>.maxParallelly(concurrentAmount: UInt64): T {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val segmentAmount = this@maxParallelly.size / concurrentAmount.toInt()

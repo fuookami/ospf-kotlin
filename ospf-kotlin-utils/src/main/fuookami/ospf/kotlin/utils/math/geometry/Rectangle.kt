@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 
-data class Rectangle<P : Point<D>, D: Dimension>(
+data class Rectangle<P : Point<D>, D : Dimension>(
     val p1: P,
     val p2: P,
     val p3: P,
@@ -40,6 +40,7 @@ data class Rectangle<P : Point<D>, D: Dimension>(
 }
 
 typealias Rectangle2 = Rectangle<Point2, Dim2>
+
 fun Rectangle2.contains(
     point: Point2,
     withLowerBound: Boolean = true,

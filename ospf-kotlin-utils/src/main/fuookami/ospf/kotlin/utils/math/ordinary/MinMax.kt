@@ -78,7 +78,7 @@ inline fun <T : Ord<T>, U> minMaxOf(lhs: U, vararg rhs: U, crossinline extractor
     return Pair(min, max)
 }
 
-fun <T: Ord<T>> Iterable<T>.minMax(): Pair<T, T> {
+fun <T : Ord<T>> Iterable<T>.minMax(): Pair<T, T> {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         throw NoSuchElementException()
@@ -98,7 +98,7 @@ fun <T: Ord<T>> Iterable<T>.minMax(): Pair<T, T> {
     return Pair(min, max)
 }
 
-fun <T: Ord<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
+fun <T : Ord<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null
@@ -118,7 +118,7 @@ fun <T: Ord<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     return Pair(min, max)
 }
 
-inline fun <T: Ord<T>, U> Iterable<U>.minMaxBy(crossinline extractor: Extractor<T, U>): Pair<U, U> {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(crossinline extractor: Extractor<T, U>): Pair<U, U> {
     val iterator = this.iterator()
     var minE = iterator().next()
     var maxE = minE
@@ -139,7 +139,7 @@ inline fun <T: Ord<T>, U> Iterable<U>.minMaxBy(crossinline extractor: Extractor<
     return Pair(minE, maxE)
 }
 
-inline fun <T: Ord<T>, U> Iterable<U>.minMaxByOrNull(crossinline extractor: Extractor<T, U>): Pair<U, U>? {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(crossinline extractor: Extractor<T, U>): Pair<U, U>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null
@@ -163,7 +163,7 @@ inline fun <T: Ord<T>, U> Iterable<U>.minMaxByOrNull(crossinline extractor: Extr
     return Pair(minE, maxE)
 }
 
-inline fun <T: Ord<T>, U> Iterable<U>.minMaxOf(crossinline extractor: Extractor<T, U>): Pair<T, T> {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(crossinline extractor: Extractor<T, U>): Pair<T, T> {
     val iterator = this.iterator()
     var min = extractor(iterator().next())
     var max = min
@@ -179,7 +179,7 @@ inline fun <T: Ord<T>, U> Iterable<U>.minMaxOf(crossinline extractor: Extractor<
     return Pair(min, max)
 }
 
-inline fun <T: Ord<T>, U> Iterable<U>.minMaxOfOrNull(crossinline extractor: Extractor<T, U>): Pair<T, T>? {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(crossinline extractor: Extractor<T, U>): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null
@@ -233,7 +233,10 @@ fun <T> Iterable<T>.minMaxOfWithOrNull(comparator: kotlin.Comparator<T>): Pair<T
     return Pair(min, max)
 }
 
-inline fun <T, U> Iterable<U>.minMaxOfWith(comparator: kotlin.Comparator<T>, crossinline extractor: Extractor<T, U>): Pair<T, T> {
+inline fun <T, U> Iterable<U>.minMaxOfWith(
+    comparator: kotlin.Comparator<T>,
+    crossinline extractor: Extractor<T, U>
+): Pair<T, T> {
     val iterator = this.iterator()
     var min = extractor(iterator().next())
     var max = min
@@ -249,7 +252,10 @@ inline fun <T, U> Iterable<U>.minMaxOfWith(comparator: kotlin.Comparator<T>, cro
     return Pair(min, max)
 }
 
-inline fun <T, U> Iterable<U>.minMaxOfWithOrNull(comparator: kotlin.Comparator<T>, crossinline extractor: Extractor<T, U>): Pair<T, T>? {
+inline fun <T, U> Iterable<U>.minMaxOfWithOrNull(
+    comparator: kotlin.Comparator<T>,
+    crossinline extractor: Extractor<T, U>
+): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null

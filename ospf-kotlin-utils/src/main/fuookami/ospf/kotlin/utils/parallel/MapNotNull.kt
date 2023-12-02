@@ -8,7 +8,10 @@ suspend inline fun <R, T> Iterable<T>.mapNotNullParallelly(crossinline extractor
     return this.mapNotNullParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <R, T> Iterable<T>.mapNotNullParallelly(segment: UInt64, crossinline extractor: Extractor<R?, T>): List<R> {
+suspend inline fun <R, T> Iterable<T>.mapNotNullParallelly(
+    segment: UInt64,
+    crossinline extractor: Extractor<R?, T>
+): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val iterator = this@mapNotNullParallelly.iterator()
@@ -43,7 +46,10 @@ suspend inline fun <R, T> Collection<T>.mapNotNullParallelly(crossinline extract
     )
 }
 
-suspend inline fun <R, T> Collection<T>.mapNotNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R?, T>): List<R> {
+suspend inline fun <R, T> Collection<T>.mapNotNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: Extractor<R?, T>
+): List<R> {
     return (this as Iterable<T>).mapNotNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -62,7 +68,10 @@ suspend inline fun <R, T> List<T>.mapNotNullParallelly(crossinline extractor: Ex
     )
 }
 
-suspend inline fun <R, T> List<T>.mapNotNullParallelly(concurrentAmount: UInt64, crossinline extractor: Extractor<R?, T>): List<R> {
+suspend inline fun <R, T> List<T>.mapNotNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: Extractor<R?, T>
+): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val segmentAmount = this@mapNotNullParallelly.size / concurrentAmount.toInt()

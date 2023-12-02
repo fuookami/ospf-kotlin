@@ -4,11 +4,14 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <reified T, C: MutableCollection<in T>> Iterable<*>.filterIsInstanceToParallelly(destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> Iterable<*>.filterIsInstanceToParallelly(destination: C): C {
     return this.filterIsInstanceToParallelly(UInt64.ten, destination)
 }
 
-suspend inline fun <reified T, C: MutableCollection<in T>> Iterable<*>.filterIsInstanceToParallelly(segment: UInt64, destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> Iterable<*>.filterIsInstanceToParallelly(
+    segment: UInt64,
+    destination: C
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterIsInstanceToParallelly.iterator()
@@ -28,7 +31,7 @@ suspend inline fun <reified T, C: MutableCollection<in T>> Iterable<*>.filterIsI
     }
 }
 
-suspend inline fun <reified T, C: MutableCollection<in T>> Collection<*>.filterIsInstanceToParallelly(destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> Collection<*>.filterIsInstanceToParallelly(destination: C): C {
     return (this as Iterable<*>).filterIsInstanceToParallelly(
         UInt64(
             maxOf(
@@ -43,11 +46,14 @@ suspend inline fun <reified T, C: MutableCollection<in T>> Collection<*>.filterI
     )
 }
 
-suspend inline fun <reified T, C: MutableCollection<in T>> Collection<*>.filterIsInstanceToParallelly(concurrentAmount: UInt64, destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> Collection<*>.filterIsInstanceToParallelly(
+    concurrentAmount: UInt64,
+    destination: C
+): C {
     return (this as Iterable<*>).filterIsInstanceToParallelly(UInt64(this.size) / concurrentAmount, destination)
 }
 
-suspend inline fun <reified T, C: MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(destination: C): C {
     return this.filterIsInstanceToParallelly(
         UInt64(
             maxOf(
@@ -62,7 +68,10 @@ suspend inline fun <reified T, C: MutableCollection<in T>> List<*>.filterIsInsta
     )
 }
 
-suspend inline fun <reified T, C: MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(concurrentAmount: UInt64, destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(
+    concurrentAmount: UInt64,
+    destination: C
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterIsInstanceToParallelly.size / concurrentAmount.toInt()

@@ -28,6 +28,7 @@ suspend inline fun <T> Iterable<T>.anyParallelly(segment: UInt64, crossinline pr
             for (promise in promises) {
                 if (promise.await()) {
                     cancel()
+                    return@coroutineScope true
                 }
             }
 
@@ -42,7 +43,10 @@ suspend inline fun <T> Iterable<T>.anyParallelly(crossinline predicate: TryPredi
     return this.anyParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.anyParallelly(segment: UInt64, crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Iterable<T>.anyParallelly(
+    segment: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     var error: Error? = null
 
     return try {
@@ -75,11 +79,12 @@ suspend inline fun <T> Iterable<T>.anyParallelly(segment: UInt64, crossinline pr
             for (promise in promises) {
                 if (promise.await()) {
                     cancel()
+                    return@coroutineScope true
                 }
             }
 
-            Ok(false)
-        }
+            false
+        }.let { Ok(it) }
     } catch (e: CancellationException) {
         error?.let { Failed(it) } ?: Ok(true)
     }
@@ -100,7 +105,10 @@ suspend inline fun <T> Collection<T>.anyParallelly(crossinline predicate: Predic
     )
 }
 
-suspend inline fun <T> Collection<T>.anyParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Collection<T>.anyParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return (this as Iterable<T>).anyParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -119,7 +127,10 @@ suspend inline fun <T> Collection<T>.anyParallelly(crossinline predicate: TryPre
     )
 }
 
-suspend inline fun <T> Collection<T>.anyParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Collection<T>.anyParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     return (this as Iterable<T>).anyParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -158,6 +169,7 @@ suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinli
             for (promise in promises) {
                 if (promise.await()) {
                     cancel()
+                    return@coroutineScope true
                 }
             }
 
@@ -183,7 +195,10 @@ suspend inline fun <T> List<T>.anyParallelly(crossinline predicate: TryPredicate
     )
 }
 
-suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> List<T>.anyParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     var error: Error? = null
 
     return try {
@@ -191,7 +206,7 @@ suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinli
             val promises = ArrayList<Deferred<Boolean>>()
             val segmentAmount = this@anyParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while ( i != this@anyParallelly.size) {
+            while (i != this@anyParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
@@ -217,11 +232,12 @@ suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinli
             for (promise in promises) {
                 if (promise.await()) {
                     cancel()
+                    return@coroutineScope true
                 }
             }
 
-            Ok(false)
-        }
+            false
+        }.let { Ok(it) }
     } catch (e: CancellationException) {
         error?.let { Failed(it) } ?: Ok(true)
     }

@@ -47,7 +47,10 @@ private class NameTransferImpl(
  * @param backend       backend naming system
  * @return              name transfer for given frontend and backend naming system
  */
-private fun nameTransferOf(frontend: NamingSystem, backend: NamingSystem): Pair<Pair<NamingSystem, NamingSystem>, NameTransferImpl> {
+private fun nameTransferOf(
+    frontend: NamingSystem,
+    backend: NamingSystem
+): Pair<Pair<NamingSystem, NamingSystem>, NameTransferImpl> {
     return Pair(Pair(frontend, backend), NameTransferImpl(frontend, backend))
 }
 

@@ -33,7 +33,10 @@ suspend inline fun <T> Iterable<T>.countParallelly(crossinline predicate: TryPre
     return this.countParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.countParallelly(segment: UInt64, crossinline predicate: TryPredicate<T>): Result<Int, Error> {
+suspend inline fun <T> Iterable<T>.countParallelly(
+    segment: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Int, Error> {
     var error: Error? = null
 
     return try {
@@ -86,7 +89,10 @@ suspend inline fun <T> Collection<T>.countParallelly(crossinline predicate: Pred
     )
 }
 
-suspend inline fun <T> Collection<T>.countParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Int {
+suspend inline fun <T> Collection<T>.countParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Int {
     return (this as Iterable<T>).countParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -105,7 +111,10 @@ suspend inline fun <T> Collection<T>.countParallelly(crossinline predicate: TryP
     )
 }
 
-suspend inline fun <T> Collection<T>.countParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<Int, Error> {
+suspend inline fun <T> Collection<T>.countParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Int, Error> {
     return (this as Iterable<T>).countParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -160,7 +169,10 @@ suspend inline fun <T> List<T>.countParallelly(crossinline predicate: TryPredica
     )
 }
 
-suspend inline fun <T> List<T>.countParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<Int, Error> {
+suspend inline fun <T> List<T>.countParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Int, Error> {
     var error: Error? = null
 
     return try {

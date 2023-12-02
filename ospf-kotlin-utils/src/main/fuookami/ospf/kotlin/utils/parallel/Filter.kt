@@ -33,7 +33,10 @@ suspend inline fun <T> Iterable<T>.filterParallelly(crossinline predicate: TryPr
     return this.filterParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.filterParallelly(segment: UInt64, crossinline predicate: TryPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> Iterable<T>.filterParallelly(
+    segment: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<List<T>, Error> {
     var error: Error? = null
 
     return try {
@@ -86,7 +89,10 @@ suspend inline fun <T> Collection<T>.filterParallelly(crossinline predicate: Pre
     )
 }
 
-suspend inline fun <T> Collection<T>.filterParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> Collection<T>.filterParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): List<T> {
     return (this as Iterable<T>).filterParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -105,7 +111,10 @@ suspend inline fun <T> Collection<T>.filterParallelly(crossinline predicate: Try
     )
 }
 
-suspend inline fun <T> Collection<T>.filterParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> Collection<T>.filterParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<List<T>, Error> {
     return (this as Iterable<T>).filterParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -124,7 +133,10 @@ suspend inline fun <T> List<T>.filterParallelly(crossinline predicate: Predicate
     )
 }
 
-suspend inline fun <T> List<T>.filterParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> List<T>.filterParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterParallelly.size / concurrentAmount.toInt()
@@ -160,7 +172,10 @@ suspend inline fun <T> List<T>.filterParallelly(crossinline predicate: TryPredic
     )
 }
 
-suspend inline fun <T> List<T>.filterParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> List<T>.filterParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<List<T>, Error> {
     var error: Error? = null
 
     return try {

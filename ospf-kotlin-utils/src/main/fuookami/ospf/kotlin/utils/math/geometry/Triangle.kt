@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-class Triangle<P : Point<D>, D: Dimension>(
+class Triangle<P : Point<D>, D : Dimension>(
     val p1: P,
     val p2: P,
     val p3: P

@@ -190,7 +190,7 @@ object Flt64Serializer : RealNumberKSerializer<Flt64> {
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
 value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Flt64> {
-    constructor(value: Int): this(value.toDouble())
+    constructor(value: Int) : this(value.toDouble())
 
     companion object : FloatingNumberConstants<Flt64> {
         override val zero: Flt64 get() = Flt64(0.0)

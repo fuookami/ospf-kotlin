@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T> Iterable<T>.allParallelly(crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Iterable<T>.allParallelly(
+    crossinline predicate: Predicate<T>
+): Boolean {
     return this.allParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.allParallelly(segment: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Iterable<T>.allParallelly(
+    segment: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()
@@ -28,6 +33,7 @@ suspend inline fun <T> Iterable<T>.allParallelly(segment: UInt64, crossinline pr
             for (promise in promises) {
                 if (!promise.await()) {
                     cancel()
+                    return@coroutineScope false
                 }
             }
 
@@ -38,11 +44,16 @@ suspend inline fun <T> Iterable<T>.allParallelly(segment: UInt64, crossinline pr
     }
 }
 
-suspend inline fun <T> Iterable<T>.allParallelly(crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Iterable<T>.allParallelly(
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     return this.allParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.allParallelly(segment: UInt64, crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Iterable<T>.allParallelly(
+    segment: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     var error: Error? = null
 
     return try {
@@ -57,27 +68,30 @@ suspend inline fun <T> Iterable<T>.allParallelly(segment: UInt64, crossinline pr
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.all { when (val result = predicate(it)) {
-                        is Ok -> {
-                            result.value
-                        }
+                    thisSegment.all {
+                        when (val result = predicate(it)) {
+                            is Ok -> {
+                                result.value
+                            }
 
-                        is Failed -> {
-                            error = result.error
-                            cancel()
-                            false
+                            is Failed -> {
+                                error = result.error
+                                cancel()
+                                false
+                            }
                         }
-                    } }
+                    }
                 })
             }
             for (promise in promises) {
                 if (!promise.await()) {
                     cancel()
+                    return@coroutineScope false
                 }
             }
 
-            Ok(true)
-        }
+            true
+        }.let { Ok(it) }
     } catch (e: CancellationException) {
         error?.let { Failed(it) } ?: Ok(false)
     }
@@ -98,7 +112,10 @@ suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: Predic
     )
 }
 
-suspend inline fun <T> Collection<T>.allParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Collection<T>.allParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return (this as Iterable<T>).allParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -117,7 +134,10 @@ suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: TryPre
     )
 }
 
-suspend inline fun <T> Collection<T>.allParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Collection<T>.allParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     return (this as Iterable<T>).allParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -156,6 +176,7 @@ suspend inline fun <T> List<T>.allParallelly(concurrentAmount: UInt64, crossinli
             for (promise in promises) {
                 if (!promise.await()) {
                     cancel()
+                    return@coroutineScope false
                 }
             }
 
@@ -181,7 +202,10 @@ suspend inline fun <T> List<T>.allParallelly(crossinline predicate: TryPredicate
     )
 }
 
-suspend inline fun <T> List<T>.allParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> List<T>.allParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<Boolean, Error> {
     var error: Error? = null
 
     return try {
@@ -196,28 +220,31 @@ suspend inline fun <T> List<T>.allParallelly(concurrentAmount: UInt64, crossinli
                     this@allParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@allParallelly.subList(j, k).all { when (val result = predicate(it)) {
-                        is Ok -> {
-                            result.value
-                        }
+                    this@allParallelly.subList(j, k).all {
+                        when (val result = predicate(it)) {
+                            is Ok -> {
+                                result.value
+                            }
 
-                        is Failed -> {
-                            error = result.error
-                            cancel()
-                            false
+                            is Failed -> {
+                                error = result.error
+                                cancel()
+                                false
+                            }
                         }
-                    } }
+                    }
                 })
                 i = k
             }
             for (promise in promises) {
                 if (!promise.await()) {
                     cancel()
+                    return@coroutineScope false
                 }
             }
 
-            Ok(true)
-        }
+            true
+        }.let { Ok(it) }
     } catch (e: CancellationException) {
         error?.let { Failed(it) } ?: Ok(false)
     }

@@ -30,7 +30,10 @@ fun <T, U> Iterable<U>.minOfWithThreeWayComparator(comparator: ThreeWayComparato
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minOfWithPartialThreeWayComparator(comparator: PartialThreeWayComparator<T>, extractor: Extractor<T, U>): T {
+fun <T, U> Iterable<U>.minOfWithPartialThreeWayComparator(
+    comparator: PartialThreeWayComparator<T>,
+    extractor: Extractor<T, U>
+): T {
     return this.minOfWith({ lhs, rhs ->
         comparator(lhs, rhs)?.value ?: 0
     }, extractor)

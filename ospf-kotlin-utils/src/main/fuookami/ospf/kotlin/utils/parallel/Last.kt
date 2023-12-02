@@ -10,36 +10,47 @@ suspend inline fun <T> Iterable<T>.lastParallelly(crossinline predicate: Predica
 }
 
 suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline predicate: Predicate<T>): T {
-    return coroutineScope {
-        val promises = ArrayList<Deferred<T?>>()
-        val iterator = this@lastParallelly.iterator()
-        while (iterator.hasNext()) {
-            val thisSegment = ArrayList<T>()
-            var i = UInt64.zero
-            while (iterator.hasNext() && i != segment) {
-                thisSegment.add(iterator.next())
-                ++i
-            }
-            promises.add(async(Dispatchers.Default) {
-                thisSegment.lastOrNull(predicate)
-            })
-        }
-        for (promise in promises.reversed()) {
-            val result = promise.await()
-            if (result != null) {
-                return@coroutineScope result
-            }
-        }
+    var result: T? = null
 
-        null
-    } ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
+    return try {
+        coroutineScope {
+            val promises = ArrayList<Deferred<T?>>()
+            val iterator = this@lastParallelly.iterator()
+            while (iterator.hasNext()) {
+                val thisSegment = ArrayList<T>()
+                var i = UInt64.zero
+                while (iterator.hasNext() && i != segment) {
+                    thisSegment.add(iterator.next())
+                    ++i
+                }
+                promises.add(async(Dispatchers.Default) {
+                    thisSegment.lastOrNull(predicate)
+                })
+            }
+            for (promise in promises.reversed()) {
+                result = promise.await()
+                if (result != null) {
+                    cancel()
+                    return@coroutineScope result
+                }
+            }
+
+            null
+        } ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
+    } catch (e: CancellationException) {
+        result ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
+    }
 }
 
 suspend inline fun <T> Iterable<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Result<T, Error> {
     return this.lastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
-suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> Iterable<T>.lastParallelly(
+    segment: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<T, Error> {
+    var result: T? = null
     var error: Error? = null
 
     return try {
@@ -55,13 +66,13 @@ suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline p
                 }
                 promises.add(async(Dispatchers.Default) {
                     thisSegment.lastOrNull {
-                        when (val result = predicate(it)) {
+                        when (val ret = predicate(it)) {
                             is Ok -> {
-                                result.value
+                                ret.value
                             }
 
                             is Failed -> {
-                                error = result.error
+                                error = ret.error
                                 cancel()
                                 false
                             }
@@ -70,16 +81,19 @@ suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline p
                 })
             }
             for (promise in promises.reversed()) {
-                val result = promise.await()
+                result = promise.await()
                 if (result != null) {
+                    cancel()
                     return@coroutineScope result
                 }
             }
-        }
 
-        Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            null
+        }?.let { Ok(it) }
+            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
     } catch (e: CancellationException) {
-        error?.let { Failed(it) }
+        result?.let { Ok(it) }
+            ?: error?.let { Failed(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
     }
 }
@@ -118,7 +132,10 @@ suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: TryPr
     )
 }
 
-suspend inline fun <T> Collection<T>.lastParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> Collection<T>.lastParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<T, Error> {
     return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -163,12 +180,13 @@ suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinl
                     result = promise.await()
                     if (result != null) {
                         cancel()
+                        return@coroutineScope result
                     }
                 }
             }
-        }
 
-        throw NoSuchElementException("Collection contains no element matching the predicate.")
+            null
+        } ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
     } catch (e: CancellationException) {
         result!!
     }
@@ -189,7 +207,10 @@ suspend inline fun <T> List<T>.lastParallelly(crossinline predicate: TryPredicat
     )
 }
 
-suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> List<T>.lastParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryPredicate<T>
+): Result<T, Error> {
     var result: T? = null
     var error: Error? = null
 
@@ -226,12 +247,14 @@ suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinl
                     result = promise.await()
                     if (result != null) {
                         cancel()
+                        return@coroutineScope result
                     }
                 }
             }
-        }
 
-        Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            null
+        }?.let { Ok(it) }
+            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
     } catch (e: CancellationException) {
         error?.let { Failed(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))

@@ -49,7 +49,10 @@ suspend inline fun <T> Collection<T>.lastOrNullParallelly(crossinline predicate:
     )
 }
 
-suspend inline fun <T> Collection<T>.lastOrNullParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): T? {
+suspend inline fun <T> Collection<T>.lastOrNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): T? {
     return (this as Iterable<T>).lastOrNullParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 

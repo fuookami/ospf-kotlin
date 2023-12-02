@@ -32,14 +32,15 @@ data class ContextKey(
         }
     }
 
-    val parent get() = if (stackTree.isEmpty()) {
-        null
-    } else {
-        ContextKey(
-            thread = this.thread,
-            stackTree = dump(stackTree.toList().subList(1, stackTree.size))
-        )
-    }
+    val parent
+        get() = if (stackTree.isEmpty()) {
+            null
+        } else {
+            ContextKey(
+                thread = this.thread,
+                stackTree = dump(stackTree.toList().subList(1, stackTree.size))
+            )
+        }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -101,7 +102,7 @@ class Context<T>(
     }
 }
 
-fun <T: Cloneable> context(contextVar: ContextVar<T>, value: T? = null): Context<T> {
+fun <T : Cloneable> context(contextVar: ContextVar<T>, value: T? = null): Context<T> {
     return if (value != null) {
         contextVar.set(value)
     } else {
@@ -109,7 +110,7 @@ fun <T: Cloneable> context(contextVar: ContextVar<T>, value: T? = null): Context
     }
 }
 
-fun <T: Cloneable> context(contextVar: ContextVar<T>, builder: (() -> T)? = null): Context<T> {
+fun <T : Cloneable> context(contextVar: ContextVar<T>, builder: (() -> T)? = null): Context<T> {
     return if (builder != null) {
         contextVar.set(builder)
     } else {

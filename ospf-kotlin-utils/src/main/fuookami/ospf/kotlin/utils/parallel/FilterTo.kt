@@ -5,11 +5,18 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterToParallelly(destination: C, crossinline predicate: Predicate<T>): C {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterToParallelly(
+    destination: C,
+    crossinline predicate: Predicate<T>
+): C {
     return this.filterToParallelly(UInt64.ten, destination, predicate)
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterToParallelly(segment: UInt64, destination: C, crossinline predicate: Predicate<T>): C {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterToParallelly(
+    segment: UInt64,
+    destination: C,
+    crossinline predicate: Predicate<T>
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterToParallelly.iterator()
@@ -29,11 +36,18 @@ suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterToParallell
     }
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterToParallelly(destination: C, crossinline predicate: TryPredicate<T>): Result<C, Error> {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterToParallelly(
+    destination: C,
+    crossinline predicate: TryPredicate<T>
+): Result<C, Error> {
     return this.filterToParallelly(UInt64.ten, destination, predicate)
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterToParallelly(segment: UInt64, destination: C, crossinline predicate: TryPredicate<T>): Result<C, Error> {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterToParallelly(
+    segment: UInt64,
+    destination: C,
+    crossinline predicate: TryPredicate<T>
+): Result<C, Error> {
     var error: Error? = null
 
     return try {
@@ -71,7 +85,10 @@ suspend inline fun <T, C: MutableCollection<in T>> Iterable<T>.filterToParallell
     }
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterToParallelly(destination: C, crossinline predicate: Predicate<T>): C {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterToParallelly(
+    destination: C,
+    crossinline predicate: Predicate<T>
+): C {
     return (this as Iterable<T>).filterToParallelly(
         UInt64(
             maxOf(
@@ -87,11 +104,18 @@ suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterToParalle
     )
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterToParallelly(concurrentAmount: UInt64, destination: C, crossinline predicate: Predicate<T>): C {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterToParallelly(
+    concurrentAmount: UInt64,
+    destination: C,
+    crossinline predicate: Predicate<T>
+): C {
     return (this as Iterable<T>).filterToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterToParallelly(destination: C, crossinline predicate: TryPredicate<T>): Result<C, Error> {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterToParallelly(
+    destination: C,
+    crossinline predicate: TryPredicate<T>
+): Result<C, Error> {
     return (this as Iterable<T>).filterToParallelly(
         UInt64(
             maxOf(
@@ -107,11 +131,18 @@ suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterToParalle
     )
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> Collection<T>.filterToParallelly(concurrentAmount: UInt64, destination: C, crossinline predicate: TryPredicate<T>): Result<C, Error> {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterToParallelly(
+    concurrentAmount: UInt64,
+    destination: C,
+    crossinline predicate: TryPredicate<T>
+): Result<C, Error> {
     return (this as Iterable<T>).filterToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(destination: C, crossinline predicate: Predicate<T>): C {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterToParallelly(
+    destination: C,
+    crossinline predicate: Predicate<T>
+): C {
     return this.filterToParallelly(
         UInt64(
             maxOf(
@@ -127,7 +158,11 @@ suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(de
     )
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(concurrentAmount: UInt64, destination: C, crossinline predicate: Predicate<T>): C {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterToParallelly(
+    concurrentAmount: UInt64,
+    destination: C,
+    crossinline predicate: Predicate<T>
+): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterToParallelly.size / concurrentAmount.toInt()
@@ -148,7 +183,10 @@ suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(co
     }
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(destination: C, crossinline predicate: TryPredicate<T>): Result<C, Error> {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterToParallelly(
+    destination: C,
+    crossinline predicate: TryPredicate<T>
+): Result<C, Error> {
     return this.filterToParallelly(
         UInt64(
             maxOf(
@@ -164,7 +202,11 @@ suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(de
     )
 }
 
-suspend inline fun <T, C: MutableCollection<in T>> List<T>.filterToParallelly(concurrentAmount: UInt64, destination: C, crossinline predicate: TryPredicate<T>): Result<C, Error> {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterToParallelly(
+    concurrentAmount: UInt64,
+    destination: C,
+    crossinline predicate: TryPredicate<T>
+): Result<C, Error> {
     var error: Error? = null
 
     return try {

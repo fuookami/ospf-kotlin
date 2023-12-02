@@ -17,7 +17,7 @@ private fun timesBetween(lhs: List<Flt64>, rhs: List<Flt64>): Flt64 {
     return lhs.indices.sumOf(Flt64) { lhs[it] * rhs[it] }
 }
 
-open class Vector<D: Dimension> (
+open class Vector<D : Dimension>(
     val vector: List<Flt64>,
     val dim: D
 ) : Plus<Vector<D>, Vector<D>>, Minus<Vector<D>, Vector<D>>, Times<Vector<D>, Flt64> {
@@ -37,7 +37,7 @@ open class Vector<D: Dimension> (
     open val unit: Vector<D> get() = Vector(unitOf(vector), dim)
 
     init {
-        assert (vector.size == dim.size)
+        assert(vector.size == dim.size)
     }
 
     @Throws(ArrayIndexOutOfBoundsException::class)
@@ -55,8 +55,10 @@ open class Vector<D: Dimension> (
 }
 
 typealias Vector2 = Vector<Dim2>
+
 @get:JvmName("Vector2X")
 val Vector2.x get() = this[0]
+
 @get:JvmName("Vector2Y")
 val Vector2.y get() = this[1]
 
@@ -65,10 +67,13 @@ fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector2 {
 }
 
 typealias Vector3 = Vector<Dim3>
+
 @get:JvmName("Vector3X")
 val Vector3.x get() = this[0]
+
 @get:JvmName("Vector3Y")
 val Vector3.y get() = this[1]
+
 @get:JvmName("Vector3Z")
 val Vector3.z get() = this[2]
 

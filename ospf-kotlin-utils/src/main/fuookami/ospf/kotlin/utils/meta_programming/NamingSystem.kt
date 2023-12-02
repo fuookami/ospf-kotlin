@@ -85,7 +85,9 @@ enum class NamingSystem {
                             alternativeAbbreviation = null
                         }
                     } else {
-                        val newAlternativeAbbreviation = abbreviations.filter { it != partLower && it.startsWith(partLower) }.minByOrNull { it.length }
+                        val newAlternativeAbbreviation =
+                            abbreviations.filter { it != partLower && it.startsWith(partLower) }
+                                .minByOrNull { it.length }
                         if (newAlternativeAbbreviation == null) {
                             // stop traversing and reset
                             words.add(alternativeAbbreviation)
@@ -103,7 +105,8 @@ enum class NamingSystem {
                         part = name.substring(p, q)
                         partLower = part.lowercase(Locale.getDefault())
 
-                        when (val abbreviation = abbreviations.filter { it != partLower && partLower.startsWith(it) }.maxByOrNull { it.length }) {
+                        when (val abbreviation = abbreviations.filter { it != partLower && partLower.startsWith(it) }
+                            .maxByOrNull { it.length }) {
                             null -> {
                                 break
                             }
@@ -116,7 +119,8 @@ enum class NamingSystem {
                     }
 
                     if (abbreviations.contains(partLower)) {
-                        alternativeAbbreviation = abbreviations.filter { it != partLower && it.startsWith(partLower) }.minByOrNull { it.length }
+                        alternativeAbbreviation = abbreviations.filter { it != partLower && it.startsWith(partLower) }
+                            .minByOrNull { it.length }
                         if (alternativeAbbreviation != null) {
                             currentAbbreviation = part
                         } else {
@@ -124,7 +128,8 @@ enum class NamingSystem {
                             p = i
                         }
                     } else {
-                        alternativeAbbreviation = abbreviations.filter { it.startsWith(partLower) }.minByOrNull { it.length }
+                        alternativeAbbreviation =
+                            abbreviations.filter { it.startsWith(partLower) }.minByOrNull { it.length }
                         if (alternativeAbbreviation == null && !name[i].isLowerCase()) {
                             if ((q - p) > 1) {
                                 words.add(name.substring(p, q).lowercase(Locale.getDefault()))

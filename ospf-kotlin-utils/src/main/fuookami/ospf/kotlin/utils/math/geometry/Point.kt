@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-data class Point<D: Dimension> (
+data class Point<D : Dimension>(
     val position: List<Flt64>,
     val dim: D
 ) : Plus<Point<D>, Point<D>>, Minus<Point<D>, Point<D>> {
@@ -16,13 +16,13 @@ data class Point<D: Dimension> (
             return Point(listOf(x, y, z), Dim3)
         }
 
-        operator fun <D: Dimension> invoke(vector: Vector<D>): Point<D> {
+        operator fun <D : Dimension> invoke(vector: Vector<D>): Point<D> {
             return Point(vector.vector, vector.dim)
         }
     }
 
     init {
-        assert (position.size == dim.size)
+        assert(position.size == dim.size)
     }
 
     val size by dim::size
@@ -46,8 +46,10 @@ data class Point<D: Dimension> (
 }
 
 typealias Point2 = Point<Dim2>
+
 @get:JvmName("Point2X")
 val Point2.x get() = this[0]
+
 @get:JvmName("Point2Y")
 val Point2.y get() = this[1]
 
@@ -58,10 +60,13 @@ fun point2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Point2 {
 }
 
 typealias Point3 = Point<Dim3>
+
 @get:JvmName("Point3X")
 val Point3.x get() = this[0]
+
 @get:JvmName("Point3Y")
 val Point3.y get() = this[1]
+
 @get:JvmName("Point3Z")
 val Point3.z get() = this[2]
 

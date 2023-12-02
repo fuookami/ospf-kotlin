@@ -14,7 +14,10 @@ fun <T, U> Iterable<U>.minMaxOfWithComparator(comparator: Comparator<T>, extract
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minMaxOfWithPartialComparator(comparator: PartialComparator<T>, extractor: Extractor<T, U>): Pair<T, T> {
+fun <T, U> Iterable<U>.minMaxOfWithPartialComparator(
+    comparator: PartialComparator<T>,
+    extractor: Extractor<T, U>
+): Pair<T, T> {
     return this.minMaxOfWith({ lhs, rhs ->
         if (comparator(lhs, rhs) == true) {
             -1
@@ -26,13 +29,19 @@ fun <T, U> Iterable<U>.minMaxOfWithPartialComparator(comparator: PartialComparat
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minMaxOfWithThreeWayComparator(comparator: ThreeWayComparator<T>, extractor: Extractor<T, U>): Pair<T, T> {
+fun <T, U> Iterable<U>.minMaxOfWithThreeWayComparator(
+    comparator: ThreeWayComparator<T>,
+    extractor: Extractor<T, U>
+): Pair<T, T> {
     return this.minMaxOfWith({ lhs, rhs ->
         comparator(lhs, rhs).value
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minMaxOfWithPartialThreeWayComparator(comparator: PartialThreeWayComparator<T>, extractor: Extractor<T, U>): Pair<T, T> {
+fun <T, U> Iterable<U>.minMaxOfWithPartialThreeWayComparator(
+    comparator: PartialThreeWayComparator<T>,
+    extractor: Extractor<T, U>
+): Pair<T, T> {
     return this.minMaxOfWith({ lhs, rhs ->
         comparator(lhs, rhs)?.value ?: 0
     }, extractor)

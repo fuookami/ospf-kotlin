@@ -15,7 +15,7 @@ interface Eq<Self> : PartialEq<Self> {
     }
 }
 
-infix fun <T: PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
+infix fun <T : PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
     return if (this == null && rhs == null) {
         true
     } else if (this != null && rhs != null) {
@@ -25,7 +25,7 @@ infix fun <T: PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
     }
 }
 
-infix fun <T: Eq<T>> T?.eq(rhs: T?): Boolean {
+infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
     return if (this == null && rhs == null) {
         true
     } else if (this != null && rhs != null) {

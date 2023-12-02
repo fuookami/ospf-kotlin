@@ -9,7 +9,10 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(crossinline predicate
     return this.filterIndexedParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.filterIndexedParallelly(segment: UInt64, crossinline predicate: IndexedPredicate<T>): List<T> {
+suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
+    segment: UInt64,
+    crossinline predicate: IndexedPredicate<T>
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterIndexedParallelly.iterator()
@@ -35,7 +38,10 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(crossinline predicate
     return this.filterIndexedParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.filterIndexedParallelly(segment: UInt64, crossinline predicate: TryIndexedPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
+    segment: UInt64,
+    crossinline predicate: TryIndexedPredicate<T>
+): Result<List<T>, Error> {
     var error: Error? = null
 
     return try {
@@ -90,7 +96,10 @@ suspend inline fun <T> Collection<T>.filterIndexedParallelly(crossinline predica
     )
 }
 
-suspend inline fun <T> Collection<T>.filterIndexedParallelly(concurrentAmount: UInt64, crossinline predicate: IndexedPredicate<T>): List<T> {
+suspend inline fun <T> Collection<T>.filterIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: IndexedPredicate<T>
+): List<T> {
     return (this as Iterable<T>).filterIndexedParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -109,7 +118,10 @@ suspend inline fun <T> Collection<T>.filterIndexedParallelly(crossinline predica
     )
 }
 
-suspend inline fun <T> Collection<T>.filterIndexedParallelly(concurrentAmount: UInt64, crossinline predicate: TryIndexedPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> Collection<T>.filterIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryIndexedPredicate<T>
+): Result<List<T>, Error> {
     return (this as Iterable<T>).filterIndexedParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -128,7 +140,10 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(crossinline predicate: In
     )
 }
 
-suspend inline fun <T> List<T>.filterIndexedParallelly(concurrentAmount: UInt64, crossinline predicate: IndexedPredicate<T>): List<T> {
+suspend inline fun <T> List<T>.filterIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: IndexedPredicate<T>
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterIndexedParallelly.size / concurrentAmount.toInt()
@@ -164,7 +179,10 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(crossinline predicate: Tr
     )
 }
 
-suspend inline fun <T> List<T>.filterIndexedParallelly(concurrentAmount: UInt64, crossinline predicate: TryIndexedPredicate<T>): Result<List<T>, Error> {
+suspend inline fun <T> List<T>.filterIndexedParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: TryIndexedPredicate<T>
+): Result<List<T>, Error> {
     var error: Error? = null
 
     return try {
@@ -179,17 +197,19 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(concurrentAmount: UInt64,
                     this@filterIndexedParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@filterIndexedParallelly.subList(j, k).filterIndexed { i, v -> when (val result = predicate(i + j, v)) {
-                        is Ok -> {
-                            result.value
-                        }
+                    this@filterIndexedParallelly.subList(j, k).filterIndexed { i, v ->
+                        when (val result = predicate(i + j, v)) {
+                            is Ok -> {
+                                result.value
+                            }
 
-                        is Failed -> {
-                            error = result.error
-                            cancel()
-                            false
+                            is Failed -> {
+                                error = result.error
+                                cancel()
+                                false
+                            }
                         }
-                    } }
+                    }
                 })
                 i = k
             }
