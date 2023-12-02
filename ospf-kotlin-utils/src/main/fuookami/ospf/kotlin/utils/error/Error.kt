@@ -16,7 +16,7 @@ sealed class Error {
     }
 }
 
-class Err internal constructor(
+class Err(
     override val code: ErrorCode,
     override val message: String
 ) : Error() {

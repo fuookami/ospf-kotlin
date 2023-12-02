@@ -1,12 +1,21 @@
 package fuookami.ospf.kotlin.utils.functional
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 typealias Predicate<T> = (T) -> Boolean
+typealias TryPredicate<T> = (T) -> Result<Boolean, Error>
 typealias IndexedPredicate<T> = (Int, T) -> Boolean
+typealias TryIndexedPredicate<T> = (Int, T) -> Result<Boolean, Error>
+
 typealias Extractor<Ret, T> = (T) -> Ret
+typealias TryExtractor<Ret, T> = (T) -> Result<Ret, Error>
 typealias IndexedExtractor<Ret, T> = (Int, T) -> Ret
+typealias TryIndexedExtractor<Ret, T> = (Int, T) -> Result<Ret, Error>
+
 typealias Mapper<Ret, T> = (T) -> Ret
+typealias TryMapper<Ret, T> = (T) -> Result<Ret, Error>
+
 typealias Comparator<T> = (T, T) -> Boolean
 typealias PartialComparator<T> = (T, T) -> Boolean?
 typealias ThreeWayComparator<T> = (T, T) -> Order
