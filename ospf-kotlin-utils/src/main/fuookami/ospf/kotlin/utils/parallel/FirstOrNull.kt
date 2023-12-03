@@ -50,14 +50,14 @@ suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
     }
 }
 
-suspend inline fun <T> Iterable<T>.firstOrNullParallelly(crossinline predicate: TryPredicate<T>): Result<T?, Error> {
+suspend inline fun <T> Iterable<T>.firstOrNullParallelly(crossinline predicate: TryPredicate<T>): Ret<T?> {
     return this.firstOrNullParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
 suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<T?, Error> {
+): Ret<T?> {
     var result: T? = null
     var error: Error? = null
 

@@ -41,7 +41,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedToParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return this.flatMapIndexedToParallelly(UInt64.ten, destination, extractor)
 }
 
@@ -49,7 +49,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     segment: UInt64,
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {
@@ -123,7 +123,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapInde
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapIndexedToParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).flatMapIndexedToParallelly(
         UInt64(
             maxOf(
@@ -143,7 +143,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapInde
     concurrentAmount: UInt64,
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).flatMapIndexedToParallelly(
         UInt64(this.size) / concurrentAmount,
         destination,
@@ -198,7 +198,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToP
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return this.flatMapIndexedToParallelly(
         UInt64(
             maxOf(
@@ -218,7 +218,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToP
     concurrentAmount: UInt64,
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {

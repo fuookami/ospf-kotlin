@@ -32,14 +32,14 @@ suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     }
 }
 
-suspend inline fun <K, T> Iterable<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Result<Map<K, T>, Error> {
+suspend inline fun <K, T> Iterable<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Ret<Map<K, T>> {
     return this.associateByParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<K, T>
-): Result<Map<K, T>, Error> {
+): Ret<Map<K, T>> {
     var error: Error? = null
 
     return try {
@@ -99,7 +99,7 @@ suspend inline fun <K, T> Collection<T>.associateByParallelly(
     return (this as Iterable<T>).associateByParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <K, T> Collection<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Result<Map<K, T>, Error> {
+suspend inline fun <K, T> Collection<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Ret<Map<K, T>> {
     return (this as Iterable<T>).associateByParallelly(
         UInt64(
             maxOf(
@@ -117,7 +117,7 @@ suspend inline fun <K, T> Collection<T>.associateByParallelly(crossinline extrac
 suspend inline fun <K, T> Collection<T>.associateByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<K, T>
-): Result<Map<K, T>, Error> {
+): Ret<Map<K, T>> {
     return (this as Iterable<T>).associateByParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -160,7 +160,7 @@ suspend inline fun <K, T> List<T>.associateByParallelly(
     }
 }
 
-suspend inline fun <K, T> List<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Result<Map<K, T>, Error> {
+suspend inline fun <K, T> List<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Ret<Map<K, T>> {
     return this.associateByParallelly(
         UInt64(
             maxOf(
@@ -178,7 +178,7 @@ suspend inline fun <K, T> List<T>.associateByParallelly(crossinline extractor: T
 suspend inline fun <K, T> List<T>.associateByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<K, T>
-): Result<Map<K, T>, Error> {
+): Ret<Map<K, T>> {
     var error: Error? = null
 
     return try {

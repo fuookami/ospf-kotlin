@@ -32,14 +32,14 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Result<List<R>, Error> {
+suspend inline fun <R, T> Iterable<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Ret<List<R>> {
     return this.flatMapParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<List<R>, Error> {
+): Ret<List<R>> {
     var error: Error? = null
 
     return try {
@@ -99,7 +99,7 @@ suspend inline fun <R, T> Collection<T>.flatMapParallelly(
     return (this as Iterable<T>).flatMapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> Collection<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Result<List<R>, Error> {
+suspend inline fun <R, T> Collection<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Ret<List<R>> {
     return (this as Iterable<T>).flatMapParallelly(
         UInt64(
             maxOf(
@@ -117,7 +117,7 @@ suspend inline fun <R, T> Collection<T>.flatMapParallelly(crossinline extractor:
 suspend inline fun <R, T> Collection<T>.flatMapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<List<R>, Error> {
+): Ret<List<R>> {
     return (this as Iterable<T>).flatMapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -160,7 +160,7 @@ suspend inline fun <R, T> List<T>.flatMapParallelly(
     }
 }
 
-suspend inline fun <R, T> List<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Result<List<R>, Error> {
+suspend inline fun <R, T> List<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Ret<List<R>> {
     return this.flatMapParallelly(
         UInt64(
             maxOf(
@@ -178,7 +178,7 @@ suspend inline fun <R, T> List<T>.flatMapParallelly(crossinline extractor: TryEx
 suspend inline fun <R, T> List<T>.flatMapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<List<R>, Error> {
+): Ret<List<R>> {
     var error: Error? = null
 
     return try {

@@ -42,14 +42,14 @@ suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline p
     }
 }
 
-suspend inline fun <T> Iterable<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> Iterable<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
     return this.lastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
 suspend inline fun <T> Iterable<T>.lastParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<T, Error> {
+): Ret<T> {
     var result: T? = null
     var error: Error? = null
 
@@ -117,7 +117,7 @@ suspend inline fun <T> Collection<T>.lastParallelly(concurrentAmount: UInt64, cr
     return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
     return (this as Iterable<T>).lastParallelly(
         UInt64(
             maxOf(
@@ -135,7 +135,7 @@ suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: TryPr
 suspend inline fun <T> Collection<T>.lastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<T, Error> {
+): Ret<T> {
     return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -192,7 +192,7 @@ suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinl
     }
 }
 
-suspend inline fun <T> List<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> List<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
     return this.lastParallelly(
         UInt64(
             maxOf(
@@ -210,7 +210,7 @@ suspend inline fun <T> List<T>.lastParallelly(crossinline predicate: TryPredicat
 suspend inline fun <T> List<T>.lastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<T, Error> {
+): Ret<T> {
     var result: T? = null
     var error: Error? = null
 

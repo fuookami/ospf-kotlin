@@ -12,13 +12,13 @@ suspend inline fun <T> Iterable<T>.findParallelly(concurrentAmount: UInt64, cros
     return this.firstParallelly(concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.findParallelly(crossinline predicate: TryPredicate<T>): Result<T, Error> {
+suspend inline fun <T> Iterable<T>.findParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
     return this.firstParallelly(predicate)
 }
 
 suspend inline fun <T> Iterable<T>.findParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<T, Error> {
+): Ret<T> {
     return this.firstParallelly(concurrentAmount, predicate)
 }

@@ -39,7 +39,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParallelly(
     destination: C,
     crossinline predicate: TryPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return this.filterNotToParallelly(UInt64.ten, destination, predicate)
 }
 
@@ -47,7 +47,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
     segment: UInt64,
     destination: C,
     crossinline predicate: TryPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {
@@ -115,7 +115,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToPar
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToParallelly(
     destination: C,
     crossinline predicate: TryPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).filterNotToParallelly(
         UInt64(
             maxOf(
@@ -135,7 +135,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToPar
     concurrentAmount: UInt64,
     destination: C,
     crossinline predicate: TryPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).filterNotToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
@@ -186,7 +186,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallelly(
     destination: C,
     crossinline predicate: TryPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return this.filterNotToParallelly(
         UInt64(
             maxOf(
@@ -206,7 +206,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
     concurrentAmount: UInt64,
     destination: C,
     crossinline predicate: TryPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {

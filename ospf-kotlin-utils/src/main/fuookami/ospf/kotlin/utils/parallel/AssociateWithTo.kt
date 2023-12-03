@@ -39,7 +39,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
 suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<V, T>
-): Result<M, Error> {
+): Ret<M> {
     return this.associateWithToParallelly(UInt64.ten, destination, extractor)
 }
 
@@ -47,7 +47,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
     segment: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<V, T>
-): Result<M, Error> {
+): Ret<M> {
     var error: Error? = null
 
     return try {
@@ -115,7 +115,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWit
 suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWithToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<V, T>
-): Result<M, Error> {
+): Ret<M> {
     return (this as Iterable<T>).associateWithToParallelly(
         UInt64(
             maxOf(
@@ -135,7 +135,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWit
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<V, T>
-): Result<M, Error> {
+): Ret<M> {
     return (this as Iterable<T>).associateWithToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
@@ -186,7 +186,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToPar
 suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<V, T>
-): Result<M, Error> {
+): Ret<M> {
     return this.associateWithToParallelly(
         UInt64(
             maxOf(
@@ -206,7 +206,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToPar
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<V, T>
-): Result<M, Error> {
+): Ret<M> {
     var error: Error? = null
 
     return try {

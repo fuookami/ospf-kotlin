@@ -41,3 +41,4 @@ class Success
 val success = Success()
 
 typealias Try<E> = Result<Success, E>
+typealias Ret<T> = Result<T, Error>

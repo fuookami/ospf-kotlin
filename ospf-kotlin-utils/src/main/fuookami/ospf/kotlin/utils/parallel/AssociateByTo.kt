@@ -39,7 +39,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<K, T>
-): Result<M, Error> {
+): Ret<M> {
     return this.associateByToParallelly(UInt64.ten, destination, extractor)
 }
 
@@ -47,7 +47,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
     segment: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<K, T>
-): Result<M, Error> {
+): Ret<M> {
     var error: Error? = null
 
     return try {
@@ -115,7 +115,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByT
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<K, T>
-): Result<M, Error> {
+): Ret<M> {
     return (this as Iterable<T>).associateByToParallelly(
         UInt64(
             maxOf(
@@ -135,7 +135,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByT
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<K, T>
-): Result<M, Error> {
+): Ret<M> {
     return (this as Iterable<T>).associateByToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
@@ -186,7 +186,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParal
 suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<K, T>
-): Result<M, Error> {
+): Ret<M> {
     return this.associateByToParallelly(
         UInt64(
             maxOf(
@@ -206,7 +206,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParal
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<K, T>
-): Result<M, Error> {
+): Ret<M> {
     var error: Error? = null
 
     return try {

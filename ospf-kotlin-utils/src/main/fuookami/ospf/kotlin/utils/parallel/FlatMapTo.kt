@@ -39,7 +39,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToParallelly(
     destination: C,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return this.flatMapToParallelly(UInt64.ten, destination, extractor)
 }
 
@@ -47,7 +47,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
     segment: UInt64,
     destination: C,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {
@@ -115,7 +115,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapToPa
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapToParallelly(
     destination: C,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).flatMapToParallelly(
         UInt64(
             maxOf(
@@ -135,7 +135,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapToPa
     concurrentAmount: UInt64,
     destination: C,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).flatMapToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
@@ -186,7 +186,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallel
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallelly(
     destination: C,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     return this.flatMapToParallelly(
         UInt64(
             maxOf(
@@ -206,7 +206,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallel
     concurrentAmount: UInt64,
     destination: C,
     crossinline extractor: TryExtractor<Iterable<R>, T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {

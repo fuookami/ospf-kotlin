@@ -39,14 +39,14 @@ suspend inline fun <T> Iterable<T>.anyParallelly(segment: UInt64, crossinline pr
     }
 }
 
-suspend inline fun <T> Iterable<T>.anyParallelly(crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Iterable<T>.anyParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
     return this.anyParallelly(UInt64.ten, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.anyParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     var error: Error? = null
 
     return try {
@@ -112,7 +112,7 @@ suspend inline fun <T> Collection<T>.anyParallelly(
     return (this as Iterable<T>).anyParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.anyParallelly(crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Collection<T>.anyParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
     return (this as Iterable<T>).anyParallelly(
         UInt64(
             maxOf(
@@ -130,7 +130,7 @@ suspend inline fun <T> Collection<T>.anyParallelly(crossinline predicate: TryPre
 suspend inline fun <T> Collection<T>.anyParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     return (this as Iterable<T>).anyParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -180,7 +180,7 @@ suspend inline fun <T> List<T>.anyParallelly(concurrentAmount: UInt64, crossinli
     }
 }
 
-suspend inline fun <T> List<T>.anyParallelly(crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> List<T>.anyParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
     return this.anyParallelly(
         UInt64(
             maxOf(
@@ -198,7 +198,7 @@ suspend inline fun <T> List<T>.anyParallelly(crossinline predicate: TryPredicate
 suspend inline fun <T> List<T>.anyParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     var error: Error? = null
 
     return try {

@@ -39,7 +39,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<M, Error> {
+): Ret<M> {
     return this.associateToParallelly(UInt64.ten, destination, extractor)
 }
 
@@ -47,7 +47,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
     segment: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<M, Error> {
+): Ret<M> {
     var error: Error? = null
 
     return try {
@@ -115,7 +115,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.associate
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.associateToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<M, Error> {
+): Ret<M> {
     return (this as Iterable<T>).associateToParallelly(
         UInt64(
             maxOf(
@@ -135,7 +135,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.associate
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<M, Error> {
+): Ret<M> {
     return (this as Iterable<T>).associateToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
@@ -186,7 +186,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToPara
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<M, Error> {
+): Ret<M> {
     return this.associateToParallelly(
         UInt64(
             maxOf(
@@ -206,7 +206,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToPara
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<M, Error> {
+): Ret<M> {
     var error: Error? = null
 
     return try {

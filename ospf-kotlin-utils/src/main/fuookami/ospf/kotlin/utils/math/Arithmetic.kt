@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.utils.math
 
 import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.operator.*
 
 interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
@@ -164,11 +165,11 @@ fun <T> Iterable<T>.sum(constant: ArithmeticConstants<T>): T
     return sum
 }
 
-inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, selector: (T) -> U): U
+inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, crossinline extractor: Extractor<U, T>): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constant.zero
     for (element in this) {
-        sum += selector(element)
+        sum += extractor(element)
     }
     return sum
 }
@@ -182,11 +183,11 @@ fun <K, V> Map<K, V>.sum(constant: ArithmeticConstants<V>): V
     return sum
 }
 
-fun <K, V, T> HashMap<K, V>.sumOf(constant: ArithmeticConstants<T>, selector: (Map.Entry<K, V>) -> T): T
+inline fun <K, V, T> HashMap<K, V>.sumOf(constant: ArithmeticConstants<T>, crossinline extractor: Extractor<T, Map.Entry<K, V>>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {
-        sum += selector(element)
+        sum += extractor(element)
     }
     return sum
 }
@@ -200,11 +201,11 @@ fun <T> Iterator<T>.sum(constant: ArithmeticConstants<T>): T
     return sum
 }
 
-inline fun <T, U> Iterator<T>.sumOf(constant: ArithmeticConstants<U>, selector: (T) -> U): U
+inline fun <T, U> Iterator<T>.sumOf(constant: ArithmeticConstants<U>, crossinline extractor: Extractor<U, T>): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constant.zero
     for (element in this) {
-        sum += selector(element)
+        sum += extractor(element)
     }
     return sum
 }
@@ -218,11 +219,11 @@ fun <T> Sequence<T>.sum(constant: ArithmeticConstants<T>): T
     return sum
 }
 
-inline fun <T, U> Sequence<T>.sumOf(constant: ArithmeticConstants<U>, selector: (T) -> U): U
+inline fun <T, U> Sequence<T>.sumOf(constant: ArithmeticConstants<U>, crossinline extractor: Extractor<U, T>): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constant.zero
     for (element in this) {
-        sum += selector(element)
+        sum += extractor(element)
     }
     return sum
 }

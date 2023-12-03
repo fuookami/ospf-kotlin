@@ -42,7 +42,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToP
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return this.filterIndexedToParallelly(UInt64.ten, destination, predicate)
 }
 
@@ -50,7 +50,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToP
     segment: UInt64,
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {
@@ -120,7 +120,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedT
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedToParallelly(
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).filterIndexedToParallelly(
         UInt64(
             maxOf(
@@ -140,7 +140,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedT
     concurrentAmount: UInt64,
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return (this as Iterable<T>).filterIndexedToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
@@ -191,7 +191,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParal
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParallelly(
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     return this.filterIndexedToParallelly(
         UInt64(
             maxOf(
@@ -211,7 +211,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParal
     concurrentAmount: UInt64,
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
-): Result<C, Error> {
+): Ret<C> {
     var error: Error? = null
 
     return try {

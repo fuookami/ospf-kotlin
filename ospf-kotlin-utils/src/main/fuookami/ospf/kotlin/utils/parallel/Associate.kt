@@ -32,14 +32,14 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     }
 }
 
-suspend inline fun <K, V, T> Iterable<T>.associateParallelly(crossinline extractor: TryExtractor<Pair<K, V>, T>): Result<Map<K, V>, Error> {
+suspend inline fun <K, V, T> Iterable<T>.associateParallelly(crossinline extractor: TryExtractor<Pair<K, V>, T>): Ret<Map<K, V>> {
     return this.associateParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<Map<K, V>, Error> {
+): Ret<Map<K, V>> {
     var error: Error? = null
 
     return try {
@@ -99,7 +99,7 @@ suspend inline fun <K, V, T> Collection<T>.associateParallelly(
     return (this as Iterable<T>).associateParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <K, V, T> Collection<T>.associateParallelly(crossinline extractor: TryExtractor<Pair<K, V>, T>): Result<Map<K, V>, Error> {
+suspend inline fun <K, V, T> Collection<T>.associateParallelly(crossinline extractor: TryExtractor<Pair<K, V>, T>): Ret<Map<K, V>> {
     return (this as Iterable<T>).associateParallelly(
         UInt64(
             maxOf(
@@ -117,7 +117,7 @@ suspend inline fun <K, V, T> Collection<T>.associateParallelly(crossinline extra
 suspend inline fun <K, V, T> Collection<T>.associateParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<Map<K, V>, Error> {
+): Ret<Map<K, V>> {
     return (this as Iterable<T>).associateParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -160,7 +160,7 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(
     }
 }
 
-suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: TryExtractor<Pair<K, V>, T>): Result<Map<K, V>, Error> {
+suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: TryExtractor<Pair<K, V>, T>): Ret<Map<K, V>> {
     return this.associateParallelly(
         UInt64(
             maxOf(
@@ -178,7 +178,7 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: 
 suspend inline fun <K, V, T> List<T>.associateParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
-): Result<Map<K, V>, Error> {
+): Ret<Map<K, V>> {
     var error: Error? = null
 
     return try {

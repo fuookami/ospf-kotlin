@@ -46,14 +46,14 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(crossinline extractor: TryExtractor<R?, T>): Result<R?, Error> {
+suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(crossinline extractor: TryExtractor<R?, T>): Ret<R?> {
     return this.firstNotNullOfOrNullParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
-): Result<R?, Error> {
+): Ret<R?> {
     var result: R? = null
     var error: Error? = null
 

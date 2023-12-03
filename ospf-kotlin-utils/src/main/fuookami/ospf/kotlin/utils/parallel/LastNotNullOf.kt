@@ -27,7 +27,7 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.lastNotNullOf(extractor)
+                    thisSegment.lastNotNullOfOrNull(extractor)
                 })
             }
 
@@ -46,14 +46,14 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Result<R, Error> {
+suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Ret<R> {
     return this.lastNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R?, T>
-): Result<R, Error> {
+): Ret<R> {
     var result: R? = null
     var error: Error? = null
 
@@ -69,7 +69,7 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.lastNotNullOf {
+                    thisSegment.lastNotNullOfOrNull {
                         when (val ret = extractor(it)) {
                             is Ok -> {
                                 ret.value
@@ -125,7 +125,7 @@ suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(
     return (this as Iterable<T>).lastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Result<R, Error> {
+suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Ret<R> {
     return (this as Iterable<T>).lastNotNullOfParallelly(
         UInt64(
             maxOf(
@@ -143,7 +143,7 @@ suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(crossinline extr
 suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
-): Result<R, Error> {
+): Ret<R> {
     return (this as Iterable<T>).lastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
@@ -199,7 +199,7 @@ suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
     }
 }
 
-suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Result<R, Error> {
+suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Ret<R> {
     return this.lastNotNullOfParallelly(
         UInt64(
             maxOf(
@@ -217,7 +217,7 @@ suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(crossinline extractor:
 suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
-): Result<R, Error> {
+): Ret<R> {
     var result: R? = null
     var error: Error? = null
 

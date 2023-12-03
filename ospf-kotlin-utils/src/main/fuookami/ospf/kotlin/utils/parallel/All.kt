@@ -46,14 +46,14 @@ suspend inline fun <T> Iterable<T>.allParallelly(
 
 suspend inline fun <T> Iterable<T>.allParallelly(
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     return this.allParallelly(UInt64.ten, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.allParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     var error: Error? = null
 
     return try {
@@ -119,7 +119,7 @@ suspend inline fun <T> Collection<T>.allParallelly(
     return (this as Iterable<T>).allParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
     return (this as Iterable<T>).allParallelly(
         UInt64(
             maxOf(
@@ -137,7 +137,7 @@ suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: TryPre
 suspend inline fun <T> Collection<T>.allParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     return (this as Iterable<T>).allParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
@@ -187,7 +187,7 @@ suspend inline fun <T> List<T>.allParallelly(concurrentAmount: UInt64, crossinli
     }
 }
 
-suspend inline fun <T> List<T>.allParallelly(crossinline predicate: TryPredicate<T>): Result<Boolean, Error> {
+suspend inline fun <T> List<T>.allParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
     return this.allParallelly(
         UInt64(
             maxOf(
@@ -205,7 +205,7 @@ suspend inline fun <T> List<T>.allParallelly(crossinline predicate: TryPredicate
 suspend inline fun <T> List<T>.allParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
-): Result<Boolean, Error> {
+): Ret<Boolean> {
     var error: Error? = null
 
     return try {
