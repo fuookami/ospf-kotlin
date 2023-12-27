@@ -36,6 +36,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
     }
 }
 
+@JvmName("tryAssociateByToParallelly")
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<K, T>
@@ -43,6 +44,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
     return this.associateByToParallelly(UInt64.ten, destination, extractor)
 }
 
+@JvmName("tryAssociateByToParallelly")
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToParallelly(
     segment: UInt64,
     destination: M,
@@ -90,15 +92,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByT
     crossinline extractor: Extractor<K, T>
 ): M {
     return (this as Iterable<T>).associateByToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
@@ -112,25 +106,19 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByT
     return (this as Iterable<T>).associateByToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
+@JvmName("tryAssociateByToParallelly")
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<K, T>
 ): Ret<M> {
     return (this as Iterable<T>).associateByToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
+@JvmName("tryAssociateByToParallelly")
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Collection<T>.associateByToParallelly(
     concurrentAmount: UInt64,
     destination: M,
@@ -144,15 +132,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParal
     crossinline extractor: Extractor<K, T>
 ): M {
     return this.associateByToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
@@ -183,25 +163,19 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParal
     }
 }
 
+@JvmName("tryAssociateByToParallelly")
 suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<K, T>
 ): Ret<M> {
     return this.associateByToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
+@JvmName("tryAssociateByToParallelly")
 suspend inline fun <K, T, M : MutableMap<in K, in T>> List<T>.associateByToParallelly(
     concurrentAmount: UInt64,
     destination: M,

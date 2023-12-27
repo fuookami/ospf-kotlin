@@ -5,7 +5,9 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(crossinline extractor: Extractor<R?, T>): R {
+suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
+    crossinline extractor: Extractor<R?, T>
+): R {
     return this.firstNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
 }
 
@@ -46,10 +48,14 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(crossinline extractor: TryExtractor<R?, T>): Ret<R> {
+@JvmName("tryFirstNotNullOfParallelly")
+suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
+    crossinline extractor: TryExtractor<R?, T>
+): Ret<R> {
     return this.firstNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
 }
 
+@JvmName("tryFirstNotNullOfParallelly")
 suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>

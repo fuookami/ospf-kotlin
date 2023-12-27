@@ -37,15 +37,7 @@ suspend inline fun <T> Iterable<T>.sumParallelly(segment: UInt64, constants: Ari
 suspend inline fun <T> Collection<T>.sumParallelly(constants: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     return (this as Iterable<T>).sumParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         constants
     )
 }
@@ -58,15 +50,7 @@ suspend inline fun <T> Collection<T>.sumParallelly(concurrentAmount: UInt64, con
 suspend inline fun <T> List<T>.sumParallelly(constants: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     return this.sumParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         constants
     )
 }

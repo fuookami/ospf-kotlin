@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T> Iterable<T>.countParallelly(crossinline predicate: Predicate<T>): Int {
+suspend inline fun <T> Iterable<T>.countParallelly(
+    crossinline predicate: Predicate<T>
+): Int {
     return this.countParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.countParallelly(segment: UInt64, crossinline predicate: Predicate<T>): Int {
+suspend inline fun <T> Iterable<T>.countParallelly(
+    segment: UInt64,
+    crossinline predicate: Predicate<T>
+): Int {
     return coroutineScope {
         val promises = ArrayList<Deferred<Int>>()
         val iterator = this@countParallelly.iterator()
@@ -29,10 +34,14 @@ suspend inline fun <T> Iterable<T>.countParallelly(segment: UInt64, crossinline 
     }
 }
 
-suspend inline fun <T> Iterable<T>.countParallelly(crossinline predicate: TryPredicate<T>): Ret<Int> {
+@JvmName("tryCountParallelly")
+suspend inline fun <T> Iterable<T>.countParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Int> {
     return this.countParallelly(UInt64.ten, predicate)
 }
 
+@JvmName("tryCountParallelly")
 suspend inline fun <T> Iterable<T>.countParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -74,17 +83,11 @@ suspend inline fun <T> Iterable<T>.countParallelly(
     }
 }
 
-suspend inline fun <T> Collection<T>.countParallelly(crossinline predicate: Predicate<T>): Int {
+suspend inline fun <T> Collection<T>.countParallelly(
+    crossinline predicate: Predicate<T>
+): Int {
     return (this as Iterable<T>).countParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
@@ -96,21 +99,17 @@ suspend inline fun <T> Collection<T>.countParallelly(
     return (this as Iterable<T>).countParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.countParallelly(crossinline predicate: TryPredicate<T>): Ret<Int> {
+@JvmName("tryCountParallelly")
+suspend inline fun <T> Collection<T>.countParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Int> {
     return (this as Iterable<T>).countParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryCountParallelly")
 suspend inline fun <T> Collection<T>.countParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -118,22 +117,19 @@ suspend inline fun <T> Collection<T>.countParallelly(
     return (this as Iterable<T>).countParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> List<T>.countParallelly(crossinline predicate: Predicate<T>): Int {
+suspend inline fun <T> List<T>.countParallelly(
+    crossinline predicate: Predicate<T>
+): Int {
     return this.countParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
-suspend inline fun <T> List<T>.countParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Int {
+suspend inline fun <T> List<T>.countParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Int {
     return coroutineScope {
         val promises = ArrayList<Deferred<Int>>()
         val segmentAmount = this@countParallelly.size / concurrentAmount.toInt()
@@ -154,21 +150,17 @@ suspend inline fun <T> List<T>.countParallelly(concurrentAmount: UInt64, crossin
     }
 }
 
-suspend inline fun <T> List<T>.countParallelly(crossinline predicate: TryPredicate<T>): Ret<Int> {
+@JvmName("tryCountParallelly")
+suspend inline fun <T> List<T>.countParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Int> {
     return this.countParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryCountParallelly")
 suspend inline fun <T> List<T>.countParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>

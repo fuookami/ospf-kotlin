@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.utils.meta_programming.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -36,12 +37,11 @@ class MinFunction(
         }
     }
 
-    override val possibleRange: ValueRange<Flt64>
-        get() {
-            val (min, max) = polys.minMaxOf { it.possibleRange.lowerBound.toFlt64() }
-            return ValueRange(min, max, Flt64)
-        }
-    override var range: ValueRange<Flt64> = possibleRange
+    override val possibleRange: ValueRange<Flt64> by lazy {
+        val (min, max) = polys.minMaxOf { it.possibleRange.lowerBound.toFlt64() }
+        ValueRange(min, max, Flt64)
+    }
+    override var range: ValueRange<Flt64> by lazyDelegate(MinFunction::possibleRange)
 
     override val cells: List<MonomialCell<Linear>> get() = listOf(LinearMonomialCell(Flt64.one, symbols.y))
 

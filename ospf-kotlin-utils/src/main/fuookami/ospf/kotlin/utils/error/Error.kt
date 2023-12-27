@@ -1,6 +1,12 @@
 package fuookami.ospf.kotlin.utils.error
 
 sealed class Error {
+    companion object {
+        operator fun invoke(code: ErrorCode, message: String): Err {
+            return Err(code, message)
+        }
+    }
+
     abstract val code: ErrorCode
     abstract val message: String
     open val value: Any? = null

@@ -65,6 +65,8 @@ class LogContext private constructor(
         availableTime: Duration = 90.days
     ) {
         if (pushing != null) {
+            val pushing = this.pushing
+
             GlobalScope.launch(Dispatchers.IO) {
                 val record = RequestLogRecordPO(
                     app = app,
@@ -78,7 +80,7 @@ class LogContext private constructor(
                     ),
                     availableTime = availableTime
                 )
-                val ret = pushing!!(
+                val ret = pushing(
                     serializer = RequestLogRecordPO.serializer(serializer),
                     value = record
                 )
@@ -99,6 +101,8 @@ class LogContext private constructor(
         availableTime: Duration = 90.days
     ) {
         if (pushing != null) {
+            val pushing = this.pushing
+
             GlobalScope.launch(Dispatchers.IO) {
                 val record = ResponseLogRecordPO(
                     app = app,
@@ -111,7 +115,7 @@ class LogContext private constructor(
                     ),
                     availableTime = availableTime
                 )
-                val ret = pushing!!(
+                val ret = pushing(
                     serializer = ResponseLogRecordPO.serializer(serializer),
                     value = record
                 )
@@ -132,6 +136,8 @@ class LogContext private constructor(
         availableTime: Duration = 90.days
     ) {
         if (pushing != null) {
+            val pushing = this.pushing
+
             GlobalScope.launch(Dispatchers.IO) {
                 val record = NormalLogRecordPO(
                     app = app,
@@ -141,7 +147,7 @@ class LogContext private constructor(
                     value = value,
                     availableTime = availableTime
                 )
-                val ret = pushing!!(
+                val ret = pushing(
                     serializer = NormalLogRecordPO.serializer(serializer),
                     value = record
                 )

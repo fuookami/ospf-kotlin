@@ -12,18 +12,18 @@ sealed class Category {
     }
 }
 
-object Linear : Category() {
+data object Linear : Category() {
     override val code = UInt64.one
 }
 
-object Quadratic : Category() {
+data object Quadratic : Category() {
     override val code = UInt64.two
 }
 
-object Standard : Category() {
+data object Standard : Category() {
     override val code = UInt64.three
 }
 
-object Nonlinear : Category() {
+data object Nonlinear : Category() {
     override val code = UInt64.ten
 }

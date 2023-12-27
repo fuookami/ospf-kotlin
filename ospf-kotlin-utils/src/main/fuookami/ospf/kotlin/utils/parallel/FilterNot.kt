@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T> Iterable<T>.filterNotParallelly(crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> Iterable<T>.filterNotParallelly(
+    crossinline predicate: Predicate<T>
+): List<T> {
     return this.filterNotParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.filterNotParallelly(segment: UInt64, crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> Iterable<T>.filterNotParallelly(
+    segment: UInt64,
+    crossinline predicate: Predicate<T>
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterNotParallelly.iterator()
@@ -29,10 +34,14 @@ suspend inline fun <T> Iterable<T>.filterNotParallelly(segment: UInt64, crossinl
     }
 }
 
-suspend inline fun <T> Iterable<T>.filterNotParallelly(crossinline predicate: TryPredicate<T>): Ret<List<T>> {
+@JvmName("tryFilterNotParallelly")
+suspend inline fun <T> Iterable<T>.filterNotParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<List<T>> {
     return this.filterNotParallelly(UInt64.ten, predicate)
 }
 
+@JvmName("tryFilterNotParallelly")
 suspend inline fun <T> Iterable<T>.filterNotParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -74,17 +83,11 @@ suspend inline fun <T> Iterable<T>.filterNotParallelly(
     }
 }
 
-suspend inline fun <T> Collection<T>.filterNotParallelly(crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> Collection<T>.filterNotParallelly(
+    crossinline predicate: Predicate<T>
+): List<T> {
     return this.filterNotParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
@@ -96,21 +99,17 @@ suspend inline fun <T> Collection<T>.filterNotParallelly(
     return (this as Iterable<T>).filterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.filterNotParallelly(crossinline predicate: TryPredicate<T>): Ret<List<T>> {
+@JvmName("tryFilterNotParallelly")
+suspend inline fun <T> Collection<T>.filterNotParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<List<T>> {
     return this.filterNotParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryFilterNotParallelly")
 suspend inline fun <T> Collection<T>.filterNotParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -118,17 +117,11 @@ suspend inline fun <T> Collection<T>.filterNotParallelly(
     return (this as Iterable<T>).filterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> List<T>.filterNotParallelly(crossinline predicate: Predicate<T>): List<T> {
+suspend inline fun <T> List<T>.filterNotParallelly(
+    crossinline predicate: Predicate<T>
+): List<T> {
     return this.filterNotParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
@@ -157,21 +150,17 @@ suspend inline fun <T> List<T>.filterNotParallelly(
     }
 }
 
-suspend inline fun <T> List<T>.filterNotParallelly(crossinline predicate: TryPredicate<T>): Ret<List<T>> {
+@JvmName("tryFilterNotParallelly")
+suspend inline fun <T> List<T>.filterNotParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<List<T>> {
     return this.filterNotParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryFilterNotParallelly")
 suspend inline fun <T> List<T>.filterNotParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>

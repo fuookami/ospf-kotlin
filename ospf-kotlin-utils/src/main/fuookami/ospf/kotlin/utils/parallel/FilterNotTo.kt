@@ -36,6 +36,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
     }
 }
 
+@JvmName("tryFilterNotToParallelly")
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParallelly(
     destination: C,
     crossinline predicate: TryPredicate<T>
@@ -43,6 +44,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
     return this.filterNotToParallelly(UInt64.ten, destination, predicate)
 }
 
+@JvmName("tryFilterNotToParallelly")
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParallelly(
     segment: UInt64,
     destination: C,
@@ -90,15 +92,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToPar
     crossinline predicate: Predicate<T>
 ): C {
     return (this as Iterable<T>).filterNotToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         predicate
     )
@@ -112,25 +106,19 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToPar
     return (this as Iterable<T>).filterNotToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
+@JvmName("tryFilterNotToParallelly")
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToParallelly(
     destination: C,
     crossinline predicate: TryPredicate<T>
 ): Ret<C> {
     return (this as Iterable<T>).filterNotToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         predicate
     )
 }
 
+@JvmName("tryFilterNotToParallelly")
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToParallelly(
     concurrentAmount: UInt64,
     destination: C,
@@ -144,15 +132,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
     crossinline predicate: Predicate<T>
 ): C {
     return this.filterNotToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         predicate
     )
@@ -183,25 +163,19 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
     }
 }
 
+@JvmName("tryFilterNotToParallelly")
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallelly(
     destination: C,
     crossinline predicate: TryPredicate<T>
 ): Ret<C> {
     return this.filterNotToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         predicate
     )
 }
 
+@JvmName("tryFilterNotToParallelly")
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallelly(
     concurrentAmount: UInt64,
     destination: C,

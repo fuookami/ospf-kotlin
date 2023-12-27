@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T> Iterable<T>.lastParallelly(crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> Iterable<T>.lastParallelly(
+    crossinline predicate: Predicate<T>
+): T {
     return this.lastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
-suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> Iterable<T>.lastParallelly(
+    segment: UInt64,
+    crossinline predicate: Predicate<T>
+): T {
     var result: T? = null
 
     return try {
@@ -42,10 +47,14 @@ suspend inline fun <T> Iterable<T>.lastParallelly(segment: UInt64, crossinline p
     }
 }
 
-suspend inline fun <T> Iterable<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
+@JvmName("tryLastParallelly")
+suspend inline fun <T> Iterable<T>.lastParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<T> {
     return this.lastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
+@JvmName("tryLastParallelly")
 suspend inline fun <T> Iterable<T>.lastParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -98,40 +107,33 @@ suspend inline fun <T> Iterable<T>.lastParallelly(
     }
 }
 
-suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> Collection<T>.lastParallelly(
+    crossinline predicate: Predicate<T>
+): T {
     return (this as Iterable<T>).lastParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
-suspend inline fun <T> Collection<T>.lastParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> Collection<T>.lastParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): T {
     return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
+@JvmName("tryLastParallelly")
+suspend inline fun <T> Collection<T>.lastParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<T> {
     return (this as Iterable<T>).lastParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryLastParallelly")
 suspend inline fun <T> Collection<T>.lastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -139,22 +141,19 @@ suspend inline fun <T> Collection<T>.lastParallelly(
     return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> List<T>.lastParallelly(crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> List<T>.lastParallelly(
+    crossinline predicate: Predicate<T>
+): T {
     return this.lastParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
-suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> List<T>.lastParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): T {
     var result: T? = null
 
     return try {
@@ -192,21 +191,17 @@ suspend inline fun <T> List<T>.lastParallelly(concurrentAmount: UInt64, crossinl
     }
 }
 
-suspend inline fun <T> List<T>.lastParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
+@JvmName("tryLastParallelly")
+suspend inline fun <T> List<T>.lastParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<T> {
     return this.lastParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryLastParallelly")
 suspend inline fun <T> List<T>.lastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -256,7 +251,8 @@ suspend inline fun <T> List<T>.lastParallelly(
         }?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
     } catch (e: CancellationException) {
-        error?.let { Failed(it) }
+        result?.let { Ok(it) }
+            ?: error?.let { Failed(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
     }
 }

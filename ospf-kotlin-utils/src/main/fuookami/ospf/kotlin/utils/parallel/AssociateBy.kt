@@ -5,7 +5,9 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <K, T> Iterable<T>.associateByParallelly(crossinline extractor: Extractor<K, T>): Map<K, T> {
+suspend inline fun <K, T> Iterable<T>.associateByParallelly(
+    crossinline extractor: Extractor<K, T>
+): Map<K, T> {
     return this.associateByParallelly(UInt64.ten, extractor)
 }
 
@@ -32,10 +34,14 @@ suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     }
 }
 
-suspend inline fun <K, T> Iterable<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Ret<Map<K, T>> {
+@JvmName("tryAssociateByParallelly")
+suspend inline fun <K, T> Iterable<T>.associateByParallelly(
+    crossinline extractor: TryExtractor<K, T>
+): Ret<Map<K, T>> {
     return this.associateByParallelly(UInt64.ten, extractor)
 }
 
+@JvmName("tryAssociateByParallelly")
 suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<K, T>
@@ -77,17 +83,11 @@ suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     }
 }
 
-suspend inline fun <K, T> Collection<T>.associateByParallelly(crossinline extractor: Extractor<K, T>): Map<K, T> {
+suspend inline fun <K, T> Collection<T>.associateByParallelly(
+    crossinline extractor: Extractor<K, T>
+): Map<K, T> {
     return (this as Iterable<T>).associateByParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -99,21 +99,17 @@ suspend inline fun <K, T> Collection<T>.associateByParallelly(
     return (this as Iterable<T>).associateByParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <K, T> Collection<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Ret<Map<K, T>> {
+@JvmName("tryAssociateByParallelly")
+suspend inline fun <K, T> Collection<T>.associateByParallelly(
+    crossinline extractor: TryExtractor<K, T>
+): Ret<Map<K, T>> {
     return (this as Iterable<T>).associateByParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryAssociateByParallelly")
 suspend inline fun <K, T> Collection<T>.associateByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<K, T>
@@ -123,15 +119,7 @@ suspend inline fun <K, T> Collection<T>.associateByParallelly(
 
 suspend inline fun <K, T> List<T>.associateByParallelly(crossinline extractor: Extractor<K, T>): Map<K, T> {
     return this.associateByParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -160,21 +148,17 @@ suspend inline fun <K, T> List<T>.associateByParallelly(
     }
 }
 
-suspend inline fun <K, T> List<T>.associateByParallelly(crossinline extractor: TryExtractor<K, T>): Ret<Map<K, T>> {
+@JvmName("tryAssociateByParallelly")
+suspend inline fun <K, T> List<T>.associateByParallelly(
+    crossinline extractor: TryExtractor<K, T>
+): Ret<Map<K, T>> {
     return this.associateByParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryAssociateByParallelly")
 suspend inline fun <K, T> List<T>.associateByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<K, T>

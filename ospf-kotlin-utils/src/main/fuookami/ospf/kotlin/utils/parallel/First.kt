@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T> Iterable<T>.firstParallelly(crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> Iterable<T>.firstParallelly(
+    crossinline predicate: Predicate<T>
+): T {
     return this.firstParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
-suspend inline fun <T> Iterable<T>.firstParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): T {
+suspend inline fun <T> Iterable<T>.firstParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): T {
     var result: T? = null
 
     return try {
@@ -47,10 +52,14 @@ suspend inline fun <T> Iterable<T>.firstParallelly(concurrentAmount: UInt64, cro
     }
 }
 
-suspend inline fun <T> Iterable<T>.firstParallelly(crossinline predicate: TryPredicate<T>): Ret<T> {
+@JvmName("tryFirstParallelly")
+suspend inline fun <T> Iterable<T>.firstParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<T> {
     return this.firstParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
+@JvmName("tryFirstParallelly")
 suspend inline fun <T> Iterable<T>.firstParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>

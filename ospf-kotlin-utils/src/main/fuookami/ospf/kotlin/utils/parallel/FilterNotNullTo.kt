@@ -3,7 +3,9 @@ package fuookami.ospf.kotlin.utils.parallel
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 
-suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotNullToParallelly(destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotNullToParallelly(
+    destination: C
+): C {
     return this.filterNotNullToParallelly(UInt64.ten, destination)
 }
 
@@ -30,17 +32,11 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotNullToP
     }
 }
 
-suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotNullToParallelly(destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotNullToParallelly(
+    destination: C
+): C {
     return (this as Iterable<T>).filterNotNullToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination
     )
 }
@@ -52,17 +48,11 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotNullT
     return (this as Iterable<T>).filterNotNullToParallelly(UInt64(this.size) / concurrentAmount, destination)
 }
 
-suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotNullToParallelly(destination: C): C {
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotNullToParallelly(
+    destination: C
+): C {
     return this.filterNotNullToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination
     )
 }

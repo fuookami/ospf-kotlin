@@ -30,7 +30,7 @@ abstract class UnivariateLinearPiecewiseFunction(
     abstract fun pointX(i: Int): Flt64
     abstract fun pointY(i: Int): Flt64
 
-    override val possibleRange: ValueRange<Flt64> get() = y.possibleRange
+    override val possibleRange: ValueRange<Flt64> by lazy { y.range }
     override var range: ValueRange<Flt64>
         get() = if (this::y.isInitialized) {
             y.range

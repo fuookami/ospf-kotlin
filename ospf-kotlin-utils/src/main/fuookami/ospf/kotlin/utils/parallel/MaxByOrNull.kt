@@ -2,9 +2,12 @@ package fuookami.ospf.kotlin.utils.parallel
 
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
+    crossinline extractor: Extractor<R, T>
+): T? {
     return this.maxByOrNullParallelly(UInt64.ten, extractor)
 }
 
@@ -16,15 +19,14 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
         val promises = ArrayList<Deferred<Pair<T, R>?>>()
         val iterator = this@maxByOrNullParallelly.iterator()
         while (iterator.hasNext()) {
-            val thisSegment = ArrayList<Pair<T, R>>()
+            val thisSegment = ArrayList<T>()
             var i = UInt64.zero
             while (iterator.hasNext() && i != segment) {
-                val v = iterator.next()
-                thisSegment.add(Pair(v, extractor(v)))
+                thisSegment.add(iterator.next())
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.maxByOrNull { it.second }
+                thisSegment.map { Pair(it, extractor(it)) }.maxByOrNull { it.second }
             })
         }
 
@@ -32,17 +34,63 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
     }
 }
 
-suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
+@JvmName("tryMaxByOrNullParallelly")
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
+    crossinline extractor: TryExtractor<R, T>
+): Ret<T?> {
+    return this.maxByOrNullParallelly(UInt64.ten, extractor)
+}
+
+@JvmName("tryMaxByOrNullParallelly")
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
+    segment: UInt64,
+    crossinline extractor: TryExtractor<R, T>
+): Ret<T?> {
+    var error: Error? = null
+
+    return try {
+        coroutineScope {
+            val promises = ArrayList<Deferred<Pair<T, R>?>>()
+            val iterator = this@maxByOrNullParallelly.iterator()
+            while (iterator.hasNext()) {
+                val thisSegment = ArrayList<T>()
+                var i = UInt64.zero
+                while (iterator.hasNext() && i != segment) {
+                    thisSegment.add(iterator.next())
+                    ++i
+                }
+                promises.add(async(Dispatchers.Default) {
+                    thisSegment
+                        .map {
+                            Pair(it, when (val result = extractor(it)) {
+                                is Ok -> {
+                                    result.value
+                                }
+
+                                is Failed -> {
+                                    error = result.error
+                                    cancel()
+                                    return@async null
+                                }
+                            })
+                        }
+                        .maxByOrNull { it.second }
+                })
+            }
+
+            promises.mapNotNull { it.await() }.maxByOrNull { it.second }?.first
+        }?.let { Ok(it) } ?: Ok(null)
+    } catch (e: CancellationException) {
+        error?.let { Failed(it) }
+            ?: Ok(null)
+    }
+}
+
+suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
+    crossinline extractor: Extractor<R, T>
+): T? {
     return (this as Iterable<T>).maxByOrNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -54,17 +102,29 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
     return (this as Iterable<T>).maxByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(crossinline extractor: Extractor<R, T>): T? {
+@JvmName("tryMaxByOrNullParallelly")
+suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
+    crossinline extractor: TryExtractor<R, T>
+): Ret<T?> {
+    return (this as Iterable<T>).maxByOrNullParallelly(
+        defaultConcurrentAmount,
+        extractor
+    )
+}
+
+@JvmName("tryMaxByOrNullParallelly")
+suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: TryExtractor<R, T>
+): Ret<T?> {
+    return (this as Iterable<T>).maxByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+}
+
+suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
+    crossinline extractor: Extractor<R, T>
+): T? {
     return this.maxByOrNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -84,11 +144,71 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
                 this@maxByOrNullParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@maxByOrNullParallelly.subList(j, k).map { Pair(it, extractor(it)) }.maxByOrNull { it.second }
+                this@maxByOrNullParallelly
+                    .subList(j, k)
+                    .map { Pair(it, extractor(it)) }
+                    .maxByOrNull { it.second }
             })
             i = k
         }
 
         promises.mapNotNull { it.await() }.maxByOrNull { it.second }?.first
+    }
+}
+
+@JvmName("tryMaxByOrNullParallelly")
+suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
+    crossinline extractor: TryExtractor<R, T>
+): Ret<T?> {
+    return this.maxByOrNullParallelly(
+        defaultConcurrentAmount,
+        extractor
+    )
+}
+
+@JvmName("tryMaxByOrNullParallelly")
+suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
+    concurrentAmount: UInt64,
+    crossinline extractor: TryExtractor<R, T>
+): Ret<T?> {
+    var error: Error? = null
+
+    return try {
+        coroutineScope {
+            val promises = ArrayList<Deferred<Pair<T, R>?>>()
+            val segmentAmount = this@maxByOrNullParallelly.size / concurrentAmount.toInt()
+            var i = 0
+            while (i != this@maxByOrNullParallelly.size) {
+                val j = i
+                val k = i + minOf(
+                    segmentAmount,
+                    this@maxByOrNullParallelly.size - i
+                )
+                promises.add(async(Dispatchers.Default) {
+                    this@maxByOrNullParallelly.subList(j, k)
+                        .map {
+                            Pair(it, when (val result = extractor(it)) {
+                                is Ok -> {
+                                    result.value
+                                }
+
+                                is Failed -> {
+                                    error = result.error
+                                    cancel()
+                                    return@async null
+                                }
+                            })
+                        }
+                        .maxByOrNull { it.second }
+                })
+                i = k
+            }
+
+            promises.mapNotNull { it.await() }.maxByOrNull { it.second }?.first
+        }?.let { Ok(it) }
+            ?: Ok(null)
+    } catch (e: CancellationException) {
+        error?.let { Failed(it) }
+            ?: Ok(null)
     }
 }

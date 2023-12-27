@@ -5,7 +5,9 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(crossinline extractor: IndexedExtractor<R?, T>): List<R> {
+suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
+    crossinline extractor: IndexedExtractor<R?, T>
+): List<R> {
     return this.mapIndexedNotNullParallelly(UInt64.ten, extractor)
 }
 
@@ -34,10 +36,14 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(crossinline extractor: TryIndexedExtractor<R?, T>): Ret<List<R>> {
+@JvmName("tryMapIndexedNotNullParallelly")
+suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
+    crossinline extractor: TryIndexedExtractor<R?, T>
+): Ret<List<R>> {
     return this.mapIndexedNotNullParallelly(UInt64.ten, extractor)
 }
 
+@JvmName("tryMapIndexedNotNullParallelly")
 suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
     segment: UInt64,
     crossinline extractor: TryIndexedExtractor<R?, T>
@@ -81,17 +87,11 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
     }
 }
 
-suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(crossinline extractor: IndexedExtractor<R?, T>): List<R> {
+suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
+    crossinline extractor: IndexedExtractor<R?, T>
+): List<R> {
     return (this as Iterable<T>).mapIndexedNotNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -103,21 +103,17 @@ suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
     return (this as Iterable<T>).mapIndexedNotNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(crossinline extractor: TryIndexedExtractor<R?, T>): Ret<List<R>> {
+@JvmName("tryMapIndexedNotNullParallelly")
+suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
+    crossinline extractor: TryIndexedExtractor<R?, T>
+): Ret<List<R>> {
     return (this as Iterable<T>).mapIndexedNotNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryMapIndexedNotNullParallelly")
 suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<R?, T>
@@ -125,17 +121,11 @@ suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
     return (this as Iterable<T>).mapIndexedNotNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(crossinline extractor: IndexedExtractor<R?, T>): List<R> {
+suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
+    crossinline extractor: IndexedExtractor<R?, T>
+): List<R> {
     return this.mapIndexedNotNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -164,21 +154,17 @@ suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
     }
 }
 
-suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(crossinline extractor: TryIndexedExtractor<R?, T>): Ret<List<R>> {
+@JvmName("tryMapIndexedNotNullParallelly")
+suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
+    crossinline extractor: TryIndexedExtractor<R?, T>
+): Ret<List<R>> {
     return this.mapIndexedNotNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryMapIndexedNotNullParallelly")
 suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<R?, T>

@@ -36,6 +36,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallel
     }
 }
 
+@JvmName("tryMapNotNullParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
     destination: C,
     crossinline extractor: TryExtractor<R, T>
@@ -43,6 +44,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallel
     return this.mapToParallelly(UInt64.ten, destination, extractor)
 }
 
+@JvmName("tryMapNotNullParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
     segment: UInt64,
     destination: C,
@@ -90,15 +92,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParall
     crossinline extractor: Extractor<R, T>
 ): C {
     return (this as Iterable<T>).mapToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
@@ -112,25 +106,19 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParall
     return (this as Iterable<T>).mapToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
+@JvmName("tryMapNotNullParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParallelly(
     destination: C,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<C> {
     return (this as Iterable<T>).mapToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
+@JvmName("tryMapNotNullParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
@@ -144,15 +132,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
     crossinline extractor: Extractor<R, T>
 ): C {
     return this.mapToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
@@ -183,25 +163,19 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
     }
 }
 
+@JvmName("tryMapNotNullParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
     destination: C,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<C> {
     return this.mapToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
+@JvmName("tryMapNotNullParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
     concurrentAmount: UInt64,
     destination: C,

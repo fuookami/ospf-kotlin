@@ -10,7 +10,7 @@ typealias TryIndexedPredicate<T> = (Int, T) -> Ret<Boolean>
 
 typealias Extractor<R, T> = (T) -> R
 typealias TryExtractor<R, T> = (T) -> Ret<R>
-typealias IndexedExtractor<R, T> = (Int, T) -> Ret<R>
+typealias IndexedExtractor<R, T> = (Int, T) -> R
 typealias TryIndexedExtractor<R, T> = (Int, T) -> Ret<R>
 
 typealias Mapper<R, T> = (T) -> R

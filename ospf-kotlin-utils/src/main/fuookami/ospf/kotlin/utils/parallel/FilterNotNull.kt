@@ -8,7 +8,9 @@ suspend inline fun <T> Iterable<T?>.filterNotNullParallelly(): List<T> {
     return this.filterNotNullParallelly(UInt64.ten)
 }
 
-suspend inline fun <T> Iterable<T?>.filterNotNullParallelly(segment: UInt64): List<T> {
+suspend inline fun <T> Iterable<T?>.filterNotNullParallelly(
+    segment: UInt64
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterNotNullParallelly.iterator()
@@ -30,37 +32,25 @@ suspend inline fun <T> Iterable<T?>.filterNotNullParallelly(segment: UInt64): Li
 
 suspend inline fun <T> Collection<T?>.filterNotNullParallelly(): List<T> {
     return this.filterNotNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <T> Collection<T?>.filterNotNullParallelly(concurrentAmount: UInt64): List<T> {
+suspend inline fun <T> Collection<T?>.filterNotNullParallelly(
+    concurrentAmount: UInt64
+): List<T> {
     return (this as Iterable<T?>).filterNotNullParallelly(UInt64(this.size) / concurrentAmount)
 }
 
 suspend inline fun <T> List<T?>.filterNotNullParallelly(): List<T> {
     return this.filterNotNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <T> List<T?>.filterNotNullParallelly(concurrentAmount: UInt64): List<T> {
+suspend inline fun <T> List<T?>.filterNotNullParallelly(
+    concurrentAmount: UInt64
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterNotNullParallelly.size / concurrentAmount.toInt()

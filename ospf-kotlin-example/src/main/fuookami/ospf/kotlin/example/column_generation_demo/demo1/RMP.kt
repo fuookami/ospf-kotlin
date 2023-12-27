@@ -76,9 +76,9 @@ class RMP(
 
     // solve lp
     operator fun invoke(iteration: UInt64): Result<SPM, Error> {
-        return when (val result = runBlocking { solveLP("demo1-rmp-$iteration", metaModel) }) {
+        return when (val result = runBlocking { solveLP("demo1-rmp-$iteration", metaModel, SolverParameter("scip")) }) {
             is Ok -> {
-                Ok(extracShadowPriceMap(result.value.dualResult))
+                Ok(extractShadowPriceMap(result.value.dualResult))
             }
 
             is Failed -> {
@@ -100,7 +100,7 @@ class RMP(
         }
     }
 
-    private fun extracShadowPriceMap(dualResult: List<Flt64>): SPM {
+    private fun extractShadowPriceMap(dualResult: List<Flt64>): SPM {
         val ret = SPM()
 
         for ((i, j) in metaModel.indicesOfConstraintGroup("product_demand")!!.withIndex()) {

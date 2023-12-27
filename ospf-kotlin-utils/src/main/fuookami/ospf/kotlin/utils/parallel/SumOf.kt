@@ -43,6 +43,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     return sum
 }
 
+@JvmName("trySumOfParallelly")
 suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
@@ -51,6 +52,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     return this.sumOfParallelly(UInt64.ten, constants, extractor)
 }
 
+@JvmName("trySumOfParallelly")
 suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     segment: UInt64,
     constants: ArithmeticConstants<U>,
@@ -105,15 +107,7 @@ suspend inline fun <T, U> Collection<T>.sumOfParallelly(
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     return (this as Iterable<T>).sumOfParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         constants,
         extractor
     )
@@ -128,26 +122,20 @@ suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     return (this as Iterable<T>).sumOfParallelly(UInt64(this.size) / concurrentAmount, constants, extractor)
 }
 
+@JvmName("trySumOfParallelly")
 suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     return (this as Iterable<T>).sumOfParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         constants,
         extractor
     )
 }
 
+@JvmName("trySumOfParallelly")
 suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
@@ -163,15 +151,7 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         constants,
         extractor
     )
@@ -207,26 +187,20 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
     return sum
 }
 
+@JvmName("trySumOfParallelly")
 suspend inline fun <T, U> List<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         constants,
         extractor
     )
 }
 
+@JvmName("trySumOfParallelly")
 suspend inline fun <T, U> List<T>.sumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,

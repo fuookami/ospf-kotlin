@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <T> Iterable<T>.noneParallelly(crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Iterable<T>.noneParallelly(
+    crossinline predicate: Predicate<T>
+): Boolean {
     return this.noneParallelly(UInt64.ten, predicate)
 }
 
-suspend inline fun <T> Iterable<T>.noneParallelly(segment: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Iterable<T>.noneParallelly(
+    segment: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()
@@ -39,10 +44,14 @@ suspend inline fun <T> Iterable<T>.noneParallelly(segment: UInt64, crossinline p
     }
 }
 
-suspend inline fun <T> Iterable<T>.noneParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
+@JvmName("tryNoneParallelly")
+suspend inline fun <T> Iterable<T>.noneParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Boolean> {
     return this.noneParallelly(UInt64.ten, predicate)
 }
 
+@JvmName("tryNoneParallelly")
 suspend inline fun <T> Iterable<T>.noneParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -90,17 +99,11 @@ suspend inline fun <T> Iterable<T>.noneParallelly(
     }
 }
 
-suspend inline fun <T> Collection<T>.noneParallelly(crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Collection<T>.noneParallelly(
+    crossinline predicate: Predicate<T>
+): Boolean {
     return (this as Iterable<T>).noneParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
@@ -112,21 +115,17 @@ suspend inline fun <T> Collection<T>.noneParallelly(
     return (this as Iterable<T>).noneParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.noneParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
+@JvmName("tryNoneParallelly")
+suspend inline fun <T> Collection<T>.noneParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Boolean> {
     return (this as Iterable<T>).noneParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryNoneParallelly")
 suspend inline fun <T> Collection<T>.noneParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -134,22 +133,19 @@ suspend inline fun <T> Collection<T>.noneParallelly(
     return (this as Iterable<T>).noneParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> List<T>.noneParallelly(crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> List<T>.noneParallelly(
+    crossinline predicate: Predicate<T>
+): Boolean {
     return this.noneParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
-suspend inline fun <T> List<T>.noneParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> List<T>.noneParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()
@@ -179,21 +175,17 @@ suspend inline fun <T> List<T>.noneParallelly(concurrentAmount: UInt64, crossinl
     }
 }
 
-suspend inline fun <T> List<T>.noneParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
+@JvmName("tryNoneParallelly")
+suspend inline fun <T> List<T>.noneParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Boolean> {
     return this.noneParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryNoneParallelly")
 suspend inline fun <T> List<T>.noneParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>

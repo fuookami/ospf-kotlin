@@ -8,7 +8,9 @@ suspend inline fun <T : Comparable<T>> Iterable<T>.minMaxOrNullParallelly(): Pai
     return this.minMaxOrNullParallelly(UInt64.ten)
 }
 
-suspend inline fun <T : Comparable<T>> Iterable<T>.minMaxOrNullParallelly(segment: UInt64): Pair<T, T>? {
+suspend inline fun <T : Comparable<T>> Iterable<T>.minMaxOrNullParallelly(
+    segment: UInt64
+): Pair<T, T>? {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, T>?>>()
         val iterator = this@minMaxOrNullParallelly.iterator()
@@ -58,37 +60,25 @@ suspend inline fun <T : Comparable<T>> Iterable<T>.minMaxOrNullParallelly(segmen
 
 suspend inline fun <T : Comparable<T>> Collection<T>.minMaxOrNullParallelly(): Pair<T, T>? {
     return (this as Iterable<T>).minMaxOrNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <T : Comparable<T>> Collection<T>.minMaxOrNullParallelly(concurrentAmount: UInt64): Pair<T, T>? {
+suspend inline fun <T : Comparable<T>> Collection<T>.minMaxOrNullParallelly(
+    concurrentAmount: UInt64
+): Pair<T, T>? {
     return (this as Iterable<T>).minMaxOrNullParallelly(UInt64(this.size) / concurrentAmount)
 }
 
 suspend inline fun <T : Comparable<T>> List<T>.minMaxOrNullParallelly(): Pair<T, T>? {
     return this.minMaxOrNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <T : Comparable<T>> List<T>.minMaxOrNullParallelly(concurrentAmount: UInt64): Pair<T, T>? {
+suspend inline fun <T : Comparable<T>> List<T>.minMaxOrNullParallelly(
+    concurrentAmount: UInt64
+): Pair<T, T>? {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, T>?>>()
         val segmentAmount = this@minMaxOrNullParallelly.size / concurrentAmount.toInt()

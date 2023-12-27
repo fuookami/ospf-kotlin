@@ -56,11 +56,15 @@ abstract class BivariateLinearPiecewiseFunction(
 
     val size get() = triangles.size
 
-    override val possibleRange: ValueRange<Flt64> get() = symbols.z.possibleRange
+    override val possibleRange: ValueRange<Flt64> by lazy { symbols.z.range }
     override var range: ValueRange<Flt64>
-        get() = symbols.z.range
-        set(value) {
-            symbols.z.range = value
+        get() = if (::symbols.isInitialized) {
+            symbols.z.range
+        } else {
+            ValueRange(Flt64.minimum, Flt64.maximum, Flt64)
+        }
+        set(range) {
+            symbols.z.range = range
         }
 
     override val cells: List<MonomialCell<Linear>> get() = symbols.z.cells

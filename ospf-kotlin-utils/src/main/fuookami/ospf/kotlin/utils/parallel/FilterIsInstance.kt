@@ -2,13 +2,14 @@ package fuookami.ospf.kotlin.utils.parallel
 
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(): List<T> {
     return this.filterIsInstanceParallelly<T>(UInt64.ten)
 }
 
-suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(segment: UInt64): List<T> {
+suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(
+    segment: UInt64
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val iterator = this@filterIsInstanceParallelly.iterator()
@@ -30,37 +31,25 @@ suspend inline fun <reified T> Iterable<*>.filterIsInstanceParallelly(segment: U
 
 suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(): List<T> {
     return this.filterIsInstanceParallelly<T>(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(concurrentAmount: UInt64): List<T> {
+suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(
+    concurrentAmount: UInt64
+): List<T> {
     return (this as Iterable<*>).filterIsInstanceParallelly<T>(UInt64(this.size) / concurrentAmount)
 }
 
 suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(): List<T> {
     return this.filterIsInstanceParallelly<T>(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(concurrentAmount: UInt64): List<T> {
+suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(
+    concurrentAmount: UInt64
+): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
         val segmentAmount = this@filterIsInstanceParallelly.size / concurrentAmount.toInt()

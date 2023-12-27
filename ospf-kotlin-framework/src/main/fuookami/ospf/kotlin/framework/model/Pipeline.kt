@@ -19,7 +19,7 @@ interface Pipeline<M : ModelInterface> {
 }
 
 interface CGPipeline<Model : MetaModel<*>, Map : ShadowPriceMap<Map>> : Pipeline<Model> {
-    fun extractor(): Extractor<Map>? {
+    fun extractor(): ShadowPriceExtractor<Map>? {
         return null
     }
 

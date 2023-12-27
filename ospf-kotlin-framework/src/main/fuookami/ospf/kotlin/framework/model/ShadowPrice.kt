@@ -16,26 +16,27 @@ class ShadowPrice(
 ) {
 }
 
-typealias Extractor<M> = (ShadowPriceMap<M>, Array<out Any?>) -> Flt64
+typealias ShadowPriceExtractor<M> = (ShadowPriceMap<M>, Array<out Any?>) -> Flt64
 
-open class ShadowPriceMap<M : ShadowPriceMap<M>>(
-    val map: MutableMap<ShadowPriceKey, ShadowPrice> = HashMap(),
-    private val extractors: MutableList<Extractor<M>> = ArrayList()
-) {
-    operator fun invoke(vararg args: Any?) = extractors.sumOf(Flt64) { it(this, args) }
+open class ShadowPriceMap<M : ShadowPriceMap<M>> {
+    val map: Map<ShadowPriceKey, ShadowPrice> by ::_map
+    private val _map = HashMap<ShadowPriceKey, ShadowPrice>()
+    private val _extractors = ArrayList<ShadowPriceExtractor<M>>()
 
-    operator fun get(key: ShadowPriceKey): ShadowPrice? = map[key]
+    operator fun invoke(vararg args: Any?) = _extractors.sumOf(Flt64) { it(this, args) }
+
+    operator fun get(key: ShadowPriceKey): ShadowPrice? = _map[key]
 
     fun put(price: ShadowPrice) {
-        map[price.key] = price
+        _map[price.key] = price
     }
 
-    fun put(extractor: Extractor<M>) {
-        extractors.add(extractor)
+    fun put(extractor: ShadowPriceExtractor<M>) {
+        _extractors.add(extractor)
     }
 
     fun remove(key: ShadowPriceKey) {
-        map.remove(key)
+        _map.remove(key)
     }
 }
 

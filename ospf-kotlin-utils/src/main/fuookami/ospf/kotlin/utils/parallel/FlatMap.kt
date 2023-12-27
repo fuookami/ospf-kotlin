@@ -5,7 +5,9 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <R, T> Iterable<T>.flatMapParallelly(crossinline extractor: Extractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
+    crossinline extractor: Extractor<Iterable<R>, T>
+): List<R> {
     return this.flatMapParallelly(UInt64.ten, extractor)
 }
 
@@ -32,10 +34,14 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Ret<List<R>> {
+@JvmName("tryFlatMapParallelly")
+suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
+    crossinline extractor: TryExtractor<Iterable<R>, T>
+): Ret<List<R>> {
     return this.flatMapParallelly(UInt64.ten, extractor)
 }
 
+@JvmName("tryFlatMapParallelly")
 suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<Iterable<R>, T>
@@ -77,17 +83,11 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     }
 }
 
-suspend inline fun <R, T> Collection<T>.flatMapParallelly(crossinline extractor: Extractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> Collection<T>.flatMapParallelly(
+    crossinline extractor: Extractor<Iterable<R>, T>
+): List<R> {
     return (this as Iterable<T>).flatMapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -99,21 +99,17 @@ suspend inline fun <R, T> Collection<T>.flatMapParallelly(
     return (this as Iterable<T>).flatMapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> Collection<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Ret<List<R>> {
+@JvmName("tryFlatMapParallelly")
+suspend inline fun <R, T> Collection<T>.flatMapParallelly(
+    crossinline extractor: TryExtractor<Iterable<R>, T>
+): Ret<List<R>> {
     return (this as Iterable<T>).flatMapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryFlatMapParallelly")
 suspend inline fun <R, T> Collection<T>.flatMapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Iterable<R>, T>
@@ -121,17 +117,11 @@ suspend inline fun <R, T> Collection<T>.flatMapParallelly(
     return (this as Iterable<T>).flatMapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> List<T>.flatMapParallelly(crossinline extractor: Extractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> List<T>.flatMapParallelly(
+    crossinline extractor: Extractor<Iterable<R>, T>
+): List<R> {
     return this.flatMapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -160,21 +150,17 @@ suspend inline fun <R, T> List<T>.flatMapParallelly(
     }
 }
 
-suspend inline fun <R, T> List<T>.flatMapParallelly(crossinline extractor: TryExtractor<Iterable<R>, T>): Ret<List<R>> {
+@JvmName("tryFlatMapParallelly")
+suspend inline fun <R, T> List<T>.flatMapParallelly(
+    crossinline extractor: TryExtractor<Iterable<R>, T>
+): Ret<List<R>> {
     return this.flatMapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryFlatMapParallelly")
 suspend inline fun <R, T> List<T>.flatMapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Iterable<R>, T>

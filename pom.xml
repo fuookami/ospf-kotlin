@@ -14,7 +14,7 @@
         <module>ospf-kotlin-core-plugin-cplex</module>
         <module>ospf-kotlin-core-plugin-copt</module>
         <module>ospf-kotlin-core-plugin-heuristic</module>
-        <module>ospf-kotlin-framework-gantt-scheduling</module>
+<!--        <module>ospf-kotlin-framework-gantt-scheduling</module>-->
         <module>ospf-kotlin-example</module>
     </modules>
     <groupId>fuookami</groupId>

@@ -38,6 +38,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     }
 }
 
+@JvmName("tryFlatMapIndexedToParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedToParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
@@ -45,6 +46,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     return this.flatMapIndexedToParallelly(UInt64.ten, destination, extractor)
 }
 
+@JvmName("tryFlatMapIndexedToParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedToParallelly(
     segment: UInt64,
     destination: C,
@@ -94,15 +96,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapInde
     crossinline extractor: IndexedExtractor<Iterable<R>, T>
 ): C {
     return (this as Iterable<T>).flatMapIndexedToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
@@ -120,25 +114,19 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapInde
     )
 }
 
+@JvmName("tryFlatMapIndexedToParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapIndexedToParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
     return (this as Iterable<T>).flatMapIndexedToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
+@JvmName("tryFlatMapIndexedToParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
@@ -156,15 +144,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToP
     crossinline extractor: IndexedExtractor<Iterable<R>, T>
 ): C {
     return this.flatMapIndexedToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
@@ -195,25 +175,19 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToP
     }
 }
 
+@JvmName("tryFlatMapIndexedToParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
     return this.flatMapIndexedToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
+@JvmName("tryFlatMapIndexedToParallelly")
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,

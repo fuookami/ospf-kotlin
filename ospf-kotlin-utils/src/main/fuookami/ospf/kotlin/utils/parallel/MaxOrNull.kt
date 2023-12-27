@@ -7,7 +7,9 @@ suspend inline fun <T : Comparable<T>> Iterable<T>.maxOrNullParallelly(): T? {
     return this.maxOrNullParallelly(UInt64.ten)
 }
 
-suspend inline fun <T : Comparable<T>> Iterable<T>.maxOrNullParallelly(segment: UInt64): T? {
+suspend inline fun <T : Comparable<T>> Iterable<T>.maxOrNullParallelly(
+    segment: UInt64
+): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val iterator = this@maxOrNullParallelly.iterator()
@@ -29,37 +31,25 @@ suspend inline fun <T : Comparable<T>> Iterable<T>.maxOrNullParallelly(segment: 
 
 suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(): T? {
     return (this as Iterable<T>).maxOrNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(concurrentAmount: UInt64): T? {
+suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(
+    concurrentAmount: UInt64
+): T? {
     return (this as Iterable<T>).maxOrNullParallelly(UInt64(this.size) / concurrentAmount)
 }
 
 suspend inline fun <T : Comparable<T>> List<T>.maxOrNullParallelly(): T? {
     return this.maxOrNullParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        defaultConcurrentAmount
     )
 }
 
-suspend inline fun <T : Comparable<T>> List<T>.maxOrNullParallelly(concurrentAmount: UInt64): T? {
+suspend inline fun <T : Comparable<T>> List<T>.maxOrNullParallelly(
+    concurrentAmount: UInt64
+): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<T?>>()
         val segmentAmount = this@maxOrNullParallelly.size / concurrentAmount.toInt()

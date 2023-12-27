@@ -44,12 +44,14 @@ suspend inline fun <T> Iterable<T>.allParallelly(
     }
 }
 
+@JvmName("tryAllParallelly")
 suspend inline fun <T> Iterable<T>.allParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
     return this.allParallelly(UInt64.ten, predicate)
 }
 
+@JvmName("tryAllParallelly")
 suspend inline fun <T> Iterable<T>.allParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -97,17 +99,11 @@ suspend inline fun <T> Iterable<T>.allParallelly(
     }
 }
 
-suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> Collection<T>.allParallelly(
+    crossinline predicate: Predicate<T>
+): Boolean {
     return (this as Iterable<T>).allParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
@@ -119,21 +115,17 @@ suspend inline fun <T> Collection<T>.allParallelly(
     return (this as Iterable<T>).allParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> Collection<T>.allParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
+@JvmName("tryAllParallelly")
+suspend inline fun <T> Collection<T>.allParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Boolean> {
     return (this as Iterable<T>).allParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryAllParallelly")
 suspend inline fun <T> Collection<T>.allParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
@@ -141,22 +133,19 @@ suspend inline fun <T> Collection<T>.allParallelly(
     return (this as Iterable<T>).allParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-suspend inline fun <T> List<T>.allParallelly(crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> List<T>.allParallelly(
+    crossinline predicate: Predicate<T>
+): Boolean {
     return this.allParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
-suspend inline fun <T> List<T>.allParallelly(concurrentAmount: UInt64, crossinline predicate: Predicate<T>): Boolean {
+suspend inline fun <T> List<T>.allParallelly(
+    concurrentAmount: UInt64,
+    crossinline predicate: Predicate<T>
+): Boolean {
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()
@@ -187,21 +176,17 @@ suspend inline fun <T> List<T>.allParallelly(concurrentAmount: UInt64, crossinli
     }
 }
 
-suspend inline fun <T> List<T>.allParallelly(crossinline predicate: TryPredicate<T>): Ret<Boolean> {
+@JvmName("tryAllParallelly")
+suspend inline fun <T> List<T>.allParallelly(
+    crossinline predicate: TryPredicate<T>
+): Ret<Boolean> {
     return this.allParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         predicate
     )
 }
 
+@JvmName("tryAllParallelly")
 suspend inline fun <T> List<T>.allParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>

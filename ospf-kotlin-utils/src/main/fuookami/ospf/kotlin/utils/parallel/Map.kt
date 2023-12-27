@@ -5,11 +5,16 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <R, T> Iterable<T>.mapParallelly(crossinline extractor: Extractor<R, T>): List<R> {
+suspend inline fun <R, T> Iterable<T>.mapParallelly(
+    crossinline extractor: Extractor<R, T>
+): List<R> {
     return this.mapParallelly(UInt64.ten, extractor)
 }
 
-suspend inline fun <R, T> Iterable<T>.mapParallelly(segment: UInt64, crossinline extractor: Extractor<R, T>): List<R> {
+suspend inline fun <R, T> Iterable<T>.mapParallelly(
+    segment: UInt64,
+    crossinline extractor: Extractor<R, T>
+): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
         val iterator = this@mapParallelly.iterator()
@@ -29,10 +34,14 @@ suspend inline fun <R, T> Iterable<T>.mapParallelly(segment: UInt64, crossinline
     }
 }
 
-suspend inline fun <R, T> Iterable<T>.mapParallelly(crossinline extractor: TryExtractor<R, T>): Ret<List<R>> {
+@JvmName("tryMapParallelly")
+suspend inline fun <R, T> Iterable<T>.mapParallelly(
+    crossinline extractor: TryExtractor<R, T>
+): Ret<List<R>> {
     return this.mapParallelly(UInt64.ten, extractor)
 }
 
+@JvmName("tryMapParallelly")
 suspend inline fun <R, T> Iterable<T>.mapParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
@@ -74,17 +83,11 @@ suspend inline fun <R, T> Iterable<T>.mapParallelly(
     }
 }
 
-suspend inline fun <R, T> Collection<T>.mapParallelly(crossinline extractor: Extractor<R, T>): List<R> {
+suspend inline fun <R, T> Collection<T>.mapParallelly(
+    crossinline extractor: Extractor<R, T>
+): List<R> {
     return this.mapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -96,21 +99,17 @@ suspend inline fun <R, T> Collection<T>.mapParallelly(
     return (this as Iterable<T>).mapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> Collection<T>.mapParallelly(crossinline extractor: TryExtractor<R, T>): Ret<List<R>> {
+@JvmName("tryMapParallelly")
+suspend inline fun <R, T> Collection<T>.mapParallelly(
+    crossinline extractor: TryExtractor<R, T>
+): Ret<List<R>> {
     return this.mapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryMapParallelly")
 suspend inline fun <R, T> Collection<T>.mapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
@@ -120,15 +119,7 @@ suspend inline fun <R, T> Collection<T>.mapParallelly(
 
 suspend inline fun <R, T> List<T>.mapParallelly(crossinline extractor: Extractor<R, T>): List<R> {
     return this.mapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
@@ -157,21 +148,17 @@ suspend inline fun <R, T> List<T>.mapParallelly(
     }
 }
 
-suspend inline fun <R, T> List<T>.mapParallelly(crossinline extractor: TryExtractor<R, T>): Ret<List<R>> {
+@JvmName("tryMapParallelly")
+suspend inline fun <R, T> List<T>.mapParallelly(
+    crossinline extractor: TryExtractor<R, T>
+): Ret<List<R>> {
     return this.mapParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         extractor
     )
 }
 
+@JvmName("tryMapParallelly")
 suspend inline fun <R, T> List<T>.mapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>

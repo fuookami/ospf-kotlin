@@ -4,7 +4,9 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-suspend inline fun <reified T, C : MutableCollection<in T>> Iterable<*>.filterIsInstanceToParallelly(destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> Iterable<*>.filterIsInstanceToParallelly(
+    destination: C
+): C {
     return this.filterIsInstanceToParallelly(UInt64.ten, destination)
 }
 
@@ -31,17 +33,11 @@ suspend inline fun <reified T, C : MutableCollection<in T>> Iterable<*>.filterIs
     }
 }
 
-suspend inline fun <reified T, C : MutableCollection<in T>> Collection<*>.filterIsInstanceToParallelly(destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> Collection<*>.filterIsInstanceToParallelly(
+    destination: C
+): C {
     return (this as Iterable<*>).filterIsInstanceToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination
     )
 }
@@ -53,17 +49,11 @@ suspend inline fun <reified T, C : MutableCollection<in T>> Collection<*>.filter
     return (this as Iterable<*>).filterIsInstanceToParallelly(UInt64(this.size) / concurrentAmount, destination)
 }
 
-suspend inline fun <reified T, C : MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(destination: C): C {
+suspend inline fun <reified T, C : MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(
+    destination: C
+): C {
     return this.filterIsInstanceToParallelly(
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        ),
+        defaultConcurrentAmount,
         destination
     )
 }
