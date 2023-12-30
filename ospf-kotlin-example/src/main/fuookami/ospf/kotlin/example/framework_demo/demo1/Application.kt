@@ -20,7 +20,7 @@ class SSP {
     lateinit var routeContext: RouteContext
     lateinit var bandwidthContext: BandwidthContext
 
-    operator fun invoke(input: Input): Result<Output, Error> {
+    operator fun invoke(input: Input): Ret<Output> {
         when (val result = init(input)) {
             is Failed -> {
                 return Failed(result.error)
@@ -56,7 +56,7 @@ class SSP {
         return Ok(Output(solution.value.map { list -> list.map { it.id } }))
     }
 
-    private fun init(input: Input): Try<Error> {
+    private fun init(input: Input): Try {
         routeContext = RouteContext()
         bandwidthContext = BandwidthContext(routeContext)
 
@@ -78,7 +78,7 @@ class SSP {
         return Ok(success)
     }
 
-    private fun construct(model: LinearMetaModel): Try<Error> {
+    private fun construct(model: LinearMetaModel): Try {
         when (val result = routeContext.register(model)) {
             is Failed -> {
                 return Failed(result.error)
@@ -113,7 +113,7 @@ class SSP {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun solve(metaModel: LinearMetaModel): Result<List<Flt64>, Error> {
+    private fun solve(metaModel: LinearMetaModel): Ret<List<Flt64>> {
         GlobalScope.launch(Dispatchers.IO) { metaModel.export("demo1.opm") }
 
         // val solver = GurobiLinearSolver(LinearSolverConfig())

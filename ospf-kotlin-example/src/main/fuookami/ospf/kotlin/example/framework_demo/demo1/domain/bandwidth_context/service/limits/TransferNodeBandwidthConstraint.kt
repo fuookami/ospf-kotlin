@@ -22,7 +22,7 @@ class TransferNodeBandwidthConstraint(
     private val nodeBandwidth: NodeBandwidth,
     override val name: String = "transfer_node_bandwidth_constraint"
 ) : Pipeline<LinearMetaModel> {
-    override fun invoke(model: LinearMetaModel): Try<Error> {
+    override fun invoke(model: LinearMetaModel): Try {
         val assignment = assignment.nodeAssignment
         val outFlow = nodeBandwidth.outFlow
         for (node in nodes.asSequence().filter(normal)) {

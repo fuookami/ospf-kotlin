@@ -13,14 +13,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.Extractor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 
-private typealias OriginShadowPriceMap<M> = fuookami.ospf.kotlin.framework.model.ShadowPriceMap<M>
-
 @Suppress("UNCHECKED_CAST")
 fun <M : OriginShadowPriceMap<M>, E : Executor> wrap(extractor: (OriginShadowPriceMap<M>, Task<E>?, Task<E>?, E) -> Flt64): Extractor<M> {
     return { map, args -> extractor(map, args[0] as Task<E>?, args[1] as Task<E>?, args[2] as E) }
 }
 
-class ShadowPriceMap<E : Executor> : OriginShadowPriceMap<ShadowPriceMap<E>>() {
+class ShadowPriceMap<E : Executor> : AbstractShadowPriceMap<ShadowPriceMap<E>>() {
     operator fun invoke(prevTask: Task<E>?, thisTask: Task<E>?, executor: E): Flt64 {
         return super.invoke(prevTask, thisTask, executor)
     }

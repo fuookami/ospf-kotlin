@@ -35,6 +35,8 @@ pub struct GanttItemDTO {
     pub scheduled_end_time: String,
     pub start_time: String,
     pub end_time: String,
+    pub produces: Vec<GanttItemInfoDTO>,
+    pub resources: Vec<GanttItemInfoDTO>,
     pub info: Vec<GanttItemInfoDTO>,
 }
 
@@ -60,6 +62,22 @@ impl From<&GanttItem> for GanttItemDTO {
                 .to_string(),
             start_time: value.time.start.format("%Y-%m-%d %H:%M:%S").to_string(),
             end_time: value.time.end.format("%Y-%m-%d %H:%M:%S").to_string(),
+            produces: value
+                .produces
+                .iter()
+                .map(|(key, value)| GanttItemInfoDTO {
+                    key: key.clone(),
+                    value: value.clone(),
+                })
+                .collect(),
+            resources: value
+                .resources
+                .iter()
+                .map(|(key, value)| GanttItemInfoDTO {
+                    key: key.clone(),
+                    value: value.clone(),
+                })
+                .collect(),
             info: value
                 .info
                 .iter()
@@ -97,7 +115,7 @@ impl From<&GanttLine> for GanttLineDTO {
 pub struct GanttDTO {
     pub start_time: String,
     pub end_time: String,
-    pub link_info: Option<String>,
+    pub link_info: Vec<String>,
     pub lines: Vec<GanttLineDTO>,
 }
 

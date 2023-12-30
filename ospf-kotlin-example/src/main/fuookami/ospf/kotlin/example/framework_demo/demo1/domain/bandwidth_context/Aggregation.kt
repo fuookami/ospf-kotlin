@@ -10,7 +10,7 @@ class Aggregation(
     val serviceBandwidth: ServiceBandwidth,
     val nodeBandwidth: NodeBandwidth
 ) {
-    fun register(model: LinearMetaModel): Try<Error> {
+    fun register(model: LinearMetaModel): Try {
         val subprocesses = arrayListOf(
             { return@arrayListOf edgeBandwidth.register(model) },
             { return@arrayListOf serviceBandwidth.register(model) },

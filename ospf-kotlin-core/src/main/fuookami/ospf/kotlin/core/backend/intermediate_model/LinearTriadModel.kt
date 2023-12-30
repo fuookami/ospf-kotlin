@@ -102,7 +102,7 @@ class BasicLinearTriadModel(
         }
     }
 
-    override fun exportLP(writer: FileWriter): Try<Error> {
+    override fun exportLP(writer: FileWriter): Try {
         writer.append("Subject To\n")
         var i = 0
         var j = 0
@@ -365,7 +365,7 @@ data class LinearTriadModel(
         )
     }
 
-    override fun exportLP(writer: FileWriter): Try<Error> {
+    override fun exportLP(writer: FileWriter): Try {
         writer.write("${objective.category}\n")
         var i = 0
         for (cell in objective.obj) {

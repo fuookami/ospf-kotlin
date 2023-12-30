@@ -15,7 +15,7 @@ class SCIPLinearSolver(
     private val config: LinearSolverConfig,
     private val callBack: SCIPSolverCallBack? = null
 ) {
-    operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Err> {
+    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
         val impl = SCIPLinearSolverImpl(config, callBack)
         return impl(model)
     }
@@ -50,7 +50,7 @@ private class SCIPLinearSolverImpl(
         scip.free()
     }
 
-    operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Err> {
+    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
         assert(!this::scip.isInitialized)
 
         mip = model.containsNotBinaryInteger()
@@ -74,13 +74,13 @@ private class SCIPLinearSolverImpl(
         return Ok(output)
     }
 
-    private fun init(): Try<Err> {
+    private fun init(): Try {
         scip = Scip()
         scip.create("")
         return Ok(success)
     }
 
-    private fun dump(model: LinearTriadModel): Try<Err> {
+    private fun dump(model: LinearTriadModel): Try {
         scipVars = model.variables.map {
             scip.createVar(
                 it.name,
@@ -146,7 +146,7 @@ private class SCIPLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun configurate(): Try<Err> {
+    private fun configurate(): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toDouble())
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
@@ -155,7 +155,7 @@ private class SCIPLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun solve(): Try<Err> {
+    private fun solve(): Try {
         val begin = Clock.System.now()
         scip.solve()
         solvingTime = Clock.System.now() - begin
@@ -163,7 +163,7 @@ private class SCIPLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun analyzeStatus(): Try<Err> {
+    private fun analyzeStatus(): Try {
         val eq = Equal(Flt64)
 
         val solution = scip.bestSol
@@ -187,7 +187,7 @@ private class SCIPLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun analyzeSolution(): Try<Err> {
+    private fun analyzeSolution(): Try {
         return if (status.succeeded()) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()

@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 class RouteContext {
     lateinit var aggregation: Aggregation
 
-    fun init(input: Input): Try<Error> {
+    fun init(input: Input): Try {
         var totalDemand = UInt64(0U)
         for (node in input.clientNodes) {
             totalDemand += node.demand
@@ -73,11 +73,11 @@ class RouteContext {
         return Ok(success)
     }
 
-    fun register(model: LinearMetaModel): Try<Error> {
+    fun register(model: LinearMetaModel): Try {
         return aggregation.register(model)
     }
 
-    fun construct(model: LinearMetaModel): Try<Error> {
+    fun construct(model: LinearMetaModel): Try {
         val generator = PipelineListGenerator(aggregation)
         when (val pipelinesRet = generator()) {
             is Failed -> {

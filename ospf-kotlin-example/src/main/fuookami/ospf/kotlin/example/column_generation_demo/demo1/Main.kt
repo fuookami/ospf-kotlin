@@ -13,7 +13,7 @@ class CSP {
         Product(UInt64(140UL), UInt64(211UL)),
     )
 
-    operator fun invoke(): Try<Error> {
+    operator fun invoke(): Try {
         val initialCuttingPlans = InitialSolutionGenerator(length, products)
         when (initialCuttingPlans) {
             is Failed -> {

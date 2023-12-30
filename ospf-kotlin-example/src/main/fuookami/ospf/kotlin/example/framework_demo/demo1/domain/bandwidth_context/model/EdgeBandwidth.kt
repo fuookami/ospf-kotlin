@@ -17,7 +17,7 @@ class EdgeBandwidth(
     lateinit var y: UIntVariable2
     lateinit var bandwidth: LinearSymbols1
 
-    fun register(model: LinearMetaModel): Try<Error> {
+    fun register(model: LinearMetaModel): Try {
         if (!this::y.isInitialized) {
             y = UIntVariable2("y", Shape2(edges.size, services.size))
             for (service in services) {

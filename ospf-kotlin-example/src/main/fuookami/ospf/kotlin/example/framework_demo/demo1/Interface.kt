@@ -67,7 +67,7 @@ const val data = """28 45 12
     """
 
 class ConsoleApplication {
-    operator fun invoke(): Try<Error> {
+    operator fun invoke(): Try {
         return when (val input = read(data)) {
             is Failed -> {
                 Failed(input.error)
@@ -81,7 +81,7 @@ class ConsoleApplication {
         }
     }
 
-    private fun read(data: String): Result<Input, Error> {
+    private fun read(data: String): Ret<Input> {
         val lines = data.split("\n")
         val firstLine = lines[0].trim()
         val normalNodeAmount = UInt64(firstLine.split(" ")[0].toULong())

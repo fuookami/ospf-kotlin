@@ -27,7 +27,7 @@ open class TaskTime<E : Executor>(
     lateinit var advance: Combination1<*, *>
     lateinit var oet: Combination1<*, *>
 
-    open fun register(timeWindow: TimeWindow, tasks: List<Task<E>>, model: LinearMetaModel): Try<Error> {
+    open fun register(timeWindow: TimeWindow, tasks: List<Task<E>>, model: LinearMetaModel): Try {
         if (redundancyRange != null) {
             if (!this::redundancy.isInitialized) {
                 redundancy = if (timeWindow.continues) {
@@ -129,7 +129,7 @@ open class TaskTime<E : Executor>(
         compilation: Compilation<E>,
         compilationAddingPromise: BroadcastChannel<Boolean>? = null,
         scope: CoroutineScope? = compilationAddingPromise?.let { GlobalScope }
-    ): Result<BroadcastChannel<Boolean>?, Error> {
+    ): Ret<BroadcastChannel<Boolean>?> {
         assert(bunches.isNotEmpty())
 
         val xi = compilation.x[iteration.toInt()]

@@ -8,7 +8,6 @@ import gurobi.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.parallel.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
@@ -31,7 +30,7 @@ suspend fun solveMIP(
     metaModel: LinearMetaModel,
     parameter: SolverParameter = SolverParameter(),
     config: LinearSolverConfig = LinearSolverConfig()
-): Result<List<Flt64>, Error> {
+): Ret<List<Flt64>> {
     // GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
     val model = LinearTriadModel(LinearModel(metaModel))
     // GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
@@ -72,7 +71,7 @@ suspend fun solveMIP(
     metaModel: LinearMetaModel,
     amount: UInt64,
     parameter: SolverParameter= SolverParameter()
-): Result<List<List<Flt64>>, Error> {
+): Ret<List<List<Flt64>>> {
     val results = ArrayList<List<Flt64>>()
     val model = LinearTriadModel(LinearModel(metaModel))
 
@@ -159,7 +158,7 @@ suspend fun solveLP(
     name: String,
     metaModel: LinearMetaModel,
     parameter: SolverParameter = SolverParameter()
-): Result<LPResult, Error> {
+): Ret<LPResult> {
     // GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
     lateinit var dualResult: List<Flt64>
     val model = LinearTriadModel(LinearModel(metaModel))

@@ -4,9 +4,9 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.milliseconds
 import ilog.concert.*
 import ilog.cplex.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
@@ -16,7 +16,7 @@ class CplexLinearSolver(
     private val config: LinearSolverConfig,
     private val callBack: CplexSolverCallBack? = null
 ) {
-    operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Error> {
+    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
         val impl = CplexLinearSolverImpl(config, callBack)
         return impl(model)
     }
@@ -32,7 +32,7 @@ private class CplexLinearSolverImpl(
     lateinit var status: SolvingStatus
     lateinit var output: LinearSolverOutput
 
-    operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Error> {
+    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
         assert(!this::cplex.isInitialized)
 
         val processes = arrayOf(
@@ -55,13 +55,13 @@ private class CplexLinearSolverImpl(
         return Ok(output)
     }
 
-    private fun init(model: LinearTriadModel): Try<Err> {
+    private fun init(model: LinearTriadModel): Try {
         cplex = IloCplex()
         cplex.name = model.name
         return Ok(success)
     }
 
-    private fun dump(model: LinearTriadModel): Try<Error> {
+    private fun dump(model: LinearTriadModel): Try {
         cplexVars = model.variables.map {
             cplex.numVar(it.lowerBound.toDouble(), it.upperBound.toDouble(), CplexVariable(it.type).toCplexVar())
         }.toList()
@@ -117,7 +117,7 @@ private class CplexLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun configure(): Try<Error> {
+    private fun configure(): Try {
         cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
         cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toDouble())
         cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
@@ -126,7 +126,7 @@ private class CplexLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun solve(): Try<Error> {
+    private fun solve(): Try {
         try {
             cplex.solve()
         } catch (e: IloException) {
@@ -135,7 +135,7 @@ private class CplexLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun analyzeStatus(): Try<Error> {
+    private fun analyzeStatus(): Try {
         status = when (cplex.status) {
             IloCplex.Status.Optimal -> {
                 SolvingStatus.Optimal
@@ -164,7 +164,7 @@ private class CplexLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun analyzeSolution(): Try<Error> {
+    private fun analyzeSolution(): Try {
         return if (status.succeeded()) {
             output = LinearSolverOutput(
                 Flt64(cplex.objValue),

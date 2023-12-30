@@ -18,7 +18,7 @@ class TaskDelayLimit<E : Executor>(
     private val taskDelayTimeCostCalculator: CostCalculator<E>? = null,
     override val name: String = "task_delay_limit"
 ) : HAPipeline<LinearMetaModel> {
-    override operator fun invoke(model: LinearMetaModel): Try<Error> {
+    override operator fun invoke(model: LinearMetaModel): Try {
         val est = taskTime.est
         val delay = taskTime.delay
 
@@ -57,7 +57,7 @@ class TaskDelayLimit<E : Executor>(
         return Ok(success)
     }
 
-    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Result<Flt64?, Error> {
+    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Ret<Flt64?> {
         // todo: impl
         return Ok(Flt64.zero)
     }

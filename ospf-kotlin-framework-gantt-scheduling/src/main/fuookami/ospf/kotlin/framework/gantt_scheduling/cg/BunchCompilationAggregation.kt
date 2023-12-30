@@ -43,7 +43,7 @@ open class BunchCompilationAggregation<E : Executor>(
         resources: List<Resource<E>>,
         lockCancelTasks: Set<Task<E>> = emptySet(),
         model: LinearMetaModel
-    ): Try<Error> {
+    ): Try {
         when (val result = compilation.register(tasks, executors, lockCancelTasks, model)) {
             is Ok -> {}
             is Failed -> {
@@ -94,7 +94,7 @@ open class BunchCompilationAggregation<E : Executor>(
         executors: List<E>,
         model: LinearMetaModel,
         multiThread: Boolean = false
-    ): Try<Error> {
+    ): Try {
         bunches.addAll(thisBunches)
         bunchGroups.add(bunches)
 
@@ -159,7 +159,7 @@ open class BunchCompilationAggregation<E : Executor>(
         fixedBunches: Set<TaskBunch<E>>,
         keptBunches: Set<TaskBunch<E>>,
         model: LinearMetaModel
-    ): Result<Flt64, Error> {
+    ): Ret<Flt64> {
         for (bunch in bunches) {
             if (removedBunches.contains(bunch)) {
                 continue
@@ -188,15 +188,15 @@ open class BunchCompilationAggregation<E : Executor>(
         }
     }
 
-    fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Result<Set<TaskBunch<E>>, Error> {
+    fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<TaskBunch<E>>> {
         return extractBunches(iteration, model) { it eq Flt64.one }
     }
 
-    fun extractKeptBunches(iteration: UInt64, model: LinearMetaModel): Result<Set<TaskBunch<E>>, Error> {
+    fun extractKeptBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<TaskBunch<E>>> {
         return extractBunches(iteration, model) { it eq Flt64.zero }
     }
 
-    fun extractHiddenExecutors(executors: List<E>, model: LinearMetaModel): Result<Set<E>, Error> {
+    fun extractHiddenExecutors(executors: List<E>, model: LinearMetaModel): Ret<Set<E>> {
         val z = compilation.z
         val ret = HashSet<E>()
         for (token in model.tokens.tokens) {
@@ -209,7 +209,7 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(ret)
     }
 
-    fun globallyFix(fixedBunches: Set<TaskBunch<E>>): Try<Error> {
+    fun globallyFix(fixedBunches: Set<TaskBunch<E>>): Try {
         for (bunch in fixedBunches) {
             assert(!removedBunches.contains(bunch))
             val xi = compilation.x[bunch.iteration.toInt()]
@@ -218,7 +218,7 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(success)
     }
 
-    fun locallyFix(iteration: UInt64, bar: Flt64, fixedBunches: Set<TaskBunch<E>>, model: LinearMetaModel): Result<Set<TaskBunch<E>>, Error> {
+    fun locallyFix(iteration: UInt64, bar: Flt64, fixedBunches: Set<TaskBunch<E>>, model: LinearMetaModel): Ret<Set<TaskBunch<E>>> {
         var flag = true
         val ret = HashSet<TaskBunch<E>>()
 
@@ -268,7 +268,7 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(ret)
     }
 
-    fun logResult(iteration: UInt64, model: LinearMetaModel): Try<Error> {
+    fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
         for (token in model.tokens.tokens) {
             if (token.result!! gr Flt64.zero) {
                 logger.debug { "${token.name} = ${token.result!!}" }
@@ -282,7 +282,7 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(success)
     }
 
-    fun logBunchCost(iteration: UInt64, model: LinearMetaModel): Try<Error> {
+    fun logBunchCost(iteration: UInt64, model: LinearMetaModel): Try {
         for (token in model.tokens.tokens) {
             if ((token.result!! eq Flt64.one) && token.name.startsWith("x")) {
                 for (i in UInt64.zero..iteration) {
@@ -300,7 +300,7 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(success)
     }
 
-    fun flush(iteration: UInt64, tasks: List<Task<E>>, lockCancelTasks: Set<Task<E>> = emptySet()): Try<Error> {
+    fun flush(iteration: UInt64, tasks: List<Task<E>>, lockCancelTasks: Set<Task<E>> = emptySet()): Try {
         val y = compilation.y
         for (task in tasks) {
             if (task.cancelEnabled && !lockCancelTasks.contains(task.originTask)) {
@@ -320,7 +320,7 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(success)
     }
 
-    private fun extractBunches(iteration: UInt64, model: LinearMetaModel, predicate: (Flt64) -> Boolean): Result<Set<TaskBunch<E>>, Error> {
+    private fun extractBunches(iteration: UInt64, model: LinearMetaModel, predicate: (Flt64) -> Boolean): Ret<Set<TaskBunch<E>>> {
         val ret = HashSet<TaskBunch<E>>()
         for (token in model.tokens.tokens) {
             if (!predicate(token.result!!)) {

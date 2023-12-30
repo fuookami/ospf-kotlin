@@ -110,15 +110,15 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         }
     }
 
-    fun export(): Try<Error> {
+    fun export(): Try {
         return export("$name.opm")
     }
 
-    fun export(name: String): Try<Error> {
+    fun export(name: String): Try {
         return export(kotlin.io.path.Path(".").resolve(name))
     }
 
-    fun export(path: Path): Try<Error> {
+    fun export(path: Path): Try {
         val file = if (path.isDirectory()) {
             path.resolve("$name.opm").toFile()
         } else {
@@ -142,7 +142,7 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         return result
     }
 
-    private fun exportOpm(writer: FileWriter): Try<Error> {
+    private fun exportOpm(writer: FileWriter): Try {
         writer.append("Model Name: $name\n")
         writer.append("\n")
 

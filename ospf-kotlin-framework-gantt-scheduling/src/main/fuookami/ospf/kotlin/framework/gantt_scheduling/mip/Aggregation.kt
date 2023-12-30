@@ -27,7 +27,7 @@ open class Aggregation<E : Executor>(
         ectCalculator: (task: Task<E>, est: Item<*, *>) -> LinearSymbol,
         lockCancelTasks: Set<Task<E>> = emptySet(),
         model: LinearMetaModel
-    ): Try<Error> {
+    ): Try {
         when (val result = compilation.register(tasks, executors, lockCancelTasks, model)) {
             is Ok -> {}
             is Failed -> {

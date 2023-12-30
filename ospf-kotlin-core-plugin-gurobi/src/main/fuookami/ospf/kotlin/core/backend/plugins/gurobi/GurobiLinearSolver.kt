@@ -15,7 +15,7 @@ class GurobiLinearSolver(
     private val config: LinearSolverConfig,
     private val callBack: GurobiSolverCallBack? = null
 ) {
-    operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Err> {
+    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
         val impl = GurobiLinearSolverImpl(config, callBack)
         return impl(model)
     }
@@ -37,7 +37,7 @@ private class GurobiLinearSolverImpl(
         env.dispose()
     }
 
-    operator fun invoke(model: LinearTriadModel): Result<LinearSolverOutput, Err> {
+    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
         assert(!this::env.isInitialized)
 
         val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
@@ -75,7 +75,7 @@ private class GurobiLinearSolverImpl(
         return Ok(output)
     }
 
-    private fun init(server: String, password: String, connectionTime: Duration): Try<Err> {
+    private fun init(server: String, password: String, connectionTime: Duration): Try {
         return try {
             env = GRBEnv(true)
             env.set(GRB.IntParam.ServerTimeout, connectionTime.toInt(DurationUnit.SECONDS))
@@ -93,7 +93,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun init(): Try<Err> {
+    private fun init(): Try {
         return try {
             env = GRBEnv()
             grbModel = GRBModel(env)
@@ -105,7 +105,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun dump(model: LinearTriadModel): Try<Err> {
+    private fun dump(model: LinearTriadModel): Try {
         return try {
             grbVars = grbModel.addVars(
                 model.variables.map { it.lowerBound.toDouble() }.toDoubleArray(),
@@ -162,7 +162,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun configurate(): Try<Err> {
+    private fun configurate(): Try {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
@@ -176,7 +176,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun solve(): Try<Err> {
+    private fun solve(): Try {
         return try {
             grbModel.optimize()
 
@@ -188,7 +188,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun analyzeStatus(): Try<Err> {
+    private fun analyzeStatus(): Try {
         return try {
             status = when (grbModel.get(GRB.IntAttr.Status)) {
                 GRB.OPTIMAL -> {
@@ -224,7 +224,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun analyzeSolution(): Try<Err> {
+    private fun analyzeSolution(): Try {
         return try {
             if (status.succeeded()) {
                 val results = ArrayList<Flt64>()

@@ -18,7 +18,7 @@ class ExecutorLeisureMinimizeLimit<E : Executor>(
     private val executorLeisureCostCalculator: Extractor<Flt64?, E>? = null,
     override val name: String = "executor_leisure_limit"
 ) : HAPipeline<LinearMetaModel> {
-    override operator fun invoke(model: LinearMetaModel): Try<Error> {
+    override operator fun invoke(model: LinearMetaModel): Try {
         val z = compilation.z
         val executorCompilation = compilation.executorCompilation
 
@@ -41,7 +41,7 @@ class ExecutorLeisureMinimizeLimit<E : Executor>(
         return Ok(success)
     }
 
-    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Result<Flt64?, Error> {
+    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Ret<Flt64?> {
         // todo: impl
         return Ok(Flt64.zero)
     }

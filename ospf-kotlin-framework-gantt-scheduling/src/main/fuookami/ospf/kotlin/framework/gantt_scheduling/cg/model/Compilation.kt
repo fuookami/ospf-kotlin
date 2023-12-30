@@ -28,7 +28,7 @@ open class Compilation<E : Executor>(
     lateinit var taskCompilation: LinearSymbols1
     lateinit var executorCompilation: LinearSymbols1
 
-    open fun register(tasks: List<Task<E>>, executors: List<E>, lockCancelTasks: Set<Task<E>> = emptySet(), model: LinearMetaModel): Try<Error> {
+    open fun register(tasks: List<Task<E>>, executors: List<E>, lockCancelTasks: Set<Task<E>> = emptySet(), model: LinearMetaModel): Try {
         if (!this::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
             for (task in tasks) {
@@ -89,7 +89,7 @@ open class Compilation<E : Executor>(
         executors: List<E>,
         model: LinearMetaModel,
         scope: CoroutineScope? = GlobalScope
-    ): Result<BroadcastChannel<Boolean>?, Error> {
+    ): Ret<BroadcastChannel<Boolean>?> {
         assert(iteration.toInt() == x.size)
         assert(bunches.isNotEmpty())
 

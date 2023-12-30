@@ -16,7 +16,7 @@ class BandwidthContext(
 ) {
     lateinit var aggregation: Aggregation
 
-    fun init(input: Input): Try<Error> {
+    fun init(input: Input): Try {
         val routeAggregation = routeContext.aggregation
 
         val edgeBandwidth = EdgeBandwidth(
@@ -37,11 +37,11 @@ class BandwidthContext(
         return Ok(success)
     }
 
-    fun register(model: LinearMetaModel): Try<Error> {
+    fun register(model: LinearMetaModel): Try {
         return aggregation.register(model)
     }
 
-    fun construct(model: LinearMetaModel): Try<Error> {
+    fun construct(model: LinearMetaModel): Try {
         val routeAggregation = routeContext.aggregation
 
         val generator = PipelineListGenerator(
@@ -69,7 +69,7 @@ class BandwidthContext(
         return Ok(success)
     }
 
-    fun analyze(model: LinearMetaModel, result: List<Flt64>): Result<List<List<Node>>, Error> {
+    fun analyze(model: LinearMetaModel, result: List<Flt64>): Ret<List<List<Node>>> {
         val routeAggregation = routeContext.aggregation
 
         val analyzer = SolutionAnalyzer(

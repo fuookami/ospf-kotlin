@@ -52,6 +52,8 @@ object UInt8Serializer : RealNumberKSerializer<UInt8> {
 @JvmInline
 @Serializable(with = UInt8Serializer::class)
 value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyable<UInt8> {
+    constructor(value: Boolean) : this(if (value) { 1U } else { 0U })
+
     companion object : RealNumberConstants<UInt8> {
         override val zero: UInt8 get() = UInt8(0U)
         override val one: UInt8 get() = UInt8(1U)

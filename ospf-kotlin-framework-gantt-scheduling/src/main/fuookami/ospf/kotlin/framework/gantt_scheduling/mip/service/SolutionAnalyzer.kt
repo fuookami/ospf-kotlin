@@ -21,7 +21,7 @@ class SolutionAnalyzer<E : Executor> {
         result: List<Flt64>,
         model: LinearMetaModel,
         assignedTaskGenerator: AssignedTaskGenerator<E>? = null
-    ): Result<Solution<E>, Error> {
+    ): Ret<Solution<E>> {
         val assignedExecutor = HashMap<Task<E>, E>()
         for (token in model.tokens.tokens) {
             if (token.name.startsWith(compilation.x.name) && token.result?.let { it eq Flt64.one } == true) {

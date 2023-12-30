@@ -14,7 +14,7 @@ class PipelineListGenerator(
     private val services: List<Service>,
     private val assignment: Assignment,
 ) {
-    operator fun invoke(): Result<PipelineList<LinearMetaModel>, Error> {
+    operator fun invoke(): Ret<PipelineList<LinearMetaModel>> {
         val list = ArrayList<Pipeline<LinearMetaModel>>()
 
         list.add(EdgeBandwidthConstraint(graph.edges, services, assignment, aggregation.edgeBandwidth))

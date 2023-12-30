@@ -18,7 +18,7 @@ class TaskCompleteTimeLimit<E : Executor>(
     private val overExpirationTimeCostCalculator: CostCalculator<E>? = null,
     override val name: String = "task_compilation_limit"
 ) : HAPipeline<LinearMetaModel> {
-    override operator fun invoke(model: LinearMetaModel): Try<Error> {
+    override operator fun invoke(model: LinearMetaModel): Try {
         val ect = taskTime.ect
         val oet = taskTime.oet
 
@@ -50,7 +50,7 @@ class TaskCompleteTimeLimit<E : Executor>(
         return Ok(success)
     }
 
-    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Result<Flt64?, Error> {
+    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Ret<Flt64?> {
         // todo: impl
         return Ok(Flt64.zero)
     }

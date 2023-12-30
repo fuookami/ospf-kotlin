@@ -75,7 +75,7 @@ class RMP(
     }
 
     // solve lp
-    operator fun invoke(iteration: UInt64): Result<SPM, Error> {
+    operator fun invoke(iteration: UInt64): Ret<SPM> {
         return when (val result = runBlocking { solveLP("demo1-rmp-$iteration", metaModel, SolverParameter("scip")) }) {
             is Ok -> {
                 Ok(extractShadowPriceMap(result.value.dualResult))
@@ -88,7 +88,7 @@ class RMP(
     }
 
     // solve ip
-    operator fun invoke(): Result<Map<CuttingPlan, UInt64>, Error> {
+    operator fun invoke(): Ret<Map<CuttingPlan, UInt64>> {
         return when (val result = runBlocking { solveMIP("demo1-rmp-ip", metaModel) }) {
             is Ok -> {
                 Ok(analyzeSolution(result.value))

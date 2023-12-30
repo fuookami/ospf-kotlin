@@ -22,7 +22,7 @@ open class TaskTime<E : Executor>(
     lateinit var advance: Combination1<*, *>
     lateinit var oet: Combination1<*, *>
 
-    open fun register(timeWindow: TimeWindow, tasks: List<Task<E>>, ectCalculator: (task: Task<E>, est: Item<*, *>) -> LinearSymbol, model: LinearMetaModel): Try<Error> {
+    open fun register(timeWindow: TimeWindow, tasks: List<Task<E>>, ectCalculator: (task: Task<E>, est: Item<*, *>) -> LinearSymbol, model: LinearMetaModel): Try {
         if (!this::est.isInitialized) {
             est = if (timeWindow.continues) {
                 val est = URealVariable1("est", Shape1(tasks.size))

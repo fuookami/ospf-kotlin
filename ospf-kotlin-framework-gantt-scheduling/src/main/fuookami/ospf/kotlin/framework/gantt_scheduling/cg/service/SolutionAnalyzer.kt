@@ -14,7 +14,7 @@ class SolutionAnalyzer<E : Executor> {
         bunches: List<List<TaskBunch<E>>>,
         compilation: Compilation<E>,
         model: LinearMetaModel
-    ): Result<Solution<E>, Error> {
+    ): Ret<Solution<E>> {
         val assignedTasks = ArrayList<Task<E>>()
         val canceledTask = ArrayList<Task<E>>()
         for (token in model.tokens.tokens) {

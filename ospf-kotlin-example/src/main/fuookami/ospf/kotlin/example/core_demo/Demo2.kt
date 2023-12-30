@@ -96,7 +96,7 @@ class Demo2 {
         )
     }
 
-    operator fun invoke(): Try<Error> {
+    operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process(this)) {
                 is Failed -> {
@@ -109,7 +109,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun initVariable(): Try<Error> {
+    fun initVariable(): Try {
         x = BinVariable2("x", Shape2(companies.size, products.size))
         for (c in companies) {
             for (p in products) {
@@ -120,7 +120,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun initSymbol(): Try<Error> {
+    fun initSymbol(): Try {
         val costPoly = LinearPolynomial()
         for (c in companies) {
             val products = products.filter { c.cost.contains(it) }
@@ -155,12 +155,12 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun initObject(): Try<Error> {
+    fun initObject(): Try {
         metaModel.minimize(LinearPolynomial(cost))
         return Ok(success)
     }
 
-    fun initConstraint(): Try<Error> {
+    fun initConstraint(): Try {
         for (c in companies) {
             metaModel.addConstraint(assignmentCompany[c]!! leq UInt64.one)
         }
@@ -170,7 +170,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun solve(): Try<Error> {
+    fun solve(): Try {
         // val solver = GurobiLinearSolver()
         val solver = SCIPLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
@@ -186,7 +186,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun analyzeSolution(): Try<Error> {
+    fun analyzeSolution(): Try {
         val ret = ArrayList<Pair<Company, Product>>()
         for (token in metaModel.tokens.tokens) {
             if (token.result!! eq Flt64.one

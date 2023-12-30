@@ -66,7 +66,7 @@ open class ResourceCapacity<E : Executor>(
         this.timeSlots = timeSlots
     }
 
-    open fun register(model: LinearMetaModel): Try<Error> {
+    open fun register(model: LinearMetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (!this::usageAmount.isInitialized) {
                 usageAmount = LinearSymbols1("usage_amount", Shape1(timeSlots.size))
@@ -94,7 +94,7 @@ open class ResourceCapacity<E : Executor>(
         compilation: Compilation<E>,
         compilationAddingPromise: BroadcastChannel<Boolean>? = null,
         scope: CoroutineScope? = compilationAddingPromise?.let { GlobalScope }
-    ): Result<BroadcastChannel<Boolean>?, Error> {
+    ): Ret<BroadcastChannel<Boolean>?> {
         assert(bunches.isNotEmpty())
 
         val xi = compilation.x[iteration.toInt()]

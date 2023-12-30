@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.*
 
 class Demo2 {
-    operator fun invoke(): Try<Error> {
+    operator fun invoke(): Try {
         val metaModel = LinearMetaModel()
         val x = URealVar("x")
         val y = URealVar("y")

@@ -95,7 +95,7 @@ interface BasicModelView<ConCell>
         return variables.any { it.type.isNotBinaryIntegerType() }
     }
 
-    fun exportLP(writer: FileWriter): Try<Error>
+    fun exportLP(writer: FileWriter): Try
 }
 
 interface ModelView<ConCell, ObjCell>
@@ -117,15 +117,15 @@ interface ModelView<ConCell, ObjCell>
         return variables.any { it.type.isNotBinaryIntegerType() }
     }
 
-    fun export(format: ModelFileFormat): Try<Error> {
+    fun export(format: ModelFileFormat): Try {
         return export(Path("."), format)
     }
 
-    fun export(name: String, format: ModelFileFormat): Try<Error> {
+    fun export(name: String, format: ModelFileFormat): Try {
         return export(Path(".").resolve(name), format)
     }
 
-    fun export(path: Path, format: ModelFileFormat): Try<Error> {
+    fun export(path: Path, format: ModelFileFormat): Try {
         val file = if (path.isDirectory()) {
             path.resolve("$name.${format}").toFile()
         } else {
@@ -145,5 +145,5 @@ interface ModelView<ConCell, ObjCell>
         return result
     }
 
-    fun exportLP(writer: FileWriter): Try<Error>
+    fun exportLP(writer: FileWriter): Try
 }

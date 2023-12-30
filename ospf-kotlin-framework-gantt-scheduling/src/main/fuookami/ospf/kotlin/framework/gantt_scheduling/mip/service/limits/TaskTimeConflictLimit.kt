@@ -18,7 +18,7 @@ class TaskTimeConflictLimit<E : Executor>(
 ) : HAPipeline<LinearMetaModel> {
     val tasks = originTasks.filter { it.plan.time != null && !it.advanceEnabled && !it.delayEnabled }
 
-    override operator fun invoke(model: LinearMetaModel): Try<Error> {
+    override operator fun invoke(model: LinearMetaModel): Try {
         val x = compilation.x
 
         for (executor in executors) {
@@ -37,7 +37,7 @@ class TaskTimeConflictLimit<E : Executor>(
         return Ok(success)
     }
 
-    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Result<Flt64?, Error> {
+    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Ret<Flt64?> {
         // todo: impl
         return Ok(Flt64.zero)
     }

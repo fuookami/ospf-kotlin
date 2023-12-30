@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.ResourceCapacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.ShadowPriceMap
 
 typealias TimeSlot<E> = ResourceCapacity.TimeSlot<E>
 
@@ -31,7 +30,7 @@ class ResourceCapacityLimit<E : Executor>(
 ) : CGPipeline<LinearMetaModel, ShadowPriceMap<E>> {
     private val timeSlots by resourceCapacity::timeSlots
 
-    override fun invoke(model: LinearMetaModel): Try<Error> {
+    override fun invoke(model: LinearMetaModel): Try {
         if (timeSlots.isEmpty()) {
             return Ok(success)
         }
@@ -70,7 +69,7 @@ class ResourceCapacityLimit<E : Executor>(
         }
     }
 
-    override fun refresh(map: ShadowPriceMap<E>, model: LinearMetaModel, shadowPrices: List<Flt64>): Try<Error> {
+    override fun refresh(map: ShadowPriceMap<E>, model: LinearMetaModel, shadowPrices: List<Flt64>): Try {
         for ((i, j) in model.indicesOfConstraintGroup(name)!!.withIndex()) {
             map.put(
                 ShadowPrice(

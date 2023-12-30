@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.*
 
 class Demo1 {
-    operator fun invoke(): Try<Error> {
+    operator fun invoke(): Try {
         val model = CallBackModel()
         val x = RealVar("x")
         model.addVar(x)

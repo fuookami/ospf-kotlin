@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.ShadowPriceMap
 
 private data class ExecutorCompilationShadowPriceKey<E : Executor>(
     val executor: E
@@ -27,7 +26,7 @@ class ExecutorCompilationLimit<E : Executor>(
     private val executorLeisureCostCalculator: fuookami.ospf.kotlin.utils.functional.Extractor<Flt64?, E>? = null,
     override val name: String = "executor_compilation"
 ) : CGPipeline<LinearMetaModel, ShadowPriceMap<E>> {
-    override fun invoke(model: LinearMetaModel): Try<Error> {
+    override fun invoke(model: LinearMetaModel): Try {
         val executorCompilation = compilation.executorCompilation
         val z = compilation.z
 
@@ -60,7 +59,7 @@ class ExecutorCompilationLimit<E : Executor>(
         }
     }
 
-    override fun refresh(map: ShadowPriceMap<E>, model: LinearMetaModel, shadowPrices: List<Flt64>): Try<Error> {
+    override fun refresh(map: ShadowPriceMap<E>, model: LinearMetaModel, shadowPrices: List<Flt64>): Try {
         for ((i, j) in model.indicesOfConstraintGroup(name)!!.withIndex()) {
             map.put(
                 ShadowPrice(

@@ -11,7 +11,6 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.ShadowPriceMap
 
 typealias ConnectionTimeCalculator<E> = (executor: E, prevPrevTask: Task<E>?, prevTask: Task<E>, task: Task<E>) -> Duration
 typealias MinimumStartTimeCalculator<E> = (prevCompleteTime: Instant, executor: E, prevTask: Task<E>, connectionTime: Duration) -> Instant
@@ -81,7 +80,7 @@ open class TaskBunchGenerator<E : Executor, L : Label<E>>(
         emptyList()
     }
 
-    operator fun invoke(iteration: UInt64, shadowPriceMap: ShadowPriceMap<E>): Result<List<TaskBunch<E>>, Error> {
+    operator fun invoke(iteration: UInt64, shadowPriceMap: ShadowPriceMap<E>): Ret<List<TaskBunch<E>>> {
         val labels: LabelMap<L> = HashMap()
         initRootLabel(labels, shadowPriceMap)
 

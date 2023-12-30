@@ -24,7 +24,7 @@ class Compilation<E : Executor>(
     lateinit var taskCompilation: LinearSymbols1
     lateinit var executorCompilation: LinearSymbols1
 
-    fun register(tasks: List<Task<E>>, executors: List<E>, lockCancelTasks: Set<Task<E>> = emptySet(), model: LinearMetaModel): Try<Error> {
+    fun register(tasks: List<Task<E>>, executors: List<E>, lockCancelTasks: Set<Task<E>> = emptySet(), model: LinearMetaModel): Try {
         if (!this::x.isInitialized) {
             x = BinVariable2("x", Shape2(tasks.size, executors.size))
             for (task in tasks) {

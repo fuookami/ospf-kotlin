@@ -16,7 +16,7 @@ class SolutionAnalyzer(
     private val assignment: Assignment,
     private val aggregation: Aggregation
 ) {
-    operator fun invoke(model: LinearMetaModel, result: List<Flt64>): Result<List<List<Node>>, Error> {
+    operator fun invoke(model: LinearMetaModel, result: List<Flt64>): Ret<List<List<Node>>> {
         val nodeSolution = NodeSolution()
         val edgeSolution = EdgeSolution()
 

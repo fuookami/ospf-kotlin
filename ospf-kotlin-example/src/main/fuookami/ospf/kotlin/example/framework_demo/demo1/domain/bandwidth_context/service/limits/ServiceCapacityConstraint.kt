@@ -17,7 +17,7 @@ class ServiceCapacityConstraint(
     private val serviceBandwidth: ServiceBandwidth,
     override val name: String = "service_capacity_constraint"
 ) : Pipeline<LinearMetaModel> {
-    override fun invoke(model: LinearMetaModel): Try<Error> {
+    override fun invoke(model: LinearMetaModel): Try {
         val x = assignment.x
         val outFlow = serviceBandwidth.outFlow
         for (node in nodes.asSequence().filter(normal)) {

@@ -15,15 +15,15 @@ interface Pipeline<M : ModelInterface> {
         }
     }
 
-    operator fun invoke(model: M): Try<Error>
+    operator fun invoke(model: M): Try
 }
 
-interface CGPipeline<Model : MetaModel<*>, Map : ShadowPriceMap<Map>> : Pipeline<Model> {
+interface CGPipeline<Model : MetaModel<*>, Map : AbstractShadowPriceMap<Map>> : Pipeline<Model> {
     fun extractor(): ShadowPriceExtractor<Map>? {
         return null
     }
 
-    fun refresh(map: Map, model: Model, shadowPrices: List<Flt64>): Try<Error> {
+    fun refresh(map: Map, model: Model, shadowPrices: List<Flt64>): Try {
         return Ok(success)
     }
 }
@@ -34,9 +34,9 @@ interface HAPipeline<M : ModelInterface> : Pipeline<M> {
         val value: Flt64
     )
 
-    override operator fun invoke(model: M): Try<Error> = Ok(success)
+    override operator fun invoke(model: M): Try = Ok(success)
 
-    operator fun invoke(model: M, solution: List<Flt64>): Result<Obj, Error> =
+    operator fun invoke(model: M, solution: List<Flt64>): Ret<Obj> =
         when (val obj = calculate(model, solution)) {
             is Ok -> if (obj.value != null) {
                 Ok(Obj(this.name, obj.value!!))
@@ -47,9 +47,9 @@ interface HAPipeline<M : ModelInterface> : Pipeline<M> {
             is Failed -> Failed(obj.error)
         }
 
-    fun calculate(model: M, solution: List<Flt64>): Result<Flt64?, Error>
+    fun calculate(model: M, solution: List<Flt64>): Ret<Flt64?>
 
-    fun check(model: M, solution: List<Flt64>): Try<Error> = when (val obj = calculate(model, solution)) {
+    fun check(model: M, solution: List<Flt64>): Try = when (val obj = calculate(model, solution)) {
         is Ok -> if (obj.value != null) {
             Ok(success)
         } else {
@@ -62,7 +62,7 @@ interface HAPipeline<M : ModelInterface> : Pipeline<M> {
 
 typealias PipelineList<M> = List<Pipeline<M>>
 
-operator fun <M : ModelInterface> PipelineList<M>.invoke(model: M): Try<Error> {
+operator fun <M : ModelInterface> PipelineList<M>.invoke(model: M): Try {
     for (pipeline in this) {
         pipeline.register(model)
         when (val ret = pipeline(model)) {

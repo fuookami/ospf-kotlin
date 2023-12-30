@@ -14,13 +14,13 @@ class MakespanMinimizeLimit<E : Executor>(
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_limit"
 ) : HAPipeline<LinearMetaModel> {
-    override operator fun invoke(model: LinearMetaModel): Try<Error> {
+    override operator fun invoke(model: LinearMetaModel): Try {
         val makespan = makespan.makespan
         model.minimize(coefficient * LinearPolynomial(makespan), "makespan")
         return Ok(success)
     }
 
-    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Result<Flt64?, Error> {
+    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Ret<Flt64?> {
         // todo: impl
         return Ok(Flt64.zero)
     }

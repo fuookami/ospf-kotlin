@@ -17,7 +17,7 @@ class Assignment(
     lateinit var nodeAssignment: LinearSymbols1
     lateinit var serviceAssignment: LinearSymbols1
 
-    fun register(model: LinearMetaModel): Try<Error> {
+    fun register(model: LinearMetaModel): Try {
         if (!this::x.isInitialized) {
             x = BinVariable2("x", Shape2(nodes.size, services.size))
             for (service in services) {

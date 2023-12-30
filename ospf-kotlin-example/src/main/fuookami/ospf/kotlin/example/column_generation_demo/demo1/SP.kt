@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 object InitialSolutionGenerator {
-    operator fun invoke(length: UInt64, products: List<Product>): Result<List<CuttingPlan>, Error> {
+    operator fun invoke(length: UInt64, products: List<Product>): Ret<List<CuttingPlan>> {
         val solution = ArrayList<CuttingPlan>()
         for (product in products) {
             val amount = length / product.length
@@ -29,7 +29,7 @@ class SP {
         length: UInt64,
         products: List<Product>,
         shadowPrice: SPM
-    ): Result<CuttingPlan, Error> {
+    ): Ret<CuttingPlan> {
         val model = LinearMetaModel("demo1-sp-$iteration")
 
         val y = UIntVariable1("y", Shape1(products.size))

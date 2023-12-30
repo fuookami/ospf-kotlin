@@ -14,7 +14,7 @@ class Makespan<E : Executor>(
 ) {
     lateinit var makespan: Symbol<Linear>
 
-    fun register(tasks: List<Task<E>>, taskTime: TaskTime<E>, model: LinearMetaModel): Try<Error> {
+    fun register(tasks: List<Task<E>>, taskTime: TaskTime<E>, model: LinearMetaModel): Try {
         if (!this::makespan.isInitialized) {
             makespan = MaxFunction(tasks.map { LinearPolynomial(taskTime.ect[it]!!) }, extra, name = "makespan")
         }

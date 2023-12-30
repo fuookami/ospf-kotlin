@@ -17,7 +17,7 @@ class NodeBandwidth(
     lateinit var outDegree: LinearSymbols1
     lateinit var outFlow: LinearSymbols1
 
-    fun register(model: LinearMetaModel): Try<Error> {
+    fun register(model: LinearMetaModel): Try {
         if (!this::inDegree.isInitialized) {
             inDegree = LinearSymbols1("bandwidth_indegree_node", Shape1(nodes.size))
             for (node in nodes) {

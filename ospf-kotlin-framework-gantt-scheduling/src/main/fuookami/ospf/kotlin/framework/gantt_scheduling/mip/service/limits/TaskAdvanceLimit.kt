@@ -18,7 +18,7 @@ class TaskAdvanceLimit<E : Executor>(
     private val taskAdvanceTimeCostCalculator: CostCalculator<E>? = null,
     override val name: String = "task_advance_limit"
 ) : HAPipeline<LinearMetaModel> {
-    override operator fun invoke(model: LinearMetaModel): Try<Error> {
+    override operator fun invoke(model: LinearMetaModel): Try {
         val est = taskTime.est
         val advance = taskTime.advance
 
@@ -57,7 +57,7 @@ class TaskAdvanceLimit<E : Executor>(
         return Ok(success)
     }
 
-    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Result<Flt64?, Error> {
+    override fun calculate(model: LinearMetaModel, solution: List<Flt64>): Ret<Flt64?> {
         // todo: impl
         return Ok(Flt64.zero)
     }

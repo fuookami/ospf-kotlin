@@ -16,9 +16,9 @@ class ShadowPrice(
 ) {
 }
 
-typealias ShadowPriceExtractor<M> = (ShadowPriceMap<M>, Array<out Any?>) -> Flt64
+typealias ShadowPriceExtractor<M> = (AbstractShadowPriceMap<M>, Array<out Any?>) -> Flt64
 
-open class ShadowPriceMap<M : ShadowPriceMap<M>> {
+abstract class AbstractShadowPriceMap<M : AbstractShadowPriceMap<M>> {
     val map: Map<ShadowPriceKey, ShadowPrice> by ::_map
     private val _map = HashMap<ShadowPriceKey, ShadowPrice>()
     private val _extractors = ArrayList<ShadowPriceExtractor<M>>()
@@ -40,12 +40,12 @@ open class ShadowPriceMap<M : ShadowPriceMap<M>> {
     }
 }
 
-fun <Model : MetaModel<*>, Map : ShadowPriceMap<Map>> extractShadowPrice(
+fun <Model : MetaModel<*>, Map : AbstractShadowPriceMap<Map>> extractShadowPrice(
     shadowPriceMap: Map,
     pipelineList: CGPipelineList<Model, Map>,
     model: Model,
     shadowPrices: List<Flt64>
-): Try<Error> {
+): Try {
     for (pipeline in pipelineList) {
         when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices)) {
             is Ok -> {}

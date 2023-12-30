@@ -55,7 +55,7 @@ class Demo1 {
         companies.add(Company(Flt64(2.14), Flt64(0.53), Flt64(980.0)))
     }
 
-    operator fun invoke(): Try<Error> {
+    operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process(this)) {
                 is Failed -> {
@@ -68,7 +68,7 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun initVariable(): Try<Error> {
+    fun initVariable(): Try {
         x = BinVariable1("x", Shape1(companies.size))
         for (c in companies) {
             x[c]!!.name = "${x.name}_${c.index}"
@@ -77,7 +77,7 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun initSymbol(): Try<Error> {
+    fun initSymbol(): Try {
         val capitalPoly = LinearPolynomial()
         for (c in companies) {
             capitalPoly += c.capital * x[c]!!
@@ -101,18 +101,18 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun initObject(): Try<Error> {
+    fun initObject(): Try {
         metaModel.maximize(LinearPolynomial(profit))
         return Ok(success)
     }
 
-    fun initConstraint(): Try<Error> {
+    fun initConstraint(): Try {
         metaModel.addConstraint(capital geq minCapital)
         metaModel.addConstraint(liability leq maxLiability)
         return Ok(success)
     }
 
-    fun solve(): Try<Error> {
+    fun solve(): Try {
         // val solver = GurobiLinearSolver(LinearSolverConfig())
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
@@ -129,7 +129,7 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun analyzeSolution(): Try<Error> {
+    fun analyzeSolution(): Try {
         val ret = ArrayList<Company>()
         for (token in metaModel.tokens.tokens) {
             if (token.result!! eq Flt64.one) {
