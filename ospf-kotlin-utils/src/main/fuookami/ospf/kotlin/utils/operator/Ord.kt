@@ -9,7 +9,7 @@ sealed interface Order {
         }
     }
 
-    object Equal : Order {
+    data object Equal : Order {
         override val value = 0
     }
 

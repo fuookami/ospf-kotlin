@@ -48,15 +48,13 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
     }
 }
 
-@JvmName("tryLastNotNullOfParallelly")
-suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
+suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
-    return this.lastNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
+    return this.tryLastNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
 }
 
-@JvmName("tryLastNotNullOfParallelly")
-suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
+suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
@@ -66,7 +64,7 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val iterator = this@lastNotNullOfParallelly.iterator()
+            val iterator = this@tryLastNotNullOfParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -125,22 +123,20 @@ suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(
     return (this as Iterable<T>).lastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryLastNotNullOfParallelly")
-suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(
+suspend inline fun <R, T> Collection<T>.tryLastNotNullOfParallelly(
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
-    return (this as Iterable<T>).lastNotNullOfParallelly(
+    return (this as Iterable<T>).tryLastNotNullOfParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryLastNotNullOfParallelly")
-suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(
+suspend inline fun <R, T> Collection<T>.tryLastNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
-    return (this as Iterable<T>).lastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryLastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
@@ -189,18 +185,16 @@ suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
     }
 }
 
-@JvmName("tryLastNotNullOfParallelly")
-suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
+suspend inline fun <R, T> List<T>.tryLastNotNullOfParallelly(
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
-    return this.lastNotNullOfParallelly(
+    return this.tryLastNotNullOfParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryLastNotNullOfParallelly")
-suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
+suspend inline fun <R, T> List<T>.tryLastNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
@@ -209,7 +203,7 @@ suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(
 
     return try {
         coroutineScope {
-            val iterator = this@lastNotNullOfParallelly.listIterator(this@lastNotNullOfParallelly.size)
+            val iterator = this@tryLastNotNullOfParallelly.listIterator(this@tryLastNotNullOfParallelly.size)
             while (iterator.hasPrevious()) {
                 val promises = ArrayList<Deferred<R?>>()
                 for (j in UInt64.zero until concurrentAmount) {

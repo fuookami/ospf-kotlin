@@ -36,7 +36,7 @@ abstract class NumericUIntegerConstants<Self, I>(
     override val maximum: Self get() = ctor(constants.maximum)
 }
 
-object NUInt8Serializer : RealNumberKSerializer<NUInt8> {
+data object NUInt8Serializer : RealNumberKSerializer<NUInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt8", PrimitiveKind.INT)
     override val constants = NUInt8
 
@@ -131,7 +131,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun toFltX() = value.toFltX()
 }
 
-object NUInt16Serializer : RealNumberKSerializer<NUInt16> {
+data object NUInt16Serializer : RealNumberKSerializer<NUInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt16", PrimitiveKind.INT)
     override val constants = NUInt16
 
@@ -228,7 +228,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun toFltX() = value.toFltX()
 }
 
-object NUInt32Serializer : RealNumberKSerializer<NUInt32> {
+data object NUInt32Serializer : RealNumberKSerializer<NUInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt32", PrimitiveKind.INT)
     override val constants = NUInt32
 
@@ -325,7 +325,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun toFltX() = value.toFltX()
 }
 
-object NUInt64Serializer : RealNumberKSerializer<NUInt64> {
+data object NUInt64Serializer : RealNumberKSerializer<NUInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt64", PrimitiveKind.LONG)
     override val constants = NUInt64
 

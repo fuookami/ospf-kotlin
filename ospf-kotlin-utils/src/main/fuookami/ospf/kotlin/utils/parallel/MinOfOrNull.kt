@@ -34,15 +34,13 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfOrNullParallelly(
     }
 }
 
-@JvmName("tryMinOfOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinOfOrNullParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R?> {
-    return this.minOfOrNullParallelly(UInt64.ten, extractor)
+    return this.tryMinOfOrNullParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMinOfOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinOfOrNullParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R?> {
@@ -51,7 +49,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfOrNullParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val iterator = this@minOfOrNullParallelly.iterator()
+            val iterator = this@tryMinOfOrNullParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -101,22 +99,20 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minOfOrNullParallelly(
     return (this as Iterable<T>).minOfOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMinOfOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minOfOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinOfOrNullParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R?> {
-    return (this as Iterable<T>).minOfOrNullParallelly(
+    return (this as Iterable<T>).tryMinOfOrNullParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMinOfOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minOfOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinOfOrNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R?> {
-    return (this as Iterable<T>).minOfOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMinOfOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.minOfOrNullParallelly(
@@ -152,18 +148,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.minOfOrNullParallelly(
     }
 }
 
-@JvmName("tryMinOfOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.minOfOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMinOfOrNullParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R?> {
-    return this.minOfOrNullParallelly(
+    return this.tryMinOfOrNullParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMinOfOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.minOfOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMinOfOrNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R?> {
@@ -172,16 +166,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.minOfOrNullParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val segmentAmount = this@minOfOrNullParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryMinOfOrNullParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@minOfOrNullParallelly.size) {
+            while (i != this@tryMinOfOrNullParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@minOfOrNullParallelly.size - i
+                    this@tryMinOfOrNullParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@minOfOrNullParallelly
+                    this@tryMinOfOrNullParallelly
                         .subList(j, k)
                         .minOfOrNull {
                             when (val result = extractor(it)) {

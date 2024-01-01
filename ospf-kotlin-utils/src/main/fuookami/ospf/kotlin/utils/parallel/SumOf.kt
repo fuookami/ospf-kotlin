@@ -43,17 +43,15 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     return sum
 }
 
-@JvmName("trySumOfParallelly")
-suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
+suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfParallelly(UInt64.ten, constants, extractor)
+    return this.trySumOfParallelly(UInt64.ten, constants, extractor)
 }
 
-@JvmName("trySumOfParallelly")
-suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
+suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
     segment: UInt64,
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
@@ -65,7 +63,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<U>>()
-            val iterator = this@sumOfParallelly.iterator()
+            val iterator = this@trySumOfParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -122,27 +120,25 @@ suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     return (this as Iterable<T>).sumOfParallelly(UInt64(this.size) / concurrentAmount, constants, extractor)
 }
 
-@JvmName("trySumOfParallelly")
-suspend inline fun <T, U> Collection<T>.sumOfParallelly(
+suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
-    return (this as Iterable<T>).sumOfParallelly(
+    return (this as Iterable<T>).trySumOfParallelly(
         defaultConcurrentAmount,
         constants,
         extractor
     )
 }
 
-@JvmName("trySumOfParallelly")
-suspend inline fun <T, U> Collection<T>.sumOfParallelly(
+suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
-    return (this as Iterable<T>).sumOfParallelly(UInt64(this.size) / concurrentAmount, constants, extractor)
+    return (this as Iterable<T>).trySumOfParallelly(UInt64(this.size) / concurrentAmount, constants, extractor)
 }
 
 suspend inline fun <T, U> List<T>.sumOfParallelly(
@@ -187,21 +183,19 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
     return sum
 }
 
-@JvmName("trySumOfParallelly")
-suspend inline fun <T, U> List<T>.sumOfParallelly(
+suspend inline fun <T, U> List<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfParallelly(
+    return this.trySumOfParallelly(
         defaultConcurrentAmount,
         constants,
         extractor
     )
 }
 
-@JvmName("trySumOfParallelly")
-suspend inline fun <T, U> List<T>.sumOfParallelly(
+suspend inline fun <T, U> List<T>.trySumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
     crossinline extractor: TryExtractor<U, T>
@@ -213,16 +207,16 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<U>>()
-            val segmentAmount = this@sumOfParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@trySumOfParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@sumOfParallelly.size) {
+            while (i != this@trySumOfParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@sumOfParallelly.size - i
+                    this@trySumOfParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@sumOfParallelly.subList(j, k).sumOf(constants) {
+                    this@trySumOfParallelly.subList(j, k).sumOf(constants) {
                         when (val result = extractor(it)) {
                             is Ok -> {
                                 result.value

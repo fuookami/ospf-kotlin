@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
+import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -14,8 +15,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class SCIPLinearSolver(
     private val config: LinearSolverConfig,
     private val callBack: SCIPSolverCallBack? = null
-) {
-    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
+): LinearSolver {
+    override suspend operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
         val impl = SCIPLinearSolverImpl(config, callBack)
         return impl(model)
     }
@@ -50,7 +51,7 @@ private class SCIPLinearSolverImpl(
         scip.free()
     }
 
-    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
+    operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
         assert(!this::scip.isInitialized)
 
         mip = model.containsNotBinaryInteger()
@@ -80,7 +81,7 @@ private class SCIPLinearSolverImpl(
         return Ok(success)
     }
 
-    private fun dump(model: LinearTriadModel): Try {
+    private fun dump(model: LinearTriadModelView): Try {
         scipVars = model.variables.map {
             scip.createVar(
                 it.name,

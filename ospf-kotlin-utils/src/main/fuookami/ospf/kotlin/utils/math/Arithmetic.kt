@@ -148,11 +148,11 @@ interface NumericUIntegerNumber<Self : NumericUIntegerNumber<Self, I>, I : UInte
     Pow<RationalNumber<*, I>>
 typealias NaturalNumber<Self, I> = NumericUIntegerNumber<Self, I>
 
-object Infinity {
+data object Infinity {
     override fun toString() = "inf"
 }
 
-object NegativeInfinity {
+data object NegativeInfinity {
     override fun toString() = "-inf"
 }
 

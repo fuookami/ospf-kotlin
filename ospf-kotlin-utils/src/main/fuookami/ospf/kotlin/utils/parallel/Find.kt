@@ -17,17 +17,15 @@ suspend inline fun <T> Iterable<T>.findParallelly(
     return this.firstParallelly(concurrentAmount, predicate)
 }
 
-@JvmName("tryFindParallelly")
-suspend inline fun <T> Iterable<T>.findParallelly(
+suspend inline fun <T> Iterable<T>.tryFindParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
-    return this.firstParallelly(predicate)
+    return this.tryFirstParallelly(predicate)
 }
 
-@JvmName("tryFindParallelly")
-suspend inline fun <T> Iterable<T>.findParallelly(
+suspend inline fun <T> Iterable<T>.tryFindParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
-    return this.firstParallelly(concurrentAmount, predicate)
+    return this.tryFirstParallelly(concurrentAmount, predicate)
 }

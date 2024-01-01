@@ -17,15 +17,13 @@ suspend inline fun <T> Iterable<T>.findLastParallelly(
     return this.lastParallelly(concurrentAmount, predicate)
 }
 
-@JvmName("tryFindLastParallelly")
-suspend inline fun <T> Iterable<T>.findLastParallelly(
+suspend inline fun <T> Iterable<T>.tryFindLastParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
     return this.lastParallelly(predicate)
 }
 
-@JvmName("tryFindLastParallelly")
-suspend inline fun <T> Iterable<T>.findLastParallelly(
+suspend inline fun <T> Iterable<T>.tryFindLastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
@@ -45,15 +43,13 @@ suspend inline fun <T> Collection<T>.findLastParallelly(
     return this.lastParallelly(concurrentAmount, predicate)
 }
 
-@JvmName("tryFindLastParallelly")
-suspend inline fun <T> Collection<T>.findLastParallelly(
+suspend inline fun <T> Collection<T>.tryFindLastParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
     return this.lastParallelly(predicate)
 }
 
-@JvmName("tryFindLastParallelly")
-suspend inline fun <T> Collection<T>.findLastParallelly(
+suspend inline fun <T> Collection<T>.tryFindLastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
@@ -73,15 +69,13 @@ suspend inline fun <T> List<T>.findLastParallelly(
     return this.lastParallelly(concurrentAmount, predicate)
 }
 
-@JvmName("tryFindLastParallelly")
-suspend inline fun <T> List<T>.findLastParallelly(
+suspend inline fun <T> List<T>.tryFindLastParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
     return this.lastParallelly(predicate)
 }
 
-@JvmName("tryFindLastParallelly")
-suspend inline fun <T> List<T>.findLastParallelly(
+suspend inline fun <T> List<T>.tryFindLastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {

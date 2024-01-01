@@ -50,15 +50,13 @@ suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
     }
 }
 
-@JvmName("tryFirstOrNullParallelly")
-suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
+suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T?> {
-    return this.firstOrNullParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
+    return this.tryFirstOrNullParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
-@JvmName("tryFirstOrNullParallelly")
-suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
+suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T?> {
@@ -67,7 +65,7 @@ suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
 
     return try {
         coroutineScope {
-            val iterator = this@firstOrNullParallelly.iterator()
+            val iterator = this@tryFirstOrNullParallelly.iterator()
             while (iterator.hasNext()) {
                 val promises = ArrayList<Deferred<T?>>()
                 for (j in UInt64.zero until concurrentAmount) {

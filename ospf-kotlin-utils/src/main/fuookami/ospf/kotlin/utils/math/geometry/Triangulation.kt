@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.math.geometry
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 
-object Delaunay {
+data object Delaunay {
     // Bowyer-Watson algorithm
     // Kotlin implementation of http://paulbourke.net/papers/triangulate
     operator fun invoke(points: List<Point2>): List<Triangle2> {

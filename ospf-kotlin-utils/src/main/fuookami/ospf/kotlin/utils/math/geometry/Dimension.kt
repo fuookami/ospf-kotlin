@@ -5,14 +5,14 @@ interface Dimension {
     val indices get() = 0 until size
 }
 
-object Dim1 : Dimension {
+data object Dim1 : Dimension {
     override val size = 1
 }
 
-object Dim2 : Dimension {
+data object Dim2 : Dimension {
     override val size = 2
 }
 
-object Dim3 : Dimension {
+data object Dim3 : Dimension {
     override val size = 3
 }

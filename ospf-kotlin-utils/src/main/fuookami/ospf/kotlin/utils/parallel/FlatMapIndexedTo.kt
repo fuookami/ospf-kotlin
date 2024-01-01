@@ -38,16 +38,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     }
 }
 
-@JvmName("tryFlatMapIndexedToParallelly")
-suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedToParallelly(
+suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
-    return this.flatMapIndexedToParallelly(UInt64.ten, destination, extractor)
+    return this.tryFlatMapIndexedParallelly(UInt64.ten, destination, extractor)
 }
 
-@JvmName("tryFlatMapIndexedToParallelly")
-suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedToParallelly(
+suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedParallelly(
     segment: UInt64,
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
@@ -57,7 +55,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val iterator = this@flatMapIndexedToParallelly.iterator()
+            val iterator = this@tryFlatMapIndexedParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -114,25 +112,23 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapInde
     )
 }
 
-@JvmName("tryFlatMapIndexedToParallelly")
-suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapIndexedToParallelly(
+suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryFlatMapIndexedParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
-    return (this as Iterable<T>).flatMapIndexedToParallelly(
+    return (this as Iterable<T>).tryFlatMapIndexedParallelly(
         defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
-@JvmName("tryFlatMapIndexedToParallelly")
-suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapIndexedToParallelly(
+suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
-    return (this as Iterable<T>).flatMapIndexedToParallelly(
+    return (this as Iterable<T>).tryFlatMapIndexedParallelly(
         UInt64(this.size) / concurrentAmount,
         destination,
         extractor
@@ -175,20 +171,18 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToP
     }
 }
 
-@JvmName("tryFlatMapIndexedToParallelly")
-suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToParallelly(
+suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryFlatMapIndexedParallelly(
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
-    return this.flatMapIndexedToParallelly(
+    return this.tryFlatMapIndexedParallelly(
         defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
-@JvmName("tryFlatMapIndexedToParallelly")
-suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToParallelly(
+suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
     destination: C,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
@@ -198,16 +192,16 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapIndexedToP
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val segmentAmount = this@flatMapIndexedToParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFlatMapIndexedParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@flatMapIndexedToParallelly.size) {
+            while (i != this@tryFlatMapIndexedParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@flatMapIndexedToParallelly.size - j
+                    this@tryFlatMapIndexedParallelly.size - j
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@flatMapIndexedToParallelly.flatMapIndexed { i, v ->
+                    this@tryFlatMapIndexedParallelly.flatMapIndexed { i, v ->
                         when (val result = extractor(i + j, v)) {
                             is Ok -> {
                                 result.value

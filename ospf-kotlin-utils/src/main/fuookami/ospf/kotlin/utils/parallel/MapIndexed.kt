@@ -35,15 +35,13 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
     }
 }
 
-@JvmName("tryMapIndexedParallelly")
-suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
+suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
-    return this.mapIndexedParallelly(UInt64.ten, extractor)
+    return this.tryMapIndexedParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMapIndexedParallelly")
-suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
+suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
     segment: UInt64,
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
@@ -52,7 +50,7 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val iterator = this@mapIndexedParallelly.iterator()
+            val iterator = this@tryMapIndexedParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -102,22 +100,20 @@ suspend inline fun <R, T> Collection<T>.mapIndexedParallelly(
     return (this as Iterable<T>).mapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMapIndexedParallelly")
-suspend inline fun <R, T> Collection<T>.mapIndexedParallelly(
+suspend inline fun <R, T> Collection<T>.tryMapIndexedParallelly(
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).mapIndexedParallelly(
+    return (this as Iterable<T>).tryMapIndexedParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMapIndexedParallelly")
-suspend inline fun <R, T> Collection<T>.mapIndexedParallelly(
+suspend inline fun <R, T> Collection<T>.tryMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).mapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.mapIndexedParallelly(
@@ -153,18 +149,16 @@ suspend inline fun <R, T> List<T>.mapIndexedParallelly(
     }
 }
 
-@JvmName("tryMapIndexedParallelly")
-suspend inline fun <R, T> List<T>.mapIndexedParallelly(
+suspend inline fun <R, T> List<T>.tryMapIndexedParallelly(
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
-    return this.mapIndexedParallelly(
+    return this.tryMapIndexedParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMapIndexedParallelly")
-suspend inline fun <R, T> List<T>.mapIndexedParallelly(
+suspend inline fun <R, T> List<T>.tryMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
@@ -173,16 +167,16 @@ suspend inline fun <R, T> List<T>.mapIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val segmentAmount = this@mapIndexedParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryMapIndexedParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@mapIndexedParallelly.size) {
+            while (i != this@tryMapIndexedParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@mapIndexedParallelly.size - j
+                    this@tryMapIndexedParallelly.size - j
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@mapIndexedParallelly.mapIndexedNotNull { i, v ->
+                    this@tryMapIndexedParallelly.mapIndexedNotNull { i, v ->
                         when (val result = extractor(i + j, v)) {
                             is Ok -> {
                                 result.value

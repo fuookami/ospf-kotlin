@@ -44,15 +44,13 @@ suspend inline fun <T> Iterable<T>.anyParallelly(
     }
 }
 
-@JvmName("tryAnyParallelly")
-suspend inline fun <T> Iterable<T>.anyParallelly(
+suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
-    return this.anyParallelly(UInt64.ten, predicate)
+    return this.tryAnyParallelly(UInt64.ten, predicate)
 }
 
-@JvmName("tryAnyParallelly")
-suspend inline fun <T> Iterable<T>.anyParallelly(
+suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
@@ -61,7 +59,7 @@ suspend inline fun <T> Iterable<T>.anyParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()
-            val iterator = this@anyParallelly.iterator()
+            val iterator = this@tryAnyParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -115,22 +113,20 @@ suspend inline fun <T> Collection<T>.anyParallelly(
     return (this as Iterable<T>).anyParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-@JvmName("tryAnyParallelly")
-suspend inline fun <T> Collection<T>.anyParallelly(
+suspend inline fun <T> Collection<T>.tryAnyParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
-    return (this as Iterable<T>).anyParallelly(
+    return (this as Iterable<T>).tryAnyParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryAnyParallelly")
-suspend inline fun <T> Collection<T>.anyParallelly(
+suspend inline fun <T> Collection<T>.tryAnyParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
-    return (this as Iterable<T>).anyParallelly(UInt64(this.size) / concurrentAmount, predicate)
+    return (this as Iterable<T>).tryAnyParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.anyParallelly(
@@ -176,18 +172,16 @@ suspend inline fun <T> List<T>.anyParallelly(
     }
 }
 
-@JvmName("tryAnyParallelly")
-suspend inline fun <T> List<T>.anyParallelly(
+suspend inline fun <T> List<T>.tryAnyParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
-    return this.anyParallelly(
+    return this.tryAnyParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryAnyParallelly")
-suspend inline fun <T> List<T>.anyParallelly(
+suspend inline fun <T> List<T>.tryAnyParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<Boolean> {
@@ -196,16 +190,16 @@ suspend inline fun <T> List<T>.anyParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()
-            val segmentAmount = this@anyParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryAnyParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@anyParallelly.size) {
+            while (i != this@tryAnyParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@anyParallelly.size - i
+                    this@tryAnyParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@anyParallelly.subList(j, k).any {
+                    this@tryAnyParallelly.subList(j, k).any {
                         when (val result = predicate(it)) {
                             is Ok -> {
                                 result.value

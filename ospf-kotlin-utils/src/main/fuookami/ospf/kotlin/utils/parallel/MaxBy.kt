@@ -34,15 +34,13 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
     } ?: throw NoSuchElementException()
 }
 
-@JvmName("tryMaxByParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
-    return this.maxByParallelly(UInt64.ten, extractor)
+    return this.tryMaxByParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMaxByParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
@@ -51,7 +49,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Pair<T, R>?>>()
-            val iterator = this@maxByParallelly.iterator()
+            val iterator = this@tryMaxByParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -94,7 +92,6 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByParallelly(
     )
 }
 
-@JvmName("tryMaxByParallelly")
 suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: Extractor<R, T>
@@ -102,21 +99,20 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByParallelly(
     return (this as Iterable<T>).maxByParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMaxByParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxByParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
-    return (this as Iterable<T>).maxByParallelly(
+    return (this as Iterable<T>).tryMaxByParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
-    return (this as Iterable<T>).maxByParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMaxByParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.maxByParallelly(
@@ -155,18 +151,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxByParallelly(
     } ?: throw NoSuchElementException()
 }
 
-@JvmName("tryMaxByParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.maxByParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxByParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
-    return this.maxByParallelly(
+    return this.tryMaxByParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMaxByParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.maxByParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
@@ -175,16 +169,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxByParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Pair<T, R>?>>()
-            val segmentAmount = this@maxByParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryMaxByParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@maxByParallelly.size) {
+            while (i != this@tryMaxByParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@maxByParallelly.size - i
+                    this@tryMaxByParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@maxByParallelly
+                    this@tryMaxByParallelly
                         .subList(j, k)
                         .map {
                             Pair(it, when (val result = extractor(it)) {

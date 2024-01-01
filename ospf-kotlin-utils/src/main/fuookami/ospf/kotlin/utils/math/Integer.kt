@@ -31,7 +31,7 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
 
-object Int8Serializer : RealNumberKSerializer<Int8> {
+data object Int8Serializer : RealNumberKSerializer<Int8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int8", PrimitiveKind.INT)
     override val constants = Int8
 
@@ -111,7 +111,7 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object Int16Serializer : RealNumberKSerializer<Int16> {
+data object Int16Serializer : RealNumberKSerializer<Int16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int16", PrimitiveKind.INT)
     override val constants = Int16
 
@@ -191,7 +191,7 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object Int32Serializer : RealNumberKSerializer<Int32> {
+data object Int32Serializer : RealNumberKSerializer<Int32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int32", PrimitiveKind.INT)
     override val constants = Int32
 
@@ -271,7 +271,7 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object Int64Serializer : RealNumberKSerializer<Int64> {
+data object Int64Serializer : RealNumberKSerializer<Int64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int64", PrimitiveKind.LONG)
     override val constants = Int64
 
@@ -351,7 +351,7 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
     override fun toFltX() = FltX(value.toString())
 }
 
-object IntXSerializer : RealNumberKSerializer<IntX> {
+data object IntXSerializer : RealNumberKSerializer<IntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntX", PrimitiveKind.STRING)
     override val constants = IntX
 

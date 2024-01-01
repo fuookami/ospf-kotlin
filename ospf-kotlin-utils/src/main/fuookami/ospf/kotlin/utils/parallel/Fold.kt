@@ -54,16 +54,14 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
     }
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T> Iterable<T>.foldParallelly(
+suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.foldParallelly(UInt64.ten, initial, operation)
+    return this.tryFoldParallelly(UInt64.ten, initial, operation)
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T> Iterable<T>.foldParallelly(
+suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     segment: UInt64,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
@@ -74,7 +72,7 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<T>>()
-            val iterator = this@foldParallelly.iterator()
+            val iterator = this@tryFoldParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -183,17 +181,15 @@ suspend inline fun <T, R> Iterable<T>.foldParallelly(
     }
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T, R> Iterable<T>.foldParallelly(
+suspend inline fun <T, R> Iterable<T>.tryFoldParallelly(
     initial: R,
     crossinline extractor: TryExtractor<R, T>,
     crossinline operation: (acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return this.foldParallelly(UInt64.ten, initial, extractor, operation)
+    return this.tryFoldParallelly(UInt64.ten, initial, extractor, operation)
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T, R> Iterable<T>.foldParallelly(
+suspend inline fun <T, R> Iterable<T>.tryFoldParallelly(
     segment: UInt64,
     initial: R,
     crossinline extractor: TryExtractor<R, T>,
@@ -205,7 +201,7 @@ suspend inline fun <T, R> Iterable<T>.foldParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R>>()
-            val iterator = this@foldParallelly.iterator()
+            val iterator = this@tryFoldParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -289,21 +285,19 @@ suspend inline fun <T> Collection<T>.foldParallelly(
     return (this as Iterable<T>).foldParallelly(UInt64(this.size) / concurrentAmount, initial, operation)
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T> Collection<T>.foldParallelly(
+suspend inline fun <T> Collection<T>.tryFoldParallelly(
     concurrentAmount: UInt64,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return (this as Iterable<T>).foldParallelly(UInt64(this.size) / concurrentAmount, initial, operation)
+    return (this as Iterable<T>).tryFoldParallelly(UInt64(this.size) / concurrentAmount, initial, operation)
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T> Collection<T>.foldParallelly(
+suspend inline fun <T> Collection<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return (this as Iterable<T>).foldParallelly(
+    return (this as Iterable<T>).tryFoldParallelly(
         defaultConcurrentAmount,
         initial,
         operation
@@ -337,13 +331,12 @@ suspend inline fun <T, R> Collection<T>.foldParallelly(
     )
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T, R> Collection<T>.foldParallelly(
+suspend inline fun <T, R> Collection<T>.tryFoldParallelly(
     initial: R,
     crossinline extractor: TryExtractor<R, T>,
     crossinline operation: (acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return (this as Iterable<T>).foldParallelly(
+    return (this as Iterable<T>).tryFoldParallelly(
         defaultConcurrentAmount,
         initial,
         extractor,
@@ -351,14 +344,13 @@ suspend inline fun <T, R> Collection<T>.foldParallelly(
     )
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T, R> Collection<T>.foldParallelly(
+suspend inline fun <T, R> Collection<T>.tryFoldParallelly(
     concurrentAmount: UInt64,
     initial: R,
     crossinline extractor: TryExtractor<R, T>,
     crossinline operation: (acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return (this as Iterable<T>).foldParallelly(
+    return (this as Iterable<T>).tryFoldParallelly(
         UInt64(this.size) / concurrentAmount,
         initial,
         extractor,
@@ -427,20 +419,18 @@ suspend inline fun <T> List<T>.foldParallelly(
     }
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T> List<T>.foldParallelly(
+suspend inline fun <T> List<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.foldParallelly(
+    return this.tryFoldParallelly(
         defaultConcurrentAmount,
         initial,
         operation
     )
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T> List<T>.foldParallelly(
+suspend inline fun <T> List<T>.tryFoldParallelly(
     concurrentAmount: UInt64,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
@@ -451,18 +441,18 @@ suspend inline fun <T> List<T>.foldParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<T>>()
-            val iterator = this@foldParallelly.iterator()
+            val iterator = this@tryFoldParallelly.iterator()
             while (iterator.hasNext()) {
-                val segmentAmount = this@foldParallelly.size / concurrentAmount.toInt()
+                val segmentAmount = this@tryFoldParallelly.size / concurrentAmount.toInt()
                 var i = 0
-                while (i != this@foldParallelly.size) {
+                while (i != this@tryFoldParallelly.size) {
                     val j = i
                     val k = i + minOf(
                         segmentAmount,
-                        this@foldParallelly.size - i
+                        this@tryFoldParallelly.size - i
                     )
                     promises.add(async(Dispatchers.Default) {
-                        this@foldParallelly.subList(j, k).fold(initial) { lhs, rhs ->
+                        this@tryFoldParallelly.subList(j, k).fold(initial) { lhs, rhs ->
                             if (error != null) {
                                 lhs
                             } else {
@@ -573,13 +563,12 @@ suspend inline fun <T, R> List<T>.foldParallelly(
     }
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T, R> List<T>.foldParallelly(
+suspend inline fun <T, R> List<T>.tryFoldParallelly(
     initial: R,
     crossinline extractor: TryExtractor<R, T>,
     crossinline operation: (acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return this.foldParallelly(
+    return this.tryFoldParallelly(
         defaultConcurrentAmount,
         initial,
         extractor,
@@ -587,8 +576,7 @@ suspend inline fun <T, R> List<T>.foldParallelly(
     )
 }
 
-@JvmName("tryFoldParallelly")
-suspend inline fun <T, R> List<T>.foldParallelly(
+suspend inline fun <T, R> List<T>.tryFoldParallelly(
     concurrentAmount: UInt64,
     initial: R,
     crossinline extractor: TryExtractor<R, T>,
@@ -600,18 +588,18 @@ suspend inline fun <T, R> List<T>.foldParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R>>()
-            val iterator = this@foldParallelly.iterator()
+            val iterator = this@tryFoldParallelly.iterator()
             while (iterator.hasNext()) {
-                val segmentAmount = this@foldParallelly.size / concurrentAmount.toInt()
+                val segmentAmount = this@tryFoldParallelly.size / concurrentAmount.toInt()
                 var i = 0
-                while (i != this@foldParallelly.size) {
+                while (i != this@tryFoldParallelly.size) {
                     val j = i
                     val k = i + minOf(
                         segmentAmount,
-                        this@foldParallelly.size - i
+                        this@tryFoldParallelly.size - i
                     )
                     promises.add(async(Dispatchers.Default) {
-                        this@foldParallelly.subList(j, k).fold(initial) { lhs, rhs ->
+                        this@tryFoldParallelly.subList(j, k).fold(initial) { lhs, rhs ->
                             if (error != null) {
                                 lhs
                             } else {

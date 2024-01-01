@@ -136,7 +136,7 @@ abstract class RationalConstants<Self, I> protected constructor(
     override val negativeInfinity: Self get() = ctor(-constants.one, constants.zero)
 }
 
-object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke) {
+data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke) {
     override val constants = Rtn8
     override val valueSerializer = Int8Serializer
 }
@@ -169,7 +169,7 @@ data class Rtn8 internal constructor(
     override fun div(rhs: Rtn8) = invoke(num * rhs.den, rhs.num * den)
 }
 
-object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::invoke) {
+data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::invoke) {
     override val constants = Rtn16
     override val valueSerializer = Int16Serializer
 }
@@ -197,7 +197,7 @@ data class Rtn16 internal constructor(
     override fun div(rhs: Rtn16) = invoke(num * rhs.den, rhs.num * den)
 }
 
-object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::invoke) {
+data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::invoke) {
     override val constants = Rtn32
     override val valueSerializer = Int32Serializer
 }
@@ -225,7 +225,7 @@ data class Rtn32 internal constructor(
     override fun div(rhs: Rtn32) = invoke(num * rhs.den, rhs.num * den)
 }
 
-object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::invoke) {
+data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::invoke) {
     override val constants = Rtn64
     override val valueSerializer = Int64Serializer
 }
@@ -253,7 +253,7 @@ data class Rtn64 internal constructor(
     override fun div(rhs: Rtn64) = invoke(num * rhs.den, rhs.num * den)
 }
 
-object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke) {
+data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke) {
     override val constants = RtnX
     override val valueSerializer = IntXSerializer
 }

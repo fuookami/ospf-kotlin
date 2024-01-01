@@ -36,15 +36,13 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
     }
 }
 
-@JvmName("tryFilterIndexedParallelly")
-suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
+suspend inline fun <T> Iterable<T>.tryFilterIndexedParallelly(
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<List<T>> {
-    return this.filterIndexedParallelly(UInt64.ten, predicate)
+    return this.tryFilterIndexedParallelly(UInt64.ten, predicate)
 }
 
-@JvmName("tryFilterIndexedParallelly")
-suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
+suspend inline fun <T> Iterable<T>.tryFilterIndexedParallelly(
     segment: UInt64,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<List<T>> {
@@ -53,7 +51,7 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<T>>>()
-            val iterator = this@filterIndexedParallelly.iterator()
+            val iterator = this@tryFilterIndexedParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -103,22 +101,20 @@ suspend inline fun <T> Collection<T>.filterIndexedParallelly(
     return (this as Iterable<T>).filterIndexedParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-@JvmName("tryFilterIndexedParallelly")
-suspend inline fun <T> Collection<T>.filterIndexedParallelly(
+suspend inline fun <T> Collection<T>.tryFilterIndexedParallelly(
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<List<T>> {
-    return (this as Iterable<T>).filterIndexedParallelly(
+    return (this as Iterable<T>).tryFilterIndexedParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryFilterIndexedParallelly")
-suspend inline fun <T> Collection<T>.filterIndexedParallelly(
+suspend inline fun <T> Collection<T>.tryFilterIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<List<T>> {
-    return (this as Iterable<T>).filterIndexedParallelly(UInt64(this.size) / concurrentAmount, predicate)
+    return (this as Iterable<T>).tryFilterIndexedParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.filterIndexedParallelly(
@@ -154,18 +150,16 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(
     }
 }
 
-@JvmName("tryFilterIndexedParallelly")
-suspend inline fun <T> List<T>.filterIndexedParallelly(
+suspend inline fun <T> List<T>.tryFilterIndexedParallelly(
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<List<T>> {
-    return this.filterIndexedParallelly(
+    return this.tryFilterIndexedParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryFilterIndexedParallelly")
-suspend inline fun <T> List<T>.filterIndexedParallelly(
+suspend inline fun <T> List<T>.tryFilterIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<List<T>> {
@@ -174,16 +168,16 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<T>>>()
-            val segmentAmount = this@filterIndexedParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFilterIndexedParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@filterIndexedParallelly.size) {
+            while (i != this@tryFilterIndexedParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@filterIndexedParallelly.size - i
+                    this@tryFilterIndexedParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@filterIndexedParallelly.subList(j, k).filterIndexed { i, v ->
+                    this@tryFilterIndexedParallelly.subList(j, k).filterIndexed { i, v ->
                         when (val result = predicate(i + j, v)) {
                             is Ok -> {
                                 result.value

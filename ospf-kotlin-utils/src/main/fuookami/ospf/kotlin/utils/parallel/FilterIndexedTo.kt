@@ -39,16 +39,14 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToP
     }
 }
 
-@JvmName("tryFilterIndexedToParallelly")
-suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexedToParallelly(
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<C> {
-    return this.filterIndexedToParallelly(UInt64.ten, destination, predicate)
+    return this.tryFilterIndexedToParallelly(UInt64.ten, destination, predicate)
 }
 
-@JvmName("tryFilterIndexedToParallelly")
-suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
+suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexedToParallelly(
     segment: UInt64,
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
@@ -58,7 +56,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToP
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<T>>>()
-            val iterator = this@filterIndexedToParallelly.iterator()
+            val iterator = this@tryFilterIndexedToParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -111,25 +109,23 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedT
     return (this as Iterable<T>).filterIndexedToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
-@JvmName("tryFilterIndexedToParallelly")
-suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedToParallelly(
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterIndexedToParallelly(
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<C> {
-    return (this as Iterable<T>).filterIndexedToParallelly(
+    return (this as Iterable<T>).tryFilterIndexedToParallelly(
         defaultConcurrentAmount,
         destination,
         predicate
     )
 }
 
-@JvmName("tryFilterIndexedToParallelly")
-suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedToParallelly(
+suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<C> {
-    return (this as Iterable<T>).filterIndexedToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
+    return (this as Iterable<T>).tryFilterIndexedToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParallelly(
@@ -168,20 +164,18 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParal
     }
 }
 
-@JvmName("tryFilterIndexedToParallelly")
-suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParallelly(
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterIndexedToParallelly(
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
 ): Ret<C> {
-    return this.filterIndexedToParallelly(
+    return this.tryFilterIndexedToParallelly(
         defaultConcurrentAmount,
         destination,
         predicate
     )
 }
 
-@JvmName("tryFilterIndexedToParallelly")
-suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParallelly(
+suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
     crossinline predicate: TryIndexedPredicate<T>
@@ -191,16 +185,16 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParal
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<T>>>()
-            val segmentAmount = this@filterIndexedToParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFilterIndexedToParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@filterIndexedToParallelly.size) {
+            while (i != this@tryFilterIndexedToParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@filterIndexedToParallelly.size - i
+                    this@tryFilterIndexedToParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@filterIndexedToParallelly.subList(j, k).filterIndexed { i, v ->
+                    this@tryFilterIndexedToParallelly.subList(j, k).filterIndexed { i, v ->
                         when (val result = predicate(i + j, v)) {
                             is Ok -> {
                                 result.value

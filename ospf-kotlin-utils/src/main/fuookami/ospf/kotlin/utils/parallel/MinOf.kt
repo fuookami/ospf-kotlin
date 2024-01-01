@@ -34,15 +34,13 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfParallelly(
     } ?: throw NoSuchElementException()
 }
 
-@JvmName("tryMinOfParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return this.minOfParallelly(UInt64.ten, extractor)
+    return this.tryMinOfParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMinOfParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinOfParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
@@ -51,7 +49,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val iterator = this@minOfParallelly.iterator()
+            val iterator = this@tryMinOfParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -101,22 +99,20 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minOfParallelly(
     return (this as Iterable<T>).minOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMinOfParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return (this as Iterable<T>).minOfParallelly(
+    return (this as Iterable<T>).tryMinOfParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMinOfParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return (this as Iterable<T>).minOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMinOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.minOfParallelly(
@@ -154,18 +150,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.minOfParallelly(
     } ?: throw NoSuchElementException()
 }
 
-@JvmName("tryMinOfParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.minOfParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMinOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return this.minOfParallelly(
+    return this.tryMinOfParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMinOfParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.minOfParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMinOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
@@ -174,16 +168,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.minOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val segmentAmount = this@minOfParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryMinOfParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@minOfParallelly.size) {
+            while (i != this@tryMinOfParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@minOfParallelly.size - i
+                    this@tryMinOfParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@minOfParallelly
+                    this@tryMinOfParallelly
                         .subList(j, k)
                         .minOfOrNull {
                             when (val result = extractor(it)) {

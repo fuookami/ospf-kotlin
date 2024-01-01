@@ -40,7 +40,7 @@ abstract class NumericIntegerConstants<Self, I>(
     override val maximum: Self get() = ctor(constants.maximum)
 }
 
-object NInt8Serializer : RealNumberKSerializer<NInt8> {
+data object NInt8Serializer : RealNumberKSerializer<NInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt8", PrimitiveKind.INT)
     override val constants = NInt8
 
@@ -126,7 +126,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun toFltX() = value.toFltX()
 }
 
-object NInt16Serializer : RealNumberKSerializer<NInt16> {
+data object NInt16Serializer : RealNumberKSerializer<NInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt16", PrimitiveKind.INT)
     override val constants = NInt16
 
@@ -212,7 +212,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun toFltX() = value.toFltX()
 }
 
-object NInt32Serializer : RealNumberKSerializer<NInt32> {
+data object NInt32Serializer : RealNumberKSerializer<NInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt32", PrimitiveKind.INT)
     override val constants = NInt32
 
@@ -298,7 +298,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun toFltX() = value.toFltX()
 }
 
-object NInt64Serializer : RealNumberKSerializer<NInt64> {
+data object NInt64Serializer : RealNumberKSerializer<NInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt64", PrimitiveKind.LONG)
     override val constants: RealNumberConstants<NInt64> = NInt64
 
@@ -384,7 +384,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun toFltX() = value.toFltX()
 }
 
-object NIntXSerializer : RealNumberKSerializer<NIntX> {
+data object NIntXSerializer : RealNumberKSerializer<NIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NIntX", PrimitiveKind.STRING)
     override val constants = NIntX
 

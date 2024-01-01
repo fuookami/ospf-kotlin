@@ -34,15 +34,13 @@ suspend inline fun <T> Iterable<T>.filterNotParallelly(
     }
 }
 
-@JvmName("tryFilterNotParallelly")
-suspend inline fun <T> Iterable<T>.filterNotParallelly(
+suspend inline fun <T> Iterable<T>.tryFilterNotParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<List<T>> {
-    return this.filterNotParallelly(UInt64.ten, predicate)
+    return this.tryFilterNotParallelly(UInt64.ten, predicate)
 }
 
-@JvmName("tryFilterNotParallelly")
-suspend inline fun <T> Iterable<T>.filterNotParallelly(
+suspend inline fun <T> Iterable<T>.tryFilterNotParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<List<T>> {
@@ -51,7 +49,7 @@ suspend inline fun <T> Iterable<T>.filterNotParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<T>>>()
-            val iterator = this@filterNotParallelly.iterator()
+            val iterator = this@tryFilterNotParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -99,22 +97,20 @@ suspend inline fun <T> Collection<T>.filterNotParallelly(
     return (this as Iterable<T>).filterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-@JvmName("tryFilterNotParallelly")
-suspend inline fun <T> Collection<T>.filterNotParallelly(
+suspend inline fun <T> Collection<T>.tryFilterNotParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<List<T>> {
-    return this.filterNotParallelly(
+    return this.tryFilterNotParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryFilterNotParallelly")
-suspend inline fun <T> Collection<T>.filterNotParallelly(
+suspend inline fun <T> Collection<T>.tryFilterNotParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<List<T>> {
-    return (this as Iterable<T>).filterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
+    return (this as Iterable<T>).tryFilterNotParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.filterNotParallelly(
@@ -150,18 +146,16 @@ suspend inline fun <T> List<T>.filterNotParallelly(
     }
 }
 
-@JvmName("tryFilterNotParallelly")
-suspend inline fun <T> List<T>.filterNotParallelly(
+suspend inline fun <T> List<T>.tryFilterNotParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<List<T>> {
-    return this.filterNotParallelly(
+    return this.tryFilterNotParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryFilterNotParallelly")
-suspend inline fun <T> List<T>.filterNotParallelly(
+suspend inline fun <T> List<T>.tryFilterNotParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<List<T>> {
@@ -170,16 +164,16 @@ suspend inline fun <T> List<T>.filterNotParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<T>>>()
-            val segmentAmount = this@filterNotParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFilterNotParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@filterNotParallelly.size) {
+            while (i != this@tryFilterNotParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@filterNotParallelly.size - i
+                    this@tryFilterNotParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@filterNotParallelly.subList(j, k).filterNot {
+                    this@tryFilterNotParallelly.subList(j, k).filterNot {
                         when (val result = predicate(it)) {
                             is Ok -> {
                                 result.value

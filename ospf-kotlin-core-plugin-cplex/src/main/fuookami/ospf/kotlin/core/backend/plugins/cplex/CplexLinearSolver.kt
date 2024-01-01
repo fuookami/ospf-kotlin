@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
+import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -15,8 +16,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class CplexLinearSolver(
     private val config: LinearSolverConfig,
     private val callBack: CplexSolverCallBack? = null
-) {
-    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
+): LinearSolver {
+    override suspend operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
         val impl = CplexLinearSolverImpl(config, callBack)
         return impl(model)
     }
@@ -32,7 +33,7 @@ private class CplexLinearSolverImpl(
     lateinit var status: SolvingStatus
     lateinit var output: LinearSolverOutput
 
-    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
+    operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
         assert(!this::cplex.isInitialized)
 
         val processes = arrayOf(
@@ -55,13 +56,13 @@ private class CplexLinearSolverImpl(
         return Ok(output)
     }
 
-    private fun init(model: LinearTriadModel): Try {
+    private fun init(model: LinearTriadModelView): Try {
         cplex = IloCplex()
         cplex.name = model.name
         return Ok(success)
     }
 
-    private fun dump(model: LinearTriadModel): Try {
+    private fun dump(model: LinearTriadModelView): Try {
         cplexVars = model.variables.map {
             cplex.numVar(it.lowerBound.toDouble(), it.upperBound.toDouble(), CplexVariable(it.type).toCplexVar())
         }.toList()

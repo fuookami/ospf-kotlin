@@ -63,16 +63,14 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     }
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
+suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.foldIndexedParallelly(UInt64.ten, initial, operation)
+    return this.tryFoldIndexedParallelly(UInt64.ten, initial, operation)
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
+suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
     segment: UInt64,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
@@ -83,7 +81,7 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Pair<Int, Deferred<T>>>()
-            val iterator = this@foldIndexedParallelly.iterator()
+            val iterator = this@tryFoldIndexedParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -211,13 +209,12 @@ suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
     }
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
+suspend inline fun <T, R> Iterable<T>.tryFoldIndexedParallelly(
     initial: R,
     crossinline extractor: TryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return this.foldIndexedParallelly(
+    return this.tryFoldIndexedParallelly(
         UInt64.ten,
         initial,
         extractor,
@@ -225,8 +222,7 @@ suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
+suspend inline fun <T, R> Iterable<T>.tryFoldIndexedParallelly(
     segment: UInt64,
     initial: R,
     crossinline extractor: TryIndexedExtractor<R, T>,
@@ -238,7 +234,7 @@ suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Pair<Int, Deferred<R>>>()
-            val iterator = this@foldIndexedParallelly.iterator()
+            val iterator = this@tryFoldIndexedParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -335,25 +331,23 @@ suspend inline fun <T> Collection<T>.foldIndexedParallelly(
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T> Collection<T>.foldIndexedParallelly(
+suspend inline fun <T> Collection<T>.tryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return (this as Iterable<T>).foldIndexedParallelly(
+    return (this as Iterable<T>).tryFoldIndexedParallelly(
         defaultConcurrentAmount,
         initial,
         operation
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T> Collection<T>.foldIndexedParallelly(
+suspend inline fun <T> Collection<T>.tryFoldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return (this as Iterable<T>).foldIndexedParallelly(
+    return (this as Iterable<T>).tryFoldIndexedParallelly(
         concurrentAmount,
         initial,
         operation
@@ -387,13 +381,12 @@ suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
+suspend inline fun <T, R> Collection<T>.tryFoldIndexedParallelly(
     initial: R,
     crossinline extractor: TryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return (this as Iterable<T>).foldIndexedParallelly(
+    return (this as Iterable<T>).tryFoldIndexedParallelly(
         defaultConcurrentAmount,
         initial,
         extractor,
@@ -401,14 +394,13 @@ suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
+suspend inline fun <T, R> Collection<T>.tryFoldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: R,
     crossinline extractor: TryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return (this as Iterable<T>).foldIndexedParallelly(
+    return (this as Iterable<T>).tryFoldIndexedParallelly(
         concurrentAmount,
         initial,
         extractor,
@@ -478,20 +470,18 @@ suspend inline fun <T> List<T>.foldIndexedParallelly(
     }
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T> List<T>.foldIndexedParallelly(
+suspend inline fun <T> List<T>.tryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.foldIndexedParallelly(
+    return this.tryFoldIndexedParallelly(
         defaultConcurrentAmount,
         initial,
         operation
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T> List<T>.foldIndexedParallelly(
+suspend inline fun <T> List<T>.tryFoldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
@@ -502,15 +492,15 @@ suspend inline fun <T> List<T>.foldIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Pair<Int, Deferred<T>>>()
-            val segmentAmount = this@foldIndexedParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFoldIndexedParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@foldIndexedParallelly.size) {
+            while (i != this@tryFoldIndexedParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@foldIndexedParallelly.size - i
+                    this@tryFoldIndexedParallelly.size - i
                 )
-                val thisSegment = this@foldIndexedParallelly.subList(j, k).toList()
+                val thisSegment = this@tryFoldIndexedParallelly.subList(j, k).toList()
                 if (thisSegment.isNotEmpty()) {
                     promises.add(Pair(
                         j,
@@ -630,13 +620,12 @@ suspend inline fun <T, R> List<T>.foldIndexedParallelly(
     }
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T, R> List<T>.foldIndexedParallelly(
+suspend inline fun <T, R> List<T>.tryFoldIndexedParallelly(
     initial: R,
     crossinline extractor: TryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
-    return this.foldIndexedParallelly(
+    return this.tryFoldIndexedParallelly(
         defaultConcurrentAmount,
         initial,
         extractor,
@@ -644,8 +633,7 @@ suspend inline fun <T, R> List<T>.foldIndexedParallelly(
     )
 }
 
-@JvmName("tryFoldIndexedParallelly")
-suspend inline fun <T, R> List<T>.foldIndexedParallelly(
+suspend inline fun <T, R> List<T>.tryFoldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: R,
     crossinline extractor: TryIndexedExtractor<R, T>,
@@ -657,15 +645,15 @@ suspend inline fun <T, R> List<T>.foldIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Pair<Int, Deferred<R>>>()
-            val segmentAmount = this@foldIndexedParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFoldIndexedParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@foldIndexedParallelly.size) {
+            while (i != this@tryFoldIndexedParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@foldIndexedParallelly.size - i
+                    this@tryFoldIndexedParallelly.size - i
                 )
-                val thisSegment = this@foldIndexedParallelly.subList(j, k).toList()
+                val thisSegment = this@tryFoldIndexedParallelly.subList(j, k).toList()
                 if (thisSegment.isNotEmpty()) {
                     promises.add(Pair(
                         j,

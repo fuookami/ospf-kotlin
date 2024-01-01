@@ -5,13 +5,13 @@ import fuookami.ospf.kotlin.utils.math.*
 sealed interface Distance {
     fun <D : Dimension> distanceBetween(lhs: Point<D>, rhs: Point<D>): Flt64
 
-    object Euclidean : Distance {
+    data object Euclidean : Distance {
         override fun <D : Dimension> distanceBetween(lhs: Point<D>, rhs: Point<D>): Flt64 {
             return (lhs.indices.sumOf(Flt64) { (lhs[it] - rhs[it]).sqr() }).sqrt()
         }
     }
 
-    object Manhattan : Distance {
+    data object Manhattan : Distance {
         override fun <D : Dimension> distanceBetween(lhs: Point<D>, rhs: Point<D>): Flt64 {
             return lhs.indices.sumOf(Flt64) { (lhs[it] - rhs[it]).abs() }
         }
@@ -23,7 +23,7 @@ sealed interface Distance {
         }
     }
 
-    object Chebyshev : Distance {
+    data object Chebyshev : Distance {
         override fun <D : Dimension> distanceBetween(lhs: Point<D>, rhs: Point<D>): Flt64 {
             return (lhs.indices.maxOf { (lhs[it] - rhs[it]).abs() })
         }

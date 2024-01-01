@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-private object IntervalTypeSerializer : KSerializer<IntervalType> {
+private data object IntervalTypeSerializer : KSerializer<IntervalType> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntervalType", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: IntervalType) {
@@ -131,6 +131,26 @@ sealed class ValueWrapper<T>(
     abstract operator fun div(rhs: T): ValueWrapper<T>
 
     abstract fun toFlt64(): Flt64
+
+    fun unwrap(): T {
+        return (this as Value<T>).value
+    }
+
+    fun unwrapOrNull(): T? {
+        return when (this) {
+            is Value<T> -> {
+                this.value
+            }
+
+            is Infinity<T> -> {
+                constants.infinity
+            }
+
+            is NegativeInfinity<T> -> {
+                constants.negativeInfinity
+            }
+        }
+    }
 
     class Value<T>(val value: T, constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {

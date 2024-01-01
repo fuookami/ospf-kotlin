@@ -36,7 +36,7 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     }
 }
 
-object UInt8Serializer : RealNumberKSerializer<UInt8> {
+data object UInt8Serializer : RealNumberKSerializer<UInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt8", PrimitiveKind.INT)
     override val constants = UInt8
 
@@ -117,7 +117,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object UInt16Serializer : RealNumberKSerializer<UInt16> {
+data object UInt16Serializer : RealNumberKSerializer<UInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt16", PrimitiveKind.INT)
     override val constants = UInt16
 
@@ -196,7 +196,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object UInt32Serializer : RealNumberKSerializer<UInt32> {
+data object UInt32Serializer : RealNumberKSerializer<UInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt32", PrimitiveKind.INT)
     override val constants = UInt32
 
@@ -275,7 +275,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object UInt64Serializer : RealNumberKSerializer<UInt64> {
+data object UInt64Serializer : RealNumberKSerializer<UInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt64", PrimitiveKind.LONG)
     override val constants = UInt64
 
@@ -358,7 +358,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     override fun toFltX() = FltX(value.toString())
 }
 
-object UIntXSerializer : RealNumberKSerializer<UIntX> {
+data object UIntXSerializer : RealNumberKSerializer<UIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UIntX", PrimitiveKind.STRING)
     override val constants = UIntX
 

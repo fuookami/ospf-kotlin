@@ -36,16 +36,14 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
     }
 }
 
-@JvmName("tryAssociateToParallelly")
-suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateToParallelly(
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<M> {
-    return this.associateToParallelly(UInt64.ten, destination, extractor)
+    return this.tryAssociateByToParallelly(UInt64.ten, destination, extractor)
 }
 
-@JvmName("tryAssociateToParallelly")
-suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateToParallelly(
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociateByToParallelly(
     segment: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
@@ -55,7 +53,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<Pair<K, V>>>>()
-            val iterator = this@associateToParallelly.iterator()
+            val iterator = this@tryAssociateByToParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -106,25 +104,23 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.associate
     return (this as Iterable<T>).associateToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
-@JvmName("tryAssociateToParallelly")
-suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.associateToParallelly(
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.tryAssociateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<M> {
-    return (this as Iterable<T>).associateToParallelly(
+    return (this as Iterable<T>).tryAssociateByToParallelly(
         defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
-@JvmName("tryAssociateToParallelly")
-suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.associateToParallelly(
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Collection<T>.tryAssociateByToParallelly(
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<M> {
-    return (this as Iterable<T>).associateToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
+    return (this as Iterable<T>).tryAssociateByToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToParallelly(
@@ -163,20 +159,18 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToPara
     }
 }
 
-@JvmName("tryAssociateToParallelly")
-suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToParallelly(
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.tryAssociateByToParallelly(
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<M> {
-    return this.associateToParallelly(
+    return this.tryAssociateByToParallelly(
         defaultConcurrentAmount,
         destination,
         extractor
     )
 }
 
-@JvmName("tryAssociateToParallelly")
-suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToParallelly(
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.tryAssociateByToParallelly(
     concurrentAmount: UInt64,
     destination: M,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
@@ -186,16 +180,16 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> List<T>.associateToPara
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<Pair<K, V>>>>()
-            val segmentAmount = this@associateToParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryAssociateByToParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@associateToParallelly.size) {
+            while (i != this@tryAssociateByToParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@associateToParallelly.size - i
+                    this@tryAssociateByToParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@associateToParallelly.subList(j, k).mapNotNull {
+                    this@tryAssociateByToParallelly.subList(j, k).mapNotNull {
                         when (val result = extractor(it)) {
                             is Ok -> {
                                 result.value

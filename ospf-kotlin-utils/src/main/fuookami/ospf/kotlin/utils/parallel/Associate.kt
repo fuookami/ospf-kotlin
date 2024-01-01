@@ -34,15 +34,13 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     }
 }
 
-@JvmName("tryAssociateParallelly")
-suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
+suspend inline fun <K, V, T> Iterable<T>.tryAssociateParallelly(
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
-    return this.associateParallelly(UInt64.ten, extractor)
+    return this.tryAssociateParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryAssociateParallelly")
-suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
+suspend inline fun <K, V, T> Iterable<T>.tryAssociateParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
@@ -51,7 +49,7 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<Pair<K, V>>>>()
-            val iterator = this@associateParallelly.iterator()
+            val iterator = this@tryAssociateParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -99,22 +97,20 @@ suspend inline fun <K, V, T> Collection<T>.associateParallelly(
     return (this as Iterable<T>).associateParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryAssociateParallelly")
-suspend inline fun <K, V, T> Collection<T>.associateParallelly(
+suspend inline fun <K, V, T> Collection<T>.tryAssociateParallelly(
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
-    return (this as Iterable<T>).associateParallelly(
+    return (this as Iterable<T>).tryAssociateParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryAssociateParallelly")
-suspend inline fun <K, V, T> Collection<T>.associateParallelly(
+suspend inline fun <K, V, T> Collection<T>.tryAssociateParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
-    return (this as Iterable<T>).associateParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryAssociateParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: Extractor<Pair<K, V>, T>): Map<K, V> {
@@ -148,18 +144,16 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(
     }
 }
 
-@JvmName("tryAssociateParallelly")
-suspend inline fun <K, V, T> List<T>.associateParallelly(
+suspend inline fun <K, V, T> List<T>.tryAssociateParallelly(
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
-    return this.associateParallelly(
+    return this.tryAssociateParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryAssociateParallelly")
-suspend inline fun <K, V, T> List<T>.associateParallelly(
+suspend inline fun <K, V, T> List<T>.tryAssociateParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
@@ -168,16 +162,16 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<Pair<K, V>>>>()
-            val segmentAmount = this@associateParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryAssociateParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@associateParallelly.size) {
+            while (i != this@tryAssociateParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@associateParallelly.size - i
+                    this@tryAssociateParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@associateParallelly.subList(j, k).mapNotNull {
+                    this@tryAssociateParallelly.subList(j, k).mapNotNull {
                         when (val result = extractor(it)) {
                             is Ok -> {
                                 result.value

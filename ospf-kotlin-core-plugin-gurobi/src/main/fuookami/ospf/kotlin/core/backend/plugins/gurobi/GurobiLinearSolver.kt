@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
+import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -14,8 +15,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class GurobiLinearSolver(
     private val config: LinearSolverConfig,
     private val callBack: GurobiSolverCallBack? = null
-) {
-    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
+): LinearSolver {
+    override suspend operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
         val impl = GurobiLinearSolverImpl(config, callBack)
         return impl(model)
     }
@@ -37,7 +38,7 @@ private class GurobiLinearSolverImpl(
         env.dispose()
     }
 
-    operator fun invoke(model: LinearTriadModel): Ret<LinearSolverOutput> {
+    operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
         assert(!this::env.isInitialized)
 
         val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
@@ -105,7 +106,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private fun dump(model: LinearTriadModel): Try {
+    private fun dump(model: LinearTriadModelView): Try {
         return try {
             grbVars = grbModel.addVars(
                 model.variables.map { it.lowerBound.toDouble() }.toDoubleArray(),

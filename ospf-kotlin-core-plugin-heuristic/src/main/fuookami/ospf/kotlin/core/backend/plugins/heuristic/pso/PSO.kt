@@ -61,11 +61,14 @@ interface PSOPolicy {
     fun finished(iteration: Iteration): Boolean
 }
 
+/**
+ *
+ * @param c1: local learning factor
+ * @param c2: global learning factor
+ */
 open class CommonPSOPolicy(
     val w: Flt64 = Flt64(0.4),
-    /** 局部学习因子 */
     val c1: Flt64 = Flt64.two,
-    /** 全局学习因子 */
     val c2: Flt64 = Flt64.two,
     val maxVelocity: Flt64 = Flt64(10000.0),
     val iterationLimit: UInt64 = UInt64.maximum,

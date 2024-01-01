@@ -37,14 +37,14 @@ suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
 }
 
 @JvmName("tryFlatMapIndexedParallelly")
-suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
+suspend inline fun <R, T> Iterable<T>.tryFlatMapIndexedParallelly(
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
-    return this.flatMapIndexedParallelly(UInt64.ten, extractor)
+    return this.tryFlatMapIndexedParallelly(UInt64.ten, extractor)
 }
 
 @JvmName("tryFlatMapIndexedParallelly")
-suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
+suspend inline fun <R, T> Iterable<T>.tryFlatMapIndexedParallelly(
     segment: UInt64,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
@@ -53,7 +53,7 @@ suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val iterator = this@flatMapIndexedParallelly.iterator()
+            val iterator = this@tryFlatMapIndexedParallelly.iterator()
             var i = 0
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<Pair<Int, T>>()
@@ -103,22 +103,20 @@ suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
     return (this as Iterable<T>).flatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryFlatMapIndexedParallelly")
-suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
+suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).flatMapIndexedParallelly(
+    return (this as Iterable<T>).tryFlatMapIndexedParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryFlatMapIndexedParallelly")
-suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
+suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).flatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryFlatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
@@ -152,18 +150,16 @@ suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
     }
 }
 
-@JvmName("tryFlatMapIndexedParallelly")
-suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
+suspend inline fun <R, T> List<T>.tryFlatMapIndexedParallelly(
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
-    return this.flatMapIndexedParallelly(
+    return this.tryFlatMapIndexedParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryFlatMapIndexedParallelly")
-suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
+suspend inline fun <R, T> List<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
@@ -172,16 +168,16 @@ suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val segmentAmount = this@flatMapIndexedParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryFlatMapIndexedParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@flatMapIndexedParallelly.size) {
+            while (i != this@tryFlatMapIndexedParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@flatMapIndexedParallelly.size - j
+                    this@tryFlatMapIndexedParallelly.size - j
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@flatMapIndexedParallelly.flatMapIndexed { i, v ->
+                    this@tryFlatMapIndexedParallelly.flatMapIndexed { i, v ->
                         when (val result = extractor(i + j, v)) {
                             is Ok -> {
                                 result.value

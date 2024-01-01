@@ -47,15 +47,13 @@ suspend inline fun <T> Iterable<T>.lastParallelly(
     }
 }
 
-@JvmName("tryLastParallelly")
-suspend inline fun <T> Iterable<T>.lastParallelly(
+suspend inline fun <T> Iterable<T>.tryLastParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
-    return this.lastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
+    return this.tryLastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
-@JvmName("tryLastParallelly")
-suspend inline fun <T> Iterable<T>.lastParallelly(
+suspend inline fun <T> Iterable<T>.tryLastParallelly(
     segment: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
@@ -65,7 +63,7 @@ suspend inline fun <T> Iterable<T>.lastParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<T?>>()
-            val iterator = this@lastParallelly.iterator()
+            val iterator = this@tryLastParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -123,22 +121,20 @@ suspend inline fun <T> Collection<T>.lastParallelly(
     return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
-@JvmName("tryLastParallelly")
-suspend inline fun <T> Collection<T>.lastParallelly(
+suspend inline fun <T> Collection<T>.tryLastParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
-    return (this as Iterable<T>).lastParallelly(
+    return (this as Iterable<T>).tryLastParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryLastParallelly")
-suspend inline fun <T> Collection<T>.lastParallelly(
+suspend inline fun <T> Collection<T>.tryLastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
-    return (this as Iterable<T>).lastParallelly(UInt64(this.size) / concurrentAmount, predicate)
+    return (this as Iterable<T>).tryLastParallelly(UInt64(this.size) / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.lastParallelly(
@@ -191,18 +187,16 @@ suspend inline fun <T> List<T>.lastParallelly(
     }
 }
 
-@JvmName("tryLastParallelly")
-suspend inline fun <T> List<T>.lastParallelly(
+suspend inline fun <T> List<T>.tryLastParallelly(
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
-    return this.lastParallelly(
+    return this.tryLastParallelly(
         defaultConcurrentAmount,
         predicate
     )
 }
 
-@JvmName("tryLastParallelly")
-suspend inline fun <T> List<T>.lastParallelly(
+suspend inline fun <T> List<T>.tryLastParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<T> {
@@ -211,7 +205,7 @@ suspend inline fun <T> List<T>.lastParallelly(
 
     return try {
         coroutineScope {
-            val iterator = this@lastParallelly.listIterator(this@lastParallelly.size)
+            val iterator = this@tryLastParallelly.listIterator(this@tryLastParallelly.size)
             while (iterator.hasPrevious()) {
                 val promises = ArrayList<Deferred<T?>>()
                 for (j in UInt64.zero until concurrentAmount) {

@@ -34,15 +34,13 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfParallelly(
     } ?: throw NoSuchElementException()
 }
 
-@JvmName("tryMaxOrParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return this.maxOfParallelly(UInt64.ten, extractor)
+    return this.tryMaxOfParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMaxOrParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxOfParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
@@ -51,7 +49,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val iterator = this@maxOfParallelly.iterator()
+            val iterator = this@tryMaxOfParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -101,22 +99,20 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.maxOfParallelly(
     return (this as Iterable<T>).maxOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMaxOfParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.maxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return (this as Iterable<T>).maxOfParallelly(
+    return (this as Iterable<T>).tryMaxOfParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMaxOfParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.maxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return (this as Iterable<T>).maxOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMaxOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.maxOfParallelly(
@@ -152,18 +148,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxOfParallelly(
     } ?: throw NoSuchElementException()
 }
 
-@JvmName("tryMaxOfParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.maxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
-    return this.maxOfParallelly(
+    return this.tryMaxOfParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMaxOfParallelly")
-suspend inline fun <T, R : Comparable<R>> List<T>.maxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<R> {
@@ -172,16 +166,16 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxOfParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<R?>>()
-            val segmentAmount = this@maxOfParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryMaxOfParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@maxOfParallelly.size) {
+            while (i != this@tryMaxOfParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@maxOfParallelly.size - i
+                    this@tryMaxOfParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@maxOfParallelly.subList(j, k)
+                    this@tryMaxOfParallelly.subList(j, k)
                         .maxOfOrNull {
                             when (val result = extractor(it)) {
                                 is Ok -> {

@@ -67,7 +67,7 @@ abstract class Item<T, Type : VariableType<T>>(
     }
 }
 
-internal object IdentifierGenerator {
+internal data object IdentifierGenerator {
     var next: UInt64 = UInt64.zero
 
     fun flush() {

@@ -34,15 +34,13 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
     }
 }
 
-@JvmName("tryMinByOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByOrNullParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T?> {
-    return this.minByOrNullParallelly(UInt64.ten, extractor)
+    return this.tryMinByOrNullParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMinByOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByOrNullParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T?> {
@@ -51,7 +49,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Pair<T, R>?>>()
-            val iterator = this@minByOrNullParallelly.iterator()
+            val iterator = this@tryMinByOrNullParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -101,22 +99,20 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minByOrNullParallelly(
     return (this as Iterable<T>).minByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMinByOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minByOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinByOrNullParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T?> {
-    return (this as Iterable<T>).minByOrNullParallelly(
+    return (this as Iterable<T>).tryMinByOrNullParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMinByOrNullParallelly")
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minByOrNullParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinByOrNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T?> {
-    return (this as Iterable<T>).minByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMinByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
 

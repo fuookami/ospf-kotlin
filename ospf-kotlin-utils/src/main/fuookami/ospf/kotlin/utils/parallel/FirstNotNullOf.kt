@@ -48,15 +48,13 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
     }
 }
 
-@JvmName("tryFirstNotNullOfParallelly")
-suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
+suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
-    return this.firstNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
+    return this.tryFirstNotNullOfParallelly(UInt64(Runtime.getRuntime().availableProcessors()), extractor)
 }
 
-@JvmName("tryFirstNotNullOfParallelly")
-suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
+suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
@@ -65,7 +63,7 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
 
     return try {
         coroutineScope {
-            val iterator = this@firstNotNullOfParallelly.iterator()
+            val iterator = this@tryFirstNotNullOfParallelly.iterator()
             while (iterator.hasNext()) {
                 val promises = ArrayList<Deferred<R?>>()
                 for (j in UInt64.zero until concurrentAmount) {

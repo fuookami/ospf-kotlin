@@ -24,13 +24,6 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>ilog</groupId>
-            <artifactId>ilog</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.CPLEX_HOME}/lib/cplex.jar</systemPath>
-        </dependency>
     </dependencies>
 
     <build>

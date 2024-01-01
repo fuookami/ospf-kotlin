@@ -34,15 +34,13 @@ suspend inline fun <R, T> Iterable<T>.mapParallelly(
     }
 }
 
-@JvmName("tryMapParallelly")
-suspend inline fun <R, T> Iterable<T>.mapParallelly(
+suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<List<R>> {
-    return this.mapParallelly(UInt64.ten, extractor)
+    return this.tryMapParallelly(UInt64.ten, extractor)
 }
 
-@JvmName("tryMapParallelly")
-suspend inline fun <R, T> Iterable<T>.mapParallelly(
+suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     segment: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<List<R>> {
@@ -51,7 +49,7 @@ suspend inline fun <R, T> Iterable<T>.mapParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val iterator = this@mapParallelly.iterator()
+            val iterator = this@tryMapParallelly.iterator()
             while (iterator.hasNext()) {
                 val thisSegment = ArrayList<T>()
                 var i = UInt64.zero
@@ -99,25 +97,25 @@ suspend inline fun <R, T> Collection<T>.mapParallelly(
     return (this as Iterable<T>).mapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-@JvmName("tryMapParallelly")
-suspend inline fun <R, T> Collection<T>.mapParallelly(
+suspend inline fun <R, T> Collection<T>.tryMapParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<List<R>> {
-    return this.mapParallelly(
+    return this.tryMapParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMapParallelly")
-suspend inline fun <R, T> Collection<T>.mapParallelly(
+suspend inline fun <R, T> Collection<T>.tryMapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).mapParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMapParallelly(UInt64(this.size) / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> List<T>.mapParallelly(crossinline extractor: Extractor<R, T>): List<R> {
+suspend inline fun <R, T> List<T>.mapParallelly(
+    crossinline extractor: Extractor<R, T>
+): List<R> {
     return this.mapParallelly(
         defaultConcurrentAmount,
         extractor
@@ -148,18 +146,16 @@ suspend inline fun <R, T> List<T>.mapParallelly(
     }
 }
 
-@JvmName("tryMapParallelly")
-suspend inline fun <R, T> List<T>.mapParallelly(
+suspend inline fun <R, T> List<T>.tryMapParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<List<R>> {
-    return this.mapParallelly(
+    return this.tryMapParallelly(
         defaultConcurrentAmount,
         extractor
     )
 }
 
-@JvmName("tryMapParallelly")
-suspend inline fun <R, T> List<T>.mapParallelly(
+suspend inline fun <R, T> List<T>.tryMapParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<List<R>> {
@@ -168,16 +164,16 @@ suspend inline fun <R, T> List<T>.mapParallelly(
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<List<R>>>()
-            val segmentAmount = this@mapParallelly.size / concurrentAmount.toInt()
+            val segmentAmount = this@tryMapParallelly.size / concurrentAmount.toInt()
             var i = 0
-            while (i != this@mapParallelly.size) {
+            while (i != this@tryMapParallelly.size) {
                 val j = i
                 val k = i + minOf(
                     segmentAmount,
-                    this@mapParallelly.size - i
+                    this@tryMapParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@mapParallelly.subList(j, k).mapNotNull {
+                    this@tryMapParallelly.subList(j, k).mapNotNull {
                         when (val result = extractor(it)) {
                             is Ok -> {
                                 result.value
