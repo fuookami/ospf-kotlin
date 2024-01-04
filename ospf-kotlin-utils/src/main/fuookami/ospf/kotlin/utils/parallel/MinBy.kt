@@ -98,7 +98,7 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: Extractor<R, T>
 ): T {
-    return (this as Iterable<T>).minByParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).minByParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinByParallelly(
@@ -114,7 +114,7 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinByParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<T> {
-    return (this as Iterable<T>).tryMinByParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMinByParallelly(this.usize / concurrentAmount, extractor)
 }
 
 

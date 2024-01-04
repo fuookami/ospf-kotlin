@@ -94,7 +94,7 @@ suspend inline fun <T, V> Collection<T>.associateWithParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: Extractor<V, T>
 ): Map<T, V> {
-    return (this as Iterable<T>).associateWithParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).associateWithParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, V> Collection<T>.tryAssociateWithParallelly(
@@ -110,7 +110,7 @@ suspend inline fun <T, V> Collection<T>.tryAssociateWithParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<V, T>
 ): Ret<Map<T, V>> {
-    return (this as Iterable<T>).tryAssociateWithParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryAssociateWithParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, V> List<T>.associateWithParallelly(crossinline extractor: Extractor<V, T>): Map<T, V> {

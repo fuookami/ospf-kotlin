@@ -94,7 +94,7 @@ suspend inline fun <T> Collection<T>.countParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: Predicate<T>
 ): Int {
-    return (this as Iterable<T>).countParallelly(UInt64(this.size) / concurrentAmount, predicate)
+    return (this as Iterable<T>).countParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Collection<T>.tryCountParallelly(
@@ -110,7 +110,7 @@ suspend inline fun <T> Collection<T>.tryCountParallelly(
     concurrentAmount: UInt64,
     crossinline predicate: TryPredicate<T>
 ): Ret<Int> {
-    return (this as Iterable<T>).tryCountParallelly(UInt64(this.size) / concurrentAmount, predicate)
+    return (this as Iterable<T>).tryCountParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.countParallelly(

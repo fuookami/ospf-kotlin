@@ -106,7 +106,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapIndexedN
     crossinline extractor: IndexedExtractor<R?, T>
 ): C {
     return (this as Iterable<T>).mapIndexedNotNullToParallelly(
-        UInt64(this.size) / concurrentAmount,
+        this.usize / concurrentAmount,
         destination,
         extractor
     )
@@ -129,7 +129,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryMapIndex
     crossinline extractor: TryIndexedExtractor<R?, T>
 ): Ret<C> {
     return (this as Iterable<T>).tryMapIndexedNotNullToParallelly(
-        UInt64(this.size) / concurrentAmount,
+        this.usize / concurrentAmount,
         destination,
         extractor
     )

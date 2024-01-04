@@ -101,7 +101,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.associateWit
     destination: M,
     crossinline extractor: Extractor<V, T>
 ): M {
-    return (this as Iterable<T>).associateWithToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
+    return (this as Iterable<T>).associateWithToParallelly(this.usize / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.tryAssociateWithToParallelly(
@@ -120,7 +120,7 @@ suspend inline fun <T, V, M : MutableMap<in T, in V>> Collection<T>.tryAssociate
     destination: M,
     crossinline extractor: TryExtractor<V, T>
 ): Ret<M> {
-    return (this as Iterable<T>).tryAssociateWithToParallelly(UInt64(this.size) / concurrentAmount, destination, extractor)
+    return (this as Iterable<T>).tryAssociateWithToParallelly(this.usize / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <T, V, M : MutableMap<in T, in V>> List<T>.associateWithToParallelly(

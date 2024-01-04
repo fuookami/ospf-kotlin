@@ -97,7 +97,7 @@ suspend inline fun <R, T> Collection<T>.mapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: IndexedExtractor<R, T>
 ): List<R> {
-    return (this as Iterable<T>).mapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).mapIndexedParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> Collection<T>.tryMapIndexedParallelly(
@@ -113,7 +113,7 @@ suspend inline fun <R, T> Collection<T>.tryMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<R, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).tryMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMapIndexedParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.mapIndexedParallelly(

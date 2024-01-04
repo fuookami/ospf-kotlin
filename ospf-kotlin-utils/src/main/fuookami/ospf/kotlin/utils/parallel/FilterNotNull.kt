@@ -39,7 +39,7 @@ suspend inline fun <T> Collection<T?>.filterNotNullParallelly(): List<T> {
 suspend inline fun <T> Collection<T?>.filterNotNullParallelly(
     concurrentAmount: UInt64
 ): List<T> {
-    return (this as Iterable<T?>).filterNotNullParallelly(UInt64(this.size) / concurrentAmount)
+    return (this as Iterable<T?>).filterNotNullParallelly(this.usize / concurrentAmount)
 }
 
 suspend inline fun <T> List<T?>.filterNotNullParallelly(): List<T> {

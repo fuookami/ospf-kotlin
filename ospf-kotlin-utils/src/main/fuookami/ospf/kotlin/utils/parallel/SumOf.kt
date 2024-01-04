@@ -117,7 +117,7 @@ suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     crossinline extractor: Extractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
-    return (this as Iterable<T>).sumOfParallelly(UInt64(this.size) / concurrentAmount, constants, extractor)
+    return (this as Iterable<T>).sumOfParallelly(this.usize / concurrentAmount, constants, extractor)
 }
 
 suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
@@ -138,7 +138,7 @@ suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
     crossinline extractor: TryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
-    return (this as Iterable<T>).trySumOfParallelly(UInt64(this.size) / concurrentAmount, constants, extractor)
+    return (this as Iterable<T>).trySumOfParallelly(this.usize / concurrentAmount, constants, extractor)
 }
 
 suspend inline fun <T, U> List<T>.sumOfParallelly(

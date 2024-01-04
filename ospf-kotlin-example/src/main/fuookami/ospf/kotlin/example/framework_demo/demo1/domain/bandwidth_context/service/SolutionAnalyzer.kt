@@ -21,7 +21,7 @@ class SolutionAnalyzer(
         val edgeSolution = EdgeSolution()
 
         for (token in model.tokens.tokens) {
-            if (token.variable.identifier == assignment.x.identifier) {
+            if (token.variable.belongsTo(assignment.x)) {
                 if (result[token.solverIndex] eq Flt64.one) {
                     val vector = token.variable.vectorView
                     nodeSolution[services.find { it.index == vector[1] }!!] =
@@ -30,7 +30,7 @@ class SolutionAnalyzer(
             }
         }
         for (token in model.tokens.tokens) {
-            if (token.variable.identifier == aggregation.edgeBandwidth.y.identifier) {
+            if (token.variable.belongsTo(aggregation.edgeBandwidth.y)) {
                 if (result[token.solverIndex] gr Flt64.zero) {
                     val vector = token.variable.vectorView
                     val service = services[vector[1]]

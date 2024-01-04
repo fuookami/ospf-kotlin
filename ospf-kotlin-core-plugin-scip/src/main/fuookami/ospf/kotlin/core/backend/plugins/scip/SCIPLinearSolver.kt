@@ -165,26 +165,32 @@ private class SCIPLinearSolverImpl(
     }
 
     private fun analyzeStatus(): Try {
-        val eq = Equal(Flt64)
-
         val solution = scip.bestSol
-        val gap = if (mip) {
-            val obj = Flt64(scip.getSolOrigObj(solution))
-            val possibleBestObj = Flt64(scip.dualbound)
-            (obj - possibleBestObj + Flt64.epsilon) / (obj + Flt64.epsilon)
-        } else {
-            Flt64.zero
-        }
-        status = if (solution != null) {
-            if (eq(gap, Flt64.zero)) {
+        status = when (scip.status) {
+            SCIP_Status.SCIP_STATUS_OPTIMAL -> {
                 SolvingStatus.Optimal
-            } else {
-                SolvingStatus.Feasible
             }
-        } else {
-            SolvingStatus.NoSolution
-        }
 
+            SCIP_Status.SCIP_STATUS_INFEASIBLE -> {
+                SolvingStatus.NoSolution
+            }
+
+            SCIP_Status.SCIP_STATUS_UNBOUNDED -> {
+                SolvingStatus.Unbounded
+            }
+
+            SCIP_Status.SCIP_STATUS_INFORUNBD -> {
+                SolvingStatus.SolvingException
+            }
+
+            else -> {
+                if (solution != null) {
+                    SolvingStatus.Feasible
+                } else {
+                    SolvingStatus.SolvingException
+                }
+            }
+        }
         return Ok(success)
     }
 

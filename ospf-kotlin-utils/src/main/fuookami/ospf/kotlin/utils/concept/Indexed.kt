@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.utils.concept
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.reflect.*
+import fuookami.ospf.kotlin.utils.math.*
 
 val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
 
@@ -26,6 +27,7 @@ sealed class IndexedImpl {
 
 interface Indexed {
     val index: Int
+    val uindex: UInt64 get() = UInt64(index)
 }
 
 open class ManualIndexed internal constructor(

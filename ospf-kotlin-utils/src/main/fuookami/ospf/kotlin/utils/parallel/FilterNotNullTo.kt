@@ -45,7 +45,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotNullT
     concurrentAmount: UInt64,
     destination: C
 ): C {
-    return (this as Iterable<T>).filterNotNullToParallelly(UInt64(this.size) / concurrentAmount, destination)
+    return (this as Iterable<T>).filterNotNullToParallelly(this.usize / concurrentAmount, destination)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotNullToParallelly(

@@ -67,7 +67,7 @@ suspend inline fun <T : Comparable<T>> Collection<T>.minMaxParallelly(): Pair<T,
 suspend inline fun <T : Comparable<T>> Collection<T>.minMaxParallelly(
     concurrentAmount: UInt64
 ): Pair<T, T> {
-    return (this as Iterable<T>).minMaxParallelly(UInt64(this.size) / concurrentAmount)
+    return (this as Iterable<T>).minMaxParallelly(this.usize / concurrentAmount)
 }
 
 suspend inline fun <T : Comparable<T>> List<T>.minMaxParallelly(): Pair<T, T> {

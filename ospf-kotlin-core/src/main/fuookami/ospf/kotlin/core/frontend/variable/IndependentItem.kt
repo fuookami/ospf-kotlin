@@ -11,6 +11,10 @@ sealed class IndependentItem<T, Type : VariableType<T>>(
     override val identifier: UInt64 = IdentifierGenerator.gen()
     override val index: Int = 0
     override val vectorView: IntArray = intArrayOf(0)
+
+    override fun belongsTo(combination: Combination<*, *, *>): Boolean {
+        return false
+    }
 }
 
 class BinVar(name: String = "") : IndependentItem<UInt8, Binary>(Binary, name, UInt8)

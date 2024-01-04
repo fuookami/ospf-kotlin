@@ -39,9 +39,11 @@ enum class ErrorCode(private val code: UInt8) {
 
     companion object {
         fun from(code: UInt8) = ErrorCode.entries.first { it.code == code }
+        fun from(code: UInt64) = ErrorCode.entries.first { it.code.toUInt64() == code }
     }
 
     fun toUInt8() = this.code
+    fun toUInt64() = this.code.toUInt64()
 
     override fun toString(): String {
         return this.name

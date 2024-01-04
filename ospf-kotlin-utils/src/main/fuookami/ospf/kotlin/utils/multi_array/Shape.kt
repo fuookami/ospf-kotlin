@@ -9,10 +9,10 @@ class DimensionMismatchingException(
 
 class OutOfShapeException(
     val dimension: Int,
-    val index: Int,
+    val length: Int,
     val vectorIndex: Int
 ) : Throwable() {
-    override val message: String = "Length of dimension $dimension is $index, but it get $vectorIndex."
+    override val message: String = "Length of dimension $dimension is $length, but it get $vectorIndex."
 }
 
 interface Shape {
@@ -40,7 +40,7 @@ data class Shape1(private val d1: Int) : Shape {
     override fun index(vector: IntArray): Int {
         return when (vector.size) {
             1 -> if (vector[0] > d1) {
-                throw OutOfShapeException(1, vector[0], d1)
+                throw OutOfShapeException(1, d1, vector[0])
             } else {
                 vector[0]
             }
@@ -75,9 +75,9 @@ data class Shape2(private val d1: Int, private val d2: Int) : Shape {
     override fun index(vector: IntArray): Int {
         return when (vector.size) {
             2 -> if (vector[0] > d1) {
-                throw OutOfShapeException(1, vector[0], d1)
+                throw OutOfShapeException(1, d1, vector[0])
             } else if (vector[1] > d2) {
-                throw OutOfShapeException(2, vector[1], d2)
+                throw OutOfShapeException(2, d2, vector[1])
             } else {
                 vector[0] * d2 + vector[1]
             }
@@ -113,11 +113,11 @@ data class Shape3(private val d1: Int, private val d2: Int, private val d3: Int)
     override fun index(vector: IntArray): Int {
         return when (vector.size) {
             3 -> if (vector[0] > d1) {
-                throw OutOfShapeException(1, vector[0], d1)
+                throw OutOfShapeException(1, d1, vector[0])
             } else if (vector[1] > d2) {
-                throw OutOfShapeException(2, vector[1], d2)
+                throw OutOfShapeException(2, d2, vector[1])
             } else if (vector[2] > d3) {
-                throw OutOfShapeException(3, vector[2], d3)
+                throw OutOfShapeException(3, d3, vector[2])
             } else {
                 (vector[0] * d2 + vector[1]) * d3 + vector[2]
             }
@@ -162,13 +162,13 @@ data class Shape4(private val d1: Int, private val d2: Int, private val d3: Int,
     override fun index(vector: IntArray): Int {
         return when (vector.size) {
             4 -> if (vector[0] > d1) {
-                throw OutOfShapeException(1, vector[0], d1)
+                throw OutOfShapeException(1, d1, vector[0])
             } else if (vector[1] > d2) {
-                throw OutOfShapeException(2, vector[1], d2)
+                throw OutOfShapeException(2, d2, vector[1])
             } else if (vector[2] > d3) {
-                throw OutOfShapeException(3, vector[2], d3)
+                throw OutOfShapeException(3, d3, vector[2])
             } else if (vector[3] > d4) {
-                throw OutOfShapeException(4, vector[3], d4)
+                throw OutOfShapeException(4, d4, vector[3])
             } else {
                 ((vector[0] * d2 + vector[1]) * d3 + vector[2]) * d4 + vector[3]
             }
@@ -213,7 +213,7 @@ data class DynShape(private val shape: IntArray) : Shape {
         var ret = 0
         for (i in 0 until (dimension - 1)) {
             if (vector[i] > shape[i]) {
-                throw OutOfShapeException(i + 1, vector[i], shape[i])
+                throw OutOfShapeException(i + 1, shape[i], vector[i])
             }
             ret += vector[i]
             ret *= shape[i + 1]

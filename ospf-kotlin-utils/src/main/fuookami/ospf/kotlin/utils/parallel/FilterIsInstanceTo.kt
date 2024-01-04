@@ -46,7 +46,7 @@ suspend inline fun <reified T, C : MutableCollection<in T>> Collection<*>.filter
     concurrentAmount: UInt64,
     destination: C
 ): C {
-    return (this as Iterable<*>).filterIsInstanceToParallelly(UInt64(this.size) / concurrentAmount, destination)
+    return (this as Iterable<*>).filterIsInstanceToParallelly(this.usize / concurrentAmount, destination)
 }
 
 suspend inline fun <reified T, C : MutableCollection<in T>> List<*>.filterIsInstanceToParallelly(

@@ -38,7 +38,7 @@ suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(): List<
 suspend inline fun <reified T> Collection<*>.filterIsInstanceParallelly(
     concurrentAmount: UInt64
 ): List<T> {
-    return (this as Iterable<*>).filterIsInstanceParallelly<T>(UInt64(this.size) / concurrentAmount)
+    return (this as Iterable<*>).filterIsInstanceParallelly<T>(this.usize / concurrentAmount)
 }
 
 suspend inline fun <reified T> List<*>.filterIsInstanceParallelly(): List<T> {

@@ -122,7 +122,7 @@ class SSP {
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
         GlobalScope.launch(Dispatchers.IO) { model.export(Path("."), ModelFileFormat.LP) }
 
-        return when (val ret = solver(model)) {
+        return when (val ret = runBlocking { solver(model) }) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.results)
                 Ok(ret.value.results)

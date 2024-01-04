@@ -156,7 +156,7 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxByOrNullParallelly
     concurrentAmount: UInt64,
     crossinline extractor: Extractor<R, T>
 ): Pair<T, T>? {
-    return (this as Iterable<T>).minMaxByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).minMaxByOrNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMayByOrNullParallelly(
@@ -172,7 +172,7 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMayByOrNullParalle
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<Pair<T, T>?> {
-    return (this as Iterable<T>).tryMinMayByOrNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMinMayByOrNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.minMaxByOrNullParallelly(

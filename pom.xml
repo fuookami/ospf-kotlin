@@ -36,10 +36,10 @@
         <kotlinx-serialization-csv.version>2.0.0</kotlinx-serialization-csv.version>
         <log4j.version>2.19.0</log4j.version>
         <mongodb.version>4.8.0</mongodb.version>
-        <redis.version>4.4.3</redis.version>
+        <redis.version>5.1.0</redis.version>
         <ktorm.version>3.6.0</ktorm.version>
-        <mysql.version>8.1.0</mysql.version>
-        <kafka.version>3.5.1</kafka.version>
+        <mysql.version>8.2.0</mysql.version>
+        <kafka.version>3.6.1</kafka.version>
         <http4k.version>4.48.0.0</http4k.version>
         <http4k.bom.version>5.8.4.0</http4k.bom.version>
         <jackson.version>2.15.2</jackson.version>

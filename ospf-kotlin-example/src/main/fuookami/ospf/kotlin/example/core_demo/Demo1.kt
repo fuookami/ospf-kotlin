@@ -117,7 +117,7 @@ class Demo1 {
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
-        when (val ret = solver(model)) {
+        when (val ret = runBlocking { solver(model) }) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.results)
             }

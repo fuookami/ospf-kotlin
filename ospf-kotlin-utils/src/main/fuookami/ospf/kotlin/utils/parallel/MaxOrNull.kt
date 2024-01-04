@@ -38,7 +38,7 @@ suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(): T? {
 suspend inline fun <T : Comparable<T>> Collection<T>.maxOrNullParallelly(
     concurrentAmount: UInt64
 ): T? {
-    return (this as Iterable<T>).maxOrNullParallelly(UInt64(this.size) / concurrentAmount)
+    return (this as Iterable<T>).maxOrNullParallelly(this.usize / concurrentAmount)
 }
 
 suspend inline fun <T : Comparable<T>> List<T>.maxOrNullParallelly(): T? {

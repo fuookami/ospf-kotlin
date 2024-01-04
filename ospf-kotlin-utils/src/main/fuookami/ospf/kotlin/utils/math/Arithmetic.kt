@@ -156,6 +156,8 @@ data object NegativeInfinity {
     override fun toString() = "-inf"
 }
 
+val <T> Collection<T>.usize: UInt64 get() = UInt64(size)
+
 fun <T> Iterable<T>.sum(constant: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero

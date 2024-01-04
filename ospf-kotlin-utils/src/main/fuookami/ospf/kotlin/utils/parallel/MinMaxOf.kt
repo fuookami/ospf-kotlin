@@ -154,10 +154,10 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: Extractor<R, T>
 ): Pair<R, R> {
-    return (this as Iterable<T>).minMaxOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).minMaxOfParallelly(this.usize / concurrentAmount, extractor)
 }
 
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMaxOfParallelly(
     crossinline extractor: TryExtractor<R, T>
 ): Ret<Pair<R, R>> {
     return (this as Iterable<T>).tryMinMaxOfParallelly(
@@ -166,11 +166,11 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxOfParallelly(
     )
 }
 
-suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxOfParallelly(
+suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMaxOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R, T>
 ): Ret<Pair<R, R>> {
-    return (this as Iterable<T>).tryMinMaxOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMinMaxOfParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.minMaxOfParallelly(

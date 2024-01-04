@@ -41,6 +41,9 @@ abstract class Item<T, Type : VariableType<T>>(
     abstract val index: Int
     abstract val vectorView: IntArray
 
+    val uindex: UInt64 by lazy { UInt64(index) }
+    val uvector: List<UInt64> by lazy { vectorView.map { UInt64(it) } }
+
     val range: Range<Type, T> = Range(type, constants)
     val lowerBound: Flt64
         get() = when (val value = range.lowerBound) {
@@ -54,6 +57,14 @@ abstract class Item<T, Type : VariableType<T>>(
         }
 
     val key: ItemKey get() = ItemKey(identifier, index)
+
+    open fun belongsTo(item: Item<*, *>): Boolean {
+        return identifier == item.identifier
+    }
+
+    open fun belongsTo(combination: Combination<*, *, *>): Boolean {
+        return identifier == combination.identifier
+    }
 
     override fun hashCode() = key.hashCode()
     override fun equals(other: Any?): Boolean {

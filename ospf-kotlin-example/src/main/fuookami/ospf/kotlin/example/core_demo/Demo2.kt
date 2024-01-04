@@ -174,7 +174,7 @@ class Demo2 {
         // val solver = GurobiLinearSolver()
         val solver = SCIPLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
-        when (val ret = solver(model)) {
+        when (val ret = runBlocking { solver(model) }) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.results)
             }
@@ -190,7 +190,7 @@ class Demo2 {
         val ret = ArrayList<Pair<Company, Product>>()
         for (token in metaModel.tokens.tokens) {
             if (token.result!! eq Flt64.one
-                && token.variable.identifier == x.identifier
+                && token.variable.belongsTo(x)
             ) {
                 ret.add(Pair(companies[token.variable.vectorView[0]], products[token.variable.vectorView[1]]))
             }

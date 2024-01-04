@@ -282,7 +282,7 @@ suspend inline fun <T> Collection<T>.foldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> T
 ): T {
-    return (this as Iterable<T>).foldParallelly(UInt64(this.size) / concurrentAmount, initial, operation)
+    return (this as Iterable<T>).foldParallelly(this.usize / concurrentAmount, initial, operation)
 }
 
 suspend inline fun <T> Collection<T>.tryFoldParallelly(
@@ -290,7 +290,7 @@ suspend inline fun <T> Collection<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return (this as Iterable<T>).tryFoldParallelly(UInt64(this.size) / concurrentAmount, initial, operation)
+    return (this as Iterable<T>).tryFoldParallelly(this.usize / concurrentAmount, initial, operation)
 }
 
 suspend inline fun <T> Collection<T>.tryFoldParallelly(
@@ -324,7 +324,7 @@ suspend inline fun <T, R> Collection<T>.foldParallelly(
     crossinline operation: (acc: R, R) -> R
 ): R {
     return (this as Iterable<T>).foldParallelly(
-        UInt64(this.size) / concurrentAmount,
+        this.usize / concurrentAmount,
         initial,
         extractor,
         operation
@@ -351,7 +351,7 @@ suspend inline fun <T, R> Collection<T>.tryFoldParallelly(
     crossinline operation: (acc: R, R) -> Ret<R>
 ): Ret<R> {
     return (this as Iterable<T>).tryFoldParallelly(
-        UInt64(this.size) / concurrentAmount,
+        this.usize / concurrentAmount,
         initial,
         extractor,
         operation

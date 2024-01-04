@@ -118,7 +118,7 @@ class RMP(
         for (token in metaModel.tokens.tokens) {
             if (result[token.solverIndex] geq Flt64.one) {
                 for (i in cuttingPlans.indices) {
-                    if (x[i].identifier == token.variable.identifier) {
+                    if (token.variable.belongsTo(x[i])) {
                         solution[cuttingPlans[i]] = result[token.solverIndex].toUInt64()
                     }
                 }

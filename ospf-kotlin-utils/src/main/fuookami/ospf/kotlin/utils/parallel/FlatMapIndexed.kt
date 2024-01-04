@@ -100,7 +100,7 @@ suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: IndexedExtractor<Iterable<R>, T>
 ): List<R> {
-    return (this as Iterable<T>).flatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).flatMapIndexedParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
@@ -116,7 +116,7 @@ suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).tryFlatMapIndexedParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryFlatMapIndexedParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {

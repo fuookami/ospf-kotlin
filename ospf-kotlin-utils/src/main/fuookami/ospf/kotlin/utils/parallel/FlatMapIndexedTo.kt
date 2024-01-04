@@ -106,7 +106,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapInde
     crossinline extractor: IndexedExtractor<Iterable<R>, T>
 ): C {
     return (this as Iterable<T>).flatMapIndexedToParallelly(
-        UInt64(this.size) / concurrentAmount,
+        this.usize / concurrentAmount,
         destination,
         extractor
     )
@@ -129,7 +129,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryFlatMapI
     crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFlatMapIndexedParallelly(
-        UInt64(this.size) / concurrentAmount,
+        this.usize / concurrentAmount,
         destination,
         extractor
     )

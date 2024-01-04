@@ -101,7 +101,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToPar
     destination: C,
     crossinline predicate: Predicate<T>
 ): C {
-    return (this as Iterable<T>).filterNotToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
+    return (this as Iterable<T>).filterNotToParallelly(this.usize / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterNotToParallelly(
@@ -120,7 +120,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterNotTo
     destination: C,
     crossinline predicate: TryPredicate<T>
 ): Ret<C> {
-    return (this as Iterable<T>).tryFilterNotToParallelly(UInt64(this.size) / concurrentAmount, destination, predicate)
+    return (this as Iterable<T>).tryFilterNotToParallelly(this.usize / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallelly(

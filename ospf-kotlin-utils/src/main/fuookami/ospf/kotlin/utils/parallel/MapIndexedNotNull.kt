@@ -98,10 +98,10 @@ suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: IndexedExtractor<R?, T>
 ): List<R> {
-    return (this as Iterable<T>).mapIndexedNotNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).mapIndexedNotNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
+suspend inline fun <R, T> Collection<T>.tryMapIndexedNotNullParallelly(
     crossinline extractor: TryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     return (this as Iterable<T>).tryMapIndexedNotNullParallelly(
@@ -110,11 +110,11 @@ suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
     )
 }
 
-suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
+suspend inline fun <R, T> Collection<T>.tryMapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
-    return (this as Iterable<T>).tryMapIndexedNotNullParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryMapIndexedNotNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(

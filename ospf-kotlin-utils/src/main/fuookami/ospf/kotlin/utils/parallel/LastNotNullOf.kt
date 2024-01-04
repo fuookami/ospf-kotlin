@@ -120,7 +120,7 @@ suspend inline fun <R, T> Collection<T>.lastNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: Extractor<R?, T>
 ): R {
-    return (this as Iterable<T>).lastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).lastNotNullOfParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> Collection<T>.tryLastNotNullOfParallelly(
@@ -136,7 +136,7 @@ suspend inline fun <R, T> Collection<T>.tryLastNotNullOfParallelly(
     concurrentAmount: UInt64,
     crossinline extractor: TryExtractor<R?, T>
 ): Ret<R> {
-    return (this as Iterable<T>).tryLastNotNullOfParallelly(UInt64(this.size) / concurrentAmount, extractor)
+    return (this as Iterable<T>).tryLastNotNullOfParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.lastNotNullOfParallelly(

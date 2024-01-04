@@ -44,7 +44,7 @@ suspend inline fun <T> Collection<T>.sumParallelly(constants: ArithmeticConstant
 
 suspend inline fun <T> Collection<T>.sumParallelly(concurrentAmount: UInt64, constants: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
-    return (this as Iterable<T>).sumParallelly(UInt64(this.size) / concurrentAmount, constants)
+    return (this as Iterable<T>).sumParallelly(this.usize / concurrentAmount, constants)
 }
 
 suspend inline fun <T> List<T>.sumParallelly(constants: ArithmeticConstants<T>): T

@@ -38,7 +38,7 @@ suspend inline fun <T : Comparable<T>> Collection<T>.minParallelly(): T {
 suspend inline fun <T : Comparable<T>> Collection<T>.minParallelly(
     concurrentAmount: UInt64
 ): T {
-    return (this as Iterable<T>).minParallelly(UInt64(this.size) / concurrentAmount)
+    return (this as Iterable<T>).minParallelly(this.usize / concurrentAmount)
 }
 
 suspend inline fun <T : Comparable<T>> List<T>.minParallelly(): T {
