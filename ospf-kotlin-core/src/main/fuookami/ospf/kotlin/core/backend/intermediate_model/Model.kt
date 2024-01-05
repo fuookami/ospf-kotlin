@@ -15,7 +15,8 @@ class Variable(
     lowerBound: Flt64,
     upperBound: Flt64,
     type: VariableType<*>,
-    val name: String
+    val name: String,
+    val initialResult: Flt64? = null
 ) : Cloneable, Copyable<Variable> {
     internal var _lowerBound = lowerBound
     internal var _upperBound = upperBound
@@ -25,7 +26,7 @@ class Variable(
     val upperBound by ::_upperBound
     val type by ::_type
 
-    override fun copy() = Variable(index, lowerBound, upperBound, type, name)
+    override fun copy() = Variable(index, lowerBound, upperBound, type, name, initialResult)
     override fun clone() = copy()
 
     override fun toString() = name
@@ -83,6 +84,10 @@ interface BasicModelView<ConCell>
     val constraints: Constraint<ConCell>
     val name: String
 
+    fun containsContinuous(): Boolean {
+        return variables.any { it.type.isContinuousType() }
+    }
+
     fun containsBinary(): Boolean {
         return variables.any { it.type.isBinaryType() }
     }
@@ -104,6 +109,10 @@ interface ModelView<ConCell, ObjCell>
     val constraints: Constraint<ConCell>
     val objective: Objective<ObjCell>
     val name: String
+
+    fun containsContinuous(): Boolean {
+        return variables.any { it.type.isContinuousType() }
+    }
 
     fun containsBinary(): Boolean {
         return variables.any { it.type.isBinaryType() }

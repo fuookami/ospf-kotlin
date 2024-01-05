@@ -212,7 +212,8 @@ data class LinearTriadModel(
                             token.lowerBound,
                             token.upperBound,
                             token.variable.type,
-                            token.variable.name
+                            token.variable.name,
+                            token.result
                         )
                     }
                     variables.map { it!! }

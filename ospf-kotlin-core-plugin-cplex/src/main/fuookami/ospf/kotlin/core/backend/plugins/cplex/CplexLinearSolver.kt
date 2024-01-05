@@ -67,6 +67,13 @@ private class CplexLinearSolverImpl(
             cplex.numVar(it.lowerBound.toDouble(), it.upperBound.toDouble(), CplexVariable(it.type).toCplexVar())
         }.toList()
 
+        if (cplex.isMIP && model.variables.any { it.initialResult != null }) {
+            val initialSolution = model.variables.withIndex()
+                .filter { it.value.initialResult != null }
+                .map { Pair(cplexVars[it.index], it.value.initialResult!!.toDouble()) }
+            cplex.addMIPStart(initialSolution.map { it.first }.toTypedArray(), initialSolution.map { it.second }.toDoubleArray());
+        }
+
         var i = 0
         var j = 0
         val constraints = ArrayList<IloRange>()

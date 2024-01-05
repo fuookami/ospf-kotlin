@@ -92,6 +92,14 @@ private class SCIPLinearSolverImpl(
             )
         }.toList()
 
+        if (model.variables.any { it.initialResult != null }) {
+            val initialSolution = scip.createPartialSol()
+            for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+            }
+            scip.addSolFree(initialSolution)
+        }
+
         var i = 0
         var j = 0
         val constraints = ArrayList<jscip.Constraint>()

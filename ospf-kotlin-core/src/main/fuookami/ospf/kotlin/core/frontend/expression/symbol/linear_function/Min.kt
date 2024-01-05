@@ -54,6 +54,10 @@ class MinFunction(
     override fun rangeGreater(value: Flt64) = symbols.y.range.gr(value)
     override fun rangeGreaterEqual(value: Flt64) = symbols.y.range.geq(value)
 
+    override fun toString(): String {
+        return "min(${polys.joinToString { it.toString() }})"
+    }
+
     override fun toRawString() = displayName ?: name
 
     override fun register(tokenTable: TokenTable<Linear>) {

@@ -118,6 +118,12 @@ private class GurobiLinearSolverImpl(
                 model.variables.size
             ).toList()
 
+            for ((col, variable) in model.variables.withIndex()) {
+                variable.initialResult?.let {
+                    grbVars[col].set(GRB.DoubleAttr.Start, it.toDouble())
+                }
+            }
+
             var i = 0
             var j = 0
             val constraints = ArrayList<GRBConstr>()

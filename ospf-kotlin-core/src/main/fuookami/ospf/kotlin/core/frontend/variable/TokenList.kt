@@ -53,14 +53,21 @@ sealed class TokenList {
         assert(result.size == tokens.size)
         val solverIndexes = solverIndexMap
         for (token in tokens) {
-            token.result = result[solverIndexes[token.solverIndex]!!]
+            token._result = result[solverIndexes[token.solverIndex]!!]
+        }
+        return this
+    }
+
+    fun setResults(result: Map<Item<*, *>, Flt64>): TokenList {
+        for ((variable, value) in result) {
+            find(variable)?._result = value
         }
         return this
     }
 
     fun clearResults(): TokenList {
         for (token in tokens) {
-            token.result = null
+            token._result = null
         }
         return this
     }

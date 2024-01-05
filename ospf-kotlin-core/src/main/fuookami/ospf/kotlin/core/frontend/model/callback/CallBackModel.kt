@@ -182,6 +182,10 @@ class CallBackModel internal constructor(
         tokens.setResults(solution)
     }
 
+    override fun setSolution(solution: Map<Item<*, *>, Flt64>) {
+        tokens.setResults(solution)
+    }
+
     override fun clearSolution() {
         tokens.clearResults()
     }

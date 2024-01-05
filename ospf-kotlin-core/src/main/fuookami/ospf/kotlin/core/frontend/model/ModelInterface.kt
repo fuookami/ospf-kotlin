@@ -29,5 +29,6 @@ interface ModelInterface {
     }
 
     fun setSolution(solution: Solution)
+    fun setSolution(solution: Map<Item<*, *>, Flt64>)
     fun clearSolution()
 }

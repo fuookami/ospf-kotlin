@@ -24,6 +24,7 @@ sealed class TokenTable<C : Category>(
 
     fun token(item: Item<*, *>): Token? = tokenList.find(item)
     fun setSolution(solution: List<Flt64>) = tokenList.setResults(solution)
+    fun setSolution(solution: Map<Item<*, *>, Flt64>) = tokenList.setResults(solution)
     fun clearSolution() = tokenList.clearResults()
 
     fun add(item: Item<*, *>): TokenTable<C> {

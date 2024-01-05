@@ -7,7 +7,8 @@ class Token(
     val solverIndex: Int
 ) {
     val key: ItemKey get() = variable.key
-    var result: Flt64? = null
+    internal var _result: Flt64? = null
+    val result: Flt64? by ::_result
 
     val name: String get() = variable.name
     val type: VariableType<*> get() = variable.type

@@ -96,6 +96,10 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         tokens.setSolution(solution)
     }
 
+    override fun setSolution(solution: Map<Item<*, *>, Flt64>) {
+        tokens.setSolution(solution)
+    }
+
     override fun clearSolution() {
         tokens.clearSolution()
     }

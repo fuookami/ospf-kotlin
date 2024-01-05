@@ -9,6 +9,7 @@ sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberFie
 
     fun isBinaryType() = false
     fun isIntegerType() = false
+    fun isContinuousType() = !isIntegerType()
     fun isNotBinaryIntegerType() = isBinaryType() && !isIntegerType()
 }
 
