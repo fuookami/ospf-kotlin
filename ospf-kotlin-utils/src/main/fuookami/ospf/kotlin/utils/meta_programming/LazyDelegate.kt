@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.meta_programming
 
+import java.util.concurrent.atomic.*
 import kotlin.reflect.*
+import kotlinx.coroutines.*
 
 fun <T, U : Any> lazyDelegate(lazyFunc: () -> U): LazyDelegate<T, U> {
     return LazyDelegate(lazyFunc)
@@ -15,8 +17,12 @@ fun <T, U : Any> lazyDelegate(lazyKProperty: KProperty1<T, U>): SelfLazyDelegate
     return SelfLazyDelegate { lazyKProperty(it) }
 }
 
+fun <T> suspendLazy(lazyFunc: suspend () -> T): SuspendLazy<T> {
+    return SuspendLazy(lazyFunc)
+}
+
 class LazyDelegate<T, U : Any>(
-    val lazyFunc: () -> U
+    private val lazyFunc: () -> U
 ) {
     lateinit var range: U
 
@@ -36,7 +42,7 @@ class LazyDelegate<T, U : Any>(
 }
 
 class SelfLazyDelegate<T, U : Any>(
-    val lazyFunc: (T) -> U
+    private val lazyFunc: (T) -> U
 ) {
     lateinit var range: U
 
@@ -53,4 +59,19 @@ class SelfLazyDelegate<T, U : Any>(
         }
         range = value
     }
+}
+
+class SuspendLazy<T>(
+    private val lazyFunc: suspend () -> T,
+) {
+    private val value = AtomicReference<Deferred<T>>()
+
+    suspend operator fun invoke(): T = (
+            value.get()
+                ?: coroutineScope {
+                    value.updateAndGet { actual ->
+                        actual ?: async { lazyFunc() }
+                    }
+                }
+            ).await()
 }

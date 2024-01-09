@@ -284,7 +284,7 @@ data object UInt64Serializer : RealNumberKSerializer<UInt64> {
     }
 
     override fun deserialize(decoder: Decoder): UInt64 {
-        return UInt64(decoder.decodeInt())
+        return UInt64(decoder.decodeLong().toULong())
     }
 }
 

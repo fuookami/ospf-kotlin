@@ -381,6 +381,10 @@ data class URtn64 internal constructor(
             val divisor = gcd(num, den)
             return URtn64(num / divisor, den / divisor)
         }
+
+        operator fun invoke(num: Int, den: Int): URtn64 {
+            return this(UInt64(num), UInt64(den))
+        }
     }
 
     override val constants: RealNumberConstants<URtn64> get() = URtn64

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import java.util.*
 import jscip.*
+import fuookami.ospf.kotlin.utils.concept.*
 
 typealias Function = (Scip, List<Variable>, List<Constraint>) -> Unit
 
@@ -13,7 +14,7 @@ enum class Point {
 
 class SCIPSolverCallBack(
     private val map: MutableMap<Point, Function> = EnumMap(Point::class.java)
-) {
+): Copyable<SCIPSolverCallBack> {
     fun set(point: Point, function: Function): SCIPSolverCallBack {
         map[point] = function
         return this
@@ -28,5 +29,11 @@ class SCIPSolverCallBack(
 
     fun execIfContain(point: Point, scip: Scip, variables: List<Variable>, constraints: List<Constraint>) {
         map[point]?.invoke(scip, variables, constraints)
+    }
+
+    override fun copy(): SCIPSolverCallBack {
+        return SCIPSolverCallBack(
+            map.toMutableMap()
+        )
     }
 }

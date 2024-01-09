@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
+import java.util.*
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -11,7 +12,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
+import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.framework.solver.*
 
 data class ProductDemandShadowPriceKey(
     val product: Product
@@ -26,6 +30,11 @@ class RMP(
     private val cost = LinearSymbol(LinearPolynomial(), "cost")
     private val output = LinearSymbols1("output", Shape1(products.size))
     private val metaModel = LinearMetaModel("demo1")
+    private val solver: ColumnGenerationSolver = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+        CplexColumnGenerationSolver()
+    } else {
+        GurobiColumnGenerationSolver()
+    }
 
     init {
         for (product in products) {
@@ -75,10 +84,10 @@ class RMP(
     }
 
     // solve lp
-    operator fun invoke(iteration: UInt64): Ret<SPM> {
-        return when (val result = runBlocking { solveLP("demo1-rmp-$iteration", metaModel, SolverParameter("scip")) }) {
+    suspend operator fun invoke(iteration: UInt64): Ret<SPM> {
+        return when (val result = solver.solveLP("demo1-rmp-$iteration", metaModel)) {
             is Ok -> {
-                Ok(extractShadowPriceMap(result.value.dualResult))
+                Ok(extractShadowPriceMap(result.value.dualSolution))
             }
 
             is Failed -> {
@@ -88,10 +97,10 @@ class RMP(
     }
 
     // solve ip
-    operator fun invoke(): Ret<Map<CuttingPlan, UInt64>> {
-        return when (val result = runBlocking { solveMIP("demo1-rmp-ip", metaModel) }) {
+    suspend operator fun invoke(): Ret<Map<CuttingPlan, UInt64>> {
+        return when (val result = solver.solveMILP("demo1-rmp-ip", metaModel)) {
             is Ok -> {
-                Ok(analyzeSolution(result.value))
+                Ok(analyzeSolution(result.value.solution))
             }
 
             is Failed -> {

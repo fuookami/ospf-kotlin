@@ -1,8 +1,6 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.utils.math.*
@@ -96,7 +94,7 @@ class Demo2 {
         )
     }
 
-    operator fun invoke(): Try {
+    suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process(this)) {
                 is Failed -> {
@@ -109,7 +107,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun initVariable(): Try {
+    suspend fun initVariable(): Try {
         x = BinVariable2("x", Shape2(companies.size, products.size))
         for (c in companies) {
             for (p in products) {
@@ -120,7 +118,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun initSymbol(): Try {
+    suspend fun initSymbol(): Try {
         val costPoly = LinearPolynomial()
         for (c in companies) {
             val products = products.filter { c.cost.contains(it) }
@@ -155,12 +153,12 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun initObject(): Try {
+    suspend fun initObject(): Try {
         metaModel.minimize(LinearPolynomial(cost))
         return Ok(success)
     }
 
-    fun initConstraint(): Try {
+    suspend fun initConstraint(): Try {
         for (c in companies) {
             metaModel.addConstraint(assignmentCompany[c]!! leq UInt64.one)
         }
@@ -170,13 +168,13 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun solve(): Try {
+    suspend fun solve(): Try {
         // val solver = GurobiLinearSolver()
         val solver = SCIPLinearSolver(LinearSolverConfig())
-        val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
-        when (val ret = runBlocking { solver(model) }) {
+        val model = LinearTriadModel(LinearModel(metaModel))
+        when (val ret = solver(model)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.results)
+                metaModel.tokens.setSolution(ret.value.solution)
             }
 
             is Failed -> {
@@ -186,7 +184,7 @@ class Demo2 {
         return Ok(success)
     }
 
-    fun analyzeSolution(): Try {
+    suspend fun analyzeSolution(): Try {
         val ret = ArrayList<Pair<Company, Product>>()
         for (token in metaModel.tokens.tokens) {
             if (token.result!! eq Flt64.one

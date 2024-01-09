@@ -26,6 +26,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>fuookami</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>scip</groupId>
             <artifactId>jscip</artifactId>
             <version>1.0.0</version>

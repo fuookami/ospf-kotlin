@@ -37,7 +37,7 @@ class LinearPiecewiseTest {
         val solver = CplexLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
         val result = runBlocking { solver(model) }
-        assert(result.value!!.results[0] eq Flt64.one)
+        assert(result.value!!.solution[0] eq Flt64.one)
     }
 
     @Test
@@ -70,7 +70,7 @@ class LinearPiecewiseTest {
         val solver = CplexLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
         val result = runBlocking { solver(model) }
-        assert(result.value!!.results[0] eq Flt64.one)
-        assert(result.value!!.results[1] eq Flt64.one)
+        assert(result.value!!.solution[0] eq Flt64.one)
+        assert(result.value!!.solution[1] eq Flt64.one)
     }
 }

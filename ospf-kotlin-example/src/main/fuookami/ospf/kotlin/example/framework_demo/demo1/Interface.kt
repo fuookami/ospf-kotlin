@@ -67,7 +67,7 @@ const val data = """28 45 12
     """
 
 class ConsoleApplication {
-    operator fun invoke(): Try {
+    suspend operator fun invoke(): Try {
         return when (val input = read(data)) {
             is Failed -> {
                 Failed(input.error)

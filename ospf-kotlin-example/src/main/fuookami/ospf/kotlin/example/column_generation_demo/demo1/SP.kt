@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
+import java.util.*
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -11,6 +12,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
+import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
+import fuookami.ospf.kotlin.framework.solver.*
 
 object InitialSolutionGenerator {
     operator fun invoke(length: UInt64, products: List<Product>): Ret<List<CuttingPlan>> {
@@ -24,7 +28,13 @@ object InitialSolutionGenerator {
 }
 
 class SP {
-    operator fun invoke(
+    private val solver: ColumnGenerationSolver = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+        CplexColumnGenerationSolver()
+    } else {
+        GurobiColumnGenerationSolver()
+    }
+
+    suspend operator fun invoke(
         iteration: UInt64,
         length: UInt64,
         products: List<Product>,
@@ -53,13 +63,13 @@ class SP {
 
         model.addConstraint(use leq length, "use")
 
-        return when (val result = runBlocking { solveMIP("demo1-sp-$iteration", model) }) {
+        return when (val result = solver.solveMILP("demo1-sp-$iteration", model)) {
             is Failed -> {
                 Failed(result.error)
             }
 
             is Ok -> {
-                Ok(analyze(model, products, result.value))
+                Ok(analyze(model, products, result.value.solution))
             }
         }
     }

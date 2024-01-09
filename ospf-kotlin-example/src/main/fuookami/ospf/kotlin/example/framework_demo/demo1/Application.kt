@@ -3,14 +3,10 @@ package fuookami.ospf.kotlin.example.framework_demo.demo1
 import kotlin.io.path.*
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.parallel.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
-import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.*
@@ -20,7 +16,7 @@ class SSP {
     lateinit var routeContext: RouteContext
     lateinit var bandwidthContext: BandwidthContext
 
-    operator fun invoke(input: Input): Ret<Output> {
+    suspend operator fun invoke(input: Input): Ret<Output> {
         when (val result = init(input)) {
             is Failed -> {
                 return Failed(result.error)
@@ -113,19 +109,19 @@ class SSP {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun solve(metaModel: LinearMetaModel): Ret<List<Flt64>> {
-        GlobalScope.launch(Dispatchers.IO) { metaModel.export("demo1.opm") }
+    private suspend fun solve(metaModel: LinearMetaModel): Ret<List<Flt64>> {
+        // GlobalScope.launch(Dispatchers.IO) { metaModel.export("demo1.opm") }
 
         // val solver = GurobiLinearSolver(LinearSolverConfig())
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
-        val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
-        GlobalScope.launch(Dispatchers.IO) { model.export(Path("."), ModelFileFormat.LP) }
+        val model = LinearTriadModel(LinearModel(metaModel))
+        // GlobalScope.launch(Dispatchers.IO) { model.export(Path("."), ModelFileFormat.LP) }
 
-        return when (val ret = runBlocking { solver(model) }) {
+        return when (val ret = solver(model)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.results)
-                Ok(ret.value.results)
+                metaModel.tokens.setSolution(ret.value.solution)
+                Ok(ret.value.solution)
             }
 
             is Failed -> {

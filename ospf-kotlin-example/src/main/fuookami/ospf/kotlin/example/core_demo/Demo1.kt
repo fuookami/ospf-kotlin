@@ -1,8 +1,6 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -13,8 +11,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
-import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 
@@ -55,7 +51,7 @@ class Demo1 {
         companies.add(Company(Flt64(2.14), Flt64(0.53), Flt64(980.0)))
     }
 
-    operator fun invoke(): Try {
+    suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process(this)) {
                 is Failed -> {
@@ -68,7 +64,7 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun initVariable(): Try {
+    suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(companies.size))
         for (c in companies) {
             x[c]!!.name = "${x.name}_${c.index}"
@@ -77,7 +73,7 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun initSymbol(): Try {
+    suspend fun initSymbol(): Try {
         val capitalPoly = LinearPolynomial()
         for (c in companies) {
             capitalPoly += c.capital * x[c]!!
@@ -101,25 +97,25 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun initObject(): Try {
+    suspend fun initObject(): Try {
         metaModel.maximize(LinearPolynomial(profit))
         return Ok(success)
     }
 
-    fun initConstraint(): Try {
+    suspend fun initConstraint(): Try {
         metaModel.addConstraint(capital geq minCapital)
         metaModel.addConstraint(liability leq maxLiability)
         return Ok(success)
     }
 
-    fun solve(): Try {
+    suspend fun solve(): Try {
         // val solver = GurobiLinearSolver(LinearSolverConfig())
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
-        val model = runBlocking { LinearTriadModel(LinearModel(metaModel)) }
-        when (val ret = runBlocking { solver(model) }) {
+        val model = LinearTriadModel(LinearModel(metaModel))
+        when (val ret = solver(model)) {
             is Ok -> {
-                metaModel.tokens.setSolution(ret.value.results)
+                metaModel.tokens.setSolution(ret.value.solution)
             }
 
             is Failed -> {
@@ -129,7 +125,7 @@ class Demo1 {
         return Ok(success)
     }
 
-    fun analyzeSolution(): Try {
+    suspend fun analyzeSolution(): Try {
         val ret = ArrayList<Company>()
         for (token in metaModel.tokens.tokens) {
             if (token.result!! eq Flt64.one) {

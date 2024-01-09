@@ -6,10 +6,23 @@
         <artifactId>ospf-kotlin</artifactId>
         <groupId>fuookami</groupId>
         <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
     <artifactId>ospf-kotlin-framework-gantt-scheduling</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>gantt-scheduling-infrastructure</module>
+        <module>gantt-scheduling-domain-task-context</module>
+<!--        <module>gantt-scheduling-domain-task-scheduling-context</module>-->
+<!--        <module>gantt-scheduling-domain-bunch-selection-context</module>-->
+<!--        <module>gantt-scheduling-domain-bunch-generation-context</module>-->
+<!--        <module>gantt-scheduling-domain-bunch-scheduling-context</module>-->
+        <module>gantt-scheduling-application</module>
+    </modules>
 
     <dependencies>
         <dependency>
@@ -51,7 +64,6 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

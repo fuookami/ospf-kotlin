@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.backend.plugins.cplex
 import java.util.*
 import ilog.concert.*
 import ilog.cplex.*
+import fuookami.ospf.kotlin.utils.concept.*
 
 typealias Function = (IloCplex, List<IloNumVar>, List<IloRange>) -> Unit
 
@@ -14,7 +15,7 @@ enum class Point {
 
 class CplexSolverCallBack(
     private val map: MutableMap<Point, Function> = EnumMap(Point::class.java)
-) {
+): Copyable<CplexSolverCallBack> {
     fun set(point: Point, function: Function): CplexSolverCallBack {
         map[point] = function
         return this
@@ -29,5 +30,11 @@ class CplexSolverCallBack(
 
     fun execIfContain(point: Point, cplex: IloCplex, variables: List<IloNumVar>, constraints: List<IloRange>) {
         map[point]?.invoke(cplex, variables, constraints)
+    }
+
+    override fun copy(): CplexSolverCallBack {
+        return CplexSolverCallBack(
+            map.toMutableMap()
+        )
     }
 }

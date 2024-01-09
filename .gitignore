@@ -32,6 +32,11 @@ hs_err_pid*
 .vscode/
 *.opm
 *.lp
-ospf-kotlin-framework-gantt-scheduling-renderer/dist/
-ospf-kotlin-framework-gantt-scheduling-renderer/node_modules/
-ospf-kotlin-framework-gantt-scheduling-renderer/package-lock.json
+
+ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-interface-renderer/dist/
+ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-interface-renderer/node_modules/
+ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-interface-renderer/package-lock.json
+
+ospf-kotlin-framework-bpp3d/bpp3d-interface-renderer/dist/
+ospf-kotlin-framework-bpp3d/bpp3d-interface-renderer/node_modules/
+ospf-kotlin-framework-bpp3d/bpp3d-interface-renderer/package-lock.json

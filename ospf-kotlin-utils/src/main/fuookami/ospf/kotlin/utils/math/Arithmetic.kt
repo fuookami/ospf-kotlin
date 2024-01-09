@@ -157,6 +157,7 @@ data object NegativeInfinity {
 }
 
 val <T> Collection<T>.usize: UInt64 get() = UInt64(size)
+val <K, V> Map<K, V>.usize: UInt64 get() = UInt64(size)
 
 fun <T> Iterable<T>.sum(constant: ArithmeticConstants<T>): T
         where T : Arithmetic<T>, T : Plus<T, T> {
