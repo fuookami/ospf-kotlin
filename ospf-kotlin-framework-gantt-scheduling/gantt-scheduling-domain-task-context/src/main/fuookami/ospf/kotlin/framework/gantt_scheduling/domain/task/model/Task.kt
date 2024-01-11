@@ -3,9 +3,10 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import kotlin.time.*
 import kotlin.reflect.*
 import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrasturcutre.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 enum class StepRelation {
     And,
@@ -14,58 +15,109 @@ enum class StepRelation {
 
 abstract class TaskStep<T: Task<E>, E: Executor>(
     val id: String,
+    val name: String,
     val enabledExecutors: Set<E>,
     val parallelable: Boolean
 ) {
+    open val displayName: String? by ::name
+
     abstract fun duration(task: T, executor: E): Duration
+
+    override fun toString(): String {
+        return displayName ?: name
+    }
 }
 
-data class TaskStepVector<T: Task<E>, E: Executor>(
+data class ForwardTaskStepVector<T: Task<E>, E: Executor>(
     val from: TaskStep<T, E>,
+    val to: List<TaskStep<T, E>>,
+    val relation: StepRelation
+)
+
+data class BackwardTaskStepVector<T: Task<E>, E: Executor>(
+    val from: List<TaskStep<T, E>>,
     val to: TaskStep<T, E>,
     val relation: StepRelation
 )
 
-open class TaskStepBunch<T: Task<E>, E: Executor>(
+open class TaskStepGraph<T: Task<E>, E: Executor>(
     val id: String,
+    val name: String,
     val steps: List<TaskStep<T, E>>,
+    val startSteps: Set<TaskStep<T, E>>,
     // must be a DAG
-    val stepRelation: Map<TaskStep<T, E>, TaskStepVector<T, E>>
+    val forwardTaskStepVector: Map<TaskStep<T, E>, ForwardTaskStepVector<T, E>>,
+    val backwardStepRelation: Map<TaskStep<T, E>, BackwardTaskStepVector<T, E>>
 ) {
     companion object {
-        fun <T: Task<E>, E: Executor> build(ctx: TaskStepBunchBuilder<T, E>.() -> Unit): TaskStepBunch<T, E> {
-            val builder = TaskStepBunchBuilder<T, E>()
+        fun <T: Task<E>, E: Executor> build(ctx: TaskStepGraphBuilder<T, E>.() -> Unit): TaskStepGraph<T, E> {
+            val builder = TaskStepGraphBuilder<T, E>()
             return builder()
         }
     }
 }
 
-data class TaskStepBunchBuilder<T: Task<E>, E: Executor>(
+data class TaskStepGraphBuilder<T: Task<E>, E: Executor>(
     val id: String? = null,
-    val steps: List<TaskStep<T, E>> = emptyList(),
-    val stepRelation: Map<TaskStep<T, E>, TaskStepVector<T, E>> = emptyMap()
+    val name: String? = null,
+    val steps: MutableList<TaskStep<T, E>> = ArrayList(),
+    val startSteps: MutableSet<TaskStep<T, E>> = HashSet(),
+    private val forwardTaskStepVector: MutableMap<TaskStep<T, E>, ForwardTaskStepVector<T, E>> = HashMap(),
+    private val backwardStepRelation: MutableMap<TaskStep<T, E>, BackwardTaskStepVector<T, E>> = HashMap()
 ) {
     val setSteps: MutableSet<TaskStep<T, E>> = HashSet()
 
-    operator fun invoke(): TaskStepBunch<T, E> {
-        return TaskStepBunch(
+    operator fun invoke(): TaskStepGraph<T, E> {
+        return TaskStepGraph(
             id = id!!,
+            name = name!!,
             steps = steps,
-            stepRelation = stepRelation
+            startSteps = startSteps,
+            forwardTaskStepVector = forwardTaskStepVector,
+            backwardStepRelation = backwardStepRelation
         )
     }
 
-    fun <T: Task<E>, E: Executor> TaskStep<T, E>.succ(
-        step: TaskStep<T, E>
-    ) {
-        TODO("not implement yet")
+    fun TaskStep<T, E>.start(
+        steps: Set<TaskStep<T, E>>
+    ): Try {
+        if (steps.any { !this@TaskStepGraphBuilder.steps.contains(it) }) {
+            return Failed(Err(ErrorCode.ApplicationError, "step not in"))
+        }
+        startSteps.addAll(steps)
+        return Ok(success)
     }
 
-    fun <T: Task<E>, E: Executor> TaskStep<T, E>.succ(
-        relation: StepRelation,
-        steps: List<TaskStep<T, E>>
-    ) {
-        TODO("not implement yet")
+    fun TaskStep<T, E>.forward(
+        from: TaskStep<T, E>,
+        to: List<TaskStep<T, E>>,
+        relation: StepRelation
+    ): Try {
+        forwardTaskStepVector[from] = ForwardTaskStepVector(
+            from = from,
+            to = to,
+            relation = relation
+        )
+        return Ok(success)
+    }
+
+    fun TaskStep<T, E>.backward(
+        from: List<TaskStep<T, E>>,
+        to: TaskStep<T, E>,
+        relation: StepRelation
+    ): Try {
+        for (step in from) {
+            if ((forwardTaskStepVector[step]?.to ?: emptyList()).any { it == to }) {
+                return Failed(Err(ErrorCode.ApplicationError, "no step to ${to.id}"))
+            }
+        }
+
+        backwardStepRelation[to] = BackwardTaskStepVector(
+            from = from,
+            to = to,
+            relation = relation
+        )
+        return Ok(success)
     }
 }
 
@@ -92,9 +144,7 @@ abstract class TaskType(
 
         other as TaskType
 
-        if (cls != other.cls) return false
-
-        return true
+        return cls == other.cls
     }
 
     infix fun eq(type: TaskType) = this.cls == type.cls
@@ -319,9 +369,7 @@ abstract class Task<E : Executor>(
 
         other as Task<*>
 
-        if (key != other.key) return false
-
-        return true
+        return key == other.key
     }
 
     override fun toString() = displayName

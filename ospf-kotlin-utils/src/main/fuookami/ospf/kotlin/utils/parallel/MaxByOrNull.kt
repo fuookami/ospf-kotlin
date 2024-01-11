@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): T? {
     return this.maxByOrNullParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
     segment: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, R>?>>()
@@ -35,14 +35,14 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByOrNullParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<T?> {
     return this.tryMaxByOrNullParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByOrNullParallelly(
     segment: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<T?> {
     var error: Error? = null
 
@@ -85,7 +85,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByOrNullParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): T? {
     return (this as Iterable<T>).maxByOrNullParallelly(
         defaultConcurrentAmount,
@@ -95,13 +95,13 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.maxByOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): T? {
     return (this as Iterable<T>).maxByOrNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxByOrNullParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<T?> {
     return (this as Iterable<T>).tryMaxByOrNullParallelly(
         defaultConcurrentAmount,
@@ -111,13 +111,13 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxByOrNullParallelly
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxByOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<T?> {
     return (this as Iterable<T>).tryMaxByOrNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): T? {
     return this.maxByOrNullParallelly(
         defaultConcurrentAmount,
@@ -127,7 +127,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
 
 suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): T? {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, R>?>>()
@@ -153,7 +153,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxByOrNullParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxByOrNullParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<T?> {
     return this.tryMaxByOrNullParallelly(
         defaultConcurrentAmount,
@@ -163,7 +163,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxByOrNullParallelly(
 
 suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxByOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<T?> {
     var error: Error? = null
 

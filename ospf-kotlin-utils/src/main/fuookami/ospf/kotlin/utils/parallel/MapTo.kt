@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
     destination: C,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): C {
     return this.mapToParallelly(UInt64.ten, destination, extractor)
 }
@@ -15,7 +15,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallel
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -28,7 +28,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallel
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.map(extractor)
+                thisSegment.map { extractor(it) }
             })
         }
 
@@ -38,7 +38,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapToParallel
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapNotNullParallelly(
     destination: C,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     return this.tryMapNotNullParallelly(UInt64.ten, destination, extractor)
 }
@@ -46,7 +46,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapNotNull
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapNotNullParallelly(
     segment: UInt64,
     destination: C,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     var error: Error? = null
 
@@ -87,7 +87,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapNotNull
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParallelly(
     destination: C,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): C {
     return (this as Iterable<T>).mapToParallelly(
         defaultConcurrentAmount,
@@ -99,14 +99,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParall
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.mapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): C {
     return (this as Iterable<T>).mapToParallelly(this.usize / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryMapNotNullParallelly(
     destination: C,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     return (this as Iterable<T>).tryMapNotNullParallelly(
         defaultConcurrentAmount,
@@ -118,14 +118,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryMapNotNu
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryMapNotNullParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     return (this as Iterable<T>).tryMapNotNullParallelly(this.usize / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
     destination: C,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): C {
     return this.mapToParallelly(
         defaultConcurrentAmount,
@@ -137,7 +137,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -150,7 +150,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
                 this@mapToParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@mapToParallelly.subList(j, k).map(extractor)
+                this@mapToParallelly.subList(j, k).map { extractor(it) }
             })
             i = k
         }
@@ -161,7 +161,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.mapToParallelly(
 
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryMapNotNullParallelly(
     destination: C,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     return this.tryMapNotNullParallelly(
         defaultConcurrentAmount,
@@ -173,7 +173,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryMapNotNullPara
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryMapNotNullParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     var error: Error? = null
 

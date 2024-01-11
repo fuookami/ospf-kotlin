@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    crossinline extractor: SuspendExtractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfParallelly(UInt64.ten, constants, extractor)
@@ -17,7 +17,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
 suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     segment: UInt64,
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    crossinline extractor: SuspendExtractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constants.zero
@@ -32,7 +32,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.sumOf(constants, extractor)
+                thisSegment.map { extractor(it) }.sum(constants)
             })
         }
 
@@ -45,7 +45,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
 
 suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: TryExtractor<U, T>
+    crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     return this.trySumOfParallelly(UInt64.ten, constants, extractor)
@@ -54,7 +54,7 @@ suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
 suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
     segment: UInt64,
     constants: ArithmeticConstants<U>,
-    crossinline extractor: TryExtractor<U, T>
+    crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     var error: Error? = null
@@ -72,7 +72,7 @@ suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.sumOf(constants) {
+                    thisSegment.map {
                         when (val result = extractor(it)) {
                             is Ok -> {
                                 result.value
@@ -84,7 +84,7 @@ suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
                                 constants.zero
                             }
                         }
-                    }
+                    }.sum(constants)
                 })
             }
 
@@ -101,7 +101,7 @@ suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
 
 suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    crossinline extractor: SuspendExtractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     return (this as Iterable<T>).sumOfParallelly(
@@ -114,7 +114,7 @@ suspend inline fun <T, U> Collection<T>.sumOfParallelly(
 suspend inline fun <T, U> Collection<T>.sumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    crossinline extractor: SuspendExtractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     return (this as Iterable<T>).sumOfParallelly(this.usize / concurrentAmount, constants, extractor)
@@ -122,7 +122,7 @@ suspend inline fun <T, U> Collection<T>.sumOfParallelly(
 
 suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: TryExtractor<U, T>
+    crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     return (this as Iterable<T>).trySumOfParallelly(
@@ -135,7 +135,7 @@ suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
 suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
-    crossinline extractor: TryExtractor<U, T>
+    crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     return (this as Iterable<T>).trySumOfParallelly(this.usize / concurrentAmount, constants, extractor)
@@ -143,7 +143,7 @@ suspend inline fun <T, U> Collection<T>.trySumOfParallelly(
 
 suspend inline fun <T, U> List<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    crossinline extractor: SuspendExtractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfParallelly(
@@ -156,7 +156,7 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
 suspend inline fun <T, U> List<T>.sumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
-    crossinline extractor: Extractor<U, T>
+    crossinline extractor: SuspendExtractor<U, T>
 ): U
         where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constants.zero
@@ -171,7 +171,7 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
                 this@sumOfParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@sumOfParallelly.subList(j, k).sumOf(constants, extractor)
+                this@sumOfParallelly.subList(j, k).map { extractor(it) }.sum(constants)
             })
             i = k
         }
@@ -185,7 +185,7 @@ suspend inline fun <T, U> List<T>.sumOfParallelly(
 
 suspend inline fun <T, U> List<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
-    crossinline extractor: TryExtractor<U, T>
+    crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     return this.trySumOfParallelly(
@@ -198,7 +198,7 @@ suspend inline fun <T, U> List<T>.trySumOfParallelly(
 suspend inline fun <T, U> List<T>.trySumOfParallelly(
     concurrentAmount: UInt64,
     constants: ArithmeticConstants<U>,
-    crossinline extractor: TryExtractor<U, T>
+    crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U>
         where U : Arithmetic<U>, U : Plus<U, U> {
     var error: Error? = null
@@ -216,7 +216,7 @@ suspend inline fun <T, U> List<T>.trySumOfParallelly(
                     this@trySumOfParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@trySumOfParallelly.subList(j, k).sumOf(constants) {
+                    this@trySumOfParallelly.subList(j, k).map {
                         when (val result = extractor(it)) {
                             is Ok -> {
                                 result.value
@@ -228,7 +228,7 @@ suspend inline fun <T, U> List<T>.trySumOfParallelly(
                                 constants.zero
                             }
                         }
-                    }
+                    }.sum(constants)
                 })
                 i = k
             }

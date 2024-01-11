@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T> Iterable<T>.mapParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return this.mapParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.mapParallelly(
     segment: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -26,7 +26,7 @@ suspend inline fun <R, T> Iterable<T>.mapParallelly(
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.map(extractor)
+                thisSegment.map { extractor(it) }
             })
         }
 
@@ -35,14 +35,14 @@ suspend inline fun <R, T> Iterable<T>.mapParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     return this.tryMapParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     segment: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     var error: Error? = null
 
@@ -82,7 +82,7 @@ suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
 }
 
 suspend inline fun <R, T> Collection<T>.mapParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return this.mapParallelly(
         defaultConcurrentAmount,
@@ -92,13 +92,13 @@ suspend inline fun <R, T> Collection<T>.mapParallelly(
 
 suspend inline fun <R, T> Collection<T>.mapParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return (this as Iterable<T>).mapParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> Collection<T>.tryMapParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     return this.tryMapParallelly(
         defaultConcurrentAmount,
@@ -108,13 +108,13 @@ suspend inline fun <R, T> Collection<T>.tryMapParallelly(
 
 suspend inline fun <R, T> Collection<T>.tryMapParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     return (this as Iterable<T>).tryMapParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.mapParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return this.mapParallelly(
         defaultConcurrentAmount,
@@ -124,7 +124,7 @@ suspend inline fun <R, T> List<T>.mapParallelly(
 
 suspend inline fun <R, T> List<T>.mapParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -137,7 +137,7 @@ suspend inline fun <R, T> List<T>.mapParallelly(
                 this@mapParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@mapParallelly.subList(j, k).map(extractor)
+                this@mapParallelly.subList(j, k).map { extractor(it) }
             })
             i = k
         }
@@ -147,7 +147,7 @@ suspend inline fun <R, T> List<T>.mapParallelly(
 }
 
 suspend inline fun <R, T> List<T>.tryMapParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     return this.tryMapParallelly(
         defaultConcurrentAmount,
@@ -157,7 +157,7 @@ suspend inline fun <R, T> List<T>.tryMapParallelly(
 
 suspend inline fun <R, T> List<T>.tryMapParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     var error: Error? = null
 

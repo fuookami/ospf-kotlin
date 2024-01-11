@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.utils.functional
 
-fun <T, U> Iterable<U>.minOfWithComparator(comparator: Comparator<T>, extractor: Extractor<T, U>): T {
+inline fun <T, U> Iterable<U>.minOfWithComparator(
+    crossinline comparator: Comparator<T>,
+    crossinline extractor: Extractor<T, U>
+): T {
     return this.minOfWith({ lhs, rhs ->
         if (comparator(lhs, rhs)) {
             -1
@@ -12,7 +15,10 @@ fun <T, U> Iterable<U>.minOfWithComparator(comparator: Comparator<T>, extractor:
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minOfWithPartialComparator(comparator: PartialComparator<T>, extractor: Extractor<T, U>): T {
+inline fun <T, U> Iterable<U>.minOfWithPartialComparator(
+    crossinline comparator: PartialComparator<T>,
+    crossinline extractor: Extractor<T, U>
+): T {
     return this.minOfWith({ lhs, rhs ->
         if (comparator(lhs, rhs) == true) {
             -1
@@ -24,15 +30,18 @@ fun <T, U> Iterable<U>.minOfWithPartialComparator(comparator: PartialComparator<
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minOfWithThreeWayComparator(comparator: ThreeWayComparator<T>, extractor: Extractor<T, U>): T {
+inline fun <T, U> Iterable<U>.minOfWithThreeWayComparator(
+    crossinline comparator: ThreeWayComparator<T>,
+    crossinline extractor: Extractor<T, U>
+): T {
     return this.minOfWith({ lhs, rhs ->
         comparator(lhs, rhs).value
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minOfWithPartialThreeWayComparator(
-    comparator: PartialThreeWayComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.minOfWithPartialThreeWayComparator(
+    crossinline comparator: PartialThreeWayComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): T {
     return this.minOfWith({ lhs, rhs ->
         comparator(lhs, rhs)?.value ?: 0

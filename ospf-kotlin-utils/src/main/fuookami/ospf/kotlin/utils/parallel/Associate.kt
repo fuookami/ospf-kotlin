@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
-    crossinline extractor: Extractor<Pair<K, V>, T>
+    crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {
     return this.associateParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     segment: UInt64,
-    crossinline extractor: Extractor<Pair<K, V>, T>
+    crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<K, V>>>>()
@@ -26,7 +26,7 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.map(extractor)
+                thisSegment.map { extractor(it) }
             })
         }
 
@@ -35,14 +35,14 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
 }
 
 suspend inline fun <K, V, T> Iterable<T>.tryAssociateParallelly(
-    crossinline extractor: TryExtractor<Pair<K, V>, T>
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     return this.tryAssociateParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <K, V, T> Iterable<T>.tryAssociateParallelly(
     segment: UInt64,
-    crossinline extractor: TryExtractor<Pair<K, V>, T>
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     var error: Error? = null
 
@@ -82,7 +82,7 @@ suspend inline fun <K, V, T> Iterable<T>.tryAssociateParallelly(
 }
 
 suspend inline fun <K, V, T> Collection<T>.associateParallelly(
-    crossinline extractor: Extractor<Pair<K, V>, T>
+    crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {
     return (this as Iterable<T>).associateParallelly(
         defaultConcurrentAmount,
@@ -92,13 +92,13 @@ suspend inline fun <K, V, T> Collection<T>.associateParallelly(
 
 suspend inline fun <K, V, T> Collection<T>.associateParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<Pair<K, V>, T>
+    crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {
     return (this as Iterable<T>).associateParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <K, V, T> Collection<T>.tryAssociateParallelly(
-    crossinline extractor: TryExtractor<Pair<K, V>, T>
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     return (this as Iterable<T>).tryAssociateParallelly(
         defaultConcurrentAmount,
@@ -108,12 +108,12 @@ suspend inline fun <K, V, T> Collection<T>.tryAssociateParallelly(
 
 suspend inline fun <K, V, T> Collection<T>.tryAssociateParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<Pair<K, V>, T>
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     return (this as Iterable<T>).tryAssociateParallelly(this.usize / concurrentAmount, extractor)
 }
 
-suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: Extractor<Pair<K, V>, T>): Map<K, V> {
+suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: SuspendExtractor<Pair<K, V>, T>): Map<K, V> {
     return this.associateParallelly(
         defaultConcurrentAmount,
         extractor
@@ -122,7 +122,7 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(crossinline extractor: 
 
 suspend inline fun <K, V, T> List<T>.associateParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<Pair<K, V>, T>
+    crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<K, V>>>>()
@@ -135,7 +135,7 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(
                 this@associateParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@associateParallelly.subList(j, k).map(extractor)
+                this@associateParallelly.subList(j, k).map { extractor(it) }
             })
             i = k
         }
@@ -145,7 +145,7 @@ suspend inline fun <K, V, T> List<T>.associateParallelly(
 }
 
 suspend inline fun <K, V, T> List<T>.tryAssociateParallelly(
-    crossinline extractor: TryExtractor<Pair<K, V>, T>
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     return this.tryAssociateParallelly(
         defaultConcurrentAmount,
@@ -155,7 +155,7 @@ suspend inline fun <K, V, T> List<T>.tryAssociateParallelly(
 
 suspend inline fun <K, V, T> List<T>.tryAssociateParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<Pair<K, V>, T>
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     var error: Error? = null
 

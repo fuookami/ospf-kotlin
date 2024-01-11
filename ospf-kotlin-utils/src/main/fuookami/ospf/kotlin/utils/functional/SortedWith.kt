@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.functional
 
-fun <T> Iterable<T>.sortedWithComparator(comparator: Comparator<T>): List<T> {
+inline fun <T> Iterable<T>.sortedWithComparator(
+    crossinline comparator: Comparator<T>
+): List<T> {
     return this.sortedWith { lhs, rhs ->
         if (comparator(lhs, rhs)) {
             -1
@@ -12,7 +14,9 @@ fun <T> Iterable<T>.sortedWithComparator(comparator: Comparator<T>): List<T> {
     }
 }
 
-fun <T> Iterable<T>.sortedWithPartialComparator(comparator: PartialComparator<T>): List<T> {
+inline fun <T> Iterable<T>.sortedWithPartialComparator(
+    crossinline comparator: PartialComparator<T>
+): List<T> {
     return this.sortedWith { lhs, rhs ->
         if (comparator(lhs, rhs) == true) {
             -1
@@ -24,13 +28,17 @@ fun <T> Iterable<T>.sortedWithPartialComparator(comparator: PartialComparator<T>
     }
 }
 
-fun <T> Iterable<T>.sortedWithThreeWayComparator(comparator: ThreeWayComparator<T>): List<T> {
+inline fun <T> Iterable<T>.sortedWithThreeWayComparator(
+    crossinline comparator: ThreeWayComparator<T>
+): List<T> {
     return this.sortedWith { lhs, rhs ->
         comparator(lhs, rhs).value
     }
 }
 
-fun <T> Iterable<T>.sortedWithPartialThreeWayComparator(comparator: PartialThreeWayComparator<T>): List<T> {
+inline fun <T> Iterable<T>.sortedWithPartialThreeWayComparator(
+    crossinline comparator: PartialThreeWayComparator<T>
+): List<T> {
     return this.sortedWith { lhs, rhs ->
         comparator(lhs, rhs)?.value ?: 0
     }

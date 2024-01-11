@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
-    crossinline extractor: IndexedExtractor<R?, T>
+    crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     return this.mapIndexedNotNullParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
     segment: UInt64,
-    crossinline extractor: IndexedExtractor<R?, T>
+    crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -37,14 +37,14 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedNotNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.tryMapIndexedNotNullParallelly(
-    crossinline extractor: TryIndexedExtractor<R?, T>
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     return this.tryMapIndexedNotNullParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.tryMapIndexedNotNullParallelly(
     segment: UInt64,
-    crossinline extractor: TryIndexedExtractor<R?, T>
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     var error: Error? = null
 
@@ -86,7 +86,7 @@ suspend inline fun <R, T> Iterable<T>.tryMapIndexedNotNullParallelly(
 }
 
 suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
-    crossinline extractor: IndexedExtractor<R?, T>
+    crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     return (this as Iterable<T>).mapIndexedNotNullParallelly(
         defaultConcurrentAmount,
@@ -96,13 +96,13 @@ suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
 
 suspend inline fun <R, T> Collection<T>.mapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: IndexedExtractor<R?, T>
+    crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     return (this as Iterable<T>).mapIndexedNotNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> Collection<T>.tryMapIndexedNotNullParallelly(
-    crossinline extractor: TryIndexedExtractor<R?, T>
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     return (this as Iterable<T>).tryMapIndexedNotNullParallelly(
         defaultConcurrentAmount,
@@ -112,13 +112,13 @@ suspend inline fun <R, T> Collection<T>.tryMapIndexedNotNullParallelly(
 
 suspend inline fun <R, T> Collection<T>.tryMapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryIndexedExtractor<R?, T>
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     return (this as Iterable<T>).tryMapIndexedNotNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
-    crossinline extractor: IndexedExtractor<R?, T>
+    crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     return this.mapIndexedNotNullParallelly(
         defaultConcurrentAmount,
@@ -128,7 +128,7 @@ suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
 
 suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: IndexedExtractor<R?, T>
+    crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -151,7 +151,7 @@ suspend inline fun <R, T> List<T>.mapIndexedNotNullParallelly(
 }
 
 suspend inline fun <R, T> List<T>.tryMapIndexedNotNullParallelly(
-    crossinline extractor: TryIndexedExtractor<R?, T>
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     return this.tryMapIndexedNotNullParallelly(
         defaultConcurrentAmount,
@@ -161,7 +161,7 @@ suspend inline fun <R, T> List<T>.tryMapIndexedNotNullParallelly(
 
 suspend inline fun <R, T> List<T>.tryMapIndexedNotNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryIndexedExtractor<R?, T>
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     var error: Error? = null
 

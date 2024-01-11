@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
     return this.filterIndexedParallelly(UInt64.ten, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
     segment: UInt64,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
@@ -37,14 +37,14 @@ suspend inline fun <T> Iterable<T>.filterIndexedParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.tryFilterIndexedParallelly(
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     return this.tryFilterIndexedParallelly(UInt64.ten, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.tryFilterIndexedParallelly(
     segment: UInt64,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     var error: Error? = null
 
@@ -86,7 +86,7 @@ suspend inline fun <T> Iterable<T>.tryFilterIndexedParallelly(
 }
 
 suspend inline fun <T> Collection<T>.filterIndexedParallelly(
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
     return (this as Iterable<T>).filterIndexedParallelly(
         defaultConcurrentAmount,
@@ -96,13 +96,13 @@ suspend inline fun <T> Collection<T>.filterIndexedParallelly(
 
 suspend inline fun <T> Collection<T>.filterIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
     return (this as Iterable<T>).filterIndexedParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Collection<T>.tryFilterIndexedParallelly(
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     return (this as Iterable<T>).tryFilterIndexedParallelly(
         defaultConcurrentAmount,
@@ -112,13 +112,13 @@ suspend inline fun <T> Collection<T>.tryFilterIndexedParallelly(
 
 suspend inline fun <T> Collection<T>.tryFilterIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     return (this as Iterable<T>).tryFilterIndexedParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.filterIndexedParallelly(
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
     return this.filterIndexedParallelly(
         defaultConcurrentAmount,
@@ -128,7 +128,7 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(
 
 suspend inline fun <T> List<T>.filterIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
@@ -151,7 +151,7 @@ suspend inline fun <T> List<T>.filterIndexedParallelly(
 }
 
 suspend inline fun <T> List<T>.tryFilterIndexedParallelly(
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     return this.tryFilterIndexedParallelly(
         defaultConcurrentAmount,
@@ -161,7 +161,7 @@ suspend inline fun <T> List<T>.tryFilterIndexedParallelly(
 
 suspend inline fun <T> List<T>.tryFilterIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     var error: Error? = null
 

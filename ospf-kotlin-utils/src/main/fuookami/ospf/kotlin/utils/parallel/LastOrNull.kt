@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T? {
     return this.lastOrNullParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
 suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
     segment: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T? {
     var result: T? = null
 
@@ -29,7 +29,7 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.lastOrNull(predicate)
+                    thisSegment.lastOrNull { predicate(it) }
                 })
             }
             for (promise in promises.reversed()) {
@@ -48,14 +48,14 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     return this.tryLastOrNullParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
 suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
     segment: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     var result: T? = null
     var error: Error? = null
@@ -105,7 +105,7 @@ suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
 }
 
 suspend inline fun <T> Collection<T>.lastOrNullParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T? {
     return (this as Iterable<T>).lastOrNullParallelly(
         defaultConcurrentAmount,
@@ -115,13 +115,13 @@ suspend inline fun <T> Collection<T>.lastOrNullParallelly(
 
 suspend inline fun <T> Collection<T>.lastOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T? {
     return (this as Iterable<T>).lastOrNullParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Collection<T>.tryLastOrNullParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     return (this as Iterable<T>).tryLastOrNullParallelly(
         defaultConcurrentAmount,
@@ -131,13 +131,13 @@ suspend inline fun <T> Collection<T>.tryLastOrNullParallelly(
 
 suspend inline fun <T> Collection<T>.tryLastOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     return (this as Iterable<T>).tryLastOrNullParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.lastOrNullParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T? {
     return this.lastOrNullParallelly(
         defaultConcurrentAmount,
@@ -147,7 +147,7 @@ suspend inline fun <T> List<T>.lastOrNullParallelly(
 
 suspend inline fun <T> List<T>.lastOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T? {
     var result: T? = null
 
@@ -187,7 +187,7 @@ suspend inline fun <T> List<T>.lastOrNullParallelly(
 }
 
 suspend inline fun <T> List<T>.tryLastOrNullParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     return this.tryLastOrNullParallelly(
         defaultConcurrentAmount,
@@ -197,7 +197,7 @@ suspend inline fun <T> List<T>.tryLastOrNullParallelly(
 
 suspend inline fun <T> List<T>.tryLastOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     var result: T? = null
     var error: Error? = null

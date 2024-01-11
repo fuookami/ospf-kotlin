@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 
-fun <T, U> Iterable<U>.minMaxOfWithComparatorOrNull(
-    comparator: Comparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.minMaxOfWithComparatorOrNull(
+    crossinline comparator: Comparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): Pair<T, T>? {
     return this.minMaxOfWithOrNull({ lhs, rhs ->
         if (comparator(lhs, rhs)) {
@@ -17,9 +17,9 @@ fun <T, U> Iterable<U>.minMaxOfWithComparatorOrNull(
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minMaxOfWithPartialComparatorOrNull(
-    comparator: PartialComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.minMaxOfWithPartialComparatorOrNull(
+    crossinline comparator: PartialComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): Pair<T, T>? {
     return this.minMaxOfWithOrNull({ lhs: T, rhs: T ->
         if (comparator(lhs, rhs) == true) {
@@ -32,18 +32,18 @@ fun <T, U> Iterable<U>.minMaxOfWithPartialComparatorOrNull(
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minMaxOfWithThreeWayComparatorOrNull(
-    comparator: ThreeWayComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.minMaxOfWithThreeWayComparatorOrNull(
+    crossinline comparator: ThreeWayComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): Pair<T, T>? {
     return this.minMaxOfWithOrNull({ lhs: T, rhs: T ->
         comparator(lhs, rhs).value
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.minMaxOfWithPartialThreeWayComparatorOrNull(
-    comparator: PartialThreeWayComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.minMaxOfWithPartialThreeWayComparatorOrNull(
+    crossinline comparator: PartialThreeWayComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): Pair<T, T>? {
     return this.minMaxOfWithOrNull({ lhs: T, rhs: T ->
         comparator(lhs, rhs)?.value ?: 0

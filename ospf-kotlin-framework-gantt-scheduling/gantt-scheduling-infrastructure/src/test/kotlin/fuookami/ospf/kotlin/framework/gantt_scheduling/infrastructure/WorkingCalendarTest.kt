@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.infrasturcutre
+package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.*
@@ -83,26 +83,22 @@ class WorkingCalendarTest {
         )
 
         assert(
-            runBlocking {
-                calendar.actualTimeFrom(
-                    material = 1,
-                    quantity = UInt64(60UL),
-                    startTime = Instant.parse("2020-08-30T14:00:00Z")
-                )
-            } == TimeRange(
+            calendar.actualTimeFrom(
+                material = 1,
+                quantity = UInt64(60UL),
+                startTime = Instant.parse("2020-08-30T14:00:00Z")
+            ) == TimeRange(
                 start = Instant.parse("2020-08-30T14:00:00Z"),
                 end = Instant.parse("2020-08-30T15:00:00Z")
             )
         )
 
         assert(
-            runBlocking {
-                calendar.actualTimeFrom(
-                    material = 1,
-                    quantity = UInt64(120UL),
-                    startTime = Instant.parse("2020-08-30T17:00:00Z")
-                )
-            } == TimeRange(
+            calendar.actualTimeFrom(
+                material = 1,
+                quantity = UInt64(120UL),
+                startTime = Instant.parse("2020-08-30T17:00:00Z")
+            ) == TimeRange(
                 start = Instant.parse("2020-08-30T17:00:00Z"),
                 end = Instant.parse("2020-08-31T08:30:00Z")
             )

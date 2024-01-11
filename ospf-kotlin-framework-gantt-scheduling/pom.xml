@@ -12,7 +12,6 @@
 
     <groupId>fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
     <artifactId>ospf-kotlin-framework-gantt-scheduling</artifactId>
-    <version>1.0.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>gantt-scheduling-infrastructure</module>

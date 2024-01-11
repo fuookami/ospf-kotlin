@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToParallelly(
     destination: C,
-    crossinline extractor: Extractor<Iterable<R>, T>
+    crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     return this.flatMapToParallelly(UInt64.ten, destination, extractor)
 }
@@ -15,7 +15,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline extractor: Extractor<Iterable<R>, T>
+    crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -38,7 +38,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToParallelly(
     destination: C,
-    crossinline extractor: TryExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     return this.tryFlatMapToParallelly(UInt64.ten, destination, extractor)
 }
@@ -46,7 +46,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToP
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline extractor: TryExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     var error: Error? = null
 
@@ -87,7 +87,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToP
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapToParallelly(
     destination: C,
-    crossinline extractor: Extractor<Iterable<R>, T>
+    crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     return (this as Iterable<T>).flatMapToParallelly(
         defaultConcurrentAmount,
@@ -99,14 +99,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapToPa
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.flatMapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: Extractor<Iterable<R>, T>
+    crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     return (this as Iterable<T>).flatMapToParallelly(this.usize / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryFlatMapToParallelly(
     destination: C,
-    crossinline extractor: TryExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFlatMapToParallelly(
         defaultConcurrentAmount,
@@ -118,14 +118,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryFlatMapT
 suspend inline fun <R, T, C : MutableCollection<in R>> Collection<T>.tryFlatMapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: TryExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFlatMapToParallelly(this.usize / concurrentAmount, destination, extractor)
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallelly(
     destination: C,
-    crossinline extractor: Extractor<Iterable<R>, T>
+    crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     return this.flatMapToParallelly(
         defaultConcurrentAmount,
@@ -137,7 +137,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallel
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: Extractor<Iterable<R>, T>
+    crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -161,7 +161,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.flatMapToParallel
 
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryFlatMapToParallelly(
     destination: C,
-    crossinline extractor: TryExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     return this.tryFlatMapToParallelly(
         defaultConcurrentAmount,
@@ -173,7 +173,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryFlatMapToParal
 suspend inline fun <R, T, C : MutableCollection<in R>> List<T>.tryFlatMapToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline extractor: TryExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     var error: Error? = null
 

@@ -12,7 +12,6 @@
 
     <groupId>fuookami.ospf.kotlin.framework.bpp3d</groupId>
     <artifactId>ospf-kotlin-framework-bpp3d</artifactId>
-    <version>1.0.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>bpp3d-domain-item-context</module>

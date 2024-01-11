@@ -15,7 +15,7 @@
         <dependency>
             <groupId>fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
             <artifactId>ospf-kotlin-framework-gantt-scheduling-infrastructure</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

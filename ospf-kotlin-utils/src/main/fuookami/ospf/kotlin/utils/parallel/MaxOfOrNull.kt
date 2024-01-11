@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfOrNullParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): R? {
     return this.maxOfOrNullParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfOrNullParallelly(
     segment: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): R? {
     return coroutineScope {
         val promises = ArrayList<Deferred<R?>>()
@@ -26,7 +26,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfOrNullParallelly(
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.maxOfOrNull(extractor)
+                thisSegment.maxOfOrNull { extractor(it) }
             })
         }
 
@@ -35,14 +35,14 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxOfOrNullParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxOfOrNullParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
     return this.tryMaxOfOrNullParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxOfOrNullParallelly(
     segment: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
     var error: Error? = null
 
@@ -85,7 +85,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxOfOrNullParallelly(
 
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.maxOfOrNullParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): R? {
     return (this as Iterable<T>).maxOfOrNullParallelly(
         defaultConcurrentAmount,
@@ -95,13 +95,13 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.maxOfOrNullParallelly(
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.maxOfOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): R? {
     return (this as Iterable<T>).maxOfOrNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxOfOrNullParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
     return (this as Iterable<T>).tryMaxOfOrNullParallelly(
         defaultConcurrentAmount,
@@ -111,13 +111,13 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxOfOrNullParallelly
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMaxOfOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
     return (this as Iterable<T>).tryMaxOfOrNullParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.maxOfOrNullParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): R? {
     return this.maxOfOrNullParallelly(
         defaultConcurrentAmount,
@@ -127,7 +127,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxOfOrNullParallelly(
 
 suspend inline fun <T, R : Comparable<R>> List<T>.maxOfOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): R? {
     return coroutineScope {
         val promises = ArrayList<Deferred<R?>>()
@@ -150,7 +150,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.maxOfOrNullParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxOfOrNullParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
     return this.tryMaxOfOrNullParallelly(
         defaultConcurrentAmount,
@@ -160,7 +160,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxOfOrNullParallelly(
 
 suspend inline fun <T, R : Comparable<R>> List<T>.tryMaxOfOrNullParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
     var error: Error? = null
 

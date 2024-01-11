@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T> Iterable<T>.lastParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T {
     return this.lastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
 suspend inline fun <T> Iterable<T>.lastParallelly(
     segment: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T {
     var result: T? = null
 
@@ -29,7 +29,7 @@ suspend inline fun <T> Iterable<T>.lastParallelly(
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.lastOrNull(predicate)
+                    thisSegment.lastOrNull { predicate(it) }
                 })
             }
             for (promise in promises.reversed()) {
@@ -48,14 +48,14 @@ suspend inline fun <T> Iterable<T>.lastParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.tryLastParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
     return this.tryLastParallelly(UInt64(Runtime.getRuntime().availableProcessors()), predicate)
 }
 
 suspend inline fun <T> Iterable<T>.tryLastParallelly(
     segment: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
     var result: T? = null
     var error: Error? = null
@@ -106,7 +106,7 @@ suspend inline fun <T> Iterable<T>.tryLastParallelly(
 }
 
 suspend inline fun <T> Collection<T>.lastParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T {
     return (this as Iterable<T>).lastParallelly(
         defaultConcurrentAmount,
@@ -116,13 +116,13 @@ suspend inline fun <T> Collection<T>.lastParallelly(
 
 suspend inline fun <T> Collection<T>.lastParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T {
     return (this as Iterable<T>).lastParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Collection<T>.tryLastParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
     return (this as Iterable<T>).tryLastParallelly(
         defaultConcurrentAmount,
@@ -132,13 +132,13 @@ suspend inline fun <T> Collection<T>.tryLastParallelly(
 
 suspend inline fun <T> Collection<T>.tryLastParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
     return (this as Iterable<T>).tryLastParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.lastParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T {
     return this.lastParallelly(
         defaultConcurrentAmount,
@@ -148,7 +148,7 @@ suspend inline fun <T> List<T>.lastParallelly(
 
 suspend inline fun <T> List<T>.lastParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): T {
     var result: T? = null
 
@@ -188,7 +188,7 @@ suspend inline fun <T> List<T>.lastParallelly(
 }
 
 suspend inline fun <T> List<T>.tryLastParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
     return this.tryLastParallelly(
         defaultConcurrentAmount,
@@ -198,7 +198,7 @@ suspend inline fun <T> List<T>.tryLastParallelly(
 
 suspend inline fun <T> List<T>.tryLastParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
     var result: T? = null
     var error: Error? = null

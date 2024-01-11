@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T, V> Iterable<T>.associateWithParallelly(
-    crossinline extractor: Extractor<V, T>
+    crossinline extractor: SuspendExtractor<V, T>
 ): Map<T, V> {
     return this.associateWithParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, V> Iterable<T>.associateWithParallelly(
     segment: UInt64,
-    crossinline extractor: Extractor<V, T>
+    crossinline extractor: SuspendExtractor<V, T>
 ): Map<T, V> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<T, V>>>>()
@@ -35,14 +35,14 @@ suspend inline fun <T, V> Iterable<T>.associateWithParallelly(
 }
 
 suspend inline fun <T, V> Iterable<T>.tryAssociateWithParallelly(
-    crossinline extractor: TryExtractor<V, T>
+    crossinline extractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     return this.tryAssociateWithParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, V> Iterable<T>.tryAssociateWithParallelly(
     segment: UInt64,
-    crossinline extractor: TryExtractor<V, T>
+    crossinline extractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     var error: Error? = null
 
@@ -82,7 +82,7 @@ suspend inline fun <T, V> Iterable<T>.tryAssociateWithParallelly(
 }
 
 suspend inline fun <T, V> Collection<T>.associateWithParallelly(
-    crossinline extractor: Extractor<V, T>
+    crossinline extractor: SuspendExtractor<V, T>
 ): Map<T, V> {
     return (this as Iterable<T>).associateWithParallelly(
         defaultConcurrentAmount,
@@ -92,13 +92,13 @@ suspend inline fun <T, V> Collection<T>.associateWithParallelly(
 
 suspend inline fun <T, V> Collection<T>.associateWithParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<V, T>
+    crossinline extractor: SuspendExtractor<V, T>
 ): Map<T, V> {
     return (this as Iterable<T>).associateWithParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, V> Collection<T>.tryAssociateWithParallelly(
-    crossinline extractor: TryExtractor<V, T>
+    crossinline extractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     return (this as Iterable<T>).tryAssociateWithParallelly(
         defaultConcurrentAmount,
@@ -108,12 +108,14 @@ suspend inline fun <T, V> Collection<T>.tryAssociateWithParallelly(
 
 suspend inline fun <T, V> Collection<T>.tryAssociateWithParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<V, T>
+    crossinline extractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     return (this as Iterable<T>).tryAssociateWithParallelly(this.usize / concurrentAmount, extractor)
 }
 
-suspend inline fun <T, V> List<T>.associateWithParallelly(crossinline extractor: Extractor<V, T>): Map<T, V> {
+suspend inline fun <T, V> List<T>.associateWithParallelly(
+    crossinline extractor: SuspendExtractor<V, T>
+): Map<T, V> {
     return this.associateWithParallelly(
         defaultConcurrentAmount,
         extractor
@@ -122,7 +124,7 @@ suspend inline fun <T, V> List<T>.associateWithParallelly(crossinline extractor:
 
 suspend inline fun <T, V> List<T>.associateWithParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<V, T>
+    crossinline extractor: SuspendExtractor<V, T>
 ): Map<T, V> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<Pair<T, V>>>>()
@@ -145,7 +147,7 @@ suspend inline fun <T, V> List<T>.associateWithParallelly(
 }
 
 suspend inline fun <T, V> List<T>.tryAssociateWithParallelly(
-    crossinline extractor: TryExtractor<V, T>
+    crossinline extractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     return this.tryAssociateWithParallelly(
         defaultConcurrentAmount,
@@ -155,7 +157,7 @@ suspend inline fun <T, V> List<T>.tryAssociateWithParallelly(
 
 suspend inline fun <T, V> List<T>.tryAssociateWithParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<V, T>
+    crossinline extractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     var error: Error? = null
 

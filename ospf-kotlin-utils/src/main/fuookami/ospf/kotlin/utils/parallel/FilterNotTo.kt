@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParallelly(
     destination: C,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): C {
     return this.filterNotToParallelly(UInt64.ten, destination, predicate)
 }
@@ -15,7 +15,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
@@ -28,7 +28,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
                 ++i
             }
             promises.add(async(Dispatchers.Default) {
-                thisSegment.filterNot(predicate)
+                thisSegment.filterNot { predicate(it) }
             })
         }
 
@@ -38,7 +38,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterNotToParal
 
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterNotToParallelly(
     destination: C,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     return this.tryFilterNotToParallelly(UInt64.ten, destination, predicate)
 }
@@ -46,7 +46,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterNotToPa
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterNotToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     var error: Error? = null
 
@@ -87,7 +87,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterNotToPa
 
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToParallelly(
     destination: C,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): C {
     return (this as Iterable<T>).filterNotToParallelly(
         defaultConcurrentAmount,
@@ -99,14 +99,14 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToPar
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterNotToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): C {
     return (this as Iterable<T>).filterNotToParallelly(this.usize / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterNotToParallelly(
     destination: C,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFilterNotToParallelly(
         defaultConcurrentAmount,
@@ -118,14 +118,14 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterNotTo
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterNotToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFilterNotToParallelly(this.usize / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallelly(
     destination: C,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): C {
     return this.filterNotToParallelly(
         defaultConcurrentAmount,
@@ -137,7 +137,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
@@ -150,7 +150,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
                 this@filterNotToParallelly.size - i
             )
             promises.add(async(Dispatchers.Default) {
-                this@filterNotToParallelly.subList(j, k).filterNot(predicate)
+                this@filterNotToParallelly.subList(j, k).filterNot { predicate(it) }
             })
             i = k
         }
@@ -161,7 +161,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterNotToParallell
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterNotToParallelly(
     destination: C,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     return this.tryFilterNotToParallelly(
         defaultConcurrentAmount,
@@ -173,7 +173,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterNotToParall
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterNotToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     var error: Error? = null
 

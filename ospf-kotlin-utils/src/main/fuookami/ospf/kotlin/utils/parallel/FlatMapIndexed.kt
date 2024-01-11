@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
-    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
 ): List<R> {
     return this.flatMapIndexedParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
     segment: UInt64,
-    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
 ): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -38,7 +38,7 @@ suspend inline fun <R, T> Iterable<T>.flatMapIndexedParallelly(
 
 @JvmName("tryFlatMapIndexedParallelly")
 suspend inline fun <R, T> Iterable<T>.tryFlatMapIndexedParallelly(
-    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
     return this.tryFlatMapIndexedParallelly(UInt64.ten, extractor)
 }
@@ -46,7 +46,7 @@ suspend inline fun <R, T> Iterable<T>.tryFlatMapIndexedParallelly(
 @JvmName("tryFlatMapIndexedParallelly")
 suspend inline fun <R, T> Iterable<T>.tryFlatMapIndexedParallelly(
     segment: UInt64,
-    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
     var error: Error? = null
 
@@ -88,7 +88,7 @@ suspend inline fun <R, T> Iterable<T>.tryFlatMapIndexedParallelly(
 }
 
 suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
-    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
 ): List<R> {
     return (this as Iterable<T>).flatMapIndexedParallelly(
         defaultConcurrentAmount,
@@ -98,13 +98,13 @@ suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
 
 suspend inline fun <R, T> Collection<T>.flatMapIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
 ): List<R> {
     return (this as Iterable<T>).flatMapIndexedParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
-    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
     return (this as Iterable<T>).tryFlatMapIndexedParallelly(
         defaultConcurrentAmount,
@@ -114,12 +114,14 @@ suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
 
 suspend inline fun <R, T> Collection<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
     return (this as Iterable<T>).tryFlatMapIndexedParallelly(this.usize / concurrentAmount, extractor)
 }
 
-suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor: IndexedExtractor<Iterable<R>, T>): List<R> {
+suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
+    crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
+): List<R> {
     return this.flatMapIndexedParallelly(
         defaultConcurrentAmount,
         extractor
@@ -128,7 +130,7 @@ suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(crossinline extractor
 
 suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: IndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
 ): List<R> {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<R>>>()
@@ -151,7 +153,7 @@ suspend inline fun <R, T> List<T>.flatMapIndexedParallelly(
 }
 
 suspend inline fun <R, T> List<T>.tryFlatMapIndexedParallelly(
-    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
     return this.tryFlatMapIndexedParallelly(
         defaultConcurrentAmount,
@@ -161,7 +163,7 @@ suspend inline fun <R, T> List<T>.tryFlatMapIndexedParallelly(
 
 suspend inline fun <R, T> List<T>.tryFlatMapIndexedParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryIndexedExtractor<Iterable<R>, T>
+    crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<List<R>> {
     var error: Error? = null
 

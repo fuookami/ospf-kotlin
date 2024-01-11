@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.functional
 
-inline fun <R, T> Iterable<T>.lastNotNullOfOrNull(extractor: Extractor<R?, T>): R? {
+inline fun <R, T> Iterable<T>.lastNotNullOfOrNull(
+    crossinline extractor: Extractor<R?, T>
+): R? {
     var result: R? = null
 
     val iterator = this.iterator()
@@ -11,7 +13,9 @@ inline fun <R, T> Iterable<T>.lastNotNullOfOrNull(extractor: Extractor<R?, T>): 
     return result
 }
 
-inline fun <R, T> List<T>.lastNotNullOfOrNull(extractor: Extractor<R?, T>): R? {
+inline fun <R, T> List<T>.lastNotNullOfOrNull(
+    crossinline extractor: Extractor<R?, T>
+): R? {
     val iterator = this.listIterator()
     while (iterator.hasPrevious()) {
         val result = extractor(iterator.next())

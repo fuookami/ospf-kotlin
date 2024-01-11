@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.functional
 
-fun <T> Iterable<T>.minWithComparatorOrNull(comparator: Comparator<T>): T? {
+inline fun <T> Iterable<T>.minWithComparatorOrNull(
+    crossinline comparator: Comparator<T>
+): T? {
     return this.minOfWithOrNull({ lhs: T, rhs: T ->
         if (comparator(lhs, rhs)) {
             -1
@@ -12,7 +14,9 @@ fun <T> Iterable<T>.minWithComparatorOrNull(comparator: Comparator<T>): T? {
     }) { it }
 }
 
-fun <T> Iterable<T>.minWithPartialComparatorOrNull(comparator: PartialComparator<T>): T? {
+inline fun <T> Iterable<T>.minWithPartialComparatorOrNull(
+    crossinline comparator: PartialComparator<T>
+): T? {
     return this.minOfWithOrNull({ lhs: T, rhs: T ->
         if (comparator(lhs, rhs) == true) {
             -1
@@ -24,13 +28,17 @@ fun <T> Iterable<T>.minWithPartialComparatorOrNull(comparator: PartialComparator
     }) { it }
 }
 
-fun <T> Iterable<T>.minWithThreeWayComparatorOrNull(comparator: ThreeWayComparator<T>): T? {
+inline fun <T> Iterable<T>.minWithThreeWayComparatorOrNull(
+    crossinline comparator: ThreeWayComparator<T>
+): T? {
     return this.minOfWithOrNull({ lhs: T, rhs: T ->
         comparator(lhs, rhs).value
     }) { it }
 }
 
-fun <T> Iterable<T>.minWithPartialThreeWayComparatorOrNull(comparator: PartialThreeWayComparator<T>): T? {
+inline fun <T> Iterable<T>.minWithPartialThreeWayComparatorOrNull(
+    crossinline comparator: PartialThreeWayComparator<T>
+): T? {
     return this.minOfWithOrNull({ lhs: T, rhs: T ->
         comparator(lhs, rhs)?.value ?: 0
     }) { it }

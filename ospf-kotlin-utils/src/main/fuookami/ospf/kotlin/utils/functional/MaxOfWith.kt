@@ -15,9 +15,9 @@ inline fun <T, U> Iterable<U>.maxOfWithComparator(
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.maxOfWithPartialComparator(
-    comparator: PartialComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.maxOfWithPartialComparator(
+    crossinline comparator: PartialComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): T {
     return this.maxOfWith({ lhs, rhs ->
         if (comparator(lhs, rhs) == true) {
@@ -30,18 +30,18 @@ fun <T, U> Iterable<U>.maxOfWithPartialComparator(
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.maxOfWithThreeWayComparator(
-    comparator: ThreeWayComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.maxOfWithThreeWayComparator(
+    crossinline comparator: ThreeWayComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): T {
     return this.maxOfWith({ lhs, rhs ->
         comparator(lhs, rhs).value
     }, extractor)
 }
 
-fun <T, U> Iterable<U>.maxOfWithPartialThreeWayComparator(
-    comparator: PartialThreeWayComparator<T>,
-    extractor: Extractor<T, U>
+inline fun <T, U> Iterable<U>.maxOfWithPartialThreeWayComparator(
+    crossinline comparator: PartialThreeWayComparator<T>,
+    crossinline extractor: Extractor<T, U>
 ): T {
     return this.maxOfWith({ lhs, rhs ->
         comparator(lhs, rhs)?.value ?: 0

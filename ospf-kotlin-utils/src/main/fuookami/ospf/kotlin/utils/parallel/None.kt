@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T> Iterable<T>.noneParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     return this.noneParallelly(UInt64.ten, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.noneParallelly(
     segment: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     return try {
         coroutineScope {
@@ -27,7 +27,7 @@ suspend inline fun <T> Iterable<T>.noneParallelly(
                     ++i
                 }
                 promises.add(async(Dispatchers.Default) {
-                    thisSegment.none(predicate)
+                    thisSegment.none { predicate(it) }
                 })
             }
             for (promise in promises) {
@@ -45,14 +45,14 @@ suspend inline fun <T> Iterable<T>.noneParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.tryNoneParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     return this.tryNoneParallelly(UInt64.ten, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.tryNoneParallelly(
     segment: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     var error: Error? = null
 
@@ -98,7 +98,7 @@ suspend inline fun <T> Iterable<T>.tryNoneParallelly(
 }
 
 suspend inline fun <T> Collection<T>.noneParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     return (this as Iterable<T>).noneParallelly(
         defaultConcurrentAmount,
@@ -108,13 +108,13 @@ suspend inline fun <T> Collection<T>.noneParallelly(
 
 suspend inline fun <T> Collection<T>.noneParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     return (this as Iterable<T>).noneParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Collection<T>.tryNoneParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     return (this as Iterable<T>).tryNoneParallelly(
         defaultConcurrentAmount,
@@ -124,13 +124,13 @@ suspend inline fun <T> Collection<T>.tryNoneParallelly(
 
 suspend inline fun <T> Collection<T>.tryNoneParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     return (this as Iterable<T>).tryNoneParallelly(this.usize / concurrentAmount, predicate)
 }
 
 suspend inline fun <T> List<T>.noneParallelly(
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     return this.noneParallelly(
         defaultConcurrentAmount,
@@ -140,7 +140,7 @@ suspend inline fun <T> List<T>.noneParallelly(
 
 suspend inline fun <T> List<T>.noneParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: Predicate<T>
+    crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     return try {
         coroutineScope {
@@ -154,7 +154,7 @@ suspend inline fun <T> List<T>.noneParallelly(
                     this@noneParallelly.size - i
                 )
                 promises.add(async(Dispatchers.Default) {
-                    this@noneParallelly.subList(j, k).none(predicate)
+                    this@noneParallelly.subList(j, k).none { predicate(it) }
                 })
                 i = k
             }
@@ -172,7 +172,7 @@ suspend inline fun <T> List<T>.noneParallelly(
 }
 
 suspend inline fun <T> List<T>.tryNoneParallelly(
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     return this.tryNoneParallelly(
         defaultConcurrentAmount,
@@ -182,7 +182,7 @@ suspend inline fun <T> List<T>.tryNoneParallelly(
 
 suspend inline fun <T> List<T>.tryNoneParallelly(
     concurrentAmount: UInt64,
-    crossinline predicate: TryPredicate<T>
+    crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     var error: Error? = null
 

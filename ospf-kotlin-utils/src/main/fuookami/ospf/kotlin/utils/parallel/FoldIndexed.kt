@@ -146,7 +146,7 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
 
 suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
     initial: R,
-    crossinline extractor: IndexedExtractor<R, T>,
+    crossinline extractor: SuspendIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> R
 ): R {
     return this.foldIndexedParallelly(
@@ -160,7 +160,7 @@ suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
 suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
     segment: UInt64,
     initial: R,
-    crossinline extractor: IndexedExtractor<R, T>,
+    crossinline extractor: SuspendIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> R
 ): R {
     var exception: Exception? = null
@@ -211,7 +211,7 @@ suspend inline fun <T, R> Iterable<T>.foldIndexedParallelly(
 
 suspend inline fun <T, R> Iterable<T>.tryFoldIndexedParallelly(
     initial: R,
-    crossinline extractor: TryIndexedExtractor<R, T>,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
     return this.tryFoldIndexedParallelly(
@@ -225,7 +225,7 @@ suspend inline fun <T, R> Iterable<T>.tryFoldIndexedParallelly(
 suspend inline fun <T, R> Iterable<T>.tryFoldIndexedParallelly(
     segment: UInt64,
     initial: R,
-    crossinline extractor: TryIndexedExtractor<R, T>,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
     var error: Error? = null
@@ -356,7 +356,7 @@ suspend inline fun <T> Collection<T>.tryFoldIndexedParallelly(
 
 suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
     initial: R,
-    crossinline extractor: IndexedExtractor<R, T>,
+    crossinline extractor: SuspendIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> R
 ): R {
     return (this as Iterable<T>).foldIndexedParallelly(
@@ -370,7 +370,7 @@ suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
 suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: R,
-    crossinline extractor: IndexedExtractor<R, T>,
+    crossinline extractor: SuspendIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> R
 ): R {
     return (this as Iterable<T>).foldIndexedParallelly(
@@ -383,7 +383,7 @@ suspend inline fun <T, R> Collection<T>.foldIndexedParallelly(
 
 suspend inline fun <T, R> Collection<T>.tryFoldIndexedParallelly(
     initial: R,
-    crossinline extractor: TryIndexedExtractor<R, T>,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
     return (this as Iterable<T>).tryFoldIndexedParallelly(
@@ -397,7 +397,7 @@ suspend inline fun <T, R> Collection<T>.tryFoldIndexedParallelly(
 suspend inline fun <T, R> Collection<T>.tryFoldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: R,
-    crossinline extractor: TryIndexedExtractor<R, T>,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
     return (this as Iterable<T>).tryFoldIndexedParallelly(
@@ -557,7 +557,7 @@ suspend inline fun <T> List<T>.tryFoldIndexedParallelly(
 
 suspend inline fun <T, R> List<T>.foldIndexedParallelly(
     initial: R,
-    crossinline extractor: IndexedExtractor<R, T>,
+    crossinline extractor: SuspendIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> R
 ): R {
     return this.foldIndexedParallelly(
@@ -571,7 +571,7 @@ suspend inline fun <T, R> List<T>.foldIndexedParallelly(
 suspend inline fun <T, R> List<T>.foldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: R,
-    crossinline extractor: IndexedExtractor<R, T>,
+    crossinline extractor: SuspendIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> R
 ): R {
     var exception: Exception? = null
@@ -622,7 +622,7 @@ suspend inline fun <T, R> List<T>.foldIndexedParallelly(
 
 suspend inline fun <T, R> List<T>.tryFoldIndexedParallelly(
     initial: R,
-    crossinline extractor: TryIndexedExtractor<R, T>,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
     return this.tryFoldIndexedParallelly(
@@ -636,7 +636,7 @@ suspend inline fun <T, R> List<T>.tryFoldIndexedParallelly(
 suspend inline fun <T, R> List<T>.tryFoldIndexedParallelly(
     concurrentAmount: UInt64,
     initial: R,
-    crossinline extractor: TryIndexedExtractor<R, T>,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>,
     crossinline operation: (index: Int, acc: R, R) -> Ret<R>
 ): Ret<R> {
     var error: Error? = null

@@ -8,7 +8,7 @@ import org.ktorm.schema.typeRef
 
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
     destination: C,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     return this.filterIndexedToParallelly(UInt64.ten, destination, predicate)
 }
@@ -16,7 +16,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToP
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
@@ -41,7 +41,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToP
 
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexedToParallelly(
     destination: C,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     return this.tryFilterIndexedToParallelly(UInt64.ten, destination, predicate)
 }
@@ -49,7 +49,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexed
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexedToParallelly(
     segment: UInt64,
     destination: C,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     var error: Error? = null
 
@@ -92,7 +92,7 @@ suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexed
 
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedToParallelly(
     destination: C,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     return (this as Iterable<T>).filterIndexedToParallelly(
         defaultConcurrentAmount,
@@ -104,14 +104,14 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedT
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.filterIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     return (this as Iterable<T>).filterIndexedToParallelly(this.usize / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterIndexedToParallelly(
     destination: C,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFilterIndexedToParallelly(
         defaultConcurrentAmount,
@@ -123,14 +123,14 @@ suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterIndex
 suspend inline fun <T, C : MutableCollection<in T>> Collection<T>.tryFilterIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     return (this as Iterable<T>).tryFilterIndexedToParallelly(this.usize / concurrentAmount, destination, predicate)
 }
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParallelly(
     destination: C,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     return this.filterIndexedToParallelly(
         defaultConcurrentAmount,
@@ -142,7 +142,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParal
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: IndexedPredicate<T>
+    crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     return coroutineScope {
         val promises = ArrayList<Deferred<List<T>>>()
@@ -166,7 +166,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.filterIndexedToParal
 
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterIndexedToParallelly(
     destination: C,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     return this.tryFilterIndexedToParallelly(
         defaultConcurrentAmount,
@@ -178,7 +178,7 @@ suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterIndexedToPa
 suspend inline fun <T, C : MutableCollection<in T>> List<T>.tryFilterIndexedToParallelly(
     concurrentAmount: UInt64,
     destination: C,
-    crossinline predicate: TryIndexedPredicate<T>
+    crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     var error: Error? = null
 

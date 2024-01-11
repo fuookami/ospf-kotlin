@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): Pair<T, T> {
     return this.minMaxByParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByParallelly(
     segment: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): Pair<T, T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<Pair<T, R>, Pair<T, R>>?>>()
@@ -63,14 +63,14 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
     return this.tryMinMaxByParallelly(UInt64.ten, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
     segment: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
     var error: Error? = null
 
@@ -142,7 +142,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxByParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): Pair<T, T> {
     return (this as Iterable<T>).minMaxByParallelly(
         defaultConcurrentAmount,
@@ -152,13 +152,13 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxByParallelly(
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.minMaxByParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): Pair<T, T> {
     return (this as Iterable<T>).minMaxByParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMaxByParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
     return (this as Iterable<T>).tryMinMaxByParallelly(
         defaultConcurrentAmount,
@@ -168,13 +168,13 @@ suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMaxByParallelly(
 
 suspend inline fun <T, R : Comparable<R>> Collection<T>.tryMinMaxByParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
     return (this as Iterable<T>).tryMinMaxByParallelly(this.usize / concurrentAmount, extractor)
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.minMaxByParallelly(
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): Pair<T, T> {
     return this.minMaxByParallelly(
         defaultConcurrentAmount,
@@ -184,7 +184,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.minMaxByParallelly(
 
 suspend inline fun <T, R : Comparable<R>> List<T>.minMaxByParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: Extractor<R, T>
+    crossinline extractor: SuspendExtractor<R, T>
 ): Pair<T, T> {
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<Pair<T, R>, Pair<T, R>>?>>()
@@ -235,7 +235,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.minMaxByParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> List<T>.tryMinMaxByParallelly(
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
     return this.tryMinMaxByParallelly(
         defaultConcurrentAmount,
@@ -245,7 +245,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.tryMinMaxByParallelly(
 
 suspend inline fun <T, R : Comparable<R>> List<T>.tryMinMaxByParallelly(
     concurrentAmount: UInt64,
-    crossinline extractor: TryExtractor<R, T>
+    crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
     var error: Error? = null
 

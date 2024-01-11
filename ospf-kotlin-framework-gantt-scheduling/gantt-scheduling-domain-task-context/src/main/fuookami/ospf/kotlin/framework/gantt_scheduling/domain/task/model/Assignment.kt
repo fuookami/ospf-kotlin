@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrasturcutre.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 open class AssignmentPolicy<E : Executor>(
     val executor: E? = null,

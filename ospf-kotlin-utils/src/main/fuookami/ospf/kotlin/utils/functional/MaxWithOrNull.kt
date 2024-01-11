@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.functional
 
-fun <T> Iterable<T>.maxWithComparatorOrNull(comparator: Comparator<T>): T? {
+inline fun <T> Iterable<T>.maxWithComparatorOrNull(
+    crossinline comparator: Comparator<T>
+): T? {
     return this.maxOfWithOrNull({ lhs: T, rhs: T ->
         if (comparator(lhs, rhs)) {
             -1
@@ -12,7 +14,9 @@ fun <T> Iterable<T>.maxWithComparatorOrNull(comparator: Comparator<T>): T? {
     }) { it }
 }
 
-fun <T> Iterable<T>.maxWithPartialComparatorOrNull(comparator: PartialComparator<T>): T? {
+inline fun <T> Iterable<T>.maxWithPartialComparatorOrNull(
+    crossinline comparator: PartialComparator<T>
+): T? {
     return this.maxOfWithOrNull({ lhs: T, rhs: T ->
         if (comparator(lhs, rhs) == true) {
             -1
@@ -24,13 +28,17 @@ fun <T> Iterable<T>.maxWithPartialComparatorOrNull(comparator: PartialComparator
     }) { it }
 }
 
-fun <T> Iterable<T>.maxWithThreeWayComparatorOrNull(comparator: ThreeWayComparator<T>): T? {
+inline fun <T> Iterable<T>.maxWithThreeWayComparatorOrNull(
+    crossinline comparator: ThreeWayComparator<T>
+): T? {
     return this.maxOfWithOrNull({ lhs: T, rhs: T ->
         comparator(lhs, rhs).value
     }) { it }
 }
 
-fun <T> Iterable<T>.maxWithPartialThreeWayComparatorOrNull(comparator: PartialThreeWayComparator<T>): T? {
+inline fun <T> Iterable<T>.maxWithPartialThreeWayComparatorOrNull(
+    crossinline comparator: PartialThreeWayComparator<T>
+): T? {
     return this.maxOfWithOrNull({ lhs: T, rhs: T ->
         comparator(lhs, rhs)?.value ?: 0
     }) { it }

@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrasturcutre.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 data class ResourceCapacity(
     val time: TimeRange,

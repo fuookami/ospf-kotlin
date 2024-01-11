@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.infrasturcutre
+package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.time.*
 import kotlinx.datetime.*

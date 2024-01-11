@@ -5,7 +5,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrasturcutre.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 open class TaskBunch<E : Executor> internal constructor(
     val executor: E,
