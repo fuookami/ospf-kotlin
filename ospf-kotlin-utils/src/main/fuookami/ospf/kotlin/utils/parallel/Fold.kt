@@ -214,16 +214,18 @@ suspend inline fun <T, R> Iterable<T>.tryFoldParallelly(
                         if (error != null) {
                             lhs
                         } else {
-                            when (val ret = operation(lhs, when (val ret = extractor(rhs)) {
-                                is Ok -> {
-                                    ret.value
-                                }
+                            when (val ret = operation(
+                                lhs, when (val ret = extractor(rhs)) {
+                                    is Ok -> {
+                                        ret.value
+                                    }
 
-                                is Failed -> {
-                                    error = ret.error
-                                    return@fold lhs
+                                    is Failed -> {
+                                        error = ret.error
+                                        return@fold lhs
+                                    }
                                 }
-                            })) {
+                            )) {
                                 is Ok -> {
                                     ret.value
                                 }
@@ -603,16 +605,18 @@ suspend inline fun <T, R> List<T>.tryFoldParallelly(
                             if (error != null) {
                                 lhs
                             } else {
-                                when (val ret = operation(lhs, when (val ret = extractor(rhs)) {
-                                    is Ok -> {
-                                        ret.value
-                                    }
+                                when (val ret = operation(
+                                    lhs, when (val ret = extractor(rhs)) {
+                                        is Ok -> {
+                                            ret.value
+                                        }
 
-                                    is Failed -> {
-                                        error = ret.error
-                                        return@fold lhs
+                                        is Failed -> {
+                                            error = ret.error
+                                            return@fold lhs
+                                        }
                                     }
-                                })) {
+                                )) {
                                     is Ok -> {
                                         ret.value
                                     }

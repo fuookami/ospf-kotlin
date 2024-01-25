@@ -31,14 +31,14 @@ def gen_variantn_function(i):
     for j in range(i):
         code += \
             """
-                fun is%d() = this is V%d;
+                val is%d get() = this is V%d;
             
-                fun get%d() = when (this) {
+                val v%d get() = when (this) {
                     is V%d -> { this.value }
                     else -> { null }
                 }
             
-                fun <Ret> if%d(callBack: (T%d) -> Ret) = Variant%dMatcher<%s, Ret>(this).if%d(callBack);
+                fun <Ret> if%d(extractor: Extractor<Ret, T%d>) = Variant%dMatcher<%s, Ret>(this).if%d(callBack)
             """ % (j + 1, j + 1, j + 1, j + 1, j + 1, j + 1, i, gen_variantn_generic_parameter(i), j + 1)
     return code
 
@@ -87,7 +87,7 @@ def gen_variantn_call_back_invoke(i):
 def gen_variantn_matcher_code(i):
     code = \
         """
-        class Variant%dMatcher<%s, Ret>(private val value: Variant%d<%s>) {
+        data class Variant%dMatcher<%s, Ret>(private val value: Variant%d<%s>) {
             %s
             %s
             @Throws(NullPointerException::class)

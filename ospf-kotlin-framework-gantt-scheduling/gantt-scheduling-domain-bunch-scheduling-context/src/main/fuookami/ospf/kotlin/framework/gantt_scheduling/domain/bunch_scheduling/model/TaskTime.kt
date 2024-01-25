@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model
 
 import kotlin.time.*
 import kotlinx.coroutines.*
@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.Compilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 
 open class TaskTime<E : Executor>(
@@ -97,9 +98,9 @@ open class TaskTime<E : Executor>(
             est = LinearSymbols1("est", Shape1(tasks.size))
             for (task in tasks) {
                 est[task] = if (withRedundancy) {
-                    LinearSymbol(LinearPolynomial(redundancy[task]!!), "${est.name}_${task}")
+                    LinearExpressionSymbol(LinearPolynomial(redundancy[task]!!), "${est.name}_${task}")
                 } else {
-                    LinearSymbol(LinearPolynomial(), "${est.name}_${task}")
+                    LinearExpressionSymbol(LinearPolynomial(), "${est.name}_${task}")
                 }
             }
         }
@@ -109,9 +110,9 @@ open class TaskTime<E : Executor>(
             ect = LinearSymbols1("ect", Shape1(tasks.size))
             for (task in tasks) {
                 ect[task] = if (withRedundancy) {
-                    LinearSymbol(LinearPolynomial(redundancy[task]!!), "${ect.name}_${task}")
+                    LinearExpressionSymbol(LinearPolynomial(redundancy[task]!!), "${ect.name}_${task}")
                 } else {
-                    LinearSymbol(LinearPolynomial(), "${ect.name}_${task}")
+                    LinearExpressionSymbol(LinearPolynomial(), "${ect.name}_${task}")
                 }
             }
         }
@@ -138,11 +139,11 @@ open class TaskTime<E : Executor>(
                 val actualTask = bunch.get(task) ?: continue
                 val time = actualTask.time!!
 
-                val est = this.est[task] as LinearSymbol
+                val est = this.est[task] as LinearExpressionSymbol
                 est.flush()
                 (est.polynomial as LinearPolynomial) += timeWindow.dump(time.start) * xi[bunch]!!
 
-                val ect = this.ect[task] as LinearSymbol
+                val ect = this.ect[task] as LinearExpressionSymbol
                 ect.flush()
                 (ect.polynomial as LinearPolynomial) += timeWindow.dump(time.end) * xi[bunch]!!
             }
@@ -164,8 +165,8 @@ open class TaskTime<E : Executor>(
 
     private fun flush(tasks: List<Task<E>>) {
         for (task in tasks) {
-            (est[task] as LinearSymbol).cells
-            (ect[task] as LinearSymbol).cells
+            (est[task] as LinearExpressionSymbol).cells
+            (ect[task] as LinearExpressionSymbol).cells
         }
     }
 }

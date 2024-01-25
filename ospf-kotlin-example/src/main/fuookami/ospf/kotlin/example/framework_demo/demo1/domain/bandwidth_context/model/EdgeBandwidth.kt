@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_conte
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -22,25 +21,29 @@ class EdgeBandwidth(
             y = UIntVariable2("y", Shape2(edges.size, services.size))
             for (service in services) {
                 for (edge in edges.asSequence().filter(from(normal))) {
-                    y[edge, service]!!.name = "${y.name}_${edge}_$service"
-                    y[edge, service]!!.range.leq(edge.maxBandwidth)
+                    y[edge, service].name = "${y.name}_${edge}_$service"
+                    y[edge, service].range.leq(edge.maxBandwidth)
                 }
                 for (edge in edges.asSequence().filter(!from(normal))) {
-                    y[edge, service]!!.range.eq(UInt64.zero)
+                    y[edge, service].range.eq(UInt64.zero)
                 }
             }
         }
         model.addVars(y)
 
         if (!this::bandwidth.isInitialized) {
-            bandwidth = LinearSymbols1("bandwidth", Shape1(edges.size))
-            for (edge in edges.asSequence().filter(from(normal))) {
-                val poly = LinearPolynomial()
-                for (service in services) {
-                    poly += y[edge, service]!!
-                }
-                bandwidth[edge] = LinearSymbol(poly, "${bandwidth.name}_$edge")
-            }
+            bandwidth = flatMap(
+                "bandwidth",
+                edges,
+                { e ->
+                    if (e.from is NormalNode) {
+                        sum(y[e, _a])
+                    } else {
+                        LinearPolynomial()
+                    }
+                },
+                { (_, e) -> "$e" }
+            )
         }
         model.addSymbols(bandwidth)
 

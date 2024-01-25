@@ -10,7 +10,7 @@ interface Pipeline<M : ModelInterface> {
     val name: String
 
     fun register(model: M) {
-        if (model is MetaModel<*>) {
+        if (model is MetaModel<*, *, *>) {
             model.registerConstraintGroup(name)
         }
     }
@@ -18,8 +18,9 @@ interface Pipeline<M : ModelInterface> {
     operator fun invoke(model: M): Try
 }
 
-interface CGPipeline<Model : MetaModel<*>, Map : AbstractShadowPriceMap<Map>> : Pipeline<Model> {
-    fun extractor(): ShadowPriceExtractor<Map>? {
+interface CGPipeline<Args : Any, Model : MetaModel<*, *, *>, Map : AbstractShadowPriceMap<Args, Map>> :
+    Pipeline<Model> {
+    fun extractor(): ShadowPriceExtractor<Args, Map>? {
         return null
     }
 
@@ -75,5 +76,5 @@ operator fun <M : ModelInterface> PipelineList<M>.invoke(model: M): Try {
     return Ok(success)
 }
 
-typealias CGPipelineList<Model, Map> = List<CGPipeline<Model, Map>>
+typealias CGPipelineList<Args, Model, Map> = List<CGPipeline<Args, Model, Map>>
 typealias HAPipelineList<M> = List<HAPipeline<M>>

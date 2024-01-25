@@ -1,5 +1,9 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.math.*
+import kotlin.reflect.KClass
+
 class DimensionMismatchingException(
     val dimension: Int,
     val vectorDimension: Int
@@ -15,23 +19,92 @@ class OutOfShapeException(
     override val message: String = "Length of dimension $dimension is $length, but it get $vectorIndex."
 }
 
+class UnknownDummyIndexTypeException(
+    val cls: KClass<*>
+) : Throwable() {
+    override val message: String = "Unknown dummy index type: $cls."
+}
+
 interface Shape {
     val dimension: Int
     val size: Int
+    val indices get() = 0 until dimension
 
     operator fun get(index: Int): Int
     fun index(vector: IntArray): Int
     fun vector(index: Int): IntArray
+
+    fun next(vector: IntArray): IntArray? {
+        val temp = vector.clone()
+        var i = dimension - 1
+        while (i >= 0) {
+            if (this[i] == 0 || temp[i] == (this[i] - 1)) {
+                temp[i] = 0
+            } else {
+                temp[i] = temp[i] + 1
+                return temp
+            }
+            --i
+        }
+        return null
+    }
+
+    fun dummyVector(vararg v: Any): DummyVector {
+        if (v.size != dimension) {
+            throw DimensionMismatchingException(dimension, v.size)
+        }
+        val vector = ArrayList<DummyIndex>()
+        for (i in indices) {
+            when (val index = v[i]) {
+                _a -> {
+                    vector.add(DummyIndex(null))
+                }
+
+                is IntRange -> {
+                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last), UInt64)))
+                }
+
+                is IntegerRange<*> -> {
+                    vector.add(
+                        DummyIndex(
+                            ValueRange(
+                                (index.first as RealNumber<*>).toUInt64(),
+                                (index.last as RealNumber<*>).toUInt64() - UInt64.one,
+                                UInt64
+                            )
+                        )
+                    )
+                }
+
+                is Int -> {
+                    vector.add(DummyIndex(ValueRange(UInt64(index), UInt64(index), UInt64)))
+                }
+
+                is Indexed -> {
+                    vector.add(DummyIndex(ValueRange(UInt64(index.index), UInt64(index.index), UInt64)))
+                }
+
+                is Integer<*> -> {
+                    vector.add(DummyIndex(ValueRange(index.toUInt64(), index.toUInt64() + UInt64.one, UInt64)))
+                }
+
+                else -> {
+                    throw UnknownDummyIndexTypeException(index.javaClass.kotlin)
+                }
+            }
+        }
+        return vector
+    }
 }
 
 data class Shape1(private val d1: Int) : Shape {
     override val dimension = 1
-    override val size get() = d1
+    override val size by ::d1
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     override operator fun get(index: Int): Int {
         return when (index) {
-            1 -> d1
+            0 -> d1
             else -> throw ArrayIndexOutOfBoundsException("Total size is $d1, but it get $index")
         }
     }
@@ -60,14 +133,14 @@ data class Shape1(private val d1: Int) : Shape {
 }
 
 data class Shape2(private val d1: Int, private val d2: Int) : Shape {
-    private val totalSize = d1 * d2
+    private val totalSize by lazy { d1 * d2 }
     override val dimension = 2
     override val size get() = totalSize
 
     override operator fun get(index: Int): Int {
         return when (index) {
-            1 -> d1
-            2 -> d2
+            0 -> d1
+            1 -> d2
             else -> throw ArrayIndexOutOfBoundsException("")
         }
     }
@@ -103,9 +176,9 @@ data class Shape3(private val d1: Int, private val d2: Int, private val d3: Int)
 
     override operator fun get(index: Int): Int {
         return when (index) {
-            1 -> d1
-            2 -> d2
-            3 -> d3
+            0 -> d1
+            1 -> d2
+            2 -> d3
             else -> throw ArrayIndexOutOfBoundsException("")
         }
     }
@@ -151,10 +224,10 @@ data class Shape4(private val d1: Int, private val d2: Int, private val d3: Int,
 
     override operator fun get(index: Int): Int {
         return when (index) {
-            1 -> d1
-            2 -> d2
-            3 -> d3
-            4 -> d4
+            0 -> d1
+            1 -> d2
+            2 -> d3
+            3 -> d4
             else -> throw ArrayIndexOutOfBoundsException("")
         }
     }

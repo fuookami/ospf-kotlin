@@ -22,7 +22,7 @@ sealed class Error {
     }
 }
 
-class Err(
+open class Err(
     override val code: ErrorCode,
     override val message: String
 ) : Error() {
@@ -37,7 +37,7 @@ class Err(
     }
 }
 
-class ExErr<T>(
+open class ExErr<T>(
     override val code: ErrorCode,
     override val message: String,
     override val value: T

@@ -1,48 +1,55 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.mip
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.mip.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-open class Aggregation<E : Executor>(
+interface TaskSchedulingAggregation {
+    val compilation: Compilation
+    val taskTime: TaskTime
+    val makespan: Makespan
+}
+
+class Aggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+    timeWindow: TimeWindow,
+    tasks: List<T>,
+    executors: List<E>,
+    lockCancelTasks: Set<T> = emptySet(),
+    estimateEndTimeCalculator: (T, LinearPolynomial) -> LinearPolynomial,
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
     delayEnabled: Boolean = false,
     advanceEnabled: Boolean = false,
-    overExpirationTimeEnabled: Boolean = false,
+    delayLastEndTimeEnabled: Boolean = false,
+    advanceEarliestEndTimeEnabled: Boolean = false,
     makespanExtra: Boolean = false
-) {
-    open val compilation: Compilation<E> = Compilation(taskCancelEnabled, withExecutorLeisure)
-    open val taskTime: TaskTime<E> = TaskTime(delayEnabled, advanceEnabled, overExpirationTimeEnabled)
-    open val makespan: Makespan<E> = Makespan(makespanExtra)
+) : TaskSchedulingAggregation {
+    override val compilation: TaskCompilation<T, E, A> =
+        TaskCompilation(tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
+    override val taskTime: TaskSchedulingTaskTime<T, E, A> =
+        TaskSchedulingTaskTime(timeWindow, tasks, compilation, estimateEndTimeCalculator, delayEnabled, advanceEnabled, delayLastEndTimeEnabled, advanceEarliestEndTimeEnabled)
+    override val makespan: TaskSchedulingMakespan<T, E, A> =
+        TaskSchedulingMakespan(tasks, taskTime, makespanExtra)
 
-    open fun register(
-        timeWindow: TimeWindow,
-        tasks: List<Task<E>>,
-        executors: List<E>,
-        ectCalculator: (task: Task<E>, est: Item<*, *>) -> LinearSymbol,
-        lockCancelTasks: Set<Task<E>> = emptySet(),
-        model: LinearMetaModel
-    ): Try {
-        when (val result = compilation.register(tasks, executors, lockCancelTasks, model)) {
+    fun register(model: LinearMetaModel): Try {
+        when (val result = compilation.register(model)) {
             is Ok -> {}
             is Failed -> {
                 return Failed(result.error)
             }
         }
 
-        when (val result = taskTime.register(timeWindow, tasks, ectCalculator, model)) {
+        when (val result = taskTime.register(model)) {
             is Ok -> {}
             is Failed -> {
                 return Failed(result.error)
             }
         }
 
-        when (val result = makespan.register(tasks, taskTime, model)) {
+        when (val result = makespan.register(model)) {
             is Ok -> {}
             is Failed -> {
                 return Failed(result.error)

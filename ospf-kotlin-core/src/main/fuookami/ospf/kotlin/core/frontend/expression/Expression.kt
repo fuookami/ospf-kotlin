@@ -1,102 +1,154 @@
 package fuookami.ospf.kotlin.core.frontend.expression
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 
-interface Expression {
-    var name: String
-    var displayName: String?
-    val possibleRange: ValueRange<Flt64>
-    var range: ValueRange<Flt64>
+open class ExpressionRange<V>(
+    private var _range: ValueRange<V>,
+    private val constants: RealNumberConstants<V>
+) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(constants: RealNumberConstants<V>) : this(
+        _range = ValueRange(
+            constants.minimum,
+            constants.maximum,
+            IntervalType.Closed,
+            IntervalType.Closed,
+            constants
+        ),
+        constants = constants
+    )
 
-    fun intersectRange(range: ValueRange<Flt64>): Boolean
+    val range by ::_range
+    val valueRange: ValueRange<Flt64>
+        get() = ValueRange(
+            range.lowerBound.toFlt64(),
+            range.upperBound.toFlt64(),
+            range.lowerInterval,
+            range.upperInterval,
+            Flt64
+        )
 
-    fun rangeLess(value: Flt64): Boolean
-    fun rangeLessEqual(value: Flt64): Boolean
-    fun rangeGreater(value: Flt64): Boolean
-    fun rangeGreaterEqual(value: Flt64): Boolean
+    val lowerBound: ValueWrapper<V>?
+        get() = if (empty) {
+            null
+        } else {
+            range.lowerBound
+        }
+
+    val upperBound: ValueWrapper<V>?
+        get() = if (empty) {
+            null
+        } else {
+            range.upperBound
+        }
+
+    val lowerInterval by range::lowerInterval
+    val upperInterval by range::upperInterval
+
+    val empty by range::empty
+    val fixed by range::fixed
+    val fixedValue by range::fixedValue
+
+    private var _set: Boolean = false
+    internal val set: Boolean = true
+
+    fun set(range: ValueRange<V>) {
+        _set = true
+        _range = range
+    }
+
+    fun intersectWith(range: ValueRange<V>): Boolean {
+        _set = true
+        _range = _range.intersect(range)
+        return !_range.empty
+    }
+
+    infix fun ls(value: Invariant<V>): Boolean {
+        return if (range.empty) {
+            false
+        } else {
+            intersectWith(
+                ValueRange(
+                    lowerBound!!,
+                    ValueWrapper(value.value(), constants),
+                    IntervalType.Closed,
+                    IntervalType.Closed,
+                    constants
+                )
+            )
+        }
+    }
+
+    infix fun leq(value: Invariant<V>): Boolean {
+        return ls(value)
+    }
+
+    infix fun gr(value: Invariant<V>): Boolean {
+        return if (range.empty) {
+            false
+        } else {
+            intersectWith(
+                ValueRange(
+                    ValueWrapper(value.value(), constants),
+                    upperBound!!,
+                    IntervalType.Closed,
+                    IntervalType.Closed,
+                    constants
+                )
+            )
+        }
+    }
+
+    infix fun geq(value: Invariant<V>): Boolean {
+        return gr(value)
+    }
+
+    infix fun eq(value: Invariant<V>): Boolean {
+        return if (range.empty) {
+            false
+        } else {
+            intersectWith(
+                ValueRange(
+                    ValueWrapper(value.value(), constants),
+                    ValueWrapper(value.value(), constants),
+                    IntervalType.Closed,
+                    IntervalType.Closed,
+                    constants
+                )
+            )
+        }
+    }
+
+    fun intersectWith(lb: Invariant<V>, ub: Invariant<V>): Boolean {
+        return if (range.empty) {
+            false
+        } else {
+            intersectWith(
+                ValueRange(
+                    ValueWrapper(lb.value(), constants),
+                    ValueWrapper(ub.value(), constants),
+                    IntervalType.Closed,
+                    IntervalType.Closed,
+                    constants
+                )
+            )
+        }
+    }
 }
 
-internal class ExpressionImpl(
-    private val possibleValueRangeGenerator: () -> ValueRange<Flt64>
-) {
-    val possibleRange: ValueRange<Flt64>
-        get() {
-            if (!this::_possibleRange.isInitialized) {
-                _possibleRange = possibleValueRangeGenerator()
-            }
-            return _possibleRange
-        }
-    var range: ValueRange<Flt64>
-        get() {
-            if (!this::_range.isInitialized) {
-                _range = possibleRange.clone()
-            }
-            return _range
-        }
-        set(value) {
-            _range = value
-        }
-    private lateinit var _possibleRange: ValueRange<Flt64>
-    private lateinit var _range: ValueRange<Flt64>
+interface Expression {
+    /** for lp **/
+    var name: String
 
-    fun intersectRange(range: ValueRange<Flt64>): Boolean {
-        _range = _range.intersect(range)
-        return !_range.empty()
-    }
+    /** for opm */
+    var displayName: String?
 
-    fun rangeLess(value: Flt64) = if (range.empty()) {
-        false
-    } else {
-        intersectRange(
-            ValueRange(
-                range.lowerBound,
-                ValueWrapper(value, Flt64),
-                range.lowerInterval,
-                IntervalType.Open,
-                Flt64
-            )
-        )
-    }
+    val discrete: Boolean get() = false
 
-    fun rangeLessEqual(value: Flt64) = if (range.empty()) {
-        false
-    } else {
-        intersectRange(
-            ValueRange(
-                range.lowerBound,
-                ValueWrapper(value, Flt64),
-                range.lowerInterval,
-                IntervalType.Closed,
-                Flt64
-            )
-        )
-    }
+    val range: ExpressionRange<Flt64>
+    val lowerBound: Flt64 get() = range.lowerBound?.toFlt64() ?: Flt64.minimum
+    val upperBound: Flt64 get() = range.upperBound?.toFlt64() ?: Flt64.maximum
 
-    fun rangeGreater(value: Flt64) = if (range.empty()) {
-        false
-    } else {
-        intersectRange(
-            ValueRange(
-                ValueWrapper(value, Flt64),
-                range.upperBound,
-                IntervalType.Open,
-                range.upperInterval,
-                Flt64
-            )
-        )
-    }
-
-    fun rangeGreaterEqual(value: Flt64) = if (range.empty()) {
-        false
-    } else {
-        intersectRange(
-            ValueRange(
-                ValueWrapper(value, Flt64),
-                range.upperBound,
-                IntervalType.Closed,
-                range.upperInterval,
-                Flt64
-            )
-        )
-    }
+    fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+    fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
 }

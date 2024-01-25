@@ -2,9 +2,7 @@ package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.*
 
-private fun Char.isAlphaNumber(): Boolean {
-    return isLowerCase() || isUpperCase() || isDigit()
-}
+private val Char.isAlphaNumber: Boolean get() = isLowerCase() || isUpperCase() || isDigit()
 
 enum class NamingSystem {
     /**
@@ -16,7 +14,7 @@ enum class NamingSystem {
                 return emptyList()
             }
 
-            assert(name.all { it.isAlphaNumber() || it == '_' })
+            assert(name.all { it.isAlphaNumber || it == '_' })
             return name.split("_").map { it.lowercase(Locale.getDefault()) }
         }
 
@@ -47,7 +45,7 @@ enum class NamingSystem {
                 return emptyList()
             }
 
-            assert(name.all { it.isAlphaNumber() || it == '-' })
+            assert(name.all { it.isAlphaNumber || it == '-' })
             return name.split("-").map { it.lowercase(Locale.getDefault()) }
         }
 
@@ -65,7 +63,7 @@ enum class NamingSystem {
                 return emptyList()
             }
 
-            assert(name.all { it.isAlphaNumber() })
+            assert(name.all { it.isAlphaNumber })
             var p = 0
             var q = 1
             var currentAbbreviation: String? = null

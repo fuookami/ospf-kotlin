@@ -159,20 +159,20 @@ class BasicLinearTriadModel(
         }
         writer.append("\n")
 
-        if (containsBinary()) {
+        if (containsBinary) {
             writer.append("Binaries\n")
             for (variable in variables) {
-                if (variable.type.isBinaryType()) {
+                if (variable.type.isBinaryType) {
                     writer.append(" $variable")
                 }
             }
             writer.append("\n")
         }
 
-        if (containsNotBinaryInteger()) {
+        if (containsNotBinaryInteger) {
             writer.append("Generals\n")
             for (variable in variables) {
-                if (variable.type.isNotBinaryIntegerType()) {
+                if (variable.type.isNotBinaryIntegerType) {
                     writer.append(" $variable")
                 }
             }
@@ -197,7 +197,7 @@ data class LinearTriadModel(
     companion object {
         suspend operator fun invoke(model: LinearModel): LinearTriadModel {
             val tokens = model.tokens.tokens
-            val solverIndexes = model.tokens.solverIndexMap
+            val tokenIndexes = model.tokens.tokenIndexMap
 
             return coroutineScope {
                 val variablePromise = async(Dispatchers.Default) {
@@ -206,7 +206,7 @@ data class LinearTriadModel(
                         variables.add(null)
                     }
                     for (token in tokens) {
-                        val index = solverIndexes[token.solverIndex]!!
+                        val index = tokenIndexes[token]!!
                         variables[index] = Variable(
                             index,
                             token.lowerBound,
@@ -230,7 +230,7 @@ data class LinearTriadModel(
                             lhs.add(
                                 LinearConstraintCell(
                                     index,
-                                    solverIndexes[temp.token.solverIndex]!!,
+                                    tokenIndexes[temp.token]!!,
                                     temp.coefficient
                                 )
                             )
@@ -242,18 +242,26 @@ data class LinearTriadModel(
                     LinearConstraint(lhs, signs, rhs, names)
                 }
 
+                val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
+                    model.objectFunction.subObjects.first().category
+                } else {
+                    model.objectFunction.category
+                }
+
                 val objectivePromise = async(Dispatchers.Default) {
                     val coefficient = tokens.indices.map { Flt64.zero }.toMutableList()
                     for (subObject in model.objectFunction.subObjects) {
-                        if (subObject.category == model.objectFunction.category) {
+                        if (subObject.category == objectiveCategory) {
                             for (cell in subObject.cells) {
                                 val temp = cell as LinearCell
-                                coefficient[solverIndexes[temp.token.solverIndex]!!] = coefficient[solverIndexes[temp.token.solverIndex]!!] + temp.coefficient
+                                coefficient[tokenIndexes[temp.token]!!] =
+                                    coefficient[tokenIndexes[temp.token]!!] + temp.coefficient
                             }
                         } else {
                             for (cell in subObject.cells) {
                                 val temp = cell as LinearCell
-                                coefficient[solverIndexes[temp.token.solverIndex]!!] = coefficient[solverIndexes[temp.token.solverIndex]!!] - temp.coefficient
+                                coefficient[tokenIndexes[temp.token]!!] =
+                                    coefficient[tokenIndexes[temp.token]!!] - temp.coefficient
                             }
                         }
                     }
@@ -277,7 +285,7 @@ data class LinearTriadModel(
                         constraintPromise.await(),
                         model.name
                     ),
-                    LinearObjective(model.objectFunction.category, objectivePromise.await())
+                    LinearObjective(objectiveCategory, objectivePromise.await())
                 )
             }
         }
@@ -383,7 +391,7 @@ data class LinearTriadModel(
             } else {
                 cell.coefficient
             }
-            if (coefficient neq Flt64.one) {
+            if (coefficient neq Flt64.zero) {
                 if (coefficient neq Flt64.one) {
                     writer.append("$coefficient ")
                 }

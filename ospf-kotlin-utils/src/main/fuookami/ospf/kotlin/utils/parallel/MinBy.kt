@@ -60,17 +60,19 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByParallelly(
                 promises.add(async(Dispatchers.Default) {
                     thisSegment
                         .map {
-                            Pair(it, when (val result = extractor(it)) {
-                                is Ok -> {
-                                    result.value
-                                }
+                            Pair(
+                                it, when (val result = extractor(it)) {
+                                    is Ok -> {
+                                        result.value
+                                    }
 
-                                is Failed -> {
-                                    error = result.error
-                                    cancel()
-                                    return@async null
+                                    is Failed -> {
+                                        error = result.error
+                                        cancel()
+                                        return@async null
+                                    }
                                 }
-                            })
+                            )
                         }
                         .minByOrNull { it.second }
                 })
@@ -179,17 +181,21 @@ suspend inline fun <T, R : Comparable<R>> List<T>.tryMinByParallelly(
                 )
                 promises.add(async(Dispatchers.Default) {
                     this@tryMinByParallelly.subList(j, k)
-                        .map { Pair(it, when (val result = extractor(it)) {
-                            is Ok -> {
-                                result.value
-                            }
+                        .map {
+                            Pair(
+                                it, when (val result = extractor(it)) {
+                                    is Ok -> {
+                                        result.value
+                                    }
 
-                            is Failed -> {
-                                error = result.error
-                                cancel()
-                                return@async null
-                            }
-                        }) }
+                                    is Failed -> {
+                                        error = result.error
+                                        cancel()
+                                        return@async null
+                                    }
+                                }
+                            )
+                        }
                         .minByOrNull { it.second }
                 })
                 i = k

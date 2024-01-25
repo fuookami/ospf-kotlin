@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
 import java.util.*
-import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -28,11 +26,12 @@ object InitialSolutionGenerator {
 }
 
 class SP {
-    private val solver: ColumnGenerationSolver = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
-        CplexColumnGenerationSolver()
-    } else {
-        GurobiColumnGenerationSolver()
-    }
+    private val solver: ColumnGenerationSolver =
+        if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+            CplexColumnGenerationSolver()
+        } else {
+            GurobiColumnGenerationSolver()
+        }
 
     suspend operator fun invoke(
         iteration: UInt64,
@@ -44,23 +43,14 @@ class SP {
 
         val y = UIntVariable1("y", Shape1(products.size))
         for (product in products) {
-            y[product]!!.name = "${y.name}_${product.index}"
+            y[product].name = "${y.name}_${product.index}"
         }
         model.addVars(y)
 
-        val usePoly = LinearPolynomial()
-        for (product in products) {
-            usePoly += product.length * y[product]!!
-        }
-        val use = LinearSymbol(usePoly, "use")
+        val use = LinearExpressionSymbol(sum(products) { p -> p.length * y[p] }, "use")
         model.addSymbol(use)
 
-        val objPoly = LinearPolynomial(Flt64.one)
-        for (product in products) {
-            objPoly -= shadowPrice(product) * y[product]!!
-        }
-        model.minimize(objPoly)
-
+        model.minimize(Flt64.one - sum(products) { p -> shadowPrice(p) * y[p] })
         model.addConstraint(use leq length, "use")
 
         return when (val result = solver.solveMILP("demo1-sp-$iteration", model)) {

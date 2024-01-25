@@ -4,54 +4,54 @@ import kotlin.reflect.*
 import kotlin.collections.*
 import fuookami.ospf.kotlin.utils.concept.*
 
-sealed class Variant2<T1, T2> {
+sealed class Variant2<T1, T2>() {
+    data class V1<T1, T2>(val value: T1) : Variant2<T1, T2>() {}
+    data class V2<T1, T2>(val value: T2) : Variant2<T1, T2>() {}
 
-    class V1<T1, T2>(val value: T1) : Variant2<T1, T2>()
-    class V2<T1, T2>(val value: T2) : Variant2<T1, T2>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if1(callBack);
+
+    val is2 get() = this is V2;
+
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-    }
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if1(callBack)
-
-    fun is2() = this is V2
-
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if2(callBack)
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if2(callBack);
 
 }
 
-class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
+data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant2Matcher<T1, T2, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant2Matcher<T1, T2, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -66,75 +66,76 @@ class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
     }
 }
 
-sealed class Variant3<T1, T2, T3> {
+sealed class Variant3<T1, T2, T3>() {
+    data class V1<T1, T2, T3>(val value: T1) : Variant3<T1, T2, T3>() {}
+    data class V2<T1, T2, T3>(val value: T2) : Variant3<T1, T2, T3>() {}
+    data class V3<T1, T2, T3>(val value: T3) : Variant3<T1, T2, T3>() {}
 
-    class V1<T1, T2, T3>(val value: T1) : Variant3<T1, T2, T3>()
-    class V2<T1, T2, T3>(val value: T2) : Variant3<T1, T2, T3>()
-    class V3<T1, T2, T3>(val value: T3) : Variant3<T1, T2, T3>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if2(callBack);
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if3(callBack)
+    val is3 get() = this is V3;
+
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if3(callBack);
 
 }
 
-class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, T3>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
+data class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, T3>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant3Matcher<T1, T2, T3, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant3Matcher<T1, T2, T3, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant3Matcher<T1, T2, T3, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -153,96 +154,98 @@ class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, T3>) 
     }
 }
 
-sealed class Variant4<T1, T2, T3, T4> {
+sealed class Variant4<T1, T2, T3, T4>() {
+    data class V1<T1, T2, T3, T4>(val value: T1) : Variant4<T1, T2, T3, T4>() {}
+    data class V2<T1, T2, T3, T4>(val value: T2) : Variant4<T1, T2, T3, T4>() {}
+    data class V3<T1, T2, T3, T4>(val value: T3) : Variant4<T1, T2, T3, T4>() {}
+    data class V4<T1, T2, T3, T4>(val value: T4) : Variant4<T1, T2, T3, T4>() {}
 
-    class V1<T1, T2, T3, T4>(val value: T1) : Variant4<T1, T2, T3, T4>()
-    class V2<T1, T2, T3, T4>(val value: T2) : Variant4<T1, T2, T3, T4>()
-    class V3<T1, T2, T3, T4>(val value: T3) : Variant4<T1, T2, T3, T4>()
-    class V4<T1, T2, T3, T4>(val value: T4) : Variant4<T1, T2, T3, T4>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if2(callBack);
+
+    val is3 get() = this is V3;
+
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-    }
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if3(callBack)
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if4(callBack: (T4) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if4(callBack)
+    fun <Ret> if4(callBack: (T4) -> Ret) = Variant4Matcher<T1, T2, T3, T4, Ret>(this).if4(callBack);
 
 }
 
-class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, T2, T3, T4>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
+data class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, T2, T3, T4>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -265,117 +268,120 @@ class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, T2, T
     }
 }
 
-sealed class Variant5<T1, T2, T3, T4, T5> {
+sealed class Variant5<T1, T2, T3, T4, T5>() {
+    data class V1<T1, T2, T3, T4, T5>(val value: T1) : Variant5<T1, T2, T3, T4, T5>() {}
+    data class V2<T1, T2, T3, T4, T5>(val value: T2) : Variant5<T1, T2, T3, T4, T5>() {}
+    data class V3<T1, T2, T3, T4, T5>(val value: T3) : Variant5<T1, T2, T3, T4, T5>() {}
+    data class V4<T1, T2, T3, T4, T5>(val value: T4) : Variant5<T1, T2, T3, T4, T5>() {}
+    data class V5<T1, T2, T3, T4, T5>(val value: T5) : Variant5<T1, T2, T3, T4, T5>() {}
 
-    class V1<T1, T2, T3, T4, T5>(val value: T1) : Variant5<T1, T2, T3, T4, T5>()
-    class V2<T1, T2, T3, T4, T5>(val value: T2) : Variant5<T1, T2, T3, T4, T5>()
-    class V3<T1, T2, T3, T4, T5>(val value: T3) : Variant5<T1, T2, T3, T4, T5>()
-    class V4<T1, T2, T3, T4, T5>(val value: T4) : Variant5<T1, T2, T3, T4, T5>()
-    class V5<T1, T2, T3, T4, T5>(val value: T5) : Variant5<T1, T2, T3, T4, T5>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if2(callBack);
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if3(callBack)
+    val is3 get() = this is V3;
 
-    fun is4() = this is V4
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if4(callBack: (T4) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if4(callBack)
-
-    fun is5() = this is V5
-
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if3(callBack);
 
-    fun <Ret> if5(callBack: (T5) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if5(callBack)
+    val is4 get() = this is V4;
+
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if4(callBack: (T4) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if4(callBack);
+
+    val is5 get() = this is V5;
+
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if5(callBack: (T5) -> Ret) = Variant5Matcher<T1, T2, T3, T4, T5, Ret>(this).if5(callBack);
 
 }
 
-class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<T1, T2, T3, T4, T5>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
+data class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<T1, T2, T3, T4, T5>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -402,138 +408,142 @@ class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<T1, T
     }
 }
 
-sealed class Variant6<T1, T2, T3, T4, T5, T6> {
+sealed class Variant6<T1, T2, T3, T4, T5, T6>() {
+    data class V1<T1, T2, T3, T4, T5, T6>(val value: T1) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+    data class V2<T1, T2, T3, T4, T5, T6>(val value: T2) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+    data class V3<T1, T2, T3, T4, T5, T6>(val value: T3) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+    data class V4<T1, T2, T3, T4, T5, T6>(val value: T4) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+    data class V5<T1, T2, T3, T4, T5, T6>(val value: T5) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+    data class V6<T1, T2, T3, T4, T5, T6>(val value: T6) : Variant6<T1, T2, T3, T4, T5, T6>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6>(val value: T1) : Variant6<T1, T2, T3, T4, T5, T6>()
-    class V2<T1, T2, T3, T4, T5, T6>(val value: T2) : Variant6<T1, T2, T3, T4, T5, T6>()
-    class V3<T1, T2, T3, T4, T5, T6>(val value: T3) : Variant6<T1, T2, T3, T4, T5, T6>()
-    class V4<T1, T2, T3, T4, T5, T6>(val value: T4) : Variant6<T1, T2, T3, T4, T5, T6>()
-    class V5<T1, T2, T3, T4, T5, T6>(val value: T5) : Variant6<T1, T2, T3, T4, T5, T6>()
-    class V6<T1, T2, T3, T4, T5, T6>(val value: T6) : Variant6<T1, T2, T3, T4, T5, T6>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if2(callBack);
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if3(callBack)
+    val is3 get() = this is V3;
 
-    fun is4() = this is V4
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if4(callBack: (T4) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if4(callBack)
-
-    fun is5() = this is V5
-
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if3(callBack);
+
+    val is4 get() = this is V4;
+
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-    }
 
-    fun <Ret> if5(callBack: (T5) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if5(callBack)
+    fun <Ret> if4(callBack: (T4) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if4(callBack);
 
-    fun is6() = this is V6
+    val is5 get() = this is V5;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if5(callBack: (T5) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if5(callBack);
 
-    fun <Ret> if6(callBack: (T6) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if6(callBack)
+    val is6 get() = this is V6;
+
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if6(callBack: (T6) -> Ret) = Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(this).if6(callBack);
 
 }
 
-class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Variant6<T1, T2, T3, T4, T5, T6>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
+data class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Variant6<T1, T2, T3, T4, T5, T6>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -564,159 +574,164 @@ class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Variant6<T
     }
 }
 
-sealed class Variant7<T1, T2, T3, T4, T5, T6, T7> {
+sealed class Variant7<T1, T2, T3, T4, T5, T6, T7>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7>(val value: T1) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+    data class V2<T1, T2, T3, T4, T5, T6, T7>(val value: T2) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+    data class V3<T1, T2, T3, T4, T5, T6, T7>(val value: T3) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+    data class V4<T1, T2, T3, T4, T5, T6, T7>(val value: T4) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+    data class V5<T1, T2, T3, T4, T5, T6, T7>(val value: T5) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+    data class V6<T1, T2, T3, T4, T5, T6, T7>(val value: T6) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+    data class V7<T1, T2, T3, T4, T5, T6, T7>(val value: T7) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7>(val value: T1) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
-    class V2<T1, T2, T3, T4, T5, T6, T7>(val value: T2) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
-    class V3<T1, T2, T3, T4, T5, T6, T7>(val value: T3) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
-    class V4<T1, T2, T3, T4, T5, T6, T7>(val value: T4) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
-    class V5<T1, T2, T3, T4, T5, T6, T7>(val value: T5) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
-    class V6<T1, T2, T3, T4, T5, T6, T7>(val value: T6) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
-    class V7<T1, T2, T3, T4, T5, T6, T7>(val value: T7) : Variant7<T1, T2, T3, T4, T5, T6, T7>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if2(callBack);
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if3(callBack)
+    val is3 get() = this is V3;
 
-    fun is4() = this is V4
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if4(callBack: (T4) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if4(callBack)
-
-    fun is5() = this is V5
-
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if3(callBack);
 
-    fun <Ret> if5(callBack: (T5) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if5(callBack)
+    val is4 get() = this is V4;
 
-    fun is6() = this is V6
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if6(callBack: (T6) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if6(callBack)
-
-    fun is7() = this is V7
-
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if4(callBack: (T4) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if4(callBack);
 
-    fun <Ret> if7(callBack: (T7) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if7(callBack)
+    val is5 get() = this is V5;
+
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if5(callBack: (T5) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if5(callBack);
+
+    val is6 get() = this is V6;
+
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if6(callBack: (T6) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if6(callBack);
+
+    val is7 get() = this is V7;
+
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if7(callBack: (T7) -> Ret) = Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(this).if7(callBack);
 
 }
 
-class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: Variant7<T1, T2, T3, T4, T5, T6, T7>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
+data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: Variant7<T1, T2, T3, T4, T5, T6, T7>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -751,180 +766,186 @@ class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: Varian
     }
 }
 
-sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8> {
+sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T1) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T2) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T3) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T4) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T5) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T6) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T7) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T8) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T1) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T2) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T3) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T4) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T5) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T6) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T7) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T8) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if2(callBack);
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if3(callBack)
+    val is3 get() = this is V3;
 
-    fun is4() = this is V4
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if4(callBack: (T4) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if4(callBack)
-
-    fun is5() = this is V5
-
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if3(callBack);
 
-    fun <Ret> if5(callBack: (T5) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if5(callBack)
+    val is4 get() = this is V4;
 
-    fun is6() = this is V6
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if6(callBack: (T6) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if6(callBack)
-
-    fun is7() = this is V7
-
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
+    fun <Ret> if4(callBack: (T4) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if4(callBack);
+
+    val is5 get() = this is V5;
+
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-    }
 
-    fun <Ret> if7(callBack: (T7) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if7(callBack)
+    fun <Ret> if5(callBack: (T5) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if5(callBack);
 
-    fun is8() = this is V8
+    val is6 get() = this is V6;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if6(callBack: (T6) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if6(callBack);
 
-    fun <Ret> if8(callBack: (T8) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if8(callBack)
+    val is7 get() = this is V7;
+
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if7(callBack: (T7) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if7(callBack);
+
+    val is8 get() = this is V8;
+
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if8(callBack: (T8) -> Ret) = Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(this).if8(callBack);
 
 }
 
-class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val value: Variant8<T1, T2, T3, T4, T5, T6, T7, T8>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
+data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val value: Variant8<T1, T2, T3, T4, T5, T6, T7, T8>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -963,201 +984,208 @@ class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val value: Va
     }
 }
 
-sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
+sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T1) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T2) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T3) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T4) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T5) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T6) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T7) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T8) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T9) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T1) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T2) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T3) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T4) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T5) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T6) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T7) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T8) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T9) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if1(callBack: (T1) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if1(callBack);
 
-    fun <Ret> if1(callBack: (T1) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if1(callBack)
+    val is2 get() = this is V2;
 
-    fun is2() = this is V2
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if2(callBack: (T2) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if2(callBack)
-
-    fun is3() = this is V3
-
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if2(callBack: (T2) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if2(callBack);
 
-    fun <Ret> if3(callBack: (T3) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if3(callBack)
+    val is3 get() = this is V3;
 
-    fun is4() = this is V4
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if4(callBack: (T4) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if4(callBack)
-
-    fun is5() = this is V5
-
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if3(callBack: (T3) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if3(callBack);
 
-    fun <Ret> if5(callBack: (T5) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if5(callBack)
+    val is4 get() = this is V4;
 
-    fun is6() = this is V6
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if6(callBack: (T6) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if6(callBack)
-
-    fun is7() = this is V7
-
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if4(callBack: (T4) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if4(callBack);
 
-    fun <Ret> if7(callBack: (T7) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if7(callBack)
+    val is5 get() = this is V5;
 
-    fun is8() = this is V8
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
-        }
-
-        else -> {
-            null
-        }
-    }
-
-    fun <Ret> if8(callBack: (T8) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if8(callBack)
-
-    fun is9() = this is V9
-
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+            else -> {
+                null
+            }
         }
 
-        else -> {
-            null
-        }
-    }
+    fun <Ret> if5(callBack: (T5) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if5(callBack);
 
-    fun <Ret> if9(callBack: (T9) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if9(callBack)
+    val is6 get() = this is V6;
+
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if6(callBack: (T6) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if6(callBack);
+
+    val is7 get() = this is V7;
+
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if7(callBack: (T7) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if7(callBack);
+
+    val is8 get() = this is V8;
+
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if8(callBack: (T8) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if8(callBack);
+
+    val is9 get() = this is V9;
+
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
+        }
+
+    fun <Ret> if9(callBack: (T9) -> Ret) = Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(this).if9(callBack);
 
 }
 
-class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val value: Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
+data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val value: Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -1200,251 +1228,259 @@ class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val value
     }
 }
 
-sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
+sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T1) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T1) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T2) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T2) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T3) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T3) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T4) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T4) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T5) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T5) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T6) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T6) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T7) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T7) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T8) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T8) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T9) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T9) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T10) :
+        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T10) :
-        Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if1(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if2(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if3(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if4(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if5(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if6(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if7(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if8(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if9(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if10(callBack)
+        Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(this).if10(callBack);
 
 }
 
-class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(private val value: Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
+data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(private val value: Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -1491,275 +1527,284 @@ class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(private val
     }
 }
 
-sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
+sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T1) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T1) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T2) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T2) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T3) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T3) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T4) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T4) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T5) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T5) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T6) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T6) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T7) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T7) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T8) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T8) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T9) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T9) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T10) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T10) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T11) :
+        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T11) :
-        Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if1(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if2(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if3(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if4(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if5(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if6(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if7(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if8(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if9(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if10(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
-        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if11(callBack)
+        Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(this).if11(callBack);
 
 }
 
-class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(private val value: Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
+data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(private val value: Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -1810,299 +1855,309 @@ class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(privat
     }
 }
 
-sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
+sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T1) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T1) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T2) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T2) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T3) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T3) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T4) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T4) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T5) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T5) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T6) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T6) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T7) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T7) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T8) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T8) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T9) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T9) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T10) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T10) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T11) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T11) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T12) :
+        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T12) :
-        Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if1(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if2(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if3(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if4(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if5(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if6(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if7(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if8(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if9(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if10(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if11(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if11(callBack);
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
-        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if12(callBack)
+        Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(this).if12(callBack);
 
 }
 
-class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(private val value: Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
+data class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(private val value: Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -2157,323 +2212,334 @@ class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(p
     }
 }
 
-sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
+sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T1) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T1) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T2) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T2) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T3) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T3) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T4) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T4) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T5) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T5) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T6) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T6) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T7) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T7) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T8) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T8) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T9) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T9) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T10) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T10) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T11) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T11) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T12) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T12) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T13) :
+        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T13) :
-        Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if1(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if2(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if3(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if4(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if5(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if6(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if7(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if8(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if9(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if10(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if11(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if11(callBack);
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if12(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if12(callBack);
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
-        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if13(callBack)
+        Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(this).if13(callBack);
 
 }
 
-class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(private val value: Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
+data class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(private val value: Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -2532,347 +2598,359 @@ class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, R
     }
 }
 
-sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> {
+sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T1) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T1) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T2) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T2) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T3) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T3) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T4) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T4) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T5) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T5) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T6) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T6) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T7) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T7) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T8) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T8) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T9) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T9) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T10) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T10) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T11) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T11) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T12) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T12) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T13) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T13) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T14) :
+        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T14) :
-        Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if1(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if2(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if3(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if4(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if5(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if6(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if7(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if8(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if9(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if10(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if11(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if11(callBack);
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if12(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if12(callBack);
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if13(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if13(callBack);
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
-        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if14(callBack)
+        Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(this).if14(callBack);
 
 }
 
-class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(private val value: Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
+data class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(private val value: Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -2935,371 +3013,384 @@ class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
     }
 }
 
-sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> {
+sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T1) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T1) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T2) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T2) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T3) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T3) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T4) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T4) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T5) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T5) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T6) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T6) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T7) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T7) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T8) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T8) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T9) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T9) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T10) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T10) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T11) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T11) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T12) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T12) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T13) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T13) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T14) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T14) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    data class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T15) :
+        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
 
-    class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T15) :
-        Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if1(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if2(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if3(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if4(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if5(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if6(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if7(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if8(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if9(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if10(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if11(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if11(callBack);
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if12(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if12(callBack);
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if13(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if13(callBack);
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if14(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if14(callBack);
 
-    fun is15() = this is V15
+    val is15 get() = this is V15;
 
-    fun get15() = when (this) {
-        is V15 -> {
-            this.value
+    val v15
+        get() = when (this) {
+            is V15 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if15(callBack: (T15) -> Ret) =
-        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if15(callBack)
+        Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(this).if15(callBack);
 
 }
 
-class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(private val value: Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
-    private lateinit var callBack15: (T15) -> Ret
+data class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(private val value: Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
+    private lateinit var callBack15: (T15) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     fun if15(callBack: (T15) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
-        callBack15 = callBack
-        return this
+        callBack15 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -3366,395 +3457,409 @@ class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
     }
 }
 
-sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> {
+sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T1) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T1) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T2) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T2) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T3) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T3) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T4) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T4) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T5) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T5) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T6) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T6) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T7) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T7) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T8) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T8) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T9) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T9) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T10) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T10) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T11) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T11) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T12) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T12) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T13) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T13) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T14) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T14) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T15) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T15) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    data class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T16) :
+        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
 
-    class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T16) :
-        Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if1(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if2(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if3(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if4(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if5(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if6(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if7(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if8(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if9(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if10(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if11(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if11(callBack);
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if12(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if12(callBack);
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if13(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if13(callBack);
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if14(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if14(callBack);
 
-    fun is15() = this is V15
+    val is15 get() = this is V15;
 
-    fun get15() = when (this) {
-        is V15 -> {
-            this.value
+    val v15
+        get() = when (this) {
+            is V15 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if15(callBack: (T15) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if15(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if15(callBack);
 
-    fun is16() = this is V16
+    val is16 get() = this is V16;
 
-    fun get16() = when (this) {
-        is V16 -> {
-            this.value
+    val v16
+        get() = when (this) {
+            is V16 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if16(callBack: (T16) -> Ret) =
-        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if16(callBack)
+        Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(this).if16(callBack);
 
 }
 
-class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(private val value: Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
-    private lateinit var callBack15: (T15) -> Ret
-    private lateinit var callBack16: (T16) -> Ret
+data class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(private val value: Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
+    private lateinit var callBack15: (T15) -> Ret;
+    private lateinit var callBack16: (T16) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     fun if15(callBack: (T15) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack15 = callBack
-        return this
+        callBack15 = callBack;
+        return this;
     }
 
     fun if16(callBack: (T16) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
-        callBack16 = callBack
-        return this
+        callBack16 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -3825,453 +3930,468 @@ class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
     }
 }
 
-sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> {
+sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T1) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T1) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T2) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T2) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T3) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T3) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T4) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T4) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T5) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T5) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T6) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T6) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T7) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T7) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T8) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T8) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T9) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T9) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T10) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T10) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T11) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T11) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T12) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T12) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T13) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T13) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T14) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T14) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T15) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T15) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T16) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T16) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    data class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T17) :
+        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
 
-    class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T17) :
-        Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if1(
             callBack
-        )
+        );
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if2(
             callBack
-        )
+        );
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if3(
             callBack
-        )
+        );
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if4(
             callBack
-        )
+        );
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if5(
             callBack
-        )
+        );
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if6(
             callBack
-        )
+        );
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if7(
             callBack
-        )
+        );
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if8(
             callBack
-        )
+        );
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if9(
             callBack
-        )
+        );
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if10(
             callBack
-        )
+        );
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if11(
             callBack
-        )
+        );
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if12(
             callBack
-        )
+        );
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if13(
             callBack
-        )
+        );
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if14(
             callBack
-        )
+        );
 
-    fun is15() = this is V15
+    val is15 get() = this is V15;
 
-    fun get15() = when (this) {
-        is V15 -> {
-            this.value
+    val v15
+        get() = when (this) {
+            is V15 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if15(callBack: (T15) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if15(
             callBack
-        )
+        );
 
-    fun is16() = this is V16
+    val is16 get() = this is V16;
 
-    fun get16() = when (this) {
-        is V16 -> {
-            this.value
+    val v16
+        get() = when (this) {
+            is V16 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if16(callBack: (T16) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if16(
             callBack
-        )
+        );
 
-    fun is17() = this is V17
+    val is17 get() = this is V17;
 
-    fun get17() = when (this) {
-        is V17 -> {
-            this.value
+    val v17
+        get() = when (this) {
+            is V17 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if17(callBack: (T17) -> Ret) =
         Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(this).if17(
             callBack
-        )
+        );
 
 }
 
-class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(private val value: Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
-    private lateinit var callBack15: (T15) -> Ret
-    private lateinit var callBack16: (T16) -> Ret
-    private lateinit var callBack17: (T17) -> Ret
+data class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(private val value: Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
+    private lateinit var callBack15: (T15) -> Ret;
+    private lateinit var callBack16: (T16) -> Ret;
+    private lateinit var callBack17: (T17) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     fun if15(callBack: (T15) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack15 = callBack
-        return this
+        callBack15 = callBack;
+        return this;
     }
 
     fun if16(callBack: (T16) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack16 = callBack
-        return this
+        callBack16 = callBack;
+        return this;
     }
 
     fun if17(callBack: (T17) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
-        callBack17 = callBack
-        return this
+        callBack17 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -4346,479 +4466,497 @@ class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
     }
 }
 
-sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
+sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T1) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T1) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T2) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T2) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T3) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T3) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T4) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T4) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T5) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T5) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T6) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T6) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T7) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T7) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T8) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T8) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T9) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T9) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T10) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T10) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T11) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T11) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T12) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T12) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T13) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T13) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T14) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T14) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T15) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T15) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T16) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T16) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T17) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T17) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    data class V18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T18) :
+        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
 
-    class V18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T18) :
-        Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if1(
             callBack
-        )
+        );
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if2(
             callBack
-        )
+        );
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if3(
             callBack
-        )
+        );
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if4(
             callBack
-        )
+        );
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if5(
             callBack
-        )
+        );
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if6(
             callBack
-        )
+        );
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if7(
             callBack
-        )
+        );
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if8(
             callBack
-        )
+        );
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if9(
             callBack
-        )
+        );
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if10(
             callBack
-        )
+        );
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if11(
             callBack
-        )
+        );
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if12(
             callBack
-        )
+        );
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if13(
             callBack
-        )
+        );
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if14(
             callBack
-        )
+        );
 
-    fun is15() = this is V15
+    val is15 get() = this is V15;
 
-    fun get15() = when (this) {
-        is V15 -> {
-            this.value
+    val v15
+        get() = when (this) {
+            is V15 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if15(callBack: (T15) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if15(
             callBack
-        )
+        );
 
-    fun is16() = this is V16
+    val is16 get() = this is V16;
 
-    fun get16() = when (this) {
-        is V16 -> {
-            this.value
+    val v16
+        get() = when (this) {
+            is V16 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if16(callBack: (T16) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if16(
             callBack
-        )
+        );
 
-    fun is17() = this is V17
+    val is17 get() = this is V17;
 
-    fun get17() = when (this) {
-        is V17 -> {
-            this.value
+    val v17
+        get() = when (this) {
+            is V17 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if17(callBack: (T17) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if17(
             callBack
-        )
+        );
 
-    fun is18() = this is V18
+    val is18 get() = this is V18;
 
-    fun get18() = when (this) {
-        is V18 -> {
-            this.value
+    val v18
+        get() = when (this) {
+            is V18 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if18(callBack: (T18) -> Ret) =
         Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(this).if18(
             callBack
-        )
+        );
 
 }
 
-class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(private val value: Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
-    private lateinit var callBack15: (T15) -> Ret
-    private lateinit var callBack16: (T16) -> Ret
-    private lateinit var callBack17: (T17) -> Ret
-    private lateinit var callBack18: (T18) -> Ret
+data class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(
+    private val value: Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>
+) {
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
+    private lateinit var callBack15: (T15) -> Ret;
+    private lateinit var callBack16: (T16) -> Ret;
+    private lateinit var callBack17: (T17) -> Ret;
+    private lateinit var callBack18: (T18) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     fun if15(callBack: (T15) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack15 = callBack
-        return this
+        callBack15 = callBack;
+        return this;
     }
 
     fun if16(callBack: (T16) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack16 = callBack
-        return this
+        callBack16 = callBack;
+        return this;
     }
 
     fun if17(callBack: (T17) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack17 = callBack
-        return this
+        callBack17 = callBack;
+        return this;
     }
 
     fun if18(callBack: (T18) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
-        callBack18 = callBack
-        return this
+        callBack18 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -4897,507 +5035,524 @@ class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
     }
 }
 
-sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> {
+sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T1) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T1) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T2) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T2) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T3) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T3) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T4) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T4) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T5) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T5) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T6) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T6) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T7) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T7) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T8) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T8) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T9) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T9) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T10) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T10) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T11) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T11) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T12) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T12) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T13) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T13) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T14) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T14) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T15) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T15) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T16) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T16) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T17) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T17) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T18) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T18) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    data class V19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T19) :
+        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
 
-    class V19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T19) :
-        Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if1(
             callBack
-        )
+        );
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if2(
             callBack
-        )
+        );
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if3(
             callBack
-        )
+        );
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if4(
             callBack
-        )
+        );
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if5(
             callBack
-        )
+        );
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if6(
             callBack
-        )
+        );
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if7(
             callBack
-        )
+        );
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if8(
             callBack
-        )
+        );
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if9(
             callBack
-        )
+        );
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if10(
             callBack
-        )
+        );
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if11(
             callBack
-        )
+        );
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if12(
             callBack
-        )
+        );
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if13(
             callBack
-        )
+        );
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if14(
             callBack
-        )
+        );
 
-    fun is15() = this is V15
+    val is15 get() = this is V15;
 
-    fun get15() = when (this) {
-        is V15 -> {
-            this.value
+    val v15
+        get() = when (this) {
+            is V15 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if15(callBack: (T15) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if15(
             callBack
-        )
+        );
 
-    fun is16() = this is V16
+    val is16 get() = this is V16;
 
-    fun get16() = when (this) {
-        is V16 -> {
-            this.value
+    val v16
+        get() = when (this) {
+            is V16 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if16(callBack: (T16) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if16(
             callBack
-        )
+        );
 
-    fun is17() = this is V17
+    val is17 get() = this is V17;
 
-    fun get17() = when (this) {
-        is V17 -> {
-            this.value
+    val v17
+        get() = when (this) {
+            is V17 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if17(callBack: (T17) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if17(
             callBack
-        )
+        );
 
-    fun is18() = this is V18
+    val is18 get() = this is V18;
 
-    fun get18() = when (this) {
-        is V18 -> {
-            this.value
+    val v18
+        get() = when (this) {
+            is V18 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if18(callBack: (T18) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if18(
             callBack
-        )
+        );
 
-    fun is19() = this is V19
+    val is19 get() = this is V19;
 
-    fun get19() = when (this) {
-        is V19 -> {
-            this.value
+    val v19
+        get() = when (this) {
+            is V19 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if19(callBack: (T19) -> Ret) =
         Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(this).if19(
             callBack
-        )
+        );
 
 }
 
-class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(
+data class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(
     private val value: Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>
 ) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
-    private lateinit var callBack15: (T15) -> Ret
-    private lateinit var callBack16: (T16) -> Ret
-    private lateinit var callBack17: (T17) -> Ret
-    private lateinit var callBack18: (T18) -> Ret
-    private lateinit var callBack19: (T19) -> Ret
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
+    private lateinit var callBack15: (T15) -> Ret;
+    private lateinit var callBack16: (T16) -> Ret;
+    private lateinit var callBack17: (T17) -> Ret;
+    private lateinit var callBack18: (T18) -> Ret;
+    private lateinit var callBack19: (T19) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     fun if15(callBack: (T15) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack15 = callBack
-        return this
+        callBack15 = callBack;
+        return this;
     }
 
     fun if16(callBack: (T16) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack16 = callBack
-        return this
+        callBack16 = callBack;
+        return this;
     }
 
     fun if17(callBack: (T17) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack17 = callBack
-        return this
+        callBack17 = callBack;
+        return this;
     }
 
     fun if18(callBack: (T18) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack18 = callBack
-        return this
+        callBack18 = callBack;
+        return this;
     }
 
     fun if19(callBack: (T19) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
-        callBack19 = callBack
-        return this
+        callBack19 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -5480,533 +5635,551 @@ class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
     }
 }
 
-sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> {
+sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {
+    data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T1) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T1) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T2) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T2) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T3) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T3) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T4) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T4) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T5) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T5) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T6) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T6) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T7) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T7) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T8) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T8) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T9) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T9) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T10) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T10) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T11) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T11) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T12) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T12) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T13) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T13) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T14) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T14) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T15) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T15) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T16) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T16) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T17) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T17) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T18) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T18) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T19) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T19) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    data class V20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T20) :
+        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
 
-    class V20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T20) :
-        Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>()
+    val is1 get() = this is V1;
 
-    fun is1() = this is V1
+    val v1
+        get() = when (this) {
+            is V1 -> {
+                this.value
+            }
 
-    fun get1() = when (this) {
-        is V1 -> {
-            this.value
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if1(callBack: (T1) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if1(callBack)
+        ).if1(callBack);
 
-    fun is2() = this is V2
+    val is2 get() = this is V2;
 
-    fun get2() = when (this) {
-        is V2 -> {
-            this.value
+    val v2
+        get() = when (this) {
+            is V2 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if2(callBack: (T2) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if2(callBack)
+        ).if2(callBack);
 
-    fun is3() = this is V3
+    val is3 get() = this is V3;
 
-    fun get3() = when (this) {
-        is V3 -> {
-            this.value
+    val v3
+        get() = when (this) {
+            is V3 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if3(callBack: (T3) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if3(callBack)
+        ).if3(callBack);
 
-    fun is4() = this is V4
+    val is4 get() = this is V4;
 
-    fun get4() = when (this) {
-        is V4 -> {
-            this.value
+    val v4
+        get() = when (this) {
+            is V4 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if4(callBack: (T4) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if4(callBack)
+        ).if4(callBack);
 
-    fun is5() = this is V5
+    val is5 get() = this is V5;
 
-    fun get5() = when (this) {
-        is V5 -> {
-            this.value
+    val v5
+        get() = when (this) {
+            is V5 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if5(callBack: (T5) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if5(callBack)
+        ).if5(callBack);
 
-    fun is6() = this is V6
+    val is6 get() = this is V6;
 
-    fun get6() = when (this) {
-        is V6 -> {
-            this.value
+    val v6
+        get() = when (this) {
+            is V6 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if6(callBack: (T6) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if6(callBack)
+        ).if6(callBack);
 
-    fun is7() = this is V7
+    val is7 get() = this is V7;
 
-    fun get7() = when (this) {
-        is V7 -> {
-            this.value
+    val v7
+        get() = when (this) {
+            is V7 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if7(callBack: (T7) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if7(callBack)
+        ).if7(callBack);
 
-    fun is8() = this is V8
+    val is8 get() = this is V8;
 
-    fun get8() = when (this) {
-        is V8 -> {
-            this.value
+    val v8
+        get() = when (this) {
+            is V8 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if8(callBack: (T8) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if8(callBack)
+        ).if8(callBack);
 
-    fun is9() = this is V9
+    val is9 get() = this is V9;
 
-    fun get9() = when (this) {
-        is V9 -> {
-            this.value
+    val v9
+        get() = when (this) {
+            is V9 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if9(callBack: (T9) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if9(callBack)
+        ).if9(callBack);
 
-    fun is10() = this is V10
+    val is10 get() = this is V10;
 
-    fun get10() = when (this) {
-        is V10 -> {
-            this.value
+    val v10
+        get() = when (this) {
+            is V10 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if10(callBack: (T10) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if10(callBack)
+        ).if10(callBack);
 
-    fun is11() = this is V11
+    val is11 get() = this is V11;
 
-    fun get11() = when (this) {
-        is V11 -> {
-            this.value
+    val v11
+        get() = when (this) {
+            is V11 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if11(callBack: (T11) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if11(callBack)
+        ).if11(callBack);
 
-    fun is12() = this is V12
+    val is12 get() = this is V12;
 
-    fun get12() = when (this) {
-        is V12 -> {
-            this.value
+    val v12
+        get() = when (this) {
+            is V12 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if12(callBack: (T12) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if12(callBack)
+        ).if12(callBack);
 
-    fun is13() = this is V13
+    val is13 get() = this is V13;
 
-    fun get13() = when (this) {
-        is V13 -> {
-            this.value
+    val v13
+        get() = when (this) {
+            is V13 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if13(callBack: (T13) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if13(callBack)
+        ).if13(callBack);
 
-    fun is14() = this is V14
+    val is14 get() = this is V14;
 
-    fun get14() = when (this) {
-        is V14 -> {
-            this.value
+    val v14
+        get() = when (this) {
+            is V14 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if14(callBack: (T14) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if14(callBack)
+        ).if14(callBack);
 
-    fun is15() = this is V15
+    val is15 get() = this is V15;
 
-    fun get15() = when (this) {
-        is V15 -> {
-            this.value
+    val v15
+        get() = when (this) {
+            is V15 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if15(callBack: (T15) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if15(callBack)
+        ).if15(callBack);
 
-    fun is16() = this is V16
+    val is16 get() = this is V16;
 
-    fun get16() = when (this) {
-        is V16 -> {
-            this.value
+    val v16
+        get() = when (this) {
+            is V16 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if16(callBack: (T16) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if16(callBack)
+        ).if16(callBack);
 
-    fun is17() = this is V17
+    val is17 get() = this is V17;
 
-    fun get17() = when (this) {
-        is V17 -> {
-            this.value
+    val v17
+        get() = when (this) {
+            is V17 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if17(callBack: (T17) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if17(callBack)
+        ).if17(callBack);
 
-    fun is18() = this is V18
+    val is18 get() = this is V18;
 
-    fun get18() = when (this) {
-        is V18 -> {
-            this.value
+    val v18
+        get() = when (this) {
+            is V18 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if18(callBack: (T18) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if18(callBack)
+        ).if18(callBack);
 
-    fun is19() = this is V19
+    val is19 get() = this is V19;
 
-    fun get19() = when (this) {
-        is V19 -> {
-            this.value
+    val v19
+        get() = when (this) {
+            is V19 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if19(callBack: (T19) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if19(callBack)
+        ).if19(callBack);
 
-    fun is20() = this is V20
+    val is20 get() = this is V20;
 
-    fun get20() = when (this) {
-        is V20 -> {
-            this.value
+    val v20
+        get() = when (this) {
+            is V20 -> {
+                this.value
+            }
+
+            else -> {
+                null
+            }
         }
-
-        else -> {
-            null
-        }
-    }
 
     fun <Ret> if20(callBack: (T20) -> Ret) =
         Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
             this
-        ).if20(callBack)
+        ).if20(callBack);
 
 }
 
-class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
+data class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
     private val value: Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>
 ) {
-
-    private lateinit var callBack1: (T1) -> Ret
-    private lateinit var callBack2: (T2) -> Ret
-    private lateinit var callBack3: (T3) -> Ret
-    private lateinit var callBack4: (T4) -> Ret
-    private lateinit var callBack5: (T5) -> Ret
-    private lateinit var callBack6: (T6) -> Ret
-    private lateinit var callBack7: (T7) -> Ret
-    private lateinit var callBack8: (T8) -> Ret
-    private lateinit var callBack9: (T9) -> Ret
-    private lateinit var callBack10: (T10) -> Ret
-    private lateinit var callBack11: (T11) -> Ret
-    private lateinit var callBack12: (T12) -> Ret
-    private lateinit var callBack13: (T13) -> Ret
-    private lateinit var callBack14: (T14) -> Ret
-    private lateinit var callBack15: (T15) -> Ret
-    private lateinit var callBack16: (T16) -> Ret
-    private lateinit var callBack17: (T17) -> Ret
-    private lateinit var callBack18: (T18) -> Ret
-    private lateinit var callBack19: (T19) -> Ret
-    private lateinit var callBack20: (T20) -> Ret
+    private lateinit var callBack1: (T1) -> Ret;
+    private lateinit var callBack2: (T2) -> Ret;
+    private lateinit var callBack3: (T3) -> Ret;
+    private lateinit var callBack4: (T4) -> Ret;
+    private lateinit var callBack5: (T5) -> Ret;
+    private lateinit var callBack6: (T6) -> Ret;
+    private lateinit var callBack7: (T7) -> Ret;
+    private lateinit var callBack8: (T8) -> Ret;
+    private lateinit var callBack9: (T9) -> Ret;
+    private lateinit var callBack10: (T10) -> Ret;
+    private lateinit var callBack11: (T11) -> Ret;
+    private lateinit var callBack12: (T12) -> Ret;
+    private lateinit var callBack13: (T13) -> Ret;
+    private lateinit var callBack14: (T14) -> Ret;
+    private lateinit var callBack15: (T15) -> Ret;
+    private lateinit var callBack16: (T16) -> Ret;
+    private lateinit var callBack17: (T17) -> Ret;
+    private lateinit var callBack18: (T18) -> Ret;
+    private lateinit var callBack19: (T19) -> Ret;
+    private lateinit var callBack20: (T20) -> Ret;
 
     fun if1(callBack: (T1) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack1 = callBack
-        return this
+        callBack1 = callBack;
+        return this;
     }
 
     fun if2(callBack: (T2) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack2 = callBack
-        return this
+        callBack2 = callBack;
+        return this;
     }
 
     fun if3(callBack: (T3) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack3 = callBack
-        return this
+        callBack3 = callBack;
+        return this;
     }
 
     fun if4(callBack: (T4) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack4 = callBack
-        return this
+        callBack4 = callBack;
+        return this;
     }
 
     fun if5(callBack: (T5) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack5 = callBack
-        return this
+        callBack5 = callBack;
+        return this;
     }
 
     fun if6(callBack: (T6) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack6 = callBack
-        return this
+        callBack6 = callBack;
+        return this;
     }
 
     fun if7(callBack: (T7) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack7 = callBack
-        return this
+        callBack7 = callBack;
+        return this;
     }
 
     fun if8(callBack: (T8) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack8 = callBack
-        return this
+        callBack8 = callBack;
+        return this;
     }
 
     fun if9(callBack: (T9) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack9 = callBack
-        return this
+        callBack9 = callBack;
+        return this;
     }
 
     fun if10(callBack: (T10) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack10 = callBack
-        return this
+        callBack10 = callBack;
+        return this;
     }
 
     fun if11(callBack: (T11) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack11 = callBack
-        return this
+        callBack11 = callBack;
+        return this;
     }
 
     fun if12(callBack: (T12) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack12 = callBack
-        return this
+        callBack12 = callBack;
+        return this;
     }
 
     fun if13(callBack: (T13) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack13 = callBack
-        return this
+        callBack13 = callBack;
+        return this;
     }
 
     fun if14(callBack: (T14) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack14 = callBack
-        return this
+        callBack14 = callBack;
+        return this;
     }
 
     fun if15(callBack: (T15) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack15 = callBack
-        return this
+        callBack15 = callBack;
+        return this;
     }
 
     fun if16(callBack: (T16) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack16 = callBack
-        return this
+        callBack16 = callBack;
+        return this;
     }
 
     fun if17(callBack: (T17) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack17 = callBack
-        return this
+        callBack17 = callBack;
+        return this;
     }
 
     fun if18(callBack: (T18) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack18 = callBack
-        return this
+        callBack18 = callBack;
+        return this;
     }
 
     fun if19(callBack: (T19) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack19 = callBack
-        return this
+        callBack19 = callBack;
+        return this;
     }
 
     fun if20(callBack: (T20) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
-        callBack20 = callBack
-        return this
+        callBack20 = callBack;
+        return this;
     }
 
     @Throws(NullPointerException::class)
@@ -6095,44 +6268,47 @@ class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
 
 class Variant(val value: Any, val clazz: KClass<*>) {
     companion object {
-        inline fun <reified T : Any> make(value: T) = Variant(value, T::class)
+        inline fun <reified T : Any> make(value: T) = Variant(value, T::class);
     }
 
-    inline fun <reified T : Any> isA() = clazz == T::class
+    inline fun <reified T : Any> isA() = clazz == T::class;
 
     inline fun <reified T : Any> get() = if (isA<T>()) {
-        value as T
+        value as T;
     } else {
-        null
+        null;
     }
 
     inline fun <reified T : Any, Ret> ifIs(noinline callBack: (T) -> Ret): VariantMatcher<Ret> {
-        val ret = VariantMatcher<Ret>(this)
-        return ret.ifIs(callBack)
+        val ret = VariantMatcher<Ret>(this);
+        return ret.ifIs(callBack);
     }
 }
 
 class VariantMatcher<Ret>(private val value: Variant) {
-    val callBacks: MutableMap<KClass<*>, (Any) -> Ret> = hashMapOf()
+    val callBacks: MutableMap<KClass<*>, (Any) -> Ret> = hashMapOf();
 
     inline fun <reified T : Any> ifIs(noinline callBack: (T) -> Ret): VariantMatcher<Ret> {
-        callBacks[T::class] = { value: Any -> callBack(value as T) }
-        return this
+        callBacks[T::class] = { value: Any -> callBack(value as T) };
+        return this;
     }
 
-    operator fun invoke() = callBacks[value.clazz]?.let { it -> it(value.value) }
+    operator fun invoke() = callBacks[value.clazz]?.let { it -> it(value.value) };
 }
 
 fun <T1, T2, Ret> match(value: Variant2<T1, T2>, callBack1: (T1) -> Ret, callBack2: (T2) -> Ret): Ret {
-    val matcher = value.if1(callBack1).if2(callBack2)
-    return matcher()
+    val matcher = value.if1(callBack1).if2(callBack2);
+    return matcher();
 }
 
 fun <T1, T2, T3, Ret> match(
-    value: Variant3<T1, T2, T3>, callBack1: (T1) -> Ret, callBack2: (T2) -> Ret, callBack3: (T3) -> Ret
+    value: Variant3<T1, T2, T3>,
+    callBack1: (T1) -> Ret,
+    callBack2: (T2) -> Ret,
+    callBack3: (T3) -> Ret
 ): Ret {
-    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3)
-    return matcher()
+    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, Ret> match(
@@ -6142,8 +6318,8 @@ fun <T1, T2, T3, T4, Ret> match(
     callBack3: (T3) -> Ret,
     callBack4: (T4) -> Ret
 ): Ret {
-    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4)
-    return matcher()
+    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, Ret> match(
@@ -6154,8 +6330,8 @@ fun <T1, T2, T3, T4, T5, Ret> match(
     callBack4: (T4) -> Ret,
     callBack5: (T5) -> Ret
 ): Ret {
-    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5)
-    return matcher()
+    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, Ret> match(
@@ -6167,8 +6343,8 @@ fun <T1, T2, T3, T4, T5, T6, Ret> match(
     callBack5: (T5) -> Ret,
     callBack6: (T6) -> Ret
 ): Ret {
-    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6)
-    return matcher()
+    val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
@@ -6182,8 +6358,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
     callBack7: (T7) -> Ret
 ): Ret {
     val matcher =
-        value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-    return matcher()
+        value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
@@ -6199,8 +6375,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
 ): Ret {
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-            .if8(callBack8)
-    return matcher()
+            .if8(callBack8);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
@@ -6217,8 +6393,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
 ): Ret {
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-            .if8(callBack8).if9(callBack9)
-    return matcher()
+            .if8(callBack8).if9(callBack9);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
@@ -6236,8 +6412,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
 ): Ret {
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-            .if8(callBack8).if9(callBack9).if10(callBack10)
-    return matcher()
+            .if8(callBack8).if9(callBack9).if10(callBack10);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
@@ -6256,8 +6432,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
 ): Ret {
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-            .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11)
-    return matcher()
+            .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
@@ -6277,8 +6453,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
 ): Ret {
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-            .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12)
-    return matcher()
+            .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
@@ -6299,8 +6475,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
 ): Ret {
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
-            .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-    return matcher()
+            .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
@@ -6323,8 +6499,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-            .if14(callBack14)
-    return matcher()
+            .if14(callBack14);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> match(
@@ -6348,8 +6524,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> matc
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-            .if14(callBack14).if15(callBack15)
-    return matcher()
+            .if14(callBack14).if15(callBack15);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> match(
@@ -6374,8 +6550,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-            .if14(callBack14).if15(callBack15).if16(callBack16)
-    return matcher()
+            .if14(callBack14).if15(callBack15).if16(callBack16);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> match(
@@ -6401,8 +6577,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-            .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17)
-    return matcher()
+            .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> match(
@@ -6429,8 +6605,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-            .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17).if18(callBack18)
-    return matcher()
+            .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17).if18(callBack18);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> match(
@@ -6458,8 +6634,8 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
-            .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17).if18(callBack18).if19(callBack19)
-    return matcher()
+            .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17).if18(callBack18).if19(callBack19);
+    return matcher();
 }
 
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> match(
@@ -6489,16 +6665,15 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
             .if14(callBack14).if15(callBack15).if16(callBack16).if17(callBack17).if18(callBack18).if19(callBack19)
-            .if20(callBack20)
-    return matcher()
+            .if20(callBack20);
+    return matcher();
 }
 
 @JvmName("Variant2Copy")
-fun <T1 : Copyable<T1>, T2 : Copyable<T2>> Variant2<T1, T2>.copy(): Variant2<T1, T2> =
-    when (this) {
-        is Variant2.V1 -> Variant2.V1(this.value.copy())
-        is Variant2.V2 -> Variant2.V2(this.value.copy())
-    }
+fun <T1 : Copyable<T1>, T2 : Copyable<T2>> Variant2<T1, T2>.copy(): Variant2<T1, T2> = when (this) {
+    is Variant2.V1 -> Variant2.V1(this.value.copy())
+    is Variant2.V2 -> Variant2.V2(this.value.copy())
+}
 
 @JvmName("Variant3Copy")
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>> Variant3<T1, T2, T3>.copy(): Variant3<T1, T2, T3> =

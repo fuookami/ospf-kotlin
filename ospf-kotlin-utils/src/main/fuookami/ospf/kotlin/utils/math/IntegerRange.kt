@@ -28,7 +28,6 @@ internal class IntegerIterator<I>(
     val step: I,
     constants: RealNumberConstants<I>
 ) : Iterator<I> where I : Integer<I> {
-
     private val finalElement: I = last
     private var hasNext: Boolean = if (step > constants.zero) {
         first <= last
@@ -64,7 +63,6 @@ class IntegerRange<I>(
     val step: I,
     private val constants: RealNumberConstants<I>
 ) : Iterable<I>, ClosedRange<I> where I : Integer<I>, I : PlusGroup<I>, I : Rem<I, I> {
-
     init {
         @Throws(IllegalArgumentException::class)
         if (step == step.constants.zero) {
@@ -76,15 +74,15 @@ class IntegerRange<I>(
         }
     }
 
-    val first: I = start
-    val last: I = getProgressionLastElement(start, endInclusive, step, constants)
+    val first: I by ::start
+    val last: I by lazy { getProgressionLastElement(start, endInclusive, step, constants) }
 
     override fun iterator(): Iterator<I> = IntegerIterator(first, last, step, constants)
 
     override fun contains(value: I) = if (step > constants.zero) {
-        value in first..last
+        first <= value && value <= last
     } else {
-        value in last..first
+        last <= value && value <= first
     }
 
     override fun isEmpty() = if (step > constants.zero) {
@@ -107,11 +105,9 @@ internal class NumericIntegerIterator<NI, I>(
     constants: RealNumberConstants<I>,
     val ctor: (I) -> NI
 ) : Iterator<NI> where I : Integer<I> {
-
-    private val impl: IntegerIterator<I> = IntegerIterator(first, last, step, constants)
+    private val impl: IntegerIterator<I> by lazy { IntegerIterator(first, last, step, constants) }
 
     override fun hasNext() = impl.hasNext()
-
     override fun next(): NI = ctor(impl.next())
 }
 
@@ -122,10 +118,9 @@ class NumericUIntegerRange<NI, I>(
     private val constants: RealNumberConstants<I>,
     private val ctor: (I) -> NI,
     private val converter: (NI) -> I
-) : Iterable<NI>,
-    ClosedRange<NI> where NI : NumericUIntegerNumber<NI, I>, I : UIntegerNumber<I>, I : PlusGroup<I>, I : Rem<I, I> {
-
-    val step: I = converter(_step)
+) : Iterable<NI>, ClosedRange<NI>
+        where NI : NumericUIntegerNumber<NI, I>, I : UIntegerNumber<I>, I : PlusGroup<I>, I : Rem<I, I> {
+    val step: I by lazy { converter(_step) }
 
     init {
         @Throws(IllegalArgumentException::class)
@@ -138,8 +133,8 @@ class NumericUIntegerRange<NI, I>(
         }
     }
 
-    val first: I = converter(start)
-    val last: I = getProgressionLastElement(converter(start), converter(endInclusive), step, constants)
+    val first: I by lazy { converter(start) }
+    val last: I by lazy { getProgressionLastElement(converter(start), converter(endInclusive), step, constants) }
 
     override fun iterator(): Iterator<NI> = NumericIntegerIterator(first, last, step, constants, ctor)
 

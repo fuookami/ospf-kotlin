@@ -25,27 +25,26 @@ private data object IntervalTypeSerializer : KSerializer<IntervalType> {
 @Serializable(with = IntervalTypeSerializer::class)
 enum class IntervalType {
     Open {
-        override fun toLowerSign() = "("
-        override fun toUpperSign() = ")"
+        override val lowerSign = "("
+        override val upperSign = ")"
         override fun union(rhs: IntervalType) = rhs
         override fun intersect(rhs: IntervalType) = Open
     },
     Closed {
-        override fun toLowerSign() = "["
-        override fun toUpperSign() = "]"
+        override val lowerSign = "["
+        override val upperSign = "]"
         override fun union(rhs: IntervalType) = Closed
         override fun intersect(rhs: IntervalType) = rhs
     };
 
-    abstract fun toLowerSign(): String
-    abstract fun toUpperSign(): String
+    abstract val lowerSign: String
+    abstract val upperSign: String
     abstract infix fun union(rhs: IntervalType): IntervalType
     abstract infix fun intersect(rhs: IntervalType): IntervalType
 }
 
-private typealias GlobalInfinity = fuookami.ospf.kotlin.utils.math.Infinity
-private typealias GlobalNegativeInfinity = fuookami.ospf.kotlin.utils.math.NegativeInfinity
-
+private typealias GlobalInfinity = Infinity
+private typealias GlobalNegativeInfinity = NegativeInfinity
 
 class ValueWrapperSerializer<T>(
     private val dataSerializer: RealNumberKSerializer<T>
@@ -95,7 +94,6 @@ sealed class ValueWrapper<T>(
     Plus<ValueWrapper<T>, ValueWrapper<T>>, Minus<ValueWrapper<T>, ValueWrapper<T>>,
     Times<ValueWrapper<T>, ValueWrapper<T>>, Div<ValueWrapper<T>, ValueWrapper<T>>
         where T : RealNumber<T>, T : NumberField<T> {
-
     companion object {
         @Throws(IllegalArgumentException::class)
         operator fun <T> invoke(
@@ -121,9 +119,9 @@ sealed class ValueWrapper<T>(
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> = NegativeInfinity(constants)
     }
 
-    fun isInfinity() = this is Infinity
-    fun isNegativeInfinity() = this is NegativeInfinity
-    fun isInfinityOrNegativeInfinity() = isInfinity() && isNegativeInfinity()
+    val isInfinity get() = this is Infinity
+    val isNegativeInfinity get() = this is NegativeInfinity
+    val isInfinityOrNegativeInfinity by lazy { isInfinity && isNegativeInfinity }
 
     abstract operator fun plus(rhs: T): ValueWrapper<T>
     abstract operator fun minus(rhs: T): ValueWrapper<T>
@@ -154,7 +152,6 @@ sealed class ValueWrapper<T>(
 
     class Value<T>(val value: T, constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
-
         init {
             assert(value != constants.infinity)
             assert(value != constants.negativeInfinity)
@@ -235,7 +232,6 @@ sealed class ValueWrapper<T>(
 
     class Infinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
-
         override fun copy() = Infinity(constants)
         public override fun clone() = copy()
 
@@ -333,7 +329,6 @@ sealed class ValueWrapper<T>(
 
     class NegativeInfinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
-
         override fun copy() = Infinity(constants)
         public override fun clone() = copy()
 
@@ -477,128 +472,143 @@ class ValueRangeSerializer<T>(
 }
 
 @Serializable(with = ValueRangeSerializer::class)
-class ValueRange<T> constructor(
-    private var _lowerBound: ValueWrapper<T>,
-    private var _upperBound: ValueWrapper<T>,
-    private var _lowerInterval: IntervalType,
-    private var _upperInterval: IntervalType,
+data class ValueRange<T>(
+    private val _lowerBound: ValueWrapper<T>,
+    private val _upperBound: ValueWrapper<T>,
+    val lowerInterval: IntervalType,
+    val upperInterval: IntervalType,
     val constants: RealNumberConstants<T>
-) : Cloneable, Copyable<ValueRange<T>>, Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
-    PlusAssign<T>,
-    MinusAssign<T>,
-    Times<T, ValueRange<T>>, TimesAssign<T>, Div<T, ValueRange<T>>, DivAssign<T>
+) : Cloneable, Copyable<ValueRange<T>>,
+    Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
+    Times<T, ValueRange<T>>, Div<T, ValueRange<T>>, Eq<ValueRange<T>>
         where T : RealNumber<T>, T : NumberField<T> {
+    constructor(
+        lowerBound: T,
+        upperBound: T,
+        lowerInterval: IntervalType,
+        upperInterval: IntervalType,
+        constants: RealNumberConstants<T>
+    ) : this(
+        ValueWrapper(lowerBound, constants),
+        ValueWrapper(upperBound, constants),
+        lowerInterval,
+        upperInterval,
+        constants
+    )
+
+    constructor(
+        lowerBound: T,
+        upperBound: T,
+        constants: RealNumberConstants<T>
+    ) : this(
+        ValueWrapper(lowerBound, constants),
+        ValueWrapper(upperBound, constants),
+        IntervalType.Closed,
+        IntervalType.Closed,
+        constants
+    )
+
+    constructor(
+        _inf: GlobalNegativeInfinity,
+        upperBound: T,
+        lowerInterval: IntervalType,
+        upperInterval: IntervalType,
+        constants: RealNumberConstants<T>
+    ) : this(
+        ValueWrapper(_inf, constants),
+        ValueWrapper(upperBound, constants),
+        lowerInterval,
+        upperInterval,
+        constants
+    )
+
+    constructor(
+        _inf: GlobalNegativeInfinity,
+        upperBound: T,
+        constants: RealNumberConstants<T>
+    ) : this(
+        ValueWrapper(_inf, constants),
+        ValueWrapper(upperBound, constants),
+        IntervalType.Closed,
+        IntervalType.Closed,
+        constants
+    )
+
+    constructor(
+        lowerBound: T,
+        _inf: GlobalInfinity,
+        lowerInterval: IntervalType,
+        upperInterval: IntervalType,
+        constants: RealNumberConstants<T>
+    ) : this(
+        ValueWrapper(lowerBound, constants),
+        ValueWrapper(_inf, constants),
+        lowerInterval,
+        upperInterval,
+        constants
+    )
+
+    constructor(
+        lowerBound: T,
+        _inf: GlobalInfinity,
+        constants: RealNumberConstants<T>
+    ) : this(
+        ValueWrapper(lowerBound, constants),
+        ValueWrapper(_inf, constants),
+        IntervalType.Closed,
+        IntervalType.Closed,
+        constants
+    )
+
+    override fun copy() = ValueRange(
+        _lowerBound,
+        _upperBound,
+        lowerInterval,
+        upperInterval,
+        constants
+    )
+
+    public override fun clone() = copy()
 
     val lowerBound: ValueWrapper<T>
         get() {
             @Throws(IllegalArgumentException::class)
-            if (empty()) {
-                throw IllegalArgumentException("Illegal argument of value range: ${lowerInterval.toLowerSign()}${_lowerBound}, ${_upperBound}${upperInterval.toUpperSign()}!!!")
+            if (empty) {
+                throw IllegalArgumentException("Illegal argument of value range: ${lowerInterval.lowerSign}${_lowerBound}, ${_upperBound}${upperInterval.upperSign}!!!")
             }
             return _lowerBound
         }
     val upperBound: ValueWrapper<T>
         get() {
             @Throws(IllegalArgumentException::class)
-            if (empty()) {
-                throw IllegalArgumentException("Illegal argument of value range: ${lowerInterval.toLowerSign()}${_lowerBound}, ${_upperBound}${upperInterval.toUpperSign()}!!!")
+            if (empty) {
+                throw IllegalArgumentException("Illegal argument of value range: ${lowerInterval.lowerSign}${_lowerBound}, ${_upperBound}${upperInterval.upperSign}!!!")
             }
             return _upperBound
         }
-    val lowerInterval: IntervalType get() = _lowerInterval
-    val upperInterval: IntervalType get() = _upperInterval
 
-    constructor(
-        lowerBound: T, upperBound: T, lowerInterval: IntervalType, upperInterval: IntervalType,
-        constants: RealNumberConstants<T>
-    ) :
-            this(
-                ValueWrapper(lowerBound, constants),
-                ValueWrapper(upperBound, constants),
-                lowerInterval,
-                upperInterval,
-                constants
-            )
+    val fixed by lazy {
+        lowerInterval == IntervalType.Closed
+                && upperInterval == IntervalType.Closed
+                && !lowerBound.isInfinityOrNegativeInfinity
+                && !upperBound.isInfinityOrNegativeInfinity
+                && lowerBound eq upperBound
+    }
 
-    constructor(lowerBound: T, upperBound: T, constants: RealNumberConstants<T>) :
-            this(
-                ValueWrapper(lowerBound, constants),
-                ValueWrapper(upperBound, constants),
-                IntervalType.Closed,
-                IntervalType.Closed,
-                constants
-            )
-
-    constructor(
-        _inf: GlobalNegativeInfinity, upperBound: T, lowerInterval: IntervalType, upperInterval: IntervalType,
-        constants: RealNumberConstants<T>
-    ) :
-            this(
-                ValueWrapper(_inf, constants),
-                ValueWrapper(upperBound, constants),
-                lowerInterval,
-                upperInterval,
-                constants
-            )
-
-    constructor(_inf: GlobalNegativeInfinity, upperBound: T, constants: RealNumberConstants<T>) :
-            this(
-                ValueWrapper(_inf, constants),
-                ValueWrapper(upperBound, constants),
-                IntervalType.Closed,
-                IntervalType.Closed,
-                constants
-            )
-
-    constructor(
-        lowerBound: T, _inf: GlobalInfinity, lowerInterval: IntervalType, upperInterval: IntervalType,
-        constants: RealNumberConstants<T>
-    ) :
-            this(
-                ValueWrapper(lowerBound, constants),
-                ValueWrapper(_inf, constants),
-                lowerInterval,
-                upperInterval,
-                constants
-            )
-
-    constructor(lowerBound: T, _inf: GlobalInfinity, constants: RealNumberConstants<T>) :
-            this(
-                ValueWrapper(lowerBound, constants),
-                ValueWrapper(_inf, constants),
-                IntervalType.Closed,
-                IntervalType.Closed,
-                constants
-            )
-
-    override fun copy() = ValueRange(
-        _lowerBound,
-        _upperBound,
-        _lowerInterval,
-        _upperInterval,
-        constants
-    )
-
-    public override fun clone() = copy()
-
-    fun fixed() = lowerInterval == IntervalType.Closed
-            && upperInterval == IntervalType.Closed
-            && !lowerBound.isInfinityOrNegativeInfinity()
-            && !upperBound.isInfinityOrNegativeInfinity()
-            && lowerBound eq upperBound
-
-    fun empty(): Boolean {
-        return if (lowerInterval == IntervalType.Closed && upperInterval == IntervalType.Closed) {
+    val empty by lazy {
+        if (lowerInterval == IntervalType.Closed && upperInterval == IntervalType.Closed) {
             _lowerBound gr _upperBound
         } else {
             _lowerBound geq _upperBound
         }
     }
 
-    fun fixedValue(): T? = if (fixed()) {
-        (lowerBound as ValueWrapper.Value).value
-    } else {
-        null
+    val fixedValue: T? by lazy {
+        if (fixed) {
+            (lowerBound as ValueWrapper.Value).value
+        } else {
+            null
+        }
     }
 
     operator fun contains(value: T): Boolean {
@@ -610,6 +620,10 @@ class ValueRange<T> constructor(
             IntervalType.Open -> upperBound gr wrapper
             IntervalType.Closed -> upperBound geq wrapper
         }
+    }
+
+    operator fun contains(value: ValueRange<T>): Boolean {
+        return intersect(value) eq value
     }
 
     override fun plus(rhs: ValueRange<T>) = ValueRange(
@@ -628,11 +642,6 @@ class ValueRange<T> constructor(
         constants
     )
 
-    override fun plusAssign(rhs: T) {
-        _lowerBound = lowerBound + rhs
-        _upperBound = upperBound + rhs
-    }
-
     override fun minus(rhs: ValueRange<T>) = ValueRange(
         lowerBound - rhs.upperBound,
         upperBound - rhs.lowerBound,
@@ -648,11 +657,6 @@ class ValueRange<T> constructor(
         upperInterval,
         constants
     )
-
-    override fun minusAssign(rhs: T) {
-        _lowerBound = lowerBound - rhs
-        _upperBound = upperBound - rhs
-    }
 
     override fun times(rhs: T) = when {
         rhs < constants.zero -> ValueRange(
@@ -670,16 +674,6 @@ class ValueRange<T> constructor(
             upperInterval,
             constants
         )
-    }
-
-    override fun timesAssign(rhs: T) {
-        if (rhs < constants.zero) {
-            _lowerBound = upperBound * rhs
-            _upperBound = lowerBound * rhs
-        } else {
-            _lowerBound = lowerBound * rhs
-            _upperBound = upperBound * rhs
-        }
     }
 
     override fun div(rhs: T) = when {
@@ -700,14 +694,11 @@ class ValueRange<T> constructor(
         )
     }
 
-    override fun divAssign(rhs: T) {
-        if (rhs < constants.zero) {
-            _lowerBound = upperBound / rhs
-            _upperBound = lowerBound / rhs
-        } else {
-            _lowerBound = lowerBound / rhs
-            _upperBound = upperBound / rhs
-        }
+    override fun partialEq(rhs: ValueRange<T>): Boolean {
+        return lowerBound eq rhs.lowerBound
+                && upperBound eq rhs.upperBound
+                && lowerInterval == rhs.lowerInterval
+                && upperInterval == rhs.upperInterval
     }
 
     infix fun intersect(rhs: ValueRange<T>) = ValueRange(
@@ -718,7 +709,37 @@ class ValueRange<T> constructor(
         constants
     )
 
-    override fun toString() = "${lowerInterval.toLowerSign()}$lowerBound, $upperBound${upperInterval.toUpperSign()}"
+    fun toFlt64() = ValueRange(
+        lowerBound.toFlt64(),
+        upperBound.toFlt64(),
+        lowerInterval,
+        upperInterval,
+        Flt64
+    )
+
+    override fun toString() = "${lowerInterval.lowerSign}$lowerBound, $upperBound${upperInterval.upperSign}"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ValueRange<*>
+
+        if (_lowerBound != other._lowerBound) return false
+        if (_upperBound != other._upperBound) return false
+        if (lowerInterval != other.lowerInterval) return false
+        if (upperInterval != other.upperInterval) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = _lowerBound.hashCode()
+        result = 31 * result + _upperBound.hashCode()
+        result = 31 * result + lowerInterval.hashCode()
+        result = 31 * result + upperInterval.hashCode()
+        return result
+    }
 }
 
 operator fun <T> T.times(rhs: ValueRange<T>) where T : RealNumber<T>, T : NumberField<T> = rhs * this

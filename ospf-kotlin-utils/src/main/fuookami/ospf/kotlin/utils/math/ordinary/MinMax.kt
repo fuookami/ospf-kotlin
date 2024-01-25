@@ -15,7 +15,10 @@ fun <T : Ord<T>> min(lhs: T, vararg rhs: T): T {
     return min
 }
 
-inline fun <T : Ord<T>, U> minOf(lhs: U, vararg rhs: U, crossinline extractor: Extractor<T, U>): T {
+inline fun <T : Ord<T>, U> minOf(
+    lhs: U, vararg rhs: U,
+    crossinline extractor: Extractor<T, U>
+): T {
     var min = extractor(lhs)
     for (e in rhs) {
         val v = extractor(e)
@@ -38,7 +41,11 @@ fun <T : Ord<T>> max(lhs: T, vararg rhs: T): T {
     return max
 }
 
-inline fun <T : Ord<T>, U> maxOf(lhs: U, vararg rhs: U, crossinline extractor: Extractor<T, U>): T {
+inline fun <T : Ord<T>, U> maxOf(
+    lhs: U,
+    vararg rhs: U,
+    crossinline extractor: Extractor<T, U>
+): T {
     var max = extractor(lhs)
     for (e in rhs) {
         val v = extractor(e)
@@ -48,6 +55,8 @@ inline fun <T : Ord<T>, U> maxOf(lhs: U, vararg rhs: U, crossinline extractor: E
     }
     return max
 }
+
+fun <T : Ord<T>> minmax(lhs: T, rhs: T): Pair<T, T> = Pair(min(lhs, rhs), max(lhs, rhs))
 
 fun <T : Ord<T>> minMax(lhs: T, vararg rhs: T): Pair<T, T> {
     var min = lhs
@@ -63,7 +72,11 @@ fun <T : Ord<T>> minMax(lhs: T, vararg rhs: T): Pair<T, T> {
     return Pair(min, max)
 }
 
-inline fun <T : Ord<T>, U> minMaxOf(lhs: U, vararg rhs: U, crossinline extractor: Extractor<T, U>): Pair<T, T> {
+inline fun <T : Ord<T>, U> minMaxOf(
+    lhs: U,
+    vararg rhs: U,
+    crossinline extractor: Extractor<T, U>
+): Pair<T, T> {
     var min = extractor(lhs)
     var max = min
     for (e in rhs) {
@@ -118,7 +131,9 @@ fun <T : Ord<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     return Pair(min, max)
 }
 
-inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(crossinline extractor: Extractor<T, U>): Pair<U, U> {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(
+    crossinline extractor: Extractor<T, U>
+): Pair<U, U> {
     val iterator = this.iterator()
     var minE = iterator().next()
     var maxE = minE
@@ -139,7 +154,9 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(crossinline extractor: Extractor
     return Pair(minE, maxE)
 }
 
-inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(crossinline extractor: Extractor<T, U>): Pair<U, U>? {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(
+    crossinline extractor: Extractor<T, U>
+): Pair<U, U>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null
@@ -163,7 +180,9 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(crossinline extractor: Ext
     return Pair(minE, maxE)
 }
 
-inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(crossinline extractor: Extractor<T, U>): Pair<T, T> {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(
+    crossinline extractor: Extractor<T, U>
+): Pair<T, T> {
     val iterator = this.iterator()
     var min = extractor(iterator().next())
     var max = min
@@ -179,7 +198,9 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(crossinline extractor: Extractor
     return Pair(min, max)
 }
 
-inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(crossinline extractor: Extractor<T, U>): Pair<T, T>? {
+inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(
+    crossinline extractor: Extractor<T, U>
+): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null

@@ -5,7 +5,6 @@ import fuookami.ospf.kotlin.utils.operator.*
 data class Equal<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U> {
-
     companion object {
         operator fun <T, U> invoke(precision: U): Equal<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Equal(precision)
@@ -24,7 +23,6 @@ data class Equal<T, U>(
 data class Unequal<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U> {
-
     companion object {
         operator fun <T, U> invoke(precision: U): Unequal<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Unequal(precision)
@@ -43,7 +41,6 @@ data class Unequal<T, U>(
 data class Less<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U>, U : Neg<U> {
-
     companion object {
         operator fun <T, U> invoke(precision: U): Less<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T>, U : Neg<U> =
@@ -63,7 +60,6 @@ data class Less<T, U>(
 data class LessEqual<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U> {
-
     companion object {
         operator fun <T, U> invoke(precision: U): LessEqual<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = LessEqual(precision)
@@ -82,7 +78,6 @@ data class LessEqual<T, U>(
 data class Greater<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U> {
-
     companion object {
         operator fun <T, U> invoke(precision: U): Greater<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Greater(precision)
@@ -101,7 +96,6 @@ data class Greater<T, U>(
 data class GreaterEqual<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U>, U : Neg<U> {
-
     companion object {
         operator fun <T, U> invoke(precision: U): GreaterEqual<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> =
@@ -118,10 +112,9 @@ data class GreaterEqual<T, U>(
     }
 }
 
-class ComparisonOperator<T, U>(
+data class ComparisonOperator<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U>, U : Neg<U> {
-
     infix fun T.eq(rhs: T): Boolean {
         val op = Equal<T, U>(precision)
         return op(this, rhs)

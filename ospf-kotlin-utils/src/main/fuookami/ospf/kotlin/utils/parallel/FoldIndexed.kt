@@ -252,7 +252,8 @@ suspend inline fun <T, R> Iterable<T>.tryFoldIndexedParallelly(
                                 if (error != null) {
                                     lhs
                                 } else {
-                                    when (val ret = operation(rhs.first, lhs,
+                                    when (val ret = operation(
+                                        rhs.first, lhs,
                                         when (val ret = extractor(rhs.first, rhs.second)) {
                                             is Ok -> {
                                                 ret.value
@@ -662,7 +663,8 @@ suspend inline fun <T, R> List<T>.tryFoldIndexedParallelly(
                                 if (error != null) {
                                     lhs
                                 } else {
-                                    when (val ret = operation(index + j, lhs,
+                                    when (val ret = operation(
+                                        index + j, lhs,
                                         when (val ret = extractor(index + j, rhs)) {
                                             is Ok -> {
                                                 ret.value

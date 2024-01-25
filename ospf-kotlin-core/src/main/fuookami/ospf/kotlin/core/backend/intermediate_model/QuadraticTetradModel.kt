@@ -104,20 +104,20 @@ class BasicQuadraticTetradModel(
         }
         writer.append("\n")
 
-        if (containsBinary()) {
+        if (containsBinary) {
             writer.append("Binaries\n")
             for (variable in variables) {
-                if (variable.type.isBinaryType()) {
+                if (variable.type.isBinaryType) {
                     writer.append(" $variable")
                 }
             }
             writer.append("\n")
         }
 
-        if (containsNotBinaryInteger()) {
+        if (containsNotBinaryInteger) {
             writer.append("Generals\n")
             for (variable in variables) {
-                if (variable.type.isNotBinaryIntegerType()) {
+                if (variable.type.isNotBinaryIntegerType) {
                     writer.append(" $variable")
                 }
             }

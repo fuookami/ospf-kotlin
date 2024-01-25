@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1
 
-import kotlin.io.path.*
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -110,15 +109,10 @@ class SSP {
 
     @OptIn(DelicateCoroutinesApi::class)
     private suspend fun solve(metaModel: LinearMetaModel): Ret<List<Flt64>> {
-        // GlobalScope.launch(Dispatchers.IO) { metaModel.export("demo1.opm") }
-
         // val solver = GurobiLinearSolver(LinearSolverConfig())
         // val solver = SCIPLinearSolver(LinearSolverConfig())
         val solver = CplexLinearSolver(LinearSolverConfig())
-        val model = LinearTriadModel(LinearModel(metaModel))
-        // GlobalScope.launch(Dispatchers.IO) { model.export(Path("."), ModelFileFormat.LP) }
-
-        return when (val ret = solver(model)) {
+        return when (val ret = solver(metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
                 Ok(ret.value.solution)

@@ -33,8 +33,8 @@ data class Point<D : Dimension>(
         return position[i]
     }
 
-    infix fun distance(rhs: Point<D>): Flt64 = Distance.Euclidean.distanceBetween(this, rhs)
-    fun distanceBetween(rhs: Point<D>, type: Distance = Distance.Euclidean): Flt64 = type.distanceBetween(this, rhs)
+    infix fun distance(rhs: Point<D>): Flt64 = Distance.Euclidean(this, rhs)
+    fun distanceBetween(rhs: Point<D>, type: Distance = Distance.Euclidean): Flt64 = type(this, rhs)
 
     override fun plus(rhs: Point<D>) = Point(indices.map { this[it] + rhs[it] }, dim)
     override fun minus(rhs: Point<D>) = Point(indices.map { this[it] - rhs[it] }, dim)

@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.service.limits
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -14,11 +13,10 @@ class ServiceCostObjective(
     override val name: String = "service_cost"
 ) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try {
-        val poly = LinearPolynomial()
-        for (service in services) {
-            poly += service.cost * assignment.serviceAssignment[service]!!
-        }
-        model.minimize(poly, "service cost")
+        model.minimize(
+            sum(services) { it.cost * assignment.serviceAssignment[it] },
+            "service cost"
+        )
         return Ok(success)
     }
 }

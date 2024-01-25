@@ -29,7 +29,15 @@ class Demo2 {
 //        metaModel.addSymbol(abs)
 //        metaModel.addObject(ObjectCategory.Minimum, LinearPolynomial(abs))
         metaModel.addObject(ObjectCategory.Maximum, x + y)
-        val model = runBlocking { LinearModel(metaModel) }
+        val model = when (val result = runBlocking { LinearModel(metaModel) }) {
+            is Ok -> {
+                result.value
+            }
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 //        val solver = CplexLinearSolver(LinearSolverConfig())
 //        val result = when (val ret = solver(runBlocking { LinearTriadModel(model) })) {
 //            is Ok -> {

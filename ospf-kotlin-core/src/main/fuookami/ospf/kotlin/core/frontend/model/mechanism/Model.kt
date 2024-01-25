@@ -1,114 +1,101 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.parallel.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 
-sealed interface Model<C : Category> {
+sealed interface Model<Cell : MonomialCell<Cell, C>, C : Category> {
     val name: String
     val constraints: List<Constraint<C>>
     val objectFunction: Object<C>
-    val tokens: TokenTable<C>
+    val tokens: TokenTable<Cell, C>
 
-    fun addConstraint(constraint: Inequality<Linear>, name: String = "")
+    fun addConstraint(constraint: Inequality<Cell, C>, name: String = "")
 }
 
-interface SingleObjectModel<C : Category> : Model<C> {
+typealias AbstractLinearModel = Model<LinearMonomialCell, Linear>
+
+interface SingleObjectModel<Cell : MonomialCell<Cell, C>, C : Category> : Model<Cell, C> {
     override val objectFunction: SingleObject<C>
 }
+
+typealias AbstractSingleObjectLinearModel = SingleObjectModel<LinearMonomialCell, Linear>
 
 class LinearModel(
     private val parent: LinearMetaModel,
     override var name: String,
-    override val constraints: ArrayList<LinearConstraint>,
+    private val _constraints: MutableList<LinearConstraint>,
     override val objectFunction: SingleObject<Linear>,
-    override val tokens: TokenTable<Linear>
-) : SingleObjectModel<Linear> {
+    override val tokens: LinearTokenTable
+) : AbstractSingleObjectLinearModel {
     companion object {
-        private val segmentAmount = 8
+        suspend operator fun invoke(metaModel: LinearMetaModel): Ret<LinearModel> {
+            val tokens = when (val result = unfold(metaModel.tokens)) {
+                is Ok -> {
+                    result.value
+                }
 
-        suspend operator fun invoke(metaModel: LinearMetaModel): LinearModel {
-            for (symbol in metaModel.tokens.symbols) {
-                symbol.cells
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
 
-            val (constraints, subObjects) = if (metaModel.constraints.size > 100) {
-                coroutineScope {
-                    val constraintPromises = ArrayList<Deferred<List<LinearConstraint>>>()
-                    val segmentSize = metaModel.constraints.size / segmentAmount
-                    for (i in 0 until segmentAmount) {
-                        val lb = i * segmentSize
-                        val ub = if (i == segmentAmount - 1) {
-                            metaModel.constraints.size
-                        } else {
-                            (i + 1) * segmentSize
-                        }
-                        constraintPromises.add(async(Dispatchers.Default) {
-                            metaModel.constraints.subList(lb, ub).map { LinearConstraint(metaModel, it, metaModel.tokens) }
-                        })
-                    }
-
-                    val subObjects = ArrayList<LinearSubObject>()
-                    for (subObject in metaModel.subObjects) {
-                        subObjects.add(
-                            LinearSubObject(
-                                metaModel,
-                                subObject.category,
-                                subObject.polynomial,
-                                metaModel.tokens,
-                                subObject.name
-                            )
-                        )
-                    }
-
-                    val constraints = ArrayList<LinearConstraint>()
-                    for (promise in constraintPromises) {
-                        constraints.addAll(promise.await())
-                    }
-                    return@coroutineScope Pair(constraints, subObjects)
-                }
-            } else {
-                val constraints = ArrayList<LinearConstraint>()
-                for (constraint in metaModel.constraints) {
-                    constraints.add(LinearConstraint(metaModel, constraint, metaModel.tokens))
-                }
-
-                val subObjects = ArrayList<LinearSubObject>()
-                for (subObject in metaModel.subObjects) {
-                    subObjects.add(
-                        LinearSubObject(
-                            metaModel,
-                            subObject.category,
-                            subObject.polynomial,
-                            metaModel.tokens,
-                            subObject.name
-                        )
-                    )
-                }
-                Pair(constraints, subObjects)
+            val constraints = metaModel.constraints.mapParallelly { LinearConstraint(it, tokens) }
+            val subObjects = metaModel.subObjects.mapParallelly {
+                LinearSubObject(
+                    it.category,
+                    it.polynomial,
+                    tokens,
+                    it.name
+                )
             }
 
-            return LinearModel(
-                metaModel,
-                metaModel.name,
-                constraints,
-                SingleObject(metaModel.objectCategory, subObjects),
-                metaModel.tokens
+            return Ok(
+                LinearModel(
+                    metaModel,
+                    metaModel.name,
+                    constraints.toMutableList(),
+                    SingleObject(metaModel.objectCategory, subObjects),
+                    tokens
+                )
             )
+        }
+
+        private fun unfold(tokens: LinearMutableTokenTable): Ret<LinearTokenTable> {
+            val temp = tokens.copy()
+            for (symbol in temp.symbols) {
+                if (symbol is LinearFunctionSymbol) {
+                    when (val result = symbol.register(temp)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                    symbol.cells
+                } else {
+                    symbol.cells
+                }
+            }
+            return Ok(LinearTokenTable(temp))
         }
     }
 
+    override val constraints by ::_constraints
+
     init {
         for (symbol in tokens.symbols) {
-            if (symbol is fuookami.ospf.kotlin.core.frontend.expression.symbol.Function) {
+            if (symbol is LinearFunctionSymbol) {
                 symbol.register(this)
             }
         }
     }
 
-    override fun addConstraint(constraint: Inequality<Linear>, name: String) {
+    override fun addConstraint(constraint: Inequality<LinearMonomialCell, Linear>, name: String) {
         constraint.name = name
-        constraints.add(LinearConstraint(parent, constraint, tokens))
+        constraints.add(LinearConstraint(constraint, tokens))
     }
 }
 

@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import org.ktorm.schema.typeRef
 
 suspend inline fun <T, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
     destination: C,

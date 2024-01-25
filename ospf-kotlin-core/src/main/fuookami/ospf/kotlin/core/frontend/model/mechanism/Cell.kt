@@ -7,11 +7,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 sealed interface Cell<C : Category> {
     fun value(): Flt64?
     fun value(solution: List<Flt64>): Flt64
-    fun value(solution: Map<ItemKey, Flt64>): Flt64?
+    fun value(solution: Map<VariableItemKey, Flt64>): Flt64?
 }
 
 class LinearCell(
-    private val parent: LinearMetaModel,
+    private val tokenTable: LinearTokenTable,
     val coefficient: Flt64,
     val token: Token
 ) : Cell<Linear> {
@@ -20,10 +20,18 @@ class LinearCell(
     }
 
     override fun value(solution: List<Flt64>): Flt64 {
-        return coefficient * solution[parent.tokens.solverIndexMap[token.solverIndex]!!]
+        return coefficient * solution[tokenTable.tokenIndexMap[token]!!]
     }
 
-    override fun value(solution: Map<ItemKey, Flt64>): Flt64? {
+    override fun value(solution: Map<VariableItemKey, Flt64>): Flt64? {
         return solution[token.key]?.let { coefficient * it }
+    }
+
+    override fun toString(): String {
+        return if (coefficient eq Flt64.one) {
+            token.name
+        } else {
+            "$coefficient * ${token.name}"
+        }
     }
 }

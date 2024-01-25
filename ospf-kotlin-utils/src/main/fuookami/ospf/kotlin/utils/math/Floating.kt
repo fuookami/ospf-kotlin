@@ -202,8 +202,8 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
         override val maximum: Flt64 get() = Flt64(Double.MAX_VALUE)
         override val decimalDigits: Int get() = 15
         override val decimalPrecision: Flt64 get() = Flt64(2.22045e-16)
-        override val epsilon: Flt64 get() = Flt64(Double.MIN_VALUE)
         override val nan: Flt64 get() = Flt64(Double.NaN)
+        override val epsilon: Flt64 get() = Flt64(Double.MIN_VALUE)
         override val infinity: Flt64 get() = Flt64(Double.POSITIVE_INFINITY)
         override val negativeInfinity: Flt64 get() = Flt64(Double.NEGATIVE_INFINITY)
 

@@ -7,80 +7,84 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-sealed interface MonomialCell<C : Category> : Cloneable, Copyable<MonomialCell<C>> {
-    @Throws(IllegalArgumentException::class)
-    operator fun plusAssign(rhs: MonomialCell<C>)
+sealed interface MonomialCell<Self : MonomialCell<Self, C>, C : Category>
+    : Cloneable, Copyable<Self>, Neg<Self>, Plus<Self, Self>, Minus<Self, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        operator fun <Cell : MonomialCell<Cell, C>, C : Category> invoke(constant: Flt64, category: C): Cell {
+            return when (category) {
+                is Linear -> {
+                    LinearMonomialCell(constant) as Cell
+                }
 
-    @Throws(IllegalArgumentException::class)
-    operator fun minusAssign(rhs: MonomialCell<C>)
-    operator fun <T : RealNumber<T>> timesAssign(rhs: T)
+                else -> {
+                    throw IllegalArgumentException("Unknown monomial cell type: ${category::class}")
+                }
+            }
+        }
+    }
 
-    fun isConstant(): Boolean
-    fun constant(): Flt64?
+    val isConstant: Boolean
+    val constant: Flt64?
 
-    fun value(tokenList: TokenList): Flt64
-    fun value(tokenTable: TokenTable<C>): Flt64 = value(tokenTable.tokenList)
-    fun value(results: List<Flt64>, tokenList: TokenList): Flt64
-    fun value(results: List<Flt64>, tokenTable: TokenTable<C>): Flt64 = value(results, tokenTable.tokenList)
+    operator fun <T : RealNumber<T>> times(rhs: T): Self {
+        return this.times(rhs.toFlt64())
+    }
+
+    operator fun <T : RealNumber<T>> div(rhs: T): Self {
+        return this.div(rhs.toFlt64())
+    }
+
+    fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+    fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
 }
 
 sealed interface MonomialSymbol<C : Category> {
     val name: String
+    val displayName: String?
+    val discrete: Boolean get() = false
+    val range: ExpressionRange<*>
     val lowerBound: Flt64
     val upperBound: Flt64
-    val range: ValueRange<Flt64>
+
+    fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+    fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+
+    fun toRawString(unfold: Boolean = false): String
 }
 
-interface Monomial<C : Category> : Expression, Neg<Monomial<C>> {
-    val category: Category
-
-    fun flush()
-}
-
-sealed interface SimpleMonomial<C : Category> : Monomial<C> {
-    var coefficient: Flt64
+sealed interface Monomial<Self : Monomial<Self, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
+    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, Cell, C>>, Times<Flt64, Self>, Div<Flt64, Self> {
+    val category: C
+    val coefficient: Flt64
     val symbol: MonomialSymbol<C>
-    val cells: List<MonomialCell<C>>
+    override val discrete: Boolean get() = (coefficient.round() eq coefficient) && symbol.discrete
+    val cells: List<Cell>
+    val cached: Boolean
 
-    fun toRawString() = ""
-}
+    operator fun <T : RealNumber<T>> times(rhs: T): Self {
+        return this.times(rhs.toFlt64())
+    }
 
-internal class MonomialImpl<S : MonomialSymbol<C>, C : Category>(
-    var coefficient: Flt64,
-    val symbol: S,
-    private val cellsGenerator: () -> MutableList<MonomialCell<C>>
-) {
-    private val impl = ExpressionImpl { getPossibleValueRange() }
+    operator fun <T : RealNumber<T>> div(rhs: T): Self {
+        return this.div(rhs.toFlt64())
+    }
 
-    val possibleRange: ValueRange<Flt64> by impl::possibleRange
-    var range: ValueRange<Flt64> by impl::range
+    fun flush(force: Boolean = false)
 
-    private lateinit var _cells: MutableList<MonomialCell<C>>
-    val cells: List<MonomialCell<C>>
-        get() {
-            if (!this::_cells.isInitialized || _cells.isEmpty()) {
-                _cells = cellsGenerator()
-            }
-            return _cells
-        }
-
-    fun flush() {
-        if (this::_cells.isInitialized) {
-            _cells.clear()
+    fun toRawString(unfold: Boolean = false): String {
+        return if (coefficient eq Flt64.one) {
+            symbol.toRawString(unfold)
+        } else {
+            "$coefficient * ${symbol.toRawString(unfold)}"
         }
     }
 
-    fun intersectRange(range: ValueRange<Flt64>) = impl.intersectRange(range)
-    fun rangeLess(value: Flt64) = impl.rangeLess(value)
-    fun rangeLessEqual(value: Flt64) = impl.rangeLessEqual(value)
-    fun rangeGreater(value: Flt64) = impl.rangeGreater(value)
-    fun rangeGreaterEqual(value: Flt64) = impl.rangeGreaterEqual(value)
+    fun value(tokenTable: AbstractTokenTable<Cell, C>, zeroIfNone: Boolean): Flt64? {
+        return value(tokenTable.tokenList, zeroIfNone)
+    }
 
-    private fun getPossibleValueRange() = coefficient * ValueRange(
-        symbol.lowerBound,
-        symbol.upperBound,
-        symbol.range.lowerInterval,
-        symbol.range.upperInterval,
-        Flt64
-    )
+    fun value(results: List<Flt64>, tokenTable: AbstractTokenTable<Cell, C>, zeroIfNone: Boolean): Flt64? {
+        return value(results, tokenTable.tokenList, zeroIfNone)
+    }
 }

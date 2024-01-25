@@ -198,7 +198,7 @@ suspend inline fun <T, R : Comparable<R>> List<T>.tryMinOfOrNullParallelly(
         }?.let { Ok(it) }
             ?: Ok(null)
     } catch (e: CancellationException) {
-        error?.let{ Failed(it) }
+        error?.let { Failed(it) }
             ?: Ok(null)
     }
 }

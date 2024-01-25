@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.*
 import kotlin.reflect.*
 import fuookami.ospf.kotlin.utils.math.*
 
-val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
+private val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
 
 sealed class IndexedImpl {
     inline fun <reified T> nextIndex(): Int {
@@ -34,10 +34,11 @@ open class ManualIndexed internal constructor(
     private var mIndex: Int? = null
 ) : Indexed {
     val indexed get() = mIndex != null
+
     override val index: Int
         get() {
             assert(indexed)
-            return this.mIndex!!
+            return mIndex!!
         }
 
     constructor() : this(null)
@@ -68,7 +69,7 @@ open class ManualIndexed internal constructor(
 open class AutoIndexed internal constructor(
     private var mIndex: Int
 ) : Indexed {
-    override val index: Int get() = mIndex
+    override val index: Int by ::mIndex
 
     constructor(cls: KClass<*>) : this(nextIndex(cls))
 

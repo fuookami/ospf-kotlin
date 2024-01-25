@@ -52,7 +52,13 @@ data object UInt8Serializer : RealNumberKSerializer<UInt8> {
 @JvmInline
 @Serializable(with = UInt8Serializer::class)
 value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyable<UInt8> {
-    constructor(value: Boolean) : this(if (value) { 1U } else { 0U })
+    constructor(value: Boolean) : this(
+        if (value) {
+            1U
+        } else {
+            0U
+        }
+    )
 
     companion object : RealNumberConstants<UInt8> {
         override val zero: UInt8 get() = UInt8(0U)
@@ -291,7 +297,7 @@ data object UInt64Serializer : RealNumberKSerializer<UInt64> {
 @JvmInline
 @Serializable(with = UInt64Serializer::class)
 value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copyable<UInt64> {
-    constructor(value: Int) : this(value.toULong()) {}
+    constructor(value: Int) : this(value.toULong())
 
     companion object : RealNumberConstants<UInt64> {
         override val zero: UInt64 get() = UInt64(0UL)
@@ -340,6 +346,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     override fun exp() = toFlt64().exp()
 
     fun toInt() = value.toInt()
+    fun toLong() = value.toLong()
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())

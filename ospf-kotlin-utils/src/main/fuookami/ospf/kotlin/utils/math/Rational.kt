@@ -46,7 +46,6 @@ abstract class Rational<Self, I> protected constructor(
     private val ctor: (I, I) -> Self,
     private val integerConstants: RealNumberConstants<I>
 ) : RationalNumber<Self, I> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
-
     abstract val num: I
     abstract val den: I
 
@@ -122,7 +121,6 @@ abstract class RationalConstants<Self, I> protected constructor(
     private val ctor: (I, I) -> Self,
     private val constants: RealNumberConstants<I>
 ) : RealNumberConstants<Self> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
-
     override val zero: Self get() = ctor(constants.zero, constants.one)
     override val one: Self get() = ctor(constants.one, constants.one)
     override val two: Self get() = ctor(constants.two, constants.one)
@@ -146,7 +144,6 @@ data class Rtn8 internal constructor(
     override val num: Int8,
     override val den: Int8
 ) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8), Copyable<Rtn8> {
-
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
             val divisor = gcd(num, den)
@@ -179,7 +176,6 @@ data class Rtn16 internal constructor(
     override val num: Int16,
     override val den: Int16
 ) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16), Copyable<Rtn16> {
-
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
             val divisor = gcd(num, den)
@@ -207,7 +203,6 @@ data class Rtn32 internal constructor(
     override val num: Int32,
     override val den: Int32
 ) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32), Copyable<Rtn32> {
-
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
             val divisor = gcd(num, den)
@@ -235,7 +230,6 @@ data class Rtn64 internal constructor(
     override val num: Int64,
     override val den: Int64
 ) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
-
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64) {
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
             val divisor = gcd(num, den)
@@ -263,7 +257,6 @@ data class RtnX internal constructor(
     override val num: IntX,
     override val den: IntX
 ) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
-
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX) {
         operator fun invoke(num: IntX, den: IntX): RtnX {
             val divisor = gcd(num, den)
@@ -291,7 +284,6 @@ data class URtn8 internal constructor(
     override val num: UInt8,
     override val den: UInt8
 ) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8), Copyable<URtn8> {
-
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
             val divisor = gcd(num, den)
@@ -319,7 +311,6 @@ data class URtn16 internal constructor(
     override val num: UInt16,
     override val den: UInt16
 ) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16), Copyable<URtn16> {
-
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
             val divisor = gcd(num, den)
@@ -347,7 +338,6 @@ data class URtn32 internal constructor(
     override val num: UInt32,
     override val den: UInt32
 ) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32), Copyable<URtn32> {
-
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
             val divisor = gcd(num, den)
@@ -375,7 +365,6 @@ data class URtn64 internal constructor(
     override val num: UInt64,
     override val den: UInt64
 ) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64), Copyable<URtn64> {
-
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
             val divisor = gcd(num, den)
@@ -407,7 +396,6 @@ data class URtnX internal constructor(
     override val num: UIntX,
     override val den: UIntX
 ) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX), Copyable<URtnX> {
-
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         operator fun invoke(num: UIntX, den: UIntX): URtnX {
             val divisor = gcd(num, den)

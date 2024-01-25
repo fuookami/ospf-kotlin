@@ -8,7 +8,6 @@ import kotlinx.serialization.*
 import org.http4k.core.*
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.context.*
-import fuookami.ospf.kotlin.framework.persistence.*
 
 interface Pushing {
     operator fun <T> invoke(serializer: KSerializer<T>, value: T): Response
@@ -35,11 +34,16 @@ class LogContext private constructor(
     val version: String,
     val serviceId: String,
     val pushing: Pushing? = null
-): Cloneable {
+) : Cloneable {
     private val logger = logger()
 
     companion object {
-        operator fun invoke(app: String = "", version: String, requestId: String, pushing: Pushing? = null): LogContext {
+        operator fun invoke(
+            app: String = "",
+            version: String,
+            requestId: String,
+            pushing: Pushing? = null
+        ): LogContext {
             val uuid = UUID.nameUUIDFromBytes("${app}${version}${requestId}".toByteArray(charset("UTF-8")))
             return LogContext(
                 app = app,
@@ -57,78 +61,6 @@ class LogContext private constructor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun <T: RequestDTO<T>> pushRequest(
-        step: String,
-        requester: String,
-        serializer: KSerializer<T>,
-        request: T,
-        availableTime: Duration = 90.days
-    ) {
-        if (pushing != null) {
-            val pushing = this.pushing
-
-            GlobalScope.launch(Dispatchers.IO) {
-                val record = RequestLogRecordPO(
-                    app = app,
-                    version = version,
-                    serviceId = serviceId,
-                    step = step,
-                    request = RequestRecordPO(
-                        requester = requester,
-                        version = version,
-                        request = request
-                    ),
-                    availableTime = availableTime
-                )
-                val ret = pushing(
-                    serializer = RequestLogRecordPO.serializer(serializer),
-                    value = record
-                )
-                if (ret.status.successful) {
-                    logger.info { "pushing log success" }
-                } else {
-                    logger.info { "pushing log failed" }
-                }
-            }
-        }
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <T: ResponseDTO<T>> pushResponse(
-        step: String,
-        serializer: KSerializer<T>,
-        response: T,
-        availableTime: Duration = 90.days
-    ) {
-        if (pushing != null) {
-            val pushing = this.pushing
-
-            GlobalScope.launch(Dispatchers.IO) {
-                val record = ResponseLogRecordPO(
-                    app = app,
-                    version = version,
-                    serviceId = serviceId,
-                    step = step,
-                    response = ResponseRecordPO(
-                        version = version,
-                        response = response
-                    ),
-                    availableTime = availableTime
-                )
-                val ret = pushing(
-                    serializer = ResponseLogRecordPO.serializer(serializer),
-                    value = record
-                )
-                if (ret.status.successful) {
-                    logger.info { "pushing log success" }
-                } else {
-                    logger.info { "pushing log failed" }
-                }
-            }
-        }
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T> push(
         step: String,
         serializer: KSerializer<T>,
@@ -139,7 +71,7 @@ class LogContext private constructor(
             val pushing = this.pushing
 
             GlobalScope.launch(Dispatchers.IO) {
-                val record = NormalLogRecordPO(
+                val record = LogRecordPO(
                     app = app,
                     version = version,
                     serviceId = serviceId,
@@ -148,7 +80,7 @@ class LogContext private constructor(
                     availableTime = availableTime
                 )
                 val ret = pushing(
-                    serializer = NormalLogRecordPO.serializer(serializer),
+                    serializer = LogRecordPO.serializer(serializer),
                     value = record
                 )
                 if (ret.status.successful) {

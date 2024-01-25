@@ -1,22 +1,32 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.mip.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-class Makespan<E : Executor>(
-    val extra: Boolean = false
-) {
-    lateinit var makespan: Symbol<Linear>
+interface Makespan {
+    val makespan: LinearSymbol
 
-    fun register(tasks: List<Task<E>>, taskTime: TaskTime<E>, model: LinearMetaModel): Try {
+    fun register(model: LinearMetaModel): Try
+}
+
+class TaskSchedulingMakespan<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+    private val tasks: List<T>,
+    private val taskTime: TaskTime,
+    private val extra: Boolean = false
+) : Makespan {
+    override lateinit var makespan: LinearSymbol
+
+    override fun register(model: LinearMetaModel): Try {
         if (!this::makespan.isInitialized) {
-            makespan = MaxFunction(tasks.map { LinearPolynomial(taskTime.ect[it]!!) }, extra, name = "makespan")
+            makespan = if (extra) {
+                MaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
+            } else {
+                MinMaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
+            }
         }
         model.addSymbol(makespan)
 

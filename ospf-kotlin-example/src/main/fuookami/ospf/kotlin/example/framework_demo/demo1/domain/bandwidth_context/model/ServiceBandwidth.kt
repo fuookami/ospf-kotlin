@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.model
 
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -23,55 +23,47 @@ class ServiceBandwidth(
             { fuookami.ospf.kotlin.example.framework_demo.demo1.domain.route_context.model.to(it) }
 
         if (!this::inDegree.isInitialized) {
-            inDegree = LinearSymbols2("bandwidth_indegree_service", Shape2(graph.nodes.size, services.size))
-            for (node in graph.nodes) {
-                val edges = graph.edges.asSequence().filter(to(node))
-                for (service in services) {
-                    val poly = LinearPolynomial()
-                    for (edge in edges) {
-                        poly += y[edge, service]!!
-                    }
-                    inDegree[node, service] = LinearSymbol(poly, "${inDegree.name}_${node}_$service")
-                }
-            }
+            inDegree = flatMap(
+                "bandwidth_indegree_service",
+                graph.nodes,
+                services,
+                { n, s -> sumVars(graph.edges.filter(to(n))) { e -> y[e, s] } },
+                { (_, n), (_, s) -> "${n}_$s" }
+            )
         }
         model.addSymbols(inDegree)
 
         if (!this::outDegree.isInitialized) {
-            outDegree = LinearSymbols2("bandwidth_outdegree_service", Shape2(graph.nodes.size, services.size))
-            for (node in graph.nodes.asSequence().filter(normal)) {
-                val edges = graph.edges.asSequence().filter(from(node))
-                for (service in services) {
-                    val poly = LinearPolynomial()
-                    for (edge in edges) {
-                        poly += y[edge, service]!!
+            outDegree = flatMap(
+                "bandwidth_outdegree_service",
+                graph.nodes,
+                services,
+                { n, s ->
+                    if (n is NormalNode) {
+                        sumVars(graph.edges.filter(from(n))) { e -> y[e, s] }
+                    } else {
+                        LinearPolynomial()
                     }
-                    outDegree[node, service] = LinearSymbol(poly, "${outDegree.name}_${node}_$service")
-                }
-            }
-            for (node in graph.nodes.asSequence().filter(client)) {
-                for (service in services) {
-                    outDegree[node, service] = LinearSymbol(LinearPolynomial(), "${outDegree.name}_${node}_$service")
-                }
-            }
+                },
+                { (_, n), (_, s) -> "${n}_$s" }
+            )
         }
         model.addSymbols(outDegree)
 
         if (!this::outFlow.isInitialized) {
-            outFlow = LinearSymbols2("bandwidth_outflow_service", Shape2(graph.nodes.size, services.size))
-            for (node in graph.nodes.asSequence().filter(normal)) {
-                for (service in services) {
-                    outFlow[node, service] = LinearSymbol(
-                        outDegree[node, service]!! - inDegree[node, service]!!,
-                        "${outFlow.name}_${node}_$service"
-                    )
-                }
-            }
-            for (node in graph.nodes.asSequence().filter(client)) {
-                for (service in services) {
-                    outFlow[node, service] = LinearSymbol(LinearPolynomial(), "${outFlow.name}_${node}_$service)")
-                }
-            }
+            outFlow = flatMap(
+                "bandwidth_outflow_service",
+                graph.nodes,
+                services,
+                { n, s ->
+                    if (n is NormalNode) {
+                        outDegree[n, s] - inDegree[n, s]
+                    } else {
+                        LinearPolynomial()
+                    }
+                },
+                { (_, n), (_, s) -> "${n}_$s" }
+            )
         }
         model.addSymbols(outFlow)
 

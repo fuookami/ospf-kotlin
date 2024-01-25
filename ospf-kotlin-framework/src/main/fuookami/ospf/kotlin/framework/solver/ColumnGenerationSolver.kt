@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.framework.solver
 
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
-import kotlin.time.Duration
 
 interface ColumnGenerationSolver {
     suspend fun solveMILP(

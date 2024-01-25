@@ -10,12 +10,12 @@ data class Edge<P : Point<D>, D : Dimension>(
         assert(from.size == to.size)
     }
 
-    val length = from distance to
+    val length by lazy { from distance to }
     fun length(distance: Distance = Distance.Euclidean): Flt64 {
-        return distance.distanceBetween(from, to)
+        return distance(from, to)
     }
 
-    val vector = Vector(from.indices.map { to[it] - from[it] }, from.dim)
+    val vector by lazy { Vector(from.indices.map { to[it] - from[it] }, from.dim) }
 
     override fun toString() = "$from -> $to"
 }

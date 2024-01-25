@@ -14,7 +14,15 @@ interface LinearSolver {
     }
 
     suspend operator fun invoke(model: LinearMetaModel): Ret<LinearSolverOutput> {
-        val mechanismModel = LinearModel(model)
+        val mechanismModel = when (val result = LinearModel(model)) {
+            is Ok -> {
+                result.value
+            }
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
         return this(mechanismModel)
     }
 }

@@ -13,17 +13,16 @@ open class ShadowPriceKey(
 class ShadowPrice(
     val key: ShadowPriceKey,
     val price: Flt64
-) {
-}
+)
 
-typealias ShadowPriceExtractor<M> = (AbstractShadowPriceMap<M>, Array<out Any?>) -> Flt64
+typealias ShadowPriceExtractor<Args, M> = (AbstractShadowPriceMap<Args, M>, Args) -> Flt64
 
-abstract class AbstractShadowPriceMap<M : AbstractShadowPriceMap<M>> {
+abstract class AbstractShadowPriceMap<in Args : Any, M : AbstractShadowPriceMap<Args, M>> {
     val map: Map<ShadowPriceKey, ShadowPrice> by ::_map
     private val _map = HashMap<ShadowPriceKey, ShadowPrice>()
-    private val _extractors = ArrayList<ShadowPriceExtractor<M>>()
+    private val _extractors = ArrayList<ShadowPriceExtractor<Args, M>>()
 
-    operator fun invoke(vararg args: Any?) = _extractors.sumOf(Flt64) { it(this, args) }
+    open operator fun invoke(arg: Args) = _extractors.sumOf(Flt64) { it(this, arg) }
 
     operator fun get(key: ShadowPriceKey): ShadowPrice? = _map[key]
 
@@ -31,7 +30,7 @@ abstract class AbstractShadowPriceMap<M : AbstractShadowPriceMap<M>> {
         _map[price.key] = price
     }
 
-    fun put(extractor: ShadowPriceExtractor<M>) {
+    fun put(extractor: ShadowPriceExtractor<@UnsafeVariance Args, M>) {
         _extractors.add(extractor)
     }
 
@@ -40,9 +39,9 @@ abstract class AbstractShadowPriceMap<M : AbstractShadowPriceMap<M>> {
     }
 }
 
-fun <Model : MetaModel<*>, Map : AbstractShadowPriceMap<Map>> extractShadowPrice(
+fun <Args : Any, Model : MetaModel<*, *, *>, Map : AbstractShadowPriceMap<Args, Map>> extractShadowPrice(
     shadowPriceMap: Map,
-    pipelineList: CGPipelineList<Model, Map>,
+    pipelineList: CGPipelineList<Args, Model, Map>,
     model: Model,
     shadowPrices: List<Flt64>
 ): Try {

@@ -74,13 +74,13 @@ sealed class ProductivityCalendar<Q, P, T>(
     unavailableTimes: List<TimeRange>? = null,
     private val constants: RealNumberConstants<Q>,
     private val floor: Extractor<Q, Flt64>
-): WorkingCalendar(timeWindow) where P: Productivity<T>, Q: RealNumber<Q>, Q: PlusGroup<Q> {
+) : WorkingCalendar(timeWindow) where P : Productivity<T>, Q : RealNumber<Q>, Q : PlusGroup<Q> {
     companion object {
         operator fun <P, T> invoke(
             timeWindow: TimeWindow,
             productivity: List<P>,
             constants: UInt64.Companion
-        ): DiscreteProductivityCalendar<P, T> where P: Productivity<T> {
+        ): DiscreteProductivityCalendar<P, T> where P : Productivity<T> {
             return DiscreteProductivityCalendar(
                 timeWindow = timeWindow,
                 productivity = productivity
@@ -91,7 +91,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             timeWindow: TimeWindow,
             productivity: List<P>,
             constants: Flt64.Companion
-        ): ContinuousProductivityCalendar<P, T> where P: Productivity<T> {
+        ): ContinuousProductivityCalendar<P, T> where P : Productivity<T> {
             return ContinuousProductivityCalendar(
                 timeWindow = timeWindow,
                 productivity = productivity
@@ -102,7 +102,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             timeWindow: TimeWindow,
             productivity: List<P>,
             continuous: Boolean
-        ): ProductivityCalendar<*, P, T> where P: Productivity<T> {
+        ): ProductivityCalendar<*, P, T> where P : Productivity<T> {
             return if (continuous) {
                 ContinuousProductivityCalendar(
                     timeWindow = timeWindow,
@@ -122,9 +122,11 @@ sealed class ProductivityCalendar<Q, P, T>(
         if (unavailableTimes != null) {
             productivity.flatMap {
                 val timeRanges = it.timeWindow.differenceWith(unavailableTimes)
-                timeRanges.map { time -> it.new(
-                    timeWindow = time
-                ) as P }
+                timeRanges.map { time ->
+                    it.new(
+                        timeWindow = time
+                    ) as P
+                }
             }.sortedBy { it.timeWindow.start }
         } else {
             productivity.sortedBy { it.timeWindow.start }
@@ -350,10 +352,15 @@ open class DiscreteProductivityCalendar<P, T>(
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
 ) : ProductivityCalendar<UInt64, P, T>(timeWindow, productivity, unavailableTimes, UInt64, { it.floor().toUInt64() })
-        where P: Productivity<T>
+        where P : Productivity<T>
 
 open class ContinuousProductivityCalendar<P, T>(
     timeWindow: TimeWindow,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
-) : ProductivityCalendar<Flt64, P, T>(timeWindow, productivity, unavailableTimes, Flt64, { it }) where P: Productivity<T>
+) : ProductivityCalendar<Flt64, P, T>(
+    timeWindow,
+    productivity,
+    unavailableTimes,
+    Flt64,
+    { it }) where P : Productivity<T>

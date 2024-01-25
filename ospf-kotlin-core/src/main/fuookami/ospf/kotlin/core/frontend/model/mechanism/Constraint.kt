@@ -36,15 +36,18 @@ class LinearConstraint(
     name: String = ""
 ) : Constraint<Linear>(lhs, sign, rhs, name) {
     companion object {
-        operator fun invoke(parent: LinearMetaModel, inequality: Inequality<Linear>, tokens: TokenTable<Linear>): LinearConstraint {
+        operator fun invoke(
+            inequality: Inequality<LinearMonomialCell, Linear>,
+            tokens: LinearTokenTable
+        ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
             var rhs = Flt64.zero
             for (cell in inequality.cells) {
-                when (val temp = (cell as LinearMonomialCell).cell) {
+                when (val temp = cell.cell) {
                     is Either.Left -> {
-                        val token = tokens.token(temp.value.variable)
+                        val token = tokens.find(temp.value.variable)
                         if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(LinearCell(parent, temp.value.coefficient, token))
+                            lhs.add(LinearCell(tokens, temp.value.coefficient, token))
                         }
                     }
 

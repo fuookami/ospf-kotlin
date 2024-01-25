@@ -2,101 +2,127 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.Function
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class AbsFunction(
-    val x: LinearPolynomial,
-    override var name: String = "${x.name}_abs",
-    override var displayName: String? = "|${x.name}|"
-) : Function<Linear> {
+    private val x: AbstractLinearPolynomial<*>,
+    private val extract: Boolean = true,
+    override var name: String = "${x}_abs",
+    override var displayName: String? = "|$x|"
+) : LinearFunctionSymbol {
+    private lateinit var neg: PctVar
+    private lateinit var pos: PctVar
+    private lateinit var p: BinVar
 
-    class Symbols {
-        lateinit var neg: PctVar
-        lateinit var zero: PctVar
-        lateinit var pos: PctVar
+    private lateinit var y: MutableLinearPolynomial
 
-        lateinit var n: BinVar
-        lateinit var p: BinVar
+    override val range get() = y.range
+    override val lowerBound get() = y.lowerBound
+    override val upperBound get() = y.upperBound
 
-        lateinit var y: LinearSymbol
+    override val cells get() = y.cells
+    override val cached get() = y.cached
+
+    private val possibleUpperBound get() = max(abs(x.lowerBound), abs(x.upperBound))
+    private var m = possibleUpperBound
+
+    override fun flush(force: Boolean) {
+        y.flush(force)
+        val newM = possibleUpperBound
+        if (m neq newM) {
+            y.range.set(ValueRange(-m, m, Flt64))
+            y.asMutable() *= m / newM
+            m = newM
+        }
     }
 
-    val symbols = Symbols()
-    private val m = max(abs(x.range.lowerBound.toFlt64()), abs(x.range.upperBound.toFlt64()))
+    override fun register(tokenTable: LinearMutableTokenTable): Try {
+        if (!::neg.isInitialized) {
+            neg = PctVar("${name}_neg")
+        }
+        when (val result = tokenTable.add(neg)) {
+            is Ok -> {}
 
-    init {
-        symbols.neg = PctVar("${x.name}_neg")
-        symbols.zero = PctVar("${x.name}_zero")
-        symbols.pos = PctVar("${x.name}_pos")
-        symbols.n = BinVar("${x.name}_n")
-        symbols.p = BinVar("${x.name}_p")
-        symbols.y = LinearSymbol(polyY(), "${x.name}_abs_y")
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::pos.isInitialized) {
+            pos = PctVar("${name}_pos")
+        }
+        when (val result = tokenTable.add(pos)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (extract) {
+            if (!::p.isInitialized) {
+                p = BinVar("${name}_p")
+            }
+            when (val result = tokenTable.add(p)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (!::y.isInitialized) {
+            y = (m * pos + m * neg).toMutable()
+            y.name = "${name}_abs_y"
+            y.range.set(ValueRange(Flt64.zero, m, Flt64))
+        }
+
+        return Ok(success)
     }
 
-    override val possibleRange: ValueRange<Flt64> by symbols.y::possibleRange
-    override var range: ValueRange<Flt64> by symbols.y::range
-
-    override val cells: List<MonomialCell<Linear>> by symbols.y::cells
-
-    override val lowerBound: Flt64 by symbols.y::lowerBound
-    override val upperBound: Flt64 by symbols.y::upperBound
-
-    override fun intersectRange(range: ValueRange<Flt64>) = symbols.y.intersectRange(range)
-    override fun rangeLess(value: Flt64) = symbols.y.rangeLess(value)
-    override fun rangeLessEqual(value: Flt64) = symbols.y.rangeLessEqual(value)
-    override fun rangeGreater(value: Flt64) = symbols.y.rangeGreater(value)
-    override fun rangeGreaterEqual(value: Flt64) = symbols.y.rangeGreaterEqual(value)
-
-    override fun toRawString() = displayName ?: name
-
-    override fun register(tokenTable: TokenTable<Linear>) {
-        tokenTable.add(symbols.neg)
-        tokenTable.add(symbols.zero)
-        tokenTable.add(symbols.pos)
-        tokenTable.add(symbols.n)
-        tokenTable.add(symbols.p)
-        tokenTable.add(symbols.y)
-    }
-
-    override fun register(model: Model<Linear>) {
+    override fun register(model: AbstractLinearModel): Try {
         model.addConstraint(
-            x eq (-m * symbols.neg + m * symbols.pos),
+            x eq (-m * neg + m * pos),
             name
         )
-        model.addConstraint(
-            (symbols.neg + symbols.zero + symbols.pos) eq Flt64.one,
-            "${name}_k"
-        )
-        model.addConstraint(
-            (symbols.n + symbols.p) eq Flt64.one,
-            "${name}_b"
-        )
-        model.addConstraint(
-            symbols.neg leq symbols.n,
-            "${name}_n"
-        )
-//        Certainly, always stand up
-//        model.addConstraint(
-//            symbols.zero leq (symbols.n + symbols.p),
-//            "${name}_z"
-//        )
-        model.addConstraint(
-            symbols.pos leq symbols.p,
-            "${name}_p"
-        )
+
+        if (extract) {
+            model.addConstraint(
+                neg + pos leq Flt64.one,
+                "${name}_b"
+            )
+
+            model.addConstraint(
+                neg leq Flt64.one - p,
+                "${name}_n"
+            )
+        }
+
+        return Ok(success)
     }
 
-    private fun polyY(): Polynomial<Linear> {
-        val poly = LinearPolynomial()
-        poly += m * symbols.pos
-        poly += m * symbols.neg
-        return poly
+    override fun toString(): String {
+        return displayName ?: name
     }
+
+    override fun toRawString(unfold: Boolean): String {
+        return "|${x.toRawString(unfold)}|"
+    }
+
+    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.value(tokenList, zeroIfNone)?.let { abs(it) }
+    }
+
+    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.value(results, tokenList, zeroIfNone)?.let { abs(it) }
+    }
+
 }

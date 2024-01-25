@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*

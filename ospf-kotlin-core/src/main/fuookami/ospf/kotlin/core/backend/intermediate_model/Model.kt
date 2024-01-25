@@ -70,7 +70,7 @@ class Constraint<Cell>(
     override fun clone() = copy()
 }
 
-class Objective<Cell: Copyable<Cell>>(
+class Objective<Cell : Copyable<Cell>>(
     val category: ObjectCategory,
     val obj: List<Cell>
 ) : Cloneable, Copyable<Objective<Cell>> {
@@ -79,52 +79,60 @@ class Objective<Cell: Copyable<Cell>>(
 }
 
 interface BasicModelView<ConCell>
-        where ConCell: ConstraintCell, ConCell: Copyable<ConCell> {
+        where ConCell : ConstraintCell, ConCell : Copyable<ConCell> {
     val variables: List<Variable>
     val constraints: Constraint<ConCell>
     val name: String
 
-    fun containsContinuous(): Boolean {
-        return variables.any { it.type.isContinuousType() }
-    }
+    val containsContinuous: Boolean
+        get() {
+            return variables.any { it.type.isContinuousType }
+        }
 
-    fun containsBinary(): Boolean {
-        return variables.any { it.type.isBinaryType() }
-    }
+    val containsBinary: Boolean
+        get() {
+            return variables.any { it.type.isBinaryType }
+        }
 
-    fun containsInteger(): Boolean {
-        return variables.any { it.type.isIntegerType() }
-    }
+    val containsInteger: Boolean
+        get() {
+            return variables.any { it.type.isIntegerType }
+        }
 
-    fun containsNotBinaryInteger(): Boolean {
-        return variables.any { it.type.isNotBinaryIntegerType() }
-    }
+    val containsNotBinaryInteger: Boolean
+        get() {
+            return variables.any { it.type.isNotBinaryIntegerType }
+        }
 
     fun exportLP(writer: FileWriter): Try
 }
 
 interface ModelView<ConCell, ObjCell>
-        where ConCell: ConstraintCell, ConCell: Copyable<ConCell>, ObjCell: Cell, ObjCell: Copyable<ObjCell> {
+        where ConCell : ConstraintCell, ConCell : Copyable<ConCell>, ObjCell : Cell, ObjCell : Copyable<ObjCell> {
     val variables: List<Variable>
     val constraints: Constraint<ConCell>
     val objective: Objective<ObjCell>
     val name: String
 
-    fun containsContinuous(): Boolean {
-        return variables.any { it.type.isContinuousType() }
-    }
+    val containsContinuous: Boolean
+        get() {
+            return variables.any { it.type.isContinuousType }
+        }
 
-    fun containsBinary(): Boolean {
-        return variables.any { it.type.isBinaryType() }
-    }
+    val containsBinary: Boolean
+        get() {
+            return variables.any { it.type.isBinaryType }
+        }
 
-    fun containsInteger(): Boolean {
-        return variables.any { it.type.isIntegerType() }
-    }
+    val containsInteger: Boolean
+        get() {
+            return variables.any { it.type.isIntegerType }
+        }
 
-    fun containsNotBinaryInteger(): Boolean {
-        return variables.any { it.type.isNotBinaryIntegerType() }
-    }
+    val containsNotBinaryInteger: Boolean
+        get() {
+            return variables.any { it.type.isNotBinaryIntegerType }
+        }
 
     fun export(format: ModelFileFormat): Try {
         return export(Path("."), format)

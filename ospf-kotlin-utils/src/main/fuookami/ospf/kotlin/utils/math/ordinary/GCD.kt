@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.math.ordinary
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-private fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
+private tailrec fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     val remainder = x % y
 
     return if (remainder eq remainder.constants.zero) {
@@ -13,13 +13,14 @@ private fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     }
 }
 
-private fun <I> gcdImpl(numbers: List<I>): I where I: Integer<I>, I : Rem<I, I> {
+private fun <I> gcdImpl(numbers: List<I>): I where I : Integer<I>, I : Rem<I, I> {
     assert(numbers.isNotEmpty())
 
     val zero = numbers.first().constants.zero
-    val restNumbers = numbers.sortedDescending().toMutableList()
+    val restNumbers = numbers.toMutableList()
 
     while (restNumbers.first() neq restNumbers.last()) {
+        restNumbers.sortDescending()
         for (i in 0 until (restNumbers.size - 1)) {
             if (restNumbers[i] % restNumbers[i + 1] eq zero) {
                 restNumbers[i] = restNumbers[i + 1]

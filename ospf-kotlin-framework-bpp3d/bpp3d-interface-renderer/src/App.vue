@@ -25,7 +25,8 @@ import BinRenderer from './components/bin-renderer.vue';
 
 export default {
   components: {
-    FileSelector
+    FileSelector,
+    BinRenderer
   },
 
   data: () => ({

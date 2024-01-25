@@ -3,95 +3,55 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <groupId>fuookami</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ospf-kotlin-example</artifactId>
 
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.code.style>official</kotlin.code.style>
-        <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <kotlin.version>1.8.20</kotlin.version>
-    </properties>
-
     <dependencies>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-core</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-framework</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>
         <testSourceDirectory>src/test</testSourceDirectory>
-        <plugins>
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
-
 </project>

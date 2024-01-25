@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 class CSP {
@@ -22,7 +21,7 @@ class CSP {
 
             is Ok -> {}
         }
-        val rmp = RMP(products, initialCuttingPlans.value)
+        val rmp = RMP(length, products, initialCuttingPlans.value)
         val sp = SP()
         var i = UInt64.zero
         while (true) {
@@ -54,11 +53,19 @@ class CSP {
                 return Failed(solution.error)
             }
 
-            is Ok -> {}
+            is Ok -> {
+                println(
+                    solution.value.asIterable().joinToString(";") {
+                        "${
+                            it.key.products.asIterable()
+                                .joinToString(",") { product -> "${product.key.length} * ${product.value}" }
+                        }: ${it.value}"
+                    })
+            }
         }
         return Ok(success)
     }
 
     private fun reducedCost(cuttingPlan: CuttingPlan, shadowPrices: SPM) = Flt64.one -
-            cuttingPlan.products.asIterable().sumOf(Flt64) { (product, amount) -> (shadowPrices(product) * amount.toFlt64()) }
+            cuttingPlan.products.sumOf(Flt64) { (shadowPrices(it.key) * it.value.toFlt64()) }
 }

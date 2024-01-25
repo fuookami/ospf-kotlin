@@ -3,69 +3,67 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <groupId>fuookami</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ospf-kotlin-framework</artifactId>
 
+    <properties>
+        <!-- 3rd-party -->
+        <http4k.version>4.48.0.0</http4k.version>
+        <http4k.bom.version>5.8.4.0</http4k.bom.version>
+    </properties>
+
     <dependencies>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-core</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+        </dependency>
+        <!-- http4k -->
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-bom</artifactId>
+            <version>${http4k.bom.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-core</artifactId>
+            <version>${http4k.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-client-apache</artifactId>
+            <version>${http4k.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.http4k</groupId>
+            <artifactId>http4k-client-apache-async</artifactId>
+            <version>${http4k.version}</version>
+        </dependency>
+        <!-- ORM -->
+        <dependency>
+            <groupId>org.ktorm</groupId>
+            <artifactId>ktorm-core</artifactId>
+            <version>${ktorm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ktorm</groupId>
+            <artifactId>ktorm-jackson</artifactId>
+            <version>${ktorm.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>
-        <plugins>
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <compilerPlugins>
-                        <plugin>kotlinx-serialization</plugin>
-                    </compilerPlugins>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-maven-serialization</artifactId>
-                        <version>${kotlin.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
     </build>
 </project>

@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.service.limits
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -15,11 +14,10 @@ class BandwidthCostObjective(
     override val name: String = "bandwidth_cost"
 ) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try {
-        val poly = LinearPolynomial()
-        for (edge in edges.asSequence().filter(from(normal))) {
-            poly += edge.costPerBandwidth * edgeBandwidth.bandwidth[edge]!!
-        }
-        model.minimize(poly, "bandwidth cost")
+        model.minimize(
+            sum(edges.filter(from(normal))) { it.costPerBandwidth * edgeBandwidth.bandwidth[it] },
+            "bandwidth cost"
+        )
         return Ok(success)
     }
 }

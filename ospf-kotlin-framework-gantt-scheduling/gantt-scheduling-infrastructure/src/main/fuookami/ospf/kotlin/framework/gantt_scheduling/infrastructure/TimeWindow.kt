@@ -34,6 +34,7 @@ data class TimeWindow(
     } else {
         Flt64(duration.toInt(durationUnit))
     }
+
     fun durationOf(duration: Flt64) = if (continues) {
         duration.toDouble().toDuration(durationUnit)
     } else {
@@ -45,6 +46,7 @@ data class TimeWindow(
     } else {
         Flt64((timePoint - window.start).toInt(durationUnit))
     }
+
     fun instantOf(timePoint: Flt64) = if (continues) {
         window.start + timePoint.toDouble().toDuration(durationUnit)
     } else {

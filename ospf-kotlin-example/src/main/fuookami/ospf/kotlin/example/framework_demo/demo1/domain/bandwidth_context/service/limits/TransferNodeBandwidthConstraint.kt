@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.service.limits
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -27,7 +26,7 @@ class TransferNodeBandwidthConstraint(
         val outFlow = nodeBandwidth.outFlow
         for (node in nodes.asSequence().filter(normal)) {
             model.addConstraint(
-                node.maxOutDegree() * (UInt64.one - assignment[node]!!) + outFlow[node]!! leq node.maxOutDegree(),
+                node.maxOutDegree() * (UInt64.one - assignment[node]) + outFlow[node] leq node.maxOutDegree(),
                 "${name}_$node"
             )
         }

@@ -1,101 +1,146 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoAddTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MutableTokenTable
 import java.util.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import io.michaelrocks.bimap.*
+import kotlin.collections.HashMap
 
-sealed class TokenList {
-    private var currentIndex: Int = 0
-    protected val list: HashMap<ItemKey, Token> = HashMap()
-    val tokens: Collection<Token> get() = list.values
+private fun tokenIndexMap(tokens: Collection<Token>): BiMap<Token, Int> {
+    val ret = HashBiMap<Token, Int>()
+    for ((index, token) in tokens.toList().sortedBy { it.solverIndex }.withIndex()) {
+        ret[token] = index
+    }
+    return ret
+}
 
-    private var _solverIndexMap: MutableMap<Int, Int> = hashMapOf()
-    internal val solverIndexMap: Map<Int, Int>
-        get() {
-            if (_solverIndexMap.isEmpty()) {
-                _solverIndexMap = this.solverIndexMap()
-            }
-            return _solverIndexMap
-        }
+sealed interface AbstractTokenList {
+    val tokens: Collection<Token>
+    val tokenIndexMap: BiMap<Token, Int>
 
-    abstract fun find(item: Item<*, *>): Token?
+    fun find(item: AbstractVariableItem<*, *>): Token?
 
-    fun add(item: Item<*, *>): TokenList {
-        if (_solverIndexMap.isNotEmpty()) {
-            _solverIndexMap.clear()
-        }
-        list[item.key] = Token(item, currentIndex)
-        ++currentIndex
-        return this
+    fun find(index: Int): Token? {
+        return tokenIndexMap.inverse[index]
     }
 
-    fun add(items: Combination<*, *, *>): TokenList {
-        for (item in items) {
-            add(item!!)
-        }
-        return this
+    fun indexOf(item: AbstractVariableItem<*, *>): Int? {
+        return find(item)?.let { tokenIndexMap[it] }
     }
 
-    fun add(items: CombinationView<*, *>): TokenList {
-        for (item in items) {
-            add(item!!)
-        }
-        return this
-    }
-
-    fun remove(item: Item<*, *>) {
-        if (_solverIndexMap.isNotEmpty()) {
-            _solverIndexMap.clear()
-        }
-        list.remove(item.key)
-    }
-
-    fun setResults(result: List<Flt64>): TokenList {
-        assert(result.size == tokens.size)
-        val solverIndexes = solverIndexMap
+    fun setSolution(solution: List<Flt64>) {
+        assert(solution.size == tokens.size)
+        val tokenIndexMap = tokenIndexMap(tokens)
         for (token in tokens) {
-            token._result = result[solverIndexes[token.solverIndex]!!]
+            token._result = solution[tokenIndexMap[token]!!]
         }
-        return this
     }
 
-    fun setResults(result: Map<Item<*, *>, Flt64>): TokenList {
-        for ((variable, value) in result) {
+    fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        for ((variable, value) in solution) {
             find(variable)?._result = value
         }
-        return this
     }
 
-    fun clearResults(): TokenList {
+    fun clearSolution() {
         for (token in tokens) {
             token._result = null
         }
-        return this
-    }
-
-    private fun solverIndexMap(): MutableMap<Int, Int> {
-        val solverIndexes = ArrayList<Int>()
-        for (token in tokens) {
-            solverIndexes.add(token.solverIndex)
-        }
-        solverIndexes.sort()
-
-        val ret = TreeMap<Int, Int>()
-        for ((index, solverIndex) in solverIndexes.withIndex()) {
-            ret[solverIndex] = index
-        }
-        return ret
     }
 }
 
-class AutoAddTokenTokenList() : TokenList() {
-    override fun find(item: Item<*, *>): Token? {
-        add(item)
+class TokenList(
+    val list: Map<VariableItemKey, Token>
+) : AbstractTokenList {
+    constructor(tokens: MutableTokenList) : this(tokens.list.toMap())
+
+    override val tokens by list::values
+    override val tokenIndexMap: BiMap<Token, Int> by lazy { tokenIndexMap(tokens) }
+
+    override fun find(item: AbstractVariableItem<*, *>): Token? {
         return list[item.key]
     }
 }
 
-class ManualAddTokenTokenList() : TokenList() {
-    override fun find(item: Item<*, *>): Token? {
+sealed class MutableTokenList(
+    internal val list: MutableMap<VariableItemKey, Token> = HashMap(),
+    protected var currentIndex: Int = 0
+) : AbstractTokenList, Copyable<MutableTokenList> {
+    override val tokens by list::values
+
+    private lateinit var _tokenIndexMap: BiMap<Token, Int>
+    override val tokenIndexMap: BiMap<Token, Int>
+        get() {
+            if (!::_tokenIndexMap.isInitialized || _tokenIndexMap.isEmpty()) {
+                _tokenIndexMap = tokenIndexMap(tokens)
+            }
+            return _tokenIndexMap
+        }
+
+    fun add(item: AbstractVariableItem<*, *>): Try {
+        _tokenIndexMap = HashBiMap()
+        if (list.containsKey(item.key)) {
+            return Failed(Err(ErrorCode.TokenExisted))
+        }
+        list[item.key] = Token(item, currentIndex)
+        ++currentIndex
+        return Ok(success)
+    }
+
+    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+        _tokenIndexMap = HashBiMap()
+        for (item in items) {
+            if (list.containsKey(item.key)) {
+                return Failed(Err(ErrorCode.TokenExisted))
+            }
+            list[item.key] = Token(item, currentIndex)
+            ++currentIndex
+        }
+        return Ok(success)
+    }
+
+    fun remove(item: AbstractVariableItem<*, *>) {
+        _tokenIndexMap = HashBiMap()
+        list.remove(item.key)
+    }
+}
+
+class AutoAddTokenTokenList private constructor(
+    list: MutableMap<VariableItemKey, Token>,
+    currentIndex: Int
+) : MutableTokenList(list, currentIndex) {
+    constructor() : this(
+        list = HashMap(),
+        currentIndex = 0
+    )
+
+    override fun copy(): MutableTokenList {
+        return AutoAddTokenTokenList(list.toMutableMap(), currentIndex)
+    }
+
+    override fun find(item: AbstractVariableItem<*, *>): Token {
+        return list.getOrPut(item.key) { Token(item, currentIndex) }
+    }
+}
+
+class ManualAddTokenTokenList private constructor(
+    list: MutableMap<VariableItemKey, Token>,
+    currentIndex: Int
+) : MutableTokenList(list, currentIndex) {
+    constructor() : this(
+        list = HashMap(),
+        currentIndex = 0
+    )
+
+    override fun copy(): MutableTokenList {
+        return ManualAddTokenTokenList(list.toMutableMap(), currentIndex)
+    }
+
+    override fun find(item: AbstractVariableItem<*, *>): Token? {
         return list[item.key]
     }
 }

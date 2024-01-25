@@ -1,45 +1,71 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.mip.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-typealias CostCalculator<E> = Extractor<Flt64?, Task<E>>
+/**
+ * TODO
+ *
+ * @property y      task canceled
+ * @property z      executor leisure
+ */
+interface Compilation {
+    val taskCancelEnabled: Boolean
+    val withExecutorLeisure: Boolean
 
-class Compilation<E : Executor>(
-    val taskCancelEnabled: Boolean,
-    val withExecutorLeisure: Boolean = false
-) {
+    val y: BinVariable1
+    val z: BinVariable1
+
+    val taskAssignment: LinearSymbols2
+    val taskCompilation: LinearSymbols1
+    val executorCompilation: LinearSymbols1
+
+    fun register(model: LinearMetaModel): Try
+}
+
+class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+    private val tasks: List<T>,
+    private val executors: List<E>,
+    private val lockCancelTasks: Set<T> = emptySet(),
+    override val taskCancelEnabled: Boolean = false,
+    override val withExecutorLeisure: Boolean = false
+) : Compilation {
     lateinit var x: BinVariable2
-    lateinit var y: BinVariable1
-    lateinit var z: BinVariable1
+    override lateinit var y: BinVariable1
+    override lateinit var z: BinVariable1
 
-    lateinit var taskCompilation: LinearSymbols1
-    lateinit var executorCompilation: LinearSymbols1
+    override lateinit var taskAssignment: LinearSymbols2
+    override lateinit var taskCompilation: LinearSymbols1
+    override lateinit var executorCompilation: LinearSymbols1
 
-    fun register(tasks: List<Task<E>>, executors: List<E>, lockCancelTasks: Set<Task<E>> = emptySet(), model: LinearMetaModel): Try {
-        if (!this::x.isInitialized) {
+    override fun register(model: LinearMetaModel): Try {
+        if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(tasks.size, executors.size))
             for (task in tasks) {
                 for (executor in executors) {
-                    x[task, executor]!!.name = "${x.name}_${task}_${executor}"
+                    x[task, executor].name = "${x.name}_${task}_${executor}"
+
+                    if (!task.enabledExecutors.contains(executor)) {
+                        x[task, executor].range.eq(UInt8.zero)
+                    }
                 }
 
                 if (task.executor != null && !task.executorChangeEnabled) {
                     for (executor in executors) {
                         if (task.executor == executor) {
                             if (!task.cancelEnabled) {
-                                x[task, executor]!!.range.eq(UInt8.one)
+                                x[task, executor].range.eq(UInt8.one)
                             }
                         } else {
-                            x[task, executor]!!.range.eq(UInt8.zero)
+                            x[task, executor].range.eq(UInt8.zero)
                         }
                     }
                 }
@@ -47,58 +73,77 @@ class Compilation<E : Executor>(
         }
         model.addVars(x)
 
+        if (!::taskAssignment.isInitialized) {
+            taskAssignment = map(
+                "task_assignment",
+                tasks,
+                executors,
+                { t, e -> LinearMonomial(x[t, e]) },
+                { (_, t), (_, e) -> "${t}_$e" }
+            )
+        }
+        model.addSymbols(taskAssignment)
+
         if (taskCancelEnabled) {
-            if (!this::y.isInitialized) {
+            if (!::y.isInitialized) {
                 y = BinVariable1("y", Shape1(tasks.size))
                 for (task in tasks) {
-                    y[task]!!.name = ""
+                    y[task].name = ""
                     if (!task.cancelEnabled) {
-                        y[task]!!.range.eq(UInt8.zero)
+                        y[task].range.eq(UInt8.zero)
                     }
                     if (lockCancelTasks.contains(task)) {
-                        y[task]!!.range.eq(UInt8.one)
+                        y[task].range.eq(UInt8.one)
                     }
                 }
             }
             model.addVars(y)
         }
 
-        if (!this::taskCompilation.isInitialized) {
-            taskCompilation = LinearSymbols1("task_compilation", Shape1(tasks.size))
-            for (task in tasks) {
-                val poly = LinearPolynomial()
-                if (taskCancelEnabled) {
-                    poly += y[task]!!
-                }
-                executors.forEach { poly += x[task, it]!! }
-                taskCompilation[task] = LinearSymbol(poly, "${taskCompilation.name}_${task}")
-            }
+        if (!::taskCompilation.isInitialized) {
+            taskCompilation = flatMap(
+                "task_compilation",
+                tasks,
+                { t ->
+                    if (taskCancelEnabled) {
+                        y[t] + sum(x[t, _a])
+                    } else {
+                        sum(x[t, _a])
+                    }
+                },
+                { (_, t) -> "$t" }
+            )
         }
         model.addSymbols(taskCompilation)
 
         if (withExecutorLeisure) {
-            if (!this::z.isInitialized) {
+            if (!::z.isInitialized) {
                 z = BinVariable1("z", Shape1(executors.size))
                 for (executor in executors) {
-                    z[executor]!!.name = "${z.name}_${executor}"
+                    z[executor].name = "${z.name}_${executor}"
                 }
             }
             model.addVars(z)
+        }
 
-            if (!this::executorCompilation.isInitialized) {
-                executorCompilation = LinearSymbols1("executor_compilation", Shape1(executors.size))
-                for (executor in executors) {
-                    val executorAssigned = OrFunction(tasks.map { LinearPolynomial(x[it, executor]!!) }, "executor_assigned_${executor}")
-                    model.addSymbol(executorAssigned)
-
-                    executorCompilation[executor] = LinearSymbol(
-                        executorAssigned + z[executor]!!,
-                        "${executorCompilation.name}_${executor}"
+        if (!::executorCompilation.isInitialized) {
+            executorCompilation = LinearSymbols1(
+                "executor_compilation",
+                Shape1(executors.size)
+            ) { (i, _) ->
+                if (withExecutorLeisure) {
+                    val or = OrFunction(tasks.map { LinearPolynomial(x[it, executors[i]]) }, "executor_compilation_or_${executors[i]}")
+                    model.addSymbol(or)
+                    LinearExpressionSymbol(or + z[executors[i]], "executor_compilation_${executors[i]}")
+                } else {
+                    OrFunction(
+                        tasks.map { LinearPolynomial(x[it, executors[i]]) },
+                        "executor_compilation_${executors[i]}"
                     )
                 }
             }
-            model.addSymbols(executorCompilation)
         }
+        model.addSymbols(executorCompilation)
 
         return Ok(success)
     }

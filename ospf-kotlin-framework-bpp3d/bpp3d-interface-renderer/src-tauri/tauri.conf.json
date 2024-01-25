@@ -18,9 +18,7 @@
         "open": true
       },
       "dialog": {
-        "all": true,
-        "open": true,
-        "save": true
+        "all": true
       },
       "path": {
         "all": true
@@ -35,7 +33,9 @@
       "targets": "all",
       "windows": {
         "wix": {
-          "language": ["zh-CN"]
+          "language": [
+            "zh-CN"
+          ]
         }
       }
     },

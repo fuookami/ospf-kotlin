@@ -2,70 +2,108 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.Function
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-abstract class UnivariateLinearPiecewiseFunction(
-    val x: LinearPolynomial,
-    val size: Int,
-    final override var name: String,
-    final override var displayName: String? = "${name}(${x.name})"
-) : Function<Linear> {
+sealed class AbstractUnivariateLinearPiecewiseFunction(
+    private val x: AbstractLinearPolynomial<*>,
+    protected val points: List<Point2>,
+    override var name: String,
+    override var displayName: String? = null
+) : LinearFunctionSymbol {
+    init {
+        assert(points.foldIndexed(true) { index, acc, point ->
+            if (!acc) {
+                acc
+            } else {
+                if (index == 0) {
+                    acc
+                } else {
+                    point.x geq points[index - 1].x
+                }
+            }
+        })
+    }
 
-    private val k: PctVariable1 = PctVariable1("${name}_k", Shape1(size))
-    private val b: BinVariable1 = BinVariable1("${name}_b", Shape1(size - 1))
-
-    private lateinit var y: LinearSymbol
-
+    val size by points::size
     val empty: Boolean get() = size == 0
     val fixed: Boolean get() = size == 1
     val piecewise: Boolean get() = size >= 2
 
-    abstract fun pointX(i: Int): Flt64
-    abstract fun pointY(i: Int): Flt64
-
-    override val possibleRange: ValueRange<Flt64> by lazy { y.range }
-    override var range: ValueRange<Flt64>
-        get() = if (this::y.isInitialized) {
-            y.range
-        } else {
-            ValueRange(Flt64.minimum, Flt64.maximum, Flt64)
-        }
-        set(range) {
-            y.range = range
+    fun y(x: Flt64): Flt64? {
+        if (empty
+            || x ls points.first().x
+            || x gr points.last().x
+        ) {
+            return null
         }
 
-    override val cells: List<MonomialCell<Linear>> get() = y.cells
-
-    override val lowerBound: Flt64 get() = y.lowerBound
-    override val upperBound: Flt64 get() = y.upperBound
-
-    override fun intersectRange(range: ValueRange<Flt64>) = y.intersectRange(range)
-    override fun rangeLess(value: Flt64) = y.rangeLess(value)
-    override fun rangeLessEqual(value: Flt64) = y.rangeLessEqual(value)
-    override fun rangeGreater(value: Flt64) = y.rangeGreater(value)
-    override fun rangeGreaterEqual(value: Flt64) = y.rangeGreaterEqual(value)
-
-    override fun toRawString() = displayName ?: name
-
-    override fun register(tokenTable: TokenTable<Linear>) {
-        tokenTable.add(k)
-        tokenTable.add(b)
-        if (!this::y.isInitialized) {
-            y = LinearSymbol(polyY(), "${name}_y")
+        for (i in 0 until (size - 1)) {
+            if (points[i + 1].x geq x) {
+                val dy = points[i + 1].y - points[i].y
+                val dx = points[i + 1].x - points[i].x
+                return dy / dx * (x - points[i].x)
+            }
         }
-        tokenTable.add(y)
+        return null
     }
 
-    override fun register(model: Model<Linear>) {
+    private lateinit var k: PctVariable1
+    internal lateinit var b: BinVariable1
+    private lateinit var polyY: LinearPolynomial
+
+    override val range get() = polyY.range
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
+
+    override val cells get() = polyY.cells
+    override val cached get() = polyY.cached
+
+    override fun flush(force: Boolean) {
+        polyY.flush(force)
+    }
+
+    override fun register(tokenTable: LinearMutableTokenTable): Try {
+        if (!::k.isInitialized) {
+            k = PctVariable1("${name}_k", Shape1(points.size))
+        }
+        when (val result = tokenTable.add(k)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::b.isInitialized) {
+            b = BinVariable1("${name}_b", Shape1(points.size - 1))
+        }
+        when (val result = tokenTable.add(b)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::polyY.isInitialized) {
+            polyY = sum(points.mapIndexed { i, p -> p.y * k[i] })
+            polyY.name = "${name}_y"
+            polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }, Flt64))
+        }
+
+        return Ok(success)
+    }
+
+    override fun register(model: AbstractLinearModel): Try {
         model.addConstraint(
-            x eq polyX(),
+            x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
             "${name}_x"
         )
 
@@ -79,61 +117,67 @@ abstract class UnivariateLinearPiecewiseFunction(
         )
 
         for (i in 0 until size) {
-            val poly = LinearPolynomial()
+            val poly = MutableLinearPolynomial()
             if (i != 0) {
-                poly += b[i - 1]!!
+                poly += b[i - 1]
             }
             if (i != (size - 1)) {
-                poly += b[i]!!
+                poly += b[i]
             }
             model.addConstraint(
-                k[i]!! leq poly,
+                k[i] leq poly,
                 "${name}_kb_i"
             )
         }
+
+        return Ok(success)
     }
 
-    private fun polyX(): Polynomial<Linear> {
-        assert(!fixed)
-
-        val poly = LinearPolynomial()
-        for (i in 0 until size) {
-            poly += pointX(i) * k[i]!!
-        }
-        return poly
+    override fun toString(): String {
+        return displayName ?: name
     }
 
-    private fun polyY(): Polynomial<Linear> {
-        assert(!fixed)
+    override fun toRawString(unfold: Boolean): String {
+        return "$name(${x.toRawString(unfold)}})"
+    }
 
-        val poly = LinearPolynomial()
-        for (i in 0 until size) {
-            poly += pointY(i) * k[i]!!
-        }
-        return poly
+    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.value(tokenList, zeroIfNone)?.let { y(it) }
+    }
+
+    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.value(results, tokenList, zeroIfNone)?.let { y(it) }
     }
 }
 
-class NormalUnivariateLinearPiecewiseFunction(
-    x: LinearPolynomial,
-    val points: List<Point2>,
+open class UnivariateLinearPiecewiseFunction(
+    x: AbstractLinearPolynomial<*>,
+    points: List<Point2>,
     name: String,
-    displayName: String? = "${name}(${x.name})"
-) : UnivariateLinearPiecewiseFunction(x, points.size, name, displayName) {
-    override fun pointX(i: Int): Flt64 {
-        return points[i].x
+    displayName: String? = null
+) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName)
+
+open class MonotoneUnivariateLinearPiecewiseFunction(
+    x: AbstractLinearPolynomial<*>,
+    points: List<Point2>,
+    name: String,
+    displayName: String? = null
+) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName) {
+    init {
+        assert(points.foldIndexed(true) { index, acc, point ->
+            if (!acc) {
+                acc
+            } else {
+                if (index == 0) {
+                    acc
+                } else {
+                    point.y geq points[index - 1].y
+                }
+            }
+        })
     }
 
-    override fun pointY(i: Int): Flt64 {
-        return points[i].y
+    fun x(y: Flt64): Flt64? {
+        TODO("not implement yet")
     }
-}
-
-abstract class MonotoneUnivariateLinearPiecewiseFunction(
-    x: LinearPolynomial,
-    size: Int,
-    name: String,
-    displayName: String? = "${name}(${x.name})"
-) : UnivariateLinearPiecewiseFunction(x, size, name, displayName) {
-
 }

@@ -1,45 +1,49 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-@Suppress("UNCHECKED_CAST")
-fun <M : AbstractShadowPriceMap<M>, E : Executor> wrap(
-    extractor: (AbstractShadowPriceMap<M>, Task<E>?, Task<E>?, E) -> Flt64
-): ShadowPriceExtractor<M> {
-    return { map, args -> extractor(map, args[0] as Task<E>?, args[1] as Task<E>?, args[2] as E) }
+open class GanttSchedulingShadowPriceArguments<E : Executor, A : AssignmentPolicy<E>>(
+    val prevTask: AbstractTask<E, A>?,
+    val thisTask: AbstractTask<E, A>?,
+    val executor: E
+)
+
+open class AbstractGanttSchedulingShadowPriceMap<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>
+    : AbstractShadowPriceMap<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>()
+
+typealias GanttSchedulingShadowPriceMap<Args, E, A> = AbstractGanttSchedulingShadowPriceMap<Args, E, A>
+
+operator fun <E : Executor, A : AssignmentPolicy<E>> AbstractGanttSchedulingShadowPriceMap<GanttSchedulingShadowPriceArguments<E, A>, E, A>.invoke(
+    prevTask: AbstractTask<E, A>?,
+    thisTask: AbstractTask<E, A>?,
+    executor: E
+): Flt64 {
+    return invoke(GanttSchedulingShadowPriceArguments(prevTask, thisTask, executor))
 }
 
-class ShadowPriceMap<E : Executor> : AbstractShadowPriceMap<ShadowPriceMap<E>>() {
-    operator fun invoke(prevTask: Task<E>?, thisTask: Task<E>?, executor: E): Flt64 {
-        return super.invoke(prevTask, thisTask, executor)
-    }
-
-    fun reducedCost(bunch: TaskBunch<E>): Flt64 {
-        var ret = bunch.cost.sum!!
-        if (bunch.executor.indexed) {
-            ret -= this(null, null, bunch.executor)
-            for ((index, task) in bunch.tasks.withIndex()) {
-                val prevTask = if (index != 0) {
-                    bunch.tasks[index - 1]
-                } else {
-                    bunch.lastTask
-                }
-                ret -= this(prevTask, task, bunch.executor)
+fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractGanttSchedulingShadowPriceMap<GanttSchedulingShadowPriceArguments<E, A>, E, A>.reducedCost(
+    bunch: AbstractTaskBunch<T, E, A>
+): Flt64 {
+    var ret = bunch.cost.sum!!
+    if (bunch.executor.indexed) {
+        ret -= this(null, null, bunch.executor)
+        for ((index, task) in bunch.tasks.withIndex()) {
+            val prevTask = if (index != 0) {
+                bunch.tasks[index - 1]
+            } else {
+                bunch.lastTask
             }
-            if (bunch.tasks.isNotEmpty()) {
-                ret -= this(bunch.tasks.last(), null, bunch.executor)
-            }
+            ret -= this(prevTask, task, bunch.executor)
         }
-        return ret
+        if (bunch.tasks.isNotEmpty()) {
+            ret -= this(bunch.tasks.last(), null, bunch.executor)
+        }
     }
+    return ret
 }
+
+typealias GanttSchedulingShadowPriceExtractor<Args, E, A> = ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>
+typealias GanttSchedulingCGPipeline<Args, E, A> = CGPipeline<Args, LinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>
+typealias GanttSchedulingCGPipelineList<Args, E, A> = List<CGPipeline<Args, LinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>>

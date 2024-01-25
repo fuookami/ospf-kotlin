@@ -6,7 +6,8 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
-    crossinline extractor: SuspendIndexedExtractor<R, T>): List<R> {
+    crossinline extractor: SuspendIndexedExtractor<R, T>
+): List<R> {
     return this.mapIndexedParallelly(UInt64.ten, extractor)
 }
 

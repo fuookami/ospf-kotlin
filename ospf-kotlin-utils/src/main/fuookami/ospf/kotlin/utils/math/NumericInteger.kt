@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.utils.operator.*
 
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
-
     override fun inc() = this + constants.one
     override fun dec() = this - constants.one
 
@@ -30,7 +29,6 @@ abstract class NumericIntegerConstants<Self, I>(
     private val ctor: (I) -> Self,
     private val constants: RealNumberConstants<I>
 ) : RealNumberConstants<Self> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
-
     override val zero: Self get() = ctor(constants.zero)
     override val one: Self get() = ctor(constants.one)
     override val two: Self get() = ctor(constants.two)

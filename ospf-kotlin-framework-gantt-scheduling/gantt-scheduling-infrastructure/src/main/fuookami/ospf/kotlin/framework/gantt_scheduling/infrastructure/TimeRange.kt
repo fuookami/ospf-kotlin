@@ -29,13 +29,14 @@ data class TimeRange(
 ) {
     val empty: Boolean get() = start >= end
     val duration: Duration get() = end - start
-    
-    val front: TimeRange? get() = if (start != Instant.DISTANT_PAST) {
-        TimeRange(start = Instant.DISTANT_PAST, start)
-    } else {
-        null
-    }
-    
+
+    val front: TimeRange?
+        get() = if (start != Instant.DISTANT_PAST) {
+            TimeRange(start = Instant.DISTANT_PAST, start)
+        } else {
+            null
+        }
+
     fun frontBetween(ano: TimeRange): TimeRange? {
         return if (ano.end < start) {
             TimeRange(start = ano.end, end = start)
@@ -43,13 +44,14 @@ data class TimeRange(
             null
         }
     }
-    
-    val back: TimeRange? get() = if (end != Instant.DISTANT_FUTURE) {
-        TimeRange(start = end, end = Instant.DISTANT_FUTURE)
-    } else {
-        null
-    }
-    
+
+    val back: TimeRange?
+        get() = if (end != Instant.DISTANT_FUTURE) {
+            TimeRange(start = end, end = Instant.DISTANT_FUTURE)
+        } else {
+            null
+        }
+
     fun backBetween(ano: TimeRange): TimeRange? {
         return if (ano.start > this.end) {
             TimeRange(start = end, end = ano.start)

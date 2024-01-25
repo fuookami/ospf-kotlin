@@ -64,7 +64,7 @@ fun <T> permuteCallBack(
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class)
 fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): ChannelGuard<List<T>> {
     val logger = logger("Permutations")
 

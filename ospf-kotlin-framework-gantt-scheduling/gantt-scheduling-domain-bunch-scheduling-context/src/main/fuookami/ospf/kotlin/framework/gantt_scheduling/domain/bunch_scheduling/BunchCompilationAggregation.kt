@@ -14,7 +14,10 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.ResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.ResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.Compilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.TaskTime
 
 open class BunchCompilationAggregation<E : Executor>(
     val withExecutorLeisure: Boolean = true,
@@ -100,7 +103,18 @@ open class BunchCompilationAggregation<E : Executor>(
 
         return if (multiThread) {
             coroutineScope {
-                val compilationPromise = when (val result = compilation.addColumns(iteration, bunches, tasks, executors, model, this)) {
+                val compilationPromise =
+                    when (val result = compilation.addColumns(iteration, bunches, tasks, executors, model, this)) {
+                        is Ok -> {
+                            result.value
+                        }
+
+                        is Failed -> {
+                            return@coroutineScope Failed(result.error)
+                        }
+                    }
+                val taskTimePromise = when (val result =
+                    taskTime.addColumns(iteration, timeWindow, bunches, tasks, compilation, compilationPromise, this)) {
                     is Ok -> {
                         result.value
                     }
@@ -109,16 +123,8 @@ open class BunchCompilationAggregation<E : Executor>(
                         return@coroutineScope Failed(result.error)
                     }
                 }
-                val taskTimePromise = when (val result = taskTime.addColumns(iteration, timeWindow, bunches, tasks, compilation, compilationPromise, this)) {
-                    is Ok -> {
-                        result.value
-                    }
-
-                    is Failed -> {
-                        return@coroutineScope Failed(result.error)
-                    }
-                }
-                val resourceCapacityPromise = when (val result = resourceCapacity.addColumns(iteration, bunches, compilation, compilationPromise, this)) {
+                val resourceCapacityPromise = when (val result =
+                    resourceCapacity.addColumns(iteration, bunches, compilation, compilationPromise, this)) {
                     is Ok -> {
                         result.value
                     }
@@ -218,7 +224,12 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(success)
     }
 
-    fun locallyFix(iteration: UInt64, bar: Flt64, fixedBunches: Set<TaskBunch<E>>, model: LinearMetaModel): Ret<Set<TaskBunch<E>>> {
+    fun locallyFix(
+        iteration: UInt64,
+        bar: Flt64,
+        fixedBunches: Set<TaskBunch<E>>,
+        model: LinearMetaModel
+    ): Ret<Set<TaskBunch<E>>> {
         var flag = true
         val ret = HashSet<TaskBunch<E>>()
 
@@ -320,7 +331,11 @@ open class BunchCompilationAggregation<E : Executor>(
         return Ok(success)
     }
 
-    private fun extractBunches(iteration: UInt64, model: LinearMetaModel, predicate: (Flt64) -> Boolean): Ret<Set<TaskBunch<E>>> {
+    private fun extractBunches(
+        iteration: UInt64,
+        model: LinearMetaModel,
+        predicate: (Flt64) -> Boolean
+    ): Ret<Set<TaskBunch<E>>> {
         val ret = HashSet<TaskBunch<E>>()
         for (token in model.tokens.tokens) {
             if (!predicate(token.result!!)) {

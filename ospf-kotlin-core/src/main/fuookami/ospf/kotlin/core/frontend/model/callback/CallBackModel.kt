@@ -4,19 +4,22 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-interface CallBackModelPolicy {
-    fun compareObjective(lhs: Flt64?, rhs: Flt64?): Order? {
+interface CallBackModelPolicy<V> {
+    val comparator: ThreeWayComparator<V>
+
+    fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
         } else if (lhs == null && rhs != null) {
             Order.Greater()
         } else if (lhs != null && rhs != null) {
-            lhs ord rhs
+            comparator(lhs, rhs)
         } else {
             null
         }
@@ -27,11 +30,21 @@ interface CallBackModelPolicy {
     }
 }
 
-class FunctionalCallBackModelPolicy(
-    val objectiveComparator: PartialComparator<Flt64> = { lhs, rhs -> lhs ls rhs },
+class FunctionalCallBackModelPolicy<V>(
+    val objectiveComparator: PartialComparator<V>,
     val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-) : CallBackModelPolicy {
-    override fun compareObjective(lhs: Flt64?, rhs: Flt64?): Order? {
+) : CallBackModelPolicy<V> {
+    override val comparator: ThreeWayComparator<V> = { lhs, rhs ->
+        if (objectiveComparator(lhs, rhs) == true || objectiveComparator(rhs, lhs) == false) {
+            Order.Less(-1)
+        } else if (objectiveComparator(lhs, rhs) == false || objectiveComparator(rhs, lhs) == true) {
+            Order.Greater(1)
+        } else {
+            Order.Equal
+        }
+    }
+
+    override fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
         } else if (lhs == null && rhs != null) {
@@ -49,17 +62,26 @@ class FunctionalCallBackModelPolicy(
         }
     }
 
-    override fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution> {
-        return (UInt64.zero until initialSolutionAmount).map { solution -> (UInt64.zero until variableAmount).map { initialSolutionsGenerator(Pair(solution, it)) } }
+    override fun initialSolutions(
+        initialSolutionAmount: UInt64,
+        variableAmount: UInt64
+    ): List<Solution> {
+        return (UInt64.zero until initialSolutionAmount).map { solution ->
+            (UInt64.zero until variableAmount).map {
+                initialSolutionsGenerator(
+                    Pair(solution, it)
+                )
+            }
+        }
     }
 }
 
 class CallBackModel internal constructor(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: TokenList = ManualAddTokenTokenList(),
+    override val tokens: MutableTokenList = ManualAddTokenTokenList(),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
-    private val policy: CallBackModelPolicy
+    private val policy: CallBackModelPolicy<Flt64>
 ) : CallBackModelInterface {
     companion object {
         private fun dumpObjectiveComparator(category: ObjectCategory): PartialComparator<Flt64> = when (category) {
@@ -70,7 +92,10 @@ class CallBackModel internal constructor(
         operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ) = CallBackModel(objectCategory = objectCategory, policy = FunctionalCallBackModelPolicy(dumpObjectiveComparator(objectCategory), initialSolutionGenerator))
+        ) = CallBackModel(
+            objectCategory = objectCategory,
+            policy = FunctionalCallBackModelPolicy(dumpObjectiveComparator(objectCategory), initialSolutionGenerator)
+        )
 
         operator fun invoke(
             objectiveComparator: PartialComparator<Flt64>,
@@ -78,10 +103,10 @@ class CallBackModel internal constructor(
         ) = CallBackModel(policy = FunctionalCallBackModelPolicy(objectiveComparator, initialSolutionGenerator))
 
         operator fun invoke(
-            model: SingleObjectModel<*>,
+            model: SingleObjectModel<*, *>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel {
-            val tokens: TokenList = ManualAddTokenTokenList()
+            val tokens: MutableTokenList = ManualAddTokenTokenList()
             for (token in model.tokens.tokens) {
                 tokens.add(token.variable)
             }
@@ -119,43 +144,56 @@ class CallBackModel internal constructor(
     override val constraints by this::_constraints
     override val objectiveFunctions by this::_objectiveFunctions
 
-    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> = policy.initialSolutions(initialSolutionAmount, UInt64(tokens.solverIndexMap.size))
+    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> {
+        return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokenIndexMap.size))
+    }
 
-    override fun compareObjective(lhs: Flt64?, rhs: Flt64?): Order? = policy.compareObjective(lhs, rhs)
+    override fun compareObjective(lhs: Flt64, rhs: Flt64): Order {
+        return policy.comparator(lhs, rhs)
+    }
 
-    override fun addVar(item: Item<*, *>) {
+    override fun compareObjective(lhs: Flt64?, rhs: Flt64?): Order? {
+        return policy.compareObjective(lhs, rhs)
+    }
+
+    override fun addVar(item: AbstractVariableItem<*, *>) {
         tokens.add(item)
     }
 
-    override fun addVars(items: Combination<*, *, *>) {
+    override fun addVars(items: Iterable<AbstractVariableItem<*, *>>) {
         tokens.add(items)
     }
 
-    override fun addVars(items: CombinationView<*, *>) {
-        tokens.add(items)
-    }
-
-    override fun remove(item: Item<*, *>) {
+    override fun remove(item: AbstractVariableItem<*, *>) {
         tokens.remove(item)
     }
 
-    override fun addConstraint(inequality: Inequality<*>, name: String?, displayName: String?) {
+    override fun addConstraint(
+        inequality: Inequality<*, *>,
+        name: String?,
+        displayName: String?
+    ) {
         _constraints.add(
-            Pair<Extractor<Boolean?, Solution>, String>(
+            Pair(
                 { solution: Solution -> inequality.isTrue(solution, tokens) },
                 name ?: String()
             )
         )
     }
 
-    override fun addObject(category: ObjectCategory, polynomial: Polynomial<*>, name: String?, displayName: String?) {
+    fun addObject(
+        category: ObjectCategory,
+        expression: Expression,
+        name: String?,
+        displayName: String?
+    ) {
         _objectiveFunctions.add(
-            Pair<Extractor<Flt64?, Solution>, String>(
+            Pair(
                 { solution: Solution ->
                     if (category == objectCategory) {
-                        polynomial.value(solution, tokens)
+                        expression.value(solution, tokens)
                     } else {
-                        -polynomial.value(solution, tokens)
+                        expression.value(solution, tokens)?.let { -it }
                     }
                 },
                 name ?: String()
@@ -163,7 +201,43 @@ class CallBackModel internal constructor(
         )
     }
 
-    fun addObject(category: ObjectCategory, func: Extractor<Flt64?, Solution>, name: String? = null, displayName: String? = null) {
+    override fun addObject(
+        category: ObjectCategory,
+        polynomial: Polynomial<*, *, *, *>,
+        name: String?,
+        displayName: String?
+    ) {
+        _objectiveFunctions.add(
+            Pair(
+                { solution: Solution ->
+                    if (category == objectCategory) {
+                        polynomial.value(solution, tokens)
+                    } else {
+                        polynomial.value(solution, tokens)?.let { -it }
+                    }
+                },
+                name ?: String()
+            )
+        )
+    }
+
+    override fun <T : RealNumber<T>> addObject(
+        category: ObjectCategory,
+        constant: T,
+        name: String?,
+        displayName: String?
+    ) {
+        _objectiveFunctions.add(
+            Pair({ constant.toFlt64() }, name ?: String())
+        )
+    }
+
+    fun addObject(
+        category: ObjectCategory,
+        func: Extractor<Flt64?, Solution>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
         _objectiveFunctions.add(
             Pair(
                 { solution: Solution ->
@@ -178,15 +252,50 @@ class CallBackModel internal constructor(
         )
     }
 
-    override fun setSolution(solution: Solution) {
-        tokens.setResults(solution)
+    fun maximize(
+        expression: Expression,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Maximum, expression, name, displayName)
     }
 
-    override fun setSolution(solution: Map<Item<*, *>, Flt64>) {
-        tokens.setResults(solution)
+    fun maximize(
+        func: Extractor<Flt64?, Solution>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Maximum, func, name, displayName)
+    }
+
+    fun minimize(
+        expression: Expression,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Minimum, expression, name, displayName)
+    }
+
+    fun minimize(
+        func: Extractor<Flt64?, Solution>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Minimum, func, name, displayName)
+    }
+
+    override fun setSolution(solution: Solution) {
+        tokens.setSolution(solution)
+    }
+
+    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        tokens.setSolution(solution)
     }
 
     override fun clearSolution() {
-        tokens.clearResults()
+        tokens.clearSolution()
     }
 }
+
+// todo
+class MultiObjectCallBackModel

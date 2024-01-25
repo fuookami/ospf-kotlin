@@ -23,20 +23,19 @@ data class Rectangle<P : Point<D>, D : Dimension>(
     val length: Flt64
     val width: Flt64
 
-    val area: Flt64
-
     init {
         val e1 = Edge(p1, p2)
         val e2 = Edge(p2, p3)
         val l1 = e1.length
         val l2 = e2.length
-        length = max(l1, l2)
         width = min(l1, l2)
-        area = length * width
+        length = max(l1, l2)
 
         // assert is at right angles
         assert(((e1.vector * e2.vector) / (l1 * l2)) eq Flt64.zero)
     }
+
+    val area: Flt64 by lazy { length * width }
 }
 
 typealias Rectangle2 = Rectangle<Point2, Dim2>

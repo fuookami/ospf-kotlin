@@ -7,24 +7,26 @@ sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberFie
     val minimum: T
     val maximum: T
 
-    fun isBinaryType() = false
-    fun isIntegerType() = false
-    fun isContinuousType() = !isIntegerType()
-    fun isNotBinaryIntegerType() = isBinaryType() && !isIntegerType()
+    val isBinaryType get() = false
+    val isIntegerType get() = false
+    val isUnsignedIntegerType get() = false
+    val isContinuousType get() = !isIntegerType
+    val isNotBinaryIntegerType get() = isBinaryType && !isIntegerType
 }
 
 sealed interface IntegerVariableType<T : IntegerNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = constants.minimum
     override val maximum get() = constants.maximum
 
-    override fun isIntegerType() = true
+    override val isIntegerType get() = true
 }
 
 sealed interface UIntegerVariableType<T : UIntegerNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = constants.zero
     override val maximum get() = constants.maximum
 
-    override fun isIntegerType() = true
+    override val isIntegerType get() = true
+    override val isUnsignedIntegerType get() = true
 }
 
 sealed interface ContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
@@ -42,28 +44,28 @@ sealed class VariableType<T>(
 ) : VariableTypeInterface<T> where T : RealNumber<T>, T : NumberField<T>
 
 data object Binary : VariableType<UInt8>(UInt8), UIntegerVariableType<UInt8> {
-    override val maximum get() = constants.one
+    override val maximum by constants::one
 
-    override fun isBinaryType() = true
+    override val isBinaryType get() = true
 
     override fun toString(): String = "Binary"
 }
 
 data object Ternary : VariableType<UInt8>(UInt8), UIntegerVariableType<UInt8> {
-    override val maximum get() = constants.two
+    override val maximum by constants::two
 
     override fun toString(): String = "Ternary"
 }
 
 data object BalancedTernary : VariableType<Int8>(Int8), IntegerVariableType<Int8> {
     override val minimum get() = -constants.one
-    override val maximum get() = constants.one
+    override val maximum by constants::one
 
     override fun toString(): String = "BalancedTernary"
 }
 
 data object Percentage : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
-    override val maximum get() = constants.one
+    override val maximum by constants::one
 
     override fun toString(): String = "Percentage"
 }

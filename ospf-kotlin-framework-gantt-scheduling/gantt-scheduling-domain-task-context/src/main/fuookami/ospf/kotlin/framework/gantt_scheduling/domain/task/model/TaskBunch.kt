@@ -1,30 +1,42 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.time.*
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
-open class TaskBunch<E : Executor> internal constructor(
+open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> internal constructor(
     val executor: E,
     val time: TimeRange,
-    val tasks: List<Task<E>>,
+    val tasks: List<T>,
     val iteration: UInt64,
     val cost: Cost,
-
-    val ability: ExecutorUsability<E>
+    val ability: ExecutorUsability<E, A>
 ) : ManualIndexed() {
     val size by tasks::size
     val empty get() = tasks.isEmpty()
     val lastTask by ability::lastTask
     val costDensity = (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
-    val busyTime: Duration
-    val totalDelay: Duration
-    val executorChange: UInt64
-    val keys: Map<TaskKey, Int>
-    val redundancy: Map<TaskKey, Pair<Duration, Duration>>
+    val busyTime: Duration by lazy {
+        tasks.foldIndexed(Duration.ZERO) { i, busyTime, task ->
+            val prevTask = if (i > 0) {
+                tasks[i - 1]
+            } else {
+                lastTask
+            }
+            val succTask = if (i != (tasks.size - 1)) {
+                tasks[i + 1]
+            } else {
+                null
+            }
+            busyTime + task.duration!! + task.connectionTime(task.executor!!, prevTask, succTask)
+        }
+    }
+    val totalDelay: Duration by lazy { tasks.fold(Duration.ZERO) { delay, task -> delay + task.delay } }
+    val totalAdvance: Duration by lazy { tasks.fold(Duration.ZERO) { advance, task -> advance + task.advance } }
+    val executorChange: UInt64 by lazy { UInt64(tasks.count { it.executorChanged }.toULong()) }
+    val keys: Map<TaskKey, Int> by lazy { tasks.withIndex().associate { Pair(it.value.key, it.index) } }
 
     companion object {
         val originIteration = UInt64.maximum
@@ -33,7 +45,7 @@ open class TaskBunch<E : Executor> internal constructor(
     constructor(
         executor: E,
         time: Instant,
-        ability: ExecutorUsability<E>,
+        ability: ExecutorUsability<E, A>,
         iteration: UInt64
     ) : this(
         executor = executor,
@@ -46,8 +58,8 @@ open class TaskBunch<E : Executor> internal constructor(
 
     constructor(
         executor: E,
-        ability: ExecutorUsability<E>,
-        tasks: List<Task<E>>,
+        ability: ExecutorUsability<E, A>,
+        tasks: List<T>,
         iteration: UInt64,
         cost: Cost = Cost()
     ) : this(
@@ -59,53 +71,15 @@ open class TaskBunch<E : Executor> internal constructor(
         ability = ability
     )
 
-    init {
-        val taskKeys = HashMap<TaskKey, Int>()
-        for ((index, task) in tasks.withIndex()) {
-            taskKeys[task.key] = index
-        }
-        keys = taskKeys
-
-        val taskTimeRedundancy = HashMap<TaskKey, Pair<Duration, Duration>>()
-        if (tasks.isNotEmpty()) {
-            var currentTaskTimeWindow = Pair(ability.enabledTime, tasks[0].latestNormalStartTime(executor))
-            for (task in tasks) {
-                // todo
-            }
-        }
-        redundancy = taskTimeRedundancy
-
-        var busyTime = Duration.ZERO
-        for (i in tasks.indices) {
-            busyTime += tasks[i].duration!!
-
-            val prevTask = if (i > 0) {
-                tasks[i - 1]
-            } else {
-                lastTask
-            }
-            val succTask = if (i != (tasks.size - 1)) {
-                tasks[i + 1]
-            } else {
-                null
-            }
-            busyTime += tasks[i].connectionTime(executor, prevTask, succTask)
-        }
-        this.busyTime = busyTime
-        this.executorChange = UInt64(tasks.count { it.executorChanged }.toULong())
-
-        totalDelay = tasks.sumOf { it.delay.toLong(DurationUnit.MILLISECONDS) }.milliseconds
-    }
-
-    operator fun get(index: Int): Task<E> {
+    operator fun get(index: Int): T {
         return tasks[index]
     }
 
-    fun contains(task: Task<E>): Boolean {
+    fun contains(task: AbstractTask<E, A>): Boolean {
         return keys.contains(task.key)
     }
 
-    fun contains(prev: Task<E>, succ: Task<E>): Boolean {
+    fun contains(prev: AbstractTask<E, A>, succ: AbstractTask<E, A>): Boolean {
         val prevTask = keys[prev.key]
         val succTask = keys[succ.key]
         return if (prevTask != null && succTask != null) {
@@ -115,17 +89,19 @@ open class TaskBunch<E : Executor> internal constructor(
         }
     }
 
-    fun contains(taskPair: Pair<Task<E>, Task<E>>): Boolean {
+    fun contains(taskPair: Pair<AbstractTask<E, A>, AbstractTask<E, A>>): Boolean {
         return contains(taskPair.first, taskPair.second)
     }
 
-    fun get(originTask: Task<E>): Task<E>? {
+    fun get(originTask: AbstractTask<E, A>): T? {
         val task = keys[originTask.key]
         return if (task != null) {
-            assert(tasks[task].originTask == originTask)
+            assert(tasks[task].plan == originTask.plan)
             tasks[task]
         } else {
             null
         }
     }
 }
+
+typealias TaskBunch<E, A> = AbstractTaskBunch<Task<E>, E, A>

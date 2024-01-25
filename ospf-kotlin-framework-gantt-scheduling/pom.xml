@@ -3,20 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <groupId>fuookami</groupId>
-        <version>1.0.0</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+    <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
     <artifactId>ospf-kotlin-framework-gantt-scheduling</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>gantt-scheduling-infrastructure</module>
         <module>gantt-scheduling-domain-task-context</module>
-<!--        <module>gantt-scheduling-domain-task-scheduling-context</module>-->
+        <module>gantt-scheduling-domain-task-selection-context</module>
+        <module>gantt-scheduling-domain-task-scheduling-context</module>
+        <module>gantt-scheduling-domain-task-generation-context</module>
 <!--        <module>gantt-scheduling-domain-bunch-selection-context</module>-->
 <!--        <module>gantt-scheduling-domain-bunch-generation-context</module>-->
 <!--        <module>gantt-scheduling-domain-bunch-scheduling-context</module>-->
@@ -25,81 +26,34 @@
 
     <dependencies>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-core</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-framework</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fuookami</groupId>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
             <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <compilerPlugins>
-                        <plugin>kotlinx-serialization</plugin>
-                    </compilerPlugins>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-maven-serialization</artifactId>
-                        <version>${kotlin.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
-    </build>
 </project>

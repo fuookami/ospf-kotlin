@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-data class Solution<E : Executor>(
-    val assignedTasks: List<Task<E>>,
-    val canceledTasks: List<Task<E>>
+data class Solution<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+    val assignedTasks: List<T>,
+    val canceledTasks: List<T>
 )

@@ -8,12 +8,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.model.Extractor
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.ResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.ResourceCapacity
 
 typealias TimeSlot<E> = ResourceCapacity.TimeSlot<E>
 
@@ -48,7 +47,8 @@ class ResourceCapacityLimit<E : Executor>(
         if (overResourceCapacityCostCalculator != null) {
             val cost = LinearPolynomial()
             for (timeSlot in timeSlots) {
-                val penalty = overResourceCapacityCostCalculator!!(Pair(timeSlot.resource, timeSlot.time)) ?: Flt64.infinity
+                val penalty =
+                    overResourceCapacityCostCalculator!!(Pair(timeSlot.resource, timeSlot.time)) ?: Flt64.infinity
                 cost += penalty * m[timeSlot]!!
             }
             model.minimize(cost, "over resource capacity")

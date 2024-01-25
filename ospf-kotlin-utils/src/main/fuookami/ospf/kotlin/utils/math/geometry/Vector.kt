@@ -33,8 +33,8 @@ open class Vector<D : Dimension>(
 
     val size by vector::size
     val indices by vector::indices
-    val norm: Flt64 = normOf(vector)
-    open val unit: Vector<D> get() = Vector(unitOf(vector), dim)
+    val norm: Flt64 by lazy { normOf(vector) }
+    open val unit: Vector<D> by lazy { Vector(unitOf(vector), dim) }
 
     init {
         assert(vector.size == dim.size)

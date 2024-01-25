@@ -37,23 +37,22 @@ class LinearSubObject(
 ) : SubObject<Linear>(category, name) {
     companion object {
         operator fun invoke(
-            parent: LinearMetaModel,
             category: ObjectCategory,
-            poly: Polynomial<Linear>,
-            tokens: TokenTable<Linear>,
+            poly: Polynomial<*, *, LinearMonomialCell, Linear>,
+            tokens: LinearTokenTable,
             name: String
         ): LinearSubObject {
             val cells = ArrayList<LinearCell>()
             var constant = Flt64.zero
             for (cell in poly.cells) {
-                if ((cell as LinearMonomialCell).isPair()) {
-                    val pair = cell.pair()!!
-                    val token = tokens.token(pair.variable)
+                if (cell.isPair) {
+                    val pair = cell.pair!!
+                    val token = tokens.find(pair.variable)
                     if (token != null && pair.coefficient neq Flt64.zero) {
-                        cells.add(LinearCell(parent, pair.coefficient, token))
+                        cells.add(LinearCell(tokens, pair.coefficient, token))
                     }
                 } else {
-                    constant = cell.constant()!!
+                    constant = cell.constant!!
                 }
             }
             return LinearSubObject(category, cells, constant, name)

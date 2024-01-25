@@ -32,8 +32,8 @@ data class ContextKey(
         }
     }
 
-    val parent
-        get() = if (stackTree.isEmpty()) {
+    val parent by lazy {
+        if (stackTree.isEmpty()) {
             null
         } else {
             ContextKey(
@@ -41,6 +41,7 @@ data class ContextKey(
                 stackTree = dump(stackTree.toList().subList(1, stackTree.size))
             )
         }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

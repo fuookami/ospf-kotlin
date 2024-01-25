@@ -4,7 +4,6 @@ import java.io.*
 import java.nio.file.*
 import kotlin.io.path.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -13,59 +12,63 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 
-sealed interface MetaModel<C : Category> : ModelInterface {
-    class SubObject<C : Category>(
-        val parent: MetaModel<C>,
+sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>, C : Category> : ModelInterface {
+    class SubObject<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>(
+        val parent: MetaModel<I, Cell, C>,
         val category: ObjectCategory,
-        val polynomial: Polynomial<C>,
+        val polynomial: Polynomial<*, *, Cell, C>,
         val name: String = polynomial.name
     ) {
-        fun value(): Flt64 {
-            return polynomial.value(parent.tokens)
+        fun value(zeroIfNone: Boolean = false): Flt64? {
+            return polynomial.value(parent.tokens, zeroIfNone)
         }
 
-        fun value(results: List<Flt64>): Flt64 {
-            return polynomial.value(results, parent.tokens)
+        fun value(results: List<Flt64>, zeroIfNone: Boolean): Flt64? {
+            return polynomial.value(results, parent.tokens, zeroIfNone)
         }
     }
 
     val name: String
-    val constraints: MutableList<Inequality<C>>
+    val constraints: MutableList<I>
     override val objectCategory: ObjectCategory
-    val subObjects: MutableList<SubObject<C>>
-    val tokens: TokenTable<C>
+    val subObjects: MutableList<SubObject<I, Cell, C>>
+    val tokens: MutableTokenTable<Cell, C>
 
-    override fun addVar(item: Item<*, *>) {
+    override fun addVar(item: AbstractVariableItem<*, *>) {
         tokens.add(item)
     }
 
-    override fun addVars(items: Combination<*, *, *>) {
+    override fun addVars(items: Iterable<AbstractVariableItem<*, *>>) {
         tokens.add(items)
     }
 
-    override fun addVars(items: CombinationView<*, *>) {
-        tokens.add(items)
-    }
-
-    override fun remove(item: Item<*, *>) {
+    override fun remove(item: AbstractVariableItem<*, *>) {
         tokens.remove(item)
     }
 
-    fun addSymbol(symbol: Symbol<C>) {
+    fun addSymbol(symbol: Symbol<Cell, C>) {
         tokens.add(symbol)
     }
 
-    fun addSymbols(symbols: SymbolCombination<C, *>) {
+    fun addSymbols(symbols: Iterable<Symbol<Cell, C>>) {
         tokens.add(symbols)
     }
 
-    fun addSymbols(symbols: SymbolView<C>) {
-        tokens.add(symbols)
+    fun addConstraint(
+        symbol: LinearLogicFunctionSymbol,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addConstraint(symbol eq Flt64.one, name, displayName)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun addConstraint(inequality: Inequality<*>, name: String?, displayName: String?) {
-        inequality as Inequality<C>
+    override fun addConstraint(
+        inequality: Inequality<*, *>,
+        name: String?,
+        displayName: String?
+    ) {
+        inequality as I
 
         if (name != null) {
             inequality.name = name
@@ -79,9 +82,35 @@ sealed interface MetaModel<C : Category> : ModelInterface {
     fun registerConstraintGroup(name: String)
     fun indicesOfConstraintGroup(name: String): IntRange?
 
+    fun addObject(
+        category: ObjectCategory,
+        item: AbstractVariableItem<*, *>,
+        name: String? = null,
+        displayName: String? = null
+    )
+
+    fun addObject(
+        category: ObjectCategory,
+        symbol: Symbol<Cell, C>,
+        name: String? = null,
+        displayName: String? = null
+    )
+
+    fun addObject(
+        category: ObjectCategory,
+        monomial: Monomial<*, Cell, C>,
+        name: String? = null,
+        displayName: String? = null
+    )
+
     @Suppress("UNCHECKED_CAST")
-    override fun addObject(category: ObjectCategory, polynomial: Polynomial<*>, name: String?, displayName: String?) {
-        polynomial as Polynomial<C>
+    override fun addObject(
+        category: ObjectCategory,
+        polynomial: Polynomial<*, *, *, *>,
+        name: String?,
+        displayName: String?
+    ) {
+        polynomial as Polynomial<*, *, Cell, C>
 
         if (name != null) {
             polynomial.name = name
@@ -92,11 +121,59 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         subObjects.add(SubObject(this, category, polynomial))
     }
 
+    fun maximize(
+        item: AbstractVariableItem<*, *>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addObject(ObjectCategory.Maximum, item, name, displayName)
+    }
+
+    fun maximize(
+        symbol: Symbol<Cell, C>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addObject(ObjectCategory.Maximum, symbol, name, displayName)
+    }
+
+    fun maximize(
+        monomial: Monomial<*, Cell, C>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addObject(ObjectCategory.Maximum, monomial, name, displayName)
+    }
+
+    fun minimize(
+        item: AbstractVariableItem<*, *>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addObject(ObjectCategory.Minimum, item, name, displayName)
+    }
+
+    fun minimize(
+        symbol: Symbol<Cell, C>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addObject(ObjectCategory.Minimum, symbol, name, displayName)
+    }
+
+    fun minimize(
+        monomial: Monomial<*, Cell, C>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addObject(ObjectCategory.Minimum, monomial, name, displayName)
+    }
+
     override fun setSolution(solution: Solution) {
         tokens.setSolution(solution)
     }
 
-    override fun setSolution(solution: Map<Item<*, *>, Flt64>) {
+    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         tokens.setSolution(solution)
     }
 
@@ -104,13 +181,18 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         tokens.clearSolution()
     }
 
-    fun flush() {
+    fun flush(force: Boolean = false) {
+        for (token in tokens.tokens) {
+            token._result = null
+        }
+        for (symbol in tokens.symbols) {
+            symbol.flush(force)
+        }
         for (constraint in constraints) {
-            constraint.lhs.flush()
-            constraint.rhs.flush()
+            constraint.flush(force)
         }
         for (objective in subObjects) {
-            objective.polynomial.flush()
+            objective.polynomial.flush(force)
         }
     }
 
@@ -119,10 +201,10 @@ sealed interface MetaModel<C : Category> : ModelInterface {
     }
 
     fun export(name: String): Try {
-        return export(kotlin.io.path.Path(".").resolve(name))
+        return export(Path(".").resolve(name))
     }
 
-    fun export(path: Path): Try {
+    fun export(path: Path, unfold: Boolean = false): Try {
         val file = if (path.isDirectory()) {
             path.resolve("$name.opm").toFile()
         } else {
@@ -134,9 +216,9 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         val writer = FileWriter(file)
         val result = when (file.extension) {
             "opm" -> {
-                exportOpm(writer)
+                exportOpm(writer, unfold)
             }
-            // todo: raise error with unknown format
+
             else -> {
                 Ok(success)
             }
@@ -146,7 +228,7 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         return result
     }
 
-    private fun exportOpm(writer: FileWriter): Try {
+    private fun exportOpm(writer: FileWriter, unfold: Boolean): Try {
         writer.append("Model Name: $name\n")
         writer.append("\n")
 
@@ -154,35 +236,40 @@ sealed interface MetaModel<C : Category> : ModelInterface {
         for (token in tokens.tokens.toList().sortedBy { it.solverIndex }) {
             val range = token.range
             writer.append("${token.name}, ${token.type}, ")
-            if (range.empty()) {
+            if (range.empty) {
                 writer.append("empty\n")
             } else {
-                writer.append("${range.lowerInterval.toLowerSign()}${range.lowerBound}, ${range.upperBound}${range.upperInterval.toUpperSign()}\n")
+                writer.append("${range.lowerInterval.lowerSign}${range.lowerBound}, ${range.upperBound}${range.upperInterval.upperSign}\n")
             }
         }
         writer.append("\n")
 
+        val temp = tokens.copy()
+        for (symbol in temp.symbols.filterIsInstance<FunctionSymbol<Cell, C>>()) {
+            symbol.register(temp)
+        }
+
         writer.append("Symbols:\n")
         for (symbol in tokens.symbols.toList().sortedBy { it.name }) {
             val range = symbol.range
-            writer.append("${symbol.name} = $symbol, ")
-            if (range.empty()) {
+            writer.append("$symbol = ${symbol.toRawString(unfold)}, ")
+            if (range.empty) {
                 writer.append("empty")
             } else {
-                writer.append("${range.lowerInterval.toLowerSign()}${range.lowerBound}, ${range.upperBound}${range.upperInterval.toUpperSign()}\n")
+                writer.append("${range.lowerInterval.lowerSign}${range.lowerBound}, ${range.upperBound}${range.upperInterval.upperSign}\n")
             }
         }
         writer.append("\n")
 
         writer.append("Objectives:\n")
         for (obj in subObjects) {
-            writer.append("${obj.category} ${obj.name}: ${obj.polynomial} \n")
+            writer.append("${obj.category} ${obj.name}: ${obj.polynomial.toRawString(unfold)} \n")
         }
         writer.append("\n")
 
         writer.append("Subject to:\n")
         for (constraint in constraints) {
-            writer.append("${constraint.name}: $constraint\n")
+            writer.append("$constraint: ${constraint.toRawString(unfold)}\n")
         }
         writer.append("\n")
 
@@ -194,10 +281,10 @@ class LinearMetaModel(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     manualTokenAddition: Boolean = true
-) : MetaModel<Linear> {
-    override val constraints: ArrayList<Inequality<Linear>> = ArrayList()
-    override val subObjects: ArrayList<MetaModel.SubObject<Linear>> = ArrayList()
-    override val tokens: TokenTable<Linear> = if (manualTokenAddition) {
+) : MetaModel<LinearInequality, LinearMonomialCell, Linear> {
+    override val constraints: ArrayList<LinearInequality> = ArrayList()
+    override val subObjects: ArrayList<MetaModel.SubObject<LinearInequality, LinearMonomialCell, Linear>> = ArrayList()
+    override val tokens: MutableTokenTable<LinearMonomialCell, Linear> = if (manualTokenAddition) {
         ManualAddTokenTable()
     } else {
         AutoAddTokenTable()
@@ -207,11 +294,50 @@ class LinearMetaModel(
     private var currentConstraintGroupIndexLowerBound: Int? = null
     private val constraintGroupIndexMap = HashMap<String, IntRange>()
 
+    override fun addObject(
+        category: ObjectCategory,
+        item: AbstractVariableItem<*, *>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, LinearPolynomial(item), name, displayName)
+    }
+
+    override fun addObject(
+        category: ObjectCategory,
+        monomial: Monomial<*, LinearMonomialCell, Linear>,
+        name: String?,
+        displayName: String?
+    ) {
+        monomial as LinearMonomial
+
+        addObject(category, LinearPolynomial(monomial), name, displayName)
+    }
+
+    override fun addObject(
+        category: ObjectCategory,
+        symbol: Symbol<LinearMonomialCell, Linear>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, LinearPolynomial(symbol), name, displayName)
+    }
+
+    override fun <T : RealNumber<T>> addObject(
+        category: ObjectCategory,
+        constant: T,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, LinearPolynomial(constant), name, displayName)
+    }
+
     override fun registerConstraintGroup(name: String) {
         if (currentConstraintGroup != null) {
             assert(currentConstraintGroupIndexLowerBound != null)
 
-            constraintGroupIndexMap[currentConstraintGroup!!] = currentConstraintGroupIndexLowerBound!! until constraints.size
+            constraintGroupIndexMap[currentConstraintGroup!!] =
+                currentConstraintGroupIndexLowerBound!! until constraints.size
         }
         currentConstraintGroup = name
         currentConstraintGroupIndexLowerBound = constraints.size
@@ -221,7 +347,8 @@ class LinearMetaModel(
         if (currentConstraintGroup != null) {
             assert(currentConstraintGroupIndexLowerBound != null)
 
-            constraintGroupIndexMap[currentConstraintGroup!!] = currentConstraintGroupIndexLowerBound!! until constraints.size
+            constraintGroupIndexMap[currentConstraintGroup!!] =
+                currentConstraintGroupIndexLowerBound!! until constraints.size
             currentConstraintGroup = null
             currentConstraintGroupIndexLowerBound = null
         }

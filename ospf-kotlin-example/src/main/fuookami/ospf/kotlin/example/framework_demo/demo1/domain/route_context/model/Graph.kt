@@ -40,9 +40,9 @@ class Edge(
 }
 
 fun from(node: Node): Predicate<Edge> = { node == it.from }
-fun from(predicate: Predicate<Node>): Predicate<Edge> = { predicate(it.from) }
+inline fun from(crossinline predicate: Predicate<Node>): Predicate<Edge> = { predicate(it.from) }
 fun to(node: Node): Predicate<Edge> = { node == it.to }
-fun to(predicate: Predicate<Node>): Predicate<Edge> = { predicate(it.to) }
+inline fun to(crossinline predicate: Predicate<Node>): Predicate<Edge> = { predicate(it.to) }
 
 data class Graph(
     val nodes: ArrayList<Node>,

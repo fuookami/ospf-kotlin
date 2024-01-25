@@ -42,7 +42,8 @@ class Iteration<E : Executor>(
         val bestReducedCost = HashMap<E, Flt64>()
         for (bunch in newBunches) {
             val reducedCost = shadowPriceMap.reducedCost(bunch)
-            bestReducedCost[bunch.executor] = bestReducedCost[bunch.executor]?.let { min(reducedCost, it) } ?: reducedCost
+            bestReducedCost[bunch.executor] =
+                bestReducedCost[bunch.executor]?.let { min(reducedCost, it) } ?: reducedCost
         }
 
         val currentDualObj = prevLpObj + bestReducedCost.values.sumOf(Flt64)

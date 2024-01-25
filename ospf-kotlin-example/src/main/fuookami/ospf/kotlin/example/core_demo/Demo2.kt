@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 // import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
@@ -26,9 +25,9 @@ class Demo2 {
     val companies: ArrayList<Company> = ArrayList()
 
     lateinit var x: BinVariable2
-    lateinit var cost: LinearSymbol
-    lateinit var assignmentCompany: LinearSymbols1
-    lateinit var assignmentProduct: LinearSymbols1
+    lateinit var cost: LinearExpressionSymbol
+    lateinit var assignmentCompany: LinearExpressionSymbols1
+    lateinit var assignmentProduct: LinearExpressionSymbols1
 
     private val metaModel: LinearMetaModel = LinearMetaModel("demo2")
 
@@ -111,7 +110,7 @@ class Demo2 {
         x = BinVariable2("x", Shape2(companies.size, products.size))
         for (c in companies) {
             for (p in products) {
-                x[c, p]!!.name = "${x.name}_${c.index},${p.index}"
+                x[c, p].name = "${x.name}_${c.index},${p.index}"
             }
         }
         metaModel.addVars(x)
@@ -119,51 +118,43 @@ class Demo2 {
     }
 
     suspend fun initSymbol(): Try {
-        val costPoly = LinearPolynomial()
-        for (c in companies) {
-            val products = products.filter { c.cost.contains(it) }
-            for (p in products) {
-                costPoly += c.cost[p]!! * x[c, p]!!
+        cost = LinearExpressionSymbol(flatSum(companies) { c ->
+            products.map { p ->
+                c.cost[p]?.let { it * x[c, p] }
             }
-        }
-        cost = LinearSymbol(costPoly, "cost")
+        }, "cost")
         metaModel.addSymbol(cost)
 
-        assignmentCompany = LinearSymbols1("assignmentCompany", Shape1(companies.size))
+        assignmentCompany = LinearSymbols(
+            "assignment_company",
+            Shape1(companies.size)
+        )
         for (c in companies) {
-            val assignmentCompanyPoly = LinearPolynomial()
-            val products = products.filter { c.cost.contains(it) }
-            for (p in products) {
-                assignmentCompanyPoly += UInt64.one * x[c, p]!!
-            }
-            assignmentCompany[c.index] = LinearSymbol(assignmentCompanyPoly, "assignment_company_${c.index}")
+            assignmentCompany[c].asMutable() += sumVars(products) { p -> c.cost[p]?.let { x[c, p] } }
         }
         metaModel.addSymbols(assignmentCompany)
 
-        assignmentProduct = LinearSymbols1("assignmentProduct", Shape1(products.size))
-        for (p in products) {
-            val assignmentProductPoly = LinearPolynomial()
-            val companies = companies.filter { it.cost.contains(p) }
-            for (c in companies) {
-                assignmentProductPoly += UInt64.one * x[c, p]!!
-            }
-            assignmentProduct[p.index] = LinearSymbol(assignmentProductPoly, "assignment_product_${p.index}")
-        }
+        assignmentProduct = flatMap(
+            "assignment_product",
+            products,
+            { p -> sumVars(companies) { c -> c.cost[p]?.let { x[c, p] } } }
+        )
         metaModel.addSymbols(assignmentProduct)
+
         return Ok(success)
     }
 
     suspend fun initObject(): Try {
-        metaModel.minimize(LinearPolynomial(cost))
+        metaModel.minimize(cost)
         return Ok(success)
     }
 
     suspend fun initConstraint(): Try {
         for (c in companies) {
-            metaModel.addConstraint(assignmentCompany[c]!! leq UInt64.one)
+            metaModel.addConstraint(assignmentCompany[c] leq UInt64.one)
         }
         for (p in products) {
-            metaModel.addConstraint(assignmentProduct[p]!! eq UInt64.one)
+            metaModel.addConstraint(assignmentProduct[p] eq UInt64.one)
         }
         return Ok(success)
     }
@@ -171,8 +162,7 @@ class Demo2 {
     suspend fun solve(): Try {
         // val solver = GurobiLinearSolver()
         val solver = SCIPLinearSolver(LinearSolverConfig())
-        val model = LinearTriadModel(LinearModel(metaModel))
-        when (val ret = solver(model)) {
+        when (val ret = solver(metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
             }

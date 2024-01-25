@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.Compilation
 
 class SolutionAnalyzer<E : Executor> {
     operator fun invoke(

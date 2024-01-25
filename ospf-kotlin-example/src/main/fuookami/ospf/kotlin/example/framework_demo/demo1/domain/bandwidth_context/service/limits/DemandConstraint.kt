@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.service.limits
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -16,7 +15,7 @@ class DemandConstraint(
     override fun invoke(model: LinearMetaModel): Try {
         for (node in nodes.asSequence().filter(client)) {
             model.addConstraint(
-                nodeBandwidth.inDegree[node]!! geq (node as ClientNode).demand,
+                nodeBandwidth.inDegree[node] geq (node as ClientNode).demand,
                 "${name}_$node"
             )
         }

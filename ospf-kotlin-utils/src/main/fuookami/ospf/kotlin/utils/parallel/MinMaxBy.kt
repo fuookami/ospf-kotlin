@@ -88,17 +88,19 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
                 promises.add(async(Dispatchers.Default) {
                     thisSegment
                         .map {
-                            Pair(it, when (val result = extractor(it)) {
-                                is Ok -> {
-                                    result.value
-                                }
+                            Pair(
+                                it, when (val result = extractor(it)) {
+                                    is Ok -> {
+                                        result.value
+                                    }
 
-                                is Failed -> {
-                                    error = result.error
-                                    cancel()
-                                    return@async null
+                                    is Failed -> {
+                                        error = result.error
+                                        cancel()
+                                        return@async null
+                                    }
                                 }
-                            })
+                            )
                         }
                         .minMaxByOrNull { it.second }
                 })
@@ -264,17 +266,19 @@ suspend inline fun <T, R : Comparable<R>> List<T>.tryMinMaxByParallelly(
                     this@tryMinMaxByParallelly
                         .subList(j, k)
                         .map {
-                            Pair(it, when (val result = extractor(it)) {
-                                is Ok -> {
-                                    result.value
-                                }
+                            Pair(
+                                it, when (val result = extractor(it)) {
+                                    is Ok -> {
+                                        result.value
+                                    }
 
-                                is Failed -> {
-                                    error = result.error
-                                    cancel()
-                                    return@async null
+                                    is Failed -> {
+                                        error = result.error
+                                        cancel()
+                                        return@async null
+                                    }
                                 }
-                            })
+                            )
                         }
                         .minMaxByOrNull { it.second }
                 })

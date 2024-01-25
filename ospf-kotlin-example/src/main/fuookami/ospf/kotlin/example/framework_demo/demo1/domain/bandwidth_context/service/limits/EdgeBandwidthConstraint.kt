@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.service.limits
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -24,7 +23,7 @@ class EdgeBandwidthConstraint(
         for (edge in edges.asSequence().filter(from(normal))) {
             for (service in services) {
                 model.addConstraint(
-                    (UInt64.one - assignment[service]!!) * edge.maxBandwidth + y[edge, service]!! leq edge.maxBandwidth,
+                    (UInt64.one - assignment[service]) * edge.maxBandwidth + y[edge, service] leq edge.maxBandwidth,
                     "${name}_($edge,$service)"
                 )
             }

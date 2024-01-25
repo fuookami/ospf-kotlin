@@ -32,13 +32,13 @@ data object Delaunay {
 
             for (triangle in undeterminedTriangles) {
                 // check if the point is inside the triangle circum circle
-                val circumCircle = Circle2.circumCircleOf(triangle)
-                val dist = ((circumCircle.x - point.x).sqr() + (circumCircle.y - point.y).sqr()).sqrt()
-                if (triangle.illegal || (dist leq circumCircle.radius)) {
+                val circumcircle = Circle2.circumcircleOf(triangle)
+                val dist = ((circumcircle.x - point.x).sqr() + (circumcircle.y - point.y).sqr()).sqrt()
+                if (triangle.illegal || (dist leq circumcircle.radius)) {
                     edges.add(triangle.e1)
                     edges.add(triangle.e2)
                     edges.add(triangle.e3)
-                } else if ((circumCircle.x + circumCircle.radius) leq point.x) {
+                } else if ((circumcircle.x + circumcircle.radius) leq point.x) {
                     triangles.add(triangle)
                 } else {
                     thisTriangles.add(triangle)

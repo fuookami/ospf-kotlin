@@ -200,7 +200,8 @@ suspend inline fun <R, T> List<T>.tryLastNotNullOfOrNullParallelly(
 
     return try {
         coroutineScope {
-            val iterator = this@tryLastNotNullOfOrNullParallelly.listIterator(this@tryLastNotNullOfOrNullParallelly.size)
+            val iterator =
+                this@tryLastNotNullOfOrNullParallelly.listIterator(this@tryLastNotNullOfOrNullParallelly.size)
             while (iterator.hasPrevious()) {
                 val promises = ArrayList<Deferred<R?>>()
                 for (j in UInt64.zero until concurrentAmount) {

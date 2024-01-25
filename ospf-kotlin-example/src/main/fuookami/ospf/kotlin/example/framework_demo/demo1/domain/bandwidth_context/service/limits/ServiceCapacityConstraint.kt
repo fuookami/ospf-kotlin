@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.domain.bandwidth_context.service.limits
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -23,7 +22,7 @@ class ServiceCapacityConstraint(
         for (node in nodes.asSequence().filter(normal)) {
             for (service in services) {
                 model.addConstraint(
-                    service.capacity * (UInt64.one - x[node, service]!!) + outFlow[node, service]!! leq service.capacity,
+                    service.capacity * (UInt64.one - x[node, service]) + outFlow[node, service] leq service.capacity,
                     "${name}_($node,$service)"
                 )
             }

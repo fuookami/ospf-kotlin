@@ -1,20 +1,61 @@
 package  fuookami.ospf.kotlin.core.frontend.variable
 
+import kotlin.random.*
 import fuookami.ospf.kotlin.utils.math.*
 
-class Token(
-    val variable: Item<*, *>,
+data class Token(
+    val variable: AbstractVariableItem<*, *>,
     val solverIndex: Int
 ) {
-    val key: ItemKey get() = variable.key
+    val key by variable::key
     internal var _result: Flt64? = null
-    val result: Flt64? by ::_result
+    val result by ::_result
 
-    val name: String get() = variable.name
-    val type: VariableType<*> get() = variable.type
-    val range: ValueRange<Flt64> get() = variable.range.valueRange
-    val lowerBound: Flt64 get() = variable.lowerBound
-    val upperBound: Flt64 get() = variable.upperBound
+    val name by variable::name
+    val type by variable::type
+    val range: ValueRange<Flt64>
+        get() = ValueRange(
+            lowerBound.toFlt64(),
+            upperBound.toFlt64(),
+            variable.range.lowerInterval,
+            variable.range.upperInterval,
+            Flt64
+        )
+    val lowerBound by variable::lowerBound
+    val upperBound by variable::upperBound
+
+    fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
+        return variable.belongsTo(item)
+    }
+
+    fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
+        return variable.belongsTo(combination)
+    }
+
+    fun random(rng: Random): Flt64 {
+        return if (variable.type.isUnsignedIntegerType) {
+            Flt64(
+                rng.nextULong(
+                    lowerBound.round().toDouble().toULong(),
+                    upperBound.round().toDouble().toULong()
+                ).toDouble()
+            )
+        } else if (variable.type.isIntegerType) {
+            Flt64(
+                rng.nextLong(
+                    lowerBound.round().toDouble().toLong(),
+                    upperBound.round().toDouble().toLong()
+                ).toDouble()
+            )
+        } else {
+            Flt64(
+                rng.nextDouble(
+                    lowerBound.toDouble(),
+                    upperBound.toDouble()
+                )
+            )
+        }
+    }
 
     override fun hashCode(): Int {
         return key.hashCode()
@@ -26,9 +67,7 @@ class Token(
 
         other as Token
 
-        if (key != other.key) return false
-
-        return true
+        return key == other.key
     }
 
     override fun toString() = "$name: ${result ?: "?"}"

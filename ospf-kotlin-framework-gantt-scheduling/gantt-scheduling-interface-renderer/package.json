@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vite preview",
     "build": "vite build",
-    "dev": "vite --port 12000",
+    "dev": "vite --port 12000 --open",
     "preview": "vite preview",
     "tauri": "tauri"
   },

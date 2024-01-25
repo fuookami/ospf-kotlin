@@ -17,7 +17,11 @@ open class TaskReverseBuilder<E : Executor> {
         for (pair in pairs) {
             assert(reverseEnabled(pair.first, pair.second, timeLockedTasks, timeDifferenceLimit))
 
-            val reversiblePair = TaskReverse.ReversiblePair(pair.first, pair.second, symmetrical(originBunches, pair.first, pair.second, timeLockedTasks, timeDifferenceLimit))
+            val reversiblePair = TaskReverse.ReversiblePair(
+                pair.first,
+                pair.second,
+                symmetrical(originBunches, pair.first, pair.second, timeLockedTasks, timeDifferenceLimit)
+            )
             if (!leftMapper.containsKey(pair.first.key)) {
                 leftMapper[pair.first.key] = ArrayList()
             }
@@ -38,7 +42,12 @@ open class TaskReverseBuilder<E : Executor> {
         )
     }
 
-    open fun reverseEnabled(prevTask: Task<E>, succTask: Task<E>, timeLockedTasks: Set<Task<E>> = emptySet(), timeDifferenceLimit: Duration = Duration.ZERO): Boolean {
+    open fun reverseEnabled(
+        prevTask: Task<E>,
+        succTask: Task<E>,
+        timeLockedTasks: Set<Task<E>> = emptySet(),
+        timeDifferenceLimit: Duration = Duration.ZERO
+    ): Boolean {
         //    if (!prevTask.isFlight || !succTask.isFlight) {
         //        return false
         //    }

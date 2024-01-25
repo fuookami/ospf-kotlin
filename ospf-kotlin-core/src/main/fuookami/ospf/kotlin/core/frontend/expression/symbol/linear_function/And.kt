@@ -1,107 +1,186 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.meta_programming.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.Function
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class AndFunction(
-    /** all polys must be ∈ (R - R-) */
-    val polys: List<LinearPolynomial>,
+    private val polynomials: List<AbstractLinearPolynomial<*>>,
     override var name: String,
-    override var displayName: String? = name
-) : Function<Linear> {
-    class Symbols {
-        lateinit var y: BinVar
-        lateinit var min: MinFunction
+    override var displayName: String? = null
+) : LinearLogicFunctionSymbol {
+    private lateinit var maxmin: MaxMinFunction
+    private lateinit var bin: BinaryzationFunction
+    private lateinit var y: BinVar
+    private lateinit var polyY: AbstractLinearPolynomial<*>
 
-        val hasMin get() = ::min.isInitialized
-    }
+    override val discrete = true
 
-    val symbols = Symbols()
+    override val range get() = polyY.range
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
-    override fun toRawString() = displayName ?: name
+    override val cells get() = polyY.cells
+    override val cached get() = polyY.cached
 
-    init {
-        symbols.y = BinVar("${name}_y")
-
-        if (polys.all { it.range.upperBound.toFlt64() gr Flt64.one }) {
-            symbols.min = MinFunction(
-                polys = polys.map { it / it.range.upperBound.toFlt64() },
-                exact = false,
-                name = "${name}_min"
-            )
-        }
-    }
-
-    override val possibleRange: ValueRange<Flt64> by lazy {
-        ValueRange(
-            if (polys.any { it.range.lowerBound.toFlt64() eq Flt64.zero}) {
+    private val possibleRange
+        get() = ValueRange(
+            if (polynomials.any { it.lowerBound.toFlt64() eq Flt64.zero }) {
                 Flt64.zero
             } else {
                 Flt64.one
             },
-            if (polys.all { it.range.upperBound.toFlt64() eq Flt64.zero }) {
+            if (polynomials.any { it.upperBound.toFlt64() eq Flt64.zero }) {
                 Flt64.zero
             } else {
                 Flt64.one
             },
             Flt64
         )
+
+    override fun flush(force: Boolean) {
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
-    override var range: ValueRange<Flt64> by lazyDelegate(AndFunction::possibleRange)
+    override fun register(tokenTable: LinearMutableTokenTable): Try {
+        // all polys must be ∈ (R - R-)
+        for (polynomial in polynomials) {
+            if (polynomial.lowerBound ls Flt64.zero) {
+                return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
+            }
+        }
 
-    override val cells: List<MonomialCell<Linear>> get() = listOf(LinearMonomialCell(Flt64.one, symbols.y))
+        if (polynomials.size == 1) {
+            if (!::bin.isInitialized) {
+                bin = BinaryzationFunction(polynomials[0], name = "${name}_bin")
+            }
+            when (val result = bin.register(tokenTable)) {
+                is Ok -> {}
 
-    override val lowerBound: Flt64 by symbols.y::lowerBound
-    override val upperBound: Flt64 by symbols.y::upperBound
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        } else if (polynomials.all { it.discrete && it.upperBound leq Flt64.one }) {
+            if (!::y.isInitialized) {
+                y = BinVar("${name}_y")
+            }
+            when (val result = tokenTable.add(y)) {
+                is Ok -> {}
 
-    override fun intersectRange(range: ValueRange<Flt64>) =
-        symbols.y.range.intersectWith(ValueRange(range.lowerBound.toFlt64().toUInt8(), range.upperBound.toFlt64().toUInt8(), UInt8))
-
-    override fun rangeLess(value: Flt64) = symbols.y.range.ls(value.toUInt8())
-    override fun rangeLessEqual(value: Flt64) = symbols.y.range.leq(value.toUInt8())
-    override fun rangeGreater(value: Flt64) = symbols.y.range.gr(value.toUInt8())
-    override fun rangeGreaterEqual(value: Flt64) = symbols.y.range.geq(value.toUInt8())
-
-    override fun register(tokenTable: TokenTable<Linear>) {
-        tokenTable.add(symbols.y)
-    }
-
-    override fun register(model: Model<Linear>) {
-        if (symbols.hasMin) {
-            // if all polynomials are not zero, y will be not zero
-            model.addConstraint(
-                symbols.y geq symbols.min,
-                "${name}_lb"
-            )
-            // if any polynomial is zero, y will be zero
-            model.addConstraint(
-                symbols.y leq (symbols.min + Flt64.one - Flt64.epsilon),
-                "${name}_ub"
-            )
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else {
+            if (!::maxmin.isInitialized) {
+                maxmin = MaxMinFunction(polynomials, "${name}_maxmin")
+            }
+            when (val result = maxmin.register(tokenTable)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            if (!::bin.isInitialized) {
+                bin = BinaryzationFunction(LinearPolynomial(maxmin), name = "${name}_bin")
+            }
+            when (val result = bin.register(tokenTable)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (!::polyY.isInitialized) {
+            polyY = if (::y.isInitialized) {
+                LinearPolynomial(y)
+            } else {
+                assert(::bin.isInitialized)
+                LinearPolynomial(bin)
+            }
+            polyY.range.set(possibleRange)
+        }
+
+        return Ok(success)
+    }
+
+    override fun register(model: AbstractLinearModel): Try {
+        if (::maxmin.isInitialized) {
+            when (val result = maxmin.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (::bin.isInitialized) {
+            when (val result = bin.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (::y.isInitialized) {
             // if any polynomial is zero, y will be zero
-            for (poly in polys) {
+            for ((i, polynomial) in polynomials.withIndex()) {
                 model.addConstraint(
-                    symbols.y leq poly,
-                    "${name}_ub_${poly.name}"
+                    y leq polynomial,
+                    "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
                 )
             }
             // if all polynomial are not zero, y will be not zero
-            val rhs = LinearPolynomial(-Flt64((polys.size - 1).toDouble()))
-            for (poly in polys) {
-                rhs += poly
-            }
             model.addConstraint(
-                symbols.y geq rhs,
+                y geq (sum(polynomials) - Flt64(polynomials.size - 1)),
                 "${name}_lb"
             )
+        }
+
+        return Ok(success)
+    }
+
+    override fun toString(): String {
+        return displayName ?: name
+    }
+
+    override fun toRawString(unfold: Boolean): String {
+        return "and(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    }
+
+    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return if (polynomials.all {
+                val thisValue = it.value(tokenList, zeroIfNone) ?: return null
+                thisValue neq Flt64.zero
+            }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return if (polynomials.all {
+                val thisValue = it.value(results, tokenList, zeroIfNone) ?: return null
+                thisValue neq Flt64.zero
+            }) {
+            Flt64.one
+        } else {
+            Flt64.zero
         }
     }
 }

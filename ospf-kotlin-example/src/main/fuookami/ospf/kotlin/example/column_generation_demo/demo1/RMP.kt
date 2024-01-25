@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.example.column_generation_demo.demo1
 
 import java.util.*
-import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -22,32 +20,33 @@ data class ProductDemandShadowPriceKey(
 ) : ShadowPriceKey(ProductDemandShadowPriceKey::class)
 
 class RMP(
+    private val length: UInt64,
     private val products: List<Product>,
     initialCuttingPlans: List<CuttingPlan>
 ) {
     private val cuttingPlans: MutableList<CuttingPlan> = ArrayList()
     private val x: MutableList<UIntVar> = ArrayList()
-    private val cost = LinearSymbol(LinearPolynomial(), "cost")
-    private val output = LinearSymbols1("output", Shape1(products.size))
-    private val metaModel = LinearMetaModel("demo1")
-    private val solver: ColumnGenerationSolver = if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
-        CplexColumnGenerationSolver()
-    } else {
-        GurobiColumnGenerationSolver()
+    private val rest = LinearExpressionSymbol(MutableLinearPolynomial(), "rest")
+    private val yield = LinearExpressionSymbols1("output", Shape1(products.size)) { v ->
+        LinearExpressionSymbol(MutableLinearPolynomial(), "output_${v.second[0]}")
     }
-
-    init {
-        for (product in products) {
-            output[product] = LinearSymbol(LinearPolynomial(), "${output.name}_${product.index}")
+    private val metaModel = LinearMetaModel("demo1")
+    private val solver: ColumnGenerationSolver =
+        if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+            CplexColumnGenerationSolver()
+        } else {
+            GurobiColumnGenerationSolver()
         }
 
-        metaModel.addSymbol(cost)
-        metaModel.addSymbols(output)
+    init {
+        metaModel.addSymbol(rest)
+        metaModel.addSymbols(yield)
 
-        metaModel.minimize(LinearPolynomial(cost))
+        metaModel.minimize(rest)
         metaModel.registerConstraintGroup("product_demand")
+
         for (product in products) {
-            metaModel.addConstraint(output[product]!! geq product.demand, "product_demand_${product.index}")
+            metaModel.addConstraint(yield[product] geq product.demand, "product_demand_${product.index}")
         }
 
         addColumns(initialCuttingPlans)
@@ -64,11 +63,11 @@ class RMP(
         this.x.add(x)
         metaModel.addVar(x)
 
-        (cost.polynomial as LinearPolynomial) += x
-        cost.flush()
+        rest.asMutable() += (length - cuttingPlan.products.sumOf(UInt64) { it.key.length * it.value }) * x
+        rest.flush()
         for ((product, amount) in cuttingPlan.products) {
-            ((output[product]!! as LinearSymbol).polynomial as LinearPolynomial) += (amount * x)
-            (output[product]!! as LinearSymbol).flush()
+            yield[product].asMutable() += amount * x
+            yield[product].flush()
         }
         if (flush) {
             metaModel.flush()
@@ -85,7 +84,7 @@ class RMP(
 
     // solve lp
     suspend operator fun invoke(iteration: UInt64): Ret<SPM> {
-        return when (val result = solver.solveLP("demo1-rmp-$iteration", metaModel)) {
+        return when (val result = solver.solveLP("demo1-rmp-$iteration", metaModel, true)) {
             is Ok -> {
                 Ok(extractShadowPriceMap(result.value.dualSolution))
             }
@@ -98,7 +97,7 @@ class RMP(
 
     // solve ip
     suspend operator fun invoke(): Ret<Map<CuttingPlan, UInt64>> {
-        return when (val result = solver.solveMILP("demo1-rmp-ip", metaModel)) {
+        return when (val result = solver.solveMILP("demo1-rmp-ip", metaModel, true)) {
             is Ok -> {
                 Ok(analyzeSolution(result.value.solution))
             }
@@ -116,7 +115,7 @@ class RMP(
             ret.put(ShadowPrice(ProductDemandShadowPriceKey(products[i]), dualResult[j]))
         }
         ret.put { map, args ->
-            map.map[ProductDemandShadowPriceKey(args[0] as Product)]?.price ?: Flt64.zero
+            map.map[ProductDemandShadowPriceKey(args)]?.price ?: Flt64.zero
         }
 
         return ret

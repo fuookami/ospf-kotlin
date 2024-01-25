@@ -22,7 +22,7 @@ typealias Circle2 = Circle<Point2, Vector2, Dim2>
 val Circle2.x: Flt64 get() = center.x
 val Circle2.y: Flt64 get() = center.y
 
-fun Circle.Companion.circumCircleOf(triangle: Triangle2): Circle2 {
+fun Circle.Companion.circumcircleOf(triangle: Triangle2): Circle2 {
     val ax = triangle.p2.x - triangle.p1.x
     val ay = triangle.p2.y - triangle.p1.y
     val bx = triangle.p3.x - triangle.p1.x

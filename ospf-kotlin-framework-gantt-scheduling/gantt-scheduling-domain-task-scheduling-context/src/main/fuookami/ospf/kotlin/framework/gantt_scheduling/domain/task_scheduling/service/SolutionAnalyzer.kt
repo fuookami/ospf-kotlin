@@ -1,44 +1,48 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.mip.service
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.service
 
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.mip.model.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearSymbol
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-typealias AssignedTaskGenerator<E> = (task: Task<E>, time: TimeRange, executor: E) -> Task<E>?
+typealias AssignedPolicyGenerator<A, E> = (time: TimeRange?, executor: E?) -> A?
 
-class SolutionAnalyzer<E : Executor> {
+class SolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
+    @Suppress("UNCHECKED_CAST")
     operator fun invoke(
         timeWindow: TimeWindow,
-        tasks: List<Task<E>>,
+        tasks: List<T>,
         executors: List<E>,
-        compilation: Compilation<E>,
-        taskTime: TaskTime<E>,
-        result: List<Flt64>,
+        compilation: TaskCompilation<T, E, A>,
+        taskTime: TaskSchedulingTaskTime<T, E, A>,
+        results: List<Flt64>,
         model: LinearMetaModel,
-        assignedTaskGenerator: AssignedTaskGenerator<E>? = null
-    ): Ret<Solution<E>> {
-        val assignedExecutor = HashMap<Task<E>, E>()
+        assignedPolicyGenerator: AssignedPolicyGenerator<A, E>
+    ): Ret<Solution<T, E, A>> {
+        val assignedExecutor = HashMap<T, E>()
         for (token in model.tokens.tokens) {
-            if (token.name.startsWith(compilation.x.name) && token.result?.let { it eq Flt64.one } == true) {
+            if (token.belongsTo(compilation.x) && token.result?.let { it eq Flt64.one } == true) {
                 val task = token.variable.vectorView[0]
                 val executor = token.variable.vectorView[1]
                 assignedExecutor[tasks.find { it.index == task }!!] = executors.find { it.index == executor }!!
             }
         }
 
-        val assignedEST = HashMap<Task<E>, Instant>()
+        val assignedEST = HashMap<T, Instant>()
         for (token in model.tokens.tokens) {
-            if (token.name.startsWith(taskTime.est.name)) {
+            if (token.belongsTo(taskTime.est)) {
                 val task = token.variable.vectorView[0]
-                assignedEST[tasks.find { it.index == task }!!] = timeWindow.dump(token.result!!)
+                assignedEST[tasks.find { it.index == task }!!] = timeWindow.instantOf(token.result!!)
             }
         }
-        val assignedECT = tasks.associateWith { timeWindow.dump((taskTime.ect[it]!! as LinearSymbol).polynomial.value(result, model.tokens)) }
+
+        val assignedECT = tasks.associateWith { task ->
+            taskTime.estimateEndTime[task].value(results, model.tokens)?.let { timeWindow.instantOf(it) }
+                ?: Instant.DISTANT_FUTURE
+        }
 
         val assignedTime = tasks.mapNotNull {
             if (assignedEST.containsKey(it) && assignedECT.containsKey(it)) {
@@ -48,16 +52,11 @@ class SolutionAnalyzer<E : Executor> {
             }
         }.toMap()
 
-        val assignedTasks = ArrayList<Task<E>>()
-        val canceledTasks = ArrayList<Task<E>>()
+        val assignedTasks = ArrayList<T>()
+        val canceledTasks = ArrayList<T>()
         for (task in tasks) {
-            val assignedTask = if (assignedExecutor.containsKey(task) && assignedTime.containsKey(task)) {
-                assignedTaskGenerator?.let { it(task, assignedTime[task]!!, assignedExecutor[task]!!) }
-                    ?: generateAssignedTask(task, assignedTime[task]!!, assignedExecutor[task]!!)
-            } else {
-                null
-            }
-
+            val assignedTask = assignedPolicyGenerator(assignedTime[task], assignedExecutor[task])
+                ?.let { task.assign(it) } as T?
             if (assignedTask != null) {
                 assignedTasks.add(assignedTask)
             } else {
@@ -66,30 +65,5 @@ class SolutionAnalyzer<E : Executor> {
         }
 
         return Ok(Solution(assignedTasks, canceledTasks))
-    }
-
-    private fun generateAssignedTask(
-        task: Task<E>,
-        time: TimeRange,
-        executor: E
-    ): Task<E>? {
-        val assignedExecutor: E? = if (task.executor == null || task.executor != executor) {
-            executor
-        } else {
-            null
-        }
-
-        val assignmentPolicy = AssignmentPolicy(
-            executor = assignedExecutor,
-            time = time
-        )
-
-        return if (assignmentPolicy.empty) {
-            task
-        } else if (!task.assigningEnabled(assignmentPolicy)) {
-            null
-        } else {
-            task.assign(assignmentPolicy)
-        }
     }
 }

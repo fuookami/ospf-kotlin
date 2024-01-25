@@ -39,7 +39,6 @@ interface NumberField<Self> : NumberRing<Self>, TimesGroup<Self>
 interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
     PlusSemiGroup<Self>, TimesSemiGroup<Self>,
     Cross<Self, Self>, Abs<Self> {
-
     override infix fun x(rhs: Self) = this * rhs
 }
 
@@ -47,7 +46,6 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
     Log<FloatingNumber<*>, FloatingNumber<*>>,
     PowF<FloatingNumber<*>, FloatingNumber<*>>,
     Exp<FloatingNumber<*>> {
-
     override val constants: RealNumberConstants<Self>
 
     fun isInfinity(): Boolean = this == constants.infinity
@@ -168,8 +166,10 @@ fun <T> Iterable<T>.sum(constant: ArithmeticConstants<T>): T
     return sum
 }
 
-inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, crossinline extractor: Extractor<U, T>): U
-        where U : Arithmetic<U>, U : Plus<U, U> {
+inline fun <T, U> Iterable<T>.sumOf(
+    constant: ArithmeticConstants<U>,
+    crossinline extractor: Extractor<U, T>
+): U where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constant.zero
     for (element in this) {
         sum += extractor(element)
@@ -177,8 +177,9 @@ inline fun <T, U> Iterable<T>.sumOf(constant: ArithmeticConstants<U>, crossinlin
     return sum
 }
 
-fun <K, V> Map<K, V>.sum(constant: ArithmeticConstants<V>): V
-        where V : Arithmetic<V>, V : Plus<V, V> {
+fun <K, V> Map<K, V>.sum(
+    constant: ArithmeticConstants<V>
+): V where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = constant.zero
     for (element in this) {
         sum += element.value
@@ -186,8 +187,10 @@ fun <K, V> Map<K, V>.sum(constant: ArithmeticConstants<V>): V
     return sum
 }
 
-inline fun <K, V, T> HashMap<K, V>.sumOf(constant: ArithmeticConstants<T>, crossinline extractor: Extractor<T, Map.Entry<K, V>>): T
-        where T : Arithmetic<T>, T : Plus<T, T> {
+inline fun <K, V, T> Map<K, V>.sumOf(
+    constant: ArithmeticConstants<T>,
+    crossinline extractor: Extractor<T, Map.Entry<K, V>>
+): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {
         sum += extractor(element)
@@ -195,8 +198,9 @@ inline fun <K, V, T> HashMap<K, V>.sumOf(constant: ArithmeticConstants<T>, cross
     return sum
 }
 
-fun <T> Iterator<T>.sum(constant: ArithmeticConstants<T>): T
-        where T : Arithmetic<T>, T : Plus<T, T> {
+fun <T> Iterator<T>.sum(
+    constant: ArithmeticConstants<T>
+): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {
         sum += element
@@ -204,8 +208,10 @@ fun <T> Iterator<T>.sum(constant: ArithmeticConstants<T>): T
     return sum
 }
 
-inline fun <T, U> Iterator<T>.sumOf(constant: ArithmeticConstants<U>, crossinline extractor: Extractor<U, T>): U
-        where U : Arithmetic<U>, U : Plus<U, U> {
+inline fun <T, U> Iterator<T>.sumOf(
+    constant: ArithmeticConstants<U>,
+    crossinline extractor: Extractor<U, T>
+): U where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constant.zero
     for (element in this) {
         sum += extractor(element)
@@ -213,8 +219,9 @@ inline fun <T, U> Iterator<T>.sumOf(constant: ArithmeticConstants<U>, crossinlin
     return sum
 }
 
-fun <T> Sequence<T>.sum(constant: ArithmeticConstants<T>): T
-        where T : Arithmetic<T>, T : Plus<T, T> {
+fun <T> Sequence<T>.sum(
+    constant: ArithmeticConstants<T>
+): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constant.zero
     for (element in this) {
         sum += element
@@ -222,8 +229,10 @@ fun <T> Sequence<T>.sum(constant: ArithmeticConstants<T>): T
     return sum
 }
 
-inline fun <T, U> Sequence<T>.sumOf(constant: ArithmeticConstants<U>, crossinline extractor: Extractor<U, T>): U
-        where U : Arithmetic<U>, U : Plus<U, U> {
+inline fun <T, U> Sequence<T>.sumOf(
+    constant: ArithmeticConstants<U>,
+    crossinline extractor: Extractor<U, T>
+): U where U : Arithmetic<U>, U : Plus<U, U> {
     var sum = constant.zero
     for (element in this) {
         sum += extractor(element)

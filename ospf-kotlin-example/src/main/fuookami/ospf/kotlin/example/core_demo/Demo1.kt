@@ -10,9 +10,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
 
 class Demo1 {
     data class Company(
@@ -26,9 +24,9 @@ class Demo1 {
     private val maxLiability: Flt64 = Flt64(5.0)
 
     lateinit var x: BinVariable1
-    lateinit var capital: LinearSymbol
-    lateinit var liability: LinearSymbol
-    lateinit var profit: LinearSymbol
+    lateinit var capital: LinearExpressionSymbol
+    lateinit var liability: LinearExpressionSymbol
+    lateinit var profit: LinearExpressionSymbol
 
     private val metaModel: LinearMetaModel = LinearMetaModel("demo1")
 
@@ -67,38 +65,26 @@ class Demo1 {
     suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(companies.size))
         for (c in companies) {
-            x[c]!!.name = "${x.name}_${c.index}"
+            x[c].name = "${x.name}_${c.index}"
         }
         metaModel.addVars(x)
         return Ok(success)
     }
 
     suspend fun initSymbol(): Try {
-        val capitalPoly = LinearPolynomial()
-        for (c in companies) {
-            capitalPoly += c.capital * x[c]!!
-        }
-        capital = LinearSymbol(capitalPoly, "capital")
+        capital = LinearExpressionSymbol(sum(companies) { it.capital * x[it] }, "capital")
         metaModel.addSymbol(capital)
 
-        val liabilityPoly = LinearPolynomial()
-        for (c in companies) {
-            liabilityPoly += c.liability * x[c]!!
-        }
-        liability = LinearSymbol(liabilityPoly, "liability")
+        liability = LinearExpressionSymbol(sum(companies) { it.liability * x[it] }, "liability")
         metaModel.addSymbol(liability)
 
-        val profitPoly = LinearPolynomial()
-        for (c in companies) {
-            profitPoly += c.profit * x[c]!!
-        }
-        profit = LinearSymbol(profitPoly, "profit")
+        profit = LinearExpressionSymbol(sum(companies) { it.profit * x[it] }, "profit")
         metaModel.addSymbol(profit)
         return Ok(success)
     }
 
     suspend fun initObject(): Try {
-        metaModel.maximize(LinearPolynomial(profit))
+        metaModel.maximize(profit)
         return Ok(success)
     }
 
@@ -109,11 +95,8 @@ class Demo1 {
     }
 
     suspend fun solve(): Try {
-        // val solver = GurobiLinearSolver(LinearSolverConfig())
-        // val solver = SCIPLinearSolver(LinearSolverConfig())
-        val solver = CplexLinearSolver(LinearSolverConfig())
-        val model = LinearTriadModel(LinearModel(metaModel))
-        when (val ret = solver(model)) {
+        val solver = CplexLinearSolver()
+        when (val ret = solver(metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
             }

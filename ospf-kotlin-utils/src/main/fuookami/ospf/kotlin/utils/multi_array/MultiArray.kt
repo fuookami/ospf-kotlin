@@ -2,46 +2,93 @@ package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.concept.*
 
-open class MultiArray<T : Any, S : Shape>(
-    val shape: S
-) {
-    var list = ArrayList<T?>((0 until shape.size).map { null })
+sealed class AbstractMultiArray<out T : Any, S : Shape>(
+    val shape: S,
+    ctor: ((Pair<Int, IntArray>) -> T)? = null
+) : Collection<T> {
+    internal lateinit var list: MutableList<@UnsafeVariance T>
 
-    // getters and setters
-    operator fun get(i: Int): T? {
+    init {
+        if (ctor != null) {
+            init(ctor)
+        }
+    }
+
+    val dimension by shape::dimension
+    override val size get() = list.size
+
+    protected fun init(ctor: (Pair<Int, IntArray>) -> @UnsafeVariance T) {
+        if (!::list.isInitialized) {
+            list = (0 until shape.size).map { ctor(Pair(it, shape.vector(it))) }.toMutableList()
+        }
+    }
+
+    override fun containsAll(elements: Collection<@UnsafeVariance T>): Boolean {
+        return list.containsAll(elements)
+    }
+
+    override fun contains(element: @UnsafeVariance T): Boolean {
+        return list.contains(element)
+    }
+
+    override fun isEmpty(): Boolean {
+        return list.isEmpty()
+    }
+
+    override fun iterator(): Iterator<T> {
+        return list.iterator()
+    }
+
+    operator fun get(i: Int): T {
         return list[i]
     }
 
-    operator fun get(e: Indexed): T? {
+    operator fun get(e: Indexed): T {
         return list[e.index]
     }
 
-    operator fun get(vararg v: Int): T? {
+    @JvmName("getByIntArray")
+    operator fun get(v: IntArray): T {
         return list[shape.index(v)]
     }
 
-    operator fun get(vararg v: Indexed): T? {
+    @JvmName("getByInts")
+    operator fun get(vararg v: Int): T {
+        return list[shape.index(v)]
+    }
+
+    operator fun get(vararg v: Indexed): T {
         return list[shape.index(v.map { it.index }.toIntArray())]
     }
 
-    operator fun set(i: Int, value: T) {
+    operator fun get(vararg v: Any): MultiArrayView<T, S> {
+        return MultiArrayView(this, shape.dummyVector(*v))
+    }
+}
+
+open class MultiArray<out T : Any, S : Shape>(
+    shape: S,
+    ctor: ((Pair<Int, IntArray>) -> T)? = null
+) : AbstractMultiArray<T, S>(shape, ctor)
+
+open class MutableMultiArray<out T : Any, S : Shape>(
+    shape: S,
+    ctor: ((Pair<Int, IntArray>) -> T)? = null
+) : AbstractMultiArray<T, S>(shape, ctor) {
+    operator fun set(i: Int, value: @UnsafeVariance T) {
         list[i] = value
     }
 
-    operator fun set(e: Indexed, value: T) {
+    operator fun set(e: Indexed, value: @UnsafeVariance T) {
         list[e.index] = value
     }
 
-    operator fun set(vararg v: Int, e: T) {
+    operator fun set(vararg v: Int, e: @UnsafeVariance T) {
         list[shape.index(v)] = e
     }
 
-    operator fun set(vararg v: Indexed, value: T) {
+    operator fun set(vararg v: Indexed, value: @UnsafeVariance T) {
         list[shape.index(v.map { it.index }.toIntArray())] = value
-    }
-
-    operator fun iterator(): Iterator<T?> {
-        return list.iterator()
     }
 }
 
@@ -50,3 +97,9 @@ typealias MultiArray2<T> = MultiArray<T, Shape2>
 typealias MultiArray3<T> = MultiArray<T, Shape3>
 typealias MultiArray4<T> = MultiArray<T, Shape4>
 typealias DynMultiArray<T> = MultiArray<T, DynShape>
+
+typealias MutableMultiArray1<T> = MutableMultiArray<T, Shape1>
+typealias MutableMultiArray2<T> = MutableMultiArray<T, Shape2>
+typealias MutableMultiArray3<T> = MutableMultiArray<T, Shape3>
+typealias MutableMultiArray4<T> = MutableMultiArray<T, Shape4>
+typealias DynMutableMultiArray<T> = MutableMultiArray<T, DynShape>

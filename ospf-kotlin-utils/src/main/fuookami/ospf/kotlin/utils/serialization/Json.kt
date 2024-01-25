@@ -3,8 +3,8 @@ package fuookami.ospf.kotlin.utils.serialization
 import java.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlinx.serialization.descriptors.*
 import fuookami.ospf.kotlin.utils.meta_programming.*
-import kotlinx.serialization.descriptors.SerialDescriptor
 
 @OptIn(ExperimentalSerializationApi::class)
 class JsonNamingPolicy(
