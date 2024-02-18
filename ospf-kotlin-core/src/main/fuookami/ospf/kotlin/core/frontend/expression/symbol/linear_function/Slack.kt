@@ -18,6 +18,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     private val withNegative: Boolean = true,
     private val withPositive: Boolean = true,
     private val threshold: Boolean = false,
+    private val constraint: Boolean = true,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
@@ -27,19 +28,22 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 
     private lateinit var _neg: V
-    val neg: V get() {
-        if (withNegative && !::_neg.isInitialized) {
-            _neg = ctor("${name}_neg")
+    val neg: V
+        get() {
+            if (withNegative && !::_neg.isInitialized) {
+                _neg = ctor("${name}_neg")
+            }
+            return _neg
         }
-        return _neg
-    }
     private lateinit var _pos: V
-    val pos: V get() {
-        if (withPositive && !::_pos.isInitialized) {
-            _pos = ctor("${name}_pos")
+    val pos: V
+        get() {
+            if (withPositive && !::_pos.isInitialized) {
+                _pos = ctor("${name}_pos")
+            }
+            return _pos
         }
-        return _pos
-    }
+    lateinit var polyX: LinearPolynomial
     private lateinit var polyY: LinearPolynomial
 
     override val range get() = polyY.range
@@ -49,9 +53,10 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
 
-    private val possibleRange: ValueRange<Flt64> get() {
+    private val possibleRange: ValueRange<Flt64>
+        get() {
             return if (withNegative && withPositive) {
-                val (min ,max) = minmax(y.upperBound - x.lowerBound, x.upperBound - y.lowerBound)
+                val (min, max) = minmax(y.upperBound - x.lowerBound, x.upperBound - y.lowerBound)
                 ValueRange(min, max, Flt64)
             } else if (withNegative) {
                 ValueRange(Flt64.zero, y.upperBound - x.lowerBound, Flt64)
@@ -88,6 +93,20 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             }
         }
 
+        if (!::polyX.isInitialized) {
+            val x = LinearPolynomial(x.monomials.map { it.copy() }, x.constant)
+            polyX = if (withNegative && withPositive) {
+                x + neg - pos
+            } else if (withNegative) {
+                x + neg
+            } else if (withPositive) {
+                x - pos
+            } else {
+                x
+            }
+            polyX.name = "${name}_x"
+        }
+
         if (!::polyY.isInitialized) {
             polyY = if (withNegative && withPositive) {
                 neg + pos
@@ -107,30 +126,24 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
 
     override fun register(model: Model<LinearMonomialCell, Linear>): Try {
         if (x.range.range.intersect(y.range.range).empty) {
-            return Failed(Err(
-                ErrorCode.ApplicationFailed,
-                "$name's domain of definition unsatisfied: $x's domain is without intersection with $y's domain"
-            ))
+            return Failed(
+                Err(
+                    ErrorCode.ApplicationFailed,
+                    "$name's domain of definition unsatisfied: $x's domain is without intersection with $y's domain"
+                )
+            )
         }
 
-        val lhs = if (withNegative && withPositive) {
-            x + neg - pos
-        } else if (withNegative) {
-            x + neg
-        } else if (withPositive) {
-            x - pos
-        } else {
-            x
-        }
-
-        if (threshold) {
-            if (withNegative) {
-                model.addConstraint(lhs leq y, name)
-            } else if (withPositive) {
-                model.addConstraint(lhs geq y, name)
+        if (constraint) {
+            if (threshold) {
+                if (withNegative) {
+                    model.addConstraint(polyX leq y, name)
+                } else if (withPositive) {
+                    model.addConstraint(polyX geq y, name)
+                }
+            } else {
+                model.addConstraint(polyX eq y, name)
             }
-        } else {
-            model.addConstraint(lhs eq y, name)
         }
 
         return Ok(success)
@@ -181,13 +194,14 @@ object SlackFunction {
         withNegative: Boolean = true,
         withPositive: Boolean = true,
         threshold: Boolean = false,
+        constraint: Boolean = true,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
         return if (type.isIntegerType) {
-            UIntegerSlackFunction(x, y, withNegative, withPositive, threshold, name, displayName)
+            UIntegerSlackFunction(x, y, withNegative, withPositive, threshold, constraint, name, displayName)
         } else {
-            URealSlackFunction(x, y, withNegative, withPositive, threshold, name, displayName)
+            URealSlackFunction(x, y, withNegative, withPositive, threshold, constraint, name, displayName)
         }
     }
 
@@ -196,13 +210,32 @@ object SlackFunction {
         x: AbstractLinearPolynomial<*>,
         threshold: AbstractLinearPolynomial<*>,
         withPositive: Boolean = true,
+        constraint: Boolean = true,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
         return if (type.isIntegerType) {
-            UIntegerSlackFunction(x, threshold, withNegative = !withPositive, withPositive = withPositive, threshold = true, name, displayName)
+            UIntegerSlackFunction(
+                x,
+                threshold,
+                withNegative = !withPositive,
+                withPositive = withPositive,
+                threshold = true,
+                constraint,
+                name,
+                displayName
+            )
         } else {
-            URealSlackFunction(x, threshold, withNegative = !withPositive, withPositive = withPositive, threshold = true, name, displayName)
+            URealSlackFunction(
+                x,
+                threshold,
+                withNegative = !withPositive,
+                withPositive = withPositive,
+                threshold = true,
+                constraint,
+                name,
+                displayName
+            )
         }
     }
 }
@@ -213,9 +246,10 @@ class UIntegerSlackFunction(
     withNegative: Boolean = true,
     withPositive: Boolean = true,
     threshold: Boolean = false,
+    constraint: Boolean = true,
     name: String,
     displayName: String? = null,
-) : AbstractSlackFunction<UIntVar>(x, y, withNegative, withPositive, threshold, name, displayName, { UIntVar(it) }) {
+) : AbstractSlackFunction<UIntVar>(x, y, withNegative, withPositive, threshold, constraint, name, displayName, { UIntVar(it) }) {
     override val discrete = true
 }
 
@@ -225,6 +259,7 @@ class URealSlackFunction(
     withNegative: Boolean = true,
     withPositive: Boolean = true,
     threshold: Boolean = false,
+    constraint: Boolean = true,
     name: String,
     displayName: String? = null,
-) : AbstractSlackFunction<URealVar>(x, y, withNegative, withPositive, threshold, name, displayName, { URealVar(it) })
+) : AbstractSlackFunction<URealVar>(x, y, withNegative, withPositive, threshold, constraint, name, displayName, { URealVar(it) })

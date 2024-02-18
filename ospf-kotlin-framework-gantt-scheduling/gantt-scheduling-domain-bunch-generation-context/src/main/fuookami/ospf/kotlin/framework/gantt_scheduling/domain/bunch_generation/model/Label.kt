@@ -1,41 +1,31 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
-import kotlin.time.*
-import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-typealias TotalCostCalculator<E> = (executor: E, lastTask: Task<E>?, tasks: List<Task<E>>) -> Cost?
-typealias BunchGenerator<E> = (
-    label: Label<E>,
+typealias TotalCostCalculator<T, E> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost?
+
+private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
+    label: Label<T, E, A>,
     iteration: UInt64,
     executor: E,
-    executorUsability: ExecutorUsability<E>,
-    totalCostCalculator: TotalCostCalculator<E>
-) -> TaskBunch<E>?
-
-private fun <E : Executor> generateBunch(
-    label: Label<E>,
-    iteration: UInt64,
-    executor: E,
-    executorUsability: ExecutorUsability<E>,
-    totalCostCalculator: TotalCostCalculator<E>
-): TaskBunch<E>? {
+    executorUsability: ExecutorInitialUsability<T, E, A>,
+    totalCostCalculator: TotalCostCalculator<T, E>
+): AbstractTaskBunch<T, E, A>? {
     if (label.node !is EndNode) {
         return null
     }
     // in beginning, it should be the succ node of root node at the top of the stack
     // it means that nodes in the stack is in descending order
     // so the tasks will be in increasing order
-    val labels = ArrayList<Label<E>>()
+    val labels = ArrayList<Label<T, E, A>>()
     var currlabel = label.prevLabel
     while (currlabel!!.node !is RootNode) {
         labels.add(label)
         currlabel = currlabel.prevLabel
     }
 
-    val tasks = ArrayList<Task<E>>()
+    val tasks = ArrayList<T>()
     while (labels.isNotEmpty()) {
         currlabel = labels.last()
         labels.removeLast()
@@ -43,24 +33,51 @@ private fun <E : Executor> generateBunch(
         tasks.add(currlabel.task!!)
     }
     val totalCost = totalCostCalculator(executor, executorUsability.lastTask, tasks)
-    return totalCost?.let { TaskBunch(executor, executorUsability, tasks, iteration, it) }
+    return totalCost?.let { AbstractTaskBunch(executor, executorUsability, tasks, it, iteration) }
 }
 
-class Label<E : Executor> internal constructor(
+private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
+    label: Label<T, E, A>,
+    iteration: UInt64,
+    executor: E,
+    executorUsability: ExecutorInitialUsability<T, E, A>,
+    totalCostCalculator: TotalCostCalculator<T, E>,
+    bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, UInt64, Cost) -> B
+): B? {
+    if (label.node !is EndNode) {
+        return null
+    }
+    // in beginning, it should be the succ node of root node at the top of the stack
+    // it means that nodes in the stack is in descending order
+    // so the tasks will be in increasing order
+    val labels = ArrayList<Label<T, E, A>>()
+    var currlabel = label.prevLabel
+    while (currlabel!!.node !is RootNode) {
+        labels.add(label)
+        currlabel = currlabel.prevLabel
+    }
+
+    val tasks = ArrayList<T>()
+    while (labels.isNotEmpty()) {
+        currlabel = labels.last()
+        labels.removeLast()
+
+        tasks.add(currlabel.task!!)
+    }
+    val totalCost = totalCostCalculator(executor, executorUsability.lastTask, tasks)
+    return totalCost?.let { bunchCtor(executor, executorUsability, tasks, iteration, it) }
+}
+
+open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     val cost: Cost,
     val shadowPrice: Flt64,
-    val delay: Duration,
-    val completeTime: Instant,
 
-    val prevLabel: Label<E>?,
-    val node: Node,
-    val task: Task<E>?,
-
-    val bunchGenerator: BunchGenerator<E>,
-    val lessOperator: Comparator<Label<E>>
+    val prevLabel: Label<T, E, A>? = null,
+    val node: Node? = null,
+    val task: T? = null
 ) {
-    val reducedCost get() = cost.sum!! - shadowPrice
-    val executorChange: UInt64 = // (prevLabel?.aircraftChange ?: UInt64.zero) +
+    open val reducedCost get() = cost.sum!! - shadowPrice
+    val executorChange: UInt64 =
         if (task?.executorChanged == true) {
             UInt64.one
         } else {
@@ -68,13 +85,22 @@ class Label<E : Executor> internal constructor(
         }
     val trace: List<UInt64>
     val isBetterBunch get() = reducedCost ls Flt64.zero
-    val originTask get() = task?.originTask
+    val plan
+        get() = when (task) {
+            is AbstractPlannedTask<*, *> -> {
+                task.plan
+            }
+
+            else -> {
+                null
+            }
+        }
 
     init {
         assert(
             when (node) {
                 is TaskNode<*, *> -> {
-                    task != null
+                    task != null && task is AbstractPlannedTask<*, *>
                 }
 
                 is RootNode -> {
@@ -83,6 +109,10 @@ class Label<E : Executor> internal constructor(
 
                 is EndNode -> {
                     task == null
+                }
+
+                null -> {
+                    task != null && task is AbstractUnplannedTask<*, *>
                 }
             }
         )
@@ -113,89 +143,19 @@ class Label<E : Executor> internal constructor(
     fun generateBunch(
         iteration: UInt64,
         executor: E,
-        executorUsability: ExecutorUsability<E>,
-        totalCostCalculator: TotalCostCalculator<E>
-    ): TaskBunch<E>? {
-        return bunchGenerator(this, iteration, executor, executorUsability, totalCostCalculator)
+        executorUsability: ExecutorInitialUsability<T, E, A>,
+        totalCostCalculator: TotalCostCalculator<T, E>
+    ): AbstractTaskBunch<T, E, A>? {
+        return generateBunch(this, iteration, executor, executorUsability, totalCostCalculator)
     }
 
-    infix fun ls(rhs: Label<E>): Boolean {
-        return lessOperator(this, rhs)
-    }
-}
-
-class LabelBuilder<E : Executor, L : Label<E>>(
-    var cost: Cost = Cost(),
-    var shadowPrice: Flt64 = Flt64.zero,
-    val delay: Duration = Duration.ZERO,
-    val completeTime: Instant,
-
-    val prevLabel: Label<E>? = null,
-    val node: Node,
-    val task: Task<E>? = null,
-
-    val bunchGenerator: BunchGenerator<E>,
-    val lessOperator: Comparator<Label<E>>
-) {
-    @Suppress("UNCHECKED_CAST")
-    operator fun invoke(): L {
-        return Label(
-            cost = cost,
-            shadowPrice = shadowPrice,
-            delay = delay,
-            completeTime = completeTime,
-
-            prevLabel = prevLabel,
-            node = node,
-            task = task,
-            bunchGenerator = bunchGenerator,
-            lessOperator = lessOperator
-        ) as L
-    }
-}
-
-class LabelBuilderInitializer<E : Executor, L : Label<E>>(
-    val bunchGenerator: BunchGenerator<E> = { label: Label<E>, iteration: UInt64, executor: E, executorUsability: ExecutorUsability<E>, totalCostCalculator: TotalCostCalculator<E> ->
-        generateBunch(label, iteration, executor, executorUsability, totalCostCalculator)
-    },
-    val lessOperator: Comparator<Label<E>> = { lhs, rhs ->
-        lhs.reducedCost ls rhs.reducedCost
-                && lhs.delay <= rhs.delay
-                && ((lhs.node is EndNode) || (lhs.executorChange >= rhs.executorChange))
-    }
-) {
-    operator fun invoke(node: Node, completeTime: Instant): LabelBuilder<E, L> {
-        return LabelBuilder(
-            completeTime = completeTime,
-            node = node,
-            bunchGenerator = bunchGenerator,
-            lessOperator = lessOperator
-        )
-    }
-
-    operator fun invoke(node: Node, previousLabel: L): LabelBuilder<E, L> {
-        return LabelBuilder(
-            cost = previousLabel.cost.copy(),
-            shadowPrice = previousLabel.shadowPrice,
-            completeTime = previousLabel.completeTime,
-            node = node,
-            prevLabel = previousLabel,
-            bunchGenerator = bunchGenerator,
-            lessOperator = lessOperator
-        )
-    }
-
-    operator fun invoke(node: Node, previousLabel: L, assignedTask: Task<E>): LabelBuilder<E, L> {
-        return LabelBuilder(
-            cost = previousLabel.cost.copy(),
-            shadowPrice = previousLabel.shadowPrice,
-            delay = previousLabel.delay + assignedTask.delay,
-            completeTime = assignedTask.time!!.end,
-            prevLabel = previousLabel,
-            node = node,
-            task = assignedTask,
-            bunchGenerator = bunchGenerator,
-            lessOperator = lessOperator
-        )
+    fun <B : AbstractTaskBunch<T, E, A>> generateBunch(
+        iteration: UInt64,
+        executor: E,
+        executorUsability: ExecutorInitialUsability<T, E, A>,
+        totalCostCalculator: TotalCostCalculator<T, E>,
+        bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, UInt64, Cost) -> B
+    ): B? {
+        return generateBunch(this, iteration, executor, executorUsability, totalCostCalculator, bunchCtor)
     }
 }

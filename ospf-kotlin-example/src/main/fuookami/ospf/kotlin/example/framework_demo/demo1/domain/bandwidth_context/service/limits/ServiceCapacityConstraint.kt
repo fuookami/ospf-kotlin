@@ -19,7 +19,7 @@ class ServiceCapacityConstraint(
     override fun invoke(model: LinearMetaModel): Try {
         val x = assignment.x
         val outFlow = serviceBandwidth.outFlow
-        for (node in nodes.asSequence().filter(normal)) {
+        for (node in nodes.filter(normal)) {
             for (service in services) {
                 model.addConstraint(
                     service.capacity * (UInt64.one - x[node, service]) + outFlow[node, service] leq service.capacity,

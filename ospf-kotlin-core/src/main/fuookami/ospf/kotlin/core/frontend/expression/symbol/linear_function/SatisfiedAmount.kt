@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-sealed class AbstractSatisfiedAmountFunction(
+sealed class AbstractSatisfiedAmountPolynomialFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     private val extract: Boolean = true,
     override var name: String,
@@ -224,19 +224,19 @@ sealed class AbstractSatisfiedAmountFunction(
     }
 }
 
-class SatisfiedAmountFunction(
+class SatisfiedAmountPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     name: String,
     displayName: String? = null
-) : AbstractSatisfiedAmountFunction(polynomials, name = name, displayName = displayName)
+) : AbstractSatisfiedAmountPolynomialFunction(polynomials, name = name, displayName = displayName)
 
-class AtLeastFunction(
+class AtLeastPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     override val amount: UInt64,
     extract: Boolean = true,
     name: String,
     displayName: String? = null
-) : AbstractSatisfiedAmountFunction(polynomials, extract, name, displayName), LinearLogicFunctionSymbol {
+) : AbstractSatisfiedAmountPolynomialFunction(polynomials, extract, name, displayName), LinearLogicFunctionSymbol {
     init {
         assert(amount != UInt64.zero)
         assert(UInt64(polynomials.size) geq amount)
@@ -244,5 +244,45 @@ class AtLeastFunction(
 
     override fun toRawString(unfold: Boolean): String {
         return "at_least_${amount}(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    }
+}
+
+data object SatisfiedAmountFunction {
+    operator fun invoke(
+        polynomials: List<AbstractLinearPolynomial<*>>,
+        name: String,
+        displayName: String? = null
+    ): SatisfiedAmountPolynomialFunction {
+        return SatisfiedAmountPolynomialFunction(polynomials, name, displayName)
+    }
+
+    operator fun invoke(
+        inequalities: List<LinearInequality>,
+        name: String,
+        displayName: String? = null
+    ): SatisfiedAmountInequalityFunction {
+        return SatisfiedAmountInequalityFunction(inequalities, name, displayName)
+    }
+}
+
+data object AtLeastFunction {
+    operator fun invoke(
+        polynomials: List<AbstractLinearPolynomial<*>>,
+        amount: UInt64,
+        extract: Boolean = true,
+        name: String,
+        displayName: String? = null
+    ): AtLeastPolynomialFunction {
+        return AtLeastPolynomialFunction(polynomials, amount, extract, name, displayName)
+    }
+
+    operator fun invoke(
+        inequalities: List<LinearInequality>,
+        constraint: Boolean = true,
+        amount: UInt64,
+        name: String,
+        displayName: String? = null
+    ): AtLeastInequalityFunction {
+        return AtLeastInequalityFunction(inequalities, constraint, amount, name, displayName)
     }
 }

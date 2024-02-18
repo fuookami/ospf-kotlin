@@ -1,18 +1,18 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model
 
 import kotlin.time.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-open class TaskReverseBuilder<E : Executor> {
+open class TaskReverseBuilder<T : AbstractPlannedTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
     operator fun invoke(
-        pairs: List<Pair<Task<E>, Task<E>>>,
-        originBunches: List<TaskBunch<E>>,
-        timeLockedTasks: Set<Task<E>> = emptySet(),
+        pairs: List<Pair<T, T>>,
+        originBunches: List<AbstractTaskBunch<T, E, A>>,
+        timeLockedTasks: Set<T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
-    ): TaskReverse<E> {
-        val symmetricalPairs = ArrayList<TaskReverse.ReversiblePair<E>>()
-        val leftMapper = HashMap<TaskKey, ArrayList<TaskReverse.ReversiblePair<E>>>()
-        val rightMapper = HashMap<TaskKey, ArrayList<TaskReverse.ReversiblePair<E>>>()
+    ): TaskReverse<T, E, A> {
+        val symmetricalPairs = ArrayList<TaskReverse.ReversiblePair<T, E, A>>()
+        val leftMapper = HashMap<TaskKey, ArrayList<TaskReverse.ReversiblePair<T, E, A>>>()
+        val rightMapper = HashMap<TaskKey, ArrayList<TaskReverse.ReversiblePair<T, E, A>>>()
 
         for (pair in pairs) {
             assert(reverseEnabled(pair.first, pair.second, timeLockedTasks, timeDifferenceLimit))
@@ -43,14 +43,11 @@ open class TaskReverseBuilder<E : Executor> {
     }
 
     open fun reverseEnabled(
-        prevTask: Task<E>,
-        succTask: Task<E>,
-        timeLockedTasks: Set<Task<E>> = emptySet(),
+        prevTask: T,
+        succTask: T,
+        timeLockedTasks: Set<T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
-        //    if (!prevTask.isFlight || !succTask.isFlight) {
-        //        return false
-        //    }
         if (!prevTask.delayEnabled && !succTask.advanceEnabled) {
             return false
         }
@@ -94,9 +91,9 @@ open class TaskReverseBuilder<E : Executor> {
     }
 
     open fun symmetrical(
-        prevTask: Task<E>,
-        succTask: Task<E>,
-        timeLockedTasks: Set<Task<E>> = emptySet(),
+        prevTask: T,
+        succTask: T,
+        timeLockedTasks: Set<T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
         return reverseEnabled(prevTask, succTask, timeLockedTasks, timeDifferenceLimit)
@@ -104,10 +101,10 @@ open class TaskReverseBuilder<E : Executor> {
     }
 
     protected open fun symmetrical(
-        originBunches: List<TaskBunch<E>>,
-        prevTask: Task<E>,
-        succTask: Task<E>,
-        timeLockedTasks: Set<Task<E>> = emptySet(),
+        originBunches: List<AbstractTaskBunch<T, E, A>>,
+        prevTask: T,
+        succTask: T,
+        timeLockedTasks: Set<T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
         assert(reverseEnabled(prevTask, succTask, timeLockedTasks, timeDifferenceLimit))
@@ -115,30 +112,30 @@ open class TaskReverseBuilder<E : Executor> {
     }
 }
 
-class TaskReverse<E : Executor> internal constructor(
-    private val symmetricalPairs: List<ReversiblePair<E>> = ArrayList(),
-    private val leftMapper: Map<TaskKey, List<ReversiblePair<E>>>,
-    private val rightMapper: Map<TaskKey, List<ReversiblePair<E>>>
+class TaskReverse<T : AbstractPlannedTask<E, A>, E : Executor, A : AssignmentPolicy<E>> internal constructor(
+    private val symmetricalPairs: List<ReversiblePair<T, E, A>> = ArrayList(),
+    private val leftMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>,
+    private val rightMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>
 ) {
-    data class ReversiblePair<E : Executor>(
-        val prevTask: Task<E>,
-        val succTask: Task<E>,
+    data class ReversiblePair<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+        val prevTask: T,
+        val succTask: T,
         val symmetrical: Boolean
     )
 
-    fun contains(prevTask: Task<E>, succTask: Task<E>): Boolean {
+    fun contains(prevTask: T, succTask: T): Boolean {
         return leftMapper[prevTask.key]?.any { it.succTask == succTask } ?: false
     }
 
-    fun symmetrical(prevTask: Task<E>, succTask: Task<E>): Boolean {
-        return leftMapper[prevTask.key]?.find { it.succTask == succTask.originTask }?.symmetrical ?: false
+    fun symmetrical(prevTask: T, succTask: T): Boolean {
+        return leftMapper[prevTask.key]?.find { it.succTask.plan == succTask.plan }?.symmetrical ?: false
     }
 
-    fun leftFind(flightTask: Task<E>): List<ReversiblePair<E>> {
+    fun leftFind(flightTask: T): List<ReversiblePair<T, E, A>> {
         return leftMapper[flightTask.key] ?: emptyList()
     }
 
-    fun rightFind(flightTask: Task<E>): List<ReversiblePair<E>> {
+    fun rightFind(flightTask: T): List<ReversiblePair<T, E, A>> {
         return rightMapper[flightTask.key] ?: emptyList()
     }
 }

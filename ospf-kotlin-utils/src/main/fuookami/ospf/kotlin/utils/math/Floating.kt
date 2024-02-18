@@ -82,7 +82,7 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override fun toURtnX() = floatingToRational(value(), { UIntX(it) }, { UIntX(it) }, URtnX::invoke)
 }
 
-object Flt32Serializer : RealNumberKSerializer<Flt32> {
+data object Flt32Serializer : RealNumberKSerializer<Flt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt32", PrimitiveKind.DOUBLE)
     override val constants = Flt32
 
@@ -174,7 +174,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
     override fun toFltX() = FltX(value.toDouble())
 }
 
-object Flt64Serializer : RealNumberKSerializer<Flt64> {
+data object Flt64Serializer : RealNumberKSerializer<Flt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt64", PrimitiveKind.DOUBLE)
     override val constants = Flt64
 
@@ -273,7 +273,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
     fun round() = Flt64(round(value))
 }
 
-object FltXSerializer : RealNumberKSerializer<FltX> {
+data object FltXSerializer : RealNumberKSerializer<FltX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FltX", PrimitiveKind.STRING)
     override val constants = FltX
 

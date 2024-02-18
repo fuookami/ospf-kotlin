@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
+import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 
 class Demo1 {
     data class Company(
@@ -95,7 +95,7 @@ class Demo1 {
     }
 
     suspend fun solve(): Try {
-        val solver = CplexLinearSolver()
+        val solver = SCIPLinearSolver()
         when (val ret = solver(metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)

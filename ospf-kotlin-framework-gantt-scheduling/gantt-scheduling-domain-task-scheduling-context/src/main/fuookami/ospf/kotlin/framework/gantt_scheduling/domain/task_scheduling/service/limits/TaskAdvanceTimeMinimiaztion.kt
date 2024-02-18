@@ -50,11 +50,7 @@ class TaskAdvanceTimeMinimization<Args : GanttSchedulingShadowPriceArguments<E, 
                     cost += thisCoefficient * slack
                 }
             }
-
-            model.minimize(
-                cost,
-                "task advance time"
-            )
+            model.minimize(cost, "task advance time")
         }
 
         return Ok(success)

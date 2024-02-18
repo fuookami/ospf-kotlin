@@ -13,7 +13,7 @@ class NodeAssignmentConstraint(
     override val name: String = "node_assignment"
 ) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try {
-        for (node in nodes.asSequence().filter(normal)) {
+        for (node in nodes.filter(normal)) {
             model.addConstraint(
                 assignment.nodeAssignment[node] leq UInt64.one,
                 "${name}_$node"

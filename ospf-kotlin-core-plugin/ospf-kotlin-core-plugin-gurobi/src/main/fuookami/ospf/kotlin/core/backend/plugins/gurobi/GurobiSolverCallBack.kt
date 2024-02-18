@@ -3,8 +3,9 @@ package fuookami.ospf.kotlin.core.backend.plugins.gurobi
 import java.util.*
 import gurobi.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 
-typealias Function = (GRBModel, List<GRBVar>, List<GRBConstr>) -> Unit
+typealias Function = (GRBModel, List<GRBVar>, List<GRBConstr>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -29,8 +30,8 @@ class GurobiSolverCallBack(
     fun contain(point: Point) = map.containsKey(point)
     fun get(point: Point): Function? = map[point]
 
-    fun execIfContain(point: Point, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBConstr>) {
-        map[point]?.invoke(gurobi, variables, constraints)
+    fun execIfContain(point: Point, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBConstr>): Try? {
+        return map[point]?.invoke(gurobi, variables, constraints)
     }
 
     override fun copy(): GurobiSolverCallBack {

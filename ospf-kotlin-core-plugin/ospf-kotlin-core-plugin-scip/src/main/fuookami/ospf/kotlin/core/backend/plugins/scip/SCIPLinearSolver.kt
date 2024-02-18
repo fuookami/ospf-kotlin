@@ -151,7 +151,13 @@ private class SCIPLinearSolverImpl(
             }
         }
 
-        callBack?.execIfContain(Point.AfterModeling, scip, scipVars, scipConstraints)
+        when (val result = callBack?.execIfContain(Point.AfterModeling, scip, scipVars, scipConstraints)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            else -> {}
+        }
         return Ok(success)
     }
 
@@ -160,7 +166,13 @@ private class SCIPLinearSolverImpl(
         scip.setRealParam("limits/gap", config.gap.toDouble())
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
 
-        callBack?.execIfContain(Point.Configuration, scip, scipVars, scipConstraints)
+        when (val result = callBack?.execIfContain(Point.Configuration, scip, scipVars, scipConstraints)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            else -> {}
+        }
         return Ok(success)
     }
 
@@ -224,7 +236,13 @@ private class SCIPLinearSolverImpl(
                 gap
             )
 
-            callBack?.execIfContain(Point.AnalyzingSolution, scip, scipVars, scipConstraints)
+            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, scip, scipVars, scipConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             return Ok(success)
         } else {
             Failed(Err(status.errCode()!!))

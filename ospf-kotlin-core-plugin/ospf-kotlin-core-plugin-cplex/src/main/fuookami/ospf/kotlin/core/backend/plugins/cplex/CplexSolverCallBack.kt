@@ -4,12 +4,14 @@ import java.util.*
 import ilog.concert.*
 import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 
-typealias Function = (IloCplex, List<IloNumVar>, List<IloRange>) -> Unit
+typealias Function = (IloCplex, List<IloNumVar>, List<IloRange>) -> Try
 
 enum class Point {
     AfterModeling,
     Configuration,
+    Solving,
     AnalyzingSolution
 }
 
@@ -23,13 +25,14 @@ class CplexSolverCallBack(
 
     fun afterModeling(function: Function) = set(Point.AfterModeling, function)
     fun configuration(function: Function) = set(Point.Configuration, function)
+    fun solving(function: Function) = set(Point.Solving, function)
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
 
     fun contain(point: Point) = map.containsKey(point)
     fun get(point: Point): Function? = map[point]
 
-    fun execIfContain(point: Point, cplex: IloCplex, variables: List<IloNumVar>, constraints: List<IloRange>) {
-        map[point]?.invoke(cplex, variables, constraints)
+    fun execIfContain(point: Point, cplex: IloCplex, variables: List<IloNumVar>, constraints: List<IloRange>): Try? {
+        return map[point]?.invoke(cplex, variables, constraints)
     }
 
     override fun copy(): CplexSolverCallBack {

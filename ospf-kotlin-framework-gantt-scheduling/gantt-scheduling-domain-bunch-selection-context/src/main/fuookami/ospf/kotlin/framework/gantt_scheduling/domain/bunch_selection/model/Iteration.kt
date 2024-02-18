@@ -5,9 +5,9 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-class Iteration<E : Executor>(
+class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     val initialSlowLpImprovementStep: Flt64 = Flt64(100.0),
     val relativeImprovementStep: Flt64 = Flt64(0.01),
     val improvementSlowCount: UInt64 = UInt64(5UL)
@@ -38,15 +38,18 @@ class Iteration<E : Executor>(
             return min(Flt64.one, upperBound?.let { max(actualOptimalRate, (it - bestObj) / it) } ?: actualOptimalRate)
         }
 
-    fun refreshLowerBound(shadowPriceMap: ShadowPriceMap<E>, newBunches: List<TaskBunch<E>>) {
+    fun refreshLowerBound(
+        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        reducedCost: (AbstractTaskBunch<T, E, A>) -> Flt64
+    ) {
         val bestReducedCost = HashMap<E, Flt64>()
         for (bunch in newBunches) {
-            val reducedCost = shadowPriceMap.reducedCost(bunch)
+            val thisReducedCost = reducedCost(bunch)
             bestReducedCost[bunch.executor] =
-                bestReducedCost[bunch.executor]?.let { min(reducedCost, it) } ?: reducedCost
+                bestReducedCost[bunch.executor]?.let { min(thisReducedCost, it) } ?: thisReducedCost
         }
 
-        val currentDualObj = prevLpObj + bestReducedCost.values.sumOf(Flt64)
+        val currentDualObj = prevLpObj + bestReducedCost.values.sum(Flt64)
         if (bestDualObj ls currentDualObj && currentDualObj ls bestObj) {
             logger.debug { "best dual obj: $bestDualObj -> $currentDualObj" }
             bestDualObj = currentDualObj
@@ -114,12 +117,12 @@ class Iteration<E : Executor>(
         slowLpImprovementStep /= Flt64.two
     }
 
-    operator fun inc(): Iteration<E> {
+    operator fun inc(): Iteration<T, E, A> {
         ++_iteration
         return this
     }
 
-    operator fun dec(): Iteration<E> {
+    operator fun dec(): Iteration<T, E, A> {
         --_iteration
         return this
     }

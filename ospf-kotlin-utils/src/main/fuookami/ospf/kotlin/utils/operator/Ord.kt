@@ -52,7 +52,7 @@ infix fun <T : Comparable<T>> T?.ord(rhs: T?): Order {
     }
 }
 
-interface PartialOrd<Self> : PartialEq<Self> {
+interface PartialOrd<in Self> : PartialEq<Self> {
     override fun partialEq(rhs: Self): Boolean? {
         return partialOrd(rhs)?.let { it is Order.Equal }
     }
@@ -60,7 +60,7 @@ interface PartialOrd<Self> : PartialEq<Self> {
     infix fun partialOrd(rhs: Self): Order?
 }
 
-interface Ord<Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
+interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
     infix fun ord(rhs: Self): Order {
         return (this partialOrd rhs)!!
     }

@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.utils.operator
 
-interface PartialEq<Self> {
+interface PartialEq<in Self> {
     infix fun partialEq(rhs: Self): Boolean?
 }
 
 
-interface Eq<Self> : PartialEq<Self> {
+interface Eq<in Self> : PartialEq<Self> {
     infix fun eq(rhs: Self): Boolean {
         return (this partialEq rhs)!!
     }
@@ -32,5 +32,15 @@ infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
         this eq rhs
     } else {
         false
+    }
+}
+
+infix fun <T : Eq<T>> T?.neq(rhs: T?): Boolean {
+    return if (this == null && rhs == null) {
+        false
+    } else if (this != null && rhs != null) {
+        this neq rhs
+    } else {
+        true
     }
 }

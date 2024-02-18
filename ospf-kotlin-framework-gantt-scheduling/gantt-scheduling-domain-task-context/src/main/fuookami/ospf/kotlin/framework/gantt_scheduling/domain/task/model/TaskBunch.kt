@@ -4,19 +4,20 @@ import kotlin.time.*
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> internal constructor(
-    val executor: E,
+    open val executor: E,
     val time: TimeRange,
-    val tasks: List<T>,
-    val iteration: UInt64,
+    open val tasks: List<T>,
     val cost: Cost,
-    val ability: ExecutorUsability<E, A>
-) : ManualIndexed() {
-    val size by tasks::size
+    open val initialUsability: ExecutorInitialUsability<T, E, A>,
+    val iteration: UInt64 = UInt64.zero
+) : ManualIndexed(), Eq<AbstractTaskBunch<T, E, A>> {
+    val size get() = tasks.size
     val empty get() = tasks.isEmpty()
-    val lastTask by ability::lastTask
+    val lastTask get() = initialUsability.lastTask
     val costDensity = (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
     val busyTime: Duration by lazy {
         tasks.foldIndexed(Duration.ZERO) { i, busyTime, task ->
@@ -37,6 +38,17 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
     val totalAdvance: Duration by lazy { tasks.fold(Duration.ZERO) { advance, task -> advance + task.advance } }
     val executorChange: UInt64 by lazy { UInt64(tasks.count { it.executorChanged }.toULong()) }
     val keys: Map<TaskKey, Int> by lazy { tasks.withIndex().associate { Pair(it.value.key, it.index) } }
+    val connections: List<Pair<T?, T?>> by lazy {
+        (1..tasks.size).map {
+            if (it == 0) {
+                Pair(null, tasks[it])
+            } else if (it == tasks.size) {
+                Pair(tasks[it - 1], null)
+            } else {
+                Pair(tasks[it - 1], tasks[it])
+            }
+        }
+    }
 
     companion object {
         val originIteration = UInt64.maximum
@@ -45,30 +57,30 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
     constructor(
         executor: E,
         time: Instant,
-        ability: ExecutorUsability<E, A>,
-        iteration: UInt64
+        initialUsability: ExecutorInitialUsability<T, E, A>,
+        iteration: UInt64 = UInt64.zero
     ) : this(
         executor = executor,
         time = TimeRange(time, Instant.DISTANT_FUTURE),
         tasks = emptyList(),
-        iteration = iteration,
         cost = Cost(),
-        ability = ability
+        initialUsability = initialUsability,
+        iteration = iteration,
     )
 
     constructor(
         executor: E,
-        ability: ExecutorUsability<E, A>,
+        initialUsability: ExecutorInitialUsability<T, E, A>,
         tasks: List<T>,
-        iteration: UInt64,
-        cost: Cost = Cost()
+        cost: Cost = Cost(),
+        iteration: UInt64 = UInt64.zero
     ) : this(
         executor = executor,
         time = TimeRange(tasks.first().time!!.start, tasks.last().time!!.end),
         tasks = tasks,
-        iteration = iteration,
         cost = cost,
-        ability = ability
+        initialUsability = initialUsability,
+        iteration = iteration
     )
 
     operator fun get(index: Int): T {
@@ -79,7 +91,10 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
         return keys.contains(task.key)
     }
 
-    fun contains(prev: AbstractTask<E, A>, succ: AbstractTask<E, A>): Boolean {
+    fun contains(
+        prev: AbstractTask<E, A>,
+        succ: AbstractTask<E, A>
+    ): Boolean {
         val prevTask = keys[prev.key]
         val succTask = keys[succ.key]
         return if (prevTask != null && succTask != null) {
@@ -96,11 +111,26 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
     fun get(originTask: AbstractTask<E, A>): T? {
         val task = keys[originTask.key]
         return if (task != null) {
-            assert(tasks[task].plan == originTask.plan)
             tasks[task]
         } else {
             null
         }
+    }
+
+    override fun partialEq(rhs: AbstractTaskBunch<T, E, A>): Boolean? {
+        if (this === rhs) return true
+        if (this::class != rhs::class) return false
+
+        if (executor != rhs.executor) return false
+
+        if (tasks.size != rhs.tasks.size) return false
+        for (i in tasks.indices) {
+            if (tasks[i] neq rhs.tasks[i]) {
+                return false
+            }
+        }
+
+        return true
     }
 }
 

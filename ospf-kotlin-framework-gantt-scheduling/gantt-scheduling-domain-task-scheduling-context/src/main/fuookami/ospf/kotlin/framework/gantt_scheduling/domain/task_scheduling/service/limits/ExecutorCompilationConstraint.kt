@@ -28,7 +28,7 @@ class ExecutorCompilationConstraint<Args : GanttSchedulingShadowPriceArguments<E
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>? {
+    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
         return { map, args: Args ->
             map.map[ExecutorCompilationShadowPriceKey(args.executor)]?.price ?: Flt64.zero
         }

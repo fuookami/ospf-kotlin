@@ -5,15 +5,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 open class GanttSchedulingShadowPriceArguments<E : Executor, A : AssignmentPolicy<E>>(
-    val prevTask: AbstractTask<E, A>?,
-    val thisTask: AbstractTask<E, A>?,
+    open val prevTask: AbstractTask<E, A>?,
+    open val thisTask: AbstractTask<E, A>?,
     val executor: E
 )
 
 open class AbstractGanttSchedulingShadowPriceMap<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>
     : AbstractShadowPriceMap<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>()
 
-typealias GanttSchedulingShadowPriceMap<Args, E, A> = AbstractGanttSchedulingShadowPriceMap<Args, E, A>
+typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPriceMap<GanttSchedulingShadowPriceArguments<E, A>, E, A>
 
 operator fun <E : Executor, A : AssignmentPolicy<E>> AbstractGanttSchedulingShadowPriceMap<GanttSchedulingShadowPriceArguments<E, A>, E, A>.invoke(
     prevTask: AbstractTask<E, A>?,

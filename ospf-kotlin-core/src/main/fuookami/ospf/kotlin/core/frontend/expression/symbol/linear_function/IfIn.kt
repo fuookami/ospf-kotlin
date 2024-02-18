@@ -1,0 +1,118 @@
+package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+
+class IfInFunction(
+    private val x: AbstractLinearPolynomial<*>,
+    lowerBound: AbstractLinearPolynomial<*>,
+    upperBound: AbstractLinearPolynomial<*>,
+    override var name: String,
+    override var displayName: String? = null
+) : LinearLogicFunctionSymbol {
+    private val lb = lowerBound
+    private val ub = upperBound
+
+    private val inequalities: List<LinearInequality>
+
+    init {
+        val lowerBoundInequality = (x geq lb).normalize()
+        lowerBoundInequality.name = "${name}_lb"
+        val upperBoundInequality = (x leq ub).normalize()
+        upperBoundInequality.name = "${name}_ub"
+        inequalities = listOf(lowerBoundInequality, upperBoundInequality)
+    }
+
+    private lateinit var y: BinVar
+    private lateinit var polyY: AbstractLinearPolynomial<*>
+
+    override val discrete = true
+
+    override val range get() = polyY.range
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
+
+    override val cells get() = polyY.cells
+    override val cached get() = polyY.cached
+
+    private val possibleRange: ValueRange<Flt64>
+        get() {
+            // todo: impl by Inequality.judge()
+            return ValueRange(Flt64.zero, Flt64.one, Flt64)
+        }
+
+    override fun flush(force: Boolean) {
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
+    }
+
+    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+        if (!::y.isInitialized) {
+            y = BinVar("${name}_y")
+        }
+        when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::polyY.isInitialized) {
+            polyY = LinearPolynomial(y)
+            polyY.range.set(possibleRange)
+        }
+
+        return Ok(success)
+    }
+
+    override fun register(model: Model<LinearMonomialCell, Linear>): Try {
+        for (inequality in inequalities) {
+            when (val result = inequality.register(name, y, model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        return Ok(success)
+    }
+
+    override fun toString(): String {
+        return displayName ?: name
+    }
+
+    override fun toRawString(unfold: Boolean): String {
+        return "if_in(${x.toRawString(unfold)}, [${lb.toRawString(unfold)}, ${ub.toRawString(unfold)}])"
+    }
+
+    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.value(tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.value(tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.value(tokenList, zeroIfNone) ?: return null
+        return if (lbValue leq xValue && xValue leq ubValue) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.value(results, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.value(results, tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.value(results, tokenList, zeroIfNone) ?: return null
+        return if (lbValue leq xValue && xValue leq ubValue) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+}

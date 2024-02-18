@@ -7,7 +7,7 @@ interface Pow<out Ret> {
     fun cub(): Ret
 }
 
-interface PowFun<Self, out Ret> {
+interface PowFun<in Self, out Ret> {
     fun Self.pow(index: Int): Ret
 
     fun Self.square(): Ret

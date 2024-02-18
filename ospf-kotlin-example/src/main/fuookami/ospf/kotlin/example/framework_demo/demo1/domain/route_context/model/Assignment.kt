@@ -21,10 +21,10 @@ class Assignment(
         if (!this::x.isInitialized) {
             x = BinVariable2("x", Shape2(nodes.size, services.size))
             for (service in services) {
-                for (node in nodes.asSequence().filter(normal)) {
+                for (node in nodes.filter(normal)) {
                     x[node, service].name = "${x.name}_${node}_$service"
                 }
-                for (node in nodes.asSequence().filter(client)) {
+                for (node in nodes.filter(client)) {
                     val variable = x[node, service]
                     variable.name = "${x.name}_${node}_$service"
                     variable.range.eq(UInt8.zero)

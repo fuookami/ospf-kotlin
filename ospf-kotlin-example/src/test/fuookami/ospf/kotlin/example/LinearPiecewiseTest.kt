@@ -11,7 +11,6 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.plugins.cplex.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 
 class LinearPiecewiseTest {
@@ -119,7 +118,7 @@ class LinearPiecewiseTest {
         val y = UIntVar("y")
         y.range.leq(UInt64.two)
         val and = AndFunction(listOf(LinearPolynomial(x), LinearPolynomial(y)), "and")
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
 
         val metaModel1 = LinearMetaModel()
         metaModel1.addVar(x)
@@ -147,7 +146,7 @@ class LinearPiecewiseTest {
         val x = URealVar("x")
         x.range.leq(Flt64.two)
         val bin = BinaryzationFunction(LinearPolynomial(x), name = "bin")
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
 
         val metaModel1 = LinearMetaModel()
         metaModel1.addVar(x)
@@ -189,7 +188,7 @@ class LinearPiecewiseTest {
         val x = UIntVar("x")
         x.range.leq(UInt64.two)
         val bin = BinaryzationFunction(LinearPolynomial(x), name = "bin")
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
 
         val metaModel1 = LinearMetaModel()
         metaModel1.addVar(x)
@@ -232,7 +231,7 @@ class LinearPiecewiseTest {
         x.range.leq(Flt64.two)
         x.range.geq(-Flt64.two)
         val bter = BalanceTernaryzationFunction(LinearPolynomial(x), name = "bter")
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
 
         val metaModel1 = LinearMetaModel()
         metaModel1.addVar(x)
@@ -311,7 +310,7 @@ class LinearPiecewiseTest {
         x.range.leq(Int64.two)
         x.range.geq(-Int64.two)
         val bter = BalanceTernaryzationFunction(LinearPolynomial(x), name = "bter")
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
 
         val metaModel1 = LinearMetaModel()
         metaModel1.addVar(x)
@@ -383,7 +382,7 @@ class LinearPiecewiseTest {
 
         metaModel.minimize(semi)
 
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel).value!!) }
         val result = runBlocking { solver(model) }
         assert(result.value!!.obj eq Flt64.zero)
@@ -410,7 +409,7 @@ class LinearPiecewiseTest {
 
         metaModel.maximize(LinearPolynomial(ulp))
 
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel).value!!) }
         val result = runBlocking { solver(model) }
         assert(result.value!!.solution[0] eq Flt64.one)
@@ -443,7 +442,7 @@ class LinearPiecewiseTest {
 
         metaModel.maximize(LinearPolynomial(blp))
 
-        val solver = CplexLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver(LinearSolverConfig())
         val model = runBlocking { LinearTriadModel(LinearModel(metaModel).value!!) }
         val result = runBlocking { solver(model) }
         assert(result.value!!.solution[0] eq Flt64.one)

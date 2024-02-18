@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-interface Pipeline<M : ModelInterface> {
+interface Pipeline<in M : ModelInterface> {
     val name: String
 
     fun register(model: M) {
@@ -18,9 +18,9 @@ interface Pipeline<M : ModelInterface> {
     operator fun invoke(model: M): Try
 }
 
-interface CGPipeline<Args : Any, Model : MetaModel<*, *, *>, Map : AbstractShadowPriceMap<Args, Map>> :
+interface CGPipeline<in Args : Any, in Model : MetaModel<*, *, *>, in Map : AbstractShadowPriceMap<Args, Map>> :
     Pipeline<Model> {
-    fun extractor(): ShadowPriceExtractor<Args, Map>? {
+    fun extractor(): ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance Map>? {
         return null
     }
 

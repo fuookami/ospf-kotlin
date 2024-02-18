@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
+        <artifactId>ospf-kotlin-starters</artifactId>
+        <version>1.0.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-packing-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-bla-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-block-loading-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-generation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-assignment-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

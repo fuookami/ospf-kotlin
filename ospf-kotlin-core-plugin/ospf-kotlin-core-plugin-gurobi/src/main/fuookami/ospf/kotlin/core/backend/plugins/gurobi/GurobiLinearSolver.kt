@@ -160,7 +160,13 @@ private class GurobiLinearSolverImpl(
                 }
             )
 
-            callBack?.execIfContain(Point.AfterModeling, grbModel, grbVars, grbConstraints)
+            when (val result = callBack?.execIfContain(Point.AfterModeling, grbModel, grbVars, grbConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             Ok(success)
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
@@ -174,7 +180,13 @@ private class GurobiLinearSolverImpl(
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
 
-            callBack?.execIfContain(Point.Configuration, grbModel, grbVars, grbConstraints)
+            when (val result = callBack?.execIfContain(Point.Configuration, grbModel, grbVars, grbConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             Ok(success)
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
@@ -251,10 +263,22 @@ private class GurobiLinearSolverImpl(
                         }
                     )
                 )
-                callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+
+                    else -> {}
+                }
                 Ok(success)
             } else {
-                callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)
+                when (val result = callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)) {
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+
+                    else -> {}
+                }
                 Failed(Err(status.errCode()!!))
             }
         } catch (e: GRBException) {

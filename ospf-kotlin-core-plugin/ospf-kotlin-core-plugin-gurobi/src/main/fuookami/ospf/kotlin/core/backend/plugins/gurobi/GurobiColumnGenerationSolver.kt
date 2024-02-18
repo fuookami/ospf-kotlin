@@ -84,7 +84,12 @@ class GurobiColumnGenerationSolver(
             config = config,
             callBack = callBack.copy()
                 .configuration { gurobi, _, _ ->
-                    gurobi.set(GRB.IntParam.PoolSolutions, min(UInt64.ten, amount).toInt())
+                    if (amount != UInt64.zero) {
+                        gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
+                        gurobi.set(GRB.IntParam.PoolSearchMode, 2);
+                        gurobi.set(GRB.IntParam.PoolSolutions, min(UInt64.ten, amount).toInt())
+                    }
+                    Ok(success)
                 }.analyzingSolution { gurobi, variables, _ ->
                     for (i in 0 until gurobi.get(GRB.IntAttr.SolCount)) {
                         gurobi.set(GRB.IntParam.SolutionNumber, i)
@@ -93,6 +98,7 @@ class GurobiColumnGenerationSolver(
                             results.add(thisResults)
                         }
                     }
+                    Ok(success)
                 }
         )
 
@@ -138,6 +144,7 @@ class GurobiColumnGenerationSolver(
             callBack = callBack.copy()
                 .analyzingSolution { _, _, constraints ->
                     dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
+                    Ok(success)
                 }
         )
 

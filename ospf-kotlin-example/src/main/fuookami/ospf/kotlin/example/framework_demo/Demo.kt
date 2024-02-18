@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.example.framework_demo
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 class Demo1 {

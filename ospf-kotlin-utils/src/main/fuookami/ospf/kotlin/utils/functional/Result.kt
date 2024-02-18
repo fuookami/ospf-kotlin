@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.error.*
 
-sealed class Result<T, E : Error> {
+sealed class Result<out T, out E : Error> {
     open val ok = false
     open val failed = false
     open val value: T? = null
@@ -10,17 +10,25 @@ sealed class Result<T, E : Error> {
     abstract fun <U> map(transform: (T) -> U): Result<U, E>
 }
 
-class Ok<T, E : Error>(
+class Ok<out T, out E : Error>(
     override val value: T
 ) : Result<T, E>() {
     override val ok = true
+
+    inline fun <reified U> getAs(): U? {
+        return if (value is U) {
+            value
+        } else {
+            null
+        }
+    }
 
     override fun <U> map(transform: Extractor<U, T>): Result<U, E> {
         return Ok(transform(value))
     }
 }
 
-class Failed<T, E : Error>(
+class Failed<out T, out E : Error>(
     val error: E
 ) : Result<T, E>() {
     override val failed = true

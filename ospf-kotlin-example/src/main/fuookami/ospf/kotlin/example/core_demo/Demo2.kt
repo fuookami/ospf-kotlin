@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-// import fuookami.ospf.kotlin.core.backend.plugins.gurobi.*
 import fuookami.ospf.kotlin.core.backend.plugins.scip.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 
@@ -151,17 +150,16 @@ class Demo2 {
 
     suspend fun initConstraint(): Try {
         for (c in companies) {
-            metaModel.addConstraint(assignmentCompany[c] leq UInt64.one)
+            metaModel.addConstraint(assignmentCompany[c] leq 1)
         }
         for (p in products) {
-            metaModel.addConstraint(assignmentProduct[p] eq UInt64.one)
+            metaModel.addConstraint(assignmentProduct[p] eq 1)
         }
         return Ok(success)
     }
 
     suspend fun solve(): Try {
-        // val solver = GurobiLinearSolver()
-        val solver = SCIPLinearSolver(LinearSolverConfig())
+        val solver = SCIPLinearSolver()
         when (val ret = solver(metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)

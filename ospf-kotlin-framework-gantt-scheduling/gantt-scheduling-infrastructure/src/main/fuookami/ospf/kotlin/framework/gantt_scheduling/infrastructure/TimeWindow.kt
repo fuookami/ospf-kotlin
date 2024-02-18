@@ -54,6 +54,8 @@ data class TimeWindow(
     }
 
     val empty: Boolean by window::empty
+    val start: Instant by window::start
+    val end: Instant by window::end
     val duration: Duration by window::duration
 
     fun withIntersection(ano: TimeRange): Boolean {
@@ -66,6 +68,10 @@ data class TimeWindow(
 
     fun contains(time: TimeRange): Boolean {
         return window.contains(time)
+    }
+
+    fun split(unit: Duration): List<TimeRange> {
+        return window.split(unit)
     }
 
     fun new(window: TimeRange, continues: Boolean): TimeWindow {

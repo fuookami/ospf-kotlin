@@ -123,6 +123,16 @@ data class TimeRange(
         return start <= time.start && time.end <= end;
     }
 
+    fun split(unit: Duration): List<TimeRange> {
+        val timeRanges = ArrayList<TimeRange>()
+        var currentTime = start
+        while (currentTime < end) {
+            timeRanges.add(TimeRange(currentTime, currentTime + min(unit, end - currentTime)))
+            currentTime += unit
+        }
+        return timeRanges
+    }
+
     operator fun plus(rhs: Duration): TimeRange {
         return TimeRange(start + rhs, end + rhs)
     }

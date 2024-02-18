@@ -12,6 +12,9 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import ilog.concert.IloException
 
 class CplexColumnGenerationSolver(
     val config: LinearSolverConfig = LinearSolverConfig(),
@@ -84,8 +87,23 @@ class CplexColumnGenerationSolver(
             config = config,
             callBack = callBack.copy()
                 .configuration { cplex, _, _ ->
-                    cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, min(UInt64.ten, amount).toInt())
-                }.analyzingSolution { cplex, variables, _ ->
+                    if (amount != UInt64.one) {
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
+                        cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, min(UInt64.ten, amount).toInt())
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
+                        cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
+                    }
+                    Ok(success)
+                }.solving { cplex, _, _ ->
+                    try {
+                        cplex.populate()
+                        Ok(success)
+                    } catch (e: IloException) {
+                        Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+                    }
+                }
+                .analyzingSolution { cplex, variables, _ ->
                     val solutionAmount = cplex.solnPoolNsolns
                     for (i in 0 until solutionAmount) {
                         val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
@@ -93,6 +111,7 @@ class CplexColumnGenerationSolver(
                             results.add(thisResults)
                         }
                     }
+                    Ok(success)
                 }
         )
 
@@ -138,6 +157,7 @@ class CplexColumnGenerationSolver(
             callBack = callBack.copy()
                 .analyzingSolution { cplex, _, constraints ->
                     dualSolution = constraints.map { Flt64(cplex.getDual(it)) }
+                    Ok(success)
                 }
         )
 

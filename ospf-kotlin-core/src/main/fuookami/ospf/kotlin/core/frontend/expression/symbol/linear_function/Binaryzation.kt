@@ -190,7 +190,7 @@ class BinaryzationFunction(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val value = x.value(results, tokenList, zeroIfNone)
             ?: return null
-        return if(value neq Flt64.zero) {
+        return if (value neq Flt64.zero) {
             Flt64.one
         } else {
             Flt64.zero

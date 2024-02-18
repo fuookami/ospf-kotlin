@@ -13,16 +13,64 @@ data class CostItem(
     override fun copy() = CostItem(tag, value, message)
 }
 
-data class Cost(
-    private val _items: MutableList<CostItem> = ArrayList(),
-    var sum: Flt64? = Flt64.zero
-) : Iterable<CostItem>, Copyable<Cost> {
-    val items: List<CostItem> get() = _items
+sealed interface Cost : Iterable<CostItem>, Copyable<Cost> {
+    companion object {
+        operator fun invoke(
+            cost: MutableCost
+        ): ImmutableCost {
+            return ImmutableCost(cost.items.map { it.copy() }, cost.sum)
+        }
+
+        operator fun invoke(
+            items: List<CostItem> = emptyList(),
+            sums: Flt64? = if (items.all { it.value != null }) {
+                items.sumOf(Flt64) { it.value!! }
+            } else {
+                null
+            }
+        ): ImmutableCost {
+            return ImmutableCost(items, sums)
+        }
+    }
+
+    val items: List<CostItem>
+    val sum: Flt64?
     val valid: Boolean get() = sum != null
 
+    fun asMutable(): MutableCost? {
+        return when (this) {
+            is MutableCost -> {
+                this
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+    operator fun plus(rhs: CostItem): ImmutableCost {
+        return ImmutableCost(items + rhs)
+    }
+
+    operator fun plus(rhs: Cost): ImmutableCost {
+        return ImmutableCost(items + rhs.items)
+    }
+
+    override fun iterator() = items.iterator()
+}
+
+class MutableCost(
+    override val items: MutableList<CostItem> = ArrayList(),
+    override var sum: Flt64? = if (items.all { it.value != null }) {
+        items.sumOf(Flt64) { it.value!! }
+    } else {
+        null
+    }
+) : Cost {
     operator fun plusAssign(rhs: CostItem) {
         if (!rhs.valid || rhs.value!! neq Flt64.zero) {
-            _items.add(rhs)
+            items.add(rhs)
         }
 
         if (rhs.valid) {
@@ -31,7 +79,7 @@ data class Cost(
     }
 
     operator fun plusAssign(rhs: Cost) {
-        _items.addAll(rhs._items.asIterable().filter { !it.valid || it.value!! neq Flt64.zero })
+        items.addAll(rhs.items.filter { !it.valid || it.value!! neq Flt64.zero })
 
         sum = if (this.valid && rhs.valid) {
             sum!! + rhs.sum!!
@@ -40,7 +88,20 @@ data class Cost(
         }
     }
 
-    override fun iterator() = _items.iterator()
+    override fun copy(): MutableCost {
+        return MutableCost(items.map { it.copy() }.toMutableList(), sum)
+    }
+}
 
-    override fun copy() = Cost(_items.map { it.copy() }.toMutableList(), sum)
+data class ImmutableCost(
+    override val items: List<CostItem>,
+    override val sum: Flt64? = if (items.all { it.value != null }) {
+        items.sumOf(Flt64) { it.value!! }
+    } else {
+        null
+    }
+) : Cost {
+    override fun copy(): ImmutableCost {
+        return ImmutableCost(items.map { it.copy() }, sum)
+    }
 }

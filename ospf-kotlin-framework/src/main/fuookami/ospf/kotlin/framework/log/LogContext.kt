@@ -61,7 +61,7 @@ class LogContext private constructor(
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun <T> push(
+    fun <T : Any> push(
         step: String,
         serializer: KSerializer<T>,
         value: T,

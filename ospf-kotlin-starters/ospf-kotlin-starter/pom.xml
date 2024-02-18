@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
+        <artifactId>ospf-kotlin-starters</artifactId>
+        <version>1.0.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ospf-kotlin-starter</artifactId>
+
+    <dependencies>
+        <!-- ospf -->
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ospf-core-plugin -->
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-copt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- ospf-framework-plugin -->
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
+                <artifactId>ospf-kotlin-framework-plugin-message-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-mongodb</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-mysql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

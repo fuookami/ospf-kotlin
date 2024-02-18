@@ -20,11 +20,11 @@ class EdgeBandwidth(
         if (!this::y.isInitialized) {
             y = UIntVariable2("y", Shape2(edges.size, services.size))
             for (service in services) {
-                for (edge in edges.asSequence().filter(from(normal))) {
+                for (edge in edges.filter(from(normal))) {
                     y[edge, service].name = "${y.name}_${edge}_$service"
                     y[edge, service].range.leq(edge.maxBandwidth)
                 }
-                for (edge in edges.asSequence().filter(!from(normal))) {
+                for (edge in edges.filter(!from(normal))) {
                     y[edge, service].range.eq(UInt64.zero)
                 }
             }

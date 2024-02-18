@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-typealias AssignedPolicyGenerator<A, E> = (time: TimeRange?, executor: E?) -> A?
+private typealias AssignedPolicyGenerator<A, E> = (time: TimeRange?, executor: E?) -> A?
 
 class SolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
     @Suppress("UNCHECKED_CAST")
@@ -56,7 +56,7 @@ class SolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolic
         val canceledTasks = ArrayList<T>()
         for (task in tasks) {
             val assignedTask = assignedPolicyGenerator(assignedTime[task], assignedExecutor[task])
-                ?.let { task.assign(it) } as T?
+                ?.let { task.assign(it) as T? }
             if (assignedTask != null) {
                 assignedTasks.add(assignedTask)
             } else {

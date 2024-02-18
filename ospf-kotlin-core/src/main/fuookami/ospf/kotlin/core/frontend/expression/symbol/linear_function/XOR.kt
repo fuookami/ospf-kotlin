@@ -11,8 +11,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class XOR(
+class XorFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
+    val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -146,15 +147,18 @@ class XOR(
             )
         }
 
-        model.addConstraint(
-            y leq sum(bins),
-            "${name}_y_1"
-        )
+        if (extract) {
+            model.addConstraint(
+                y leq sum(bins),
+                "${name}_y_1"
+            )
 
-        model.addConstraint(
-            y leq Flt64(bins.size) - sum(bins),
-            "${name}_y_2"
-        )
+            model.addConstraint(
+                y leq Flt64(bins.size) - sum(bins),
+                "${name}_y_2"
+            )
+        }
+
         return Ok(success)
     }
 

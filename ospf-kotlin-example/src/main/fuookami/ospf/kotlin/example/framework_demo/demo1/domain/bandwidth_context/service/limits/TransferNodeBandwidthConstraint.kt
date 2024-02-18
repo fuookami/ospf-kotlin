@@ -24,7 +24,7 @@ class TransferNodeBandwidthConstraint(
     override fun invoke(model: LinearMetaModel): Try {
         val assignment = assignment.nodeAssignment
         val outFlow = nodeBandwidth.outFlow
-        for (node in nodes.asSequence().filter(normal)) {
+        for (node in nodes.filter(normal)) {
             model.addConstraint(
                 node.maxOutDegree() * (UInt64.one - assignment[node]) + outFlow[node] leq node.maxOutDegree(),
                 "${name}_$node"

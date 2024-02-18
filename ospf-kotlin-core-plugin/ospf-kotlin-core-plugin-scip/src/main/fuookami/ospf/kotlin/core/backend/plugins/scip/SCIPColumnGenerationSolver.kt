@@ -85,6 +85,7 @@ class SCIPColumnGenerationSolver(
             callBack = callBack.copy()
                 .configuration { scip, _, _ ->
                     scip.setIntParam("heuristics/dins/solnum", min(UInt64.ten, amount).toInt())
+                    Ok(success)
                 }
                 .analyzingSolution { scip, variables, _ ->
                     val bestSol = scip.bestSol
@@ -105,6 +106,7 @@ class SCIPColumnGenerationSolver(
                             break
                         }
                     }
+                    Ok(success)
                 }
         )
 

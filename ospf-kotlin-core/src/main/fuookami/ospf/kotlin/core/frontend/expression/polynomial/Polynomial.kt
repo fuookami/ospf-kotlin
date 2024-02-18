@@ -117,6 +117,14 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
 
 sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M : Monomial<M, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
     : Polynomial<Self, M, Cell, C>, PlusAssign<Flt64>, MinusAssign<Flt64>, TimesAssign<Flt64>, DivAssign<Flt64> {
+    operator fun plusAssign(rhs: Int) {
+        this.plusAssign(Flt64(rhs))
+    }
+
+    operator fun plusAssign(rhs: Double) {
+        this.plusAssign(Flt64(rhs))
+    }
+
     operator fun <T : RealNumber<T>> plusAssign(rhs: T) {
         this.plusAssign(rhs.toFlt64())
     }
@@ -133,6 +141,14 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
     operator fun plusAssign(rhs: Iterable<Symbol<Cell, C>>)
     operator fun plusAssign(rhs: M)
     operator fun plusAssign(rhs: Polynomial<*, M, Cell, C>)
+
+    operator fun minusAssign(rhs: Int) {
+        this.minusAssign(Flt64(rhs))
+    }
+
+    operator fun minusAssign(rhs: Double) {
+        this.minusAssign(Flt64(rhs))
+    }
 
     operator fun <T : RealNumber<T>> minusAssign(rhs: T) {
         this.minusAssign(rhs.toFlt64())
@@ -151,8 +167,24 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
     operator fun minusAssign(rhs: M)
     operator fun minusAssign(rhs: Polynomial<*, M, Cell, C>)
 
+    operator fun timesAssign(rhs: Int) {
+        this.timesAssign(Flt64(rhs))
+    }
+
+    operator fun timesAssign(rhs: Double) {
+        this.timesAssign(Flt64(rhs))
+    }
+
     operator fun <T : RealNumber<T>> timesAssign(rhs: T) {
         this.timesAssign(rhs.toFlt64())
+    }
+
+    operator fun divAssign(rhs: Int) {
+        this.divAssign(Flt64(rhs))
+    }
+
+    operator fun divAssign(rhs: Double) {
+        this.divAssign(Flt64(rhs))
     }
 
     operator fun <T : RealNumber<T>> divAssign(rhs: T) {

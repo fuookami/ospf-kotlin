@@ -13,7 +13,7 @@ class DemandConstraint(
     override val name: String = "demand_constraint"
 ) : Pipeline<LinearMetaModel> {
     override fun invoke(model: LinearMetaModel): Try {
-        for (node in nodes.asSequence().filter(client)) {
+        for (node in nodes.filter(client)) {
             model.addConstraint(
                 nodeBandwidth.inDegree[node] geq (node as ClientNode).demand,
                 "${name}_$node"

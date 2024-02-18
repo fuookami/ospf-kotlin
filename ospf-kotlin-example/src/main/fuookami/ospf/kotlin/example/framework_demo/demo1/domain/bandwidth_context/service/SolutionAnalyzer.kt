@@ -90,7 +90,7 @@ class SolutionAnalyzer(
                 if (edge.first.from == currentNode
                     && !currentLike.contains(edge.first.to)
                 ) {
-                    val link = currentLike.asIterable().toMutableList()
+                    val link = currentLike.toMutableList()
                     link.add(edge.first.to)
                     findLink(edges, edge.first.to, link, links)
                 }

@@ -47,7 +47,7 @@ typealias LinearSymbolView3 = MultiArrayView<LinearSymbol, Shape3>
 typealias LinearSymbolView4 = MultiArrayView<LinearSymbol, Shape4>
 typealias DynLinearSymbolView = MultiArrayView<LinearSymbol, DynShape>
 
-object LinearSymbols {
+data object LinearSymbols {
     operator fun invoke(
         name: String,
         shape: Shape1

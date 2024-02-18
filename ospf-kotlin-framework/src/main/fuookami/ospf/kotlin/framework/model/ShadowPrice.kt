@@ -17,7 +17,7 @@ class ShadowPrice(
 
 typealias ShadowPriceExtractor<Args, M> = (AbstractShadowPriceMap<Args, M>, Args) -> Flt64
 
-abstract class AbstractShadowPriceMap<in Args : Any, M : AbstractShadowPriceMap<Args, M>> {
+abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceMap<Args, M>> {
     val map: Map<ShadowPriceKey, ShadowPrice> by ::_map
     private val _map = HashMap<ShadowPriceKey, ShadowPrice>()
     private val _extractors = ArrayList<ShadowPriceExtractor<Args, M>>()
@@ -30,7 +30,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, M : AbstractShadowPriceMap<
         _map[price.key] = price
     }
 
-    fun put(extractor: ShadowPriceExtractor<@UnsafeVariance Args, M>) {
+    fun put(extractor: ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance M>) {
         _extractors.add(extractor)
     }
 

@@ -125,7 +125,13 @@ private class CplexLinearSolverImpl(
             }
         }
 
-        callBack?.execIfContain(Point.AfterModeling, cplex, cplexVars, cplexConstraint)
+        when (val result = callBack?.execIfContain(Point.AfterModeling, cplex, cplexVars, cplexConstraint)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            else -> {}
+        }
         return Ok(success)
     }
 
@@ -134,15 +140,32 @@ private class CplexLinearSolverImpl(
         cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toDouble())
         cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
 
-        callBack?.execIfContain(Point.Configuration, cplex, cplexVars, cplexConstraint)
+        when (val result = callBack?.execIfContain(Point.Configuration, cplex, cplexVars, cplexConstraint)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            else -> {}
+        }
         return Ok(success)
     }
 
     private fun solve(): Try {
-        try {
-            cplex.solve()
-        } catch (e: IloException) {
-            return Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+        when (val result = callBack?.execIfContain(Point.Solving, cplex, cplexVars, cplexConstraint)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            null -> {
+                try {
+                    cplex.solve()
+                } catch (e: IloException) {
+                    return Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+                }
+                return Ok(success)
+            }
+
+            else -> {}
         }
         return Ok(success)
     }
@@ -192,7 +215,13 @@ private class CplexLinearSolverImpl(
                 )
             )
 
-            callBack?.execIfContain(Point.AnalyzingSolution, cplex, cplexVars, cplexConstraint)
+            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, cplex, cplexVars, cplexConstraint)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             Ok(success)
         } else {
             Failed(Err(status.errCode()!!))

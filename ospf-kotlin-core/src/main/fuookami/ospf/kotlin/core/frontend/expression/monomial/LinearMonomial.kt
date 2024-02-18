@@ -426,11 +426,39 @@ data class LinearMonomial(
     override var name: String = "",
     override var displayName: String? = null
 ) : Monomial<LinearMonomial, LinearMonomialCell, Linear> {
-    constructor(item: AbstractVariableItem<*, *>) : this(Flt64.one, LinearMonomialSymbol(item))
-    constructor(coefficient: Flt64, item: AbstractVariableItem<*, *>) : this(coefficient, LinearMonomialSymbol(item))
-    constructor(symbol: LinearExprSymbol) : this(Flt64.one, LinearMonomialSymbol(symbol))
-    constructor(coefficient: Flt64, symbol: LinearExprSymbol) : this(coefficient, LinearMonomialSymbol(symbol))
-    constructor(monomial: LinearMonomial) : this(monomial.coefficient, monomial.symbol)
+    companion object {
+        operator fun invoke(item: AbstractVariableItem<*, *>): LinearMonomial {
+            return LinearMonomial(Flt64.one, LinearMonomialSymbol(item))
+        }
+
+        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(item))
+        }
+
+        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(item))
+        }
+
+        operator fun <T : RealNumber<T>> invoke(coefficient: T, item: AbstractVariableItem<*, *>): LinearMonomial {
+            return LinearMonomial(coefficient.toFlt64(), LinearMonomialSymbol(item))
+        }
+
+        operator fun invoke(symbol: LinearExprSymbol): LinearMonomial {
+            return LinearMonomial(Flt64.one, LinearMonomialSymbol(symbol))
+        }
+
+        operator fun invoke(coefficient: Int, symbol: LinearExprSymbol): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(symbol))
+        }
+
+        operator fun invoke(coefficient: Double, symbol: LinearExprSymbol): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(symbol))
+        }
+
+        operator fun <T : RealNumber<T>> invoke(coefficient: T, symbol: LinearExprSymbol): LinearMonomial {
+            return LinearMonomial(coefficient.toFlt64(), LinearMonomialSymbol(symbol))
+        }
+    }
 
     val pure by symbol::pure
 
@@ -515,8 +543,36 @@ data class LinearMonomial(
 /**
  * x * k
  */
+operator fun AbstractVariableItem<*, *>.times(rhs: Int): LinearMonomial {
+    return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
+}
+
+/**
+ * x * k
+ */
+operator fun AbstractVariableItem<*, *>.times(rhs: Double): LinearMonomial {
+    return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
+}
+
+/**
+ * x * k
+ */
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.times(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
+}
+
+/**
+ * k * x
+ */
+operator fun Int.times(rhs: AbstractVariableItem<*, *>): LinearMonomial {
+    return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
+}
+
+/**
+ * k * x
+ */
+operator fun Double.times(rhs: AbstractVariableItem<*, *>): LinearMonomial {
+    return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
 /**
@@ -529,18 +585,59 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractVariableItem<*, *>): Linea
 /**
  * x / k
  */
+operator fun AbstractVariableItem<*, *>.div(rhs: Int): LinearMonomial {
+    return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
+}
+
+/**
+ * x / k
+ */
+operator fun AbstractVariableItem<*, *>.div(rhs: Double): LinearMonomial {
+    return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
+}
+
+/**
+ * x / k
+ */
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.div(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
-
 
 // symbol and constant
 
 /**
  * sym * k
  */
+operator fun LinearExprSymbol.times(rhs: Int): LinearMonomial {
+    return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
+}
+
+/**
+ * sym * k
+ */
+operator fun LinearExprSymbol.times(rhs: Double): LinearMonomial {
+    return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
+}
+
+/**
+ * sym * k
+ */
 operator fun <T : RealNumber<T>> LinearExprSymbol.times(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
+}
+
+/**
+ * k * sym
+ */
+operator fun Int.times(rhs: LinearExprSymbol): LinearMonomial {
+    return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
+}
+
+/**
+ * k * sym
+ */
+operator fun Double.times(rhs: LinearExprSymbol): LinearMonomial {
+    return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
 /**
@@ -553,11 +650,39 @@ operator fun <T : RealNumber<T>> T.times(rhs: LinearExprSymbol): LinearMonomial 
 /**
  * sym / k
  */
+operator fun LinearExprSymbol.div(rhs: Int): LinearMonomial {
+    return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
+}
+
+/**
+ * sym / k
+ */
+operator fun LinearExprSymbol.div(rhs: Double): LinearMonomial {
+    return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
+}
+
+/**
+ * sym / k
+ */
 operator fun <T : RealNumber<T>> LinearExprSymbol.div(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
 
 // monomial and constant
+
+/**
+ * p * kx
+ */
+operator fun Int.times(rhs: LinearMonomial): LinearMonomial {
+    return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+}
+
+/**
+ * p * kx
+ */
+operator fun Double.times(rhs: LinearMonomial): LinearMonomial {
+    return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+}
 
 /**
  * p * kx

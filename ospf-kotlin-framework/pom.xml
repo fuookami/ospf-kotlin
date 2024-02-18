@@ -4,19 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.1</version>
+        <artifactId>ospf-kotlin-parent</artifactId>
+        <version>1.0.2</version>
+        <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ospf-kotlin-framework</artifactId>
-
-    <properties>
-        <!-- 3rd-party -->
-        <http4k.version>4.48.0.0</http4k.version>
-        <http4k.bom.version>5.8.4.0</http4k.bom.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -33,7 +27,7 @@
         <dependency>
             <groupId>org.http4k</groupId>
             <artifactId>http4k-bom</artifactId>
-            <version>${http4k.bom.version}</version>
+            <version>${http4k.version}</version>
         </dependency>
         <dependency>
             <groupId>org.http4k</groupId>
@@ -44,6 +38,12 @@
             <groupId>org.http4k</groupId>
             <artifactId>http4k-client-apache</artifactId>
             <version>${http4k.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.http4k</groupId>
@@ -55,11 +55,31 @@
             <groupId>org.ktorm</groupId>
             <artifactId>ktorm-core</artifactId>
             <version>${ktorm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-reflect</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.ktorm</groupId>
             <artifactId>ktorm-jackson</artifactId>
             <version>${ktorm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-reflect</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.cg.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 sealed class Node(val index: UInt64) {
     companion object {

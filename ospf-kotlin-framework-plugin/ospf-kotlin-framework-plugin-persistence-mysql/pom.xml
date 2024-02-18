@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
         <artifactId>ospf-kotlin-framework-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </parent>
 
     <artifactId>ospf-kotlin-framework-plugin-persistence-mysql</artifactId>
@@ -21,6 +21,16 @@
             <groupId>org.ktorm</groupId>
             <artifactId>ktorm-support-mysql</artifactId>
             <version>${ktorm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-reflect</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- mysql -->
         <dependency>

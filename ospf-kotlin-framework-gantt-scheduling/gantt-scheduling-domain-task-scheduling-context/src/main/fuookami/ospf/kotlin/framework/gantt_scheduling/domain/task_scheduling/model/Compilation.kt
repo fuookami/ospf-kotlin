@@ -81,6 +81,11 @@ class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy
                 { t, e -> LinearMonomial(x[t, e]) },
                 { (_, t), (_, e) -> "${t}_$e" }
             )
+            for (task in tasks) {
+                for (executor in executors) {
+                    taskAssignment[task, executor].range.set(ValueRange(Flt64.zero, Flt64.one, Flt64))
+                }
+            }
         }
         model.addSymbols(taskAssignment)
 
@@ -113,6 +118,9 @@ class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy
                 },
                 { (_, t) -> "$t" }
             )
+            for (task in tasks) {
+                taskCompilation[task].range.set(ValueRange(Flt64.one, Flt64.one, Flt64))
+            }
         }
         model.addSymbols(taskCompilation)
 
@@ -132,7 +140,10 @@ class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy
                 Shape1(executors.size)
             ) { (i, _) ->
                 if (withExecutorLeisure) {
-                    val or = OrFunction(tasks.map { LinearPolynomial(x[it, executors[i]]) }, "executor_compilation_or_${executors[i]}")
+                    val or = OrFunction(
+                        tasks.map { LinearPolynomial(x[it, executors[i]]) },
+                        "executor_compilation_or_${executors[i]}"
+                    )
                     model.addSymbol(or)
                     LinearExpressionSymbol(or + z[executors[i]], "executor_compilation_${executors[i]}")
                 } else {
