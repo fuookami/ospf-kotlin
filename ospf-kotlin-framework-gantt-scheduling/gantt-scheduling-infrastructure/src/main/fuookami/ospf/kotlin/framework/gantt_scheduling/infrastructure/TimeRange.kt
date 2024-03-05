@@ -142,6 +142,21 @@ data class TimeRange(
     }
 }
 
+fun List<TimeRange>.merge(): List<TimeRange> {
+    val times = this.sortedBy { it.start }
+    val mergedTimes = ArrayList<TimeRange>()
+    var currentTime = times.first()
+    for (i in 1 until (times.size - 1)) {
+        if (times[i].start <= currentTime.end) {
+            currentTime = TimeRange(currentTime.start, times[i].end)
+        } else {
+            mergedTimes.add(currentTime)
+            currentTime = times[i]
+        }
+    }
+    return mergedTimes
+}
+
 fun List<TimeRange>.frontAt(i: Int): TimeRange {
     return if (i == 0) {
         this[i].front!!

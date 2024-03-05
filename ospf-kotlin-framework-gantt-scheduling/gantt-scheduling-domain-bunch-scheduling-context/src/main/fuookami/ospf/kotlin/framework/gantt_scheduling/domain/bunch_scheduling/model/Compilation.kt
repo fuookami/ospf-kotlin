@@ -67,6 +67,24 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
     private val lockCancelTasks: Set<T> = emptySet(),
     override val withExecutorLeisure: Boolean = false
 ) : Compilation {
+    init {
+        if (!executors.all { it.indexed }) {
+            ManualIndexed.flush(Executor::class)
+            for (executor in executors) {
+                executor.setIndexed(Executor::class)
+            }
+        }
+        if (!tasks.all { it.indexed }) {
+            ManualIndexed.flush(AbstractTask::class)
+            for (task in tasks) {
+                when (task) {
+                    is AbstractPlannedTask<*, *> -> task.setIndexed(AbstractTask::class)
+                    is AbstractUnplannedTask<*, *> -> task.setIndexed(AbstractTask::class)
+                }
+            }
+        }
+    }
+
     override val taskCancelEnabled: Boolean = true
 
     internal val aggregation = BunchAggregation<T, E, A>()
@@ -132,7 +150,7 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
             model.addVars(z)
         }
 
-        if (::executorCompilation.isInitialized) {
+        if (!::executorCompilation.isInitialized) {
             executorCompilation = flatMap(
                 "executor_compilation",
                 executors,

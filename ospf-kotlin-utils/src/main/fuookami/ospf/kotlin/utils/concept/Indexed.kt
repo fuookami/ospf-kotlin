@@ -28,17 +28,19 @@ sealed class IndexedImpl {
 interface Indexed {
     val index: Int
     val uindex: UInt64 get() = UInt64(index)
+
+    val indexed: Boolean get() = true
 }
 
 open class ManualIndexed internal constructor(
-    private var mIndex: Int? = null
+    private var _index: Int? = null
 ) : Indexed {
-    val indexed get() = mIndex != null
+    override val indexed: Boolean get() = _index != null
 
     override val index: Int
         get() {
             assert(indexed)
-            return mIndex!!
+            return _index!!
         }
 
     constructor() : this(null)
@@ -47,22 +49,22 @@ open class ManualIndexed internal constructor(
 
     fun setIndexed() {
         assert(!indexed)
-        mIndex = nextIndex(this::class)
+        _index = nextIndex(this::class)
     }
 
     fun setIndexed(cls: KClass<*>) {
         assert(!indexed)
-        mIndex = nextIndex(cls)
+        _index = nextIndex(cls)
     }
 
     fun refreshIndex() {
         assert(indexed)
-        mIndex = nextIndex(this::class)
+        _index = nextIndex(this::class)
     }
 
     fun refreshIndex(cls: KClass<*>) {
         assert(indexed)
-        mIndex = nextIndex(cls)
+        _index = nextIndex(cls)
     }
 }
 

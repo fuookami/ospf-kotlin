@@ -13,7 +13,7 @@ class GCDTest {
 
     @Test
     fun gcdSome() {
-        assert(gcd(UInt64(4), UInt64(6), UInt64(8)) == UInt64(2))
-        assert(gcd(UInt64(6), UInt64(9), UInt64(12)) == UInt64(3))
+        assert(gcd(listOf(UInt64(4), UInt64(6), UInt64(8))) == UInt64(2))
+        assert(gcd(listOf(UInt64(6), UInt64(9), UInt64(12))) == UInt64(3))
     }
 }

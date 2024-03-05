@@ -15,10 +15,10 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
     open val initialUsability: ExecutorInitialUsability<T, E, A>,
     val iteration: UInt64 = UInt64.zero
 ) : ManualIndexed(), Eq<AbstractTaskBunch<T, E, A>> {
-    val size get() = tasks.size
-    val empty get() = tasks.isEmpty()
-    val lastTask get() = initialUsability.lastTask
-    val costDensity = (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
+    val size by lazy { tasks.size }
+    val empty by lazy { tasks.isEmpty() }
+    val lastTask by lazy { initialUsability.lastTask }
+    val costDensity by lazy { (cost.sum ?: Flt64.zero) / Flt64(size.toDouble()) }
     val busyTime: Duration by lazy {
         tasks.foldIndexed(Duration.ZERO) { i, busyTime, task ->
             val prevTask = if (i > 0) {

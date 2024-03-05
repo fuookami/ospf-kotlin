@@ -12,10 +12,10 @@ open class ResourceCapacity(
     val overQuantity: Flt64? = null,
     val interval: Duration = Duration.INFINITE,
 ) {
-    val lessEnabled: Boolean get() = lessQuantity != null
-    val overEnabled: Boolean get() = overQuantity != null
+    open val lessEnabled: Boolean get() = lessQuantity != null
+    open val overEnabled: Boolean get() = overQuantity != null
 
-    override fun toString() = "($quantity)_${interval}"
+    override fun toString() = "${quantity}_${interval}"
 }
 
 abstract class Resource<C : ResourceCapacity>() : ManualIndexed() {

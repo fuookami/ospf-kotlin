@@ -23,7 +23,7 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
             return polynomial.value(parent.tokens, zeroIfNone)
         }
 
-        fun value(results: List<Flt64>, zeroIfNone: Boolean): Flt64? {
+        fun value(results: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
             return polynomial.value(results, parent.tokens, zeroIfNone)
         }
     }

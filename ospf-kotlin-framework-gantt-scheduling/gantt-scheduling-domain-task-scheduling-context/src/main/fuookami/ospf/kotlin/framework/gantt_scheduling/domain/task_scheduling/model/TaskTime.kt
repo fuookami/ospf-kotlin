@@ -71,7 +71,7 @@ abstract class TaskTimeImpl<T : AbstractTask<E, A>, E : Executor, A : Assignment
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
                         is AbstractSlackFunction<*> -> {
-                            LinearPolynomial(slack.pos)
+                            LinearPolynomial(slack.pos!!)
                         }
 
                         else -> {
@@ -123,7 +123,7 @@ abstract class TaskTimeImpl<T : AbstractTask<E, A>, E : Executor, A : Assignment
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
                         is AbstractSlackFunction<*> -> {
-                            LinearPolynomial(slack.neg)
+                            LinearPolynomial(slack.neg!!)
                         }
 
                         else -> {

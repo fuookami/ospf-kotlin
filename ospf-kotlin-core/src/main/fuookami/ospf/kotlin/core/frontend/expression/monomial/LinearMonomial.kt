@@ -380,7 +380,7 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                symbol.value.toRawString(unfold)
+                "${symbol.value}"
             }
         }
     }

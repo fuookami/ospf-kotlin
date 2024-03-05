@@ -139,7 +139,7 @@ typealias ConnectionResourceUsage<R, C> = ResourceUsage<ConnectionResourceTimeSl
 abstract class AbstractConnectionResourceUsage<R : ConnectionResource<C>, C : ResourceCapacity>(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration
+    interval: Duration = timeWindow.interval
 ) : AbstractResourceUsage<ConnectionResourceTimeSlot<R, C>, R, C>() {
     final override val timeSlots: List<ConnectionResourceTimeSlot<R, C>>
 
@@ -148,17 +148,17 @@ abstract class AbstractConnectionResourceUsage<R : ConnectionResource<C>, C : Re
 
         val timeSlots = ArrayList<ConnectionResourceTimeSlot<R, C>>()
         for (resource in resources) {
-            var index = UInt64.zero
             for (capacity in resource.capacities) {
+                var index = UInt64.zero
                 var beginTime = maxOf(capacity.time.start, timeWindow.window.start)
                 val endTime = minOf(capacity.time.end, timeWindow.window.end)
-                while (beginTime <= endTime) {
-                    val thisInterval = minOf(endTime - beginTime, capacity.interval, duration)
+                while (beginTime < endTime) {
+                    val thisInterval = minOf(endTime - beginTime, capacity.interval, interval)
                     val time = TimeRange(beginTime, beginTime + thisInterval)
                     timeSlots.add(ConnectionResourceTimeSlot(resource, capacity, time, index))
                     beginTime += thisInterval
+                    ++index
                 }
-                ++index
             }
         }
         this.timeSlots = timeSlots
@@ -168,11 +168,11 @@ abstract class AbstractConnectionResourceUsage<R : ConnectionResource<C>, C : Re
 class TaskSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration,
+    interval: Duration = timeWindow.interval,
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, duration) {
+) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, interval) {
     override lateinit var quantity: LinearSymbols1
 
     override fun register(model: LinearMetaModel): Try {
@@ -207,7 +207,7 @@ typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot
 abstract class AbstractExecutionResourceUsage<R : ExecutionResource<C>, C : ResourceCapacity>(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration
+    interval: Duration = timeWindow.interval
 ) : AbstractResourceUsage<ExecutionResourceTimeSlot<R, C>, R, C>() {
     final override val timeSlots: List<ExecutionResourceTimeSlot<R, C>>
 
@@ -216,17 +216,17 @@ abstract class AbstractExecutionResourceUsage<R : ExecutionResource<C>, C : Reso
 
         val timeSlots = ArrayList<ExecutionResourceTimeSlot<R, C>>()
         for (resource in resources) {
-            var index = UInt64.zero
             for (capacity in resource.capacities) {
+                var index = UInt64.zero
                 var beginTime = maxOf(capacity.time.start, timeWindow.window.start)
                 val endTime = minOf(capacity.time.end, timeWindow.window.end)
-                while (beginTime <= endTime) {
-                    val thisInterval = minOf(endTime - beginTime, capacity.interval, duration)
+                while (beginTime < endTime) {
+                    val thisInterval = minOf(endTime - beginTime, capacity.interval, interval)
                     val time = TimeRange(beginTime, beginTime + thisInterval)
                     timeSlots.add(ExecutionResourceTimeSlot(resource, capacity, time, index))
                     beginTime += thisInterval
+                    ++index
                 }
-                ++index
             }
         }
         this.timeSlots = timeSlots
@@ -236,11 +236,11 @@ abstract class AbstractExecutionResourceUsage<R : ExecutionResource<C>, C : Reso
 class TaskSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration,
+    interval: Duration = timeWindow.interval,
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, duration) {
+) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, interval) {
     override lateinit var quantity: LinearSymbols1
 
     override fun register(model: LinearMetaModel): Try {
@@ -279,7 +279,7 @@ typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, 
 abstract class AbstractStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration
+    interval: Duration = timeWindow.interval
 ) : AbstractResourceUsage<StorageResourceTimeSlot<R, C>, R, C>() {
     final override val timeSlots: List<StorageResourceTimeSlot<R, C>>
 
@@ -288,17 +288,17 @@ abstract class AbstractStorageResourceUsage<R : StorageResource<C>, C : Resource
 
         val timeSlots = ArrayList<StorageResourceTimeSlot<R, C>>()
         for (resource in resources) {
-            var index = UInt64.zero
             for (capacity in resource.capacities) {
+                var index = UInt64.zero
                 var beginTime = maxOf(capacity.time.start, timeWindow.window.start)
                 val endTime = minOf(capacity.time.end, timeWindow.window.end)
-                while (beginTime <= endTime) {
-                    val thisInterval = minOf(endTime - beginTime, capacity.interval, duration)
+                while (beginTime < endTime) {
+                    val thisInterval = minOf(endTime - beginTime, capacity.interval, interval)
                     val time = TimeRange(beginTime, beginTime + thisInterval)
                     timeSlots.add(StorageResourceTimeSlot(resource, capacity, time, index))
                     beginTime += thisInterval
+                    ++index
                 }
-                ++index
             }
         }
         this.timeSlots = timeSlots
@@ -308,11 +308,11 @@ abstract class AbstractStorageResourceUsage<R : StorageResource<C>, C : Resource
 class TaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration,
+    interval: Duration = timeWindow.interval,
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractStorageResourceUsage<R, C>(timeWindow, resources, duration) {
+) : AbstractStorageResourceUsage<R, C>(timeWindow, resources, interval) {
     override lateinit var quantity: LinearSymbols1
 
     override fun register(model: LinearMetaModel): Try {

@@ -10,10 +10,10 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class ResourceOverCapacityMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>, S : ResourceTimeSlot<R, C>, R : Resource<C>, C : ResourceCapacity>(
+class ResourceOverQuantityMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>, S : ResourceTimeSlot<R, C>, R : Resource<C>, C : ResourceCapacity>(
     private val quantity: ResourceUsage<S, R, C>,
-    private val threshold: (S) -> Flt64,
-    private val coefficient: Flt64 = Flt64.one,
+    private val threshold: (S) -> Flt64 = { Flt64.zero },
+    private val coefficient: (S) -> Flt64 = { Flt64.one },
     override val name: String = "resource_over_capacity_minimization"
 ) : GanttSchedulingCGPipeline<Args, E, A> {
     private val slots = if (quantity.overEnabled) {
@@ -27,8 +27,9 @@ class ResourceOverCapacityMinimization<Args : GanttSchedulingShadowPriceArgument
             val cost = MutableLinearPolynomial()
             for (slot in slots) {
                 val thresholdValue = threshold(slot)
+                val thisCoefficient = coefficient(slot)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += coefficient * quantity.overQuantity[slot]
+                    cost += thisCoefficient * quantity.overQuantity[slot]
                 } else {
                     val slack = SlackFunction(
                         UContinuous,
@@ -37,7 +38,7 @@ class ResourceOverCapacityMinimization<Args : GanttSchedulingShadowPriceArgument
                         name = "${quantity.name}_${slot}_over_quantity_threshold"
                     )
                     model.addSymbol(slack)
-                    cost += coefficient * slack
+                    cost += thisCoefficient * slack
                 }
             }
             model.minimize(cost, "${quantity.name} over quantity")

@@ -14,9 +14,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.mo
 class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration,
+    interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, duration) {
+) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, interval) {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -76,9 +76,9 @@ class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : Resour
 class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration,
+    interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, duration) {
+) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, interval) {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -138,9 +138,9 @@ class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Reso
 class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C: ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
-    duration: Duration,
+    interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractStorageResourceUsage<R, C>(timeWindow, resources, duration) {
+) : AbstractStorageResourceUsage<R, C>(timeWindow, resources, interval) {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -152,7 +152,12 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C: ResourceCap
                 quantity = flatMap(
                     "${name}_quantity",
                     timeSlots,
-                    { s -> LinearPolynomial(s.resource.initialQuantity) },
+                    { s ->
+                        val time = TimeRange(timeWindow.start, s.time.end)
+                        val fixedSupply = s.resource.fixedSupplyIn(time)
+                        val fixedCost = s.resource.fixedCostIn(time)
+                        LinearPolynomial(s.resource.initialQuantity + fixedSupply - fixedCost)
+                    },
                     { (_, s) -> "$s" }
                 )
                 for (slot in timeSlots) {

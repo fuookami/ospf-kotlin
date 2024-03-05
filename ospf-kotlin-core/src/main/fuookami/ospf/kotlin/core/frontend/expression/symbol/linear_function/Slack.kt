@@ -27,24 +27,22 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         assert(withNegative || withPositive)
     }
 
-    private lateinit var _neg: V
-    val neg: V
-        get() {
-            if (withNegative && !::_neg.isInitialized) {
-                _neg = ctor("${name}_neg")
-            }
-            return _neg
+    val neg: V? by lazy { if (withNegative) { ctor("${name}_neg") } else { null } }
+    val pos: V? by lazy { if (withPositive) { ctor("${name}_pos") } else { null } }
+    val polyX: AbstractLinearPolynomial<*> by lazy {
+        val polynomial = if (neg != null && pos != null) {
+            x + neg!! - pos!!
+        } else if (neg != null) {
+            x + neg!!
+        } else if (pos != null) {
+            x - pos!!
+        } else {
+            x
         }
-    private lateinit var _pos: V
-    val pos: V
-        get() {
-            if (withPositive && !::_pos.isInitialized) {
-                _pos = ctor("${name}_pos")
-            }
-            return _pos
-        }
-    lateinit var polyX: LinearPolynomial
-    private lateinit var polyY: LinearPolynomial
+        polynomial.name = "${name}_x"
+        polynomial
+    }
+    private lateinit var polyY: AbstractLinearPolynomial<*>
 
     override val range get() = polyY.range
     override val lowerBound get() = polyY.lowerBound
@@ -56,8 +54,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     private val possibleRange: ValueRange<Flt64>
         get() {
             return if (withNegative && withPositive) {
-                val (min, max) = minmax(y.upperBound - x.lowerBound, x.upperBound - y.lowerBound)
-                ValueRange(min, max, Flt64)
+                val max = max(y.upperBound - x.lowerBound, x.upperBound - y.lowerBound)
+                ValueRange(Flt64.zero, max, Flt64)
             } else if (withNegative) {
                 ValueRange(Flt64.zero, y.upperBound - x.lowerBound, Flt64)
             } else if (withPositive) {
@@ -73,8 +71,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 
     override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
-        if (withNegative) {
-            when (val result = tokenTable.add(neg)) {
+        if (neg != null) {
+            when (val result = tokenTable.add(neg!!)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -83,37 +81,23 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             }
         }
 
-        if (withPositive) {
-            when (val result = tokenTable.add(pos)) {
+        if (pos != null) {
+            when (val result = tokenTable.add(pos!!)) {
                 is Ok -> {}
 
                 is Failed -> {
                     return Failed(result.error)
                 }
             }
-        }
-
-        if (!::polyX.isInitialized) {
-            val x = LinearPolynomial(x.monomials.map { it.copy() }, x.constant)
-            polyX = if (withNegative && withPositive) {
-                x + neg - pos
-            } else if (withNegative) {
-                x + neg
-            } else if (withPositive) {
-                x - pos
-            } else {
-                x
-            }
-            polyX.name = "${name}_x"
         }
 
         if (!::polyY.isInitialized) {
-            polyY = if (withNegative && withPositive) {
-                neg + pos
-            } else if (withNegative) {
-                LinearPolynomial(neg)
-            } else if (withPositive) {
-                LinearPolynomial(pos)
+            polyY = if (pos != null && neg != null) {
+                neg!! + pos!!
+            } else if (neg != null) {
+                LinearPolynomial(neg!!)
+            } else if (pos != null) {
+                LinearPolynomial(pos!!)
             } else {
                 LinearPolynomial()
             }
@@ -137,9 +121,9 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (constraint) {
             if (threshold) {
                 if (withNegative) {
-                    model.addConstraint(polyX leq y, name)
-                } else if (withPositive) {
                     model.addConstraint(polyX geq y, name)
+                } else if (withPositive) {
+                    model.addConstraint(polyX leq y, name)
                 }
             } else {
                 model.addConstraint(polyX eq y, name)

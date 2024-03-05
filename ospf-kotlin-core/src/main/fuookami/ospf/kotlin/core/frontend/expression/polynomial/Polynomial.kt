@@ -80,14 +80,14 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
         return if (monomials.isEmpty()) {
             "$constant"
         } else if (constant neq Flt64.zero) {
-            "${monomials.joinToString(" + ") { it.toRawString(unfold) }} + $constant"
+            "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }} + $constant"
         } else {
-            monomials.joinToString(" + ") { it.toRawString(unfold) }
+            monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }
         }
     }
 
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        var ret = Flt64.zero
+        var ret = constant
         for (monomial in monomials) {
             val thisValue = monomial.value(tokenList, zeroIfNone)
                 ?: return null
@@ -101,7 +101,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
     }
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        var ret = Flt64.zero
+        var ret = constant
         for (monomial in monomials) {
             val thisValue = monomial.value(results, tokenList, zeroIfNone)
                 ?: return null

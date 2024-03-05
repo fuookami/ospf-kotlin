@@ -26,7 +26,7 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     override val cells: List<LinearMonomialCell>
         get() {
             if (_cells.isEmpty()) {
-                _cells = cells(monomials, constant) { LinearMonomialCell(constant) }
+                _cells = cells(monomials, constant) { LinearMonomialCell(it) }
             }
             return _cells
         }

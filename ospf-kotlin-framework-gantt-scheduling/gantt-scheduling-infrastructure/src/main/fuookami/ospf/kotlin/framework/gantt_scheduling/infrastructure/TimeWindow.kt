@@ -8,25 +8,35 @@ data class TimeWindow(
     val window: TimeRange,
     val continues: Boolean = true,
     val durationUnit: DurationUnit = DurationUnit.SECONDS,
+    val interval: Duration = 1.toDuration(durationUnit)
 ) {
     companion object {
-        fun seconds(timeWindow: TimeRange, continues: Boolean = true) = TimeWindow(
-            window = timeWindow,
-            continues = continues,
-            durationUnit = DurationUnit.SECONDS
-        )
+        fun seconds(timeWindow: TimeRange, continues: Boolean = true, interval: Flt64 = Flt64.one): TimeWindow {
+            return TimeWindow(
+                window = timeWindow,
+                continues = continues,
+                durationUnit = DurationUnit.SECONDS,
+                interval = interval.toDouble().toDuration(DurationUnit.SECONDS)
+            )
+        }
 
-        fun minutes(timeWindow: TimeRange, continues: Boolean = true) = TimeWindow(
-            window = timeWindow,
-            continues = continues,
-            durationUnit = DurationUnit.MINUTES
-        )
+        fun minutes(timeWindow: TimeRange, continues: Boolean = true, interval: Flt64 = Flt64.one): TimeWindow {
+            return TimeWindow(
+                window = timeWindow,
+                continues = continues,
+                durationUnit = DurationUnit.MINUTES,
+                interval = interval.toDouble().toDuration(DurationUnit.MINUTES)
+            )
+        }
 
-        fun hours(timeWindow: TimeRange, continues: Boolean = true) = TimeWindow(
-            window = timeWindow,
-            continues = continues,
-            durationUnit = DurationUnit.HOURS
-        )
+        fun hours(timeWindow: TimeRange, continues: Boolean = true, interval: Flt64 = Flt64.one): TimeWindow {
+            return TimeWindow(
+                window = timeWindow,
+                continues = continues,
+                durationUnit = DurationUnit.HOURS,
+                interval = interval.toDouble().toDuration(DurationUnit.HOURS)
+            )
+        }
     }
 
     fun valueOf(duration: Duration) = if (continues) {
