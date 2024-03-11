@@ -17,12 +17,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_selection.model.*
 
 class BranchAndPriceAlgorithm<
-    Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>, 
-    E : Executor, 
-    A : AssignmentPolicy<E>
->(
+        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        Args : GanttSchedulingShadowPriceArguments<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val executors: List<E>,
     private val tasks: List<T>,
     private val initialBunches: List<AbstractTaskBunch<T, E, A>>,
@@ -31,14 +31,14 @@ class BranchAndPriceAlgorithm<
     private val configuration: Configuration
 ) {
     data class Policy<
-        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        Args : GanttSchedulingShadowPriceArguments<E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    >(
-        val contextBuilder : () -> BunchSchedulingContext<Args, T, E, A>,
-        val extractContextBuilder : List<(BunchSchedulingContext<Args, T, E, A>) -> List<ExtractBunchSchedulingContext<Args, T, E, A>>>,
+            Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+            Args : GanttSchedulingShadowPriceArguments<E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            >(
+        val contextBuilder: () -> BunchSchedulingContext<Args, T, E, A>,
+        val extractContextBuilder: List<(BunchSchedulingContext<Args, T, E, A>) -> List<ExtractBunchSchedulingContext<Args, T, E, A>>>,
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, AbstractTaskBunch<T, E, A>) -> Flt64,
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<AbstractTaskBunch<T, E, A>>>,
@@ -70,8 +70,13 @@ class BranchAndPriceAlgorithm<
     private val columnAmount: UInt64 get() = context.columnAmount
     private val executorAmount: UInt64 get() = UInt64(executors.size)
 
-    private fun notFixedExtractorAmount(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): UInt64 = executorAmount - UInt64(fixedBunches.size.toULong())
-    private fun minimumColumnAmount(fixedBunches: Set<AbstractTaskBunch<T, E, A>>, configuration: Configuration): UInt64 =
+    private fun notFixedExtractorAmount(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): UInt64 =
+        executorAmount - UInt64(fixedBunches.size.toULong())
+
+    private fun minimumColumnAmount(
+        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
+        configuration: Configuration
+    ): UInt64 =
         notFixedExtractorAmount(fixedBunches) * configuration.minimumColumnAmountPerExecutor
 
     suspend operator fun invoke(id: String): Ret<BunchSolution<T, E, A>> {
@@ -202,9 +207,17 @@ class BranchAndPriceAlgorithm<
                     }
                     logLpResults(iteration.iteration, model)
 
-                    val reducedAmount = UInt64(fixedBunches.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
+                    val reducedAmount =
+                        UInt64(fixedBunches.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
                     if (columnAmount > configuration.maximumColumnAmount) {
-                        maximumReducedCost1 = when (val result = removeColumns(maximumReducedCost1, configuration.maximumColumnAmount, shadowPriceMap, fixedBunches, keptBunches, model)) {
+                        maximumReducedCost1 = when (val result = removeColumns(
+                            maximumReducedCost1,
+                            configuration.maximumColumnAmount,
+                            shadowPriceMap,
+                            fixedBunches,
+                            keptBunches,
+                            model
+                        )) {
                             is Ok -> {
                                 result.value
                             }
@@ -304,7 +317,14 @@ class BranchAndPriceAlgorithm<
                     if (columnAmount > configuration.maximumColumnAmount
                         && newBunchAmount > minimumColumnAmount(fixedBunches, configuration)
                     ) {
-                        maximumReducedCost2 = when (val result = removeColumns(maximumReducedCost2, configuration.maximumColumnAmount, shadowPriceMap, fixedBunches, keptBunches, model)) {
+                        maximumReducedCost2 = when (val result = removeColumns(
+                            maximumReducedCost2,
+                            configuration.maximumColumnAmount,
+                            shadowPriceMap,
+                            fixedBunches,
+                            keptBunches,
+                            model
+                        )) {
                             is Ok -> {
                                 result.value
                             }
@@ -351,7 +371,14 @@ class BranchAndPriceAlgorithm<
                 flush(iteration.iteration)
                 iteration.halveStep()
 
-                logger.debug { "Iteration $mainIteration end, optimal rate: ${String.format("%.2f", (iteration.optimalRate * Flt64(100.0)).toDouble())}%" }
+                logger.debug {
+                    "Iteration $mainIteration end, optimal rate: ${
+                        String.format(
+                            "%.2f",
+                            (iteration.optimalRate * Flt64(100.0)).toDouble()
+                        )
+                    }%"
+                }
                 ++mainIteration
             }
 
@@ -363,7 +390,14 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun heartBeat(id: String, optimalRate: Flt64) {
-        logger.info { "Heart beat, current optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
+        logger.info {
+            "Heart beat, current optimal rate: ${
+                String.format(
+                    "%.2f",
+                    (optimalRate * Flt64(100.0)).toDouble()
+                )
+            }%"
+        }
     }
 
     private suspend fun register(model: LinearMetaModel): Try {
@@ -652,8 +686,8 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun locallyFix(
-        iteration: UInt64, 
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>, 
+        iteration: UInt64,
+        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
         model: LinearMetaModel
     ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
         val fixBar = Flt64(0.9)

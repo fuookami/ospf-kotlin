@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -20,6 +21,21 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
                 _range = ExpressionRange(possibleRange(monomials, constant), Flt64)
             }
             return _range!!
+        }
+
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            return monomials.mapNotNull {
+                when (val symbol = it.symbol.symbol) {
+                    is Either.Right -> {
+                        symbol.value
+                    }
+
+                    else -> {
+                        null
+                    }
+                }
+            }.toSet()
         }
 
     private var _cells: List<LinearMonomialCell> = emptyList()

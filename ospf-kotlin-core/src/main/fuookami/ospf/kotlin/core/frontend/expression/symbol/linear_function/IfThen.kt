@@ -27,21 +27,54 @@ class IfThen(
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound get() = polyY.lowerBound
-    override val upperBound get() = polyY.upperBound
+    override val lowerBound
+        get() = if (::polyY.isInitialized) {
+            polyY.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::polyY.isInitialized) {
+            polyY.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            dependencies.addAll(p.lhs.dependencies)
+            dependencies.addAll(p.rhs.dependencies)
+            dependencies.addAll(q.lhs.dependencies)
+            dependencies.addAll(q.rhs.dependencies)
+            return dependencies
+        }
     override val cells get() = polyY.cells
-    override val cached get() = polyY.cached
+    override val cached
+        get() = if (::polyY.isInitialized) {
+            polyY.cached
+        } else {
+            false
+        }
 
     private val possibleRange: ValueRange<Flt64>
         get() {
             // todo: impl by Inequality.judge()
-            return ValueRange(Flt64.zero, Flt64.one, Flt64)
+            return ValueRange(Flt64.zero, Flt64.one)
         }
 
     override fun flush(force: Boolean) {
-        polyY.flush(force)
-        polyY.range.set(possibleRange)
+        if (::polyY.isInitialized) {
+            polyY.flush(force)
+            polyY.range.set(possibleRange)
+        }
+    }
+
+    override suspend fun prepare() {
+        p.lhs.cells
+        p.rhs.cells
+        q.lhs.cells
+        q.rhs.cells
     }
 
     override fun toString(): String {
@@ -95,7 +128,7 @@ class IfThen(
         return Ok(success)
     }
 
-    override fun register(model: Model<LinearMonomialCell, Linear>): Try {
+    override fun register(model: AbstractLinearModel): Try {
         when (val result = p.register(name, pu, model)) {
             is Ok -> {}
 

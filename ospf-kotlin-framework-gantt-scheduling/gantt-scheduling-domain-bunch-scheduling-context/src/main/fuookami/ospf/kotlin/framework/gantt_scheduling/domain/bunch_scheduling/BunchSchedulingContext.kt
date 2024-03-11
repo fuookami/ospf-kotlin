@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.service.*
 
 interface BunchSchedulingContext<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
-    val aggregation : BunchSchedulingAggregation<T, E, A>
+    val aggregation: BunchSchedulingAggregation<T, E, A>
     val pipelineList: GanttSchedulingCGPipelineList<Args, E, A>
 
     val columnAmount get() = UInt64(aggregation.bunches.size - aggregation.removedBunches.size)
@@ -60,10 +60,21 @@ interface BunchSchedulingContext<Args : GanttSchedulingShadowPriceArguments<E, A
         keptBunches: Set<AbstractTaskBunch<T, E, A>>,
         model: LinearMetaModel
     ): Ret<Flt64> {
-        return aggregation.removeColumns(maximumReducedCost, maximumColumnAmount, reducedCost, fixedBunches, keptBunches, model)
+        return aggregation.removeColumns(
+            maximumReducedCost,
+            maximumColumnAmount,
+            reducedCost,
+            fixedBunches,
+            keptBunches,
+            model
+        )
     }
 
-    fun extractShadowPrice(shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>, model: LinearMetaModel, shadowPrices: List<Flt64>): Try {
+    fun extractShadowPrice(
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        model: LinearMetaModel,
+        shadowPrices: List<Flt64>
+    ): Try {
         for (pipeline in pipelineList) {
             when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices)) {
                 is Ok -> {}
@@ -147,7 +158,11 @@ interface ExtractBunchSchedulingContext<Args : GanttSchedulingShadowPriceArgumen
 
     fun register(model: LinearMetaModel): Try
     fun addColumns(iteration: UInt64, newBunches: List<AbstractTaskBunch<T, E, A>>, model: LinearMetaModel): Try
-    fun extractShadowPrice(shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>, model: LinearMetaModel, shadowPrices: List<Flt64>): Try
+    fun extractShadowPrice(
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        model: LinearMetaModel,
+        shadowPrices: List<Flt64>
+    ): Try
 
     fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
         return Ok(success)

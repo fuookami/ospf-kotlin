@@ -35,7 +35,7 @@ private class CplexLinearSolverImpl(
     lateinit var output: LinearSolverOutput
 
     operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
-        assert(!this::cplex.isInitialized)
+        assert(!::cplex.isInitialized)
 
         val processes = arrayOf(
             { it.init(model) },

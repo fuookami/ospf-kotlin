@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.utils.math.*
 data class DummyIndex(
     val range: ValueRange<UInt64>?
 ) {
-    constructor(value: UInt64) : this(ValueRange(value, value, UInt64))
+    constructor(value: UInt64) : this(ValueRange(value, value))
 }
 
 val _a = DummyIndex(null)

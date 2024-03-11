@@ -221,7 +221,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
                     }
                 }
             ) {
-                y[task].range.set(ValueRange(Binary.minimum, Binary.maximum, UInt8))
+                y[task].range.set(ValueRange(Binary.minimum, Binary.maximum))
             }
 
             for (i in UInt64.zero..iteration) {
@@ -229,7 +229,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
 
                 for (bunch in bunchesIteration[i.toInt()]) {
                     if (!removedBunches.contains(bunch)) {
-                        xi[bunch].range.set(ValueRange(Binary.minimum, Binary.maximum, UInt8))
+                        xi[bunch].range.set(ValueRange(Binary.minimum, Binary.maximum))
                     }
                 }
             }

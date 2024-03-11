@@ -31,9 +31,8 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
 
-data object Int8Serializer : RealNumberKSerializer<Int8> {
+data object Int8Serializer : KSerializer<Int8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int8", PrimitiveKind.INT)
-    override val constants = Int8
 
     override fun serialize(encoder: Encoder, value: Int8) {
         encoder.encodeInt(value.value.toInt())
@@ -111,9 +110,8 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object Int16Serializer : RealNumberKSerializer<Int16> {
+data object Int16Serializer : KSerializer<Int16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int16", PrimitiveKind.INT)
-    override val constants = Int16
 
     override fun serialize(encoder: Encoder, value: Int16) {
         encoder.encodeInt(value.value.toInt())
@@ -191,9 +189,8 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object Int32Serializer : RealNumberKSerializer<Int32> {
+data object Int32Serializer : KSerializer<Int32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int32", PrimitiveKind.INT)
-    override val constants = Int32
 
     override fun serialize(encoder: Encoder, value: Int32) {
         encoder.encodeInt(value.value)
@@ -271,9 +268,8 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object Int64Serializer : RealNumberKSerializer<Int64> {
+data object Int64Serializer : KSerializer<Int64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Int64", PrimitiveKind.LONG)
-    override val constants = Int64
 
     override fun serialize(encoder: Encoder, value: Int64) {
         encoder.encodeLong(value.value)
@@ -354,9 +350,8 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
     override fun toFltX() = FltX(value.toString())
 }
 
-data object IntXSerializer : RealNumberKSerializer<IntX> {
+data object IntXSerializer : KSerializer<IntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntX", PrimitiveKind.STRING)
-    override val constants = IntX
 
     override fun serialize(encoder: Encoder, value: IntX) {
         encoder.encodeString(value.value.toString())

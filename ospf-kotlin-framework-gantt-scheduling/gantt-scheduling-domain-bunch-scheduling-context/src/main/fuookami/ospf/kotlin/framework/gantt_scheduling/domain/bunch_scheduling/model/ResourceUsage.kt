@@ -34,9 +34,10 @@ class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : Resour
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.toFlt64() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.toFlt64() + (slot.resourceCapacity.overQuantity ?: Flt64.zero),
-                            Flt64
+                            slot.resourceCapacity.quantity.lowerBound.toFlt64() - (slot.resourceCapacity.lessQuantity
+                                ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.toFlt64() + (slot.resourceCapacity.overQuantity
+                                ?: Flt64.zero)
                         )
                     )
                 }
@@ -64,7 +65,10 @@ class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : Resour
             if (thisBunches.isNotEmpty()) {
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(bunch, TimeRange(timeWindow.start, slot.time.end)) * xi[bunch]
+                    quantity[slot].asMutable() += slot.resource.usedQuantity(
+                        bunch,
+                        TimeRange(timeWindow.start, slot.time.end)
+                    ) * xi[bunch]
                 }
             }
         }
@@ -96,9 +100,10 @@ class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Reso
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.toFlt64() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.toFlt64() + (slot.resourceCapacity.overQuantity ?: Flt64.zero),
-                            Flt64
+                            slot.resourceCapacity.quantity.lowerBound.toFlt64() - (slot.resourceCapacity.lessQuantity
+                                ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.toFlt64() + (slot.resourceCapacity.overQuantity
+                                ?: Flt64.zero)
                         )
                     )
                 }
@@ -126,7 +131,10 @@ class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Reso
             if (thisBunches.isNotEmpty()) {
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(bunch, TimeRange(timeWindow.start, slot.time.end)) * xi[bunch]
+                    quantity[slot].asMutable() += slot.resource.usedQuantity(
+                        bunch,
+                        TimeRange(timeWindow.start, slot.time.end)
+                    ) * xi[bunch]
                 }
             }
         }
@@ -135,7 +143,7 @@ class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Reso
     }
 }
 
-class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C: ResourceCapacity>(
+class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -166,8 +174,7 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C: ResourceCap
                             slot.resourceCapacity.quantity.lowerBound.toFlt64() - (slot.resourceCapacity.lessQuantity
                                 ?: Flt64.zero),
                             slot.resourceCapacity.quantity.upperBound.toFlt64() + (slot.resourceCapacity.overQuantity
-                                ?: Flt64.zero),
-                            Flt64
+                                ?: Flt64.zero)
                         )
                     )
                 }
@@ -195,7 +202,10 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C: ResourceCap
             if (thisBunches.isNotEmpty()) {
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(bunch, TimeRange(timeWindow.start, slot.time.end)) * xi[bunch]
+                    quantity[slot].asMutable() += slot.resource.usedQuantity(
+                        bunch,
+                        TimeRange(timeWindow.start, slot.time.end)
+                    ) * xi[bunch]
                 }
             }
         }

@@ -10,10 +10,14 @@ open class ShadowPriceKey(
     val limit: KClass<*>
 )
 
-class ShadowPrice(
+data class ShadowPrice(
     val key: ShadowPriceKey,
     val price: Flt64
-)
+) {
+    override fun toString(): String {
+        return "$key: $price"
+    }
+}
 
 typealias ShadowPriceExtractor<Args, M> = (AbstractShadowPriceMap<Args, M>, Args) -> Flt64
 
@@ -22,7 +26,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
     private val _map = HashMap<ShadowPriceKey, ShadowPrice>()
     private val _extractors = ArrayList<ShadowPriceExtractor<Args, M>>()
 
-    open operator fun invoke(arg: Args) = _extractors.sumOf(Flt64) { it(this, arg) }
+    open operator fun invoke(arg: Args) = _extractors.sumOf { it(this, arg) }
 
     operator fun get(key: ShadowPriceKey): ShadowPrice? = _map[key]
 

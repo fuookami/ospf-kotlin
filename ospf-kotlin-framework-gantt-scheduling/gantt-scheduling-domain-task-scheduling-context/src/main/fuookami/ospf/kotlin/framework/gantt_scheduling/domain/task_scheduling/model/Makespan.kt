@@ -15,7 +15,7 @@ class Makespan<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     lateinit var makespan: LinearSymbol
 
     fun register(model: LinearMetaModel): Try {
-        if (!this::makespan.isInitialized) {
+        if (!::makespan.isInitialized) {
             makespan = if (extra) {
                 MinMaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
             } else {

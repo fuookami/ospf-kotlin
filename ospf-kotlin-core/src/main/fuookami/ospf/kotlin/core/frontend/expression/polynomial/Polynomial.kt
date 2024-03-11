@@ -19,6 +19,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
     val monomials: List<M>
     val constant: Flt64
     override val discrete: Boolean get() = monomials.all { it.discrete } && constant.round() eq constant
+    val dependencies: Set<Symbol<*, *>>
     val cells: List<Cell>
     val cached: Boolean
 
@@ -80,7 +81,9 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
         return if (monomials.isEmpty()) {
             "$constant"
         } else if (constant neq Flt64.zero) {
-            "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }} + $constant"
+            "${
+                monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }
+            } + $constant"
         } else {
             monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }
         }
@@ -201,8 +204,7 @@ internal fun possibleRange(
             constant,
             constant,
             IntervalType.Closed,
-            IntervalType.Closed,
-            Flt64
+            IntervalType.Closed
         )
     } else {
         var ret = monomials[0].range.range

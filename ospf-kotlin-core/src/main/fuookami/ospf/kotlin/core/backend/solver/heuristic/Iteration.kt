@@ -8,8 +8,8 @@ class Iteration(
     private var _notBetterIteration: UInt64 = UInt64.zero,
     private val begin: Instant = Clock.System.now()
 ) {
-    val iteration by this::_iteration
-    val notBetterIteration by this::_notBetterIteration
+    val iteration by ::_iteration
+    val notBetterIteration by ::_notBetterIteration
     val time get() = Clock.System.now() - begin
 
     fun next(better: Boolean) {

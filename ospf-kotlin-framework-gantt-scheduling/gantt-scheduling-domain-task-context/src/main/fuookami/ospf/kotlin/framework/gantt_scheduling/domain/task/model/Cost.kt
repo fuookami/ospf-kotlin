@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 data class CostItem(
     val tag: String,
@@ -24,7 +25,7 @@ sealed interface Cost : Iterable<CostItem>, Copyable<Cost> {
         operator fun invoke(
             items: List<CostItem> = emptyList(),
             sums: Flt64? = if (items.all { it.value != null }) {
-                items.sumOf(Flt64) { it.value!! }
+                items.sumOf { it.value!! }
             } else {
                 null
             }
@@ -63,7 +64,7 @@ sealed interface Cost : Iterable<CostItem>, Copyable<Cost> {
 class MutableCost(
     override val items: MutableList<CostItem> = ArrayList(),
     override var sum: Flt64? = if (items.all { it.value != null }) {
-        items.sumOf(Flt64) { it.value!! }
+        items.sumOf { it.value!! }
     } else {
         null
     }
@@ -96,7 +97,7 @@ class MutableCost(
 data class ImmutableCost(
     override val items: List<CostItem>,
     override val sum: Flt64? = if (items.all { it.value != null }) {
-        items.sumOf(Flt64) { it.value!! }
+        items.sumOf { it.value!! }
     } else {
         null
     }

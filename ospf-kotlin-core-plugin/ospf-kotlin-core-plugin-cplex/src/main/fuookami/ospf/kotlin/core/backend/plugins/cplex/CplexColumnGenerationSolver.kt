@@ -155,6 +155,10 @@ class CplexColumnGenerationSolver(
         val solver = CplexLinearSolver(
             config = config,
             callBack = callBack.copy()
+                .configuration { cplex, _, _ ->
+                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
+                    Ok(success)
+                }
                 .analyzingSolution { cplex, _, constraints ->
                     dualSolution = constraints.map { Flt64(cplex.getDual(it)) }
                     Ok(success)

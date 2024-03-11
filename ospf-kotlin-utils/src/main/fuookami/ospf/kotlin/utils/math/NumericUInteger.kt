@@ -34,9 +34,8 @@ abstract class NumericUIntegerConstants<Self, I>(
     override val maximum: Self get() = ctor(constants.maximum)
 }
 
-data object NUInt8Serializer : RealNumberKSerializer<NUInt8> {
+data object NUInt8Serializer : KSerializer<NUInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt8", PrimitiveKind.INT)
-    override val constants = NUInt8
 
     override fun serialize(encoder: Encoder, value: NUInt8) {
         encoder.encodeInt(value.value.value.toInt())
@@ -129,9 +128,8 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun toFltX() = value.toFltX()
 }
 
-data object NUInt16Serializer : RealNumberKSerializer<NUInt16> {
+data object NUInt16Serializer : KSerializer<NUInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt16", PrimitiveKind.INT)
-    override val constants = NUInt16
 
     override fun serialize(encoder: Encoder, value: NUInt16) {
         encoder.encodeInt(value.value.value.toInt())
@@ -226,9 +224,8 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun toFltX() = value.toFltX()
 }
 
-data object NUInt32Serializer : RealNumberKSerializer<NUInt32> {
+data object NUInt32Serializer : KSerializer<NUInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt32", PrimitiveKind.INT)
-    override val constants = NUInt32
 
     override fun serialize(encoder: Encoder, value: NUInt32) {
         encoder.encodeInt(value.value.value.toInt())
@@ -323,9 +320,8 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun toFltX() = value.toFltX()
 }
 
-data object NUInt64Serializer : RealNumberKSerializer<NUInt64> {
+data object NUInt64Serializer : KSerializer<NUInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUInt64", PrimitiveKind.LONG)
-    override val constants = NUInt64
 
     override fun serialize(encoder: Encoder, value: NUInt64) {
         encoder.encodeLong(value.value.value.toLong())
@@ -420,9 +416,8 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun toFltX() = value.toFltX()
 }
 
-class NUIntXSerializer : RealNumberKSerializer<NUIntX> {
+class NUIntXSerializer : KSerializer<NUIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NUIntX", PrimitiveKind.STRING)
-    override val constants = NUIntX
 
     override fun serialize(encoder: Encoder, value: NUIntX) {
         encoder.encodeString(value.value.toString(10))

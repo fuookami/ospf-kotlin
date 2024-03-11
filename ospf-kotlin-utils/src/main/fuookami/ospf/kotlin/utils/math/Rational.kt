@@ -11,13 +11,13 @@ import fuookami.ospf.kotlin.utils.operator.*
 abstract class RationalSerializer<Self, I>(
     name: String,
     val ctor: (I, I) -> Self,
-) : RealNumberKSerializer<Self> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
+) : KSerializer<Self> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(name) {
         element<JsonElement>("num")
         element<JsonElement>("den")
     }
 
-    abstract val valueSerializer: RealNumberKSerializer<I>
+    abstract val valueSerializer: KSerializer<I>
 
     override fun serialize(encoder: Encoder, value: Self) {
         require(encoder is JsonEncoder)
@@ -135,7 +135,6 @@ abstract class RationalConstants<Self, I> protected constructor(
 }
 
 data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke) {
-    override val constants = Rtn8
     override val valueSerializer = Int8Serializer
 }
 
@@ -167,7 +166,6 @@ data class Rtn8 internal constructor(
 }
 
 data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::invoke) {
-    override val constants = Rtn16
     override val valueSerializer = Int16Serializer
 }
 
@@ -194,7 +192,6 @@ data class Rtn16 internal constructor(
 }
 
 data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::invoke) {
-    override val constants = Rtn32
     override val valueSerializer = Int32Serializer
 }
 
@@ -221,7 +218,6 @@ data class Rtn32 internal constructor(
 }
 
 data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::invoke) {
-    override val constants = Rtn64
     override val valueSerializer = Int64Serializer
 }
 
@@ -248,7 +244,6 @@ data class Rtn64 internal constructor(
 }
 
 data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke) {
-    override val constants = RtnX
     override val valueSerializer = IntXSerializer
 }
 
@@ -275,7 +270,6 @@ data class RtnX internal constructor(
 }
 
 object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::invoke) {
-    override val constants = URtn8
     override val valueSerializer = UInt8Serializer
 }
 
@@ -302,7 +296,6 @@ data class URtn8 internal constructor(
 }
 
 object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::invoke) {
-    override val constants = URtn16
     override val valueSerializer = UInt16Serializer
 }
 
@@ -329,7 +322,6 @@ data class URtn16 internal constructor(
 }
 
 object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::invoke) {
-    override val constants = URtn32
     override val valueSerializer = UInt32Serializer
 }
 
@@ -356,7 +348,6 @@ data class URtn32 internal constructor(
 }
 
 object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::invoke) {
-    override val constants = URtn64
     override val valueSerializer = UInt64Serializer
 }
 
@@ -387,7 +378,6 @@ data class URtn64 internal constructor(
 }
 
 object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::invoke) {
-    override val constants = URtnX
     override val valueSerializer = UIntXSerializer
 }
 

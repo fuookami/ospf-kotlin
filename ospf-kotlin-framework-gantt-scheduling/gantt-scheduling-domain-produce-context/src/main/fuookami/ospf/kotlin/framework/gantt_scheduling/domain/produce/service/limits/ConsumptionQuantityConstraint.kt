@@ -78,7 +78,7 @@ class ConsumptionQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E
                 when (task) {
                     is ProductionTask -> {
                         val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
-                        materials.sumOf(Flt64) { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                     }
 
                     else -> {

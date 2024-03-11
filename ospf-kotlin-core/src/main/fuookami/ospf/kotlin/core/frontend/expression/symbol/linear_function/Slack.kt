@@ -27,8 +27,20 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         assert(withNegative || withPositive)
     }
 
-    val neg: V? by lazy { if (withNegative) { ctor("${name}_neg") } else { null } }
-    val pos: V? by lazy { if (withPositive) { ctor("${name}_pos") } else { null } }
+    val neg: V? by lazy {
+        if (withNegative) {
+            ctor("${name}_neg")
+        } else {
+            null
+        }
+    }
+    val pos: V? by lazy {
+        if (withPositive) {
+            ctor("${name}_pos")
+        } else {
+            null
+        }
+    }
     val polyX: AbstractLinearPolynomial<*> by lazy {
         val polynomial = if (neg != null && pos != null) {
             x + neg!! - pos!!
@@ -45,29 +57,58 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     private lateinit var polyY: AbstractLinearPolynomial<*>
 
     override val range get() = polyY.range
-    override val lowerBound get() = polyY.lowerBound
-    override val upperBound get() = polyY.upperBound
+    override val lowerBound
+        get() = if (::polyY.isInitialized) {
+            polyY.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::polyY.isInitialized) {
+            polyY.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            dependencies.addAll(x.dependencies)
+            dependencies.addAll(y.dependencies)
+            return dependencies
+        }
     override val cells get() = polyY.cells
-    override val cached get() = polyY.cached
+    override val cached
+        get() = if (::polyY.isInitialized) {
+            polyY.cached
+        } else {
+            false
+        }
 
     private val possibleRange: ValueRange<Flt64>
         get() {
             return if (withNegative && withPositive) {
                 val max = max(y.upperBound - x.lowerBound, x.upperBound - y.lowerBound)
-                ValueRange(Flt64.zero, max, Flt64)
+                ValueRange(Flt64.zero, max)
             } else if (withNegative) {
-                ValueRange(Flt64.zero, y.upperBound - x.lowerBound, Flt64)
+                ValueRange(Flt64.zero, y.upperBound - x.lowerBound)
             } else if (withPositive) {
-                ValueRange(Flt64.zero, x.upperBound - y.lowerBound, Flt64)
+                ValueRange(Flt64.zero, x.upperBound - y.lowerBound)
             } else {
-                ValueRange(Flt64.zero, Flt64.zero, Flt64)
+                ValueRange(Flt64.zero, Flt64.zero)
             }
         }
 
     override fun flush(force: Boolean) {
-        polyY.flush(force)
-        polyY.range.set(possibleRange)
+        if (::polyY.isInitialized) {
+            polyY.flush(force)
+            polyY.range.set(possibleRange)
+        }
+    }
+
+    override suspend fun prepare() {
+        x.cells
+        y.cells
     }
 
     override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
@@ -108,7 +149,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         return Ok(success)
     }
 
-    override fun register(model: Model<LinearMonomialCell, Linear>): Try {
+    override fun register(model: AbstractLinearModel): Try {
         if (x.range.range.intersect(y.range.range).empty) {
             return Failed(
                 Err(
@@ -233,7 +274,16 @@ class UIntegerSlackFunction(
     constraint: Boolean = true,
     name: String,
     displayName: String? = null,
-) : AbstractSlackFunction<UIntVar>(x, y, withNegative, withPositive, threshold, constraint, name, displayName, { UIntVar(it) }) {
+) : AbstractSlackFunction<UIntVar>(
+    x,
+    y,
+    withNegative,
+    withPositive,
+    threshold,
+    constraint,
+    name,
+    displayName,
+    { UIntVar(it) }) {
     override val discrete = true
 }
 
@@ -246,4 +296,13 @@ class URealSlackFunction(
     constraint: Boolean = true,
     name: String,
     displayName: String? = null,
-) : AbstractSlackFunction<URealVar>(x, y, withNegative, withPositive, threshold, constraint, name, displayName, { URealVar(it) })
+) : AbstractSlackFunction<URealVar>(
+    x,
+    y,
+    withNegative,
+    withPositive,
+    threshold,
+    constraint,
+    name,
+    displayName,
+    { URealVar(it) })

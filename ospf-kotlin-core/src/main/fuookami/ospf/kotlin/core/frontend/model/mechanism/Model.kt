@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import kotlin.math.*
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.parallel.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -42,28 +44,43 @@ class LinearModel(
                 }
             }
 
-            val constraints = metaModel.constraints.mapParallelly { LinearConstraint(it, tokens) }
-            val subObjects = metaModel.subObjects.mapParallelly {
-                LinearSubObject(
-                    it.category,
-                    it.polynomial,
-                    tokens,
-                    it.name
-                )
-            }
+            val model = coroutineScope {
+                val constraints = metaModel.constraints.map {
+                    async(Dispatchers.Default) {
+                        LinearConstraint(it, tokens)
+                    }
+                }
+                val subObjects = metaModel.subObjects.map {
+                    async(Dispatchers.Default) {
+                        LinearSubObject(
+                            it.category,
+                            it.polynomial,
+                            tokens,
+                            it.name
+                        )
+                    }
+                }
 
-            return Ok(
                 LinearModel(
                     metaModel,
                     metaModel.name,
-                    constraints.toMutableList(),
-                    SingleObject(metaModel.objectCategory, subObjects),
+                    constraints.map { it.await() }.toMutableList(),
+                    SingleObject(metaModel.objectCategory, subObjects.map { it.await() }),
                     tokens
                 )
-            )
+            }
+
+
+            for (symbol in tokens.symbols) {
+                if (symbol is LinearFunctionSymbol) {
+                    symbol.register(model)
+                }
+            }
+
+            return Ok(model)
         }
 
-        private fun unfold(tokens: LinearMutableTokenTable): Ret<LinearTokenTable> {
+        private suspend fun unfold(tokens: LinearMutableTokenTable): Ret<LinearTokenTable> {
             val temp = tokens.copy()
             for (symbol in temp.symbols) {
                 if (symbol is LinearFunctionSymbol) {
@@ -74,24 +91,44 @@ class LinearModel(
                             return Failed(result.error)
                         }
                     }
-                    symbol.cells
-                } else {
-                    symbol.cells
                 }
             }
-            return Ok(LinearTokenTable(temp))
+
+            val completedSymbols = HashSet<Symbol<*, *>>()
+            var dependencies = tokens.symbols.associateWith { it.dependencies.toMutableSet() }.toMap()
+
+            return coroutineScope {
+                var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
+                dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
+                while (readySymbols.isNotEmpty()) {
+                    val thisJobs = readySymbols.map {
+                        launch(Dispatchers.Default) {
+                            it.prepare()
+                            it.cells
+                        }
+                    }
+                    completedSymbols.addAll(readySymbols)
+                    val newReadySymbols = dependencies.filter {
+                        !completedSymbols.contains(it.key) && it.value.all { dependency ->
+                            readySymbols.contains(
+                                dependency
+                            )
+                        }
+                    }.keys.toSet()
+                    dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
+                    for ((_, dependency) in dependencies) {
+                        dependency.removeAll(readySymbols)
+                    }
+                    readySymbols = newReadySymbols
+                    thisJobs.forEach { it.join() }
+                }
+
+                Ok(LinearTokenTable(temp))
+            }
         }
     }
 
     override val constraints by ::_constraints
-
-    init {
-        for (symbol in tokens.symbols) {
-            if (symbol is LinearFunctionSymbol) {
-                symbol.register(this)
-            }
-        }
-    }
 
     override fun addConstraint(constraint: Inequality<LinearMonomialCell, Linear>, name: String) {
         constraint.name = name

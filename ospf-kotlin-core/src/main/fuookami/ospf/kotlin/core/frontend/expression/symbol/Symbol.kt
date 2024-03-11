@@ -9,10 +9,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 interface Symbol<Cell : MonomialCell<Cell, C>, C : Category> : Expression {
+    val dependencies: Set<Symbol<*, *>>
     val cells: List<Cell>
     val cached: Boolean
 
     fun flush(force: Boolean = false)
+    suspend fun prepare()
 
     fun toRawString(unfold: Boolean = false): String
 
@@ -88,11 +90,16 @@ class ExpressionSymbol<Poly : MutablePolynomial<Poly, M, Cell, C>, M : Monomial<
     override val lowerBound by polynomial::lowerBound
     override val upperBound by polynomial::upperBound
 
+    override val dependencies by polynomial::dependencies
     override val cells by polynomial::cells
     override val cached by polynomial::cached
 
     override fun flush(force: Boolean) {
         polynomial.flush(force)
+    }
+
+    override suspend fun prepare() {
+        cells
     }
 
     override fun toString(): String {

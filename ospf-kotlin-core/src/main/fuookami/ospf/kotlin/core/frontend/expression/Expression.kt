@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression
 
+import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 
@@ -7,16 +8,36 @@ open class ExpressionRange<V>(
     private var _range: ValueRange<V>,
     private val constants: RealNumberConstants<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
-    constructor(constants: RealNumberConstants<V>) : this(
-        _range = ValueRange(
-            constants.minimum,
-            constants.maximum,
-            IntervalType.Closed,
-            IntervalType.Closed,
-            constants
-        ),
-        constants = constants
-    )
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ExpressionRange(constants)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            range: ValueRange<T>
+        ): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ExpressionRange(range, constants)
+        }
+
+        operator fun <T> invoke(
+            constants: RealNumberConstants<T>
+        ): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            return ExpressionRange(
+                _range = ValueRange(
+                    constants.minimum,
+                    constants.maximum,
+                    IntervalType.Closed,
+                    IntervalType.Closed,
+                    constants
+                ),
+                constants = constants
+            )
+        }
+    }
 
     val range by ::_range
     val valueRange: ValueRange<Flt64>
@@ -24,8 +45,7 @@ open class ExpressionRange<V>(
             range.lowerBound.toFlt64(),
             range.upperBound.toFlt64(),
             range.lowerInterval,
-            range.upperInterval,
-            Flt64
+            range.upperInterval
         )
 
     val lowerBound: ValueWrapper<V>?
@@ -70,7 +90,7 @@ open class ExpressionRange<V>(
             intersectWith(
                 ValueRange(
                     lowerBound!!,
-                    ValueWrapper(value.value(), constants),
+                    ValueWrapper.Value(value.value(), constants),
                     IntervalType.Closed,
                     IntervalType.Closed,
                     constants
@@ -89,7 +109,7 @@ open class ExpressionRange<V>(
         } else {
             intersectWith(
                 ValueRange(
-                    ValueWrapper(value.value(), constants),
+                    ValueWrapper.Value(value.value(), constants),
                     upperBound!!,
                     IntervalType.Closed,
                     IntervalType.Closed,
@@ -109,8 +129,8 @@ open class ExpressionRange<V>(
         } else {
             intersectWith(
                 ValueRange(
-                    ValueWrapper(value.value(), constants),
-                    ValueWrapper(value.value(), constants),
+                    ValueWrapper.Value(value.value(), constants),
+                    ValueWrapper.Value(value.value(), constants),
                     IntervalType.Closed,
                     IntervalType.Closed,
                     constants
@@ -125,8 +145,8 @@ open class ExpressionRange<V>(
         } else {
             intersectWith(
                 ValueRange(
-                    ValueWrapper(lb.value(), constants),
-                    ValueWrapper(ub.value(), constants),
+                    ValueWrapper.Value(lb.value(), constants),
+                    ValueWrapper.Value(ub.value(), constants),
                     IntervalType.Closed,
                     IntervalType.Closed,
                     constants

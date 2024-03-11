@@ -59,14 +59,36 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     private lateinit var polyY: LinearPolynomial
 
     override val range get() = polyY.range
-    override val lowerBound get() = polyY.lowerBound
-    override val upperBound get() = polyY.upperBound
+    override val lowerBound
+        get() = if (::polyY.isInitialized) {
+            polyY.lowerBound
+        } else {
+            points.minOf { it.y }
+        }
+    override val upperBound
+        get() = if (::polyY.isInitialized) {
+            polyY.upperBound
+        } else {
+            points.maxOf { it.y }
+        }
 
+    override val dependencies: Set<Symbol<*, *>> by x::dependencies
     override val cells get() = polyY.cells
-    override val cached get() = polyY.cached
+    override val cached
+        get() = if (::polyY.isInitialized) {
+            polyY.cached
+        } else {
+            false
+        }
 
     override fun flush(force: Boolean) {
-        polyY.flush(force)
+        if (::polyY.isInitialized) {
+            polyY.flush(force)
+        }
+    }
+
+    override suspend fun prepare() {
+        x.cells
     }
 
     override fun register(tokenTable: LinearMutableTokenTable): Try {
@@ -95,7 +117,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         if (!::polyY.isInitialized) {
             polyY = sum(points.mapIndexed { i, p -> p.y * k[i] })
             polyY.name = "${name}_y"
-            polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }, Flt64))
+            polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }))
         }
 
         return Ok(success)

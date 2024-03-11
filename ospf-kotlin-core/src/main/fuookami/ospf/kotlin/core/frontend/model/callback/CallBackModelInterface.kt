@@ -92,7 +92,7 @@ interface MultiObjectiveModelInterface : AbstractCallBackModelInterface<MulObj, 
 
     override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<Flt64> {
         return (0 until objectiveSize).map {
-            obj.sumOf(Flt64) { (loc, v) ->
+            obj.sumOf { (loc, v) ->
                 if (it == loc.priority.toInt()) {
                     v * loc.weight
                 } else {

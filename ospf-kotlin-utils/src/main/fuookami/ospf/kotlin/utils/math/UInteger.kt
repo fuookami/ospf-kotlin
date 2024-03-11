@@ -36,9 +36,8 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
     }
 }
 
-data object UInt8Serializer : RealNumberKSerializer<UInt8> {
+data object UInt8Serializer : KSerializer<UInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt8", PrimitiveKind.INT)
-    override val constants = UInt8
 
     override fun serialize(encoder: Encoder, value: UInt8) {
         encoder.encodeInt(value.value.toInt())
@@ -123,9 +122,8 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object UInt16Serializer : RealNumberKSerializer<UInt16> {
+data object UInt16Serializer : KSerializer<UInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt16", PrimitiveKind.INT)
-    override val constants = UInt16
 
     override fun serialize(encoder: Encoder, value: UInt16) {
         encoder.encodeInt(value.value.toInt())
@@ -202,9 +200,8 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object UInt32Serializer : RealNumberKSerializer<UInt32> {
+data object UInt32Serializer : KSerializer<UInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt32", PrimitiveKind.INT)
-    override val constants = UInt32
 
     override fun serialize(encoder: Encoder, value: UInt32) {
         encoder.encodeInt(value.value.toInt())
@@ -281,9 +278,8 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object UInt64Serializer : RealNumberKSerializer<UInt64> {
+data object UInt64Serializer : KSerializer<UInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt64", PrimitiveKind.LONG)
-    override val constants = UInt64
 
     override fun serialize(encoder: Encoder, value: UInt64) {
         encoder.encodeLong(value.value.toLong())
@@ -365,9 +361,8 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     override fun toFltX() = FltX(value.toString())
 }
 
-data object UIntXSerializer : RealNumberKSerializer<UIntX> {
+data object UIntXSerializer : KSerializer<UIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UIntX", PrimitiveKind.STRING)
-    override val constants = UIntX
 
     override fun serialize(encoder: Encoder, value: UIntX) {
         encoder.encodeString(value.value.toString())

@@ -141,8 +141,8 @@ class CallBackModel internal constructor(
         }
     }
 
-    override val constraints by this::_constraints
-    override val objectiveFunctions by this::_objectiveFunctions
+    override val constraints by ::_constraints
+    override val objectiveFunctions by ::_objectiveFunctions
 
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> {
         return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokenIndexMap.size))

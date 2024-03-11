@@ -76,14 +76,43 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     private lateinit var polyZ: LinearPolynomial
 
     override val range get() = polyZ.range
-    override val lowerBound get() = polyZ.lowerBound
-    override val upperBound get() = polyZ.upperBound
+    override val lowerBound
+        get() = if (::polyZ.isInitialized) {
+            polyZ.lowerBound
+        } else {
+            triangles.minOf { minOf(it.p1.z, it.p2.z, it.p3.z) }
+        }
+    override val upperBound
+        get() = if (::polyZ.isInitialized) {
+            polyZ.upperBound
+        } else {
+            triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            dependencies.addAll(x.dependencies)
+            dependencies.addAll(y.dependencies)
+            return dependencies
+        }
     override val cells get() = polyZ.cells
-    override val cached get() = polyZ.cached
+    override val cached
+        get() = if (::polyZ.isInitialized) {
+            polyZ.cached
+        } else {
+            false
+        }
 
     override fun flush(force: Boolean) {
-        polyZ.flush(force)
+        if (::polyZ.isInitialized) {
+            polyZ.flush(force)
+        }
+    }
+
+    override suspend fun prepare() {
+        x.cells
+        y.cells
     }
 
     override fun register(tokenTable: LinearMutableTokenTable): Try {
@@ -126,8 +155,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             polyZ.range.set(
                 ValueRange(
                     triangles.minOf { minOf(it.p1.z, it.p2.z, it.p3.z) },
-                    triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) },
-                    Flt64
+                    triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
                 )
             )
         }

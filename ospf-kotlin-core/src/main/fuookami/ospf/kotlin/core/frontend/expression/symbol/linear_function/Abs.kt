@@ -24,23 +24,45 @@ class AbsFunction(
     private lateinit var y: MutableLinearPolynomial
 
     override val range get() = y.range
-    override val lowerBound get() = y.lowerBound
-    override val upperBound get() = y.upperBound
+    override val lowerBound
+        get() = if (::y.isInitialized) {
+            y.lowerBound
+        } else {
+            Flt64.zero
+        }
+    override val upperBound
+        get() = if (::y.isInitialized) {
+            y.upperBound
+        } else {
+            possibleUpperBound
+        }
 
+    override val dependencies by x::dependencies
     override val cells get() = y.cells
-    override val cached get() = y.cached
+    override val cached
+        get() = if (::y.isInitialized) {
+            y.cached
+        } else {
+            false
+        }
 
     private val possibleUpperBound get() = max(abs(x.lowerBound), abs(x.upperBound))
     private var m = possibleUpperBound
 
     override fun flush(force: Boolean) {
-        y.flush(force)
-        val newM = possibleUpperBound
-        if (m neq newM) {
-            y.range.set(ValueRange(-m, m, Flt64))
-            y.asMutable() *= m / newM
-            m = newM
+        if (::y.isInitialized) {
+            y.flush(force)
+            val newM = possibleUpperBound
+            if (m neq newM) {
+                y.range.set(ValueRange(-m, m))
+                y.asMutable() *= m / newM
+                m = newM
+            }
         }
+    }
+
+    override suspend fun prepare() {
+        x.cells
     }
 
     override fun register(tokenTable: LinearMutableTokenTable): Try {
@@ -82,7 +104,7 @@ class AbsFunction(
         if (!::y.isInitialized) {
             y = (m * pos + m * neg).toMutable()
             y.name = "${name}_abs_y"
-            y.range.set(ValueRange(Flt64.zero, m, Flt64))
+            y.range.set(ValueRange(Flt64.zero, m))
         }
 
         return Ok(success)

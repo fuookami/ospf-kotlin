@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -20,11 +21,34 @@ class OrFunction(
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound get() = polyY.lowerBound
-    override val upperBound get() = polyY.upperBound
+    override val lowerBound
+        get() = if (::polyY.isInitialized) {
+            polyY.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::polyY.isInitialized) {
+            polyY.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            for (polynomial in polynomials) {
+                dependencies.addAll(polynomial.dependencies)
+            }
+            return dependencies
+        }
     override val cells get() = polyY.cells
-    override val cached get() = polyY.cached
+    override val cached
+        get() = if (::polyY.isInitialized) {
+            polyY.cached
+        } else {
+            false
+        }
 
     private val possibleRange
         get() = ValueRange(
@@ -37,13 +61,20 @@ class OrFunction(
                 Flt64.zero
             } else {
                 Flt64.one
-            },
-            Flt64
+            }
         )
 
     override fun flush(force: Boolean) {
-        polyY.flush(force)
-        polyY.range.set(possibleRange)
+        if (::polyY.isInitialized) {
+            polyY.flush(force)
+            polyY.range.set(possibleRange)
+        }
+    }
+
+    override suspend fun prepare() {
+        for (polynomial in polynomials) {
+            polynomial.cells
+        }
     }
 
     override fun register(tokenTable: LinearMutableTokenTable): Try {
@@ -60,7 +91,7 @@ class OrFunction(
 
         if (!::polyY.isInitialized) {
             polyY = LinearPolynomial(y, y.name)
-            polyY.range.set(ValueRange(Flt64.zero, Flt64.one, Flt64))
+            polyY.range.set(ValueRange(Flt64.zero, Flt64.one))
         }
 
         return Ok(success)

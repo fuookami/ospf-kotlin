@@ -120,7 +120,10 @@ data class ConnectionResourceTimeSlot<R : ConnectionResource<C>, C : ResourceCap
     override val time: TimeRange,
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C>, AutoIndexed(ConnectionResourceTimeSlot::class) {
-    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(prevTask: AbstractTask<E, A>?, task: AbstractTask<E, A>?): Flt64 {
+    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
+        prevTask: AbstractTask<E, A>?,
+        task: AbstractTask<E, A>?
+    ): Flt64 {
         return resource.usedBy(prevTask, task, time)
     }
 

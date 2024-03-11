@@ -15,7 +15,7 @@ data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : ResourceCapacity>
 
 class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>, S : ResourceTimeSlot<R, C>, R : StorageResource<C>, C : ResourceCapacity>(
     private val usage: ResourceUsage<S, R, C>,
-    override val name: String = "resource_capacity"
+    override val name: String = "${usage.name}_resource_capacity"
 ) : GanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         for (slot in usage.timeSlots) {
@@ -24,14 +24,14 @@ class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A
                     is AbstractSlackFunction<*> -> {
                         model.addConstraint(
                             overQuantity.polyX leq slot.resourceCapacity.quantity.upperBound.toFlt64(),
-                            "${usage.name}_${name}_ub_$slot"
+                            "${name}_ub_$slot"
                         )
                     }
 
                     else -> {
                         model.addConstraint(
                             usage.quantity[slot] leq slot.resourceCapacity.quantity.upperBound.toFlt64(),
-                            "${usage.name}_${name}_ub_$slot"
+                            "${name}_ub_$slot"
                         )
                     }
                 }
@@ -47,21 +47,21 @@ class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A
                     is AbstractSlackFunction<*> -> {
                         model.addConstraint(
                             lessQuantity.polyX geq slot.resourceCapacity.quantity.lowerBound.toFlt64(),
-                            "${usage.name}_${name}_ub_$slot"
+                            "${name}_lb_$slot"
                         )
                     }
 
                     else -> {
                         model.addConstraint(
                             usage.quantity[slot] geq slot.resourceCapacity.quantity.lowerBound.toFlt64(),
-                            "${usage.name}_${name}_ub_$slot"
+                            "${name}_lb_$slot"
                         )
                     }
                 }
             } else {
                 model.addConstraint(
                     usage.quantity[slot] geq slot.resourceCapacity.quantity.lowerBound.toFlt64(),
-                    "${usage.name}_${name}_lb_$slot"
+                    "${name}_lb_$slot"
                 )
             }
         }
@@ -73,7 +73,7 @@ class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A
         return { map, args ->
             args.thisTask?.let { task ->
                 val slots = usage.timeSlots.filter { it.relatedTo(args.prevTask, task) }
-                slots.sumOf(Flt64) { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
             } ?: Flt64.zero
         }
     }
@@ -89,12 +89,12 @@ class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A
         val iteratorLb = usage.timeSlots.iterator()
         val iteratorUb = usage.timeSlots.iterator()
         for (j in indices) {
-            if (model.constraints[j].name.startsWith("${usage.name}_${name}_lb")) {
+            if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val slot = iteratorLb.next()
                 thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + shadowPrices[j]
             }
 
-            if (model.constraints[j].name.startsWith("${usage.name}_${name}_ub")) {
+            if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val slot = iteratorUb.next()
                 thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + shadowPrices[j]
             }

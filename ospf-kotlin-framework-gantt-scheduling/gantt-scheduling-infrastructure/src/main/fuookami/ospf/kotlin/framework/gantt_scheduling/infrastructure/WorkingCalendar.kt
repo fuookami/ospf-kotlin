@@ -79,28 +79,6 @@ sealed class ProductivityCalendar<Q, P, T>(
         operator fun <P, T> invoke(
             timeWindow: TimeWindow,
             productivity: List<P>,
-            constants: UInt64.Companion
-        ): DiscreteProductivityCalendar<P, T> where P : Productivity<T> {
-            return DiscreteProductivityCalendar(
-                timeWindow = timeWindow,
-                productivity = productivity
-            )
-        }
-
-        operator fun <P, T> invoke(
-            timeWindow: TimeWindow,
-            productivity: List<P>,
-            constants: Flt64.Companion
-        ): ContinuousProductivityCalendar<P, T> where P : Productivity<T> {
-            return ContinuousProductivityCalendar(
-                timeWindow = timeWindow,
-                productivity = productivity
-            )
-        }
-
-        operator fun <P, T> invoke(
-            timeWindow: TimeWindow,
-            productivity: List<P>,
             continuous: Boolean
         ): ProductivityCalendar<*, P, T> where P : Productivity<T> {
             return if (continuous) {
