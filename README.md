@@ -15,7 +15,7 @@ documentation: https://fuookami.github.io/ospf/
 :us: English | :cn: [简体中文](README_ch.md)
 
 ## Installation
-ospf-kotlin has been released to the Maven Central Repository. Therefore, if you are using Maven, you only need to add a dependency in the pom.xml file:
+ospf-kotlin has been released to the maven central repository. Therefore, if you are using maven, you only need to add a dependency in the pom.xml file:
 
 ```xml
 <dependency>
@@ -48,4 +48,5 @@ If you need to use the gantt scheduling development package, add the dependency 
 ## License
 
 The ospf-kotlin is licensed under the terms of the Apache License 2.0.
+
 See [LICENSE](LICENSE) for more information.
