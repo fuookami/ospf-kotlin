@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed class AbstractSemiFunction<V : Variable<*>>(
-    private val polynomial: AbstractLinearPolynomial<*>,
+    private val x: AbstractLinearPolynomial<*>,
     private val flag: AbstractLinearPolynomial<*>?,
     override var name: String,
     override var displayName: String? = null,
@@ -22,22 +22,50 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     private lateinit var polyY: LinearPolynomial
 
     override val range get() = polyY.range
-    override val lowerBound get() = polyY.lowerBound
-    override val upperBound get() = polyY.upperBound
+    override val lowerBound
+        get() = if (::polyY.isInitialized) {
+            polyY.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::polyY.isInitialized) {
+            polyY.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            dependencies.addAll(x.dependencies)
+            flag?.let { dependencies.addAll(it.dependencies) }
+            return dependencies
+        }
     override val cells get() = polyY.cells
-    override val cached get() = polyY.cached
+    override val cached
+        get() = if (::polyY.isInitialized) {
+            polyY.cached
+        } else {
+            false
+        }
 
     private val possibleRange
         get() = ValueRange(
-            (flag?.lowerBound ?: u.lowerBound) * polynomial.lowerBound,
-            (flag?.upperBound ?: u.upperBound) * polynomial.upperBound,
-            Flt64
+            (flag?.lowerBound ?: u.lowerBound) * x.lowerBound,
+            (flag?.upperBound ?: u.upperBound) * x.upperBound
         )
 
     override fun flush(force: Boolean) {
-        polyY.flush(force)
-        polyY.range.set(possibleRange)
+        if (::polyY.isInitialized) {
+            polyY.flush(force)
+            polyY.range.set(possibleRange)
+        }
+    }
+
+    override suspend fun prepare() {
+        x.cells
+        flag?.cells
     }
 
     override fun register(tokenTable: LinearMutableTokenTable): Try {
@@ -75,8 +103,8 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     override fun register(model: AbstractLinearModel): Try {
-        if (polynomial.lowerBound ls Flt64.zero) {
-            return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
+        if (x.lowerBound ls Flt64.zero) {
+            return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $x"))
         }
 
         if (flag != null) {
@@ -86,34 +114,34 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         }
 
         model.addConstraint(
-            y leq polynomial,
+            y leq x,
             "${name}_x"
         )
 
         if (flag != null) {
             model.addConstraint(
-                y geq (polynomial - polynomial.upperBound * (Flt64.one - flag)),
+                y geq (x - x.upperBound * (Flt64.one - flag)),
                 "${name}_xu"
             )
             model.addConstraint(
-                y geq (polynomial.lowerBound * flag),
+                y geq (x.lowerBound * flag),
                 "${name}_lb"
             )
             model.addConstraint(
-                y leq (polynomial.upperBound * flag),
+                y leq (x.upperBound * flag),
                 "${name}_ub"
             )
         } else {
             model.addConstraint(
-                y geq (polynomial - polynomial.upperBound * (Flt64.one - u)),
+                y geq (x - x.upperBound * (Flt64.one - u)),
                 "${name}_xu"
             )
             model.addConstraint(
-                y geq (polynomial.lowerBound * u),
+                y geq (x.lowerBound * u),
                 "${name}_lb"
             )
             model.addConstraint(
-                y leq (polynomial.upperBound * u),
+                y leq (x.upperBound * u),
                 "${name}_ub"
             )
         }
@@ -126,14 +154,14 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     override fun toRawString(unfold: Boolean): String {
-        return "semi(${polynomial.toRawString(unfold)}})"
+        return "semi(${x.toRawString(unfold)}})"
     }
 
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return if (flag != null) {
             val flagValue = flag.value(tokenList, zeroIfNone) ?: return null
             if (flagValue neq Flt64.zero) {
-                polynomial.value(tokenList, zeroIfNone)
+                x.value(tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -145,7 +173,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return null
                 }
             if (flagValue neq Flt64.zero) {
-                polynomial.value(tokenList, zeroIfNone)
+                x.value(tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -156,7 +184,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         return if (flag != null) {
             val flagValue = flag.value(results, tokenList, zeroIfNone) ?: return null
             if (flagValue neq Flt64.zero) {
-                polynomial.value(results, tokenList, zeroIfNone)
+                x.value(results, tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -168,7 +196,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return null
                 }
             if (flagValue neq Flt64.zero) {
-                polynomial.value(results, tokenList, zeroIfNone)
+                x.value(results, tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }

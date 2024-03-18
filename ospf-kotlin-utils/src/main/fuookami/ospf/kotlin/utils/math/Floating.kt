@@ -82,9 +82,8 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override fun toURtnX() = floatingToRational(value(), { UIntX(it) }, { UIntX(it) }, URtnX::invoke)
 }
 
-data object Flt32Serializer : RealNumberKSerializer<Flt32> {
+data object Flt32Serializer : KSerializer<Flt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt32", PrimitiveKind.DOUBLE)
-    override val constants = Flt32
 
     override fun serialize(encoder: Encoder, value: Flt32) {
         encoder.encodeDouble(value.value.toDouble())
@@ -174,9 +173,8 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
     override fun toFltX() = FltX(value.toDouble())
 }
 
-data object Flt64Serializer : RealNumberKSerializer<Flt64> {
+data object Flt64Serializer : KSerializer<Flt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt64", PrimitiveKind.DOUBLE)
-    override val constants = Flt64
 
     override fun serialize(encoder: Encoder, value: Flt64) {
         encoder.encodeDouble(value.value)
@@ -273,9 +271,8 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
     fun round() = Flt64(round(value))
 }
 
-data object FltXSerializer : RealNumberKSerializer<FltX> {
+data object FltXSerializer : KSerializer<FltX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FltX", PrimitiveKind.STRING)
-    override val constants = FltX
 
     override fun serialize(encoder: Encoder, value: FltX) {
         encoder.encodeString(value.value.toString())

@@ -64,7 +64,7 @@ data class KafkaClient(
 
     protected fun finalize() {
         producer.close()
-        if (this::topicConsumer.isInitialized) {
+        if (::topicConsumer.isInitialized) {
             topicConsumer.close()
         }
         for (consumer in patternConsumers) {
@@ -120,7 +120,7 @@ data class KafkaClient(
         process: (String, KafkaMessageRecord) -> Unit,
         groupId: String? = null
     ) {
-        if (this::topicConsumer.isInitialized) {
+        if (::topicConsumer.isInitialized) {
             for (topic in topics) {
                 this.topicProcessor[topic] = process
             }

@@ -18,8 +18,7 @@ data class Token(
             lowerBound.toFlt64(),
             upperBound.toFlt64(),
             variable.range.lowerInterval,
-            variable.range.upperInterval,
-            Flt64
+            variable.range.upperInterval
         )
     val lowerBound by variable::lowerBound
     val upperBound by variable::upperBound

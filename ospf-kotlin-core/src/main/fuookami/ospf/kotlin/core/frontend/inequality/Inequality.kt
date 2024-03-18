@@ -24,7 +24,7 @@ open class Inequality<Cell : MonomialCell<Cell, C>, C : Category>(
                 val notConstantCells =
                     lhs.cells.filter { !it.isConstant } + rhs.cells.filter { !it.isConstant }.map { -it }
                 val constant =
-                    lhs.cells.mapNotNull { it.constant }.sum(Flt64) + rhs.cells.mapNotNull { it.constant }.sum(Flt64)
+                    lhs.cells.mapNotNull { it.constant }.sum() + rhs.cells.mapNotNull { it.constant }.sum()
                 _cells = notConstantCells + listOf(MonomialCell.invoke(constant, lhs.category))
             }
             return _cells

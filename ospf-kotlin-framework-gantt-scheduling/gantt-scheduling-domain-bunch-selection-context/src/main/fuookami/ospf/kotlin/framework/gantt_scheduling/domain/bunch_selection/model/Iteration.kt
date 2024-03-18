@@ -5,6 +5,7 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
@@ -49,7 +50,7 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
                 bestReducedCost[bunch.executor]?.let { min(thisReducedCost, it) } ?: thisReducedCost
         }
 
-        val currentDualObj = prevLpObj + bestReducedCost.values.sum(Flt64)
+        val currentDualObj = prevLpObj + bestReducedCost.values.sum()
         if (bestDualObj ls currentDualObj && currentDualObj ls bestObj) {
             logger.debug { "best dual obj: $bestDualObj -> $currentDualObj" }
             bestDualObj = currentDualObj

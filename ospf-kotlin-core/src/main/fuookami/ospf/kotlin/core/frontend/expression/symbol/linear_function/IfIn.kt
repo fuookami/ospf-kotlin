@@ -35,21 +35,56 @@ class IfInFunction(
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound get() = polyY.lowerBound
-    override val upperBound get() = polyY.upperBound
+    override val lowerBound
+        get() = if (::polyY.isInitialized) {
+            polyY.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::polyY.isInitialized) {
+            polyY.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            dependencies.addAll(x.dependencies)
+            for (inequality in inequalities) {
+                dependencies.addAll(inequality.lhs.dependencies)
+                dependencies.addAll(inequality.rhs.dependencies)
+            }
+            return dependencies
+        }
     override val cells get() = polyY.cells
-    override val cached get() = polyY.cached
+    override val cached
+        get() = if (::polyY.isInitialized) {
+            polyY.cached
+        } else {
+            false
+        }
 
     private val possibleRange: ValueRange<Flt64>
         get() {
             // todo: impl by Inequality.judge()
-            return ValueRange(Flt64.zero, Flt64.one, Flt64)
+            return ValueRange(Flt64.zero, Flt64.one)
         }
 
     override fun flush(force: Boolean) {
-        polyY.flush(force)
-        polyY.range.set(possibleRange)
+        if (::polyY.isInitialized) {
+            polyY.flush(force)
+            polyY.range.set(possibleRange)
+        }
+    }
+
+    override suspend fun prepare() {
+        x.cells
+        for (inequality in inequalities) {
+            inequality.lhs.cells
+            inequality.rhs.cells
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
@@ -72,7 +107,7 @@ class IfInFunction(
         return Ok(success)
     }
 
-    override fun register(model: Model<LinearMonomialCell, Linear>): Try {
+    override fun register(model: AbstractLinearModel): Try {
         for (inequality in inequalities) {
             when (val result = inequality.register(name, y, model)) {
                 is Ok -> {}

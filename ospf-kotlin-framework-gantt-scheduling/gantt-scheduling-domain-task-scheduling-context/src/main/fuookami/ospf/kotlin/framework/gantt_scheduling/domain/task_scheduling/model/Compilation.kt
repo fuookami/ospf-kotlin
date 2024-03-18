@@ -83,7 +83,7 @@ class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy
             )
             for (task in tasks) {
                 for (executor in executors) {
-                    taskAssignment[task, executor].range.set(ValueRange(Flt64.zero, Flt64.one, Flt64))
+                    taskAssignment[task, executor].range.set(ValueRange(Flt64.zero, Flt64.one))
                 }
             }
         }
@@ -119,7 +119,7 @@ class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy
                 { (_, t) -> "$t" }
             )
             for (task in tasks) {
-                taskCompilation[task].range.set(ValueRange(Flt64.one, Flt64.one, Flt64))
+                taskCompilation[task].range.set(ValueRange(Flt64.one, Flt64.one))
             }
         }
         model.addSymbols(taskCompilation)

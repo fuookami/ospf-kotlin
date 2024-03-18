@@ -123,8 +123,7 @@ class BunchSchedulingProduce<T : ProductionTask<E, A>, E : Executor, A : Assignm
                         quantity[product].range.set(
                             ValueRange(
                                 demand.quantity.lowerBound.toFlt64() - (demand.lessQuantity ?: Flt64.zero),
-                                demand.quantity.upperBound.toFlt64() + (demand.overQuantity ?: Flt64.zero),
-                                Flt64
+                                demand.quantity.upperBound.toFlt64() + (demand.overQuantity ?: Flt64.zero)
                             )
                         )
                     }

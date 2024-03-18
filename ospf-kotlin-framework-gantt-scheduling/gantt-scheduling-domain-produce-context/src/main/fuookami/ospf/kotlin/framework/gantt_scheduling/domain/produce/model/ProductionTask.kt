@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 interface Product : Indexed
@@ -41,7 +42,7 @@ fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTask
                 null
             }
         }
-    }.sumOf(Flt64) { it }
+    }.sumOf { it }
 }
 
 fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTaskBunch<T, E, A>.consumption(material: Material): Flt64 {
@@ -55,5 +56,5 @@ fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTask
                 null
             }
         }
-    }.sumOf(Flt64) { it }
+    }.sumOf { it }
 }

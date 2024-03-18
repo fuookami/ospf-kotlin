@@ -685,7 +685,7 @@ class TaskSchedulingTaskTime<T : AbstractTask<E, A>, E : Executor, A : Assignmen
                                     withPositive = delayEnabled && task.delayEnabled,
                                     name = "est_slack_$task"
                                 )
-                                slack.range.set(ValueRange(-y, timeWindow.valueOf(timeWindow.end) - y, Flt64))
+                                slack.range.set(ValueRange(-y, timeWindow.valueOf(timeWindow.end) - y))
                                 slack
                             }
                         }

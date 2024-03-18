@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -20,28 +21,58 @@ sealed class AbstractMinFunction(
     private lateinit var y: AbstractLinearPolynomial<*>
 
     override val range get() = y.range
-    override val lowerBound get() = y.lowerBound
-    override val upperBound get() = y.upperBound
+    override val lowerBound
+        get() = if (::y.isInitialized) {
+            y.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::y.isInitialized) {
+            y.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            for (polynomial in polynomials) {
+                dependencies.addAll(polynomial.dependencies)
+            }
+            return dependencies
+        }
     override val cells get() = y.cells
-    override val cached get() = y.cached
+    override val cached
+        get() = if (::y.isInitialized) {
+            y.cached
+        } else {
+            false
+        }
 
     private val possibleRange
         get() = ValueRange(
             polynomials.minOf { it.lowerBound },
-            polynomials.maxOf { it.upperBound },
-            Flt64
+            polynomials.maxOf { it.upperBound }
         )
     private var m = possibleRange
 
     override val discrete by lazy { polynomials.all { it.discrete } }
 
     override fun flush(force: Boolean) {
-        y.flush(force)
-        val newM = possibleRange
-        if (m neq newM) {
-            maxmin.range.set(m)
-            m = newM
+        if (::y.isInitialized) {
+            y.flush(force)
+            val newM = possibleRange
+            if (m neq newM) {
+                maxmin.range.set(m)
+                m = newM
+            }
+        }
+    }
+
+    override suspend fun prepare() {
+        for (polynomial in polynomials) {
+            polynomial.cells
         }
     }
 

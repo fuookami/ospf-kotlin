@@ -39,7 +39,7 @@ private class GurobiLinearSolverImpl(
     }
 
     operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
-        assert(!this::env.isInitialized)
+        assert(!::env.isInitialized)
 
         val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
             config.extraConfig as GurobiSolverConfig
@@ -263,7 +263,8 @@ private class GurobiLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
+                when (val result =
+                    callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

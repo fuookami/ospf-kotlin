@@ -58,8 +58,8 @@ fun Rectangle2.contains(
     } else {
         IntervalType.Open
     }
-    val xRange = ValueRange(minX, maxX, lowerInterval, upperInterval, Flt64)
-    val yRange = ValueRange(minY, maxY, lowerInterval, upperInterval, Flt64)
+    val xRange = ValueRange(minX, maxX, lowerInterval, upperInterval)
+    val yRange = ValueRange(minY, maxY, lowerInterval, upperInterval)
     return xRange.contains(point.x) && yRange.contains(point.y)
 }
 

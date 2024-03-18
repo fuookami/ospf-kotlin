@@ -477,8 +477,7 @@ data class LinearMonomial(
                         symbol.lowerBound,
                         symbol.upperBound,
                         symbol.range.lowerInterval,
-                        symbol.range.upperInterval,
-                        Flt64
+                        symbol.range.upperInterval
                     ),
                     Flt64
                 )

@@ -61,7 +61,7 @@ interface Shape {
                 }
 
                 is IntRange -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last), UInt64)))
+                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last))))
                 }
 
                 is IntegerRange<*> -> {
@@ -69,23 +69,22 @@ interface Shape {
                         DummyIndex(
                             ValueRange(
                                 (index.first as RealNumber<*>).toUInt64(),
-                                (index.last as RealNumber<*>).toUInt64() - UInt64.one,
-                                UInt64
+                                (index.last as RealNumber<*>).toUInt64() - UInt64.one
                             )
                         )
                     )
                 }
 
                 is Int -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index), UInt64(index), UInt64)))
+                    vector.add(DummyIndex(ValueRange(UInt64(index), UInt64(index))))
                 }
 
                 is Indexed -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index.index), UInt64(index.index), UInt64)))
+                    vector.add(DummyIndex(ValueRange(UInt64(index.index), UInt64(index.index))))
                 }
 
                 is Integer<*> -> {
-                    vector.add(DummyIndex(ValueRange(index.toUInt64(), index.toUInt64() + UInt64.one, UInt64)))
+                    vector.add(DummyIndex(ValueRange(index.toUInt64(), index.toUInt64() + UInt64.one)))
                 }
 
                 else -> {

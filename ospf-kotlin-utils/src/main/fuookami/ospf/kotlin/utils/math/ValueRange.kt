@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils.math
 
 import java.util.*
+import kotlin.reflect.full.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -47,21 +48,30 @@ private typealias GlobalInfinity = Infinity
 private typealias GlobalNegativeInfinity = NegativeInfinity
 
 class ValueWrapperSerializer<T>(
-    private val dataSerializer: RealNumberKSerializer<T>
+    private val valueSerializer: KSerializer<T>,
+    internal val constants: RealNumberConstants<T>
 ) : KSerializer<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        @OptIn(InternalSerializationApi::class)
+        inline operator fun <reified T> invoke(): ValueWrapperSerializer<T> where T : RealNumber<T>, T : NumberField<T> {
+            val serializer = T::class.serializer()
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ValueWrapperSerializer(serializer, constants)
+        }
+    }
+
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor = buildSerialDescriptor("ValueWrapper<T>", PolymorphicKind.SEALED) {
-        element("Value", dataSerializer.descriptor)
+        element("Value", valueSerializer.descriptor)
         element("Infinity", PrimitiveSerialDescriptor("Infinity", PrimitiveKind.DOUBLE))
         element("NegativeInfinity", PrimitiveSerialDescriptor("NegativeInfinity", PrimitiveKind.DOUBLE))
     }
 
-    val constants = dataSerializer.constants
-
     override fun serialize(encoder: Encoder, value: ValueWrapper<T>) {
         require(encoder is JsonEncoder)
         val element = when (value) {
-            is ValueWrapper.Value -> encoder.json.encodeToJsonElement(dataSerializer, value.value)
+            is ValueWrapper.Value -> encoder.json.encodeToJsonElement(valueSerializer, value.value)
             is ValueWrapper.Infinity -> encoder.json.encodeToJsonElement(Double.POSITIVE_INFINITY)
             is ValueWrapper.NegativeInfinity -> encoder.json.encodeToJsonElement(Double.NEGATIVE_INFINITY)
         }
@@ -73,33 +83,33 @@ class ValueWrapperSerializer<T>(
         val element = decoder.decodeJsonElement()
         return when (element.jsonPrimitive.doubleOrNull) {
             Double.POSITIVE_INFINITY -> {
-                ValueWrapper(Infinity, dataSerializer.constants)
+                ValueWrapper.Infinity(constants)
             }
 
             Double.NEGATIVE_INFINITY -> {
-                ValueWrapper(NegativeInfinity, dataSerializer.constants)
+                ValueWrapper.NegativeInfinity(constants)
             }
 
             else -> {
-                ValueWrapper(decoder.json.decodeFromJsonElement(dataSerializer, element), dataSerializer.constants)
+                ValueWrapper.Value(decoder.json.decodeFromJsonElement(valueSerializer, element), constants)
             }
         }
     }
 }
 
-@Serializable(with = ValueWrapperSerializer::class)
 sealed class ValueWrapper<T>(
-    internal val constants: RealNumberConstants<T>
+    val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueWrapper<T>>, Ord<ValueWrapper<T>>, Eq<ValueWrapper<T>>,
     Plus<ValueWrapper<T>, ValueWrapper<T>>, Minus<ValueWrapper<T>, ValueWrapper<T>>,
     Times<ValueWrapper<T>, ValueWrapper<T>>, Div<ValueWrapper<T>, ValueWrapper<T>>
         where T : RealNumber<T>, T : NumberField<T> {
     companion object {
         @Throws(IllegalArgumentException::class)
-        operator fun <T> invoke(
-            value: T,
-            constants: RealNumberConstants<T>
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            value: T
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
             return when (value) {
                 constants.infinity -> Infinity(constants)
                 constants.negativeInfinity -> NegativeInfinity(constants)
@@ -108,15 +118,21 @@ sealed class ValueWrapper<T>(
             }
         }
 
-        operator fun <T> invoke(
-            _inf: GlobalInfinity,
-            constants: RealNumberConstants<T>
-        ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> = Infinity(constants)
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            _inf: GlobalInfinity
+        ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return Infinity(constants)
+        }
 
-        operator fun <T> invoke(
-            _negInf: GlobalNegativeInfinity,
-            constants: RealNumberConstants<T>
-        ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> = NegativeInfinity(constants)
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            _negInf: GlobalNegativeInfinity
+        ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return NegativeInfinity(constants)
+        }
     }
 
     val isInfinity get() = this is Infinity
@@ -172,57 +188,57 @@ sealed class ValueWrapper<T>(
             is NegativeInfinity -> orderOf(1)
         }
 
-        override fun plus(rhs: T): ValueWrapper<T> = ValueWrapper(value + rhs, constants)
+        override fun plus(rhs: T): ValueWrapper<T> = Value(value + rhs, constants)
         override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(value + rhs.value, constants)
-            is Infinity -> ValueWrapper(Infinity, constants)
-            is NegativeInfinity -> ValueWrapper(NegativeInfinity, constants)
+            is Value -> Value(value + rhs.value, constants)
+            is Infinity -> Infinity(constants)
+            is NegativeInfinity -> NegativeInfinity(constants)
         }
 
-        override fun minus(rhs: T): ValueWrapper<T> = ValueWrapper(value - rhs, constants)
+        override fun minus(rhs: T): ValueWrapper<T> = Value(value - rhs, constants)
         override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(value - rhs.value, constants)
-            is Infinity -> ValueWrapper(NegativeInfinity, constants)
-            is NegativeInfinity -> ValueWrapper(Infinity, constants)
+            is Value -> Value(value - rhs.value, constants)
+            is Infinity -> NegativeInfinity(constants)
+            is NegativeInfinity -> Infinity(constants)
         }
 
-        override fun times(rhs: T): ValueWrapper<T> = ValueWrapper(value * rhs, constants)
+        override fun times(rhs: T): ValueWrapper<T> = Value(value * rhs, constants)
         override fun times(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(value * rhs.value, constants)
+            is Value -> Value(value * rhs.value, constants)
             is Infinity -> if (value < constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else if (value > constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else {
-                ValueWrapper(constants.zero, constants)
+                Value(constants.zero, constants)
             }
 
             is NegativeInfinity -> if (value < constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else if (value > constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else {
-                ValueWrapper(constants.zero, constants)
+                Value(constants.zero, constants)
             }
         }
 
-        override fun div(rhs: T): ValueWrapper<T> = ValueWrapper(value / rhs, constants)
+        override fun div(rhs: T): ValueWrapper<T> = Value(value / rhs, constants)
         override fun div(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(value / rhs.value, constants)
+            is Value -> Value(value / rhs.value, constants)
             is Infinity -> if (value < constants.zero) {
-                ValueWrapper(-constants.epsilon, constants)
+                Value(-constants.epsilon, constants)
             } else if (value > constants.zero) {
-                ValueWrapper(constants.epsilon, constants)
+                Value(constants.epsilon, constants)
             } else {
-                ValueWrapper(constants.zero, constants)
+                Value(constants.zero, constants)
             }
 
             is NegativeInfinity -> if (value < constants.zero) {
-                ValueWrapper(constants.epsilon, constants)
+                Value(constants.epsilon, constants)
             } else if (value > constants.zero) {
-                ValueWrapper(-constants.epsilon, constants)
+                Value(-constants.epsilon, constants)
             } else {
-                ValueWrapper(constants.zero, constants)
+                Value(constants.zero, constants)
             }
         }
 
@@ -245,13 +261,13 @@ sealed class ValueWrapper<T>(
         override fun plus(rhs: T): ValueWrapper<T> = when (rhs) {
             rhs.constants.nan -> throw IllegalArgumentException("Invalid plus between inf and nan!!!")
             rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid plus between inf and -inf!!!")
-            else -> ValueWrapper(Infinity, constants)
+            else -> Infinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
         override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(Infinity, constants)
-            is Infinity -> ValueWrapper(Infinity, constants)
+            is Value -> Infinity(constants)
+            is Infinity -> Infinity(constants)
             is NegativeInfinity -> throw IllegalArgumentException("Invalid plus between inf and -inf!!!")
         }
 
@@ -259,41 +275,41 @@ sealed class ValueWrapper<T>(
         override fun minus(rhs: T): ValueWrapper<T> = when (rhs) {
             rhs.constants.nan -> throw IllegalArgumentException("Invalid minus between inf and nan!!!")
             rhs.constants.infinity -> throw IllegalArgumentException("Invalid minus between inf and inf!!!")
-            else -> ValueWrapper(Infinity, constants)
+            else -> Infinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
         override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(Infinity, constants)
+            is Value -> Infinity(constants)
             is Infinity -> throw IllegalArgumentException("Invalid minus between inf and inf!!!")
-            is NegativeInfinity -> ValueWrapper(Infinity, constants)
+            is NegativeInfinity -> Infinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
         override fun times(rhs: T): ValueWrapper<T> = when (rhs) {
             rhs.constants.nan -> throw IllegalArgumentException("Invalid times between inf and nan!!!")
-            rhs.constants.negativeInfinity -> ValueWrapper(NegativeInfinity, constants)
-            rhs.constants.infinity -> ValueWrapper(Infinity, constants)
-            rhs.constants.zero -> ValueWrapper(constants.zero, constants)
+            rhs.constants.negativeInfinity -> NegativeInfinity(constants)
+            rhs.constants.infinity -> Infinity(constants)
+            rhs.constants.zero -> Value(constants.zero, constants)
             else -> if (rhs < rhs.constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             }
         }
 
         @Throws(IllegalArgumentException::class)
         override fun times(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else {
-                ValueWrapper(constants.zero, constants)
+                Value(constants.zero, constants)
             }
 
-            is Infinity -> ValueWrapper(Infinity, constants)
-            is NegativeInfinity -> ValueWrapper(NegativeInfinity, constants)
+            is Infinity -> Infinity(constants)
+            is NegativeInfinity -> NegativeInfinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
@@ -303,18 +319,18 @@ sealed class ValueWrapper<T>(
             rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid div between inf and -inf!!!")
             rhs.constants.zero -> throw IllegalArgumentException("Invalid div between inf and 0!!!")
             else -> if (rhs < rhs.constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             }
         }
 
         @Throws(IllegalArgumentException::class)
         override fun div(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else {
                 throw IllegalArgumentException("Invalid div between inf and 0!!!")
             }
@@ -342,55 +358,55 @@ sealed class ValueWrapper<T>(
         override fun plus(rhs: T): ValueWrapper<T> = when (rhs) {
             rhs.constants.nan -> throw IllegalArgumentException("Invalid plus between inf and nan!!!")
             rhs.constants.infinity -> throw IllegalArgumentException("Invalid plus between -inf and inf!!!")
-            else -> ValueWrapper(NegativeInfinity, constants)
+            else -> NegativeInfinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
         override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(NegativeInfinity, constants)
+            is Value -> NegativeInfinity(constants)
             is Infinity -> throw IllegalArgumentException("Invalid plus between -inf and inf!!!")
-            is NegativeInfinity -> ValueWrapper(NegativeInfinity, constants)
+            is NegativeInfinity -> NegativeInfinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
         override fun minus(rhs: T): ValueWrapper<T> = when (rhs) {
             rhs.constants.nan -> throw IllegalArgumentException("Invalid minus between -inf and nan!!!")
             rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid minus between -inf and -inf!!!")
-            else -> ValueWrapper(NegativeInfinity, constants)
+            else -> NegativeInfinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
         override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> ValueWrapper(NegativeInfinity, constants)
-            is Infinity -> ValueWrapper(NegativeInfinity, constants)
+            is Value -> NegativeInfinity(constants)
+            is Infinity -> NegativeInfinity(constants)
             is NegativeInfinity -> throw IllegalArgumentException("Invalid minus between -inf and -inf!!!")
         }
 
         @Throws(IllegalArgumentException::class)
         override fun times(rhs: T): ValueWrapper<T> = when (rhs) {
             rhs.constants.nan -> throw IllegalArgumentException("Invalid times between -inf and nan!!!")
-            rhs.constants.negativeInfinity -> ValueWrapper(Infinity, constants)
-            rhs.constants.infinity -> ValueWrapper(NegativeInfinity, constants)
-            rhs.constants.zero -> ValueWrapper(constants.zero, constants)
+            rhs.constants.negativeInfinity -> Infinity(constants)
+            rhs.constants.infinity -> NegativeInfinity(constants)
+            rhs.constants.zero -> Value(constants.zero, constants)
             else -> if (rhs < rhs.constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             }
         }
 
         @Throws(IllegalArgumentException::class)
         override fun times(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else {
-                ValueWrapper(constants.zero, constants)
+                Value(constants.zero, constants)
             }
 
-            is Infinity -> ValueWrapper(NegativeInfinity, constants)
-            is NegativeInfinity -> ValueWrapper(Infinity, constants)
+            is Infinity -> NegativeInfinity(constants)
+            is NegativeInfinity -> Infinity(constants)
         }
 
         @Throws(IllegalArgumentException::class)
@@ -400,18 +416,18 @@ sealed class ValueWrapper<T>(
             rhs.constants.infinity -> throw IllegalArgumentException("Invalid div between -inf and inf!!!")
             rhs.constants.zero -> throw IllegalArgumentException("Invalid div between -inf and 0!!!")
             else -> if (rhs < rhs.constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             }
         }
 
         @Throws(IllegalArgumentException::class)
         override fun div(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
-                ValueWrapper(Infinity, constants)
+                Infinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
-                ValueWrapper(NegativeInfinity, constants)
+                NegativeInfinity(constants)
             } else {
                 throw IllegalArgumentException("Invalid div between -inf and 0!!!")
             }
@@ -477,88 +493,132 @@ data class ValueRange<T>(
     private val _upperBound: ValueWrapper<T>,
     val lowerInterval: IntervalType,
     val upperInterval: IntervalType,
-    val constants: RealNumberConstants<T>
+    private val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueRange<T>>,
     Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
     Times<T, ValueRange<T>>, Div<T, ValueRange<T>>, Eq<ValueRange<T>>
         where T : RealNumber<T>, T : NumberField<T> {
-    constructor(
-        lowerBound: T,
-        upperBound: T,
-        lowerInterval: IntervalType,
-        upperInterval: IntervalType,
-        constants: RealNumberConstants<T>
-    ) : this(
-        ValueWrapper(lowerBound, constants),
-        ValueWrapper(upperBound, constants),
-        lowerInterval,
-        upperInterval,
-        constants
-    )
 
-    constructor(
-        lowerBound: T,
-        upperBound: T,
-        constants: RealNumberConstants<T>
-    ) : this(
-        ValueWrapper(lowerBound, constants),
-        ValueWrapper(upperBound, constants),
-        IntervalType.Closed,
-        IntervalType.Closed,
-        constants
-    )
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            lowerBound: T,
+            upperBound: T,
+            lowerInterval: IntervalType = IntervalType.Closed,
+            upperInterval: IntervalType = IntervalType.Closed
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ValueRange(
+                ValueWrapper.Value(lowerBound, constants),
+                ValueWrapper.Value(upperBound, constants),
+                lowerInterval,
+                upperInterval,
+                constants
+            )
+        }
 
-    constructor(
-        _inf: GlobalNegativeInfinity,
-        upperBound: T,
-        lowerInterval: IntervalType,
-        upperInterval: IntervalType,
-        constants: RealNumberConstants<T>
-    ) : this(
-        ValueWrapper(_inf, constants),
-        ValueWrapper(upperBound, constants),
-        lowerInterval,
-        upperInterval,
-        constants
-    )
+        operator fun <T> invoke(
+            lowerBound: T,
+            upperBound: T,
+            lowerInterval: IntervalType,
+            upperInterval: IntervalType,
+            constants: RealNumberConstants<T>
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            return ValueRange(
+                ValueWrapper.Value(lowerBound, constants),
+                ValueWrapper.Value(upperBound, constants),
+                lowerInterval,
+                upperInterval,
+                constants
+            )
+        }
 
-    constructor(
-        _inf: GlobalNegativeInfinity,
-        upperBound: T,
-        constants: RealNumberConstants<T>
-    ) : this(
-        ValueWrapper(_inf, constants),
-        ValueWrapper(upperBound, constants),
-        IntervalType.Closed,
-        IntervalType.Closed,
-        constants
-    )
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            _inf: GlobalNegativeInfinity,
+            upperBound: T,
+            upperInterval: IntervalType = IntervalType.Closed
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ValueRange(
+                ValueWrapper.NegativeInfinity(constants),
+                ValueWrapper.Value(upperBound, constants),
+                IntervalType.Open,
+                upperInterval,
+                constants
+            )
+        }
 
-    constructor(
-        lowerBound: T,
-        _inf: GlobalInfinity,
-        lowerInterval: IntervalType,
-        upperInterval: IntervalType,
-        constants: RealNumberConstants<T>
-    ) : this(
-        ValueWrapper(lowerBound, constants),
-        ValueWrapper(_inf, constants),
-        lowerInterval,
-        upperInterval,
-        constants
-    )
+        operator fun <T> invoke(
+            _inf: GlobalNegativeInfinity,
+            upperBound: T,
+            upperInterval: IntervalType,
+            constants: RealNumberConstants<T>
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            return ValueRange(
+                ValueWrapper.NegativeInfinity(constants),
+                ValueWrapper.Value(upperBound, constants),
+                IntervalType.Open,
+                upperInterval,
+                constants
+            )
+        }
 
-    constructor(
-        lowerBound: T,
-        _inf: GlobalInfinity,
-        constants: RealNumberConstants<T>
-    ) : this(
-        ValueWrapper(lowerBound, constants),
-        ValueWrapper(_inf, constants),
-        IntervalType.Closed,
-        IntervalType.Closed,
-        constants
-    )
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            lowerBound: T,
+            _inf: GlobalInfinity,
+            lowerInterval: IntervalType = IntervalType.Closed
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ValueRange(
+                ValueWrapper.Value(lowerBound, constants),
+                ValueWrapper.Infinity(constants),
+                lowerInterval,
+                IntervalType.Open,
+                constants
+            )
+        }
+
+        operator fun <T> invoke(
+            lowerBound: T,
+            _inf: GlobalInfinity,
+            lowerInterval: IntervalType,
+            constants: RealNumberConstants<T>
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            return ValueRange(
+                ValueWrapper.Value(lowerBound, constants),
+                ValueWrapper.Infinity(constants),
+                lowerInterval,
+                IntervalType.Open,
+                constants
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            return ValueRange(
+                ValueWrapper.NegativeInfinity(constants),
+                ValueWrapper.Infinity(constants),
+                IntervalType.Open,
+                IntervalType.Open,
+                constants
+            )
+        }
+
+        operator fun <T> invoke(
+            constants: RealNumberConstants<T>
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            return ValueRange(
+                ValueWrapper.NegativeInfinity(constants),
+                ValueWrapper.Infinity(constants),
+                IntervalType.Open,
+                IntervalType.Open,
+                constants
+            )
+        }
+    }
 
     override fun copy() = ValueRange(
         _lowerBound,
@@ -612,7 +672,7 @@ data class ValueRange<T>(
     }
 
     operator fun contains(value: T): Boolean {
-        val wrapper = ValueWrapper(value, constants)
+        val wrapper = ValueWrapper.Value(value, constants)
         return when (lowerInterval) {
             IntervalType.Open -> lowerBound ls wrapper
             IntervalType.Closed -> lowerBound leq wrapper
@@ -713,8 +773,7 @@ data class ValueRange<T>(
         lowerBound.toFlt64(),
         upperBound.toFlt64(),
         lowerInterval,
-        upperInterval,
-        Flt64
+        upperInterval
     )
 
     override fun toString() = "${lowerInterval.lowerSign}$lowerBound, $upperBound${upperInterval.upperSign}"

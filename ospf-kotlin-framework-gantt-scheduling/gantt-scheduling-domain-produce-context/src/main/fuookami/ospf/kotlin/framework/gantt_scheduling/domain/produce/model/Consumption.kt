@@ -123,8 +123,7 @@ class BunchSchedulingConsumption<T : ProductionTask<E, A>, E : Executor, A : Ass
                         quantity[material].range.set(
                             ValueRange(
                                 reserve.quantity.lowerBound.toFlt64() - (reserve.lessQuantity ?: Flt64.zero),
-                                reserve.quantity.upperBound.toFlt64() + (reserve.overQuantity ?: Flt64.zero),
-                                Flt64
+                                reserve.quantity.upperBound.toFlt64() + (reserve.overQuantity ?: Flt64.zero)
                             )
                         )
                     }

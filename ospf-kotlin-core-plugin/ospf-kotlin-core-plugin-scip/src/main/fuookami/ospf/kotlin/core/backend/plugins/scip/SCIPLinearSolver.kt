@@ -52,7 +52,7 @@ private class SCIPLinearSolverImpl(
     }
 
     operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
-        assert(!this::scip.isInitialized)
+        assert(!::scip.isInitialized)
 
         mip = model.containsNotBinaryInteger
         val processes = arrayOf(

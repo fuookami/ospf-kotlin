@@ -31,21 +31,52 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     private lateinit var y: AbstractLinearPolynomial<*>
 
     override val range get() = y.range
-    override val lowerBound get() = y.lowerBound
-    override val upperBound get() = y.upperBound
+    override val lowerBound
+        get() = if (::y.isInitialized) {
+            y.lowerBound
+        } else {
+            possibleRange.lowerBound.toFlt64()
+        }
+    override val upperBound
+        get() = if (::y.isInitialized) {
+            y.upperBound
+        } else {
+            possibleRange.upperBound.toFlt64()
+        }
 
+    override val dependencies: Set<Symbol<*, *>>
+        get() {
+            val dependencies = HashSet<Symbol<*, *>>()
+            dependencies.addAll(x.dependencies)
+            dependencies.addAll(lb.dependencies)
+            dependencies.addAll(ub.dependencies)
+            return dependencies
+        }
     override val cells get() = y.cells
-    override val cached get() = y.cached
+    override val cached
+        get() = if (::y.isInitialized) {
+            y.cached
+        } else {
+            false
+        }
 
     private val possibleRange: ValueRange<Flt64>
         get() {
             val max = max(x.upperBound - ub.lowerBound, lb.upperBound - x.lowerBound)
-            return ValueRange(Flt64.zero, max, Flt64)
+            return ValueRange(Flt64.zero, max)
         }
 
     override fun flush(force: Boolean) {
-        y.flush(force)
-        y.range.set(possibleRange)
+        if (::y.isInitialized) {
+            y.flush(force)
+            y.range.set(possibleRange)
+        }
+    }
+
+    override suspend fun prepare() {
+        x.cells
+        lb.cells
+        ub.cells
     }
 
     override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
@@ -73,8 +104,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         return Ok(success)
     }
 
-    override fun register(model: Model<LinearMonomialCell, Linear>): Try {
-        if (x.range.range.intersect(ValueRange(lb.lowerBound, ub.upperBound, Flt64)).empty) {
+    override fun register(model: AbstractLinearModel): Try {
+        if (x.range.range.intersect(ValueRange(lb.lowerBound, ub.upperBound)).empty) {
             return Failed(
                 Err(
                     ErrorCode.ApplicationFailed,
@@ -108,8 +139,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val xValue = x.value(tokenList, zeroIfNone) ?: return null
-        val lbValue = lb.value(tokenList, zeroIfNone)?: return null
-        val ubValue = ub.value(tokenList, zeroIfNone)?: return null
+        val lbValue = lb.value(tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.value(tokenList, zeroIfNone) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {
@@ -121,8 +152,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val xValue = x.value(results, tokenList, zeroIfNone) ?: return null
-        val lbValue = lb.value(results, tokenList, zeroIfNone)?: return null
-        val ubValue = ub.value(results, tokenList, zeroIfNone)?: return null
+        val lbValue = lb.value(results, tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.value(results, tokenList, zeroIfNone) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {

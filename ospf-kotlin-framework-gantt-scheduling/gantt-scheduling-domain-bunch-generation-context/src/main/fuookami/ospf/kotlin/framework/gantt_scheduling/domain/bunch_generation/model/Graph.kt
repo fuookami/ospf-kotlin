@@ -45,8 +45,8 @@ class Graph(
     private val _nodes: MutableMap<UInt64, Node> = HashMap(),
     private val _edges: MutableMap<Node, MutableSet<Edge>> = HashMap()
 ) {
-    val nodes: Map<UInt64, Node> by this::_nodes
-    val edges: Map<Node, Set<Edge>> by this::_edges
+    val nodes: Map<UInt64, Node> by ::_nodes
+    val edges: Map<Node, Set<Edge>> by ::_edges
 
     fun put(node: Node) {
         _nodes[node.index] = node

@@ -6,7 +6,7 @@
 
 ## 介绍
 
-ospf-kotlin 是 ospf 的 Kotlin 实现版本，更详细的介绍与文档可以参考主仓库与文档页面：
+ospf-kotlin 是 ospf 的 Kotlin/JVM 实现版本，更详细的介绍、文档与样例可以参考主仓库与文档页面：
 
 ospf：https://github.com/fuookami/ospf
 
@@ -16,13 +16,18 @@ ospf：https://github.com/fuookami/ospf
 
 ## 安装
 
+版本要求:
+
+* JDK: 17+
+* Maven: 3+
+
 ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 的话，只需要在 pom.xml 文件里面添加一个依赖即可：
 
 ```xml
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -32,7 +37,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -42,7 +47,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 

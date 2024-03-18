@@ -13,7 +13,7 @@ data class ProduceQuantityShadowPriceKey(
     val product: Product
 ) : ShadowPriceKey(ProduceQuantityShadowPriceKey::class)
 
-class ProduceQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A: AssignmentPolicy<E>>(
+class ProduceQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     products: List<Pair<Product, ProductDemand?>>,
     private val produce: Produce,
     override val name: String = "produce_quantity"
@@ -77,7 +77,7 @@ class ProduceQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>
                 when (task) {
                     is ProductionTask -> {
                         val products = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
-                        products.sumOf(Flt64) { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        products.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                     }
 
                     else -> {
@@ -101,12 +101,12 @@ class ProduceQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val product = iteratorLb.next().first
-                thisShadowPrices[product] = (thisShadowPrices[product]?: Flt64.zero) + shadowPrices[j]
+                thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + shadowPrices[j]
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val product = iteratorUb.next().first
-                thisShadowPrices[product] = (thisShadowPrices[product]?: Flt64.zero) + shadowPrices[j]
+                thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + shadowPrices[j]
             }
 
             if (!iteratorLb.hasNext() && !iteratorUb.hasNext()) {
