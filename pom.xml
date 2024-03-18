@@ -15,7 +15,6 @@
         <module>ospf-kotlin-framework-plugin</module>
         <module>ospf-kotlin-framework-bpp3d</module>
         <module>ospf-kotlin-framework-gantt-scheduling</module>
-        <module>ospf-kotlin-example</module>
         <module>ospf-kotlin-starters</module>
     </modules>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
