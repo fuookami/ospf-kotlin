@@ -3,7 +3,11 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.concept.*
 
-open class ExecutorInitialUsability<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+open class ExecutorInitialUsability<
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     open val lastTask: T?,
     val enabledTime: Instant
 ) {

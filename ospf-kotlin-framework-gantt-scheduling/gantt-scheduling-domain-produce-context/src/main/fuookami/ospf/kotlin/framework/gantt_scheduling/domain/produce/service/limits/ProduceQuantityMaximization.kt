@@ -10,13 +10,17 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 
-class ProduceQuantityMaximization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class ProduceQuantityMaximization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val products: List<Product>,
     private val produce: Produce,
     private val threshold: (Product) -> Flt64 = { Flt64.zero },
     private val coefficient: (Product) -> Flt64 = { Flt64.one },
     override val name: String = "produce_quantity_maximization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         model.maximize(
             sum(products.map {
@@ -36,6 +40,6 @@ class ProduceQuantityMaximization<Args : GanttSchedulingShadowPriceArguments<E, 
             }),
             "produce quantity"
         )
-        return Ok(success)
+        return ok
     }
 }

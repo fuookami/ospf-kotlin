@@ -27,17 +27,57 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
-如果你需要使用 bpp3d 开发包，则在 pom.xml 文件里添加依赖：
+如果你需要使用一维装箱开发包，则在 pom.xml 文件里添加依赖：
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
+如果你需要使用二维装箱开发包，则在 pom.xml 文件里添加依赖：
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
+如果你需要使用三维装箱开发包，则在 pom.xml 文件里添加依赖：
 
 ```xml
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
+</dependency>
+```
+
+如果你需要使用一维下料开发包，则在 pom.xml 文件里添加依赖：
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-csp1d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
+如果你需要使用二维下料开发包，则在 pom.xml 文件里添加依赖：
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-csp2d</artifactId>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -47,7 +87,17 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
+</dependency>
+```
+
+如果你需要使用网络流规划开发包，则在 pom.xml 文件里添加依赖：
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
+    <version>1.0.5</version>
 </dependency>
 ```
 

@@ -8,6 +8,17 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
+fun <T> Iterator<T>.collect(): List<T> {
+    return this.collectTo(ArrayList())
+}
+
+fun <T, M: MutableCollection<T>> Iterator<T>.collectTo(m: M): M {
+    while (this.hasNext()) {
+        m.add(this.next())
+    }
+    return m
+}
+
 inline fun <R, T> Iterable<T>.lastNotNullOf(
     crossinline extractor: Extractor<R?, T>
 ): R {

@@ -50,5 +50,5 @@ internal fun LinearInequality.register(
         }
     }
 
-    return Ok(success)
+    return ok
 }

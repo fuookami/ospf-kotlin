@@ -44,6 +44,8 @@ class BalanceTernaryzationFunction(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies by x::dependencies
     override val cells get() = polyY.cells
     override val cached
@@ -85,7 +87,7 @@ class BalanceTernaryzationFunction(
     override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
         if (x.discrete && x.range.range in ValueRange(-Flt64.one, Flt64.one)) {
             polyY = x
-            return Ok(success)
+            return ok
         }
 
         if (extract && !x.discrete) {
@@ -150,7 +152,7 @@ class BalanceTernaryzationFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -226,7 +228,7 @@ class BalanceTernaryzationFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
+        <artifactId>ospf-kotlin</artifactId>
+        <version>1.0.6</version>
+    </parent>
+
+    <groupId>io.github.fuookami.ospf.kotlin.framework.bpp1d</groupId>
+    <artifactId>ospf-kotlin-framework-bpp1d</artifactId>
+    <packaging>pom</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+            <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+            <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+            <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

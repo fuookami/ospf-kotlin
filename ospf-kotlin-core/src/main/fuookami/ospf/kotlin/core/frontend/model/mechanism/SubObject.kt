@@ -59,3 +59,39 @@ class LinearSubObject(
         }
     }
 }
+
+class QuadraticSubObject(
+    category: ObjectCategory,
+    override val cells: ArrayList<QuadraticCell>,
+    override val constant: Flt64 = Flt64.zero,
+    name: String = ""
+) : SubObject<Quadratic>(category, name) {
+    companion object {
+        operator fun invoke(
+            category: ObjectCategory,
+            poly: Polynomial<*, *, QuadraticMonomialCell, Quadratic>,
+            tokens: QuadraticTokenTable,
+            name: String
+        ): QuadraticSubObject {
+            val cells = ArrayList<QuadraticCell>()
+            var constant = Flt64.zero
+            for (cell in poly.cells) {
+                if (cell.isTriple) {
+                    val pair = cell.triple!!
+                    val token1 = tokens.find(pair.variable1)
+                    val token2 = if (pair.variable2 != null) {
+                        tokens.find(pair.variable2) ?: continue
+                    } else {
+                        null
+                    }
+                    if (token1 != null && pair.coefficient neq Flt64.zero) {
+                        cells.add(QuadraticCell(tokens, pair.coefficient, token1, token2))
+                    }
+                } else {
+                    constant = cell.constant!!
+                }
+            }
+            return QuadraticSubObject(category, cells, constant, name)
+        }
+    }
+}

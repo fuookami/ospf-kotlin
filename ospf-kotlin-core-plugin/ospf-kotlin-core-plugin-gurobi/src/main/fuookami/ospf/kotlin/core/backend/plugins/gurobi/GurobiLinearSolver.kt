@@ -13,34 +13,24 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class GurobiLinearSolver(
-    private val config: LinearSolverConfig = LinearSolverConfig(),
-    private val callBack: GurobiSolverCallBack? = null
+    private val config: SolverConfig = SolverConfig(),
+    private val callBack: GurobiLinearSolverCallBack? = null
 ) : LinearSolver {
-    override suspend operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
+    override suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         val impl = GurobiLinearSolverImpl(config, callBack)
         return impl(model)
     }
 }
 
 private class GurobiLinearSolverImpl(
-    private val config: LinearSolverConfig,
-    private val callBack: GurobiSolverCallBack? = null
-) {
-    lateinit var env: GRBEnv
-    lateinit var grbModel: GRBModel
+    private val config: SolverConfig,
+    private val callBack: GurobiLinearSolverCallBack? = null
+) : GurobiSolver() {
     lateinit var grbVars: List<GRBVar>
     lateinit var grbConstraints: List<GRBConstr>
-    lateinit var status: SolvingStatus
-    lateinit var output: LinearSolverOutput
+    lateinit var output: SolverOutput
 
-    protected fun finalize() {
-        grbModel.dispose()
-        env.dispose()
-    }
-
-    operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
-        assert(!::env.isInitialized)
-
+    operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
             config.extraConfig as GurobiSolverConfig
         } else {
@@ -53,9 +43,9 @@ private class GurobiLinearSolverImpl(
         val processes = arrayOf(
             {
                 if (server != null && password != null && connectionTime != null) {
-                    it.init(server, password, connectionTime)
+                    it.init(server, password, connectionTime, model.name)
                 } else {
-                    it.init()
+                    it.init(model.name)
                 }
             },
             { it.dump(model) },
@@ -74,36 +64,6 @@ private class GurobiLinearSolverImpl(
             }
         }
         return Ok(output)
-    }
-
-    private fun init(server: String, password: String, connectionTime: Duration): Try {
-        return try {
-            env = GRBEnv(true)
-            env.set(GRB.IntParam.ServerTimeout, connectionTime.toInt(DurationUnit.SECONDS))
-            env.set(GRB.DoubleParam.CSQueueTimeout, connectionTime.toDouble(DurationUnit.SECONDS))
-            env.set(GRB.StringParam.ComputeServer, server)
-            env.set(GRB.StringParam.ServerPassword, password)
-            env.start()
-
-            grbModel = GRBModel(env)
-            Ok(success)
-        } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
-        } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
-        }
-    }
-
-    private fun init(): Try {
-        return try {
-            env = GRBEnv()
-            grbModel = GRBModel(env)
-            Ok(success)
-        } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
-        } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
-        }
     }
 
     private fun dump(model: LinearTriadModelView): Try {
@@ -136,8 +96,10 @@ private class GurobiLinearSolverImpl(
                 }
                 constraints.add(
                     grbModel.addConstr(
-                        lhs, GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
-                        model.constraints.rhs[i].toDouble(), model.constraints.names[i]
+                        lhs,
+                        GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
+                        model.constraints.rhs[i].toDouble(),
+                        model.constraints.names[i]
                     )
                 )
                 ++i
@@ -167,7 +129,7 @@ private class GurobiLinearSolverImpl(
 
                 else -> {}
             }
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
         } catch (e: Exception) {
@@ -187,59 +149,11 @@ private class GurobiLinearSolverImpl(
 
                 else -> {}
             }
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
         } catch (e: Exception) {
             Failed(Err(ErrorCode.OREngineModelingException))
-        }
-    }
-
-    private fun solve(): Try {
-        return try {
-            grbModel.optimize()
-
-            Ok(success)
-        } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
-        } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineTerminated))
-        }
-    }
-
-    private fun analyzeStatus(): Try {
-        return try {
-            status = when (grbModel.get(GRB.IntAttr.Status)) {
-                GRB.OPTIMAL -> {
-                    SolvingStatus.Optimal
-                }
-
-                GRB.INFEASIBLE -> {
-                    SolvingStatus.NoSolution
-                }
-
-                GRB.UNBOUNDED -> {
-                    SolvingStatus.Unbounded
-                }
-
-                GRB.INF_OR_UNBD -> {
-                    SolvingStatus.NoSolution
-                }
-
-                else -> {
-                    if (grbModel.get(GRB.IntAttr.SolCount) > 0) {
-                        SolvingStatus.Feasible
-                    } else {
-                        SolvingStatus.NoSolution
-                    }
-                }
-            }
-
-            Ok(success)
-        } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
-        } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
         }
     }
 
@@ -250,11 +164,15 @@ private class GurobiLinearSolverImpl(
                 for (grbVar in grbVars) {
                     results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
                 }
-                output = LinearSolverOutput(
+                output = SolverOutput(
                     Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
                     results,
                     grbModel.get(GRB.DoubleAttr.Runtime).toLong().milliseconds,
-                    Flt64(grbModel.get(GRB.DoubleAttr.ObjBound)),
+                    Flt64(if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
+                        grbModel.get(GRB.DoubleAttr.ObjBound)
+                    } else {
+                        grbModel.get(GRB.DoubleAttr.ObjVal)
+                    }),
                     Flt64(
                         if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
                             grbModel.get(GRB.DoubleAttr.MIPGap)
@@ -271,7 +189,7 @@ private class GurobiLinearSolverImpl(
 
                     else -> {}
                 }
-                Ok(success)
+                ok
             } else {
                 when (val result = callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {

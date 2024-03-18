@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
 import kotlin.time.*
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.microseconds
 import ilog.concert.*
 import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -12,33 +12,28 @@ import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import kotlin.time.Duration.Companion.microseconds
 
 class CplexLinearSolver(
-    private val config: LinearSolverConfig = LinearSolverConfig(),
+    private val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack? = null
 ) : LinearSolver {
-    override suspend operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
+    override suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         val impl = CplexLinearSolverImpl(config, callBack)
         return impl(model)
     }
 }
 
 private class CplexLinearSolverImpl(
-    private val config: LinearSolverConfig,
+    private val config: SolverConfig,
     private val callBack: CplexSolverCallBack? = null
-) {
-    lateinit var cplex: IloCplex
+): CplexSolver() {
     lateinit var cplexVars: List<IloNumVar>
     lateinit var cplexConstraint: List<IloRange>
-    lateinit var status: SolvingStatus
-    lateinit var output: LinearSolverOutput
+    lateinit var output: SolverOutput
 
-    operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
-        assert(!::cplex.isInitialized)
-
+    operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         val processes = arrayOf(
-            { it.init(model) },
+            { it.init(model.name) },
             { it.dump(model) },
             CplexLinearSolverImpl::configure,
             CplexLinearSolverImpl::solve,
@@ -57,12 +52,6 @@ private class CplexLinearSolverImpl(
         return Ok(output)
     }
 
-    private fun init(model: LinearTriadModelView): Try {
-        cplex = IloCplex()
-        cplex.name = model.name
-        return Ok(success)
-    }
-
     private fun dump(model: LinearTriadModelView): Try {
         cplexVars = model.variables.map {
             cplex.numVar(it.lowerBound.toDouble(), it.upperBound.toDouble(), CplexVariable(it.type).toCplexVar())
@@ -75,7 +64,7 @@ private class CplexLinearSolverImpl(
             cplex.addMIPStart(
                 initialSolution.map { it.first }.toTypedArray(),
                 initialSolution.map { it.second }.toDoubleArray()
-            );
+            )
         }
 
         var i = 0
@@ -132,7 +121,7 @@ private class CplexLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun configure(): Try {
@@ -147,7 +136,7 @@ private class CplexLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun solve(): Try {
@@ -162,46 +151,17 @@ private class CplexLinearSolverImpl(
                 } catch (e: IloException) {
                     return Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                 }
-                return Ok(success)
+                return ok
             }
 
             else -> {}
         }
-        return Ok(success)
-    }
-
-    private fun analyzeStatus(): Try {
-        status = when (cplex.status) {
-            IloCplex.Status.Optimal -> {
-                SolvingStatus.Optimal
-            }
-
-            IloCplex.Status.Feasible -> {
-                SolvingStatus.Feasible
-            }
-
-            IloCplex.Status.Unbounded -> {
-                SolvingStatus.Unbounded
-            }
-
-            IloCplex.Status.Infeasible -> {
-                SolvingStatus.NoSolution
-            }
-
-            IloCplex.Status.InfeasibleOrUnbounded, IloCplex.Status.Error, IloCplex.Status.Unknown -> {
-                SolvingStatus.SolvingException
-            }
-
-            else -> {
-                SolvingStatus.SolvingException
-            }
-        }
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeSolution(): Try {
         return if (status.succeeded()) {
-            output = LinearSolverOutput(
+            output = SolverOutput(
                 Flt64(cplex.objValue),
                 cplexVars.map { Flt64(cplex.getValue(it)) },
                 cplex.cplexTime.toLong().microseconds,
@@ -222,7 +182,7 @@ private class CplexLinearSolverImpl(
 
                 else -> {}
             }
-            Ok(success)
+            ok
         } else {
             Failed(Err(status.errCode()!!))
         }

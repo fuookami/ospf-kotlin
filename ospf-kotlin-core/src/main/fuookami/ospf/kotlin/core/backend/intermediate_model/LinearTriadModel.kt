@@ -180,7 +180,7 @@ class BasicLinearTriadModel(
         }
 
         writer.append("End\n")
-        return Ok(success)
+        return ok
     }
 }
 
@@ -279,7 +279,7 @@ data class LinearTriadModel(
                     objective
                 }
 
-                return@coroutineScope LinearTriadModel(
+                LinearTriadModel(
                     BasicLinearTriadModel(
                         variablePromise.await(),
                         constraintPromise.await(),
@@ -407,7 +407,7 @@ data class LinearTriadModel(
             }
 
             is Ok -> {
-                Ok(success)
+                ok
             }
         }
     }

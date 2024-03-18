@@ -44,6 +44,8 @@ class Not(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>> by x::dependencies
     override val cells get() = polyY.cells
     override val cached
@@ -81,7 +83,7 @@ class Not(
     override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
         if (x.discrete && x.range.range in ValueRange(Flt64.zero, Flt64.one)) {
             polyY = x
-            return Ok(success)
+            return ok
         }
 
         if (x.lowerBound ls Flt64.zero) {
@@ -147,7 +149,7 @@ class Not(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -187,7 +189,7 @@ class Not(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

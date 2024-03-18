@@ -10,12 +10,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-private typealias ExprSymbol<Cell, C> = Symbol<Cell, C>
-
 sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
     : Expression, Copyable<Self>, Neg<Self>,
     Plus<Flt64, Self>, Minus<Flt64, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
-    val category: C
+    val category: Category
     val monomials: List<M>
     val constant: Flt64
     override val discrete: Boolean get() = monomials.all { it.discrete } && constant.round() eq constant
@@ -36,7 +34,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusVariables")
     operator fun plus(rhs: Iterable<AbstractVariableItem<*, *>>): Self
-    operator fun plus(rhs: ExprSymbol<Cell, C>): Self
+    operator fun plus(rhs: Symbol<Cell, C>): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusSymbols")
@@ -53,7 +51,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusVariables")
     operator fun minus(rhs: Iterable<AbstractVariableItem<*, *>>): Self
-    operator fun minus(rhs: ExprSymbol<Cell, C>): Self
+    operator fun minus(rhs: Symbol<Cell, C>): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusSymbols")
@@ -137,7 +135,7 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignVariables")
     operator fun plusAssign(rhs: Iterable<AbstractVariableItem<*, *>>)
-    operator fun plusAssign(rhs: ExprSymbol<Cell, C>)
+    operator fun plusAssign(rhs: Symbol<Cell, C>)
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignSymbols")
@@ -162,7 +160,7 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignVariables")
     operator fun minusAssign(rhs: Iterable<AbstractVariableItem<*, *>>)
-    operator fun minusAssign(rhs: ExprSymbol<Cell, C>)
+    operator fun minusAssign(rhs: Symbol<Cell, C>)
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignSymbols")

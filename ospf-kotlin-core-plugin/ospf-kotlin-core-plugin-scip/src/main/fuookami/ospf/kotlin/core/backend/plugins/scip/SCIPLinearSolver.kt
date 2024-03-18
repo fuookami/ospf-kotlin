@@ -13,50 +13,40 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class SCIPLinearSolver(
-    private val config: LinearSolverConfig = LinearSolverConfig(),
+    private val config: SolverConfig = SolverConfig(),
     private val callBack: SCIPSolverCallBack? = null
 ) : LinearSolver {
-    override suspend operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
+    override suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         val impl = SCIPLinearSolverImpl(config, callBack)
         return impl(model)
     }
 }
 
 private class SCIPLinearSolverImpl(
-    private val config: LinearSolverConfig,
+    private val config: SolverConfig,
     private val callBack: SCIPSolverCallBack? = null
-) {
+) : SCIPSolver() {
     var mip: Boolean = false
 
-    lateinit var scip: Scip
     lateinit var scipVars: List<jscip.Variable>
     lateinit var scipConstraints: List<jscip.Constraint>
     var solvingTime: Duration? = null
-    lateinit var status: SolvingStatus
-    lateinit var output: LinearSolverOutput
+    lateinit var output: SolverOutput
 
-    companion object {
-        init {
-            System.loadLibrary("jscip")
-        }
-    }
-
-    protected fun finalize() {
+    override fun finalize() {
         for (constraint in scipConstraints) {
             scip.releaseCons(constraint)
         }
         for (variable in scipVars) {
             scip.releaseVar(variable)
         }
-        scip.free()
+        super.finalize()
     }
 
-    operator fun invoke(model: LinearTriadModelView): Ret<LinearSolverOutput> {
-        assert(!::scip.isInitialized)
-
+    operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         mip = model.containsNotBinaryInteger
         val processes = arrayOf(
-            SCIPLinearSolverImpl::init,
+            { it.init(model.name) },
             { it.dump(model) },
             SCIPLinearSolverImpl::configure,
             SCIPLinearSolverImpl::solve,
@@ -73,12 +63,6 @@ private class SCIPLinearSolverImpl(
             }
         }
         return Ok(output)
-    }
-
-    private fun init(): Try {
-        scip = Scip()
-        scip.create("")
-        return Ok(success)
     }
 
     private fun dump(model: LinearTriadModelView): Try {
@@ -158,7 +142,7 @@ private class SCIPLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun configure(): Try {
@@ -173,45 +157,19 @@ private class SCIPLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun solve(): Try {
         val begin = Clock.System.now()
-        scip.solve()
+        scip.solveConcurrent()
+        val stage = scip.stage
+        if (stage.swigValue() < SCIP_Stage.SCIP_STAGE_INITPRESOLVE.swigValue()) {
+            scip.solve()
+        }
         solvingTime = Clock.System.now() - begin
 
-        return Ok(success)
-    }
-
-    private fun analyzeStatus(): Try {
-        val solution = scip.bestSol
-        status = when (scip.status) {
-            SCIP_Status.SCIP_STATUS_OPTIMAL -> {
-                SolvingStatus.Optimal
-            }
-
-            SCIP_Status.SCIP_STATUS_INFEASIBLE -> {
-                SolvingStatus.NoSolution
-            }
-
-            SCIP_Status.SCIP_STATUS_UNBOUNDED -> {
-                SolvingStatus.Unbounded
-            }
-
-            SCIP_Status.SCIP_STATUS_INFORUNBD -> {
-                SolvingStatus.SolvingException
-            }
-
-            else -> {
-                if (solution != null) {
-                    SolvingStatus.Feasible
-                } else {
-                    SolvingStatus.SolvingException
-                }
-            }
-        }
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeSolution(): Try {
@@ -228,7 +186,7 @@ private class SCIPLinearSolverImpl(
             } else {
                 Flt64.zero
             }
-            output = LinearSolverOutput(
+            output = SolverOutput(
                 obj,
                 results,
                 solvingTime!!,
@@ -243,7 +201,7 @@ private class SCIPLinearSolverImpl(
 
                 else -> {}
             }
-            return Ok(success)
+            return ok
         } else {
             Failed(Err(status.errCode()!!))
         }

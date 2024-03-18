@@ -18,7 +18,7 @@ open class ResourceCapacity(
     override fun toString() = "${quantity}_${interval}"
 }
 
-abstract class Resource<C : ResourceCapacity>() : ManualIndexed() {
+abstract class Resource<out C : ResourceCapacity> : ManualIndexed() {
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
@@ -30,7 +30,7 @@ abstract class Resource<C : ResourceCapacity>() : ManualIndexed() {
     ): Flt64
 }
 
-abstract class ExecutionResource<C : ResourceCapacity>(
+abstract class ExecutionResource<out C : ResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -52,7 +52,7 @@ abstract class ExecutionResource<C : ResourceCapacity>(
     }
 }
 
-abstract class ConnectionResource<C : ResourceCapacity>(
+abstract class ConnectionResource<out C : ResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -80,7 +80,7 @@ abstract class ConnectionResource<C : ResourceCapacity>(
     }
 }
 
-abstract class StorageResource<C : ResourceCapacity>(
+abstract class StorageResource<out C : ResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -128,17 +128,28 @@ abstract class StorageResource<C : ResourceCapacity>(
         return this.supplyBy(task, intersectionTime.duration)
     }
 
+    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+        task: T,
+        time: TimeRange
+    ): Flt64 {
+        return supplyBy(task, time) - costBy(task, time)
+    }
+
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A>,
         time: TimeRange
     ): Flt64 {
-        var counter = Flt64.zero
-        counter -= fixedCostIn(time)
-        counter += fixedSupplyIn(time)
+        var sum = Flt64.zero
         for (i in bunch.tasks.indices) {
-            counter -= costBy(bunch.tasks[i], time)
-            counter += supplyBy(bunch.tasks[i], time)
+            sum += usedQuantity(bunch.tasks[i], time)
+            when (val currentTime = bunch.tasks[i].time) {
+                is TimeRange -> {
+                    if (currentTime.end >= time.end) {
+                        break
+                    }
+                }
+            }
         }
-        return counter
+        return sum
     }
 }

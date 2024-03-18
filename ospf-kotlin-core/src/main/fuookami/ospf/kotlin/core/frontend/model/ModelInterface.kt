@@ -17,7 +17,7 @@ interface ModelInterface {
     fun remove(item: AbstractVariableItem<*, *>)
 
     fun addConstraint(
-        inequality: Inequality<*, *>,
+        inequality: Inequality<*, *, *>,
         name: String? = null,
         displayName: String? = null
     )

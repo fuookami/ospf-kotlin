@@ -38,7 +38,6 @@ data class TimeWindow(
             )
         }
     }
-
     fun valueOf(duration: Duration) = if (continues) {
         Flt64(duration.toDouble(durationUnit))
     } else {
@@ -67,6 +66,96 @@ data class TimeWindow(
     val start: Instant by window::start
     val end: Instant by window::end
     val duration: Duration by window::duration
+    val upperInterval: Duration by lazy {
+        when (durationUnit) {
+            DurationUnit.SECONDS -> {
+                1.toDuration(DurationUnit.MINUTES)
+            }
+
+            DurationUnit.MINUTES -> {
+                1.toDuration(DurationUnit.HOURS)
+            }
+
+            DurationUnit.HOURS -> {
+                1.toDuration(DurationUnit.DAYS)
+            }
+
+            else -> {
+                TODO("NOT IMPLEMENT YET")
+            }
+        }
+    }
+
+    val upper: TimeWindow by lazy {
+        TimeWindow(
+            window = window,
+            continues = continues,
+            durationUnit = when (durationUnit) {
+                DurationUnit.SECONDS -> {
+                    DurationUnit.MINUTES
+                }
+
+                DurationUnit.MINUTES -> {
+                    DurationUnit.HOURS
+                }
+
+                DurationUnit.HOURS -> {
+                    DurationUnit.DAYS
+                }
+
+                else -> {
+                    TODO("NOT IMPLEMENT YET")
+                }
+            },
+            upperInterval
+        )
+    }
+
+    fun upperIntervalByScale(scale: UInt64): Duration {
+        val upperInterval = scale.toInt() * interval
+        return if (upperInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
+            1.toDuration(DurationUnit.DAYS)
+        } else if (upperInterval > 1.toDuration(DurationUnit.HOURS) && durationUnit.ordinal < DurationUnit.HOURS.ordinal) {
+            1.toDuration(DurationUnit.HOURS)
+        } else if (upperInterval > 1.toDuration(DurationUnit.MINUTES) && durationUnit.ordinal < DurationUnit.MINUTES.ordinal) {
+            1.toDuration(DurationUnit.MINUTES)
+        } else {
+            upperInterval
+        }
+    }
+
+    fun upperByScale(scale: UInt64): TimeWindow {
+        val scaleInterval = scale.toInt() * interval
+        val (upperUnit, upperInterval) = if (upperInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
+            Pair(DurationUnit.DAYS, 1.toDuration(DurationUnit.DAYS))
+        } else if (upperInterval > 1.toDuration(DurationUnit.HOURS) && durationUnit.ordinal < DurationUnit.HOURS.ordinal) {
+            Pair(DurationUnit.HOURS, 1.toDuration(DurationUnit.HOURS))
+        } else if (upperInterval > 1.toDuration(DurationUnit.MINUTES) && durationUnit.ordinal < DurationUnit.MINUTES.ordinal) {
+            Pair(DurationUnit.MINUTES, 1.toDuration(DurationUnit.MINUTES))
+        } else {
+            Pair(durationUnit, upperInterval)
+        }
+        return TimeWindow(
+            window = window,
+            continues = continues,
+            durationUnit = upperUnit,
+            interval = upperInterval
+        )
+    }
+
+    val timeSlots: List<TimeRange> by lazy {
+        val timeSlots = ArrayList<TimeRange>()
+        var current = this.start
+        while (current != end) {
+            val duration = min(end - current, interval)
+            timeSlots.add(TimeRange(
+                start = current,
+                end = current + duration
+            ))
+            current += duration
+        }
+        timeSlots
+    }
 
     fun withIntersection(ano: TimeRange): Boolean {
         return window.withIntersection(ano)

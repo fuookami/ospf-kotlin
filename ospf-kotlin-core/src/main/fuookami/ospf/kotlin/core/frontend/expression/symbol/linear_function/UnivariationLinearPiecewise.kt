@@ -72,6 +72,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             points.maxOf { it.y }
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>> by x::dependencies
     override val cells get() = polyY.cells
     override val cached
@@ -120,7 +122,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }))
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -152,7 +154,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

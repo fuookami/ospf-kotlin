@@ -13,12 +13,17 @@
         <module>ospf-kotlin-framework</module>
         <module>ospf-kotlin-core-plugin</module>
         <module>ospf-kotlin-framework-plugin</module>
+        <module>ospf-kotlin-framework-bpp1d</module>
+        <module>ospf-kotlin-framework-bpp2d</module>
         <module>ospf-kotlin-framework-bpp3d</module>
+        <module>ospf-kotlin-framework-csp1d</module>
+        <module>ospf-kotlin-framework-csp2d</module>
         <module>ospf-kotlin-framework-gantt-scheduling</module>
+        <module>ospf-kotlin-framework-network-scheduling</module>
         <module>ospf-kotlin-starters</module>
     </modules>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
-    <version>1.0.4</version>
+    <version>1.0.6</version>
     <packaging>pom</packaging>
     <description>operation research algorithm software framework</description>
     <url>https://github.com/fuookami/ospf-kotlin</url>

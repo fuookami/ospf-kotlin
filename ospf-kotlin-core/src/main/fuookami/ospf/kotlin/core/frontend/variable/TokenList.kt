@@ -88,7 +88,7 @@ sealed class MutableTokenList(
         }
         list[item.key] = Token(item, currentIndex)
         ++currentIndex
-        return Ok(success)
+        return ok
     }
 
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
@@ -100,7 +100,7 @@ sealed class MutableTokenList(
             list[item.key] = Token(item, currentIndex)
             ++currentIndex
         }
-        return Ok(success)
+        return ok
     }
 
     fun remove(item: AbstractVariableItem<*, *>) {

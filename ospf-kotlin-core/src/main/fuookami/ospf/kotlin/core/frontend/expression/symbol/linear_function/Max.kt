@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -33,6 +33,8 @@ sealed class AbstractMaxFunction(
         } else {
             possibleRange.upperBound.toFlt64()
         }
+
+    override val category: Category = Linear
 
     override val dependencies: Set<Symbol<*, *>>
         get() {
@@ -104,7 +106,7 @@ sealed class AbstractMaxFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -126,7 +128,7 @@ sealed class AbstractMaxFunction(
             model.addConstraint(sum(u) eq Flt64.one, "${name}_u")
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

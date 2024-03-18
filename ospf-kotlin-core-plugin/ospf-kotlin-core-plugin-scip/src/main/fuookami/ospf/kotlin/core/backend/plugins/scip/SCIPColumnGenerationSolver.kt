@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.framework.solver.*
 
 class SCIPColumnGenerationSolver(
-    private val config: LinearSolverConfig = LinearSolverConfig(),
+    private val config: SolverConfig = SolverConfig(),
     private val callBack: SCIPSolverCallBack = SCIPSolverCallBack()
 ) : ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
@@ -22,9 +22,10 @@ class SCIPColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean
-    ): Ret<LinearSolverOutput> {
+    ): Ret<SolverOutput> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -32,11 +33,12 @@ class SCIPColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         val solver = SCIPLinearSolver(
@@ -47,10 +49,12 @@ class SCIPColumnGenerationSolver(
         return when (val result = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(result.value)
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
@@ -62,9 +66,10 @@ class SCIPColumnGenerationSolver(
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean
-    ): Ret<Pair<LinearSolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -72,11 +77,12 @@ class SCIPColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         val results = ArrayList<Solution>()
@@ -85,7 +91,7 @@ class SCIPColumnGenerationSolver(
             callBack = callBack.copy()
                 .configuration { scip, _, _ ->
                     scip.setIntParam("heuristics/dins/solnum", min(UInt64.ten, amount).toInt())
-                    Ok(success)
+                    ok
                 }
                 .analyzingSolution { scip, variables, _ ->
                     val bestSol = scip.bestSol
@@ -106,7 +112,7 @@ class SCIPColumnGenerationSolver(
                             break
                         }
                     }
-                    Ok(success)
+                    ok
                 }
         )
 
@@ -114,10 +120,12 @@ class SCIPColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(Pair(result.value, results))
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
@@ -129,8 +137,9 @@ class SCIPColumnGenerationSolver(
         metaModel: LinearMetaModel,
         toLogModel: Boolean
     ): Ret<ColumnGenerationSolver.LPResult> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -138,12 +147,13 @@ class SCIPColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         model.linearRelax()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         var error: Error? = null
@@ -164,12 +174,14 @@ class SCIPColumnGenerationSolver(
                         when (val dualResult = dualSolutionPromises.await()) {
                             is Ok -> {
                                 metaModel.tokens.setSolution(result.value.solution)
+                                jobs.forEach { it.join() }
                                 Ok(ColumnGenerationSolver.LPResult(result.value, dualResult.value.solution))
                             }
 
                             is Failed -> {
                                 error = dualResult.error
                                 cancel()
+                                jobs.forEach { it.join() }
                                 Failed(dualResult.error)
                             }
                         }
@@ -178,6 +190,7 @@ class SCIPColumnGenerationSolver(
                     is Failed -> {
                         error = result.error
                         cancel()
+                        jobs.forEach { it.join() }
                         Failed(result.error)
                     }
                 }

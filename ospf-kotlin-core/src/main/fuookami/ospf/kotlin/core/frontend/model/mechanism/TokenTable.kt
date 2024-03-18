@@ -89,7 +89,7 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
             symbols.add(symbol)
             _symbolsMap[symbol.name] = symbol
         }
-        return Ok(success)
+        return ok
     }
 
     @JvmName("addSymbols")
@@ -103,7 +103,7 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
                 }
             }
         }
-        return Ok(success)
+        return ok
     }
 
     fun remove(symbol: Symbol<Cell, C>) {
@@ -115,6 +115,10 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
 typealias LinearAbstractTokenTable = AbstractTokenTable<LinearMonomialCell, Linear>
 typealias LinearTokenTable = TokenTable<LinearMonomialCell, Linear>
 typealias LinearMutableTokenTable = MutableTokenTable<LinearMonomialCell, Linear>
+
+typealias QuadraticAbstractTokenTable = AbstractTokenTable<QuadraticMonomialCell, Quadratic>
+typealias QuadraticTokenTable = TokenTable<QuadraticMonomialCell, Quadratic>
+typealias QuadraticMutableTokenTable = MutableTokenTable<QuadraticMonomialCell, Quadratic>
 
 class AutoAddTokenTable<Cell : MonomialCell<Cell, C>, C : Category> private constructor(
     tokenList: MutableTokenList,
@@ -146,3 +150,6 @@ class ManualAddTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
 
 typealias LinearAutoAddTokenTable = AutoAddTokenTable<LinearMonomialCell, Linear>
 typealias LinearManualAddTokenTable = ManualAddTokenTable<LinearMonomialCell, Linear>
+
+typealias QuadraticAutoAddTokenTable = AutoAddTokenTable<QuadraticMonomialCell, Quadratic>
+typealias QuadraticManualAddTokenTable = ManualAddTokenTable<QuadraticMonomialCell, Quadratic>

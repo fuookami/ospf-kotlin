@@ -31,6 +31,20 @@ class Ok<out T, out E : Error>(
 class Failed<out T, out E : Error>(
     val error: E
 ) : Result<T, E>() {
+    companion object {
+        operator fun <T> invoke(code: ErrorCode, message: String? = null): Failed<T, Error> {
+            return Failed(Err(code, message))
+        }
+
+        operator fun <T, E> invoke(code: ErrorCode, value: E): Failed<T, Error> {
+            return Failed(ExErr(code, value))
+        }
+
+        operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Failed<T, Error> {
+            return Failed(ExErr(code, message, value))
+        }
+    }
+
     override val failed = true
 
     val code by error::code
@@ -51,3 +65,6 @@ val success = Success()
 typealias Try = Result<Success, Error>
 typealias TryWith<E> = Result<Success, E>
 typealias Ret<T> = Result<T, Error>
+
+val ok = Ok<Success, Error>(success)
+fun <E: Error> ok(): Result<Success, E> = Ok(success)

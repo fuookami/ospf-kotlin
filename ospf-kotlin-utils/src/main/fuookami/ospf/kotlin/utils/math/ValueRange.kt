@@ -441,7 +441,7 @@ sealed class ValueWrapper<T>(
     }
 }
 
-class ValueRangeSerializer<T>(
+open class ValueRangeSerializer<T>(
     private val valueSerializer: ValueWrapperSerializer<T>
 ) : KSerializer<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ValueRange<T>") {
@@ -487,7 +487,12 @@ class ValueRangeSerializer<T>(
     }
 }
 
-@Serializable(with = ValueRangeSerializer::class)
+data object ValueRangeInt64Serializer: ValueRangeSerializer<Int64>(ValueWrapperSerializer<Int64>())
+data object ValueRangeUInt64Serializer: ValueRangeSerializer<UInt64>(ValueWrapperSerializer<UInt64>())
+data object ValueRangeFlt64Serializer: ValueRangeSerializer<Flt64>(ValueWrapperSerializer<Flt64>())
+
+// todo: Bound<T>
+
 data class ValueRange<T>(
     private val _lowerBound: ValueWrapper<T>,
     private val _upperBound: ValueWrapper<T>,
@@ -496,7 +501,7 @@ data class ValueRange<T>(
     private val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueRange<T>>,
     Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
-    Times<T, ValueRange<T>>, Div<T, ValueRange<T>>, Eq<ValueRange<T>>
+    Times<ValueRange<T>, ValueRange<T>>, Div<T, ValueRange<T>>, Eq<ValueRange<T>>
         where T : RealNumber<T>, T : NumberField<T> {
 
     companion object {
@@ -718,7 +723,25 @@ data class ValueRange<T>(
         constants
     )
 
-    override fun times(rhs: T) = when {
+    override fun times(rhs: ValueRange<T>): ValueRange<T> {
+        val bounds = listOf(
+            Pair(lowerBound * rhs.lowerBound, lowerInterval intersect rhs.lowerInterval),
+            Pair(lowerBound * rhs.upperBound, lowerInterval intersect rhs.upperInterval),
+            Pair(upperBound * rhs.lowerBound, upperInterval intersect rhs.lowerInterval),
+            Pair(upperBound * rhs.upperBound, upperInterval intersect rhs.upperInterval)
+        )
+        val newLowerBound = bounds.minBy { it.first }
+        val newUpperBound = bounds.maxBy { it.first }
+        return ValueRange(
+            newLowerBound.first,
+            newUpperBound.first,
+            newLowerBound.second,
+            newUpperBound.second,
+            constants
+        )
+    }
+
+    operator fun times(rhs: T) = when {
         rhs < constants.zero -> ValueRange(
             upperBound * rhs,
             lowerBound * rhs,

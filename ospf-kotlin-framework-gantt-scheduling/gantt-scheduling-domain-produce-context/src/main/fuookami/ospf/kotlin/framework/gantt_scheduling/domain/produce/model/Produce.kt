@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 interface Produce {
     val quantity: LinearSymbols1
@@ -23,7 +23,11 @@ interface Produce {
     fun register(model: LinearMetaModel): Try
 }
 
-abstract class AbstractProduce<T : ProductionTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+abstract class AbstractProduce<
+    out T : ProductionTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     val products: List<Pair<Product, ProductDemand?>>
 ) : Produce {
     override lateinit var lessQuantity: LinearSymbols1
@@ -85,11 +89,15 @@ abstract class AbstractProduce<T : ProductionTask<E, A>, E : Executor, A : Assig
             model.addSymbols(lessQuantity)
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
-class TaskSchedulingProduce<T : ProductionTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskSchedulingProduce<
+    out T : ProductionTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     products: List<Pair<Product, ProductDemand?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
@@ -101,7 +109,11 @@ class TaskSchedulingProduce<T : ProductionTask<E, A>, E : Executor, A : Assignme
     }
 }
 
-class BunchSchedulingProduce<T : ProductionTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class BunchSchedulingProduce<
+    out T : ProductionTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     products: List<Pair<Product, ProductDemand?>>
 ) : AbstractProduce<T, E, A>(products.sortedBy { it.first.index }) {
     override val overEnabled: Boolean = true
@@ -135,10 +147,15 @@ class BunchSchedulingProduce<T : ProductionTask<E, A>, E : Executor, A : Assignm
         return super.register(model)
     }
 
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
+    fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > addColumns(
         iteration: UInt64,
-        bunches: List<AbstractTaskBunch<T, E, A>>,
-        compilation: BunchCompilation<T, E, A>
+        bunches: List<B>,
+        compilation: BunchCompilation<B, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -155,6 +172,6 @@ class BunchSchedulingProduce<T : ProductionTask<E, A>, E : Executor, A : Assignm
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

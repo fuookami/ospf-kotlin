@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.6</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -332,7 +332,7 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-scheduling-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -347,7 +347,7 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-scheduling-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
