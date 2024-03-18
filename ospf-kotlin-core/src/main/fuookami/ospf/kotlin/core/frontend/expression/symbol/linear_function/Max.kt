@@ -18,7 +18,7 @@ sealed class AbstractMaxFunction(
 ) : LinearFunctionSymbol {
     private lateinit var minMax: RealVar
     private lateinit var u: BinVariable1
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    private lateinit var y: AbstractLinearPolynomial<*>
 
     override val range get() = y.range
     override val lowerBound
