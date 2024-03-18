@@ -58,7 +58,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         return Ok(unduplicatedBunches)
     }
 
-    fun removeColumns(
+    open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
         reducedCost: (AbstractTaskBunch<T, E, A>) -> Flt64,
@@ -93,15 +93,15 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         }
     }
 
-    fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<AbstractTaskBunch<T, E, A>>> {
+    open fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<AbstractTaskBunch<T, E, A>>> {
         return extractBunches(iteration, model) { it eq Flt64.one }
     }
 
-    fun extractKeptBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<AbstractTaskBunch<T, E, A>>> {
+    open fun extractKeptBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<AbstractTaskBunch<T, E, A>>> {
         return extractBunches(iteration, model) { it gr Flt64.zero }
     }
 
-    fun extractHiddenExecutors(executors: List<E>, model: LinearMetaModel): Ret<Set<E>> {
+    open fun extractHiddenExecutors(executors: List<E>, model: LinearMetaModel): Ret<Set<E>> {
         val z = compilation.z
         val ret = HashSet<E>()
         for (token in model.tokens.tokens) {
@@ -114,7 +114,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         return Ok(ret)
     }
 
-    fun globallyFix(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): Try {
+    open fun globallyFix(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): Try {
         for (bunch in fixedBunches) {
             assert(!removedBunches.contains(bunch))
             val xi = compilation.x[bunch.iteration.toInt()]
@@ -123,7 +123,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         return Ok(success)
     }
 
-    fun locallyFix(
+    open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
         fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
@@ -176,7 +176,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         return Ok(ret)
     }
 
-    fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
+    open fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
         for (token in model.tokens.tokens) {
             if (token.result!! gr Flt64.zero) {
                 logger.debug { "${token.name} = ${token.result!!}" }
@@ -190,7 +190,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         return Ok(success)
     }
 
-    fun logBunchCost(iteration: UInt64, model: LinearMetaModel): Try {
+    open fun logBunchCost(iteration: UInt64, model: LinearMetaModel): Try {
         for (token in model.tokens.tokens) {
             if ((token.result!! eq Flt64.one) && token.name.startsWith("x")) {
                 for (i in UInt64.zero..iteration) {

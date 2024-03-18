@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
