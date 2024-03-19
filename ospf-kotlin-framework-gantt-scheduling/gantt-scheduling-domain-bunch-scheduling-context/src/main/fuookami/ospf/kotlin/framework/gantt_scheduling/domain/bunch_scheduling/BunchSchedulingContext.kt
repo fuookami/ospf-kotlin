@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.s
 
 interface BunchSchedulingContext<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
     val aggregation: BunchSchedulingAggregation<T, E, A>
-    val pipelineList: GanttSchedulingCGPipelineList<Args, E, A>
+    val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
     val columnAmount get() = UInt64(aggregation.bunches.size - aggregation.removedBunches.size)
 

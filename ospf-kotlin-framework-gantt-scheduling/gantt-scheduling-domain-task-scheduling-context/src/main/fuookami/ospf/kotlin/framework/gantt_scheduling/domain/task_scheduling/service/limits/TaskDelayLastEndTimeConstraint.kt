@@ -9,16 +9,25 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-data class TaskDelayLastEndTimeShadowPriceKey<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+data class TaskDelayLastEndTimeShadowPriceKey<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     val task: T
 ) : ShadowPriceKey(TaskDelayLastEndTimeShadowPriceKey::class)
 
-class TaskDelayLastEndTimeConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskDelayLastEndTimeConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val timeWindow: TimeWindow,
     tasks: List<T>,
     private val taskTime: TaskTime,
     override val name: String = "task_delay_last_end_time"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (taskTime.delayLastEndTimeEnabled) {
         tasks.filter { !it.delayEnabled && it.lastEndTime != null }
     } else {
@@ -35,9 +44,20 @@ class TaskDelayLastEndTimeConstraint<Args : GanttSchedulingShadowPriceArguments<
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    @Suppress("UNCHECKED_CAST")
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args: Args ->
-            args.thisTask?.let { map.map[TaskDelayLastEndTimeShadowPriceKey(it)]?.price } ?: Flt64.zero
+            when (args) {
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    (args.thisTask as? T?)
+                        ?.let { map.map[TaskDelayLastEndTimeShadowPriceKey(it)]?.price }
+                        ?: Flt64.zero
+                }
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 

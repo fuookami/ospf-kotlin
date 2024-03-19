@@ -12,14 +12,19 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class TaskDelayTimeMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskDelayTimeMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val timeWindow: TimeWindow,
     tasks: List<T>,
     private val taskTime: TaskTime,
     private val threshold: Extractor<Duration?, T> = { Duration.ZERO },
     private val coefficient: Extractor<Flt64?, T> = { Flt64.one },
     override val name: String = "task_delay_time_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (taskTime.delayEnabled) {
         tasks.filter { it.delayEnabled && it.scheduledTime != null }
     } else {

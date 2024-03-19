@@ -8,13 +8,18 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class SwitchCostMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class SwitchCostMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val executors: List<E>,
     private val tasks: List<T>,
     private val switch: Switch,
     private val coefficient: Extractor<Flt64?, Triple<E, T, T>> = { Flt64.one },
     override val name: String = "switch_cost_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+)  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         val cost = MutableLinearPolynomial()
         for (executor in executors) {

@@ -138,6 +138,14 @@ abstract class StorageResource<C : ResourceCapacity>(
         for (i in bunch.tasks.indices) {
             counter -= costBy(bunch.tasks[i], time)
             counter += supplyBy(bunch.tasks[i], time)
+
+            when (val currentTime = bunch.tasks[i].time) {
+                is TimeRange -> {
+                    if (currentTime.end >= time.end) {
+                        break
+                    }
+                }
+            }
         }
         return counter
     }

@@ -10,12 +10,19 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class ResourceLessQuantityMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>, S : ResourceTimeSlot<R, C>, R : Resource<C>, C : ResourceCapacity>(
+class ResourceLessQuantityMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>,
+    S : ResourceTimeSlot<R, C>,
+    R : Resource<C>,
+    C : ResourceCapacity
+>(
     private val quantity: ResourceUsage<S, R, C>,
     private val threshold: (S) -> Flt64 = { Flt64.zero },
     private val coefficient: (S) -> Flt64 = { Flt64.one },
     override val name: String = "resource_less_capacity_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val slots = if (quantity.lessEnabled) {
         quantity.timeSlots.filter { it.resourceCapacity.lessEnabled }
     } else {

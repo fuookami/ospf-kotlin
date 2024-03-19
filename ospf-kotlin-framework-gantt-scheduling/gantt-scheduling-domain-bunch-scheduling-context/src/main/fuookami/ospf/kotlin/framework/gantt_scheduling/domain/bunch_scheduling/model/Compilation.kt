@@ -37,9 +37,9 @@ data class BunchAggregation<T : AbstractTask<E, A>, E : Executor, A : Assignment
             promises.mapNotNull { it.await() }
         }
 
-        ManualIndexed.flush<AbstractTaskBunch<T, E, A>>()
+        ManualIndexed.flush(AbstractTaskBunch::class)
         for (bunch in unduplicatedBunches) {
-            bunch.setIndexed()
+            bunch.setIndexed(AbstractTaskBunch::class)
         }
         bunchesIteration.add(unduplicatedBunches)
         bunches.addAll(unduplicatedBunches)

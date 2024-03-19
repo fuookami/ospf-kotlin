@@ -9,16 +9,25 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-data class TaskAdvanceEarliestEndTimeShadowPriceKey<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+data class TaskAdvanceEarliestEndTimeShadowPriceKey<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     val task: T
 ) : ShadowPriceKey(TaskAdvanceEarliestEndTimeShadowPriceKey::class)
 
-class TaskAdvanceEarliestEndTimeConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskAdvanceEarliestEndTimeConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val timeWindow: TimeWindow,
     tasks: List<T>,
     private val taskTime: TaskTime,
     override val name: String = "task_advance_earliest_end_time"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+)  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (taskTime.advanceEarliestEndTimeEnabled) {
         tasks.filter { !it.advanceEnabled && it.earliestEndTime != null }
     } else {
@@ -35,9 +44,20 @@ class TaskAdvanceEarliestEndTimeConstraint<Args : GanttSchedulingShadowPriceArgu
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    @Suppress("UNCHECKED_CAST")
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args: Args ->
-            args.thisTask?.let { map.map[TaskAdvanceEarliestEndTimeShadowPriceKey(it)]?.price } ?: Flt64.zero
+            when (args) {
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    (args.thisTask as? T)
+                        ?.let { map.map[TaskAdvanceEarliestEndTimeShadowPriceKey(it)]?.price }
+                        ?: Flt64.zero
+                }
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 

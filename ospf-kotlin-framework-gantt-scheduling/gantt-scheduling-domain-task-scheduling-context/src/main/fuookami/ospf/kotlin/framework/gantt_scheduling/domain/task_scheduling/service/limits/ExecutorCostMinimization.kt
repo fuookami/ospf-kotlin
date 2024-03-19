@@ -8,12 +8,16 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class ExecutorCostMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class ExecutorCostMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val executors: List<E>,
     private val compilation: Compilation,
     private val executorCostCalculator: Extractor<Flt64?, E>? = null,
     override val name: String = "executor_cost_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override operator fun invoke(model: LinearMetaModel): Try {
         executorCostCalculator?.let {
             model.minimize(

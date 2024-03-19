@@ -9,7 +9,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-data class TaskOverMaxDelayShadowPriceKey<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+data class TaskOverMaxDelayShadowPriceKey<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     val task: T
 ) : ShadowPriceKey(TaskOverMaxDelayShadowPriceKey::class)
 
@@ -18,7 +22,7 @@ class TaskOverMaxDelayTimeConstraint<Args : GanttSchedulingShadowPriceArguments<
     tasks: List<T>,
     private val taskTime: TaskTime,
     override val name: String = "task_over_max_delay_time"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (taskTime.overMaxDelayEnabled) {
         tasks.filter { !it.delayEnabled && it.maxDelay != null }
     } else {
@@ -36,9 +40,20 @@ class TaskOverMaxDelayTimeConstraint<Args : GanttSchedulingShadowPriceArguments<
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    @Suppress("UNCHECKED_CAST")
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args: Args ->
-            args.thisTask?.let { map.map[TaskOverMaxDelayShadowPriceKey(it)]?.price } ?: Flt64.zero
+            when (args) {
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    (args.thisTask as? T?)
+                        ?.let { map.map[TaskOverMaxDelayShadowPriceKey(it)]?.price }
+                        ?: Flt64.zero
+                }
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 

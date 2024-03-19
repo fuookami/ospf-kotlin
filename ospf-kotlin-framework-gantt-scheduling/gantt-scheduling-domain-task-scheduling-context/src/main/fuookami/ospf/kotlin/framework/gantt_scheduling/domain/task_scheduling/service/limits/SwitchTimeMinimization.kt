@@ -12,14 +12,19 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class SwitchTimeMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class SwitchTimeMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val timeWindow: TimeWindow,
     private val tasks: List<T>,
     private val switch: Switch,
     private val threshold: Extractor<Duration?, Pair<T, T>> = { Duration.ZERO },
     private val coefficient: Extractor<Flt64?, Pair<T, T>> = { Flt64.one },
     override val name: String = "switch_time_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+)  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         val cost = MutableLinearPolynomial()
         for (task1 in tasks) {

@@ -12,11 +12,15 @@ data class ExecutorCompilationShadowPriceKey<E : Executor>(
     val executor: E
 ) : ShadowPriceKey(ExecutorCompilationShadowPriceKey::class)
 
-class ExecutorCompilationConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class ExecutorCompilationConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val executors: List<E>,
     private val compilation: Compilation,
     override val name: String = "executor_compilation"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         for (executor in executors) {
             model.addConstraint(
@@ -28,9 +32,26 @@ class ExecutorCompilationConstraint<Args : GanttSchedulingShadowPriceArguments<E
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    @Suppress("UNCHECKED_CAST")
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args: Args ->
-            map.map[ExecutorCompilationShadowPriceKey(args.executor)]?.price ?: Flt64.zero
+            when (args) {
+                is ExecutorGanttSchedulingShadowPriceArguments<*, *> -> {
+                    (args.executor as? E)
+                        ?.let { map.map[ExecutorCompilationShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        ?: Flt64.zero
+                }
+
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    (args.thisTask?.executor as? E)
+                        ?.let { map.map[ExecutorCompilationShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        ?: Flt64.zero
+                }
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 

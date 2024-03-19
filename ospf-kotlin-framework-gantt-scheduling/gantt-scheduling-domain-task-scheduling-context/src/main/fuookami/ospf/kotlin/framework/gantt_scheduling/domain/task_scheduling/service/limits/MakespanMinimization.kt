@@ -12,13 +12,17 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class MakespanMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class MakespanMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val timeWindow: TimeWindow,
     private val makespan: Makespan<*, E, A>,
     private val threshold: Instant = timeWindow.window.start,
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override operator fun invoke(model: LinearMetaModel): Try {
         val thresholdValue = timeWindow.valueOf(threshold)
         if (thresholdValue eq Flt64.zero) {

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model
 
 import kotlin.time.*
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -185,7 +186,7 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCa
         return super.register(model)
     }
 
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
+    suspend fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
         iteration: UInt64,
         bunches: List<AbstractTaskBunch<T, E, A>>,
         compilation: BunchCompilation<T, E, A>
@@ -194,18 +195,22 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCa
 
         val xi = compilation.x[iteration.toInt()]
 
-        for (slot in timeSlots) {
-            val thisBunches = bunches.filter { bunch ->
-                bunch.tasks.any { slot.relatedTo(null, it) }
-            }
+        coroutineScope {
+            for (slot in timeSlots) {
+                launch(Dispatchers.Default) {
+                    val thisBunches = bunches.filter { bunch ->
+                        bunch.tasks.any { slot.relatedTo(null, it) }
+                    }
 
-            if (thisBunches.isNotEmpty()) {
-                quantity[slot].flush()
-                for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(
-                        bunch,
-                        TimeRange(timeWindow.start, slot.time.end)
-                    ) * xi[bunch]
+                    if (thisBunches.isNotEmpty()) {
+                        quantity[slot].flush()
+                        for (bunch in thisBunches) {
+                            quantity[slot].asMutable() += slot.resource.usedQuantity(
+                                bunch,
+                                TimeRange(timeWindow.start, slot.time.end)
+                            ) * xi[bunch]
+                        }
+                    }
                 }
             }
         }

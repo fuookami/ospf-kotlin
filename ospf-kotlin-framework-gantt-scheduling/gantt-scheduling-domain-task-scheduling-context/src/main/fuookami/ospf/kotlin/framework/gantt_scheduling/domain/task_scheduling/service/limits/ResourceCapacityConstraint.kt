@@ -13,10 +13,17 @@ data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : ResourceCapacity>
     val slot: ResourceTimeSlot<R, C>
 ) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class)
 
-class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>, S : ResourceTimeSlot<R, C>, R : StorageResource<C>, C : ResourceCapacity>(
+class ResourceCapacityConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>,
+    S : ResourceTimeSlot<R, C>,
+    R : StorageResource<C>,
+    C : ResourceCapacity
+>(
     private val usage: ResourceUsage<S, R, C>,
     override val name: String = "${usage.name}_resource_capacity"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         for (slot in usage.timeSlots) {
             if (usage.overEnabled && slot.resourceCapacity.overEnabled) {
@@ -69,12 +76,24 @@ class ResourceCapacityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    @Suppress("UNCHECKED_CAST")
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
-            args.thisTask?.let { task ->
-                val slots = usage.timeSlots.filter { it.relatedTo(args.prevTask, task) }
-                slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
-            } ?: Flt64.zero
+            when (args) {
+                is ResourceGanttSchedulingShadowPriceArguments<*, *, *, *> -> {
+                    val slots = usage.timeSlots.filter { it.resource == args.resource && it.time.withIntersection(args.time) }
+                    slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                }
+
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    val slots = usage.timeSlots.filter { it.relatedTo(args.prevTask as? AbstractTask<E, A>?, args.thisTask as? AbstractTask<E, A>?) }
+                    slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                }
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 

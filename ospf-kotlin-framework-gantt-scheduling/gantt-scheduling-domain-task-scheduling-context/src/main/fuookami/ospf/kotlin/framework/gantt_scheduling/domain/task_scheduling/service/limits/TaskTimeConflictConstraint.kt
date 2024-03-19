@@ -9,7 +9,11 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class TaskTimeConflictConstraint<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskTimeConflictConstraint<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     tasks: List<T>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,

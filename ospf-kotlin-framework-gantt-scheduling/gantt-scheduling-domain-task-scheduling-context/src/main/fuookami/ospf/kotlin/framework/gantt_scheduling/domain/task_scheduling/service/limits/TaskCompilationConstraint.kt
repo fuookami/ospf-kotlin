@@ -8,15 +8,24 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-data class TaskCompilationShadowPriceKey<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+data class TaskCompilationShadowPriceKey<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     val task: T
 ) : ShadowPriceKey(TaskCompilationShadowPriceKey::class)
 
-class TaskCompilationConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskCompilationConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val tasks: List<T>,
     private val compilation: Compilation,
     override val name: String = "task_compilation"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override operator fun invoke(model: LinearMetaModel): Try {
         for (task in tasks) {
             model.addConstraint(
@@ -28,9 +37,20 @@ class TaskCompilationConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    @Suppress("UNCHECKED_CAST")
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args: Args ->
-            args.thisTask?.let { map.map[TaskCompilationShadowPriceKey(it)]?.price } ?: Flt64.zero
+            when (args) {
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    (args.thisTask as? T?)
+                        ?.let { map.map[TaskCompilationShadowPriceKey(it)]?.price }
+                        ?: Flt64.zero
+                }
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 

@@ -2,19 +2,22 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.s
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class TaskStepConflictConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskStepConflictConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     tasks: List<AbstractTask<E, A>>,
     private val compilation: Compilation,
     override val name: String = "task_step_conflict"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val conflictTaskGroup: List<List<T>> = TODO("not implement yet")
 
     override operator fun invoke(model: LinearMetaModel): Try {
@@ -28,7 +31,7 @@ class TaskStepConflictConstraint<Args : GanttSchedulingShadowPriceArguments<E, A
         return Ok(success)
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         TODO("not implement yet")
     }
 
