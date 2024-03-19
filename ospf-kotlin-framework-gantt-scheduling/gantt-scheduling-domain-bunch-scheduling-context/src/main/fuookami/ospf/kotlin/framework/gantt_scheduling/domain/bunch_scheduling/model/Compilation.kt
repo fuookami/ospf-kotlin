@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model
 
-import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -13,59 +12,10 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-data class BunchAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
-    val bunchesIteration: MutableList<List<AbstractTaskBunch<T, E, A>>> = ArrayList(),
-    val bunches: MutableList<AbstractTaskBunch<T, E, A>> = ArrayList(),
-    val removedBunches: MutableSet<AbstractTaskBunch<T, E, A>> = HashSet()
-) {
-    val lastIterationBunches: List<AbstractTaskBunch<T, E, A>>
-        get() =
-            bunchesIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
-
-    suspend fun addColumns(newBunches: List<AbstractTaskBunch<T, E, A>>): List<AbstractTaskBunch<T, E, A>> {
-        val unduplicatedBunches = coroutineScope {
-            val promises = ArrayList<Deferred<AbstractTaskBunch<T, E, A>?>>()
-            for (bunch in newBunches) {
-                promises.add(async(Dispatchers.Default) {
-                    if (bunches.all { bunch neq it }) {
-                        bunch
-                    } else {
-                        null
-                    }
-                })
-            }
-            promises.mapNotNull { it.await() }
-        }
-
-        ManualIndexed.flush(AbstractTaskBunch::class)
-        for (bunch in unduplicatedBunches) {
-            bunch.setIndexed(AbstractTaskBunch::class)
-        }
-        bunchesIteration.add(unduplicatedBunches)
-        bunches.addAll(unduplicatedBunches)
-
-        return unduplicatedBunches
-    }
-
-    fun removeColumn(bunch: AbstractTaskBunch<T, E, A>) {
-        if (!removedBunches.contains(bunch)) {
-            removedBunches.add(bunch)
-            bunches.remove(bunch)
-        }
-    }
-
-    fun removeColumns(bunches: List<AbstractTaskBunch<T, E, A>>) {
-        for (bunch in bunches) {
-            removeColumn(bunch)
-        }
-    }
-}
-
 open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     private val tasks: List<T>,
     private val executors: List<E>,
-    private val lockCancelTasks: Set<T> = emptySet(),
-    override val withExecutorLeisure: Boolean = false
+    private val lockCancelTasks: Set<T> = emptySet()
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -76,15 +26,13 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
         }
         if (!tasks.all { it.indexed }) {
             ManualIndexed.flush(AbstractTask::class)
-            for (task in tasks) {
-                when (task) {
-                    is AbstractPlannedTask<*, *> -> task.setIndexed(AbstractTask::class)
-                    is AbstractUnplannedTask<*, *> -> task.setIndexed(AbstractTask::class)
-                }
+            for (task in tasks.filterIsInstance<ManualIndexed>()) {
+                task.setIndexed(AbstractTask::class)
             }
         }
     }
 
+    override val withExecutorLeisure: Boolean = true
     override val taskCancelEnabled: Boolean = true
 
     internal val aggregation = BunchAggregation<T, E, A>()
@@ -94,7 +42,7 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
     val lastIterationBunches: List<AbstractTaskBunch<T, E, A>> by aggregation::lastIterationBunches
 
     private val _x = ArrayList<BinVariable1>()
-    val x: List<BinVariable1> get() = _x
+    val x: List<BinVariable1> by ::_x
 
     override lateinit var y: BinVariable1
     override lateinit var z: BinVariable1
@@ -111,7 +59,7 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
                 y[task].name = "${y.name}_${task}"
 
                 if (lockCancelTasks.contains(task)) {
-                    y[task].range.eq(UInt8.one)
+                    y[task].range.eq(true)
                 }
             }
         }
@@ -143,12 +91,10 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
         }
         model.addSymbols(taskCompilation)
 
-        if (withExecutorLeisure) {
-            if (!::z.isInitialized) {
-                z = BinVariable1("z", Shape1(executors.size))
-            }
-            model.addVars(z)
+        if (!::z.isInitialized) {
+            z = BinVariable1("z", Shape1(executors.size))
         }
+        model.addVars(z)
 
         if (!::executorCompilation.isInitialized) {
             executorCompilation = flatMap(

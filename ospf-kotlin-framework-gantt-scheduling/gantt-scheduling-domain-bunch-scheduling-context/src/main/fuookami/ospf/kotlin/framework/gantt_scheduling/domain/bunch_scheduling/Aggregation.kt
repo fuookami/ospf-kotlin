@@ -15,13 +15,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     tasks: List<T>,
     executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet(),
-    withExecutorLeisure: Boolean = false
+    lockCancelTasks: Set<T> = emptySet()
 ) {
     private val logger = logger()
 
     val compilation: BunchCompilation<T, E, A> =
-        BunchCompilation(tasks, executors, lockCancelTasks, withExecutorLeisure)
+        BunchCompilation(tasks, executors, lockCancelTasks)
 
     val bunchesIteration: List<List<AbstractTaskBunch<T, E, A>>> by compilation::bunchesIteration
     val bunches: List<AbstractTaskBunch<T, E, A>> by compilation::bunches
@@ -265,19 +264,17 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
 open class BunchSchedulingAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     tasks: List<T>,
     executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet(),
-    withExecutorLeisure: Boolean = false
-) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure)
+    lockCancelTasks: Set<T> = emptySet()
+) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks)
 
 open class BunchCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     timeWindow: TimeWindow,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
-    withExecutorLeisure: Boolean = false,
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure) {
+) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks) {
     val taskTime: BunchSchedulingTaskTime<T, E, A> =
         BunchSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
     val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)

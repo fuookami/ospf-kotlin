@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -8,15 +9,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
+import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-/**
- * TODO
- *
- * @property y      task canceled
- * @property z      executor leisure
- */
 interface Compilation {
     val taskCancelEnabled: Boolean
     val withExecutorLeisure: Boolean
@@ -157,5 +153,142 @@ class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy
         model.addSymbols(executorCompilation)
 
         return Ok(success)
+    }
+}
+
+class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
+    private val originTasks: List<AbstractTask<E, A>>,
+    private val executors: List<E>,
+    private val lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+) : Compilation {
+    init {
+        if (!executors.all { it.indexed }) {
+            ManualIndexed.flush(Executor::class)
+            for (executor in executors) {
+                executor.setIndexed(Executor::class)
+            }
+        }
+        if (!originTasks.all { it.indexed }) {
+            ManualIndexed.flush(AbstractTask::class)
+            for (task in originTasks.filterIsInstance<ManualIndexed>()) {
+                task.setIndexed(AbstractTask::class)
+            }
+        }
+    }
+
+    override val withExecutorLeisure: Boolean = true
+    override val taskCancelEnabled: Boolean = true
+
+    internal val aggregation = TaskAggregation<E, A>()
+    val tasksIteration: List<List<AbstractTask<E, A>>> by aggregation::tasksIteration
+    val tasks: List<AbstractTask<E, A>> by aggregation::tasks
+    val removedTasks: Set<AbstractTask<E, A>> by aggregation::removedTasks
+    val lastIterationTasks: List<AbstractTask<E, A>> by aggregation::lastIterationTasks
+
+    private val _x = ArrayList<BinVariable1>()
+    val x: List<BinVariable1> by ::_x
+
+    override lateinit var y: BinVariable1
+    override lateinit var z: BinVariable1
+
+    lateinit var taskCost: LinearExpressionSymbol
+    override lateinit var taskAssignment: LinearExpressionSymbols2
+    override lateinit var taskCompilation: LinearExpressionSymbols1
+    override lateinit var executorCompilation: LinearExpressionSymbols1
+
+    override fun register(model: LinearMetaModel): Try {
+        if (!::y.isInitialized) {
+            y = BinVariable1("y", Shape1(tasks.size))
+            for (task in tasks) {
+                y[task].name = "${y.name}_${task}"
+
+                if (lockCancelTasks.contains(task)) {
+                    y[task].range.eq(true)
+                }
+            }
+        }
+        model.addVars(y)
+
+        if (!::taskCost.isInitialized) {
+            taskCost = LinearExpressionSymbol(LinearPolynomial(), "bunch_cost")
+        }
+        model.addSymbol(taskCost)
+
+        if (!::taskAssignment.isInitialized) {
+            taskAssignment = flatMap(
+                "task_compilation",
+                tasks,
+                executors,
+                { _, _ -> LinearPolynomial() },
+                { (_, t), (_, e) -> "${t}_$e" }
+            )
+        }
+        model.addSymbols(taskAssignment)
+
+        if (!::taskCompilation.isInitialized) {
+            taskCompilation = flatMap(
+                "task_compilation",
+                tasks,
+                { t -> LinearPolynomial(y[t]) },
+                { (_, t) -> "$t" }
+            )
+        }
+        model.addSymbols(taskCompilation)
+
+        if (!::z.isInitialized) {
+            z = BinVariable1("z", Shape1(executors.size))
+        }
+        model.addVars(z)
+
+        if (!::executorCompilation.isInitialized) {
+            executorCompilation = flatMap(
+                "executor_compilation",
+                executors,
+                { e ->
+                    if (withExecutorLeisure) {
+                        LinearPolynomial(z[e])
+                    } else {
+                        LinearPolynomial()
+                    }
+                },
+                { e -> "$e" }
+            )
+        }
+        model.addSymbols(executorCompilation)
+
+        return Ok(success)
+    }
+
+    open suspend fun addColumns(
+        iteration: UInt64,
+        newTasks: List<AbstractTask<E, A>>,
+        model: LinearMetaModel,
+        cost: (AbstractTask<E, A>) -> Cost
+    ): Ret<List<AbstractTask<E, A>>> {
+        val unduplicatedTasks = aggregation.addColumns(newTasks)
+
+        val xi = BinVariable1("x_$iteration", Shape1(unduplicatedTasks.size))
+        for (task in unduplicatedTasks) {
+            xi[task].name = "${xi.name}_${task.index}_${task.executor}"
+        }
+        model.addVars(xi)
+        _x.add(xi)
+
+        taskCost.flush()
+        for (task in unduplicatedTasks) {
+            taskCost.asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task]
+        }
+
+        // todo
+
+        for (task in unduplicatedTasks) {
+            model.addConstraint(
+                z[task.executor!!] geq xi[task],
+                "zx_${iteration}_${task.index}_${task.executor}"
+
+            )
+        }
+
+        return Ok(unduplicatedTasks)
     }
 }
