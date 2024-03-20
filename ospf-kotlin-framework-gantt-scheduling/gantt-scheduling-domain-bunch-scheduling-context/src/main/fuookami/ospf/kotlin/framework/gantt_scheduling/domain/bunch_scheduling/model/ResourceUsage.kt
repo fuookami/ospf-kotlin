@@ -172,10 +172,10 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCa
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.toFlt64() - (slot.resourceCapacity.lessQuantity
-                                ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.toFlt64() + (slot.resourceCapacity.overQuantity
-                                ?: Flt64.zero)
+                            slot.resourceCapacity.quantity.lowerBound.toFlt64() -
+                                    (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.toFlt64() +
+                                    (slot.resourceCapacity.overQuantity ?: Flt64.zero)
                         )
                     )
                 }
@@ -198,17 +198,22 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCa
         coroutineScope {
             for (slot in timeSlots) {
                 launch(Dispatchers.Default) {
-                    val thisBunches = bunches.filter { bunch ->
-                        bunch.tasks.any { slot.relatedTo(null, it) }
+                    val thisBunches = bunches.mapNotNull { bunch ->
+                        val usedQuantity = slot.resource.usedQuantity(
+                            bunch,
+                            TimeRange(timeWindow.start, slot.time.end)
+                        )
+                        if (usedQuantity != Flt64.zero) {
+                            Pair(bunch, usedQuantity)
+                        } else {
+                            null
+                        }
                     }
 
                     if (thisBunches.isNotEmpty()) {
                         quantity[slot].flush()
                         for (bunch in thisBunches) {
-                            quantity[slot].asMutable() += slot.resource.usedQuantity(
-                                bunch,
-                                TimeRange(timeWindow.start, slot.time.end)
-                            ) * xi[bunch]
+                            quantity[slot].asMutable() += bunch.second * xi[bunch.first]
                         }
                     }
                 }

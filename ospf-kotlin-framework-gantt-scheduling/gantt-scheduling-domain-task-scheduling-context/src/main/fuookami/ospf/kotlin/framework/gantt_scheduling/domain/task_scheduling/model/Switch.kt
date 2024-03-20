@@ -19,11 +19,11 @@ interface Switch {
     fun register(model: LinearMetaModel): Try
 }
 
-class TaskSchedulingSwitch<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskSchedulingSwitch<E : Executor, A : AssignmentPolicy<E>>(
     private val timeWindow: TimeWindow,
-    private val tasks: List<T>,
+    private val tasks: List<AbstractTask<E, A>>,
     private val executors: List<E>,
-    private val compilation: TaskCompilation<T, E, A>,
+    private val compilation: TaskCompilation<E, A>,
     private val taskTime: TaskTime? = null
 ) : Switch {
     private lateinit var frontOf: LinearSymbols2

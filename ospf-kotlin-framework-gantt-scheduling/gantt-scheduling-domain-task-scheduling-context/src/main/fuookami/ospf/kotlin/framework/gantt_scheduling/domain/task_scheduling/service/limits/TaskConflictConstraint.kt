@@ -9,32 +9,27 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class TaskTimeConflictConstraint<
+class TaskConflictConstraint<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    tasks: List<AbstractTask<E, A>>,
+    private val tasks: List<AbstractTask<E, A>>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<E, A>,
-    override val name: String = "task_time_conflict"
+    private val conflict: (AbstractTask<E, A>, AbstractTask<E, A>) -> Boolean,
+    override val name: String = "task_conflict"
 ) : Pipeline<LinearMetaModel> {
-    val tasks = tasks
-        .filter { it.time != null && !it.advanceEnabled && !it.delayEnabled }
-        .sortedBy { it.time!!.start }
-
     override operator fun invoke(model: LinearMetaModel): Try {
         val x = compilation.x
 
         for (executor in executors) {
             for (i in 0 until (tasks.size - 1)) {
                 for (j in (i + 1) until tasks.size) {
-                    if (tasks[i].time!!.withIntersection(tasks[j].time!!)) {
+                    if (conflict(tasks[i], tasks[j])) {
                         model.addConstraint(
                             (x[tasks[i], executor] + x[tasks[j], executor]) leq Flt64.one,
                             "${name}_${tasks[i]}_${tasks[j]}"
                         )
-                    } else {
-                        continue
                     }
                 }
             }

@@ -17,12 +17,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_selection.model.*
 
 class BranchAndPriceAlgorithm<
-        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        Args : GanttSchedulingShadowPriceArguments<E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-        >(
+    Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val executors: List<E>,
     private val tasks: List<T>,
     private val initialBunches: List<AbstractTaskBunch<T, E, A>>,
@@ -31,12 +31,12 @@ class BranchAndPriceAlgorithm<
     private val configuration: Configuration
 ) {
     data class Policy<
-            Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-            Args : GanttSchedulingShadowPriceArguments<E, A>,
-            T : AbstractTask<E, A>,
-            E : Executor,
-            A : AssignmentPolicy<E>
-            >(
+        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        Args : GanttSchedulingShadowPriceArguments<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    >(
         val contextBuilder: () -> BunchSchedulingContext<Args, T, E, A>,
         val extractContextBuilder: List<(BunchSchedulingContext<Args, T, E, A>) -> List<ExtractBunchSchedulingContext<Args, T, E, A>>>,
         val shadowPriceMap: () -> Map,

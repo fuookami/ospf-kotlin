@@ -277,7 +277,7 @@ open class BunchCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Execu
 ) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks) {
     val taskTime: BunchSchedulingTaskTime<T, E, A> =
         BunchSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
-    val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
+    val makespan: Makespan<E, A> = Makespan(tasks, taskTime, makespanExtra)
 
     private val logger = logger()
 

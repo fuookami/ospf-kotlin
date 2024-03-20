@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model
 
 import kotlin.time.*
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
@@ -320,5 +322,84 @@ class TaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCap
 
     override fun register(model: LinearMetaModel): Try {
         TODO("NOT IMPLEMENT YET")
+    }
+}
+
+class IterativeTaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
+    timeWindow: TimeWindow,
+    resources: List<R>,
+    interval: Duration = timeWindow.interval,
+    override val name: String
+) : AbstractStorageResourceUsage<R, C>(timeWindow, resources, interval) {
+    override val overEnabled: Boolean = true
+    override val lessEnabled: Boolean = true
+
+    override lateinit var quantity: LinearExpressionSymbols1
+
+    override fun register(model: LinearMetaModel): Try {
+        if (timeSlots.isNotEmpty()) {
+            if (!::quantity.isInitialized) {
+                quantity = flatMap(
+                    "${name}_quantity",
+                    timeSlots,
+                    { s ->
+                        val time = TimeRange(timeWindow.start, s.time.end)
+                        val fixedSupply = s.resource.fixedSupplyIn(time)
+                        val fixedCost = s.resource.fixedCostIn(time)
+                        LinearPolynomial(s.resource.initialQuantity + fixedSupply - fixedCost)
+                    },
+                    { (_, s) -> "$s" }
+                )
+                for (slot in timeSlots) {
+                    quantity[slot].range.set(
+                        ValueRange(
+                            slot.resourceCapacity.quantity.lowerBound.toFlt64() -
+                                    (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.toFlt64() +
+                                    (slot.resourceCapacity.overQuantity ?: Flt64.zero)
+                        )
+                    )
+                }
+            }
+        }
+
+        return super.register(model)
+    }
+
+    suspend fun <E : Executor, A : AssignmentPolicy<E>> addColumns(
+        iteration: UInt64,
+        tasks: List<AbstractTask<E, A>>,
+        compilation: IterativeTaskCompilation<E, A>
+    ): Try {
+        assert(tasks.isNotEmpty())
+
+        val xi = compilation.x[iteration.toInt()]
+
+        coroutineScope {
+            for (slot in timeSlots) {
+                launch {
+                    val thisTasks = tasks.mapNotNull {
+                        val usedQuantity = slot.resource.usedQuantity(
+                            it,
+                            TimeRange(timeWindow.start, slot.time.end)
+                        )
+                        if (usedQuantity != Flt64.zero) {
+                            Pair(it, usedQuantity)
+                        } else {
+                            null
+                        }
+                    }
+
+                    if (thisTasks.isNotEmpty()) {
+                        quantity[slot].flush()
+                        for (task in thisTasks) {
+                            quantity[slot].asMutable() += task.second * xi[task.first]
+                        }
+                    }
+                }
+            }
+        }
+
+        return Ok(success)
     }
 }

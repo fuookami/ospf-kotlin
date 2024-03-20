@@ -18,7 +18,7 @@ class BunchSolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : Assignment
         val canceledTask = ArrayList<T>()
         for (token in model.tokens.tokens) {
             for ((i, xi) in compilation.x.withIndex()) {
-                if (UInt64(i.toULong()) >= iteration) {
+                if (UInt64(i.toULong()) > iteration) {
                     break
                 }
 

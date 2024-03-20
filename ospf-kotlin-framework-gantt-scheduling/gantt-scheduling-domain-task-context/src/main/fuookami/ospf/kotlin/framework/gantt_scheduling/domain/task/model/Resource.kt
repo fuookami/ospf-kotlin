@@ -128,17 +128,20 @@ abstract class StorageResource<C : ResourceCapacity>(
         return this.supplyBy(task, intersectionTime.duration)
     }
 
+    fun <E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+        task: AbstractTask<E, A>,
+        time: TimeRange
+    ): Flt64 {
+        return supplyBy(task, time) - costBy(task, time)
+    }
+
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A>,
         time: TimeRange
     ): Flt64 {
-        var counter = Flt64.zero
-        counter -= fixedCostIn(time)
-        counter += fixedSupplyIn(time)
+        var sum = Flt64.zero
         for (i in bunch.tasks.indices) {
-            counter -= costBy(bunch.tasks[i], time)
-            counter += supplyBy(bunch.tasks[i], time)
-
+            sum += usedQuantity(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
                 is TimeRange -> {
                     if (currentTime.end >= time.end) {
@@ -147,6 +150,6 @@ abstract class StorageResource<C : ResourceCapacity>(
                 }
             }
         }
-        return counter
+        return sum
     }
 }

@@ -38,7 +38,6 @@ data class TimeWindow(
             )
         }
     }
-
     fun valueOf(duration: Duration) = if (continues) {
         Flt64(duration.toDouble(durationUnit))
     } else {
@@ -67,6 +66,20 @@ data class TimeWindow(
     val start: Instant by window::start
     val end: Instant by window::end
     val duration: Duration by window::duration
+
+    val timeSlots: List<TimeRange> by lazy {
+        val timeSlots = ArrayList<TimeRange>()
+        var current = this.start
+        while (current != end) {
+            val duration = min(end - current, interval)
+            timeSlots.add(TimeRange(
+                start = current,
+                end = current + duration
+            ))
+            current += duration
+        }
+        timeSlots
+    }
 
     fun withIntersection(ano: TimeRange): Boolean {
         return window.withIntersection(ano)

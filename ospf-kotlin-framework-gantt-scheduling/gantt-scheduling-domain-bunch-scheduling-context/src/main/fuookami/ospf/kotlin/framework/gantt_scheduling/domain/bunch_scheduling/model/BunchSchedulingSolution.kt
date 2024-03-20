@@ -7,7 +7,9 @@ data class BunchSolution<T : AbstractTask<E, A>, E : Executor, A : AssignmentPol
     val canceledTasks: List<T>
 )
 
-fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> Solution.Companion.invoke(bunchSolution: BunchSolution<T, E, A>): Solution<T, E, A> {
+fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> Solution.Companion.invoke(
+    bunchSolution: BunchSolution<T, E, A>
+): Solution<E, A> {
     val assignedTasks = ArrayList<T>()
     for (bunch in bunchSolution.bunches) {
         for (task in bunch.tasks) {

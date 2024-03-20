@@ -27,10 +27,10 @@ interface Compilation {
     fun register(model: LinearMetaModel): Try
 }
 
-class TaskCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
-    private val tasks: List<T>,
+class TaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
+    private val tasks: List<AbstractTask<E, A>>,
     private val executors: List<E>,
-    private val lockCancelTasks: Set<T> = emptySet(),
+    private val lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
     override val taskCancelEnabled: Boolean = false,
     override val withExecutorLeisure: Boolean = false
 ) : Compilation {
@@ -263,7 +263,8 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
         iteration: UInt64,
         newTasks: List<AbstractTask<E, A>>,
         model: LinearMetaModel,
-        cost: (AbstractTask<E, A>) -> Cost
+        cost: (AbstractTask<E, A>) -> Cost,
+        conflict: (AbstractTask<E, A>, AbstractTask<E, A>) -> Boolean
     ): Ret<List<AbstractTask<E, A>>> {
         val unduplicatedTasks = aggregation.addColumns(newTasks)
 
@@ -279,7 +280,25 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
             taskCost.asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task]
         }
 
-        // todo
+        for (originTask in originTasks) {
+            for (executor in executors) {
+                val thisTasks = unduplicatedTasks.filter { it.key == originTask.key && it.executor == executor }
+                if (thisTasks.isNotEmpty()) {
+                    val assign = taskAssignment[originTask, executor]
+                    assign.flush()
+                    assign.asMutable() += sum(thisTasks.map { xi[it] })
+                }
+            }
+        }
+
+        for (originTask in originTasks) {
+            val thisTasks = unduplicatedTasks.filter { it.key == originTask.key }
+            if (thisTasks.isNotEmpty()) {
+                val compilation = taskCompilation[originTask]
+                compilation.flush()
+                compilation.asMutable() += sum(thisTasks.map { xi[it] })
+            }
+        }
 
         for (task in unduplicatedTasks) {
             model.addConstraint(
@@ -287,6 +306,19 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
                 "zx_${iteration}_${task.index}_${task.executor}"
 
             )
+        }
+
+        for (task1 in unduplicatedTasks) {
+            for ((otherIteration, otherTasks) in tasksIteration.withIndex()) {
+                for (task2 in otherTasks) {
+                    if (task1 != task2 && conflict(task1, task2)) {
+                        model.addConstraint(
+                            xi[task1] + x[otherIteration][task2] leq Flt64.one,
+                            "task_conflict_${task1}_${otherIteration}_${task2}"
+                        )
+                    }
+                }
+            }
         }
 
         return Ok(unduplicatedTasks)

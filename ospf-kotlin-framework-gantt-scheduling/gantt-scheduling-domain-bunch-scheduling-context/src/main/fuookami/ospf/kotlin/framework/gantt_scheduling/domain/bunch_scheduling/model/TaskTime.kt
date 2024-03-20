@@ -19,7 +19,7 @@ open class BunchSchedulingTaskTime<T : AbstractTask<E, A>, E : Executor, A : Ass
     tasks: List<T>,
     override val compilation: BunchCompilation<T, E, A>,
     private val redundancyRange: Duration? = null,
-) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
+) : TaskTimeImpl<E, A>(timeWindow, tasks) {
     override val delayEnabled: Boolean = true
     override val overMaxDelayEnabled: Boolean = true
     override val advanceEnabled: Boolean = true

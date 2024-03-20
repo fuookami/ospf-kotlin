@@ -18,7 +18,7 @@ class MakespanMinimization<
     A : AssignmentPolicy<E>
 >(
     private val timeWindow: TimeWindow,
-    private val makespan: Makespan<*, E, A>,
+    private val makespan: Makespan<E, A>,
     private val threshold: Instant = timeWindow.window.start,
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_minimization"

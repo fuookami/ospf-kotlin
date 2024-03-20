@@ -7,20 +7,20 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-open class TaskCompilationAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+abstract class AbstractTaskSchedulingAggregation<E : Executor, A : AssignmentPolicy<E>>(
     timeWindow: TimeWindow,
-    tasks: List<T>,
+    tasks: List<AbstractTask<E, A>>,
     executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet(),
+    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
 ) {
-    val compilation: TaskCompilation<T, E, A> =
+    val compilation: TaskCompilation<E, A> =
         TaskCompilation(tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
-    val switch: TaskSchedulingSwitch<T, E, A> =
+    val switch: TaskSchedulingSwitch<E, A> =
         TaskSchedulingSwitch(timeWindow, tasks, executors, compilation)
 
-    fun register(model: LinearMetaModel): Try {
+    open fun register(model: LinearMetaModel): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
 
@@ -41,12 +41,21 @@ open class TaskCompilationAggregation<T : AbstractTask<E, A>, E : Executor, A : 
     }
 }
 
-open class TaskCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+open class TaskCompilationAggregation<E : Executor, A : AssignmentPolicy<E>>(
     timeWindow: TimeWindow,
-    tasks: List<T>,
+    tasks: List<AbstractTask<E, A>>,
     executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet(),
-    estimateEndTimeCalculator: (T, LinearPolynomial) -> LinearPolynomial,
+    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    taskCancelEnabled: Boolean = false,
+    withExecutorLeisure: Boolean = false,
+): AbstractTaskSchedulingAggregation<E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
+
+open class TaskCompilationAggregationWithTime<E : Executor, A : AssignmentPolicy<E>>(
+    timeWindow: TimeWindow,
+    tasks: List<AbstractTask<E, A>>,
+    executors: List<E>,
+    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    estimateEndTimeCalculator: (AbstractTask<E, A>, LinearPolynomial) -> LinearPolynomial,
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
     delayEnabled: Boolean = false,
@@ -56,10 +65,8 @@ open class TaskCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Execut
     delayLastEndTimeEnabled: Boolean = false,
     advanceEarliestEndTimeEnabled: Boolean = false,
     makespanExtra: Boolean = false
-) {
-    val compilation: TaskCompilation<T, E, A> =
-        TaskCompilation(tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
-    val taskTime: TaskSchedulingTaskTime<T, E, A> =
+): AbstractTaskSchedulingAggregation<E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure) {
+    val taskTime: TaskSchedulingTaskTime<E, A> =
         TaskSchedulingTaskTime(
             timeWindow,
             tasks,
@@ -72,13 +79,11 @@ open class TaskCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Execut
             delayLastEndTimeEnabled,
             advanceEarliestEndTimeEnabled
         )
-    val makespan: Makespan<T, E, A> =
+    val makespan: Makespan<E, A> =
         Makespan(tasks, taskTime, makespanExtra)
-    val switch: TaskSchedulingSwitch<T, E, A> =
-        TaskSchedulingSwitch(timeWindow, tasks, executors, compilation, taskTime)
 
-    fun register(model: LinearMetaModel): Try {
-        when (val result = compilation.register(model)) {
+    override fun register(model: LinearMetaModel): Try {
+        when (val result = super.register(model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -95,14 +100,6 @@ open class TaskCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Execut
         }
 
         when (val result = makespan.register(model)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = switch.register(model)) {
             is Ok -> {}
 
             is Failed -> {

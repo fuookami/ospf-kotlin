@@ -13,7 +13,7 @@ class TaskSolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentP
         bunches: List<List<AbstractTaskBunch<T, E, A>>>,
         compilation: BunchCompilation<T, E, A>,
         model: LinearMetaModel
-    ): Ret<Solution<T, E, A>> {
+    ): Ret<Solution<E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTask = ArrayList<T>()
         for (token in model.tokens.tokens) {

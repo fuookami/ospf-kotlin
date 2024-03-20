@@ -138,7 +138,7 @@ interface BunchSchedulingContext<Args : GanttSchedulingShadowPriceArguments<E, A
         iteration: UInt64,
         tasks: List<T>,
         model: LinearMetaModel
-    ): Ret<Solution<T, E, A>> {
+    ): Ret<Solution<E, A>> {
         val analyzer = TaskSolutionAnalyzer<T, E, A>()
         return analyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
     }

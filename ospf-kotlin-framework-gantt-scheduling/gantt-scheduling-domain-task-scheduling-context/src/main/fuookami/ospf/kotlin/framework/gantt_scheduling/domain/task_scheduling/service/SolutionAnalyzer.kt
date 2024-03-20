@@ -10,19 +10,18 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.mo
 
 private typealias AssignedPolicyGenerator<A, E> = (time: TimeRange?, executor: E?) -> A?
 
-class SolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
-    @Suppress("UNCHECKED_CAST")
+class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
     operator fun invoke(
         timeWindow: TimeWindow,
-        tasks: List<T>,
+        tasks: List<AbstractTask<E, A>>,
         executors: List<E>,
-        compilation: TaskCompilation<T, E, A>,
-        taskTime: TaskSchedulingTaskTime<T, E, A>,
+        compilation: TaskCompilation<E, A>,
+        taskTime: TaskSchedulingTaskTime<E, A>,
         results: List<Flt64>,
         model: LinearMetaModel,
         assignedPolicyGenerator: AssignedPolicyGenerator<A, E>
-    ): Ret<Solution<T, E, A>> {
-        val assignedExecutor = HashMap<T, E>()
+    ): Ret<Solution<E, A>> {
+        val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (token in model.tokens.tokens) {
             if (token.belongsTo(compilation.x) && token.result?.let { it eq Flt64.one } == true) {
                 val task = token.variable.vectorView[0]
@@ -31,7 +30,7 @@ class SolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolic
             }
         }
 
-        val assignedEST = HashMap<T, Instant>()
+        val assignedEST = HashMap<AbstractTask<E, A>, Instant>()
         for (token in model.tokens.tokens) {
             if (token.belongsTo(taskTime.est)) {
                 val task = token.variable.vectorView[0]
@@ -52,11 +51,20 @@ class SolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolic
             }
         }.toMap()
 
-        val assignedTasks = ArrayList<T>()
-        val canceledTasks = ArrayList<T>()
+        val assignedTasks = ArrayList<AbstractTask<E, A>>()
+        val canceledTasks = ArrayList<AbstractTask<E, A>>()
         for (task in tasks) {
-            val assignedTask = assignedPolicyGenerator(assignedTime[task], assignedExecutor[task])
-                ?.let { task.assign(it) as T? }
+            val assignedTask = assignedPolicyGenerator(assignedTime[task], assignedExecutor[task])?.let {
+                    when (val result = task.assign(it)) {
+                        is Ok -> {
+                            result.value
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                }
             if (assignedTask != null) {
                 assignedTasks.add(assignedTask)
             } else {
