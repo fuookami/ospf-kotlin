@@ -15,7 +15,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.mo
 open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     private val tasks: List<T>,
     private val executors: List<E>,
-    private val lockCancelTasks: Set<T> = emptySet()
+    private val lockCancelTasks: Set<T> = emptySet(),
+    override val withExecutorLeisure: Boolean = true
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -32,7 +33,6 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
         }
     }
 
-    override val withExecutorLeisure: Boolean = true
     override val taskCancelEnabled: Boolean = true
 
     internal val aggregation = BunchAggregation<T, E, A>()
@@ -91,10 +91,12 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
         }
         model.addSymbols(taskCompilation)
 
-        if (!::z.isInitialized) {
-            z = BinVariable1("z", Shape1(executors.size))
+        if (withExecutorLeisure) {
+            if (!::z.isInitialized) {
+                z = BinVariable1("z", Shape1(executors.size))
+            }
+            model.addVars(z)
         }
-        model.addVars(z)
 
         if (!::executorCompilation.isInitialized) {
             executorCompilation = flatMap(

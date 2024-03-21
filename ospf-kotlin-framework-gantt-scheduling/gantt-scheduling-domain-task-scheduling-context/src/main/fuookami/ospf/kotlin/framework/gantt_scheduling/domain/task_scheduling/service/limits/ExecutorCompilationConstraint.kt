@@ -23,10 +23,17 @@ class ExecutorCompilationConstraint<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {
         for (executor in executors) {
-            model.addConstraint(
-                compilation.executorCompilation[executor] eq UInt64.one,
-                "${name}_$executor"
-            )
+            if (compilation.withExecutorLeisure) {
+                model.addConstraint(
+                    compilation.executorCompilation[executor] eq UInt64.one,
+                    "${name}_$executor"
+                )
+            } else {
+                model.addConstraint(
+                    compilation.executorCompilation[executor] leq UInt64.one,
+                    "${name}_$executor"
+                )
+            }
         }
 
         return Ok(success)

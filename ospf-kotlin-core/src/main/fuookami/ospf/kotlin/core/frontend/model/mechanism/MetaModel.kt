@@ -182,8 +182,10 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
     }
 
     fun flush(force: Boolean = false) {
-        for (token in tokens.tokens) {
-            token._result = null
+        if (force) {
+            for (token in tokens.tokens) {
+                token._result = null
+            }
         }
         for (symbol in tokens.symbols) {
             symbol.flush(force)

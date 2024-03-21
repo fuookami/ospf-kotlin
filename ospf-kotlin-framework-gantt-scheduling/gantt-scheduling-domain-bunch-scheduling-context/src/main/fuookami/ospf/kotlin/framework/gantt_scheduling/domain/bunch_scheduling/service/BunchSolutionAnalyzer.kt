@@ -15,7 +15,7 @@ class BunchSolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : Assignment
         model: LinearMetaModel
     ): Ret<BunchSolution<T, E, A>> {
         val assignedBunches = ArrayList<AbstractTaskBunch<T, E, A>>()
-        val canceledTask = ArrayList<T>()
+        val canceledTasks = ArrayList<T>()
         for (token in model.tokens.tokens) {
             for ((i, xi) in compilation.x.withIndex()) {
                 if (UInt64(i.toULong()) > iteration) {
@@ -29,10 +29,10 @@ class BunchSolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : Assignment
             }
 
             if (token.belongsTo(compilation.y) && token.result?.let { it eq Flt64.one } == true) {
-                canceledTask.add(tasks[token.variable.vectorView[0]])
+                canceledTasks.add(tasks[token.variable.vectorView[0]])
             }
         }
 
-        return Ok(BunchSolution(assignedBunches, canceledTask))
+        return Ok(BunchSolution(assignedBunches, canceledTasks))
     }
 }

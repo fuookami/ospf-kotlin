@@ -182,7 +182,7 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
     internal val aggregation = TaskAggregation<E, A>()
     val tasksIteration: List<List<AbstractTask<E, A>>> by aggregation::tasksIteration
     val tasks: List<AbstractTask<E, A>> by aggregation::tasks
-    val removedTasks: Set<AbstractTask<E, A>> by aggregation::removedTasks
+    val removedTasks: Map<AbstractTask<E, A>, UInt64> by aggregation::removedTasks
     val lastIterationTasks: List<AbstractTask<E, A>> by aggregation::lastIterationTasks
 
     private val _x = ArrayList<BinVariable1>()

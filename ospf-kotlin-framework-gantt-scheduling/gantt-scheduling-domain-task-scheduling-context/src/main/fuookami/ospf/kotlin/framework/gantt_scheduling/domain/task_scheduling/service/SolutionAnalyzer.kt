@@ -8,9 +8,47 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-private typealias AssignedPolicyGenerator<A, E> = (time: TimeRange?, executor: E?) -> A?
-
 class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
+    operator fun invoke(
+        tasks: List<AbstractTask<E, A>>,
+        executors: List<E>,
+        compilation: TaskCompilation<E, A>,
+        model: LinearMetaModel,
+        assignedPolicyGenerator: (executor: E?) -> A?
+    ): Ret<Solution<E, A>> {
+        val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
+        for (token in model.tokens.tokens) {
+            if (token.belongsTo(compilation.x) && token.result?.let { it eq Flt64.one } == true) {
+                val task = token.variable.vectorView[0]
+                val executor = token.variable.vectorView[1]
+                assignedExecutor[tasks.find { it.index == task }!!] = executors.find { it.index == executor }!!
+            }
+        }
+
+        val assignedTasks = ArrayList<AbstractTask<E, A>>()
+        val canceledTasks = ArrayList<AbstractTask<E, A>>()
+        for (task in tasks) {
+            val assignedTask = assignedPolicyGenerator(assignedExecutor[task])?.let {
+                when (val result = task.assign(it)) {
+                    is Ok -> {
+                        result.value
+                    }
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+            if (assignedTask != null) {
+                assignedTasks.add(assignedTask)
+            } else {
+                canceledTasks.add(task)
+            }
+        }
+
+        return Ok(Solution(assignedTasks, canceledTasks))
+    }
+
     operator fun invoke(
         timeWindow: TimeWindow,
         tasks: List<AbstractTask<E, A>>,
@@ -19,7 +57,7 @@ class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
         taskTime: TaskSchedulingTaskTime<E, A>,
         results: List<Flt64>,
         model: LinearMetaModel,
-        assignedPolicyGenerator: AssignedPolicyGenerator<A, E>
+        assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?
     ): Ret<Solution<E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (token in model.tokens.tokens) {
@@ -69,6 +107,35 @@ class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
                 assignedTasks.add(assignedTask)
             } else {
                 canceledTasks.add(task)
+            }
+        }
+
+        return Ok(Solution(assignedTasks, canceledTasks))
+    }
+
+    operator fun invoke(
+        iteration: UInt64,
+        originTasks: List<AbstractTask<E, A>>,
+        tasks: List<List<AbstractTask<E, A>>>,
+        compilation: IterativeTaskCompilation<E, A>,
+        model: LinearMetaModel
+    ): Ret<Solution<E, A>> {
+        val assignedTasks = ArrayList<AbstractTask<E, A>>()
+        val canceledTasks = ArrayList<AbstractTask<E, A>>()
+        for (token in model.tokens.tokens) {
+            for ((i , xi) in compilation.x.withIndex()) {
+                if (UInt64(i.toULong()) > iteration) {
+                    break
+                }
+
+                if (token.belongsTo(xi) && token.result?.let { it eq Flt64.one } == true) {
+                    val assignedTask = tasks[i][token.variable.vectorView[0]]
+                    assignedTasks.add(assignedTask)
+                }
+            }
+
+            if (token.belongsTo(compilation.y) && token.result?.let { it eq Flt64.one } == true) {
+                canceledTasks.add(originTasks[token.variable.vectorView[0]])
             }
         }
 

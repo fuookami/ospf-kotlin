@@ -1,23 +1,22 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.service.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.service.*
 
-interface BunchSchedulingContext<
+interface IterativeTaskSchedulingContext<
     Args : GanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 > {
-    val aggregation: BunchSchedulingAggregation<T, E, A>
+    val aggregation: IterativeTaskSchedulingAggregation<E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
-    val columnAmount get() = UInt64(aggregation.bunches.size - aggregation.removedBunches.size)
+    val columnAmount get() = UInt64(aggregation.tasks.size - aggregation.removedTasks.size)
 
     fun register(model: LinearMetaModel): Try {
         when (val result = aggregation.register(model)) {
@@ -41,12 +40,12 @@ interface BunchSchedulingContext<
 
     suspend fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        newTasks: List<AbstractTask<E, A>>,
         model: LinearMetaModel
-    ): Ret<List<AbstractTaskBunch<T, E, A>>> {
-        val unduplicatedBunches = when (val result = aggregation.addColumns(
+    ): Ret<List<AbstractTask<E, A>>> {
+        val unduplicatedTasks = when (val result = aggregation.addColumns(
             iteration = iteration,
-            newBunches = newBunches,
+            newTasks = newTasks,
             model = model
         )) {
             is Ok -> {
@@ -58,23 +57,23 @@ interface BunchSchedulingContext<
             }
         }
 
-        return Ok(unduplicatedBunches)
+        return Ok(unduplicatedTasks)
     }
 
     fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
-        reducedCost: (AbstractTaskBunch<T, E, A>) -> Flt64,
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
-        keptBunches: Set<AbstractTaskBunch<T, E, A>>,
+        reducedCost: (AbstractTask<E, A>) -> Flt64,
+        fixedTasks: Set<AbstractTask<E, A>>,
+        keptTasks: Set<AbstractTask<E, A>>,
         model: LinearMetaModel
     ): Ret<Flt64> {
-        return aggregation.removeColumns(
+        return aggregation.removedColumns(
             maximumReducedCost,
             maximumColumnAmount,
             reducedCost,
-            fixedBunches,
-            keptBunches,
+            fixedTasks,
+            keptTasks,
             model
         )
     }
@@ -97,12 +96,12 @@ interface BunchSchedulingContext<
         return Ok(success)
     }
 
-    fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<AbstractTaskBunch<T, E, A>>> {
-        return aggregation.extractFixedBunches(iteration, model)
+    fun extractFixedTasks(iteration: UInt64, model: LinearMetaModel): Ret<Map<AbstractTask<E, A>, UInt64>> {
+        return aggregation.extractFixedTasks(iteration, model)
     }
 
-    fun extractKeptBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<AbstractTaskBunch<T, E, A>>> {
-        return aggregation.extractKeptBunches(iteration, model)
+    fun extractKeptTasks(iteration: UInt64, model: LinearMetaModel): Ret<Map<AbstractTask<E, A>, UInt64>> {
+        return aggregation.extractKeptTasks(iteration, model)
     }
 
     fun extractHiddenExecutors(
@@ -113,22 +112,22 @@ interface BunchSchedulingContext<
     }
 
     fun selectFreeExecutors(
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
+        fixedTasks: Set<AbstractTask<E, A>>,
         hiddenExecutors: Set<E>,
         model: LinearMetaModel,
     ): Ret<Set<E>>
 
-    fun globallyFix(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): Try {
-        return aggregation.globallyFix(fixedBunches)
+    fun globallyFix(fixedTasks: Map<AbstractTask<E, A>, UInt64>): Try {
+        return aggregation.globallyFix(fixedTasks)
     }
 
     fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
+        fixedTasks: Map<AbstractTask<E, A>, UInt64>,
         model: LinearMetaModel
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
-        return aggregation.locallyFix(iteration, bar, fixedBunches, model)
+    ): Ret<Map<AbstractTask<E, A>, UInt64>> {
+        return aggregation.locallyFix(iteration, bar, fixedTasks, model)
     }
 
     fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
@@ -136,7 +135,7 @@ interface BunchSchedulingContext<
     }
 
     fun logBunchCost(iteration: UInt64, model: LinearMetaModel): Try {
-        return aggregation.logBunchCost(iteration, model)
+        return aggregation.logTaskCost(iteration, model)
     }
 
     fun flush(iteration: UInt64): Try {
@@ -145,36 +144,26 @@ interface BunchSchedulingContext<
 
     fun analyzeTaskSolution(
         iteration: UInt64,
-        tasks: List<T>,
+        tasks: List<AbstractTask<E, A>>,
         model: LinearMetaModel
     ): Ret<Solution<E, A>> {
-        val analyzer = TaskSolutionAnalyzer<T, E, A>()
-        return analyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
-    }
-
-    fun analyzeBunchSolution(
-        iteration: UInt64,
-        tasks: List<T>,
-        model: LinearMetaModel
-    ): Ret<BunchSolution<T, E, A>> {
-        val analyzer = BunchSolutionAnalyzer<T, E, A>()
-        return analyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
+        val analyzer = SolutionAnalyzer<E, A>()
+        return analyzer(iteration, tasks, aggregation.tasksIteration, aggregation.compilation, model)
     }
 }
 
-interface ExtractBunchSchedulingContext<
+interface ExtractIterativeTaskSchedulingContext<
     Args : GanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 > {
-    val baseContext: BunchSchedulingContext<Args, T, E, A>
+    val baseContext: IterativeTaskSchedulingContext<Args, E, A>
 
     fun register(model: LinearMetaModel): Try
 
     fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        newTasks: List<AbstractTask<E, A>>,
         model: LinearMetaModel
     ): Try
 
