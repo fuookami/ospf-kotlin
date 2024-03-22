@@ -7,17 +7,21 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-abstract class AbstractTaskSchedulingAggregation<E : Executor, A : AssignmentPolicy<E>>(
+abstract class AbstractTaskSchedulingAggregation<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
-    tasks: List<AbstractTask<E, A>>,
+    tasks: List<T>,
     executors: List<E>,
-    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    lockCancelTasks: Set<T> = emptySet(),
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
 ) {
-    val compilation: TaskCompilation<E, A> =
+    val compilation: TaskCompilation<T, E, A> =
         TaskCompilation(tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
-    val switch: TaskSchedulingSwitch<E, A> =
+    val switch: TaskSchedulingSwitch<T, E, A> =
         TaskSchedulingSwitch(timeWindow, tasks, executors, compilation)
 
     open fun register(model: LinearMetaModel): Try {
@@ -41,21 +45,29 @@ abstract class AbstractTaskSchedulingAggregation<E : Executor, A : AssignmentPol
     }
 }
 
-open class TaskCompilationAggregation<E : Executor, A : AssignmentPolicy<E>>(
+open class TaskCompilationAggregation<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
-    tasks: List<AbstractTask<E, A>>,
+    tasks: List<T>,
     executors: List<E>,
-    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    lockCancelTasks: Set<T> = emptySet(),
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
-): AbstractTaskSchedulingAggregation<E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
+): AbstractTaskSchedulingAggregation<T, E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
 
-open class TaskCompilationAggregationWithTime<E : Executor, A : AssignmentPolicy<E>>(
+open class TaskCompilationAggregationWithTime<
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
-    tasks: List<AbstractTask<E, A>>,
+    tasks: List<T>,
     executors: List<E>,
-    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
-    estimateEndTimeCalculator: (AbstractTask<E, A>, LinearPolynomial) -> LinearPolynomial,
+    lockCancelTasks: Set<T> = emptySet(),
+    estimateEndTimeCalculator: (T, LinearPolynomial) -> LinearPolynomial,
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
     delayEnabled: Boolean = false,
@@ -65,8 +77,8 @@ open class TaskCompilationAggregationWithTime<E : Executor, A : AssignmentPolicy
     delayLastEndTimeEnabled: Boolean = false,
     advanceEarliestEndTimeEnabled: Boolean = false,
     makespanExtra: Boolean = false
-): AbstractTaskSchedulingAggregation<E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure) {
-    val taskTime: TaskSchedulingTaskTime<E, A> =
+): AbstractTaskSchedulingAggregation<T, E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure) {
+    val taskTime: TaskSchedulingTaskTime<T, E, A> =
         TaskSchedulingTaskTime(
             timeWindow,
             tasks,
@@ -79,7 +91,7 @@ open class TaskCompilationAggregationWithTime<E : Executor, A : AssignmentPolicy
             delayLastEndTimeEnabled,
             advanceEarliestEndTimeEnabled
         )
-    val makespan: Makespan<E, A> =
+    val makespan: Makespan<T, E, A> =
         Makespan(tasks, taskTime, makespanExtra)
 
     override fun register(model: LinearMetaModel): Try {

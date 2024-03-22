@@ -4,6 +4,7 @@ import kotlin.time.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlinx.datetime.*
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -96,8 +97,8 @@ private fun delay(time: TimeRange?, timeWindow: TimeRange?, targetTime: TimeRang
     }
 }
 
-interface AbstractTask<E : Executor, A : AssignmentPolicy<E>> : Indexed,
-    Eq<AbstractTask<E, A>> {
+interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
+    Eq<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>> {
     val type: TaskType get() = TaskType(AbstractTask::class)
     val key: TaskKey get() = TaskKey(id, type)
 
@@ -120,7 +121,7 @@ interface AbstractTask<E : Executor, A : AssignmentPolicy<E>> : Indexed,
     val lastEndTime: Instant? get() = null
 
     val duration: Duration? get() = time?.duration
-    fun duration(executor: E): Duration = duration!!
+    fun duration(executor: @UnsafeVariance E): Duration = duration!!
 
     val minDuration: Duration? get() = null
     val maxDuration: Duration? get() = null
@@ -128,20 +129,20 @@ interface AbstractTask<E : Executor, A : AssignmentPolicy<E>> : Indexed,
     val timeWindow: TimeRange? get() = null
 
     val earliestStartTime: Instant? get() = null
-    fun earliestStartTime(executor: E): Instant? = null
+    fun earliestStartTime(executor: @UnsafeVariance E): Instant? = null
 
     val lastStartTime: Instant? get() = null
-    fun lastStartTime(executor: E): Instant? = null
+    fun lastStartTime(executor: @UnsafeVariance E): Instant? = null
 
     fun connectionTime(
-        prevTask: AbstractTask<E, A>?,
-        succTask: AbstractTask<E, A>?
+        prevTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?,
+        succTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?
     ): Duration? = null
 
     fun connectionTime(
-        executor: E,
-        prevTask: AbstractTask<E, A>?,
-        succTask: AbstractTask<E, A>?
+        executor: @UnsafeVariance E,
+        prevTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?,
+        succTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?
     ): Duration {
         return Duration.ZERO
     }
@@ -165,11 +166,11 @@ interface AbstractTask<E : Executor, A : AssignmentPolicy<E>> : Indexed,
         return false
     }
 
-    fun assigningEnabled(policy: A): Boolean {
+    fun assigningEnabled(policy: @UnsafeVariance A): Boolean {
         return false
     }
 
-    fun assign(policy: A): Ret<AbstractTask<E, A>> {
+    fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
         return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
     }
 
@@ -231,7 +232,7 @@ interface AbstractTask<E : Executor, A : AssignmentPolicy<E>> : Indexed,
         }
 }
 
-open class AbstractUnplannedTask<E : Executor, A : AssignmentPolicy<E>>(
+open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     override val id: String,
     override val name: String,
     override val assignmentPolicy: A
@@ -241,18 +242,18 @@ open class AbstractUnplannedTask<E : Executor, A : AssignmentPolicy<E>>(
 
     override val cancelEnabled: Boolean = true
 
-    override fun assigningEnabled(policy: A): Boolean {
+    override fun assigningEnabled(policy: @UnsafeVariance A): Boolean {
         return policy.full
     }
 
-    override fun assign(policy: A): Ret<AbstractTask<E, A>> {
+    override fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
         if (!assigningEnabled(policy)) {
             return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
         }
         return Ok(AbstractUnplannedTask(id, name, policy))
     }
 
-    override fun partialEq(rhs: AbstractTask<E, A>): Boolean? {
+    override fun partialEq(rhs: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 
@@ -279,7 +280,7 @@ open class AbstractUnplannedTask<E : Executor, A : AssignmentPolicy<E>>(
     }
 }
 
-open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
+open class AbstractPlannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     open val plan: AbstractTaskPlan<E>,
     override val assignmentPolicy: A?,
 ) : AbstractTask<E, A>, ManualIndexed() {
@@ -308,7 +309,7 @@ open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
     override val lastEndTime: Instant? get() = plan.lastEndTime
 
     override val duration: Duration? by lazy { assignmentPolicy?.time?.duration ?: plan.duration }
-    override fun duration(executor: E): Duration {
+    override fun duration(executor: @UnsafeVariance E): Duration {
         return assignmentPolicy?.time?.duration ?: plan.duration(executor)
     }
 
@@ -318,20 +319,27 @@ open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
     final override val timeWindow: TimeRange? get() = plan.timeWindow
 
     override val earliestStartTime: Instant? get() = plan.earliestStartTime
-    override fun earliestStartTime(executor: E): Instant? {
+    override fun earliestStartTime(executor: @UnsafeVariance E): Instant? {
         return plan.earliestStartTime(executor)
     }
 
     override val lastStartTime: Instant? get() = plan.lastStartTime
-    override fun lastStartTime(executor: E): Instant? {
+    override fun lastStartTime(executor: @UnsafeVariance E): Instant? {
         return plan.lastStartTime(executor)
     }
 
-    override fun connectionTime(prevTask: AbstractTask<E, A>?, succTask: AbstractTask<E, A>?): Duration? {
+    override fun connectionTime(
+        prevTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?,
+        succTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?
+    ): Duration? {
         return plan.connectionTime(prevTask, succTask)
     }
 
-    override fun connectionTime(executor: E, prevTask: AbstractTask<E, A>?, succTask: AbstractTask<E, A>?): Duration {
+    override fun connectionTime(
+        executor: @UnsafeVariance E,
+        prevTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?,
+        succTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?
+    ): Duration {
         return plan.connectionTime(executor, prevTask, succTask)
     }
 
@@ -370,7 +378,7 @@ open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
                 && (time?.let { timeWindow.withIntersection(it) } ?: true)
     }
 
-    override fun assigningEnabled(policy: A): Boolean {
+    override fun assigningEnabled(policy: @UnsafeVariance A): Boolean {
         if (time == null && policy.time == null) {
             return false
         }
@@ -380,7 +388,7 @@ open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
         return policy.executor?.let { enabledExecutors.contains(it) } ?: true
     }
 
-    override fun assign(policy: A): Ret<AbstractTask<E, A>> {
+    override fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
         if (!assigningEnabled(policy)) {
             return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
         }
@@ -396,7 +404,7 @@ open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
             }
         }
 
-    override fun partialEq(rhs: AbstractTask<E, A>): Boolean? {
+    override fun partialEq(rhs: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 
@@ -426,3 +434,10 @@ open class AbstractPlannedTask<E : Executor, A : AssignmentPolicy<E>>(
 }
 
 typealias Task<E> = AbstractPlannedTask<E, AssignmentPolicy<E>>
+
+interface IterativeAbstractTask<
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>: AbstractTask<E, A> {
+    val iteration: Int64
+}

@@ -23,7 +23,11 @@ interface Consumption {
     fun register(model: LinearMetaModel): Try
 }
 
-abstract class AbstractConsumption<T : ProductionTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+abstract class AbstractConsumption<
+    out T : ProductionTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     val materials: List<Pair<Material, MaterialReserves?>>
 ) : Consumption {
     override lateinit var lessQuantity: LinearSymbols1
@@ -89,7 +93,11 @@ abstract class AbstractConsumption<T : ProductionTask<E, A>, E : Executor, A : A
     }
 }
 
-class TaskSchedulingConsumption<T : ProductionTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskSchedulingConsumption<
+    out T : ProductionTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     materials: List<Pair<Material, MaterialReserves?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
@@ -101,7 +109,11 @@ class TaskSchedulingConsumption<T : ProductionTask<E, A>, E : Executor, A : Assi
     }
 }
 
-class BunchSchedulingConsumption<T : ProductionTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class BunchSchedulingConsumption<
+    out T : ProductionTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     materials: List<Pair<Material, MaterialReserves?>>,
 ) : AbstractConsumption<T, E, A>(materials.sortedBy { it.first.index }) {
     override val overEnabled: Boolean = true
@@ -135,10 +147,15 @@ class BunchSchedulingConsumption<T : ProductionTask<E, A>, E : Executor, A : Ass
         return super.register(model)
     }
 
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
+    fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > addColumns(
         iteration: UInt64,
-        bunches: List<AbstractTaskBunch<T, E, A>>,
-        compilation: BunchCompilation<T, E, A>
+        bunches: List<B>,
+        compilation: BunchCompilation<B, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 

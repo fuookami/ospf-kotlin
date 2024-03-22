@@ -5,15 +5,16 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.service.*
 
 interface IterativeTaskSchedulingContext<
     Args : GanttSchedulingShadowPriceArguments<E, A>,
+    IT : IterativeAbstractTask<E, A>,
+    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 > {
-    val aggregation: IterativeTaskSchedulingAggregation<E, A>
+    val aggregation: IterativeTaskSchedulingAggregation<IT, T, E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
     val columnAmount get() = UInt64(aggregation.tasks.size - aggregation.removedTasks.size)
@@ -40,7 +41,7 @@ interface IterativeTaskSchedulingContext<
 
     suspend fun addColumns(
         iteration: UInt64,
-        newTasks: List<AbstractTask<E, A>>,
+        newTasks: List<IT>,
         model: LinearMetaModel
     ): Ret<List<AbstractTask<E, A>>> {
         val unduplicatedTasks = when (val result = aggregation.addColumns(
@@ -63,9 +64,9 @@ interface IterativeTaskSchedulingContext<
     fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
-        reducedCost: (AbstractTask<E, A>) -> Flt64,
-        fixedTasks: Set<AbstractTask<E, A>>,
-        keptTasks: Set<AbstractTask<E, A>>,
+        reducedCost: (IT) -> Flt64,
+        fixedTasks: Set<IT>,
+        keptTasks: Set<IT>,
         model: LinearMetaModel
     ): Ret<Flt64> {
         return aggregation.removedColumns(
@@ -96,11 +97,11 @@ interface IterativeTaskSchedulingContext<
         return Ok(success)
     }
 
-    fun extractFixedTasks(iteration: UInt64, model: LinearMetaModel): Ret<Map<AbstractTask<E, A>, UInt64>> {
+    fun extractFixedTasks(iteration: UInt64, model: LinearMetaModel): Ret<Set<IT>> {
         return aggregation.extractFixedTasks(iteration, model)
     }
 
-    fun extractKeptTasks(iteration: UInt64, model: LinearMetaModel): Ret<Map<AbstractTask<E, A>, UInt64>> {
+    fun extractKeptTasks(iteration: UInt64, model: LinearMetaModel): Ret<Set<IT>> {
         return aggregation.extractKeptTasks(iteration, model)
     }
 
@@ -112,21 +113,21 @@ interface IterativeTaskSchedulingContext<
     }
 
     fun selectFreeExecutors(
-        fixedTasks: Set<AbstractTask<E, A>>,
+        fixedTasks: Set<IT>,
         hiddenExecutors: Set<E>,
         model: LinearMetaModel,
     ): Ret<Set<E>>
 
-    fun globallyFix(fixedTasks: Map<AbstractTask<E, A>, UInt64>): Try {
+    fun globallyFix(fixedTasks: Set<IT>): Try {
         return aggregation.globallyFix(fixedTasks)
     }
 
     fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
-        fixedTasks: Map<AbstractTask<E, A>, UInt64>,
+        fixedTasks: Set<IT>,
         model: LinearMetaModel
-    ): Ret<Map<AbstractTask<E, A>, UInt64>> {
+    ): Ret<Set<IT>> {
         return aggregation.locallyFix(iteration, bar, fixedTasks, model)
     }
 
@@ -144,26 +145,27 @@ interface IterativeTaskSchedulingContext<
 
     fun analyzeTaskSolution(
         iteration: UInt64,
-        tasks: List<AbstractTask<E, A>>,
+        tasks: List<T>,
         model: LinearMetaModel
     ): Ret<Solution<E, A>> {
-        val analyzer = SolutionAnalyzer<E, A>()
-        return analyzer(iteration, tasks, aggregation.tasksIteration, aggregation.compilation, model)
+        return SolutionAnalyzer(iteration, tasks, aggregation.tasksIteration, aggregation.compilation, model)
     }
 }
 
 interface ExtractIterativeTaskSchedulingContext<
     Args : GanttSchedulingShadowPriceArguments<E, A>,
+    IT : IterativeAbstractTask<E, A>,
+    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 > {
-    val baseContext: IterativeTaskSchedulingContext<Args, E, A>
+    val baseContext: IterativeTaskSchedulingContext<Args, IT, T, E, A>
 
     fun register(model: LinearMetaModel): Try
 
     fun addColumns(
         iteration: UInt64,
-        newTasks: List<AbstractTask<E, A>>,
+        newTasks: List<T>,
         model: LinearMetaModel
     ): Try
 

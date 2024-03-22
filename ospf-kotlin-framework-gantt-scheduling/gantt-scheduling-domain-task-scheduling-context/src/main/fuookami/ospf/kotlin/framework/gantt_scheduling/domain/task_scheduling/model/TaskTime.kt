@@ -39,9 +39,13 @@ interface TaskTime {
     fun register(model: LinearMetaModel): Try
 }
 
-abstract class TaskTimeImpl<E : Executor, A : AssignmentPolicy<E>>(
+abstract class TaskTimeImpl<
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     protected val timeWindow: TimeWindow,
-    protected val tasks: List<AbstractTask<E, A>>
+    protected val tasks: List<T>
 ) : TaskTime {
     abstract val compilation: Compilation
     protected abstract var estSlack: LinearSymbols1
@@ -587,18 +591,22 @@ abstract class TaskTimeImpl<E : Executor, A : AssignmentPolicy<E>>(
     }
 }
 
-class TaskSchedulingTaskTime<E : Executor, A : AssignmentPolicy<E>>(
+class TaskSchedulingTaskTime<
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
-    tasks: List<AbstractTask<E, A>>,
-    override val compilation: TaskCompilation<E, A>,
-    private val estimateEndTimeCalculator: (AbstractTask<E, A>, LinearPolynomial) -> LinearPolynomial,
+    tasks: List<T>,
+    override val compilation: TaskCompilation<T, E, A>,
+    private val estimateEndTimeCalculator: (T, LinearPolynomial) -> LinearPolynomial,
     override val delayEnabled: Boolean = false,
     override val overMaxDelayEnabled: Boolean = false,
     override val advanceEnabled: Boolean = false,
     override val overMaxAdvanceEnabled: Boolean = false,
     override val delayLastEndTimeEnabled: Boolean = false,
     override val advanceEarliestEndTimeEnabled: Boolean = false
-) : TaskTimeImpl<E, A>(timeWindow, tasks) {
+) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
     lateinit var est: Variable1<*>
     override lateinit var estSlack: LinearSymbols1
 
@@ -756,12 +764,17 @@ class TaskSchedulingTaskTime<E : Executor, A : AssignmentPolicy<E>>(
     }
 }
 
-open class IterativeTaskSchedulingTaskTime<E : Executor, A : AssignmentPolicy<E>>(
+open class IterativeTaskSchedulingTaskTime<
+    IT: IterativeAbstractTask<E, A>,
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
-    tasks: List<AbstractTask<E, A>>,
-    override val compilation: IterativeTaskCompilation<E, A>,
+    tasks: List<T>,
+    override val compilation: IterativeTaskCompilation<IT, T, E, A>,
     private val redundancyRange: Duration? = null
-) : TaskTimeImpl<E, A>(timeWindow, tasks) {
+) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
     override val delayEnabled: Boolean = true
     override val overMaxDelayEnabled: Boolean = true
     override val advanceEnabled: Boolean = true
@@ -861,7 +874,7 @@ open class IterativeTaskSchedulingTaskTime<E : Executor, A : AssignmentPolicy<E>
 
     open fun addColumns(
         iteration: UInt64,
-        newTasks: List<AbstractTask<E, A>>,
+        newTasks: List<IT>,
         model: LinearMetaModel
     ): Try {
         assert(tasks.isNotEmpty())

@@ -10,13 +10,14 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
 class TaskConflictConstraint<
+    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    private val tasks: List<AbstractTask<E, A>>,
+    private val tasks: List<T>,
     private val executors: List<E>,
-    private val compilation: TaskCompilation<E, A>,
-    private val conflict: (AbstractTask<E, A>, AbstractTask<E, A>) -> Boolean,
+    private val compilation: TaskCompilation<T, E, A>,
+    private val conflict: (T, T) -> Boolean,
     override val name: String = "task_conflict"
 ) : Pipeline<LinearMetaModel> {
     override operator fun invoke(model: LinearMetaModel): Try {

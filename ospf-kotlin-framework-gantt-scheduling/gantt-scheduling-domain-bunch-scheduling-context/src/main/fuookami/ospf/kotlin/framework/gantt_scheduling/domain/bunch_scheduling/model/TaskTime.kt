@@ -14,12 +14,17 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-open class BunchSchedulingTaskTime<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+open class BunchSchedulingTaskTime<
+    B : AbstractTaskBunch<T, E, A>,
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
     tasks: List<T>,
-    override val compilation: BunchCompilation<T, E, A>,
+    override val compilation: BunchCompilation<B, T, E, A>,
     private val redundancyRange: Duration? = null,
-) : TaskTimeImpl<E, A>(timeWindow, tasks) {
+) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
     override val delayEnabled: Boolean = true
     override val overMaxDelayEnabled: Boolean = true
     override val advanceEnabled: Boolean = true
@@ -160,7 +165,7 @@ open class BunchSchedulingTaskTime<T : AbstractTask<E, A>, E : Executor, A : Ass
 
     open fun addColumns(
         iteration: UInt64,
-        bunches: List<AbstractTaskBunch<T, E, A>>,
+        bunches: List<B>,
         model: LinearMetaModel
     ): Try {
         assert(bunches.isNotEmpty())

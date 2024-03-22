@@ -10,7 +10,7 @@ class TaskCostMinimization<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    private val compilation: IterativeTaskCompilation<E, A>,
+    private val compilation: IterativeTaskCompilation<*, *, E, A>,
     override val name: String = "task_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {

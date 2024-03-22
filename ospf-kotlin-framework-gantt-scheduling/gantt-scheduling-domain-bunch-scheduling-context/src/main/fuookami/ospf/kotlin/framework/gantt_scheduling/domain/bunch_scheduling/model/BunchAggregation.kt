@@ -4,19 +4,24 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-data class BunchAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
-    private val _bunchesIteration: MutableList<List<AbstractTaskBunch<T, E, A>>> = ArrayList(),
-    private val _bunches: MutableList<AbstractTaskBunch<T, E, A>> = ArrayList(),
-    private val _removedBunches: MutableSet<AbstractTaskBunch<T, E, A>> = HashSet()
+data class BunchAggregation<
+    B : AbstractTaskBunch<T, E, A>,
+    out T : AbstractTask<E, A>, 
+    out E : Executor, 
+    out A : AssignmentPolicy<E>
+>(
+    private val _bunchesIteration: MutableList<List<B>> = ArrayList(),
+    private val _bunches: MutableList<B> = ArrayList(),
+    private val _removedBunches: MutableSet<B> = HashSet()
 ) {
-    val bunchesIteration: List<List<AbstractTaskBunch<T, E, A>>> by ::_bunchesIteration
-    val bunches: List<AbstractTaskBunch<T, E, A>> by ::_bunches
-    val removedBunches: Set<AbstractTaskBunch<T, E, A>> by ::_removedBunches
-    val lastIterationBunches: List<AbstractTaskBunch<T, E, A>>
+    val bunchesIteration: List<List<B>> by ::_bunchesIteration
+    val bunches: List<B> by ::_bunches
+    val removedBunches: Set<B> by ::_removedBunches
+    val lastIterationBunches: List<B>
         get() = _bunchesIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
-    suspend fun addColumns(newBunches: List<AbstractTaskBunch<T, E, A>>): List<AbstractTaskBunch<T, E, A>> {
-        val unduplicatedNewBunches = ArrayList<AbstractTaskBunch<T, E, A>>()
+    suspend fun addColumns(newBunches: List<B>): List<B> {
+        val unduplicatedNewBunches = ArrayList<B>()
         for (bunch in newBunches) {
             if (unduplicatedNewBunches.all { bunch neq it }) {
                 unduplicatedNewBunches.add(bunch)
@@ -24,7 +29,7 @@ data class BunchAggregation<T : AbstractTask<E, A>, E : Executor, A : Assignment
         }
 
         val unduplicatedBunches = coroutineScope {
-            val promises = ArrayList<Deferred<AbstractTaskBunch<T, E, A>?>>()
+            val promises = ArrayList<Deferred<B?>>()
             for (bunch in unduplicatedNewBunches) {
                 promises.add(async(Dispatchers.Default) {
                     if (_bunches.all { bunch neq it }) {
@@ -47,14 +52,14 @@ data class BunchAggregation<T : AbstractTask<E, A>, E : Executor, A : Assignment
         return unduplicatedBunches
     }
 
-    fun removeColumn(bunch: AbstractTaskBunch<T, E, A>) {
+    fun removeColumn(bunch: B) {
         if (!_removedBunches.contains(bunch)) {
             _removedBunches.add(bunch)
             _bunches.remove(bunch)
         }
     }
 
-    fun removeColumns(bunches: List<AbstractTaskBunch<T, E, A>>) {
+    fun removeColumns(bunches: List<B>) {
         for (bunch in bunches) {
             removeColumn(bunch)
         }

@@ -7,14 +7,18 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
-open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> internal constructor(
+open class AbstractTaskBunch<
+    out T : AbstractTask<E, A>, 
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+> internal constructor(
     open val executor: E,
     val time: TimeRange,
     open val tasks: List<T>,
     val cost: Cost,
     open val initialUsability: ExecutorInitialUsability<T, E, A>,
     val iteration: UInt64 = UInt64.zero
-) : ManualIndexed(), Eq<AbstractTaskBunch<T, E, A>> {
+) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>> {
     val size by lazy { tasks.size }
     val empty by lazy { tasks.isEmpty() }
     val lastTask by lazy { initialUsability.lastTask }
@@ -87,13 +91,13 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
         return tasks[index]
     }
 
-    fun contains(task: AbstractTask<E, A>): Boolean {
+    fun contains(task: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean {
         return keys.contains(task.key)
     }
 
     fun contains(
-        prev: AbstractTask<E, A>,
-        succ: AbstractTask<E, A>
+        prev: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>,
+        succ: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>
     ): Boolean {
         val prevTask = keys[prev.key]
         val succTask = keys[succ.key]
@@ -104,11 +108,13 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
         }
     }
 
-    fun contains(taskPair: Pair<AbstractTask<E, A>, AbstractTask<E, A>>): Boolean {
+    fun contains(
+        taskPair: Pair<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>, AbstractTask<@UnsafeVariance E, @UnsafeVariance A>>
+    ): Boolean {
         return contains(taskPair.first, taskPair.second)
     }
 
-    fun get(originTask: AbstractTask<E, A>): T? {
+    fun get(originTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): T? {
         val task = keys[originTask.key]
         return if (task != null) {
             tasks[task]
@@ -117,7 +123,7 @@ open class AbstractTaskBunch<T : AbstractTask<E, A>, E : Executor, A : Assignmen
         }
     }
 
-    override fun partialEq(rhs: AbstractTaskBunch<T, E, A>): Boolean? {
+    override fun partialEq(rhs: AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 

@@ -19,7 +19,7 @@ enum class TaskStatus {
     Divisible
 }
 
-interface AbstractTaskPlan<E : Executor> {
+interface AbstractTaskPlan<out E : Executor> {
     val id: String
     val actualId: String get() = id
     val name: String
@@ -37,7 +37,7 @@ interface AbstractTaskPlan<E : Executor> {
     val lastEndTime: Instant? get() = null
 
     val duration: Duration? get() = time?.duration ?: scheduledTime?.duration
-    fun duration(executor: E): Duration {
+    fun duration(executor: @UnsafeVariance E): Duration {
         return duration!!
     }
 
@@ -76,7 +76,7 @@ interface AbstractTaskPlan<E : Executor> {
             null
         }
 
-    fun earliestStartTime(executor: E): Instant? {
+    fun earliestStartTime(executor: @UnsafeVariance E): Instant? {
         return if (time != null && status.contains(TaskStatus.NotAdvance)) {
             time!!.start
         } else if (timeWindow != null) {
@@ -99,7 +99,7 @@ interface AbstractTaskPlan<E : Executor> {
             null
         }
 
-    fun lastStartTime(executor: E): Instant? {
+    fun lastStartTime(executor: @UnsafeVariance E): Instant? {
         return if (time != null && status.contains(TaskStatus.NotDelay)) {
             time!!.start
         } else if (timeWindow != null) {
@@ -111,7 +111,7 @@ interface AbstractTaskPlan<E : Executor> {
         }
     }
 
-    fun earliestNormalStartTime(executor: E): Instant {
+    fun earliestNormalStartTime(executor: @UnsafeVariance E): Instant {
         return if (scheduledTime != null) {
             scheduledTime!!.start
         } else {
@@ -119,11 +119,18 @@ interface AbstractTaskPlan<E : Executor> {
         }
     }
 
-    fun connectionTime(prevTask: AbstractTask<E, *>?, succTask: AbstractTask<E, *>?): Duration? {
+    fun connectionTime(
+        prevTask: AbstractTask<@UnsafeVariance E, *>?,
+        succTask: AbstractTask<@UnsafeVariance E, *>?
+    ): Duration? {
         return Duration.ZERO
     }
 
-    fun connectionTime(executor: E, prevTask: AbstractTask<E, *>?, succTask: AbstractTask<E, *>?): Duration {
+    fun connectionTime(
+        executor: @UnsafeVariance E,
+        prevTask: AbstractTask<@UnsafeVariance E, *>?,
+        succTask: AbstractTask<@UnsafeVariance E, *>?
+    ): Duration {
         return Duration.ZERO
     }
 
@@ -136,20 +143,26 @@ interface AbstractTaskPlan<E : Executor> {
     val divisible: Boolean get() = !status.contains(TaskStatus.Divisible)
 }
 
-open class SingleStepTaskPlan<E : Executor>(
+open class SingleStepTaskPlan<out E : Executor>(
     override val id: String,
     override val name: String,
     override val enabledExecutors: Set<E>,
     override val status: Set<TaskStatus>
 ) : AbstractTaskPlan<E>
 
-interface AbstractTaskStepPlan<Self : AbstractTaskStepPlan<Self, T, E>, T : AbstractMultiStepTask<T, Self, E>, E : Executor>
-    : AbstractTaskPlan<E> {
+interface AbstractTaskStepPlan<
+    out Self : AbstractTaskStepPlan<Self, T, E>,
+    out T : AbstractMultiStepTask<T, Self, E>,
+    out E : Executor
+> : AbstractTaskPlan<E> {
     val parent: AbstractMultiStepTask<T, Self, E>
     val step: TaskStep<T, Self, E>
 }
 
-open class TaskStepPlan<T : AbstractMultiStepTask<T, TaskStepPlan<T, E>, E>, E : Executor>(
+open class TaskStepPlan<
+    out T : AbstractMultiStepTask<T, TaskStepPlan<T, E>, E>,
+    out E : Executor
+>(
     final override val parent: T,
     final override val step: TaskStep<T, TaskStepPlan<T, E>, E>,
     status: Set<TaskStatus> = parent.status
@@ -160,7 +173,11 @@ open class TaskStepPlan<T : AbstractMultiStepTask<T, TaskStepPlan<T, E>, E>, E :
     override val status by lazy { status + step.status }
 }
 
-interface AbstractMultiStepTask<Self : AbstractMultiStepTask<Self, S, E>, S : AbstractTaskStepPlan<S, Self, E>, E : Executor> {
+interface AbstractMultiStepTask<
+    out Self : AbstractMultiStepTask<Self, S, E>, 
+    out S : AbstractTaskStepPlan<S, Self, E>,
+    out E : Executor
+> {
     val id: String
     val name: String
     val stepGraph: TaskStepGraph<Self, S, E>
@@ -169,10 +186,15 @@ interface AbstractMultiStepTask<Self : AbstractMultiStepTask<Self, S, E>, S : Ab
     val steps: List<S>
 }
 
-open class MultiStepTask<E : Executor>(
+open class MultiStepTask<
+    out E : Executor
+>(
     override val id: String,
     override val name: String,
-    final override val stepGraph: TaskStepGraph<MultiStepTask<E>, TaskStepPlan<MultiStepTask<E>, E>, E>,
+    final override val stepGraph: TaskStepGraph<
+        MultiStepTask<E>,
+        TaskStepPlan<MultiStepTask<E>, E>, E
+    >,
     override val status: Set<TaskStatus>,
 ) : AbstractMultiStepTask<MultiStepTask<E>, TaskStepPlan<MultiStepTask<E>, E>, E> {
     override val steps: List<TaskStepPlan<MultiStepTask<E>, E>> by lazy {

@@ -18,7 +18,11 @@ interface Pipeline<in M : ModelInterface> {
     operator fun invoke(model: M): Try
 }
 
-interface CGPipeline<in Args : Any, in Model : MetaModel<*, *, *>, in Map : AbstractShadowPriceMap<Args, Map>> :
+interface CGPipeline<
+    in Args : Any,
+    in Model : MetaModel<*, *, *>,
+    in Map : AbstractShadowPriceMap<Args, Map>
+> :
     Pipeline<Model> {
     fun extractor(): ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance Map>? {
         return null
@@ -29,7 +33,7 @@ interface CGPipeline<in Args : Any, in Model : MetaModel<*, *, *>, in Map : Abst
     }
 }
 
-interface HAPipeline<M : ModelInterface> : Pipeline<M> {
+interface HAPipeline<in M : ModelInterface> : Pipeline<M> {
     data class Obj(
         val tag: String,
         val value: Flt64

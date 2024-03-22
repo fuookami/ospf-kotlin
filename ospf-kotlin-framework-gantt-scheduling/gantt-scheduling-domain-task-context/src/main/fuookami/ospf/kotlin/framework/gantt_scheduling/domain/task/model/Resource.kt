@@ -18,7 +18,7 @@ open class ResourceCapacity(
     override fun toString() = "${quantity}_${interval}"
 }
 
-abstract class Resource<C : ResourceCapacity>() : ManualIndexed() {
+abstract class Resource<out C : ResourceCapacity> : ManualIndexed() {
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
@@ -30,7 +30,7 @@ abstract class Resource<C : ResourceCapacity>() : ManualIndexed() {
     ): Flt64
 }
 
-abstract class ExecutionResource<C : ResourceCapacity>(
+abstract class ExecutionResource<out C : ResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -52,7 +52,7 @@ abstract class ExecutionResource<C : ResourceCapacity>(
     }
 }
 
-abstract class ConnectionResource<C : ResourceCapacity>(
+abstract class ConnectionResource<out C : ResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -80,7 +80,7 @@ abstract class ConnectionResource<C : ResourceCapacity>(
     }
 }
 
-abstract class StorageResource<C : ResourceCapacity>(
+abstract class StorageResource<out C : ResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,

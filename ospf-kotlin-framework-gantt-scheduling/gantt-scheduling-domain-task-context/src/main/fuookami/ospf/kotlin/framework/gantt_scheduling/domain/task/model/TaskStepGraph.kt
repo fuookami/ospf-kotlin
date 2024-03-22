@@ -9,7 +9,11 @@ enum class StepRelation {
     Or
 }
 
-abstract class TaskStep<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor>(
+abstract class TaskStep<
+    out T : AbstractMultiStepTask<T, S, E>,
+    out S : AbstractTaskStepPlan<S, T, E>,
+    out E : Executor
+>(
     val id: String,
     val name: String,
     val enabledExecutors: Set<E>,
@@ -17,33 +21,51 @@ abstract class TaskStep<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStep
 ) {
     open val displayName: String? by ::name
 
-    abstract fun duration(task: T, executor: E): Duration
+    abstract fun duration(task: @UnsafeVariance T, executor: @UnsafeVariance E): Duration
 
     override fun toString(): String {
         return displayName ?: name
     }
 }
 
-data class ForwardTaskStepVector<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor>(
+data class ForwardTaskStepVector<
+    out T : AbstractMultiStepTask<T, S, E>,
+    out S : AbstractTaskStepPlan<S, T, E>,
+    out E : Executor
+>(
     val from: TaskStep<T, S, E>,
     val to: List<TaskStep<T, S, E>>,
     val relation: StepRelation
 )
 
-data class BackwardTaskStepVector<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor>(
+data class BackwardTaskStepVector<
+    out T : AbstractMultiStepTask<T, S, E>,
+    out S : AbstractTaskStepPlan<S, T, E>,
+    out E : Executor
+>(
     val from: List<TaskStep<T, S, E>>,
     val to: TaskStep<T, S, E>,
     val relation: StepRelation
 )
 
-open class TaskStepGraph<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor>(
+open class TaskStepGraph<
+    out T : AbstractMultiStepTask<T, S, E>,
+    out S : AbstractTaskStepPlan<S, T, E>,
+    out E : Executor
+>(
     val id: String,
     val name: String,
     val steps: List<TaskStep<T, S, E>>,
     val startSteps: Pair<List<TaskStep<T, S, E>>, StepRelation>,
     // must be a DAG
-    val forwardTaskStepVector: Map<TaskStep<T, S, E>, ForwardTaskStepVector<T, S, E>>,
-    val backwardStepRelation: Map<TaskStep<T, S, E>, BackwardTaskStepVector<T, S, E>>
+    val forwardTaskStepVector: Map<
+        TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
+        ForwardTaskStepVector<T, S, E>
+    >,
+    val backwardStepRelation: Map<
+        TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
+        BackwardTaskStepVector<T, S, E>
+    >
 ) {
     companion object {
         fun <T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor> build(
@@ -56,15 +78,19 @@ open class TaskStepGraph<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskSte
     }
 }
 
-data class TaskStepGraphBuilder<T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor>(
+data class TaskStepGraphBuilder<
+    out T : AbstractMultiStepTask<T, S, E>,
+    out S : AbstractTaskStepPlan<S, T, E>,
+    out E : Executor
+>(
     var id: String? = null,
     var name: String? = null,
-    val steps: MutableList<TaskStep<T, S, E>> = ArrayList(),
-    var startSteps: Pair<List<TaskStep<T, S, E>>, StepRelation>? = null,
+    val steps: MutableList<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>> = ArrayList(),
+    var startSteps: Pair<List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>, StepRelation>? = null,
     private val forwardTaskStepVector: MutableMap<TaskStep<T, S, E>, ForwardTaskStepVector<T, S, E>> = HashMap(),
     private val backwardStepRelation: MutableMap<TaskStep<T, S, E>, BackwardTaskStepVector<T, S, E>> = HashMap()
 ) {
-    val setSteps: MutableSet<TaskStep<T, S, E>> = HashSet()
+    val setSteps: MutableSet<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>> = HashSet()
 
     operator fun invoke(): TaskStepGraph<T, S, E> {
         return TaskStepGraph(
@@ -77,8 +103,8 @@ data class TaskStepGraphBuilder<T : AbstractMultiStepTask<T, S, E>, S : Abstract
         )
     }
 
-    fun TaskStep<T, S, E>.start(
-        steps: List<TaskStep<T, S, E>>,
+    fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.start(
+        steps: List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>,
         relation: StepRelation
     ): Try {
         if (steps.any { !this@TaskStepGraphBuilder.steps.contains(it) }) {
@@ -88,9 +114,9 @@ data class TaskStepGraphBuilder<T : AbstractMultiStepTask<T, S, E>, S : Abstract
         return Ok(success)
     }
 
-    fun TaskStep<T, S, E>.forward(
-        from: TaskStep<T, S, E>,
-        to: List<TaskStep<T, S, E>>,
+    fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.forward(
+        from: TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
+        to: List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>,
         relation: StepRelation
     ): Try {
         forwardTaskStepVector[from] = ForwardTaskStepVector(
@@ -101,9 +127,9 @@ data class TaskStepGraphBuilder<T : AbstractMultiStepTask<T, S, E>, S : Abstract
         return Ok(success)
     }
 
-    fun TaskStep<T, S, E>.backward(
-        from: List<TaskStep<T, S, E>>,
-        to: TaskStep<T, S, E>,
+    fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.backward(
+        from: List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>,
+        to: TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
         relation: StepRelation
     ): Try {
         for (step in from) {

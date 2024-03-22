@@ -12,7 +12,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+open class BunchCompilation<
+    B : AbstractTaskBunch<T, E, A>,
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
     private val tasks: List<T>,
     private val executors: List<E>,
     private val lockCancelTasks: Set<T> = emptySet(),
@@ -35,11 +40,11 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
 
     override val taskCancelEnabled: Boolean = true
 
-    internal val aggregation = BunchAggregation<T, E, A>()
-    val bunchesIteration: List<List<AbstractTaskBunch<T, E, A>>> by aggregation::bunchesIteration
-    val bunches: List<AbstractTaskBunch<T, E, A>> by aggregation::bunches
-    val removedBunches: Set<AbstractTaskBunch<T, E, A>> by aggregation::removedBunches
-    val lastIterationBunches: List<AbstractTaskBunch<T, E, A>> by aggregation::lastIterationBunches
+    internal val aggregation = BunchAggregation<B, T, E, A>()
+    val bunchesIteration: List<List<B>> by aggregation::bunchesIteration
+    val bunches: List<B> by aggregation::bunches
+    val removedBunches: Set<B> by aggregation::removedBunches
+    val lastIterationBunches: List<B> by aggregation::lastIterationBunches
 
     private val _x = ArrayList<BinVariable1>()
     val x: List<BinVariable1> by ::_x
@@ -119,9 +124,9 @@ open class BunchCompilation<T : AbstractTask<E, A>, E : Executor, A : Assignment
 
     open suspend fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        newBunches: List<B>,
         model: LinearMetaModel
-    ): Ret<List<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<List<B>> {
         val unduplicatedBunches = aggregation.addColumns(newBunches)
 
         val xi = BinVariable1("x_$iteration", Shape1(unduplicatedBunches.size))

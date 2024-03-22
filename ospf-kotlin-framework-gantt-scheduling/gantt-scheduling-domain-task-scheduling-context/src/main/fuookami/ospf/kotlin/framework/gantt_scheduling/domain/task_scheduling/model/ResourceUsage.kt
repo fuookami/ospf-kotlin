@@ -15,7 +15,10 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-interface ResourceTimeSlot<R : Resource<C>, C : ResourceCapacity> : Indexed {
+interface ResourceTimeSlot<
+    out R : Resource<C>,
+    out C : ResourceCapacity
+> : Indexed {
     val resource: R
     val resourceCapacity: C
     val time: TimeRange
@@ -28,12 +31,18 @@ interface ResourceTimeSlot<R : Resource<C>, C : ResourceCapacity> : Indexed {
         return false
     }
 
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(bunch: AbstractTaskBunch<T, E, A>): Flt64 {
+    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
+        bunch: AbstractTaskBunch<T, E, A>
+    ): Flt64 {
         return resource.usedQuantity(bunch, time)
     }
 }
 
-interface ResourceUsage<S : ResourceTimeSlot<R, C>, R : Resource<C>, C : ResourceCapacity> {
+interface ResourceUsage<
+    out S : ResourceTimeSlot<R, C>,
+    out R : Resource<C>,
+    out C : ResourceCapacity
+> {
     val name: String
 
     val timeSlots: List<S>
@@ -47,8 +56,11 @@ interface ResourceUsage<S : ResourceTimeSlot<R, C>, R : Resource<C>, C : Resourc
     fun register(model: LinearMetaModel): Try
 }
 
-abstract class AbstractResourceUsage<S : ResourceTimeSlot<R, C>, R : Resource<C>, C : ResourceCapacity>
-    : ResourceUsage<S, R, C> {
+abstract class AbstractResourceUsage<
+    out S : ResourceTimeSlot<R, C>,
+    out R : Resource<C>,
+    out C : ResourceCapacity
+> : ResourceUsage<S, R, C> {
     override lateinit var overQuantity: LinearSymbols1
     override lateinit var lessQuantity: LinearSymbols1
 
@@ -116,7 +128,10 @@ abstract class AbstractResourceUsage<S : ResourceTimeSlot<R, C>, R : Resource<C>
 
 // connection
 
-data class ConnectionResourceTimeSlot<R : ConnectionResource<C>, C : ResourceCapacity>(
+data class ConnectionResourceTimeSlot<
+    out R : ConnectionResource<C>,
+    out C : ResourceCapacity
+>(
     override val resource: R,
     override val resourceCapacity: C,
     override val time: TimeRange,
@@ -141,7 +156,10 @@ data class ConnectionResourceTimeSlot<R : ConnectionResource<C>, C : ResourceCap
 
 typealias ConnectionResourceUsage<R, C> = ResourceUsage<ConnectionResourceTimeSlot<R, C>, R, C>
 
-abstract class AbstractConnectionResourceUsage<R : ConnectionResource<C>, C : ResourceCapacity>(
+abstract class AbstractConnectionResourceUsage<
+    out R : ConnectionResource<C>,
+    out C : ResourceCapacity
+>(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval
@@ -170,7 +188,10 @@ abstract class AbstractConnectionResourceUsage<R : ConnectionResource<C>, C : Re
     }
 }
 
-class TaskSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : ResourceCapacity>(
+class TaskSchedulingConnectionResourceUsage<
+    out R : ConnectionResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -187,7 +208,10 @@ class TaskSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Resou
 
 // execution
 
-data class ExecutionResourceTimeSlot<R : ExecutionResource<C>, C : ResourceCapacity>(
+data class ExecutionResourceTimeSlot<
+    out R : ExecutionResource<C>,
+    out C : ResourceCapacity
+>(
     override val resource: R,
     override val resourceCapacity: C,
     override val time: TimeRange,
@@ -209,7 +233,10 @@ data class ExecutionResourceTimeSlot<R : ExecutionResource<C>, C : ResourceCapac
 
 typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot<R, C>, R, C>
 
-abstract class AbstractExecutionResourceUsage<R : ExecutionResource<C>, C : ResourceCapacity>(
+abstract class AbstractExecutionResourceUsage<
+    out R : ExecutionResource<C>,
+    out C : ResourceCapacity
+>(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval
@@ -238,7 +265,10 @@ abstract class AbstractExecutionResourceUsage<R : ExecutionResource<C>, C : Reso
     }
 }
 
-class TaskSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : ResourceCapacity>(
+class TaskSchedulingExecutionResourceUsage<
+    out R : ExecutionResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -255,7 +285,10 @@ class TaskSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : Resourc
 
 // storage
 
-data class StorageResourceTimeSlot<R : StorageResource<C>, C : ResourceCapacity>(
+data class StorageResourceTimeSlot<
+    out R : StorageResource<C>,
+    out C : ResourceCapacity
+>(
     override val resource: R,
     override val resourceCapacity: C,
     override val time: TimeRange,
@@ -281,7 +314,10 @@ data class StorageResourceTimeSlot<R : StorageResource<C>, C : ResourceCapacity>
 
 typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, C>, R, C>
 
-abstract class AbstractStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
+abstract class AbstractStorageResourceUsage<
+    out R : StorageResource<C>,
+    out C : ResourceCapacity
+>(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval
@@ -310,7 +346,10 @@ abstract class AbstractStorageResourceUsage<R : StorageResource<C>, C : Resource
     }
 }
 
-class TaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
+class TaskSchedulingStorageResourceUsage<
+    out R : StorageResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -325,7 +364,10 @@ class TaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCap
     }
 }
 
-class IterativeTaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
+class IterativeTaskSchedulingStorageResourceUsage<
+    out R : StorageResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -366,10 +408,10 @@ class IterativeTaskSchedulingStorageResourceUsage<R : StorageResource<C>, C : Re
         return super.register(model)
     }
 
-    suspend fun <E : Executor, A : AssignmentPolicy<E>> addColumns(
+    suspend fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
         iteration: UInt64,
-        tasks: List<AbstractTask<E, A>>,
-        compilation: IterativeTaskCompilation<E, A>
+        tasks: List<T>,
+        compilation: IterativeTaskCompilation<*, T, E, A>
     ): Try {
         assert(tasks.isNotEmpty())
 

@@ -6,15 +6,20 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.*
 
-class BunchSolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
-    operator fun invoke(
+data object BunchSolutionAnalyzer {
+    operator fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > invoke(
         iteration: UInt64,
         tasks: List<T>,
-        bunches: List<List<AbstractTaskBunch<T, E, A>>>,
-        compilation: BunchCompilation<T, E, A>,
+        bunches: List<List<B>>,
+        compilation: BunchCompilation<B, T, E, A>,
         model: LinearMetaModel
-    ): Ret<BunchSolution<T, E, A>> {
-        val assignedBunches = ArrayList<AbstractTaskBunch<T, E, A>>()
+    ): Ret<BunchSolution<B, T, E, A>> {
+        val assignedBunches = ArrayList<B>()
         val canceledTasks = ArrayList<T>()
         for (token in model.tokens.tokens) {
             for ((i, xi) in compilation.x.withIndex()) {

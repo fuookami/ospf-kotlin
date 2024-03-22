@@ -3,14 +3,14 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
-open class AssignmentPolicy<E : Executor>(
+open class AssignmentPolicy<out E : Executor>(
     open val executor: E? = null,
     open val time: TimeRange? = null,
-) : Eq<AssignmentPolicy<E>> {
+) : Eq<AssignmentPolicy<@UnsafeVariance E>> {
     open val full: Boolean by lazy { executor != null && time != null }
     open val empty: Boolean by lazy { executor == null && time == null }
 
-    override fun partialEq(rhs: AssignmentPolicy<E>): Boolean? {
+    override fun partialEq(rhs: AssignmentPolicy<@UnsafeVariance E>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 
@@ -39,7 +39,7 @@ open class AssignmentPolicy<E : Executor>(
     }
 }
 
-data class ExecutorChange<E : Executor>(
+data class ExecutorChange<out E : Executor>(
     val from: E,
     val to: E
 )

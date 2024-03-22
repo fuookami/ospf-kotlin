@@ -27,10 +27,14 @@ interface Compilation {
     fun register(model: LinearMetaModel): Try
 }
 
-class TaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
-    private val tasks: List<AbstractTask<E, A>>,
+class TaskCompilation<
+    out T : AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
+    private val tasks: List<T>,
     private val executors: List<E>,
-    private val lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    private val lockCancelTasks: Set<T> = emptySet(),
     override val taskCancelEnabled: Boolean = false,
     override val withExecutorLeisure: Boolean = false
 ) : Compilation {
@@ -156,10 +160,15 @@ class TaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
     }
 }
 
-class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
-    private val originTasks: List<AbstractTask<E, A>>,
+open class IterativeTaskCompilation<
+    IT: IterativeAbstractTask<E, A>,
+    out T: AbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
+    private val originTasks: List<T>,
     private val executors: List<E>,
-    private val lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    private val lockCancelTasks: Set<T> = emptySet(),
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -179,11 +188,11 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
     override val withExecutorLeisure: Boolean = true
     override val taskCancelEnabled: Boolean = true
 
-    internal val aggregation = TaskAggregation<E, A>()
-    val tasksIteration: List<List<AbstractTask<E, A>>> by aggregation::tasksIteration
-    val tasks: List<AbstractTask<E, A>> by aggregation::tasks
-    val removedTasks: Map<AbstractTask<E, A>, UInt64> by aggregation::removedTasks
-    val lastIterationTasks: List<AbstractTask<E, A>> by aggregation::lastIterationTasks
+    internal val aggregation = TaskAggregation<IT, E, A>()
+    val tasksIteration: List<List<IT>> by aggregation::tasksIteration
+    val tasks: List<IT> by aggregation::tasks
+    val removedTasks: Set<IT> by aggregation::removedTasks
+    val lastIterationTasks: List<IT> by aggregation::lastIterationTasks
 
     private val _x = ArrayList<BinVariable1>()
     val x: List<BinVariable1> by ::_x
@@ -199,7 +208,7 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
     override fun register(model: LinearMetaModel): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
-            for (task in tasks) {
+            for (task in originTasks) {
                 y[task].name = "${y.name}_${task}"
 
                 if (lockCancelTasks.contains(task)) {
@@ -261,11 +270,11 @@ class IterativeTaskCompilation<E : Executor, A : AssignmentPolicy<E>>(
 
     open suspend fun addColumns(
         iteration: UInt64,
-        newTasks: List<AbstractTask<E, A>>,
+        newTasks: List<IT>,
         model: LinearMetaModel,
-        cost: (AbstractTask<E, A>) -> Cost,
-        conflict: (AbstractTask<E, A>, AbstractTask<E, A>) -> Boolean
-    ): Ret<List<AbstractTask<E, A>>> {
+        cost: (IT) -> Cost,
+        conflict: (IT, IT) -> Boolean
+    ): Ret<List<IT>> {
         val unduplicatedTasks = aggregation.addColumns(newTasks)
 
         val xi = BinVariable1("x_$iteration", Shape1(unduplicatedTasks.size))

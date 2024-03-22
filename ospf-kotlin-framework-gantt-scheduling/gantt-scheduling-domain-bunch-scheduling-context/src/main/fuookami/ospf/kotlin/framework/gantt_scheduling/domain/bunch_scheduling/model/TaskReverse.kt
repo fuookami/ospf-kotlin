@@ -3,11 +3,16 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.
 import kotlin.time.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-open class TaskReverseBuilder<T : AbstractPlannedTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
+open class TaskReverseBuilder<
+    out B : AbstractTaskBunch<T, E, A>,
+    out T : AbstractPlannedTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+> {
     operator fun invoke(
-        pairs: List<Pair<T, T>>,
-        originBunches: List<AbstractTaskBunch<T, E, A>>,
-        timeLockedTasks: Set<T> = emptySet(),
+        pairs: List<Pair<@UnsafeVariance T, @UnsafeVariance T>>,
+        originBunches: List<@UnsafeVariance B>,
+        timeLockedTasks: Set<@UnsafeVariance T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): TaskReverse<T, E, A> {
         val symmetricalPairs = ArrayList<TaskReverse.ReversiblePair<T, E, A>>()
@@ -43,9 +48,9 @@ open class TaskReverseBuilder<T : AbstractPlannedTask<E, A>, E : Executor, A : A
     }
 
     open fun reverseEnabled(
-        prevTask: T,
-        succTask: T,
-        timeLockedTasks: Set<T> = emptySet(),
+        prevTask: @UnsafeVariance T,
+        succTask: @UnsafeVariance T,
+        timeLockedTasks: Set<@UnsafeVariance T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
         if (!prevTask.delayEnabled && !succTask.advanceEnabled) {
@@ -91,9 +96,9 @@ open class TaskReverseBuilder<T : AbstractPlannedTask<E, A>, E : Executor, A : A
     }
 
     open fun symmetrical(
-        prevTask: T,
-        succTask: T,
-        timeLockedTasks: Set<T> = emptySet(),
+        prevTask: @UnsafeVariance T,
+        succTask: @UnsafeVariance T,
+        timeLockedTasks: Set<@UnsafeVariance T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
         return reverseEnabled(prevTask, succTask, timeLockedTasks, timeDifferenceLimit)
@@ -101,10 +106,10 @@ open class TaskReverseBuilder<T : AbstractPlannedTask<E, A>, E : Executor, A : A
     }
 
     protected open fun symmetrical(
-        originBunches: List<AbstractTaskBunch<T, E, A>>,
-        prevTask: T,
-        succTask: T,
-        timeLockedTasks: Set<T> = emptySet(),
+        originBunches: List<@UnsafeVariance B>,
+        prevTask: @UnsafeVariance T,
+        succTask: @UnsafeVariance T,
+        timeLockedTasks: Set<@UnsafeVariance T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
         assert(reverseEnabled(prevTask, succTask, timeLockedTasks, timeDifferenceLimit))
@@ -112,30 +117,38 @@ open class TaskReverseBuilder<T : AbstractPlannedTask<E, A>, E : Executor, A : A
     }
 }
 
-class TaskReverse<T : AbstractPlannedTask<E, A>, E : Executor, A : AssignmentPolicy<E>> internal constructor(
+class TaskReverse<
+    out T : AbstractPlannedTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+> internal constructor(
     private val symmetricalPairs: List<ReversiblePair<T, E, A>> = ArrayList(),
     private val leftMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>,
     private val rightMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>
 ) {
-    data class ReversiblePair<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+    data class ReversiblePair<
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+    >(
         val prevTask: T,
         val succTask: T,
         val symmetrical: Boolean
     )
 
-    fun contains(prevTask: T, succTask: T): Boolean {
+    fun contains(prevTask: @UnsafeVariance T, succTask: @UnsafeVariance T): Boolean {
         return leftMapper[prevTask.key]?.any { it.succTask == succTask } ?: false
     }
 
-    fun symmetrical(prevTask: T, succTask: T): Boolean {
+    fun symmetrical(prevTask: @UnsafeVariance T, succTask: @UnsafeVariance T): Boolean {
         return leftMapper[prevTask.key]?.find { it.succTask.plan == succTask.plan }?.symmetrical ?: false
     }
 
-    fun leftFind(flightTask: T): List<ReversiblePair<T, E, A>> {
+    fun leftFind(flightTask: @UnsafeVariance T): List<ReversiblePair<T, E, A>> {
         return leftMapper[flightTask.key] ?: emptyList()
     }
 
-    fun rightFind(flightTask: T): List<ReversiblePair<T, E, A>> {
+    fun rightFind(flightTask: @UnsafeVariance T): List<ReversiblePair<T, E, A>> {
         return rightMapper[flightTask.key] ?: emptyList()
     }
 }

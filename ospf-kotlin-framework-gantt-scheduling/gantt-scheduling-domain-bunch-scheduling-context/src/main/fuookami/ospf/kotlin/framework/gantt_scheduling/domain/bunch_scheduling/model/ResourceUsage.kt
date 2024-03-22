@@ -12,7 +12,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : ResourceCapacity>(
+class BunchSchedulingExecutionResourceUsage<
+    out R : ExecutionResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -49,10 +52,15 @@ class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : Resour
         return Ok(success)
     }
 
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
+    fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > addColumns(
         iteration: UInt64,
-        bunches: List<AbstractTaskBunch<T, E, A>>,
-        compilation: BunchCompilation<T, E, A>
+        bunches: List<B>,
+        compilation: BunchCompilation<B, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -78,7 +86,10 @@ class BunchSchedulingExecutionResourceUsage<R : ExecutionResource<C>, C : Resour
     }
 }
 
-class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : ResourceCapacity>(
+class BunchSchedulingConnectionResourceUsage<
+    out R : ConnectionResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -115,10 +126,15 @@ class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Reso
         return Ok(success)
     }
 
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
+    fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > addColumns(
         iteration: UInt64,
-        bunches: List<AbstractTaskBunch<T, E, A>>,
-        compilation: BunchCompilation<T, E, A>
+        bunches: List<B>,
+        compilation: BunchCompilation<B, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -144,7 +160,10 @@ class BunchSchedulingConnectionResourceUsage<R : ConnectionResource<C>, C : Reso
     }
 }
 
-class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCapacity>(
+class BunchSchedulingStorageResourceUsage<
+    out R : StorageResource<C>,
+    out C : ResourceCapacity
+>(
     timeWindow: TimeWindow,
     resources: List<R>,
     interval: Duration = timeWindow.interval,
@@ -186,10 +205,15 @@ class BunchSchedulingStorageResourceUsage<R : StorageResource<C>, C : ResourceCa
         return super.register(model)
     }
 
-    suspend fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
+    suspend fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > addColumns(
         iteration: UInt64,
-        bunches: List<AbstractTaskBunch<T, E, A>>,
-        compilation: BunchCompilation<T, E, A>
+        bunches: List<B>,
+        compilation: BunchCompilation<B, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 

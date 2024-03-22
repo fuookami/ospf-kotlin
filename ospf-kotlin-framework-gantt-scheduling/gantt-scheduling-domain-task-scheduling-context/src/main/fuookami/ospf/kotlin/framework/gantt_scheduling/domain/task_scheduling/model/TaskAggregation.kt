@@ -5,19 +5,23 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-data class TaskAggregation<E : Executor, A : AssignmentPolicy<E>>(
-    private val _tasksIteration: MutableList<List<AbstractTask<E, A>>> = ArrayList(),
-    private val _tasks: MutableList<AbstractTask<E, A>> = ArrayList(),
-    private val _removedTasks: MutableMap<AbstractTask<E, A>, UInt64> = HashMap()
+data class TaskAggregation<
+    T : IterativeAbstractTask<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
+    private val _tasksIteration: MutableList<List<T>> = ArrayList(),
+    private val _tasks: MutableList<T> = ArrayList(),
+    private val _removedTasks: MutableSet<T> = HashSet()
 ) {
-    val tasksIteration: List<List<AbstractTask<E, A>>> by ::_tasksIteration
-    val tasks: List<AbstractTask<E, A>> by ::_tasks
-    val removedTasks: Map<AbstractTask<E, A>, UInt64> by ::_removedTasks
-    val lastIterationTasks: List<AbstractTask<E, A>>
+    val tasksIteration: List<List<T>> by ::_tasksIteration
+    val tasks: List<T> by ::_tasks
+    val removedTasks: Set<T> by ::_removedTasks
+    val lastIterationTasks: List<T>
         get() = _tasksIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
-    suspend fun addColumns(newTasks: List<AbstractTask<E, A>>): List<AbstractTask<E, A>> {
-        val unduplicatedNewTasks = ArrayList<AbstractTask<E, A>>()
+    suspend fun addColumns(newTasks: List<T>): List<T> {
+        val unduplicatedNewTasks = ArrayList<T>()
         for (task in newTasks) {
             if (unduplicatedNewTasks.all { task neq it }) {
                 unduplicatedNewTasks.add(task)
@@ -25,7 +29,7 @@ data class TaskAggregation<E : Executor, A : AssignmentPolicy<E>>(
         }
 
         val unduplicatedTasks = coroutineScope {
-            val promises = ArrayList<Deferred<AbstractTask<E, A>?>>()
+            val promises = ArrayList<Deferred<T?>>()
             for (task in unduplicatedNewTasks) {
                 promises.add(async(Dispatchers.Default) {
                     if (_tasks.all { task neq it }) {
@@ -38,9 +42,9 @@ data class TaskAggregation<E : Executor, A : AssignmentPolicy<E>>(
             promises.mapNotNull { it.await() }
         }
 
-        ManualIndexed.flush(AbstractTask::class)
+        ManualIndexed.flush(IterativeAbstractTask::class)
         for (task in unduplicatedTasks.filterIsInstance<ManualIndexed>()) {
-            task.setIndexed(AbstractTask::class)
+            task.setIndexed(IterativeAbstractTask::class)
         }
         _tasksIteration.add(unduplicatedTasks)
         _tasks.addAll(unduplicatedTasks)
@@ -48,12 +52,9 @@ data class TaskAggregation<E : Executor, A : AssignmentPolicy<E>>(
         return unduplicatedTasks
     }
 
-    fun removeColumn(
-        iteration: UInt64,
-        task: AbstractTask<E, A>
-    ) {
+    fun removeColumn(task: T) {
         if (!_removedTasks.contains(task)) {
-            _removedTasks[task] = iteration
+            _removedTasks.add(task)
             _tasks.remove(task)
         }
     }

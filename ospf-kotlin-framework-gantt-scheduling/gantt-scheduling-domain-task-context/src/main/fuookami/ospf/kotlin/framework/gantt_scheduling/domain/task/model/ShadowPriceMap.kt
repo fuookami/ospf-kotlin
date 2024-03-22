@@ -6,40 +6,42 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 interface GanttSchedulingShadowPriceArguments<
-    E : Executor,
-    A : AssignmentPolicy<E>
+    out E : Executor,
+    out A : AssignmentPolicy<E>
 >
 
 open class ExecutorGanttSchedulingShadowPriceArguments<
-    E : Executor,
-    A : AssignmentPolicy<E>
+    out E : Executor,
+    out A : AssignmentPolicy<E>
 >(
     val executor: E
 ) : GanttSchedulingShadowPriceArguments<E, A>
 
 open class TaskGanttSchedulingShadowPriceArguments<
-    E : Executor,
-    A : AssignmentPolicy<E>
+    out E : Executor,
+    out A : AssignmentPolicy<E>
 >(
     open val prevTask: AbstractTask<E, A>?,
     open val thisTask: AbstractTask<E, A>?
 ) : GanttSchedulingShadowPriceArguments<E, A>
 
 open class ResourceGanttSchedulingShadowPriceArguments<
-    R : Resource<C>,
-    C : ResourceCapacity,
-    E : Executor,
-    A : AssignmentPolicy<E>
+    out R : Resource<C>,
+    out C : ResourceCapacity,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
 >(
     val resource: R,
     val time: TimeRange
 ) : GanttSchedulingShadowPriceArguments<E, A>
 
 open class AbstractGanttSchedulingShadowPriceMap<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
-> : AbstractShadowPriceMap<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>()
+    out Args : GanttSchedulingShadowPriceArguments<E, A>,
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+> : AbstractShadowPriceMap<
+    @UnsafeVariance Args, AbstractGanttSchedulingShadowPriceMap<@UnsafeVariance Args, @UnsafeVariance E, @UnsafeVariance A>
+>()
 
 typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPriceMap<
     GanttSchedulingShadowPriceArguments<E, A>, E, A

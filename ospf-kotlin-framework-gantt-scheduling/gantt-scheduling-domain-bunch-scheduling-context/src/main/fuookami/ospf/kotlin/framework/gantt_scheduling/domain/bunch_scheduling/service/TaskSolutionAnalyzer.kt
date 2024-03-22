@@ -6,12 +6,17 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.*
 
-class TaskSolutionAnalyzer<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> {
-    operator fun invoke(
+data object TaskSolutionAnalyzer {
+    operator fun <
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > invoke(
         iteration: UInt64,
         tasks: List<T>,
-        bunches: List<List<AbstractTaskBunch<T, E, A>>>,
-        compilation: BunchCompilation<T, E, A>,
+        bunches: List<List<B>>,
+        compilation: BunchCompilation<B, T, E, A>,
         model: LinearMetaModel
     ): Ret<Solution<E, A>> {
         val assignedTasks = ArrayList<T>()

@@ -26,7 +26,10 @@ open class MaterialReserves(
     val overEnabled: Boolean get() = overQuantity != null
 }
 
-interface ProductionTask<E : Executor, A : AssignmentPolicy<E>> : AbstractTask<E, A> {
+interface ProductionTask<
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+> : AbstractTask<E, A> {
     val produce: Map<Product, Flt64>
     val consumption: Map<Material, Flt64>
 }

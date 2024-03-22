@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling
 
 import kotlin.time.*
-import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -12,19 +11,24 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_scheduling.model.*
 
-abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+abstract class AbstractBunchSchedulingAggregation<
+    B : AbstractTaskBunch<T, E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet()
 ) {
-    private val logger = logger()
+    private val logger = org.apache.logging.log4j.kotlin.logger("BunchSchedulingAggregation")
 
-    val compilation: BunchCompilation<T, E, A> = BunchCompilation(tasks, executors, lockCancelTasks)
+    val compilation: BunchCompilation<B, T, E, A> = BunchCompilation(tasks, executors, lockCancelTasks)
 
-    val bunchesIteration: List<List<AbstractTaskBunch<T, E, A>>> by compilation::bunchesIteration
-    val bunches: List<AbstractTaskBunch<T, E, A>> by compilation::bunches
-    val removedBunches: Set<AbstractTaskBunch<T, E, A>> by compilation::removedBunches
-    val lastIterationBunches: List<AbstractTaskBunch<T, E, A>> by compilation::lastIterationBunches
+    val bunchesIteration: List<List<B>> by compilation::bunchesIteration
+    val bunches: List<B> by compilation::bunches
+    val removedBunches: Set<B> by compilation::removedBunches
+    val lastIterationBunches: List<B> by compilation::lastIterationBunches
 
     open fun register(model: LinearMetaModel): Try {
         when (val result = compilation.register(model)) {
@@ -40,9 +44,9 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
 
     open suspend fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        newBunches: List<B>,
         model: LinearMetaModel
-    ): Ret<List<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<List<B>> {
         val unduplicatedBunches = when (val result = compilation.addColumns(
             iteration = iteration,
             newBunches = newBunches,
@@ -63,9 +67,9 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
     open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
-        reducedCost: (AbstractTaskBunch<T, E, A>) -> Flt64,
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
-        keptBunches: Set<AbstractTaskBunch<T, E, A>>,
+        reducedCost: (B) -> Flt64,
+        fixedBunches: Set<B>,
+        keptBunches: Set<B>,
         model: LinearMetaModel
     ): Ret<Flt64> {
         for (bunch in bunches) {
@@ -98,14 +102,14 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
     open fun extractFixedBunches(
         iteration: UInt64,
         model: LinearMetaModel
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<Set<B>> {
         return extractBunches(iteration, model) { it eq Flt64.one }
     }
 
     open fun extractKeptBunches(
         iteration: UInt64,
         model: LinearMetaModel
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<Set<B>> {
         return extractBunches(iteration, model) { it gr Flt64.zero }
     }
 
@@ -125,7 +129,7 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         return Ok(ret)
     }
 
-    open fun globallyFix(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): Try {
+    open fun globallyFix(fixedBunches: Set<B>): Try {
         for (bunch in fixedBunches) {
             assert(!removedBunches.contains(bunch))
             val xi = compilation.x[bunch.iteration.toInt()]
@@ -137,11 +141,11 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
     open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
+        fixedBunches: Set<B>,
         model: LinearMetaModel
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<Set<B>> {
         var flag = true
-        val ret = HashSet<AbstractTaskBunch<T, E, A>>()
+        val ret = HashSet<B>()
 
         var bestValue = Flt64.zero
         var bestIteration = UInt64.zero
@@ -267,8 +271,8 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
         iteration: UInt64,
         model: LinearMetaModel,
         predicate: (Flt64) -> Boolean
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
-        val ret = HashSet<AbstractTaskBunch<T, E, A>>()
+    ): Ret<Set<B>> {
+        val ret = HashSet<B>()
         for (token in model.tokens.tokens) {
             if (!predicate(token.result!!)) {
                 continue
@@ -288,23 +292,33 @@ abstract class AbstractBunchSchedulingAggregation<T : AbstractTask<E, A>, E : Ex
     }
 }
 
-open class BunchSchedulingAggregation<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+open class BunchSchedulingAggregation<
+    B : AbstractTaskBunch<T, E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet()
-) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks)
+) : AbstractBunchSchedulingAggregation<B, T, E, A>(tasks, executors, lockCancelTasks)
 
-open class BunchCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+open class BunchCompilationAggregationWithTime<
+    B : AbstractTaskBunch<T, E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractBunchSchedulingAggregation<T, E, A>(tasks, executors, lockCancelTasks) {
-    val taskTime: BunchSchedulingTaskTime<T, E, A> =
+) : AbstractBunchSchedulingAggregation<B, T, E, A>(tasks, executors, lockCancelTasks) {
+    val taskTime: BunchSchedulingTaskTime<B, T, E, A> =
         BunchSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
-    val makespan: Makespan<E, A> = Makespan(tasks, taskTime, makespanExtra)
+    val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
 
     override fun register(model: LinearMetaModel): Try {
         when (val result = super.register(model)) {
@@ -336,9 +350,9 @@ open class BunchCompilationAggregationWithTime<T : AbstractTask<E, A>, E : Execu
 
     override suspend fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        newBunches: List<B>,
         model: LinearMetaModel
-    ): Ret<List<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<List<B>> {
         val unduplicatedBunches = when (val result = super.addColumns(iteration, newBunches, model)) {
             is Ok -> {
                 result.value

@@ -8,11 +8,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
-    operator fun invoke(
-        tasks: List<AbstractTask<E, A>>,
+data object SolutionAnalyzer {
+    operator fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > invoke(
+        tasks: List<T>,
         executors: List<E>,
-        compilation: TaskCompilation<E, A>,
+        compilation: TaskCompilation<T, E, A>,
         model: LinearMetaModel,
         assignedPolicyGenerator: (executor: E?) -> A?
     ): Ret<Solution<E, A>> {
@@ -49,12 +53,16 @@ class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
         return Ok(Solution(assignedTasks, canceledTasks))
     }
 
-    operator fun invoke(
+    operator fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > invoke(
         timeWindow: TimeWindow,
-        tasks: List<AbstractTask<E, A>>,
+        tasks: List<T>,
         executors: List<E>,
-        compilation: TaskCompilation<E, A>,
-        taskTime: TaskSchedulingTaskTime<E, A>,
+        compilation: TaskCompilation<T, E, A>,
+        taskTime: TaskSchedulingTaskTime<T, E, A>,
         results: List<Flt64>,
         model: LinearMetaModel,
         assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?
@@ -113,15 +121,20 @@ class SolutionAnalyzer<E : Executor, A : AssignmentPolicy<E>> {
         return Ok(Solution(assignedTasks, canceledTasks))
     }
 
-    operator fun invoke(
+    operator fun <
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+    > invoke(
         iteration: UInt64,
-        originTasks: List<AbstractTask<E, A>>,
-        tasks: List<List<AbstractTask<E, A>>>,
-        compilation: IterativeTaskCompilation<E, A>,
+        originTasks: List<T>,
+        tasks: List<List<IT>>,
+        compilation: IterativeTaskCompilation<IT, T, E, A>,
         model: LinearMetaModel
     ): Ret<Solution<E, A>> {
-        val assignedTasks = ArrayList<AbstractTask<E, A>>()
-        val canceledTasks = ArrayList<AbstractTask<E, A>>()
+        val assignedTasks = ArrayList<IT>()
+        val canceledTasks = ArrayList<T>()
         for (token in model.tokens.tokens) {
             for ((i , xi) in compilation.x.withIndex()) {
                 if (UInt64(i.toULong()) > iteration) {

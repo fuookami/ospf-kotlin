@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling
 
 import kotlin.time.*
-import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -11,25 +10,34 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_scheduling.model.*
 
-abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : AssignmentPolicy<E>>(
-    tasks: List<AbstractTask<E, A>>,
+abstract class AbstractIterativeTaskSchedulingAggregation<
+    IT : IterativeAbstractTask<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
+    tasks: List<T>,
     executors: List<E>,
-    lockedCancelTasks: Set<AbstractTask<E, A>> = emptySet()
+    lockedCancelTasks: Set<T> = emptySet()
 ) {
-    data class Policy<E : Executor, A : AssignmentPolicy<E>>(
-        val cost: (AbstractTask<E, A>) -> Cost,
-        val conflict: (AbstractTask<E, A>, AbstractTask<E, A>) -> Boolean
+    data class Policy<
+        IT : IterativeAbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+    >(
+        val cost: (IT) -> Cost,
+        val conflict: (IT, IT) -> Boolean
     )
 
-    private val logger = logger()
+    private val logger = org.apache.logging.log4j.kotlin.logger("IterativeTaskSchedulingAggregation")
 
-    val compilation: IterativeTaskCompilation<E, A> = IterativeTaskCompilation(tasks, executors, lockedCancelTasks)
-    abstract val policy: Policy<E, A>
+    val compilation: IterativeTaskCompilation<IT, T, E, A> = IterativeTaskCompilation(tasks, executors, lockedCancelTasks)
+    abstract val policy: Policy<IT, E, A>
 
-    val tasksIteration: List<List<AbstractTask<E, A>>> by compilation::tasksIteration
-    val tasks: List<AbstractTask<E, A>> by compilation::tasks
-    val removedTasks: Set<AbstractTask<E, A>> by compilation.removedTasks::keys
-    val lastIterationTasks: List<AbstractTask<E, A>> by compilation::lastIterationTasks
+    val tasksIteration: List<List<IT>> by compilation::tasksIteration
+    val tasks: List<IT> by compilation::tasks
+    val removedTasks: Set<IT> by compilation::removedTasks
+    val lastIterationTasks: List<IT> by compilation::lastIterationTasks
 
     open fun register(model: LinearMetaModel): Try {
         when (val result = compilation.register(model)) {
@@ -45,9 +53,9 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
 
     open suspend fun addColumns(
         iteration: UInt64,
-        newTasks: List<AbstractTask<E, A>>,
+        newTasks: List<IT>,
         model: LinearMetaModel
-    ): Ret<List<AbstractTask<E, A>>> {
+    ): Ret<List<IT>> {
         val unduplicatedTasks = when (val result = compilation.addColumns(
             iteration = iteration,
             newTasks = newTasks,
@@ -70,28 +78,26 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
     open fun removedColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
-        reducedCost: (AbstractTask<E, A>) -> Flt64,
-        fixedTasks: Set<AbstractTask<E, A>>,
-        keptTasks: Set<AbstractTask<E, A>>,
+        reducedCost: (IT) -> Flt64,
+        fixedTasks: Set<IT>,
+        keptTasks: Set<IT>,
         model: LinearMetaModel
     ): Ret<Flt64> {
-        for ((iteration, tasks) in tasksIteration.withIndex()) {
-            for (task in tasks) {
-                if (removedTasks.contains(task)) {
-                    continue
-                }
+        for (task in tasks) {
+            if (removedTasks.contains(task)) {
+                continue
+            }
 
-                if (!(reducedCost(task) ls maximumReducedCost)
-                    && !fixedTasks.contains(task)
-                    && !keptTasks.contains(task)
-                ) {
-                    compilation.aggregation.removeColumn(UInt64(iteration), task)
-                }
+            if (!(reducedCost(task) ls maximumReducedCost)
+                && !fixedTasks.contains(task)
+                && !keptTasks.contains(task)
+            ) {
+                compilation.aggregation.removeColumn(task)
             }
         }
 
-        for ((task, iteration) in compilation.removedTasks) {
-            val xi = compilation.x[iteration.toInt()]
+        for (task in compilation.removedTasks) {
+            val xi = compilation.x[task.iteration.toInt()]
             xi[task].range.eq(false)
             model.remove(xi[task])
         }
@@ -107,14 +113,14 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
     open fun extractFixedTasks(
         iteration: UInt64,
         model: LinearMetaModel
-    ): Ret<Map<AbstractTask<E, A>, UInt64>> {
+    ): Ret<Set<IT>> {
         return extractTasks(iteration, model) { it eq Flt64.one }
     }
 
     open fun extractKeptTasks(
         iteration: UInt64,
         model: LinearMetaModel
-    ): Ret<Map<AbstractTask<E, A>, UInt64>> {
+    ): Ret<Set<IT>> {
         return extractTasks(iteration, model) { it gr Flt64.zero }
     }
 
@@ -135,11 +141,11 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
     }
 
     open fun globallyFix(
-        fixedTasks: Map<AbstractTask<E, A>, UInt64>
+        fixedTasks: Set<IT>
     ): Try {
-        for ((task, iteration) in fixedTasks) {
+        for (task in fixedTasks) {
             assert(!removedTasks.contains(task))
-            val xi = compilation.x[iteration.toInt()]
+            val xi = compilation.x[task.iteration.toInt()]
             xi[task].range.eq(true)
         }
         return Ok(success)
@@ -148,11 +154,11 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
     open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
-        fixedTasks: Map<AbstractTask<E, A>, UInt64>,
+        fixedTasks: Set<IT>,
         model: LinearMetaModel
-    ): Ret<Map<AbstractTask<E, A>, UInt64>> {
+    ): Ret<Set<IT>> {
         var flag = true
-        val ret = HashMap<AbstractTask<E, A>, UInt64>()
+        val ret = HashSet<IT>()
 
         var bestValue = Flt64.zero
         var bestIteration = UInt64.zero
@@ -184,7 +190,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
                         && (token.result!! geq bar)
                         && !fixedTasks.contains(task)
                     ) {
-                        ret[task] = iteration
+                        ret.add(task)
                         xi[token.variable.index].range.eq(true)
                     }
                 }
@@ -195,7 +201,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
         // fix the best if the value greater than 1e-3
         if (flag && ret.isEmpty() && (bestValue geq Flt64(1e-3))) {
             val xi = compilation.x[bestIteration.toInt()][bestIndex]
-            ret[tasksIteration[bestIteration.toInt()][bestIndex]] = bestIteration
+            ret.add(tasksIteration[bestIteration.toInt()][bestIndex])
             xi.range.eq(true)
         }
 
@@ -242,8 +248,8 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
 
     fun flush(
         iteration: UInt64,
-        tasks: List<AbstractTask<E, A>>,
-        lockCancelTasks: Set<AbstractTask<E, A>> = emptySet()
+        tasks: List<T>,
+        lockCancelTasks: Set<T> = emptySet()
     ): Try {
         val y = compilation.y
         for (task in tasks) {
@@ -276,8 +282,8 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
         iteration: UInt64,
         model: LinearMetaModel,
         predicate: (Flt64) -> Boolean
-    ): Ret<Map<AbstractTask<E, A>, UInt64>> {
-        val ret = HashMap<AbstractTask<E, A>, UInt64>()
+    ): Ret<Set<IT>> {
+        val ret = HashSet<IT>()
         for (token in model.tokens.tokens) {
             if (!predicate(token.result!!)) {
                 continue
@@ -289,7 +295,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
                 if (token.belongsTo(xi)) {
                     val task = tasksIteration[i][token.variable.index]
                     assert(!removedTasks.contains(task))
-                    ret[task] = UInt64(i)
+                    ret.add(task)
                 }
             }
         }
@@ -297,25 +303,35 @@ abstract class AbstractIterativeTaskSchedulingAggregation<E : Executor, A : Assi
     }
 }
 
-open class IterativeTaskSchedulingAggregation<E : Executor, A : AssignmentPolicy<E>>(
-    tasks: List<AbstractTask<E, A>>,
+open class IterativeTaskSchedulingAggregation<
+    IT : IterativeAbstractTask<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
+    tasks: List<T>,
     executors: List<E>,
-    override val policy: Policy<E, A>,
-    lockCancelTask: Set<AbstractTask<E, A>> = emptySet()
-) : AbstractIterativeTaskSchedulingAggregation<E, A>(tasks, executors, lockCancelTask)
+    override val policy: Policy<IT, E, A>,
+    lockCancelTask: Set<T> = emptySet()
+) : AbstractIterativeTaskSchedulingAggregation<IT, T, E, A>(tasks, executors, lockCancelTask)
 
-open class IterativeTaskSchedulingAggregationWithTime<E : Executor, A : AssignmentPolicy<E>>(
+open class IterativeTaskSchedulingAggregationWithTime<
+    IT : IterativeAbstractTask<E, A>,
+    T : AbstractTask<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     timeWindow: TimeWindow,
-    tasks: List<AbstractTask<E, A>>,
+    tasks: List<T>,
     executors: List<E>,
-    override val policy: Policy<E, A>,
-    lockCancelTasks: Set<AbstractTask<E, A>> = emptySet(),
+    override val policy: Policy<IT, E, A>,
+    lockCancelTasks: Set<T> = emptySet(),
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractIterativeTaskSchedulingAggregation<E, A>(tasks, executors, lockCancelTasks) {
-    val taskTime: IterativeTaskSchedulingTaskTime<E, A> =
+) : AbstractIterativeTaskSchedulingAggregation<IT, T, E, A>(tasks, executors, lockCancelTasks) {
+    val taskTime: IterativeTaskSchedulingTaskTime<IT, T, E, A> =
         IterativeTaskSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
-    val makespan: Makespan<E, A> = Makespan(tasks, taskTime, makespanExtra)
+    val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
 
     override fun register(model: LinearMetaModel): Try {
         when (val result = super.register(model)) {
@@ -347,10 +363,10 @@ open class IterativeTaskSchedulingAggregationWithTime<E : Executor, A : Assignme
 
     override suspend fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTask<E, A>>,
+        newTasks: List<IT>,
         model: LinearMetaModel
-    ): Ret<List<AbstractTask<E, A>>> {
-        val unduplicatedBunches = when (val result = super.addColumns(iteration, newBunches, model)) {
+    ): Ret<List<IT>> {
+        val unduplicatedBunches = when (val result = super.addColumns(iteration, newTasks, model)) {
             is Ok -> {
                 result.value
             }

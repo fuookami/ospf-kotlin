@@ -19,29 +19,31 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_selection.mo
 class BranchAndPriceAlgorithm<
     Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
     Args : GanttSchedulingShadowPriceArguments<E, A>,
+    B : AbstractTaskBunch<T, E, A>,
     T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
     private val executors: List<E>,
     private val tasks: List<T>,
-    private val initialBunches: List<AbstractTaskBunch<T, E, A>>,
+    private val initialBunches: List<B>,
     private val solver: ColumnGenerationSolver,
-    private val policy: Policy<Map, Args, T, E, A>,
+    private val policy: Policy<Map, Args, B, T, E, A>,
     private val configuration: Configuration
 ) {
     data class Policy<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         Args : GanttSchedulingShadowPriceArguments<E, A>,
+        B : AbstractTaskBunch<T, E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
     >(
-        val contextBuilder: () -> BunchSchedulingContext<Args, T, E, A>,
-        val extractContextBuilder: List<(BunchSchedulingContext<Args, T, E, A>) -> List<ExtractBunchSchedulingContext<Args, T, E, A>>>,
+        val contextBuilder: () -> BunchSchedulingContext<Args, B, T, E, A>,
+        val extractContextBuilder: List<(BunchSchedulingContext<Args, B, T, E, A>) -> List<ExtractBunchSchedulingContext<Args, B, T, E, A>>>,
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, AbstractTaskBunch<T, E, A>) -> Flt64,
-        val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<AbstractTaskBunch<T, E, A>>>,
+        val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
     )
 
     data class Configuration(
@@ -57,8 +59,8 @@ class BranchAndPriceAlgorithm<
     private val extractContexts = policy.extractContextBuilder.flatMap { it(context) }
     private lateinit var shadowPriceMap: Map
 
-    private val fixedBunches = HashSet<AbstractTaskBunch<T, E, A>>()
-    private val keptBunches = HashSet<AbstractTaskBunch<T, E, A>>()
+    private val fixedBunches = HashSet<B>()
+    private val keptBunches = HashSet<B>()
     private val hiddenExecutors = HashSet<E>()
 
     private var mainProblemSolvingTimes: UInt64 = UInt64.zero
@@ -70,22 +72,22 @@ class BranchAndPriceAlgorithm<
     private val columnAmount: UInt64 get() = context.columnAmount
     private val executorAmount: UInt64 get() = UInt64(executors.size)
 
-    private fun notFixedExtractorAmount(fixedBunches: Set<AbstractTaskBunch<T, E, A>>): UInt64 =
+    private fun notFixedExtractorAmount(fixedBunches: Set<B>): UInt64 =
         executorAmount - UInt64(fixedBunches.size.toULong())
 
     private fun minimumColumnAmount(
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
+        fixedBunches: Set<B>,
         configuration: Configuration
     ): UInt64 =
         notFixedExtractorAmount(fixedBunches) * configuration.minimumColumnAmountPerExecutor
 
-    suspend operator fun invoke(id: String): Ret<BunchSolution<T, E, A>> {
+    suspend operator fun invoke(id: String): Ret<BunchSolution<B, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
         try {
-            lateinit var bestSolution: BunchSolution<T, E, A>
+            lateinit var bestSolution: BunchSolution<B, T, E, A>
             val model = LinearMetaModel(id)
             var iteration = Iteration<T, E, A>()
             when (val result = register(model)) {
@@ -488,7 +490,7 @@ class BranchAndPriceAlgorithm<
         iteration: Iteration<T, E, A>,
         executors: List<E>,
         shadowPriceMap: Map
-    ): Result<List<AbstractTaskBunch<T, E, A>>, Error> {
+    ): Result<List<B>, Error> {
         val beginTime = Clock.System.now()
         val newBunches = when (val results = policy.bunchGenerator(iteration.iteration, executors, shadowPriceMap)) {
             is Ok -> {
@@ -535,7 +537,7 @@ class BranchAndPriceAlgorithm<
 
     private suspend fun addColumns(
         iteration: UInt64,
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
+        newBunches: List<B>,
         model: LinearMetaModel
     ): Try {
         val beginTime = Clock.System.now()
@@ -572,8 +574,8 @@ class BranchAndPriceAlgorithm<
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
         shadowPriceMap: Map,
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
-        keptBunches: Set<AbstractTaskBunch<T, E, A>>,
+        fixedBunches: Set<B>,
+        keptBunches: Set<B>,
         model: LinearMetaModel
     ): Result<Flt64, Error> {
         val newMaximumReducedCost = when (val result = context.removeColumns(
@@ -667,8 +669,8 @@ class BranchAndPriceAlgorithm<
 
     private fun globallyFix(
         freeExecutors: Set<Executor>
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
-        val fixedBunches = HashSet<AbstractTaskBunch<T, E, A>>()
+    ): Ret<Set<B>> {
+        val fixedBunches = HashSet<B>()
         for (bunch in this.fixedBunches) {
             if (!freeExecutors.contains(bunch.executor)) {
                 fixedBunches.add(bunch)
@@ -687,9 +689,9 @@ class BranchAndPriceAlgorithm<
 
     private fun locallyFix(
         iteration: UInt64,
-        fixedBunches: Set<AbstractTaskBunch<T, E, A>>,
+        fixedBunches: Set<B>,
         model: LinearMetaModel
-    ): Ret<Set<AbstractTaskBunch<T, E, A>>> {
+    ): Ret<Set<B>> {
         val fixBar = Flt64(0.9)
         return when (val ret = context.locallyFix(iteration, fixBar, fixedBunches, model)) {
             is Ok -> {
@@ -719,7 +721,7 @@ class BranchAndPriceAlgorithm<
     private fun analyzeSolution(
         iteration: UInt64,
         model: LinearMetaModel
-    ): Ret<BunchSolution<T, E, A>> {
+    ): Ret<BunchSolution<B, T, E, A>> {
         return when (val result = context.analyzeBunchSolution(iteration, tasks, model)) {
             is Ok -> {
                 Ok(result.value)

@@ -11,7 +11,7 @@ class BunchCostMinimization<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    private val compilation: BunchCompilation<T, E, A>,
+    private val compilation: BunchCompilation<*, T, E, A>,
     override val name: String = "bunch_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: LinearMetaModel): Try {

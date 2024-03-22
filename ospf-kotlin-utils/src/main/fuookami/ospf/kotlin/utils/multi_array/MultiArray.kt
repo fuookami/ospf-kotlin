@@ -71,23 +71,23 @@ open class MultiArray<out T : Any, S : Shape>(
     ctor: ((Pair<Int, IntArray>) -> T)? = null
 ) : AbstractMultiArray<T, S>(shape, ctor)
 
-open class MutableMultiArray<out T : Any, S : Shape>(
+open class MutableMultiArray<T : Any, S : Shape>(
     shape: S,
     ctor: ((Pair<Int, IntArray>) -> T)? = null
 ) : AbstractMultiArray<T, S>(shape, ctor) {
-    operator fun set(i: Int, value: @UnsafeVariance T) {
+    operator fun set(i: Int, value: T) {
         list[i] = value
     }
 
-    operator fun set(e: Indexed, value: @UnsafeVariance T) {
+    operator fun set(e: Indexed, value: T) {
         list[e.index] = value
     }
 
-    operator fun set(vararg v: Int, e: @UnsafeVariance T) {
+    operator fun set(vararg v: Int, e: T) {
         list[shape.index(v)] = e
     }
 
-    operator fun set(vararg v: Indexed, value: @UnsafeVariance T) {
+    operator fun set(vararg v: Indexed, value: T) {
         list[shape.index(v.map { it.index }.toIntArray())] = value
     }
 }
