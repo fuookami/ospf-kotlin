@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-class Iteration<E : Executor, A : AssignmentPolicy<E>>(
+class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     val initialSlowLpImprovementStep: Flt64 = Flt64(100.0),
     val relativeImprovementStep: Flt64 = Flt64(0.01),
     val improvementSlowCount: UInt64 = UInt64(5UL)
@@ -40,8 +40,8 @@ class Iteration<E : Executor, A : AssignmentPolicy<E>>(
         }
 
     fun refreshLowerBound(
-        newTasks: List<AbstractTask<E, A>>,
-        reducedCost: (AbstractTask<E, A>) -> Flt64
+        newTasks: List<T>,
+        reducedCost: (T) -> Flt64
     ) {
         val bestReducedCost = HashMap<E, Flt64>()
         for (task in newTasks) {
@@ -118,12 +118,12 @@ class Iteration<E : Executor, A : AssignmentPolicy<E>>(
         slowLpImprovementStep /= Flt64.two
     }
 
-    operator fun inc(): Iteration<E, A> {
+    operator fun inc(): Iteration<T, E, A> {
         ++_iteration
         return this
     }
 
-    operator fun dec(): Iteration<E, A> {
+    operator fun dec(): Iteration<T, E, A> {
         --_iteration
         return this
     }
