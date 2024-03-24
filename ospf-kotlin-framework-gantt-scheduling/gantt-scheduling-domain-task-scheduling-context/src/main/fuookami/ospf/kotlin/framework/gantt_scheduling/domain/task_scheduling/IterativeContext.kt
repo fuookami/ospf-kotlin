@@ -69,7 +69,7 @@ interface IterativeTaskSchedulingContext<
         keptTasks: Set<IT>,
         model: LinearMetaModel
     ): Ret<Flt64> {
-        return aggregation.removedColumns(
+        return aggregation.removeColumns(
             maximumReducedCost,
             maximumColumnAmount,
             reducedCost,

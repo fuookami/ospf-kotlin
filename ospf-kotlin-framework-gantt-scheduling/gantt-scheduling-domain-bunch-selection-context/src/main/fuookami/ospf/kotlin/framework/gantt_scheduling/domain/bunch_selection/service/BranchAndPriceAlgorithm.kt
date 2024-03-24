@@ -490,7 +490,7 @@ class BranchAndPriceAlgorithm<
         iteration: Iteration<T, E, A>,
         executors: List<E>,
         shadowPriceMap: Map
-    ): Result<List<B>, Error> {
+    ): Ret<List<B>> {
         val beginTime = Clock.System.now()
         val newBunches = when (val results = policy.bunchGenerator(iteration.iteration, executors, shadowPriceMap)) {
             is Ok -> {
@@ -577,7 +577,7 @@ class BranchAndPriceAlgorithm<
         fixedBunches: Set<B>,
         keptBunches: Set<B>,
         model: LinearMetaModel
-    ): Result<Flt64, Error> {
+    ): Ret<Flt64> {
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
             maximumColumnAmount,
@@ -645,7 +645,7 @@ class BranchAndPriceAlgorithm<
 
     private fun selectFreeExecutors(
         model: LinearMetaModel
-    ): Result<Set<E>, Error> {
+    ): Ret<Set<E>> {
         return when (val result = context.selectFreeExecutors(fixedBunches, hiddenExecutors, model)) {
             is Ok -> {
                 Ok(result.value)

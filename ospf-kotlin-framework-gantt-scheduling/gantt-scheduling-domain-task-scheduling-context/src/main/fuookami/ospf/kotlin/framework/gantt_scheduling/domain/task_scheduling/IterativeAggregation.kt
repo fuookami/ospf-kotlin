@@ -75,7 +75,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
         return Ok(unduplicatedTasks)
     }
 
-    open fun removedColumns(
+    open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
         reducedCost: (IT) -> Flt64,
