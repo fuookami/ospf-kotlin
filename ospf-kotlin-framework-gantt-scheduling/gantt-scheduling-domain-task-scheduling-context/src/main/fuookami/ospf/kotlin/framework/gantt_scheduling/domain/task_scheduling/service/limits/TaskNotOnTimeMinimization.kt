@@ -40,6 +40,6 @@ class TaskNotOnTimeMinimization<
             model.minimize(coefficient * slack, "task not on time")
         }
 
-        return Ok(success)
+        return ok
     }
 }

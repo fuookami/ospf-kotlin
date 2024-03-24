@@ -28,6 +28,6 @@ class ExecutorLeisureMinimization<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

@@ -41,7 +41,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
                 "${name}_$task"
             )
         }
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -77,6 +77,6 @@ class TaskAdvanceEarliestEndTimeConstraint<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

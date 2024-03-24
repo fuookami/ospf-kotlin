@@ -28,7 +28,7 @@ class TaskStepConflictConstraint<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {

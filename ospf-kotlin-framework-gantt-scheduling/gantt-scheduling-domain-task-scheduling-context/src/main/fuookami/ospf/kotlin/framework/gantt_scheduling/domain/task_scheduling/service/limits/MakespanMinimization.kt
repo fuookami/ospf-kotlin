@@ -41,6 +41,6 @@ class MakespanMinimization<
             model.addSymbol(slack)
             model.minimize(coefficient * slack, "makespan")
         }
-        return Ok(success)
+        return ok
     }
 }

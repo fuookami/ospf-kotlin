@@ -441,7 +441,7 @@ class BranchAndPriceAlgorithm<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     private suspend fun solveRMP(
@@ -567,7 +567,7 @@ class BranchAndPriceAlgorithm<
         }
 
         mainProblemModelingTime += Clock.System.now() - beginTime
-        return Ok(success)
+        return ok
     }
 
     private fun removeColumns(
@@ -605,7 +605,7 @@ class BranchAndPriceAlgorithm<
         return when (val result = context.extractFixedBunches(iteration, model)) {
             is Ok -> {
                 fixedBunches.addAll(result.value)
-                Ok(success)
+                ok
             }
 
             is Failed -> {
@@ -621,7 +621,7 @@ class BranchAndPriceAlgorithm<
         return when (val result = context.extractKeptBunches(iteration, model)) {
             is Ok -> {
                 keptBunches.addAll(result.value)
-                Ok(success)
+                ok
             }
 
             is Failed -> {
@@ -634,7 +634,7 @@ class BranchAndPriceAlgorithm<
         return when (val result = context.extractHiddenExecutors(executors, model)) {
             is Ok -> {
                 hiddenExecutors.addAll(result.value)
-                Ok(success)
+                ok
             }
 
             is Failed -> {
@@ -715,7 +715,7 @@ class BranchAndPriceAlgorithm<
 
         keptBunches.clear()
         hiddenExecutors.clear()
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeSolution(
@@ -752,7 +752,7 @@ class BranchAndPriceAlgorithm<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     private fun logIpResults(iteration: UInt64, model: LinearMetaModel): Try {
@@ -772,6 +772,6 @@ class BranchAndPriceAlgorithm<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

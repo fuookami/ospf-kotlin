@@ -36,6 +36,6 @@ class TaskCancelMinimization<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 }

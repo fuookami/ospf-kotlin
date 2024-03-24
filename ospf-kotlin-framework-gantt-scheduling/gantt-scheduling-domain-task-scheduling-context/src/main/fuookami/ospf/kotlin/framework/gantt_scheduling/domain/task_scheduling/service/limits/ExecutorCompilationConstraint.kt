@@ -36,7 +36,7 @@ class ExecutorCompilationConstraint<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -78,6 +78,6 @@ class ExecutorCompilationConstraint<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

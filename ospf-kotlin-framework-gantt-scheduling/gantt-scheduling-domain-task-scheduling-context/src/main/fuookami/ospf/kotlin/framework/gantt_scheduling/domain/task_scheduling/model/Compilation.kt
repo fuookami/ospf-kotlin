@@ -156,7 +156,7 @@ class TaskCompilation<
         }
         model.addSymbols(executorCompilation)
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -265,7 +265,7 @@ open class IterativeTaskCompilation<
         }
         model.addSymbols(executorCompilation)
 
-        return Ok(success)
+        return ok
     }
 
     open suspend fun addColumns(

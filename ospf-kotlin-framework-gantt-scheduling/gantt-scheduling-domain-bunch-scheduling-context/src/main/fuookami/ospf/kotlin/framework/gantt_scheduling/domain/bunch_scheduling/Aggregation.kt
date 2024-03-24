@@ -39,7 +39,7 @@ abstract class AbstractBunchSchedulingAggregation<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     open suspend fun addColumns(
@@ -135,7 +135,7 @@ abstract class AbstractBunchSchedulingAggregation<
             val xi = compilation.x[bunch.iteration.toInt()]
             xi[bunch].range.eq(true)
         }
-        return Ok(success)
+        return ok
     }
 
     open fun locallyFix(
@@ -211,7 +211,7 @@ abstract class AbstractBunchSchedulingAggregation<
             logger.debug { "${obj.name} = ${obj.value()}" }
         }
 
-        return Ok(success)
+        return ok
     }
 
     open fun logBunchCost(
@@ -232,7 +232,7 @@ abstract class AbstractBunchSchedulingAggregation<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     fun flush(
@@ -264,7 +264,7 @@ abstract class AbstractBunchSchedulingAggregation<
                 }
             }
         }
-        return Ok(success)
+        return ok
     }
 
     private fun extractBunches(
@@ -345,7 +345,7 @@ open class BunchCompilationAggregationWithTime<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override suspend fun addColumns(

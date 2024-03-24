@@ -62,6 +62,6 @@ class TaskDelayTimeMinimization<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 }

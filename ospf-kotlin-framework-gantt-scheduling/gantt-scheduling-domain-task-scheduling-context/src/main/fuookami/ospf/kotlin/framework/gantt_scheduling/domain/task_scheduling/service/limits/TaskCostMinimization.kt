@@ -16,6 +16,6 @@ class TaskCostMinimization<
     override fun invoke(model: LinearMetaModel): Try {
         model.minimize(compilation.taskCost, "task cost")
 
-        return Ok(success)
+        return ok
     }
 }

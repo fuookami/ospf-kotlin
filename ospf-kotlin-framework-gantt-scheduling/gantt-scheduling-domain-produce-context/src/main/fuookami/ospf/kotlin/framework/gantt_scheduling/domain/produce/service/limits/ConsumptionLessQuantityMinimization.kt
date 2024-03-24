@@ -47,6 +47,6 @@ class ConsumptionLessQuantityMinimization<
             }
             model.minimize(cost, "consumption less quantity")
         }
-        return Ok(success)
+        return ok
     }
 }

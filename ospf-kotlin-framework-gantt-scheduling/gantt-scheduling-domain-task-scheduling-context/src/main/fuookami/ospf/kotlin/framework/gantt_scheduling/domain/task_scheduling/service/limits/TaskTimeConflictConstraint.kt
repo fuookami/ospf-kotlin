@@ -41,6 +41,6 @@ class TaskTimeConflictConstraint<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

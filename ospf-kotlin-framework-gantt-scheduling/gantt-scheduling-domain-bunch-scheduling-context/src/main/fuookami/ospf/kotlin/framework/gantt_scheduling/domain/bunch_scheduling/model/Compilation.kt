@@ -119,7 +119,7 @@ open class BunchCompilation<
         }
         model.addSymbols(executorCompilation)
 
-        return Ok(success)
+        return ok
     }
 
     open suspend fun addColumns(

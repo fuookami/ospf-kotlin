@@ -17,6 +17,6 @@ class BunchCostMinimization<
     override fun invoke(model: LinearMetaModel): Try {
         model.minimize(compilation.bunchCost, "bunch cost")
 
-        return Ok(success)
+        return ok
     }
 }

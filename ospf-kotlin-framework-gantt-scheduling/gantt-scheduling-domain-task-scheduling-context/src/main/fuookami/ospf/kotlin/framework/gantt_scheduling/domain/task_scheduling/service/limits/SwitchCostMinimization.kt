@@ -32,6 +32,6 @@ class SwitchCostMinimization<
         }
         model.minimize(cost, "switch cost")
 
-        return Ok(success)
+        return ok
     }
 }

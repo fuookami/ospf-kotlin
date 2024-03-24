@@ -28,6 +28,6 @@ class Makespan<
         }
         model.addSymbol(makespan)
 
-        return Ok(success)
+        return ok
     }
 }

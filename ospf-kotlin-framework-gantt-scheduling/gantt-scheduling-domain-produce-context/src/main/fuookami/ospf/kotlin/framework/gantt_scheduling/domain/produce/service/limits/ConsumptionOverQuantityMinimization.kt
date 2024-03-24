@@ -47,6 +47,6 @@ class ConsumptionOverQuantityMinimization<
             }
             model.minimize(cost, "consumption over quantity")
         }
-        return Ok(success)
+        return ok
     }
 }

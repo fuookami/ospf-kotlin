@@ -145,6 +145,6 @@ class TaskSchedulingSwitch<
             model.addSymbols(switchTime)
         }
 
-        return Ok(success)
+        return ok
     }
 }

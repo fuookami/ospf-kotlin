@@ -120,7 +120,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }))
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -152,7 +152,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

@@ -104,7 +104,7 @@ class IfInFunction(
             polyY.range.set(possibleRange)
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -118,7 +118,7 @@ class IfInFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

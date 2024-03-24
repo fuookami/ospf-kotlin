@@ -36,6 +36,6 @@ class TaskConflictConstraint<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

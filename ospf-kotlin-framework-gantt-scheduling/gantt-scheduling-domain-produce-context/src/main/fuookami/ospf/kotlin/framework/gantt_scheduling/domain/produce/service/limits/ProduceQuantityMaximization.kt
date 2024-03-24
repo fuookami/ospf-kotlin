@@ -40,6 +40,6 @@ class ProduceQuantityMaximization<
             }),
             "produce quantity"
         )
-        return Ok(success)
+        return ok
     }
 }

@@ -125,7 +125,7 @@ class IfThen(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -157,7 +157,7 @@ class IfThen(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toRawString(unfold: Boolean): String {

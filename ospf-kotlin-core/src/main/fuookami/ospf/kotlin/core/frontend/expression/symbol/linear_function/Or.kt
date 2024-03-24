@@ -94,7 +94,7 @@ class OrFunction(
             polyY.range.set(ValueRange(Flt64.zero, Flt64.one))
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -126,7 +126,7 @@ class OrFunction(
             "${name}_ub"
         )
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

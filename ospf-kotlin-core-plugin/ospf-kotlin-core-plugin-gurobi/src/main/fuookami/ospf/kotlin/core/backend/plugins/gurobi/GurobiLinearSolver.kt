@@ -86,7 +86,7 @@ private class GurobiLinearSolverImpl(
             env.start()
 
             grbModel = GRBModel(env)
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
         } catch (e: Exception) {
@@ -98,7 +98,7 @@ private class GurobiLinearSolverImpl(
         return try {
             env = GRBEnv()
             grbModel = GRBModel(env)
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
         } catch (e: Exception) {
@@ -167,7 +167,7 @@ private class GurobiLinearSolverImpl(
 
                 else -> {}
             }
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
         } catch (e: Exception) {
@@ -187,7 +187,7 @@ private class GurobiLinearSolverImpl(
 
                 else -> {}
             }
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineModelingException, e.message))
         } catch (e: Exception) {
@@ -199,7 +199,7 @@ private class GurobiLinearSolverImpl(
         return try {
             grbModel.optimize()
 
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
         } catch (e: Exception) {
@@ -235,7 +235,7 @@ private class GurobiLinearSolverImpl(
                 }
             }
 
-            Ok(success)
+            ok
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
         } catch (e: Exception) {
@@ -271,7 +271,7 @@ private class GurobiLinearSolverImpl(
 
                     else -> {}
                 }
-                Ok(success)
+                ok
             } else {
                 when (val result = callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {

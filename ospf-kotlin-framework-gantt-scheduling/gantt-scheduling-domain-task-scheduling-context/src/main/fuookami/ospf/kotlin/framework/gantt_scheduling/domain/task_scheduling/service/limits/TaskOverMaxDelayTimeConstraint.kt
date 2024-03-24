@@ -37,7 +37,7 @@ class TaskOverMaxDelayTimeConstraint<Args : GanttSchedulingShadowPriceArguments<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -73,6 +73,6 @@ class TaskOverMaxDelayTimeConstraint<Args : GanttSchedulingShadowPriceArguments<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

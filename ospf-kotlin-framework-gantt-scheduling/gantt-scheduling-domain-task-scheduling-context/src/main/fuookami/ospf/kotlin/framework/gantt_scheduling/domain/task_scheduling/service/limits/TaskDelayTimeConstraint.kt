@@ -42,7 +42,7 @@ class TaskDelayTimeConstraint<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -78,6 +78,6 @@ class TaskDelayTimeConstraint<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

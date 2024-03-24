@@ -27,7 +27,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -37,7 +37,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -47,7 +47,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 

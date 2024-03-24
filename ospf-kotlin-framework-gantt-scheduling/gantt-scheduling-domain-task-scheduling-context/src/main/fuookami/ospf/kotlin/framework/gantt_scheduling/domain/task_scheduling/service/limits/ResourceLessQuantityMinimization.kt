@@ -51,6 +51,6 @@ class ResourceLessQuantityMinimization<
             model.minimize(cost, "${quantity.name} less quantity")
         }
 
-        return Ok(success)
+        return ok
     }
 }

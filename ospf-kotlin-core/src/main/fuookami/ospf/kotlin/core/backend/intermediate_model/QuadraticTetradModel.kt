@@ -125,7 +125,7 @@ class BasicQuadraticTetradModel(
         }
 
         writer.append("End\n")
-        return Ok(success)
+        return ok
     }
 }
 
@@ -175,7 +175,7 @@ data class QuadraticTetradModel(
             }
 
             is Ok -> {
-                Ok(success)
+                ok
             }
         }
     }

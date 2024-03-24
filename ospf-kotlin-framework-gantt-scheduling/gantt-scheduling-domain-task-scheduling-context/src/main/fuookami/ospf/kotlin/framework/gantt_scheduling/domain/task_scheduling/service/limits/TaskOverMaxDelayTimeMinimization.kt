@@ -58,6 +58,6 @@ class TaskOverMaxDelayTimeMinimization<
             model.minimize(cost, "task over max delay time")
         }
 
-        return Ok(success)
+        return ok
     }
 }

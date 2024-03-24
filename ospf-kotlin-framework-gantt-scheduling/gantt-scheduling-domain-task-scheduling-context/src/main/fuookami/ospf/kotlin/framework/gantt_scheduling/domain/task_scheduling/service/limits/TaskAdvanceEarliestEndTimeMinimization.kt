@@ -62,6 +62,6 @@ class TaskAdvanceEarliestEndTimeMinimization<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 }

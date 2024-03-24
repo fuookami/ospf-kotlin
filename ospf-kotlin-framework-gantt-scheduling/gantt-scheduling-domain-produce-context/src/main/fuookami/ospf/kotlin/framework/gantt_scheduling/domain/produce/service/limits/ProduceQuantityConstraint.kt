@@ -72,7 +72,7 @@ class ProduceQuantityConstraint<
                 )
             }
         }
-        return Ok(success)
+        return ok
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
@@ -127,6 +127,6 @@ class ProduceQuantityConstraint<
             map.put(ShadowPrice(ProduceQuantityShadowPriceKey(product), value))
         }
 
-        return Ok(success)
+        return ok
     }
 }

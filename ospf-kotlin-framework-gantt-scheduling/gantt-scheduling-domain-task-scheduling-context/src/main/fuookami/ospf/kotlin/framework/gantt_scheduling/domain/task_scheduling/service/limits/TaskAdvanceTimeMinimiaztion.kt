@@ -58,6 +58,6 @@ class TaskAdvanceTimeMinimization<
             model.minimize(cost, "task advance time")
         }
 
-        return Ok(success)
+        return ok
     }
 }

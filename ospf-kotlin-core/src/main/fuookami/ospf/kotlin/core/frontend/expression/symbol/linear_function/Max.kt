@@ -103,7 +103,7 @@ sealed class AbstractMaxFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -125,7 +125,7 @@ sealed class AbstractMaxFunction(
             model.addConstraint(sum(u) eq Flt64.one, "${name}_u")
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

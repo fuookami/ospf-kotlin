@@ -37,7 +37,7 @@ interface BunchSchedulingContext<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     suspend fun addColumns(
@@ -95,7 +95,7 @@ interface BunchSchedulingContext<
             val extractor = pipeline.extractor() ?: continue
             shadowPriceMap.put(extractor)
         }
-        return Ok(success)
+        return ok
     }
 
     fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<B>> {
@@ -185,6 +185,6 @@ interface ExtractBunchSchedulingContext<
     ): Try
 
     fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
-        return Ok(success)
+        return ok
     }
 }

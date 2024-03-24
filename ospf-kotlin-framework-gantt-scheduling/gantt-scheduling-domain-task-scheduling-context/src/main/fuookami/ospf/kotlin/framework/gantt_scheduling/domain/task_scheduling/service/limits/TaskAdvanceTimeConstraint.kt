@@ -42,7 +42,7 @@ class TaskAdvanceTimeConstraint<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -78,6 +78,6 @@ class TaskAdvanceTimeConstraint<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

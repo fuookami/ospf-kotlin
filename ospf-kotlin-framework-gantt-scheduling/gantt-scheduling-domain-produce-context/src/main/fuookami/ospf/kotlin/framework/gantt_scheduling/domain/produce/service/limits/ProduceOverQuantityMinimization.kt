@@ -47,6 +47,6 @@ class ProduceOverQuantityMinimization<
             }
             model.minimize(cost, "produce over quantity")
         }
-        return Ok(success)
+        return ok
     }
 }

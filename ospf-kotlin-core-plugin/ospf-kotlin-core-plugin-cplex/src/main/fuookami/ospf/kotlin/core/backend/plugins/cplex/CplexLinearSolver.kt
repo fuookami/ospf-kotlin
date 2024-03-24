@@ -60,7 +60,7 @@ private class CplexLinearSolverImpl(
     private fun init(model: LinearTriadModelView): Try {
         cplex = IloCplex()
         cplex.name = model.name
-        return Ok(success)
+        return ok
     }
 
     private fun dump(model: LinearTriadModelView): Try {
@@ -132,7 +132,7 @@ private class CplexLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun configure(): Try {
@@ -147,7 +147,7 @@ private class CplexLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun solve(): Try {
@@ -162,12 +162,12 @@ private class CplexLinearSolverImpl(
                 } catch (e: IloException) {
                     return Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                 }
-                return Ok(success)
+                return ok
             }
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeStatus(): Try {
@@ -196,7 +196,7 @@ private class CplexLinearSolverImpl(
                 SolvingStatus.SolvingException
             }
         }
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeSolution(): Try {
@@ -222,7 +222,7 @@ private class CplexLinearSolverImpl(
 
                 else -> {}
             }
-            Ok(success)
+            ok
         } else {
             Failed(Err(status.errCode()!!))
         }

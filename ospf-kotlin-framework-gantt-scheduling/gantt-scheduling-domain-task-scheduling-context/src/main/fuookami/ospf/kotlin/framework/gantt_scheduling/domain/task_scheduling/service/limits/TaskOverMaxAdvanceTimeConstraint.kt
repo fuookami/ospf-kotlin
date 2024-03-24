@@ -42,7 +42,7 @@ class TaskOverMaxAdvanceTimeConstraint<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -78,6 +78,6 @@ class TaskOverMaxAdvanceTimeConstraint<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

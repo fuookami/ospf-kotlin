@@ -52,6 +52,6 @@ class SwitchTimeMinimization<
         }
         model.minimize(cost, "switch time")
 
-        return Ok(success)
+        return ok
     }
 }

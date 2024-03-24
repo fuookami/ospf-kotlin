@@ -49,7 +49,7 @@ class BunchSchedulingExecutionResourceUsage<
             model.addSymbols(quantity)
         }
 
-        return Ok(success)
+        return ok
     }
 
     fun <
@@ -82,7 +82,7 @@ class BunchSchedulingExecutionResourceUsage<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -123,7 +123,7 @@ class BunchSchedulingConnectionResourceUsage<
             model.addSymbols(quantity)
         }
 
-        return Ok(success)
+        return ok
     }
 
     fun <
@@ -156,7 +156,7 @@ class BunchSchedulingConnectionResourceUsage<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -244,6 +244,6 @@ class BunchSchedulingStorageResourceUsage<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

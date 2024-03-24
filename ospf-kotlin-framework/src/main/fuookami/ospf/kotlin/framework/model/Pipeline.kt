@@ -29,7 +29,7 @@ interface CGPipeline<
     }
 
     fun refresh(map: Map, model: Model, shadowPrices: List<Flt64>): Try {
-        return Ok(success)
+        return ok
     }
 }
 
@@ -39,7 +39,7 @@ interface HAPipeline<in M : ModelInterface> : Pipeline<M> {
         val value: Flt64
     )
 
-    override operator fun invoke(model: M): Try = Ok(success)
+    override operator fun invoke(model: M): Try = ok
 
     operator fun invoke(model: M, solution: List<Flt64>): Ret<Obj> =
         when (val obj = calculate(model, solution)) {
@@ -56,7 +56,7 @@ interface HAPipeline<in M : ModelInterface> : Pipeline<M> {
 
     fun check(model: M, solution: List<Flt64>): Try = when (val obj = calculate(model, solution)) {
         is Ok -> if (obj.value != null) {
-            Ok(success)
+            ok
         } else {
             Failed(Err(ErrorCode.ORSolutionInvalid, this.name))
         }
@@ -77,7 +77,7 @@ operator fun <M : ModelInterface> PipelineList<M>.invoke(model: M): Try {
             }
         }
     }
-    return Ok(success)
+    return ok
 }
 
 typealias CGPipelineList<Args, Model, Map> = List<CGPipeline<Args, Model, Map>>

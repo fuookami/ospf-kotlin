@@ -73,7 +73,7 @@ class ResourceCapacityConstraint<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -126,6 +126,6 @@ class ResourceCapacityConstraint<
             map.put(ShadowPrice(ResourceCapacityShadowPriceKey(slot), value))
         }
 
-        return Ok(success)
+        return ok
     }
 }

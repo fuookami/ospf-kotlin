@@ -40,6 +40,6 @@ class TaskOnTimeMaximization<
             model.maximize(coefficient * slack, "task on time")
         }
 
-        return Ok(success)
+        return ok
     }
 }

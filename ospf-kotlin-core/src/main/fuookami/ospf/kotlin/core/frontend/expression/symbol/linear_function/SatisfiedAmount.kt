@@ -153,7 +153,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -199,7 +199,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

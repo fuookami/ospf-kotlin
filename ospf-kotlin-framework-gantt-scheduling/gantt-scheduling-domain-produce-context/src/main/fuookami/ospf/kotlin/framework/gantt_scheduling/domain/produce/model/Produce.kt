@@ -89,7 +89,7 @@ abstract class AbstractProduce<
             model.addSymbols(lessQuantity)
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -172,6 +172,6 @@ class BunchSchedulingProduce<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

@@ -94,11 +94,11 @@ class CplexColumnGenerationSolver(
                         cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
                         cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
                     }
-                    Ok(success)
+                    ok
                 }.solving { cplex, _, _ ->
                     try {
                         cplex.populate()
-                        Ok(success)
+                        ok
                     } catch (e: IloException) {
                         Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                     }
@@ -111,7 +111,7 @@ class CplexColumnGenerationSolver(
                             results.add(thisResults)
                         }
                     }
-                    Ok(success)
+                    ok
                 }
         )
 
@@ -157,11 +157,11 @@ class CplexColumnGenerationSolver(
             callBack = callBack.copy()
                 .configuration { cplex, _, _ ->
                     cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                    Ok(success)
+                    ok
                 }
                 .analyzingSolution { cplex, _, constraints ->
                     dualSolution = constraints.map { Flt64(cplex.getDual(it)) }
-                    Ok(success)
+                    ok
                 }
         )
 

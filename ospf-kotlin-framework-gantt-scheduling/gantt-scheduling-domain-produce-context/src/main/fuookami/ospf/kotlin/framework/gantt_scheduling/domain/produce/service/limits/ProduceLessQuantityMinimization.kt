@@ -47,6 +47,6 @@ class ProduceLessQuantityMinimization<
             }
             model.minimize(cost, "produce less quantity")
         }
-        return Ok(success)
+        return ok
     }
 }

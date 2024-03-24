@@ -146,7 +146,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             polyY.range.set(possibleRange)
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -171,7 +171,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

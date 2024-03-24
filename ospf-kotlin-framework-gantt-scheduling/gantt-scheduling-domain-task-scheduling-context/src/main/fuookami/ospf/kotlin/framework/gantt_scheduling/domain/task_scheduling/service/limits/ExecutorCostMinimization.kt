@@ -28,6 +28,6 @@ class ExecutorCostMinimization<
                 "executor"
             )
         }
-        return Ok(success)
+        return ok
     }
 }

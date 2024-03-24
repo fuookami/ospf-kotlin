@@ -160,7 +160,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -202,7 +202,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     private fun calculatePolyZ(): LinearPolynomial {

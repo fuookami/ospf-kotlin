@@ -59,5 +59,5 @@ fun <Args : Any, Model : MetaModel<*, *, *>, Map : AbstractShadowPriceMap<Args, 
         val extractor = pipeline.extractor() ?: continue
         shadowPriceMap.put(extractor)
     }
-    return Ok(success)
+    return ok
 }

@@ -109,7 +109,7 @@ sealed class AbstractMinFunction(
             y.range.set(m)
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -131,7 +131,7 @@ sealed class AbstractMinFunction(
             model.addConstraint(sum(u) eq Flt64.one, "${name}_u")
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

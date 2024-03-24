@@ -111,7 +111,7 @@ data class TaskStepGraphBuilder<
             return Failed(Err(ErrorCode.ApplicationError, "step not in"))
         }
         startSteps = Pair(steps, relation)
-        return Ok(success)
+        return ok
     }
 
     fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.forward(
@@ -124,7 +124,7 @@ data class TaskStepGraphBuilder<
             to = to,
             relation = relation
         )
-        return Ok(success)
+        return ok
     }
 
     fun TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>.backward(
@@ -143,6 +143,6 @@ data class TaskStepGraphBuilder<
             to = to,
             relation = relation
         )
-        return Ok(success)
+        return ok
     }
 }

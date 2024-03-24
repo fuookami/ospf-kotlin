@@ -62,6 +62,6 @@ class TaskDelayLastEndTimeMinimization<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 }

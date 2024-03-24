@@ -51,6 +51,6 @@ class ResourceOverQuantityMinimization<
             model.minimize(cost, "${quantity.name} over quantity")
         }
 
-        return Ok(success)
+        return ok
     }
 }

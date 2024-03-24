@@ -34,7 +34,7 @@ class TaskCompilationConstraint<
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -70,6 +70,6 @@ class TaskCompilationConstraint<
                 break
             }
         }
-        return Ok(success)
+        return ok
     }
 }

@@ -89,7 +89,7 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
             symbols.add(symbol)
             _symbolsMap[symbol.name] = symbol
         }
-        return Ok(success)
+        return ok
     }
 
     @JvmName("addSymbols")
@@ -103,7 +103,7 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
                 }
             }
         }
-        return Ok(success)
+        return ok
     }
 
     fun remove(symbol: Symbol<Cell, C>) {

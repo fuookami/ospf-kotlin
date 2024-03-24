@@ -40,6 +40,6 @@ class ConsumptionQuantityMinimization<
             }),
             "consumption quantity"
         )
-        return Ok(success)
+        return ok
     }
 }

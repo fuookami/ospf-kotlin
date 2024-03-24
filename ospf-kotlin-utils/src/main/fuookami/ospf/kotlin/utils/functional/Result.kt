@@ -51,3 +51,6 @@ val success = Success()
 typealias Try = Result<Success, Error>
 typealias TryWith<E> = Result<Success, E>
 typealias Ret<T> = Result<T, Error>
+
+val ok = Ok<Success, Error>(success)
+fun <E: Error> ok(): Result<Success, E> = Ok(success)

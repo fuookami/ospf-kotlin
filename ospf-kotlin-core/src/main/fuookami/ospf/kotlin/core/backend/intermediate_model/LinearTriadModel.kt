@@ -180,7 +180,7 @@ class BasicLinearTriadModel(
         }
 
         writer.append("End\n")
-        return Ok(success)
+        return ok
     }
 }
 
@@ -407,7 +407,7 @@ data class LinearTriadModel(
             }
 
             is Ok -> {
-                Ok(success)
+                ok
             }
         }
     }

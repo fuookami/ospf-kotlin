@@ -31,6 +31,6 @@ class TaskExecutorCostMinimization<
             "task executor"
         )
 
-        return Ok(success)
+        return ok
     }
 }

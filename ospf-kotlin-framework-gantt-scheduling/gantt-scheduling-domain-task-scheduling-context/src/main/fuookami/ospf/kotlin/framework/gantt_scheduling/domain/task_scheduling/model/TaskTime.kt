@@ -587,7 +587,7 @@ abstract class TaskTimeImpl<
             model.addSymbols(notOnTime)
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -897,6 +897,6 @@ open class IterativeTaskSchedulingTaskTime<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

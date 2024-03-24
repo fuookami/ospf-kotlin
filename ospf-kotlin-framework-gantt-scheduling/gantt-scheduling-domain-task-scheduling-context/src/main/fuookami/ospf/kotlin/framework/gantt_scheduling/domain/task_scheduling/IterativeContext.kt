@@ -36,7 +36,7 @@ interface IterativeTaskSchedulingContext<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     suspend fun addColumns(
@@ -94,7 +94,7 @@ interface IterativeTaskSchedulingContext<
             val extractor = pipeline.extractor() ?: continue
             shadowPriceMap.put(extractor)
         }
-        return Ok(success)
+        return ok
     }
 
     fun extractFixedTasks(iteration: UInt64, model: LinearMetaModel): Ret<Set<IT>> {
@@ -176,6 +176,6 @@ interface ExtractIterativeTaskSchedulingContext<
     ): Try
 
     fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
-        return Ok(success)
+        return ok
     }
 }

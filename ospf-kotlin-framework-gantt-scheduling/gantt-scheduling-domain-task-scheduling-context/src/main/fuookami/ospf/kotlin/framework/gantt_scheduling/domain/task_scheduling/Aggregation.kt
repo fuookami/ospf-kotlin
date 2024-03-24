@@ -41,7 +41,7 @@ abstract class AbstractTaskSchedulingAggregation<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -119,6 +119,6 @@ open class TaskCompilationAggregationWithTime<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

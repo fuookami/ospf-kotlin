@@ -122,7 +122,7 @@ abstract class AbstractResourceUsage<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -442,6 +442,6 @@ class IterativeTaskSchedulingStorageResourceUsage<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

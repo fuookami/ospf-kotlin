@@ -89,7 +89,7 @@ abstract class AbstractConsumption<
             model.addSymbols(lessQuantity)
         }
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -172,6 +172,6 @@ class BunchSchedulingConsumption<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 }

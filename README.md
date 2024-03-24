@@ -27,7 +27,7 @@ ospf-kotlin has been released to the maven central repository. Therefore, if you
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -37,7 +37,7 @@ If you need to use the bpp3d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -47,7 +47,7 @@ If you need to use the gantt scheduling development package, add the dependency 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 

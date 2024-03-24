@@ -222,7 +222,7 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
             }
 
             else -> {
-                Ok(success)
+                ok
             }
         }
         writer.flush()
@@ -275,7 +275,7 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
         }
         writer.append("\n")
 
-        return Ok(success)
+        return ok
     }
 }
 

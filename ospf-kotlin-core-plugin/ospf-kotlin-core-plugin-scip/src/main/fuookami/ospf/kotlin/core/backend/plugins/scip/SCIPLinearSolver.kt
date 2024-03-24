@@ -78,7 +78,7 @@ private class SCIPLinearSolverImpl(
     private fun init(): Try {
         scip = Scip()
         scip.create("")
-        return Ok(success)
+        return ok
     }
 
     private fun dump(model: LinearTriadModelView): Try {
@@ -158,7 +158,7 @@ private class SCIPLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun configure(): Try {
@@ -173,7 +173,7 @@ private class SCIPLinearSolverImpl(
 
             else -> {}
         }
-        return Ok(success)
+        return ok
     }
 
     private fun solve(): Try {
@@ -181,7 +181,7 @@ private class SCIPLinearSolverImpl(
         scip.solve()
         solvingTime = Clock.System.now() - begin
 
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeStatus(): Try {
@@ -211,7 +211,7 @@ private class SCIPLinearSolverImpl(
                 }
             }
         }
-        return Ok(success)
+        return ok
     }
 
     private fun analyzeSolution(): Try {
@@ -243,7 +243,7 @@ private class SCIPLinearSolverImpl(
 
                 else -> {}
             }
-            return Ok(success)
+            return ok
         } else {
             Failed(Err(status.errCode()!!))
         }

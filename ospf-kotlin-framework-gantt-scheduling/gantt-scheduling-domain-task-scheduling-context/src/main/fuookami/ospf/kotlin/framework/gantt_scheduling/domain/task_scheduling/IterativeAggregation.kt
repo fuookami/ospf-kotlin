@@ -48,7 +48,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     open suspend fun addColumns(
@@ -148,7 +148,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
             val xi = compilation.x[task.iteration.toInt()]
             xi[task].range.eq(true)
         }
-        return Ok(success)
+        return ok
     }
 
     open fun locallyFix(
@@ -222,7 +222,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
             logger.debug { "${obj.name} = ${obj.value()}" }
         }
 
-        return Ok(success)
+        return ok
     }
 
     open fun logTaskCost(
@@ -243,7 +243,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     fun flush(
@@ -275,7 +275,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
                 }
             }
         }
-        return Ok(success)
+        return ok
     }
 
     private fun extractTasks(
@@ -358,7 +358,7 @@ open class IterativeTaskSchedulingAggregationWithTime<
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override suspend fun addColumns(
