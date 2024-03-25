@@ -203,6 +203,7 @@ open class IterativeTaskCompilation<
     lateinit var taskCost: LinearExpressionSymbol
     override lateinit var taskAssignment: LinearExpressionSymbols2
     override lateinit var taskCompilation: LinearExpressionSymbols1
+    private lateinit var xor: BinVariable1
     override lateinit var executorCompilation: LinearExpressionSymbols1
 
     override fun register(model: LinearMetaModel): Try {
@@ -244,10 +245,17 @@ open class IterativeTaskCompilation<
         }
         model.addSymbols(taskCompilation)
 
-        if (!::z.isInitialized) {
-            z = BinVariable1("z", Shape1(executors.size))
+        if (!::xor.isInitialized) {
+            xor = BinVariable1("xor", Shape1(executors.size))
         }
-        model.addVars(z)
+        model.addVars(xor)
+
+        if (withExecutorLeisure) {
+            if (!::z.isInitialized) {
+                z = BinVariable1("z", Shape1(executors.size))
+            }
+            model.addVars(z)
+        }
 
         if (!::executorCompilation.isInitialized) {
             executorCompilation = flatMap(
@@ -255,9 +263,9 @@ open class IterativeTaskCompilation<
                 executors,
                 { e ->
                     if (withExecutorLeisure) {
-                        LinearPolynomial(z[e])
+                        LinearPolynomial(xor[e] + z[e])
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(xor[e])
                     }
                 },
                 { e -> "$e" }
@@ -309,12 +317,14 @@ open class IterativeTaskCompilation<
             }
         }
 
-        for (task in unduplicatedTasks) {
-            model.addConstraint(
-                z[task.executor!!] geq xi[task],
-                "zx_${iteration}_${task.index}_${task.executor}"
-
-            )
+        for (executor in executors) {
+            val thisTasks = unduplicatedTasks.filter { it.executor == executor }
+            for (task in thisTasks) {
+                model.addConstraint(
+                    xor[executor] geq xi[task],
+                    "xor_${executor}_${iteration}_${task}"
+                )
+            }
         }
 
         for (task1 in unduplicatedTasks) {

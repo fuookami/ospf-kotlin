@@ -15,7 +15,7 @@ fun <I> lcm(numbers: List<I>): I where I : Integer<I>, I : Rem<I, I>, I : Div<I,
     val thisGCD = gcdImpl(pn)
     return pn.fold(numbers.first().constants.one) { lhs, rhs ->
         lhs * (rhs / thisGCD)
-    }
+    } * thisGCD
 }
 
 fun <I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I>, I : Div<I, I> {

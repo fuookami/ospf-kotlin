@@ -150,6 +150,21 @@ class XorFunction(
             }
         }
 
+        if (!::y.isInitialized) {
+            y = BinVar(name = "${name}_y")
+        }
+        when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::polyY.isInitialized) {
+            polyY = LinearPolynomial(y, "${name}_y")
+        }
+
         return ok
     }
 
