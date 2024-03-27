@@ -289,6 +289,7 @@ data class StorageResourceTimeSlot<
     out R : StorageResource<C>,
     out C : ResourceCapacity
 >(
+    private val timeWindow: TimeWindow,
     override val resource: R,
     override val resourceCapacity: C,
     override val time: TimeRange,
@@ -306,7 +307,10 @@ data class StorageResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
-        return task != null && (costBy(task) neq Flt64.zero || supplyBy(task) neq Flt64.zero)
+        return task != null
+                && (resource.costBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
+                    || resource.supplyBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
+                )
     }
 
     override fun toString() = "${resource}_${indexInRule}"
@@ -336,7 +340,7 @@ abstract class AbstractStorageResourceUsage<
                 while (beginTime < endTime) {
                     val thisInterval = minOf(endTime - beginTime, capacity.interval, interval)
                     val time = TimeRange(beginTime, beginTime + thisInterval)
-                    timeSlots.add(StorageResourceTimeSlot(resource, capacity, time, index))
+                    timeSlots.add(StorageResourceTimeSlot(timeWindow, resource, capacity, time, index))
                     beginTime += thisInterval
                     ++index
                 }

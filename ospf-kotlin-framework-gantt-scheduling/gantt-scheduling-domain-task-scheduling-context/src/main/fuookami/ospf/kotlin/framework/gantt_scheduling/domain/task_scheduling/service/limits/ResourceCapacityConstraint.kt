@@ -81,12 +81,16 @@ class ResourceCapacityConstraint<
         return { map, args ->
             when (args) {
                 is ResourceGanttSchedulingShadowPriceArguments<*, *, *, *> -> {
-                    val slots = usage.timeSlots.filter { it.resource == args.resource && it.time.withIntersection(args.time) }
+                    val slots = usage.timeSlots.filter {
+                        it.resource == args.resource && it.time.withIntersection(args.time)
+                    }
                     slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
                 }
 
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    val slots = usage.timeSlots.filter { it.relatedTo(args.prevTask as? AbstractTask<E, A>?, args.thisTask as? AbstractTask<E, A>?) }
+                    val slots = usage.timeSlots.filter {
+                        it.relatedTo(args.prevTask as? AbstractTask<E, A>?, args.thisTask as? AbstractTask<E, A>?)
+                    }
                     slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
                 }
 

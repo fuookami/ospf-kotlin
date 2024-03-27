@@ -128,8 +128,8 @@ abstract class StorageResource<out C : ResourceCapacity>(
         return this.supplyBy(task, intersectionTime.duration)
     }
 
-    fun <E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        task: AbstractTask<E, A>,
+    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+        task: T,
         time: TimeRange
     ): Flt64 {
         return supplyBy(task, time) - costBy(task, time)

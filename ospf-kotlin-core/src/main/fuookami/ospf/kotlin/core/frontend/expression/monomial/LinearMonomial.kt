@@ -371,7 +371,23 @@ data class LinearMonomialSymbol(
         return true
     }
 
-    override fun toString() = "$symbol"
+    override fun toString() = when (symbol) {
+        is Either.Left -> {
+            "$symbol"
+        }
+
+        is Either.Right -> {
+            when (val exprSymbol = symbol.value) {
+                is ExpressionSymbol<*, *, *, *> -> {
+                    "(${symbol})"
+                }
+
+                else -> {
+                    "$symbol"
+                }
+            }
+        }
+    }
 
     override fun toRawString(unfold: Boolean): String {
         return when (symbol) {

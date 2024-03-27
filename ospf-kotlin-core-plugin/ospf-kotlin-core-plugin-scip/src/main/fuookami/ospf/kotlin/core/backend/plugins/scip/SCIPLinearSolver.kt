@@ -178,7 +178,11 @@ private class SCIPLinearSolverImpl(
 
     private fun solve(): Try {
         val begin = Clock.System.now()
-        scip.solve()
+        scip.solveConcurrent()
+        val stage = scip.stage
+        if (stage.swigValue() < SCIP_Stage.SCIP_STAGE_INITPRESOLVE.swigValue()) {
+            scip.solve()
+        }
         solvingTime = Clock.System.now() - begin
 
         return ok

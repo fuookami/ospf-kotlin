@@ -146,6 +146,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
         for (task in fixedTasks) {
             assert(!removedTasks.contains(task))
             val xi = compilation.x[task.iteration.toInt()]
+            logger.debug { "globally fix: ${xi[task]}" }
             xi[task].range.eq(true)
         }
         return ok
@@ -167,6 +168,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
         val y = compilation.y
         for (token in model.tokens.tokens) {
             if (token.belongsTo(y) && (token.result!! gr bar)) {
+                logger.debug { "locally fix: ${y[token.variable.index]}" }
                 y[token.variable.index].range.eq(true)
                 flag = false
             }
@@ -191,6 +193,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
                         && !fixedTasks.contains(task)
                     ) {
                         ret.add(task)
+                        logger.debug { "locally fix: ${xi[token.variable.index]}" }
                         xi[token.variable.index].range.eq(true)
                     }
                 }
@@ -202,6 +205,7 @@ abstract class AbstractIterativeTaskSchedulingAggregation<
         if (flag && ret.isEmpty() && (bestValue geq Flt64(1e-3))) {
             val xi = compilation.x[bestIteration.toInt()][bestIndex]
             ret.add(tasksIteration[bestIteration.toInt()][bestIndex])
+            logger.debug { "locally fix: $xi" }
             xi.range.eq(true)
         }
 
