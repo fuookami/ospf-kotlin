@@ -16,12 +16,9 @@
     <modules>
         <module>gantt-scheduling-infrastructure</module>
         <module>gantt-scheduling-domain-task-context</module>
-        <module>gantt-scheduling-domain-task-selection-context</module>
         <module>gantt-scheduling-domain-task-scheduling-context</module>
-        <module>gantt-scheduling-domain-task-generation-context</module>
-        <module>gantt-scheduling-domain-bunch-selection-context</module>
-        <module>gantt-scheduling-domain-bunch-generation-context</module>
         <module>gantt-scheduling-domain-bunch-scheduling-context</module>
+        <module>gantt-scheduling-domain-assignment-scheduling-context</module>
         <module>gantt-scheduling-domain-produce-context</module>
         <module>gantt-scheduling-application</module>
     </modules>

@@ -14,7 +14,12 @@
     <packaging>pom</packaging>
     <modules>
         <module>ospf-kotlin-starter</module>
+        <module>ospf-kotlin-starter-bpp1d</module>
+        <module>ospf-kotlin-starter-bpp2d</module>
         <module>ospf-kotlin-starter-bpp3d</module>
+        <module>ospf-kotlin-starter-csp1d</module>
+        <module>ospf-kotlin-starter-csp2d</module>
         <module>ospf-kotlin-starter-gantt-scheduling</module>
+        <module>ospf-kotlin-starter-network-scheduling</module>
     </modules>
 </project>

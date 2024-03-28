@@ -31,6 +31,26 @@ ospf-kotlin has been released to the maven central repository. Therefore, if you
 </dependency>
 ```
 
+If you need to use the bpp1d development package, add the dependency in the pom.xml file:
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
+If you need to use the bpp2d development package, add the dependency in the pom.xml file:
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
 If you need to use the bpp3d development package, add the dependency in the pom.xml file:
 
 ```xml
@@ -41,12 +61,42 @@ If you need to use the bpp3d development package, add the dependency in the pom.
 </dependency>
 ```
 
+If you need to use the csp1d development package, add the dependency in the pom.xml file:
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-csp1d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
+If you need to use the csp2d development package, add the dependency in the pom.xml file:
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-csp2d</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
 If you need to use the gantt scheduling development package, add the dependency in the pom.xml file:
 
 ```xml
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
+    <version>1.0.5</version>
+</dependency>
+```
+
+If you need to use the network scheduling development package, add the dependency in the pom.xml file:
+
+```xml
+<dependency>
+    <groupId>io.github.fuookami.ospf.kotlin</groupId>
+    <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
     <version>1.0.5</version>
 </dependency>
 ```

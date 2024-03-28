@@ -2,26 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin-parent</artifactId>
+        <artifactId>ospf-kotlin</artifactId>
         <version>1.0.5</version>
-        <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-    <artifactId>ospf-kotlin-framework-bpp3d</artifactId>
+    <groupId>io.github.fuookami.ospf.kotlin.framework.network-scheduling</groupId>
+    <artifactId>ospf-kotlin-framework-network-scheduling</artifactId>
     <packaging>pom</packaging>
-    <modules>
-        <module>bpp3d-infrastructure</module>
-        <module>bpp3d-domain-item-context</module>
-        <module>bpp3d-domain-bla-context</module>
-        <module>bpp3d-domain-block-loading-context</module>
-        <module>bpp3d-domain-layer-loading-context</module>
-        <module>bpp3d-domain-packing-context</module>
-        <module>bpp3d-application</module>
-    </modules>
 
     <dependencies>
         <dependency>
