@@ -1,15 +1,12 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticConstraint
 import java.io.*
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 
 data class QuadraticConstraintCell(
     override val rowIndex: Int,
