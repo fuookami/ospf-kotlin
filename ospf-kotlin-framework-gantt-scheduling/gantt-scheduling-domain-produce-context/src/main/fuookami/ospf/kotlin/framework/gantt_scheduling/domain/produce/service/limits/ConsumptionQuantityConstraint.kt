@@ -13,11 +13,15 @@ data class ConsumptionQuantityShadowPriceKey(
     val material: Material,
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
 
-class ConsumptionQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class ConsumptionQuantityConstraint<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     materials: List<Pair<Material, MaterialReserves?>>,
     private val consumption: Consumption,
     override val name: String = "consumption_quantity"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val materials = materials.filterIsInstance<Pair<Material, MaterialReserves>>()
 
     override fun invoke(model: LinearMetaModel): Try {
@@ -69,23 +73,29 @@ class ConsumptionQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>> {
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
-            args.thisTask?.let { task ->
-                when (task) {
-                    is ProductionTask -> {
-                        val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
-                        materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
-                    }
+            when (args)  {
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    when (val task = args.thisTask) {
+                        is ProductionTask<*, *> -> {
+                            val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
+                            materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        }
 
-                    else -> {
-                        Flt64.zero
+                        else -> {
+                            Flt64.zero
+                        }
                     }
                 }
-            } ?: Flt64.zero
+
+                else -> {
+                    Flt64.zero
+                }
+            }
         }
     }
 
@@ -118,6 +128,6 @@ class ConsumptionQuantityConstraint<Args : GanttSchedulingShadowPriceArguments<E
             map.put(ShadowPrice(ConsumptionQuantityShadowPriceKey(material), value))
         }
 
-        return Ok(success)
+        return ok
     }
 }

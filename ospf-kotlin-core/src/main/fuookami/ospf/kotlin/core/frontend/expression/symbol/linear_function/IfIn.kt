@@ -48,6 +48,8 @@ class IfInFunction(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -104,7 +106,7 @@ class IfInFunction(
             polyY.range.set(possibleRange)
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -118,7 +120,7 @@ class IfInFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

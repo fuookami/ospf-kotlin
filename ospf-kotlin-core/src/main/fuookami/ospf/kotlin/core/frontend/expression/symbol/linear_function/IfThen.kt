@@ -40,6 +40,8 @@ class IfThen(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -125,7 +127,7 @@ class IfThen(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -157,7 +159,7 @@ class IfThen(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toRawString(unfold: Boolean): String {

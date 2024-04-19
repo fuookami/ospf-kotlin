@@ -42,6 +42,7 @@ sealed interface MonomialCell<Self : MonomialCell<Self, C>, C : Category>
 sealed interface MonomialSymbol<C : Category> {
     val name: String
     val displayName: String?
+    val category: Category
     val discrete: Boolean get() = false
     val range: ExpressionRange<*>
     val lowerBound: Flt64
@@ -55,9 +56,9 @@ sealed interface MonomialSymbol<C : Category> {
 
 sealed interface Monomial<Self : Monomial<Self, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
     : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, Cell, C>>, Times<Flt64, Self>, Div<Flt64, Self> {
-    val category: C
     val coefficient: Flt64
     val symbol: MonomialSymbol<C>
+    val category: Category get() = symbol.category
     override val discrete: Boolean get() = (coefficient.round() eq coefficient) && symbol.discrete
     val cells: List<Cell>
     val cached: Boolean

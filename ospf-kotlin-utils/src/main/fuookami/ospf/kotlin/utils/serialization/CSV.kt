@@ -26,5 +26,9 @@ fun <T> readFromCSV(serializer: KSerializer<T>, stream: InputStream): List<T> {
 
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> writeCSVToFile(path: String, serializer: KSerializer<T>, value: List<T>) {
-    File(path).writeText(Csv.encodeToString(ListSerializer(serializer), value))
+    val csv = Csv {
+        hasHeaderRecord = true
+        ignoreUnknownColumns = true
+    }
+    File(path).writeText(csv.encodeToString(ListSerializer(serializer), value))
 }

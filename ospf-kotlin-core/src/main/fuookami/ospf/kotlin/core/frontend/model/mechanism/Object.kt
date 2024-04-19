@@ -7,9 +7,6 @@ sealed interface Object<C : Category>
 class SingleObject<C : Category>(
     val category: ObjectCategory,
     val subObjects: List<SubObject<C>>
-) : Object<C> {
-}
+) : Object<C> {}
 
-class MultiObject<C : Category> {
-
-}
+class MultiObject<C : Category> {}

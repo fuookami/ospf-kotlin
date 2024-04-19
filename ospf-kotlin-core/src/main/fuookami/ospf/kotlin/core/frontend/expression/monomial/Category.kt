@@ -27,3 +27,19 @@ data object Standard : Category() {
 data object Nonlinear : Category() {
     override val code = UInt64.ten
 }
+
+fun max(lhs: Category, rhs: Category): Category {
+    return if (lhs.code > rhs.code) {
+        lhs
+    } else {
+        rhs
+    }
+}
+
+fun Collection<Category>.max(): Category {
+    return this.maxBy { it.code }
+}
+
+fun Collection<Category>.maxOrNull(): Category? {
+    return this.maxByOrNull { it.code }
+}

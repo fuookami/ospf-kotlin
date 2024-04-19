@@ -169,7 +169,7 @@ class CallBackModel internal constructor(
     }
 
     override fun addConstraint(
-        inequality: Inequality<*, *>,
+        inequality: Inequality<*, *, *>,
         name: String?,
         displayName: String?
     ) {

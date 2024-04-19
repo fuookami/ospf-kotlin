@@ -36,6 +36,8 @@ class FirstFunction(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -119,7 +121,7 @@ class FirstFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -148,7 +150,7 @@ class FirstFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

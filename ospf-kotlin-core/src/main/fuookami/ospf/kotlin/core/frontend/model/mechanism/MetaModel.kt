@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 
-sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>, C : Category> : ModelInterface {
-    class SubObject<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>(
+sealed interface MetaModel<I : Inequality<I, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category> : ModelInterface {
+    class SubObject<I : Inequality<I, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>(
         val parent: MetaModel<I, Cell, C>,
         val category: ObjectCategory,
         val polynomial: Polynomial<*, *, Cell, C>,
@@ -55,16 +55,14 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
     }
 
     fun addConstraint(
-        symbol: LinearLogicFunctionSymbol,
+        symbol: LogicFunctionSymbol<Cell, C>,
         name: String? = null,
         displayName: String? = null
-    ) {
-        addConstraint(symbol eq Flt64.one, name, displayName)
-    }
+    )
 
     @Suppress("UNCHECKED_CAST")
     override fun addConstraint(
-        inequality: Inequality<*, *>,
+        inequality: Inequality<*, *, *>,
         name: String?,
         displayName: String?
     ) {
@@ -182,8 +180,10 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
     }
 
     fun flush(force: Boolean = false) {
-        for (token in tokens.tokens) {
-            token._result = null
+        if (force) {
+            for (token in tokens.tokens) {
+                token._result = null
+            }
         }
         for (symbol in tokens.symbols) {
             symbol.flush(force)
@@ -220,7 +220,7 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
             }
 
             else -> {
-                Ok(success)
+                ok
             }
         }
         writer.flush()
@@ -273,7 +273,7 @@ sealed interface MetaModel<I : Inequality<Cell, C>, Cell : MonomialCell<Cell, C>
         }
         writer.append("\n")
 
-        return Ok(success)
+        return ok
     }
 }
 
@@ -293,6 +293,14 @@ class LinearMetaModel(
     private var currentConstraintGroup: String? = null
     private var currentConstraintGroupIndexLowerBound: Int? = null
     private val constraintGroupIndexMap = HashMap<String, IntRange>()
+
+    override fun addConstraint(
+        symbol: LinearLogicFunctionSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addConstraint(symbol eq Flt64.one, name, displayName)
+    }
 
     override fun addObject(
         category: ObjectCategory,
@@ -316,7 +324,7 @@ class LinearMetaModel(
 
     override fun addObject(
         category: ObjectCategory,
-        symbol: Symbol<LinearMonomialCell, Linear>,
+        symbol: LinearSymbol,
         name: String?,
         displayName: String?
     ) {
@@ -330,6 +338,213 @@ class LinearMetaModel(
         displayName: String?
     ) {
         addObject(category, LinearPolynomial(constant), name, displayName)
+    }
+
+    override fun registerConstraintGroup(name: String) {
+        if (currentConstraintGroup != null) {
+            assert(currentConstraintGroupIndexLowerBound != null)
+
+            constraintGroupIndexMap[currentConstraintGroup!!] =
+                currentConstraintGroupIndexLowerBound!! until constraints.size
+        }
+        currentConstraintGroup = name
+        currentConstraintGroupIndexLowerBound = constraints.size
+    }
+
+    override fun indicesOfConstraintGroup(name: String): IntRange? {
+        if (currentConstraintGroup != null) {
+            assert(currentConstraintGroupIndexLowerBound != null)
+
+            constraintGroupIndexMap[currentConstraintGroup!!] =
+                currentConstraintGroupIndexLowerBound!! until constraints.size
+            currentConstraintGroup = null
+            currentConstraintGroupIndexLowerBound = null
+        }
+        return constraintGroupIndexMap[name]
+    }
+}
+
+class QuadraticMetaModel(
+    override var name: String = "",
+    override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
+    manualTokenAddition: Boolean = true
+) : MetaModel<QuadraticInequality, QuadraticMonomialCell, Quadratic> {
+    override val constraints: ArrayList<QuadraticInequality> = ArrayList()
+    override val subObjects: ArrayList<MetaModel.SubObject<QuadraticInequality, QuadraticMonomialCell, Quadratic>> = ArrayList()
+    override val tokens: MutableTokenTable<QuadraticMonomialCell, Quadratic> = if (manualTokenAddition) {
+        ManualAddTokenTable()
+    } else {
+        AutoAddTokenTable()
+    }
+
+    private var currentConstraintGroup: String? = null
+    private var currentConstraintGroupIndexLowerBound: Int? = null
+    private val constraintGroupIndexMap = HashMap<String, IntRange>()
+
+    @JvmName("addConstraintByLinearLogicFunctionSymbol")
+    fun addConstraint(
+        symbol: LinearLogicFunctionSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addConstraint(QuadraticPolynomial(symbol) eq Flt64.one, name, displayName)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintByQuadraticLogicFunctionSymbol")
+    override fun addConstraint(
+        symbol: QuadraticLogicFunctionSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addConstraint(symbol eq Flt64.one, name, displayName)
+    }
+
+    override fun addConstraint(inequality: Inequality<*, *, *>, name: String?, displayName: String?) {
+        if (inequality as? LinearInequality != null) {
+            if (name != null) {
+                inequality.name = name
+            }
+            if (displayName != null) {
+                inequality.displayName = name
+            }
+            constraints.add(QuadraticInequality(inequality))
+        } else {
+            inequality as QuadraticInequality
+
+            if (name != null) {
+                inequality.name = name
+            }
+            if (displayName != null) {
+                inequality.displayName = name
+            }
+            constraints.add(inequality)
+        }
+    }
+
+    override fun addObject(
+        category: ObjectCategory,
+        item: AbstractVariableItem<*, *>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, QuadraticPolynomial(item), name, displayName)
+    }
+
+    @JvmName("addLinearMonomialObject")
+    fun addObject(
+        category: ObjectCategory,
+        monomial: Monomial<*, LinearMonomialCell, Linear>,
+        name: String?,
+        displayName: String?
+    ) {
+        monomial as LinearMonomial
+
+        addObject(category, QuadraticPolynomial(monomial), name, displayName)
+    }
+
+    @JvmName("addMaximizationLinearMonomialObject")
+    fun maximize(
+        monomial: Monomial<*, LinearMonomialCell, Linear>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Maximum, monomial, name, displayName)
+    }
+
+    @JvmName("addMinimizationLinearMonomialObject")
+    fun minimize(
+        monomial: Monomial<*, LinearMonomialCell, Linear>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Minimum, monomial, name, displayName)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuadraticMonomialObject")
+    override fun addObject(
+        category: ObjectCategory,
+        monomial: Monomial<*, QuadraticMonomialCell, Quadratic>,
+        name: String?,
+        displayName: String?
+    ) {
+        monomial as QuadraticMonomial
+
+        addObject(category, QuadraticPolynomial(monomial), name, displayName)
+    }
+
+    @JvmName("addLinearSymbolObject")
+    fun addObject(
+        category: ObjectCategory,
+        symbol: LinearSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, QuadraticPolynomial(symbol), name, displayName)
+    }
+
+    @JvmName("addMaximizationLinearSymbolObject")
+    fun maximize(
+        symbol: LinearSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Maximum, symbol, name, displayName)
+    }
+
+    @JvmName("addMinimizationLinearSymbolObject")
+    fun minimize(
+        symbol: LinearSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Minimum, symbol, name, displayName)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuadraticSymbolObject")
+    override fun addObject(
+        category: ObjectCategory,
+        symbol: QuadraticSymbol,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, QuadraticPolynomial(symbol), name, displayName)
+    }
+
+    fun addObject(
+        category: ObjectCategory,
+        polynomial: AbstractLinearPolynomial<*>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, QuadraticPolynomial(polynomial), name, displayName)
+    }
+
+    fun maximize(
+        polynomial: AbstractLinearPolynomial<*>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Maximum, polynomial, name, displayName)
+    }
+
+    fun minimize(
+        polynomial: AbstractLinearPolynomial<*>,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(ObjectCategory.Minimum, polynomial, name, displayName)
+    }
+
+    override fun <T : RealNumber<T>> addObject(
+        category: ObjectCategory,
+        constant: T,
+        name: String?,
+        displayName: String?
+    ) {
+        addObject(category, QuadraticPolynomial(constant), name, displayName)
     }
 
     override fun registerConstraintGroup(name: String) {

@@ -1,11 +1,12 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 data class VariableItemKey(
     val identifier: UInt64,
     val index: Int
-) {
+) : Ord<VariableItemKey> {
     companion object {
         private fun reverseBit(v: UInt64): Int {
             var value = v.toInt32().value
@@ -15,6 +16,16 @@ data class VariableItemKey(
             value = value and -0xff0100 shr 8 or (value and 0x00FF00FF shl 8)
             value = value and -0x10000 shr 16 or (value and 0x0000FFFF shl 16)
             return value
+        }
+    }
+
+    override fun partialOrd(rhs: VariableItemKey): Order {
+        return if (this.identifier < rhs.identifier) {
+            Order.Less()
+        } else if (this.identifier > rhs.identifier) {
+            Order.Greater()
+        } else {
+            index ord rhs.index
         }
     }
 

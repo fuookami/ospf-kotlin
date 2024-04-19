@@ -40,6 +40,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -121,7 +123,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -157,7 +159,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

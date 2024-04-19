@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 interface Symbol<Cell : MonomialCell<Cell, C>, C : Category> : Expression {
+    val category: Category
+
     val dependencies: Set<Symbol<*, *>>
     val cells: List<Cell>
     val cached: Boolean
@@ -29,6 +31,7 @@ interface Symbol<Cell : MonomialCell<Cell, C>, C : Category> : Expression {
 
 class ExpressionSymbol<Poly : MutablePolynomial<Poly, M, Cell, C>, M : Monomial<M, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>(
     private val _polynomial: Poly,
+    override val category: Category = _polynomial.category,
     override var name: String = "",
     override var displayName: String? = null
 ) : Symbol<Cell, C> {
@@ -141,3 +144,8 @@ typealias LinearSymbol = Symbol<LinearMonomialCell, Linear>
 typealias LinearExpressionSymbol = ExpressionSymbol<MutableLinearPolynomial, LinearMonomial, LinearMonomialCell, Linear>
 typealias LinearFunctionSymbol = FunctionSymbol<LinearMonomialCell, Linear>
 typealias LinearLogicFunctionSymbol = LogicFunctionSymbol<LinearMonomialCell, Linear>
+
+typealias QuadraticSymbol = Symbol<QuadraticMonomialCell, Quadratic>
+typealias QuadraticExpressionSymbol = ExpressionSymbol<MutableQuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell, Quadratic>
+typealias QuadraticFunctionSymbol = FunctionSymbol<QuadraticMonomialCell, Quadratic>
+typealias QuadraticLogicFunctionSymbol = LogicFunctionSymbol<QuadraticMonomialCell, Quadratic>

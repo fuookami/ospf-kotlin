@@ -37,6 +37,8 @@ class AbsFunction(
             possibleUpperBound
         }
 
+    override val category: Category = Linear
+
     override val dependencies by x::dependencies
     override val cells get() = y.cells
     override val cached
@@ -107,7 +109,7 @@ class AbsFunction(
             y.range.set(ValueRange(Flt64.zero, m))
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -128,7 +130,7 @@ class AbsFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

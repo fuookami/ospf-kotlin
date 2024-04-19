@@ -37,7 +37,7 @@ class LinearConstraint(
 ) : Constraint<Linear>(lhs, sign, rhs, name) {
     companion object {
         operator fun invoke(
-            inequality: Inequality<LinearMonomialCell, Linear>,
+            inequality: Inequality<*, LinearMonomialCell, Linear>,
             tokens: LinearTokenTable
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
@@ -57,6 +57,43 @@ class LinearConstraint(
                 }
             }
             return LinearConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name)
+        }
+    }
+}
+
+class QuadraticConstraint(
+    lhs: List<Cell<Quadratic>>,
+    sign: Sign,
+    rhs: Flt64,
+    name: String = ""
+) : Constraint<Quadratic>(lhs, sign, rhs, name) {
+    companion object {
+        operator fun invoke(
+            inequality: Inequality<*, QuadraticMonomialCell, Quadratic>,
+            tokens: QuadraticTokenTable
+        ): QuadraticConstraint {
+            val lhs = ArrayList<QuadraticCell>()
+            var rhs = Flt64.zero
+            for (cell in inequality.cells) {
+                when (val temp = cell.cell) {
+                    is Either.Left -> {
+                        val token1 = tokens.find(temp.value.variable1)
+                        val token2 = if (temp.value.variable2 != null) {
+                            tokens.find(temp.value.variable2!!) ?: continue
+                        } else {
+                            null
+                        }
+                        if (token1 != null && temp.value.coefficient neq Flt64.zero) {
+                            lhs.add(QuadraticCell(tokens, temp.value.coefficient, token1, token2))
+                        }
+                    }
+
+                    is Either.Right -> {
+                        rhs += temp.value
+                    }
+                }
+            }
+            return QuadraticConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name)
         }
     }
 }

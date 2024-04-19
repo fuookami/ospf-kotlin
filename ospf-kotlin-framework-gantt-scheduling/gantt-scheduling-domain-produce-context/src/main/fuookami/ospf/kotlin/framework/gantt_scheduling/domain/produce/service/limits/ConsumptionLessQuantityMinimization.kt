@@ -10,13 +10,17 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 
-class ConsumptionLessQuantityMinimization<Args : GanttSchedulingShadowPriceArguments<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class ConsumptionLessQuantityMinimization<
+    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     products: List<Pair<Material, MaterialReserves?>>,
     private val consumption: Consumption,
     private val threshold: (Material) -> Flt64 = { Flt64.zero },
     private val coefficient: (Material) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_less_quantity_minimization"
-) : GanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val materials = if (consumption.lessEnabled) {
         products.filter { it.second?.lessEnabled == true }
     } else {
@@ -43,6 +47,6 @@ class ConsumptionLessQuantityMinimization<Args : GanttSchedulingShadowPriceArgum
             }
             model.minimize(cost, "consumption less quantity")
         }
-        return Ok(success)
+        return ok
     }
 }

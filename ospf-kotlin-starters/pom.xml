@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.6</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -14,7 +14,12 @@
     <packaging>pom</packaging>
     <modules>
         <module>ospf-kotlin-starter</module>
+        <module>ospf-kotlin-starter-bpp1d</module>
+        <module>ospf-kotlin-starter-bpp2d</module>
         <module>ospf-kotlin-starter-bpp3d</module>
+        <module>ospf-kotlin-starter-csp1d</module>
+        <module>ospf-kotlin-starter-csp2d</module>
         <module>ospf-kotlin-starter-gantt-scheduling</module>
+        <module>ospf-kotlin-starter-network-scheduling</module>
     </modules>
 </project>

@@ -12,20 +12,20 @@ interface ColumnGenerationSolver {
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean = false
-    ): Ret<LinearSolverOutput>
+    ): Ret<SolverOutput>
 
     suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean = false
-    ): Ret<Pair<LinearSolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
         return solveMILP(name, metaModel, toLogModel)
             .map { Pair(it, listOf(it.solution)) }
     }
 
     data class LPResult(
-        val result: LinearSolverOutput,
+        val result: SolverOutput,
         val dualSolution: Solution
     ) {
         val obj: Flt64 by result::obj

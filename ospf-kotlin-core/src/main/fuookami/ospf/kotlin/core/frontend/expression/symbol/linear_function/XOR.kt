@@ -43,6 +43,8 @@ class XorFunction(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -150,7 +152,22 @@ class XorFunction(
             }
         }
 
-        return Ok(success)
+        if (!::y.isInitialized) {
+            y = BinVar(name = "${name}_y")
+        }
+        when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::polyY.isInitialized) {
+            polyY = LinearPolynomial(y, "${name}_y")
+        }
+
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -189,7 +206,7 @@ class XorFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

@@ -89,6 +89,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -160,7 +162,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -202,7 +204,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     private fun calculatePolyZ(): LinearPolynomial {

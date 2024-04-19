@@ -35,3 +35,33 @@ data object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
         encoder.encodeString(value.toString())
     }
 }
+
+data object LocalDateSerializer : KSerializer<LocalDate> {
+    private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("kotlinx.LocalDate", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): LocalDate {
+        return java.time.LocalDate.parse(decoder.decodeString(), formatter).toKotlinLocalDate()
+    }
+
+    override fun serialize(encoder: Encoder, value: LocalDate) {
+        encoder.encodeString(formatter.format(value.toJavaLocalDate()))
+    }
+}
+
+data object LocalTimeSerializer : KSerializer<LocalTime> {
+    private val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("LocalTime", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): LocalTime {
+        return java.time.LocalTime.parse(decoder.decodeString(), formatter).toKotlinLocalTime()
+    }
+
+    override fun serialize(encoder: Encoder, value: LocalTime) {
+        encoder.encodeString(formatter.format(value.toJavaLocalTime()))
+    }
+}

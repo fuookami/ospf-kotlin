@@ -44,6 +44,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -101,7 +103,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             y.name = "${name}_y"
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -126,7 +128,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             )
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

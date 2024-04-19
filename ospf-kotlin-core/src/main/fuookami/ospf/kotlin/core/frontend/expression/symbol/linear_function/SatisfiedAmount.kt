@@ -40,6 +40,8 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             possibleRange.upperBound.toFlt64()
         }
 
+    override val category: Category = Linear
+
     override val dependencies: Set<Symbol<*, *>>
         get() {
             val dependencies = HashSet<Symbol<*, *>>()
@@ -153,7 +155,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun register(model: AbstractLinearModel): Try {
@@ -199,7 +201,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
 
-        return Ok(success)
+        return ok
     }
 
     override fun toString(): String {

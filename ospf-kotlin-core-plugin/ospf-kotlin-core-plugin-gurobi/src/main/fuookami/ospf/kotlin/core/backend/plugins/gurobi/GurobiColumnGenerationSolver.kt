@@ -14,17 +14,18 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
 
 class GurobiColumnGenerationSolver(
-    private val config: LinearSolverConfig = LinearSolverConfig(),
-    private val callBack: GurobiSolverCallBack = GurobiSolverCallBack()
+    private val config: SolverConfig = SolverConfig(),
+    private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
 ) : ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean
-    ): Ret<LinearSolverOutput> {
+    ): Ret<SolverOutput> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -32,11 +33,12 @@ class GurobiColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         val solver = GurobiLinearSolver(
@@ -47,10 +49,12 @@ class GurobiColumnGenerationSolver(
         return when (val result = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(result.value)
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
@@ -62,9 +66,10 @@ class GurobiColumnGenerationSolver(
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean
-    ): Ret<Pair<LinearSolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -72,11 +77,12 @@ class GurobiColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         val results = ArrayList<Solution>()
@@ -89,7 +95,7 @@ class GurobiColumnGenerationSolver(
                         gurobi.set(GRB.IntParam.PoolSearchMode, 2);
                         gurobi.set(GRB.IntParam.PoolSolutions, min(UInt64.ten, amount).toInt())
                     }
-                    Ok(success)
+                    ok
                 }.analyzingSolution { gurobi, variables, _ ->
                     for (i in 0 until gurobi.get(GRB.IntAttr.SolCount)) {
                         gurobi.set(GRB.IntParam.SolutionNumber, i)
@@ -98,7 +104,7 @@ class GurobiColumnGenerationSolver(
                             results.add(thisResults)
                         }
                     }
-                    Ok(success)
+                    ok
                 }
         )
 
@@ -106,10 +112,12 @@ class GurobiColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(Pair(result.value, results))
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
@@ -121,8 +129,9 @@ class GurobiColumnGenerationSolver(
         metaModel: LinearMetaModel,
         toLogModel: Boolean
     ): Ret<ColumnGenerationSolver.LPResult> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -130,12 +139,13 @@ class GurobiColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         model.linearRelax()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         lateinit var dualSolution: Solution
@@ -144,17 +154,19 @@ class GurobiColumnGenerationSolver(
             callBack = callBack.copy()
                 .analyzingSolution { _, _, constraints ->
                     dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
-                    Ok(success)
+                    ok
                 }
         )
 
         return when (val result = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }

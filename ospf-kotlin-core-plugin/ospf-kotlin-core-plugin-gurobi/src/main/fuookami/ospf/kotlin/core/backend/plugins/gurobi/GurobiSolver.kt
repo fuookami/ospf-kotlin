@@ -1,0 +1,98 @@
+package fuookami.ospf.kotlin.core.backend.plugins.gurobi
+
+import kotlin.time.*
+import gurobi.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.backend.solver.output.*
+
+abstract class GurobiSolver {
+    protected lateinit var env: GRBEnv
+    protected lateinit var grbModel: GRBModel
+    protected lateinit var status: SolvingStatus
+
+    protected fun finalize() {
+        grbModel.dispose()
+        env.dispose()
+    }
+
+    protected fun init(server: String, password: String, connectionTime: Duration, name: String): Try {
+        return try {
+            env = GRBEnv(true)
+            env.set(GRB.IntParam.ServerTimeout, connectionTime.toInt(DurationUnit.SECONDS))
+            env.set(GRB.DoubleParam.CSQueueTimeout, connectionTime.toDouble(DurationUnit.SECONDS))
+            env.set(GRB.StringParam.ComputeServer, server)
+            env.set(GRB.StringParam.ServerPassword, password)
+            env.start()
+
+            grbModel = GRBModel(env)
+            grbModel.set(GRB.StringAttr.ModelName, name)
+            ok
+        } catch (e: GRBException) {
+            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+        }
+    }
+
+    protected fun init(name: String): Try {
+        return try {
+            env = GRBEnv()
+            grbModel = GRBModel(env)
+            grbModel.set(GRB.StringAttr.ModelName, name)
+            ok
+        } catch (e: GRBException) {
+            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+        }
+    }
+
+    protected fun solve(): Try {
+        return try {
+            grbModel.optimize()
+
+            ok
+        } catch (e: GRBException) {
+            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineTerminated))
+        }
+    }
+
+    protected fun analyzeStatus(): Try {
+        return try {
+            status = when (grbModel.get(GRB.IntAttr.Status)) {
+                GRB.OPTIMAL -> {
+                    SolvingStatus.Optimal
+                }
+
+                GRB.INFEASIBLE -> {
+                    SolvingStatus.NoSolution
+                }
+
+                GRB.UNBOUNDED -> {
+                    SolvingStatus.Unbounded
+                }
+
+                GRB.INF_OR_UNBD -> {
+                    SolvingStatus.NoSolution
+                }
+
+                else -> {
+                    if (grbModel.get(GRB.IntAttr.SolCount) > 0) {
+                        SolvingStatus.Feasible
+                    } else {
+                        SolvingStatus.NoSolution
+                    }
+                }
+            }
+
+            ok
+        } catch (e: GRBException) {
+            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineSolvingException))
+        }
+    }
+}

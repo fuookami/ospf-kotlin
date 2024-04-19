@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import ilog.concert.IloException
 
 class CplexColumnGenerationSolver(
-    val config: LinearSolverConfig = LinearSolverConfig(),
+    val config: SolverConfig = SolverConfig(),
     val callBack: CplexSolverCallBack = CplexSolverCallBack()
 ) : ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
@@ -25,9 +25,10 @@ class CplexColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean
-    ): Ret<LinearSolverOutput> {
+    ): Ret<SolverOutput> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -35,11 +36,12 @@ class CplexColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         val solver = CplexLinearSolver(
@@ -50,10 +52,12 @@ class CplexColumnGenerationSolver(
         return when (val result = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(result.value)
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
@@ -65,9 +69,10 @@ class CplexColumnGenerationSolver(
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean
-    ): Ret<Pair<LinearSolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -75,11 +80,12 @@ class CplexColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         val results = ArrayList<Solution>()
@@ -94,11 +100,11 @@ class CplexColumnGenerationSolver(
                         cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
                         cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
                     }
-                    Ok(success)
+                    ok
                 }.solving { cplex, _, _ ->
                     try {
                         cplex.populate()
-                        Ok(success)
+                        ok
                     } catch (e: IloException) {
                         Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                     }
@@ -111,7 +117,7 @@ class CplexColumnGenerationSolver(
                             results.add(thisResults)
                         }
                     }
-                    Ok(success)
+                    ok
                 }
         )
 
@@ -119,10 +125,12 @@ class CplexColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(Pair(result.value, results))
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
@@ -134,8 +142,9 @@ class CplexColumnGenerationSolver(
         metaModel: LinearMetaModel,
         toLogModel: Boolean
     ): Ret<ColumnGenerationSolver.LPResult> {
+        val jobs = ArrayList<Job>()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
         val model = when (val result = LinearModel(metaModel)) {
             is Ok -> {
@@ -143,12 +152,13 @@ class CplexColumnGenerationSolver(
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 return Failed(result.error)
             }
         }
         model.linearRelax()
         if (toLogModel) {
-            GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) }
+            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
         lateinit var dualSolution: Solution
@@ -157,21 +167,23 @@ class CplexColumnGenerationSolver(
             callBack = callBack.copy()
                 .configuration { cplex, _, _ ->
                     cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                    Ok(success)
+                    ok
                 }
                 .analyzingSolution { cplex, _, constraints ->
                     dualSolution = constraints.map { Flt64(cplex.getDual(it)) }
-                    Ok(success)
+                    ok
                 }
         )
 
         return when (val result = solver(model)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                jobs.forEach { it.join() }
                 Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
             }
 
             is Failed -> {
+                jobs.forEach { it.join() }
                 Failed(result.error)
             }
         }
