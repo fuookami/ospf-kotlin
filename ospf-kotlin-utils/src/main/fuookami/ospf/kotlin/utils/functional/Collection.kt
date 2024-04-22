@@ -7,12 +7,26 @@ import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
+import kotlin.random.Random
+
+fun <T> List<T>.shuffle(
+    randomGenerator: Generator<Int> = { Random.nextInt(0, this.size) }
+): List<T> {
+    val list = this.toMutableList()
+    for (i in list.size - 1 downTo 1) {
+        val j = randomGenerator()!! % list.size
+        val temp = list[i]
+        list[i] = list[j]
+        list[j] = temp
+    }
+    return list
+}
 
 fun <T> Iterator<T>.collect(): List<T> {
     return this.collectTo(ArrayList())
 }
 
-fun <T, M: MutableCollection<T>> Iterator<T>.collectTo(m: M): M {
+fun <T, M : MutableCollection<T>> Iterator<T>.collectTo(m: M): M {
     while (this.hasNext()) {
         m.add(this.next())
     }

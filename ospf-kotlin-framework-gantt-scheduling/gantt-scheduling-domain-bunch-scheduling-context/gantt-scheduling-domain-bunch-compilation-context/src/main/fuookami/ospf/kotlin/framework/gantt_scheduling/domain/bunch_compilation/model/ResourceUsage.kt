@@ -26,7 +26,7 @@ class BunchSchedulingExecutionResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = flatMap(
@@ -46,7 +46,13 @@ class BunchSchedulingExecutionResourceUsage<
                     )
                 }
             }
-            model.addSymbols(quantity)
+            when (val result = model.add(quantity)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -100,7 +106,7 @@ class BunchSchedulingConnectionResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = flatMap(
@@ -120,7 +126,13 @@ class BunchSchedulingConnectionResourceUsage<
                     )
                 }
             }
-            model.addSymbols(quantity)
+            when (val result = model.add(quantity)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -174,7 +186,7 @@ class BunchSchedulingStorageResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = flatMap(
@@ -199,7 +211,13 @@ class BunchSchedulingStorageResourceUsage<
                     )
                 }
             }
-            model.addSymbols(quantity)
+            when (val result = model.add(quantity)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return super.register(model)

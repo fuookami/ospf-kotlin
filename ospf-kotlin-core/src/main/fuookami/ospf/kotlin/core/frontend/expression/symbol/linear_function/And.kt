@@ -38,9 +38,9 @@ class AndFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -75,13 +75,13 @@ class AndFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound ls Flt64.zero) {
@@ -148,7 +148,7 @@ class AndFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (::maxmin.isInitialized) {
             when (val result = maxmin.register(model)) {
                 is Ok -> {}
@@ -172,16 +172,28 @@ class AndFunction(
         if (::y.isInitialized) {
             // if any polynomial is zero, y will be zero
             for ((i, polynomial) in polynomials.withIndex()) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     y leq polynomial,
                     "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
             // if all polynomial are not zero, y will be not zero
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y geq (sum(polynomials) - Flt64(polynomials.size - 1)),
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -209,6 +221,28 @@ class AndFunction(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return if (polynomials.all {
                 val thisValue = it.value(results, tokenList, zeroIfNone) ?: return null
+                thisValue neq Flt64.zero
+            }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return if (polynomials.all {
+                val thisValue = it.value(tokenTable, zeroIfNone) ?: return null
+                thisValue neq Flt64.zero
+            }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return if (polynomials.all {
+                val thisValue = it.value(results, tokenTable, zeroIfNone) ?: return null
                 thisValue neq Flt64.zero
             }) {
             Flt64.one

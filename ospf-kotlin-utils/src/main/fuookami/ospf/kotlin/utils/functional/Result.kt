@@ -8,6 +8,28 @@ sealed class Result<out T, out E : Error> {
     open val value: T? = null
 
     abstract fun <U> map(transform: (T) -> U): Result<U, E>
+
+    inline fun ifOk(crossinline func: Ok<T, E>.() -> Unit): Result<T, E> {
+        when (this) {
+            is Ok -> {
+                func(this)
+            }
+
+            is Failed -> {}
+        }
+        return this
+    }
+
+    inline fun ifFailed(crossinline func: Failed<T, E>.() -> Unit): Result<T, E> {
+        when (this) {
+            is Ok -> {}
+
+            is Failed -> {
+                func(this)
+            }
+        }
+        return this
+    }
 }
 
 class Ok<out T, out E : Error>(
@@ -67,4 +89,4 @@ typealias TryWith<E> = Result<Success, E>
 typealias Ret<T> = Result<T, Error>
 
 val ok = Ok<Success, Error>(success)
-fun <E: Error> ok(): Result<Success, E> = Ok(success)
+fun <E : Error> ok(): Result<Success, E> = Ok(success)

@@ -27,7 +27,17 @@ data class Particle<V>(
         newVelocity: List<Flt64>,
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V> {
-        val newPosition = (0 until size).map { position[it] + velocity[it] }
+        val newPosition = (0 until size).map {
+            val newPosition = position[it] + velocity[it]
+            val token = model.tokens[it]
+            if (newPosition gr token.upperBound) {
+                token.upperBound
+            } else if (newPosition ls token.lowerBound) {
+                token.lowerBound
+            } else {
+                newPosition
+            }
+        }
         val newFitness = if (model.constraintSatisfied(newPosition) == true) {
             model.objective(newPosition)
         } else {
@@ -102,7 +112,6 @@ open class CommonPSOPolicy<V>(
                 } else {
                     newVelocity
                 }
-
             },
             model
         )
@@ -115,7 +124,7 @@ open class CommonPSOPolicy<V>(
     }
 }
 
-class ParticleSwarmOptimization<Obj, V>(
+class ParticleSwarmOptimizationAlgorithm<Obj, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: PSOPolicy<V> = CommonPSOPolicy()
@@ -149,6 +158,7 @@ class ParticleSwarmOptimization<Obj, V>(
                 bestParticles = newBestParticle
             }
             refreshGoodParticles(goodParticles, newParticles, model)
+            model.flush()
         }
 
         return goodParticles.map { Pair(it.position, it.fitness) }
@@ -186,5 +196,5 @@ class ParticleSwarmOptimization<Obj, V>(
     }
 }
 
-typealias PSO = ParticleSwarmOptimization<Flt64, Flt64>
-typealias MulObjPSO = ParticleSwarmOptimization<MulObj, List<Flt64>>
+typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64>
+typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<MulObj, List<Flt64>>

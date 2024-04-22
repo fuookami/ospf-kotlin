@@ -43,7 +43,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
     }
 }
 
-fun <Args : Any, Model : MetaModel<*, *, *>, Map : AbstractShadowPriceMap<Args, Map>> extractShadowPrice(
+fun <Args : Any, Model : MetaModel, Map : AbstractShadowPriceMap<Args, Map>> extractShadowPrice(
     shadowPriceMap: Map,
     pipelineList: CGPipelineList<Args, Model, Map>,
     model: Model,

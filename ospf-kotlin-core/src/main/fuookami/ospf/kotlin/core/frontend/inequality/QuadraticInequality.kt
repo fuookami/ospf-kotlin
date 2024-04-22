@@ -13,7 +13,7 @@ class QuadraticInequality(
     sign: Sign,
     name: String = "",
     displayName: String? = null
-) : Inequality<QuadraticInequality, QuadraticMonomialCell, Quadratic>(lhs, rhs, sign, name, displayName) {
+) : Inequality<QuadraticInequality, QuadraticMonomialCell>(lhs, rhs, sign, name, displayName) {
     companion object {
         operator fun invoke(inequality: LinearInequality): QuadraticInequality {
             return QuadraticInequality(
@@ -47,7 +47,7 @@ class QuadraticInequality(
                     when (val symbol = cell.cell) {
                         is Either.Left -> {
                             val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
-                            cells[key] = cells[key]?.let { it - cell } ?: cell
+                            cells[key] = cells[key]?.let { it - cell } ?: -cell
                         }
 
                         is Either.Right -> {
@@ -973,7 +973,6 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractQuadraticPolynomial<*>): Q
 
 // symbol and symbol
 
-@JvmName("linearSymbolLsQuadraticSymbol")
 infix fun LinearSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -982,7 +981,6 @@ infix fun LinearSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("linearSymbolLeqQuadraticSymbol")
 infix fun LinearSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -991,7 +989,6 @@ infix fun LinearSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("linearSymbolEqQuadraticSymbol")
 infix fun LinearSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1000,7 +997,6 @@ infix fun LinearSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("linearSymbolNeqQuadraticSymbol")
 infix fun LinearSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1009,7 +1005,6 @@ infix fun LinearSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("linearSymbolGrQuadraticSymbol")
 infix fun LinearSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1018,7 +1013,6 @@ infix fun LinearSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("linearSymbolGeqQuadraticSymbol")
 infix fun LinearSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1027,7 +1021,6 @@ infix fun LinearSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolLsLinearSymbol")
 infix fun QuadraticSymbol.ls(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1036,7 +1029,6 @@ infix fun QuadraticSymbol.ls(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolLeqLinearSymbol")
 infix fun QuadraticSymbol.leq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1045,7 +1037,6 @@ infix fun QuadraticSymbol.leq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolEqLinearSymbol")
 infix fun QuadraticSymbol.eq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1054,7 +1045,6 @@ infix fun QuadraticSymbol.eq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolNeqLinearSymbol")
 infix fun QuadraticSymbol.neq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1063,7 +1053,6 @@ infix fun QuadraticSymbol.neq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolGrLinearSymbol")
 infix fun QuadraticSymbol.gr(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1072,7 +1061,6 @@ infix fun QuadraticSymbol.gr(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolGeqLinearSymbol")
 infix fun QuadraticSymbol.geq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1081,7 +1069,6 @@ infix fun QuadraticSymbol.geq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolLsQuadraticSymbol")
 infix fun QuadraticSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1090,7 +1077,6 @@ infix fun QuadraticSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolLeqQuadraticSymbol")
 infix fun QuadraticSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1099,7 +1085,6 @@ infix fun QuadraticSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolEqQuadraticSymbol")
 infix fun QuadraticSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1108,7 +1093,6 @@ infix fun QuadraticSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolNeqQuadraticSymbol")
 infix fun QuadraticSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1117,7 +1101,6 @@ infix fun QuadraticSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolGrQuadraticSymbol")
 infix fun QuadraticSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1126,7 +1109,6 @@ infix fun QuadraticSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolGeqQuadraticSymbol")
 infix fun QuadraticSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1233,7 +1215,6 @@ infix fun QuadraticSymbol.geq(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialLsLinearSymbol")
 infix fun QuadraticMonomial.ls(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1242,7 +1223,6 @@ infix fun QuadraticMonomial.ls(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialLeqLinearSymbol")
 infix fun QuadraticMonomial.leq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1251,7 +1231,6 @@ infix fun QuadraticMonomial.leq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialEqLinearSymbol")
 infix fun QuadraticMonomial.eq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1260,7 +1239,6 @@ infix fun QuadraticMonomial.eq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialNeqLinearSymbol")
 infix fun QuadraticMonomial.neq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1269,7 +1247,6 @@ infix fun QuadraticMonomial.neq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialGrLinearSymbol")
 infix fun QuadraticMonomial.gr(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1278,7 +1255,6 @@ infix fun QuadraticMonomial.gr(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialGeqLinearSymbol")
 infix fun QuadraticMonomial.geq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1287,7 +1263,6 @@ infix fun QuadraticMonomial.geq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("inearSymbolLsQuadraticMonomial")
 infix fun LinearSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1296,7 +1271,6 @@ infix fun LinearSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("inearSymbolLeqQuadraticMonomial")
 infix fun LinearSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1305,7 +1279,6 @@ infix fun LinearSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("inearSymbolEqQuadraticMonomial")
 infix fun LinearSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1314,7 +1287,6 @@ infix fun LinearSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("inearSymbolNeqQuadraticMonomial")
 infix fun LinearSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1323,7 +1295,6 @@ infix fun LinearSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("inearSymbolGrQuadraticMonomial")
 infix fun LinearSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1332,7 +1303,6 @@ infix fun LinearSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("inearSymbolGeqQuadraticMonomial")
 infix fun LinearSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1341,7 +1311,6 @@ infix fun LinearSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialLsQuadraticSymbol")
 infix fun QuadraticMonomial.ls(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1350,7 +1319,6 @@ infix fun QuadraticMonomial.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialLeqQuadraticSymbol")
 infix fun QuadraticMonomial.leq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1359,7 +1327,6 @@ infix fun QuadraticMonomial.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialEqQuadraticSymbol")
 infix fun QuadraticMonomial.eq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1368,7 +1335,6 @@ infix fun QuadraticMonomial.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialNeqQuadraticSymbol")
 infix fun QuadraticMonomial.neq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1377,7 +1343,6 @@ infix fun QuadraticMonomial.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialGrQuadraticSymbol")
 infix fun QuadraticMonomial.gr(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1386,7 +1351,6 @@ infix fun QuadraticMonomial.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticMonomialGeqQuadraticSymbol")
 infix fun QuadraticMonomial.geq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
@@ -1395,7 +1359,6 @@ infix fun QuadraticMonomial.geq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolLsQuadraticMonomial")
 infix fun QuadraticSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1404,7 +1367,6 @@ infix fun QuadraticSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolLeqQuadraticMonomial")
 infix fun QuadraticSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1413,7 +1375,6 @@ infix fun QuadraticSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolEqQuadraticMonomial")
 infix fun QuadraticSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1422,7 +1383,6 @@ infix fun QuadraticSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolNeqQuadraticMonomial")
 infix fun QuadraticSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1431,7 +1391,6 @@ infix fun QuadraticSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolGrQuadraticMonomial")
 infix fun QuadraticSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1440,7 +1399,6 @@ infix fun QuadraticSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-@JvmName("quadraticSymbolGeqQuadraticMonomial")
 infix fun QuadraticSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1547,7 +1505,6 @@ infix fun QuadraticSymbol.geq(rhs: AbstractLinearPolynomial<*>): QuadraticInequa
     )
 }
 
-@JvmName("quadraticPolynomialLsLinearSymbol")
 infix fun AbstractQuadraticPolynomial<*>.ls(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1556,7 +1513,6 @@ infix fun AbstractQuadraticPolynomial<*>.ls(rhs: LinearSymbol): QuadraticInequal
     )
 }
 
-@JvmName("quadraticPolynomialLeqLinearSymbol")
 infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1565,7 +1521,6 @@ infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearSymbol): QuadraticInequa
     )
 }
 
-@JvmName("quadraticPolynomialEqLinearSymbol")
 infix fun AbstractQuadraticPolynomial<*>.eq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1574,7 +1529,6 @@ infix fun AbstractQuadraticPolynomial<*>.eq(rhs: LinearSymbol): QuadraticInequal
     )
 }
 
-@JvmName("quadraticPolynomialNeqLinearSymbol")
 infix fun AbstractQuadraticPolynomial<*>.neq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1583,7 +1537,6 @@ infix fun AbstractQuadraticPolynomial<*>.neq(rhs: LinearSymbol): QuadraticInequa
     )
 }
 
-@JvmName("quadraticPolynomialGrLinearSymbol")
 infix fun AbstractQuadraticPolynomial<*>.gr(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1592,7 +1545,6 @@ infix fun AbstractQuadraticPolynomial<*>.gr(rhs: LinearSymbol): QuadraticInequal
     )
 }
 
-@JvmName("quadraticPolynomialGeqLinearSymbol")
 infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1601,7 +1553,6 @@ infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearSymbol): QuadraticInequa
     )
 }
 
-@JvmName("linearSymbolLsQuadraticPolynomial")
 infix fun LinearSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1610,7 +1561,6 @@ infix fun LinearSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequal
     )
 }
 
-@JvmName("linearSymbolLeqQuadraticPolynomial")
 infix fun LinearSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1619,7 +1569,6 @@ infix fun LinearSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequa
     )
 }
 
-@JvmName("linearSymbolEqQuadraticPolynomial")
 infix fun LinearSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1628,7 +1577,6 @@ infix fun LinearSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequal
     )
 }
 
-@JvmName("linearSymbolNeqQuadraticPolynomial")
 infix fun LinearSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1637,7 +1585,6 @@ infix fun LinearSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequa
     )
 }
 
-@JvmName("linearSymbolGrQuadraticPolynomial")
 infix fun LinearSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1646,7 +1593,6 @@ infix fun LinearSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequal
     )
 }
 
-@JvmName("linearSymbolGeqQuadraticPolynomial")
 infix fun LinearSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1655,7 +1601,6 @@ infix fun LinearSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequa
     )
 }
 
-@JvmName("quadraticPolynomialLsQuadraticSymbol")
 infix fun AbstractQuadraticPolynomial<*>.ls(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1664,7 +1609,6 @@ infix fun AbstractQuadraticPolynomial<*>.ls(rhs: QuadraticSymbol): QuadraticIneq
     )
 }
 
-@JvmName("quadraticPolynomialLeqQuadraticSymbol")
 infix fun AbstractQuadraticPolynomial<*>.leq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1673,7 +1617,6 @@ infix fun AbstractQuadraticPolynomial<*>.leq(rhs: QuadraticSymbol): QuadraticIne
     )
 }
 
-@JvmName("quadraticPolynomialEqQuadraticSymbol")
 infix fun AbstractQuadraticPolynomial<*>.eq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1682,7 +1625,6 @@ infix fun AbstractQuadraticPolynomial<*>.eq(rhs: QuadraticSymbol): QuadraticIneq
     )
 }
 
-@JvmName("quadraticPolynomialNeqQuadraticSymbol")
 infix fun AbstractQuadraticPolynomial<*>.neq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1691,7 +1633,6 @@ infix fun AbstractQuadraticPolynomial<*>.neq(rhs: QuadraticSymbol): QuadraticIne
     )
 }
 
-@JvmName("quadraticPolynomialGrQuadraticSymbol")
 infix fun AbstractQuadraticPolynomial<*>.gr(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1700,7 +1641,6 @@ infix fun AbstractQuadraticPolynomial<*>.gr(rhs: QuadraticSymbol): QuadraticIneq
     )
 }
 
-@JvmName("quadraticPolynomialGeqQuadraticSymbol")
 infix fun AbstractQuadraticPolynomial<*>.geq(rhs: QuadraticSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
@@ -1709,7 +1649,6 @@ infix fun AbstractQuadraticPolynomial<*>.geq(rhs: QuadraticSymbol): QuadraticIne
     )
 }
 
-@JvmName("quadraticSymbolLsQuadraticPolynomial")
 infix fun QuadraticSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1718,7 +1657,6 @@ infix fun QuadraticSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticIneq
     )
 }
 
-@JvmName("quadraticSymbolLeqQuadraticPolynomial")
 infix fun QuadraticSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1727,7 +1665,6 @@ infix fun QuadraticSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticIne
     )
 }
 
-@JvmName("quadraticSymbolEqQuadraticPolynomial")
 infix fun QuadraticSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1736,7 +1673,6 @@ infix fun QuadraticSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticIneq
     )
 }
 
-@JvmName("quadraticSymbolNeqQuadraticPolynomial")
 infix fun QuadraticSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1745,7 +1681,6 @@ infix fun QuadraticSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticIne
     )
 }
 
-@JvmName("quadraticSymbolGrQuadraticPolynomial")
 infix fun QuadraticSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
@@ -1754,7 +1689,6 @@ infix fun QuadraticSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticIneq
     )
 }
 
-@JvmName("quadraticSymbolGeqQuadraticPolynomial")
 infix fun QuadraticSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),

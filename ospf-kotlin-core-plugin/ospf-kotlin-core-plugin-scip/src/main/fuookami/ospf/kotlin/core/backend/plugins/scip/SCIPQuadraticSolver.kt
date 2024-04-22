@@ -2,15 +2,18 @@ package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import kotlin.time.*
 import kotlinx.datetime.*
+import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class SCIPQuadraticSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -19,6 +22,41 @@ class SCIPQuadraticSolver(
     override suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
         val impl = SCIPQuadraticSolverImpl(config, callBack)
         return impl(model)
+    }
+
+    override suspend fun invoke(model: QuadraticTetradModelView, solutionAmount: UInt64): Ret<Pair<SolverOutput, List<Solution>>> {
+        return if (solutionAmount leq UInt64.one) {
+            this(model).map { it to emptyList() }
+        } else {
+            val results = ArrayList<Solution>()
+            val impl = SCIPQuadraticSolverImpl(config, callBack.ifNull { SCIPSolverCallBack() }.copy()
+                .configuration { scip, _, _ ->
+                    scip.setIntParam("heuristics/dins/solnum", min(UInt64.ten, solutionAmount).toInt())
+                    ok
+                }
+                .analyzingSolution { scip, variables, _ ->
+                    val bestSol = scip.bestSol
+                    val sols = scip.sols
+                    var i = UInt64.zero
+                    for (sol in sols) {
+                        if (sol != bestSol) {
+                            val thisResults = java.util.ArrayList<Flt64>()
+                            for (scipVar in variables) {
+                                thisResults.add(Flt64(scip.getSolVal(sol, scipVar)))
+                            }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ++i
+                        if (i >= solutionAmount) {
+                            break
+                        }
+                    }
+                    ok
+                })
+            impl(model).map { it to results }
+        }
     }
 }
 
@@ -51,7 +89,7 @@ private class SCIPQuadraticSolverImpl(
         super.finalize()
     }
 
-    operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
         mip = model.containsNotBinaryInteger
         val processes = arrayOf(
             { it.init(model.name) },
@@ -73,7 +111,7 @@ private class SCIPQuadraticSolverImpl(
         return Ok(output)
     }
 
-    private fun dump(model: QuadraticTetradModelView): Try {
+    private suspend fun dump(model: QuadraticTetradModelView): Try {
         scipVars = model.variables.map {
             scip.createVar(
                 it.name,
@@ -84,7 +122,14 @@ private class SCIPQuadraticSolverImpl(
             )
         }.toList()
 
-        if (model.variables.any { it.initialResult != null }) {
+        val withResultAmount = model.variables.count { it.initialResult != null }
+        if (withResultAmount == model.variables.size) {
+            val initialSolution = scip.createSol()
+            for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+            }
+            scip.addSolFree(initialSolution)
+        } else if (withResultAmount > 0) {
             val initialSolution = scip.createPartialSol()
             for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
                 scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
@@ -92,56 +137,61 @@ private class SCIPQuadraticSolverImpl(
             scip.addSolFree(initialSolution)
         }
 
-        var i = 0
-        var j = 0
-        val constraints = ArrayList<jscip.Constraint>()
-        while (i != model.constraints.size) {
-            var lhs = Flt64.negativeInfinity
-            var rhs = Flt64.infinity
-            when (model.constraints.signs[i]) {
-                Sign.GreaterEqual -> {
-                    lhs = model.constraints.rhs[i]
-                }
+        val constraints = coroutineScope {
+            val promises = model.constraints.indices.map { i ->
+                i to async(Dispatchers.Default) {
+                    var lb = Flt64.negativeInfinity
+                    var ub = Flt64.infinity
+                    when (model.constraints.signs[i]) {
+                        Sign.GreaterEqual -> {
+                            lb = model.constraints.rhs[i]
+                        }
 
-                Sign.LessEqual -> {
-                    rhs = model.constraints.rhs[i]
-                }
+                        Sign.LessEqual -> {
+                            ub = model.constraints.rhs[i]
+                        }
 
-                Sign.Equal -> {
-                    lhs = model.constraints.rhs[i]
-                    rhs = model.constraints.rhs[i]
+                        Sign.Equal -> {
+                            lb = model.constraints.rhs[i]
+                            ub = model.constraints.rhs[i]
+                        }
+                    }
+                    val linearVars = ArrayList<jscip.Variable>()
+                    val quadraticVars1 = ArrayList<jscip.Variable>()
+                    val quadraticVars2 = ArrayList<jscip.Variable>()
+                    val linerCoefficients = ArrayList<Double>()
+                    val quadraticCoefficients = ArrayList<Double>()
+                    for (cell in model.constraints.lhs[i]) {
+                        if (cell.colIndex2 == null) {
+                            linearVars.add(scipVars[cell.colIndex1])
+                            linerCoefficients.add(cell.coefficient.toDouble())
+                        } else {
+                            quadraticVars1.add(scipVars[cell.colIndex1])
+                            quadraticVars2.add(scipVars[cell.colIndex2!!])
+                            quadraticCoefficients.add(cell.coefficient.toDouble())
+                        }
+                    }
+                    Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
                 }
             }
-            val linearVars = ArrayList<jscip.Variable>()
-            val quadraticVars1 = ArrayList<jscip.Variable>()
-            val quadraticVars2 = ArrayList<jscip.Variable>()
-            val linerCoefficients = ArrayList<Double>()
-            val quadraticCoefficients = ArrayList<Double>()
-            while (j != model.constraints.lhs.size && i == model.constraints.lhs[j].rowIndex) {
-                val cell = model.constraints.lhs[j]
-                if (cell.colIndex2 == null) {
-                    linearVars.add(scipVars[cell.colIndex1])
-                    linerCoefficients.add(cell.coefficient.toDouble())
-                } else {
-                    quadraticVars1.add(scipVars[cell.colIndex1])
-                    quadraticVars2.add(scipVars[cell.colIndex2!!])
-                    quadraticCoefficients.add(cell.coefficient.toDouble())
-                }
-                ++j
+            promises.map {
+                val (range, linearCells, quadraticCells) = it.second.await()
+                val (lb, ub) = range
+                val (linerCoefficients, linearVars) = linearCells
+                val (quadraticCoefficients, quadraticVars1, quadraticVars2) = quadraticCells
+                val constraint = scip.createConsQuadratic(
+                    model.constraints.names[it.first],
+                    quadraticVars1.toTypedArray(),
+                    quadraticVars2.toTypedArray(),
+                    quadraticCoefficients.toDoubleArray(),
+                    linearVars.toTypedArray(),
+                    linerCoefficients.toDoubleArray(),
+                    lb.toDouble(),
+                    ub.toDouble()
+                )
+                scip.addCons(constraint)
+                constraint
             }
-            val constraint = scip.createConsQuadratic(
-                model.constraints.names[i],
-                quadraticVars1.toTypedArray(),
-                quadraticVars2.toTypedArray(),
-                quadraticCoefficients.toDoubleArray(),
-                linearVars.toTypedArray(),
-                linerCoefficients.toDoubleArray(),
-                lhs.toDouble(),
-                rhs.toDouble()
-            )
-            constraints.add(constraint)
-            ++i
-            scip.addCons(constraint)
         }
         scipConstraints = constraints
 
@@ -197,10 +247,15 @@ private class SCIPQuadraticSolverImpl(
         return ok
     }
 
-    private fun configure(): Try {
+    private suspend fun configure(): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toDouble())
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
+
+        // todo: use call back to control it
+        if (config.notImprovementTime != null) {
+            scip.setRealParam("limits/stallnodes", config.notImprovementTime!!.toDouble(DurationUnit.MILLISECONDS))
+        }
 
         when (val result = callBack?.execIfContain(Point.Configuration, scip, scipVars, scipConstraints)) {
             is Failed -> {
@@ -212,7 +267,7 @@ private class SCIPQuadraticSolverImpl(
         return ok
     }
 
-    private fun solve(): Try {
+    private suspend fun solve(): Try {
         val begin = Clock.System.now()
         scip.solveConcurrent()
         val stage = scip.stage
@@ -224,7 +279,7 @@ private class SCIPQuadraticSolverImpl(
         return ok
     }
 
-    private fun analyzeSolution(): Try {
+    private suspend fun analyzeSolution(): Try {
         return if (status.succeeded()) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()

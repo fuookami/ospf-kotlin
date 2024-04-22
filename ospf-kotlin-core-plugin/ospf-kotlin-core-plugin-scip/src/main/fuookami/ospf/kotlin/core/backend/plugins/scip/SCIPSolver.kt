@@ -26,13 +26,13 @@ abstract class SCIPSolver {
         scip.free()
     }
 
-    protected fun init(name: String): Try {
+    protected suspend fun init(name: String): Try {
         scip = Scip()
         scip.create(name)
         return ok
     }
 
-    protected fun analyzeStatus(): Try {
+    protected suspend fun analyzeStatus(): Try {
         val solution = scip.bestSol
         status = when (scip.status) {
             SCIP_Status.SCIP_STATUS_OPTIMAL -> {

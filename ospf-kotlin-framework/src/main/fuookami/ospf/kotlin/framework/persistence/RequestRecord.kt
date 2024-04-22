@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.persistence
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import java.io.*
 import kotlin.reflect.*
 import kotlinx.datetime.*
 import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import org.ktorm.dsl.*
 import org.ktorm.entity.*
 import org.ktorm.schema.*
@@ -19,17 +19,17 @@ interface RequestRecordRPO : Entity<RequestRecordRPO> {
     var app: String
     var requester: String
     var version: String
-    var time: java.time.LocalDateTime
+    var time: LocalDateTime
     var request: ByteArray
 }
 
 open class RequestRecordRDAO(tableName: String) : Table<RequestRecordRPO>(tableName) {
-    val id = int("id").primaryKey()
+    val id = long("id").primaryKey()
     val requestId = varchar("request_id").bindTo { it.requestId }
     val app = varchar("app").bindTo { it.app }
     val requester = varchar("requester").bindTo { it.requester }
     val version = varchar("version").bindTo { it.version }
-    val time = datetime("time").bindTo { it.time }
+    val time = datetime("time").transform({ it.toKotlinLocalDateTime() }, { it.toJavaLocalDateTime() }).bindTo { it.time }
     val request = blob("request").bindTo { it.request }
 }
 
@@ -42,19 +42,19 @@ interface ResponseRecordRPO : Entity<ResponseRecordRPO> {
     var requester: String
     var version: String
     var msg: String
-    var time: java.time.LocalDateTime
+    var time: LocalDateTime
     var response: ByteArray
 }
 
 open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tableName) {
-    val id = int("id").primaryKey()
+    val id = long("id").primaryKey()
     val requestId = varchar("request_id").bindTo { it.requestId }
     val app = varchar("app").bindTo { it.app }
     val requester = varchar("requester").bindTo { it.requester }
     val version = varchar("version").bindTo { it.version }
     val code = long("code").transform({ UInt64(it.toULong()) }, { it.toLong() }).bindTo { it.code }
     val msg = varchar("msg").bindTo { it.msg }
-    val time = datetime("time").bindTo { it.time }
+    val time = datetime("time").transform({ it.toKotlinLocalDateTime() }, { it.toJavaLocalDateTime() }).bindTo { it.time }
     val response = blob("response").bindTo { it.response }
 }
 
@@ -87,7 +87,7 @@ data class RequestRecordPO<T>(
                     app = rpo.app,
                     requester = rpo.requester,
                     version = rpo.version,
-                    time = rpo.time.toKotlinLocalDateTime(),
+                    time = rpo.time,
                     request = deserializer(rpo.request)
                 )
             } catch (e: Exception) {
@@ -122,7 +122,7 @@ data class RequestRecordPO<T>(
             app = this@RequestRecordPO.app
             requester = this@RequestRecordPO.requester
             version = this@RequestRecordPO.version
-            time = this@RequestRecordPO.time.toJavaLocalDateTime()
+            time = this@RequestRecordPO.time
             request = serializer(this@RequestRecordPO.request)
         }
     }
@@ -194,7 +194,7 @@ data object RequestRecordDAO {
         }
         if (time != null) {
             query =
-                query.where { (table.time greaterEq time.first.toJavaLocalDateTime()) and (table.time less time.second.toJavaLocalDateTime()) }
+                query.where { (table.time greaterEq time.first) and (table.time less time.second) }
         }
         return query
     }
@@ -231,7 +231,7 @@ data class ResponseRecordPO<T>(
                     requester = rpo.requester,
                     version = rpo.version,
                     code = rpo.code,
-                    time = rpo.time.toKotlinLocalDateTime(),
+                    time = rpo.time,
                     response = deserializer(rpo.response)
                 )
             } catch (e: Exception) {
@@ -269,7 +269,7 @@ data class ResponseRecordPO<T>(
             version = this@ResponseRecordPO.version
             code = this@ResponseRecordPO.code
             msg = this@ResponseRecordPO.response.msg
-            time = this@ResponseRecordPO.time.toJavaLocalDateTime()
+            time = this@ResponseRecordPO.time
             response = serializer(this@ResponseRecordPO.response)
         }
     }
@@ -352,8 +352,8 @@ data object ResponseRecordDAO {
         }
         if (time != null) {
             query = query.where {
-                ((requestTable.time greaterEq time.first.toJavaLocalDateTime()) and (requestTable.time less time.second.toJavaLocalDateTime())) or
-                        ((responseTable.time greaterEq time.first.toJavaLocalDateTime()) and (responseTable.time less time.second.toJavaLocalDateTime()))
+                ((requestTable.time greaterEq time.first) and (requestTable.time less time.second)) or
+                        ((responseTable.time greaterEq time.first) and (responseTable.time less time.second))
             }
         }
         return query

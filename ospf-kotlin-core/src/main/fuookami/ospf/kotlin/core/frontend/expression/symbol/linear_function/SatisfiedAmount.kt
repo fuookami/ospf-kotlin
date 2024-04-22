@@ -20,7 +20,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
 
     private lateinit var or: OrFunction
     private lateinit var and: AndFunction
-    private lateinit var bins: SymbolCombination<BinaryzationFunction, LinearMonomialCell, Linear, Shape1>
+    private lateinit var bins: SymbolCombination<BinaryzationFunction, Shape1>
     private lateinit var y: BinVar
     private lateinit var polyY: AbstractLinearPolynomial<*>
 
@@ -42,9 +42,9 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -82,13 +82,13 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (amount?.let { it == UInt64.one } == true) {
             if (!::or.isInitialized) {
                 or = OrFunction(polynomials, name, displayName)
@@ -113,7 +113,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         } else {
             if (!::bins.isInitialized) {
-                bins = SymbolCombination("${name}_bin", Shape1(2)) { (i, _) ->
+                bins = SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
                     if (i == 0) {
                         BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
                     } else {
@@ -158,7 +158,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (::or.isInitialized) {
             when (val result = or.register(model)) {
                 is Ok -> {}
@@ -187,16 +187,28 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
 
             if (::y.isInitialized) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     y geq (sum(bins) - amount!! + UInt64.one) / UInt64(polynomials.size),
                     "${name}_ub"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
 
                 if (extract) {
-                    model.addConstraint(
+                    when (val result = model.addConstraint(
                         y leq sum(bins) / amount!!,
                         "${name}_lb"
-                    )
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                 }
             }
         }
@@ -240,6 +252,46 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         var counter = UInt64.zero
         for (polynomial in polynomials) {
             val value = polynomial.value(results, tokenList, zeroIfNone)
+                ?: return null
+            if (value neq Flt64.zero) {
+                counter += UInt64.one
+            }
+        }
+        return if (amount != null) {
+            if (counter geq amount!!) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+        } else {
+            counter.toFlt64()
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var counter = UInt64.zero
+        for (polynomial in polynomials) {
+            val value = polynomial.value(tokenTable, zeroIfNone)
+                ?: return null
+            if (value neq Flt64.zero) {
+                counter += UInt64.one
+            }
+        }
+        return if (amount != null) {
+            if (counter geq amount!!) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+        } else {
+            counter.toFlt64()
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var counter = UInt64.zero
+        for (polynomial in polynomials) {
+            val value = polynomial.value(results, tokenTable, zeroIfNone)
                 ?: return null
             if (value neq Flt64.zero) {
                 counter += UInt64.one

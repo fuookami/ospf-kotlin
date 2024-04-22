@@ -37,9 +37,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             dependencies.addAll(x.dependencies)
             flag?.let { dependencies.addAll(it.dependencies) }
             return dependencies
@@ -65,12 +65,12 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         flag?.cells
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::y.isInitialized) {
             y = ctor("${name}_y")
         }
@@ -104,7 +104,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (x.lowerBound ls Flt64.zero) {
             return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $x"))
         }
@@ -115,37 +115,79 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
             }
         }
 
-        model.addConstraint(
+        when (val result = model.addConstraint(
             y leq x,
             "${name}_x"
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (flag != null) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y geq (x - x.upperBound * (Flt64.one - flag)),
                 "${name}_xu"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 y geq (x.lowerBound * flag),
                 "${name}_lb"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 y leq (x.upperBound * flag),
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y geq (x - x.upperBound * (Flt64.one - u)),
                 "${name}_xu"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 y geq (x.lowerBound * u),
                 "${name}_lb"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 y leq (x.upperBound * u),
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -199,6 +241,52 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             if (flagValue neq Flt64.zero) {
                 x.value(results, tokenList, zeroIfNone)
+            } else {
+                Flt64.zero
+            }
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return if (flag != null) {
+            val flagValue = flag.value(tokenTable, zeroIfNone) ?: return null
+            if (flagValue neq Flt64.zero) {
+                x.value(tokenTable, zeroIfNone)
+            } else {
+                Flt64.zero
+            }
+        } else {
+            val flagValue = tokenTable.find(u)?.result
+                ?: if (zeroIfNone) {
+                    Flt64.zero
+                } else {
+                    return null
+                }
+            if (flagValue neq Flt64.zero) {
+                x.value(tokenTable, zeroIfNone)
+            } else {
+                Flt64.zero
+            }
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return if (flag != null) {
+            val flagValue = flag.value(results, tokenTable, zeroIfNone) ?: return null
+            if (flagValue neq Flt64.zero) {
+                x.value(results, tokenTable, zeroIfNone)
+            } else {
+                Flt64.zero
+            }
+        } else {
+            val flagValue = tokenTable.tokenList.indexOf(u)?.let { results[it] }
+                ?: if (zeroIfNone) {
+                    Flt64.zero
+                } else {
+                    return null
+                }
+            if (flagValue neq Flt64.zero) {
+                x.value(results, tokenTable, zeroIfNone)
             } else {
                 Flt64.zero
             }

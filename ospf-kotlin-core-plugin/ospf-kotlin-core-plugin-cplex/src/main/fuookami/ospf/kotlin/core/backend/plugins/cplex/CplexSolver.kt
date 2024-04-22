@@ -9,13 +9,13 @@ abstract class CplexSolver {
     lateinit var cplex: IloCplex
     lateinit var status: SolvingStatus
 
-    protected fun init(name: String): Try {
+    protected suspend fun init(name: String): Try {
         cplex = IloCplex()
         cplex.name = name
         return ok
     }
 
-    protected fun analyzeStatus(): Try {
+    protected suspend fun analyzeStatus(): Try {
         status = when (cplex.status) {
             IloCplex.Status.Optimal -> {
                 SolvingStatus.Optimal

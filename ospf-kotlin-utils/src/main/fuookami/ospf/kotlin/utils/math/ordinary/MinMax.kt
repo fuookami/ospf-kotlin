@@ -219,7 +219,7 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(
     return Pair(min, max)
 }
 
-fun <T> Iterable<T>.minMaxOfWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
+fun <T> Iterable<T>.minMaxWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
     val iterator = this.iterator()
     var min = iterator().next()
     var max = min
@@ -235,7 +235,7 @@ fun <T> Iterable<T>.minMaxOfWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
     return Pair(min, max)
 }
 
-fun <T> Iterable<T>.minMaxOfWithOrNull(comparator: kotlin.Comparator<T>): Pair<T, T>? {
+fun <T> Iterable<T>.minMaxWithOrNull(comparator: kotlin.Comparator<T>): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
         return null

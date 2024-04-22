@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.utils.error.ApplicationException
 
 interface TaskTime {
     val delayEnabled: Boolean
@@ -36,7 +37,7 @@ interface TaskTime {
     val onTime: LinearSymbols1
     val notOnTime: LinearSymbols1
 
-    fun register(model: LinearMetaModel): Try
+    fun register(model: MetaModel): Try
 }
 
 abstract class TaskTimeImpl<
@@ -66,13 +67,13 @@ abstract class TaskTimeImpl<
     private lateinit var notOnEarliestEndTime: LinearSymbols1
     override lateinit var notOnTime: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (delayEnabled) {
             if (!::delayTime.isInitialized) {
                 delayTime = LinearSymbols1(
                     "delay_time",
                     Shape1(tasks.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
                         is AbstractSlackFunction<*> -> {
@@ -116,7 +117,13 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(delayTime)
+            when (val result = model.add(delayTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (advanceEnabled) {
@@ -124,7 +131,7 @@ abstract class TaskTimeImpl<
                 advanceTime = LinearSymbols1(
                     "advance_time",
                     Shape1(tasks.size),
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
                         is AbstractSlackFunction<*> -> {
@@ -168,55 +175,71 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(advanceTime)
+            when (val result = model.add(advanceTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (overMaxDelayEnabled) {
             if (!::overMaxDelayTime.isInitialized) {
-                overMaxDelayTime = LinearSymbols1(
-                    "over_max_delay_time",
-                    Shape1(tasks.size)
-                ) { (i, _) ->
-                    val task = tasks[i]
-                    if (!task.delayEnabled) {
-                        LinearExpressionSymbol(LinearPolynomial(), "over_max_delay_time_$task")
-                    } else {
-                        when (val maxDelayTime = task.maxDelay) {
-                            null -> {
-                                LinearExpressionSymbol(LinearPolynomial(), "over_max_delay_time_$task")
-                            }
+                try {
+                    overMaxDelayTime = LinearSymbols1(
+                        "over_max_delay_time",
+                        Shape1(tasks.size)
+                    ) { i, _ ->
+                        val task = tasks[i]
+                        if (!task.delayEnabled) {
+                            LinearExpressionSymbol(LinearPolynomial(), "over_max_delay_time_$task")
+                        } else {
+                            when (val maxDelayTime = task.maxDelay) {
+                                null -> {
+                                    LinearExpressionSymbol(LinearPolynomial(), "over_max_delay_time_$task")
+                                }
 
-                            else -> {
-                                val slack = SlackFunction(
-                                    if (timeWindow.continues) {
-                                        UContinuous
-                                    } else {
-                                        UInteger
-                                    },
-                                    x = LinearPolynomial(delayTime[task]),
-                                    y = LinearPolynomial(timeWindow.valueOf(maxDelayTime)),
-                                    withNegative = false,
-                                    name = "over_max_delay_time_$task"
-                                )
-                                if (compilation.taskCancelEnabled) {
-                                    slack.name = "over_max_delay_time_slack_$task"
-                                    model.addSymbol(slack)
-                                    SemiFunction(
+                                else -> {
+                                    val slack = SlackFunction(
                                         if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        polynomial = LinearPolynomial(slack),
-                                        flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        x = LinearPolynomial(delayTime[task]),
+                                        y = LinearPolynomial(timeWindow.valueOf(maxDelayTime)),
+                                        withNegative = false,
                                         name = "over_max_delay_time_$task"
                                     )
-                                } else {
-                                    slack
+                                    if (compilation.taskCancelEnabled) {
+                                        slack.name = "over_max_delay_time_slack_$task"
+                                        when (val result = model.add(slack)) {
+                                            is Ok -> {}
+
+                                            is Failed -> {
+                                                throw ApplicationException(result.error)
+                                            }
+                                        }
+                                        SemiFunction(
+                                            if (timeWindow.continues) {
+                                                UContinuous
+                                            } else {
+                                                UInteger
+                                            },
+                                            polynomial = LinearPolynomial(slack),
+                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                            name = "over_max_delay_time_$task"
+                                        )
+                                    } else {
+                                        slack
+                                    }
                                 }
                             }
                         }
                     }
+                } catch (e: ApplicationException) {
+                    return Failed(e.error)
                 }
                 for (task in tasks) {
                     overMaxDelayTime[task].range.leq(timeWindow.valueOf(timeWindow.duration))
@@ -233,55 +256,71 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(overMaxDelayTime)
+            when (val result = model.add(overMaxDelayTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (overMaxAdvanceEnabled) {
             if (!::overMaxAdvanceTime.isInitialized) {
-                overMaxAdvanceTime = LinearSymbols1(
-                    "over_max_advance_time",
-                    Shape1(tasks.size)
-                ) { (i, _) ->
-                    val task = tasks[i]
-                    if (!task.advanceEnabled) {
-                        LinearExpressionSymbol(LinearPolynomial(), "over_max_advance_time_$task")
-                    } else {
-                        when (val maxAdvanceTime = task.maxAdvance) {
-                            null -> {
-                                LinearExpressionSymbol(LinearPolynomial(), "over_max_advance_time_$task")
-                            }
+                try {
+                    overMaxAdvanceTime = LinearSymbols1(
+                        "over_max_advance_time",
+                        Shape1(tasks.size)
+                    ) { i, _ ->
+                        val task = tasks[i]
+                        if (!task.advanceEnabled) {
+                            LinearExpressionSymbol(LinearPolynomial(), "over_max_advance_time_$task")
+                        } else {
+                            when (val maxAdvanceTime = task.maxAdvance) {
+                                null -> {
+                                    LinearExpressionSymbol(LinearPolynomial(), "over_max_advance_time_$task")
+                                }
 
-                            else -> {
-                                val slack = SlackFunction(
-                                    if (timeWindow.continues) {
-                                        UContinuous
-                                    } else {
-                                        UInteger
-                                    },
-                                    x = LinearPolynomial(advanceTime[task]),
-                                    y = LinearPolynomial(timeWindow.valueOf(maxAdvanceTime)),
-                                    withNegative = false,
-                                    name = "over_max_advance_time_$task"
-                                )
-                                if (compilation.taskCancelEnabled) {
-                                    slack.name = "over_max_delay_time_slack_$task"
-                                    model.addSymbol(slack)
-                                    SemiFunction(
+                                else -> {
+                                    val slack = SlackFunction(
                                         if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        polynomial = LinearPolynomial(slack),
-                                        flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        x = LinearPolynomial(advanceTime[task]),
+                                        y = LinearPolynomial(timeWindow.valueOf(maxAdvanceTime)),
+                                        withNegative = false,
                                         name = "over_max_advance_time_$task"
                                     )
-                                } else {
-                                    slack
+                                    if (compilation.taskCancelEnabled) {
+                                        slack.name = "over_max_delay_time_slack_$task"
+                                        when (val result = model.add(slack)) {
+                                            is Ok -> {}
+
+                                            is Failed -> {
+                                                throw ApplicationException(result.error)
+                                            }
+                                        }
+                                        SemiFunction(
+                                            if (timeWindow.continues) {
+                                                UContinuous
+                                            } else {
+                                                UInteger
+                                            },
+                                            polynomial = LinearPolynomial(slack),
+                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                            name = "over_max_advance_time_$task"
+                                        )
+                                    } else {
+                                        slack
+                                    }
                                 }
                             }
                         }
                     }
+                } catch (e: ApplicationException) {
+                    return Failed(e.error)
                 }
                 for (task in tasks) {
                     overMaxAdvanceTime[task].range.leq(timeWindow.valueOf(timeWindow.duration))
@@ -298,55 +337,71 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(overMaxAdvanceTime)
+            when (val result = model.add(overMaxAdvanceTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (delayLastEndTimeEnabled) {
             if (!::delayLastEndTime.isInitialized) {
-                delayLastEndTime = LinearSymbols1(
-                    "delay_last_end_time",
-                    Shape1(tasks.size)
-                ) { (i, _) ->
-                    val task = tasks[i]
-                    if (!task.delayEnabled) {
-                        LinearExpressionSymbol(LinearPolynomial(), "delay_last_end_time_$task")
-                    } else {
-                        when (val lastEndTime = task.lastEndTime) {
-                            null -> {
-                                LinearExpressionSymbol(LinearPolynomial(), "delay_last_end_time_$task")
-                            }
+                try {
+                    delayLastEndTime = LinearSymbols1(
+                        "delay_last_end_time",
+                        Shape1(tasks.size)
+                    ) { i, _ ->
+                        val task = tasks[i]
+                        if (!task.delayEnabled) {
+                            LinearExpressionSymbol(LinearPolynomial(), "delay_last_end_time_$task")
+                        } else {
+                            when (val lastEndTime = task.lastEndTime) {
+                                null -> {
+                                    LinearExpressionSymbol(LinearPolynomial(), "delay_last_end_time_$task")
+                                }
 
-                            else -> {
-                                val slack = SlackFunction(
-                                    if (timeWindow.continues) {
-                                        UContinuous
-                                    } else {
-                                        UInteger
-                                    },
-                                    x = LinearPolynomial(estimateEndTime[task]),
-                                    y = LinearPolynomial(timeWindow.valueOf(lastEndTime)),
-                                    withNegative = false,
-                                    name = "delay_last_end_time_$task"
-                                )
-                                if (compilation.taskCancelEnabled) {
-                                    slack.name = "delay_last_end_time_slack_$task"
-                                    model.addSymbol(slack)
-                                    SemiFunction(
+                                else -> {
+                                    val slack = SlackFunction(
                                         if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        polynomial = LinearPolynomial(slack),
-                                        flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        x = LinearPolynomial(estimateEndTime[task]),
+                                        y = LinearPolynomial(timeWindow.valueOf(lastEndTime)),
+                                        withNegative = false,
                                         name = "delay_last_end_time_$task"
                                     )
-                                } else {
-                                    slack
+                                    if (compilation.taskCancelEnabled) {
+                                        slack.name = "delay_last_end_time_slack_$task"
+                                        when (val result = model.add(slack)) {
+                                            is Ok -> {}
+
+                                            is Failed -> {
+                                                throw ApplicationException(result.error)
+                                            }
+                                        }
+                                        SemiFunction(
+                                            if (timeWindow.continues) {
+                                                UContinuous
+                                            } else {
+                                                UInteger
+                                            },
+                                            polynomial = LinearPolynomial(slack),
+                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                            name = "delay_last_end_time_$task"
+                                        )
+                                    } else {
+                                        slack
+                                    }
                                 }
                             }
                         }
                     }
+                } catch (e: ApplicationException) {
+                    return Failed(e.error)
                 }
                 for (task in tasks) {
                     delayLastEndTime[task].range.leq(timeWindow.valueOf(timeWindow.duration))
@@ -363,55 +418,71 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(delayLastEndTime)
+            when (val result = model.add(delayLastEndTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (advanceEarliestEndTimeEnabled) {
             if (!::advanceEarliestEndTime.isInitialized) {
-                advanceEarliestEndTime = LinearSymbols1(
-                    "advance_earliest_end_time",
-                    Shape1(tasks.size)
-                ) { (i, _) ->
-                    val task = tasks[i]
-                    if (!task.advanceEnabled) {
-                        LinearExpressionSymbol(LinearPolynomial(), "advance_earliest_end_time_$task")
-                    } else {
-                        when (val earliestEndTime = task.earliestEndTime) {
-                            null -> {
-                                LinearExpressionSymbol(LinearPolynomial(), "advance_earliest_end_time_$task")
-                            }
+                try {
+                    advanceEarliestEndTime = LinearSymbols1(
+                        "advance_earliest_end_time",
+                        Shape1(tasks.size)
+                    ) { i, _ ->
+                        val task = tasks[i]
+                        if (!task.advanceEnabled) {
+                            LinearExpressionSymbol(LinearPolynomial(), "advance_earliest_end_time_$task")
+                        } else {
+                            when (val earliestEndTime = task.earliestEndTime) {
+                                null -> {
+                                    LinearExpressionSymbol(LinearPolynomial(), "advance_earliest_end_time_$task")
+                                }
 
-                            else -> {
-                                val slack = SlackFunction(
-                                    if (timeWindow.continues) {
-                                        UContinuous
-                                    } else {
-                                        UInteger
-                                    },
-                                    x = LinearPolynomial(estimateEndTime[task]),
-                                    y = LinearPolynomial(timeWindow.valueOf(earliestEndTime)),
-                                    withPositive = false,
-                                    name = "advance_earliest_end_time_$task"
-                                )
-                                if (compilation.taskCancelEnabled) {
-                                    slack.name = "advance_earliest_end_time_slack_$task"
-                                    model.addSymbol(slack)
-                                    SemiFunction(
+                                else -> {
+                                    val slack = SlackFunction(
                                         if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        polynomial = LinearPolynomial(slack),
-                                        flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        x = LinearPolynomial(estimateEndTime[task]),
+                                        y = LinearPolynomial(timeWindow.valueOf(earliestEndTime)),
+                                        withPositive = false,
                                         name = "advance_earliest_end_time_$task"
                                     )
-                                } else {
-                                    slack
+                                    if (compilation.taskCancelEnabled) {
+                                        slack.name = "advance_earliest_end_time_slack_$task"
+                                        when (val result = model.add(slack)) {
+                                            is Ok -> {}
+
+                                            is Failed -> {
+                                                throw ApplicationException(result.error)
+                                            }
+                                        }
+                                        SemiFunction(
+                                            if (timeWindow.continues) {
+                                                UContinuous
+                                            } else {
+                                                UInteger
+                                            },
+                                            polynomial = LinearPolynomial(slack),
+                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                            name = "advance_earliest_end_time_$task"
+                                        )
+                                    } else {
+                                        slack
+                                    }
                                 }
                             }
                         }
                     }
+                } catch (e: ApplicationException) {
+                    return Failed(e.error)
                 }
                 for (task in tasks) {
                     advanceEarliestEndTime[task].range.leq(timeWindow.valueOf(timeWindow.duration))
@@ -428,7 +499,13 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(advanceEarliestEndTime)
+            when (val result = model.add(advanceEarliestEndTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (delayLastEndTimeEnabled) {
@@ -436,7 +513,7 @@ abstract class TaskTimeImpl<
                 onLastEndTime = LinearSymbols1(
                     "on_last_end_time",
                     Shape1(tasks.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled) {
                         LinearExpressionSymbol(LinearPolynomial(1), "on_last_end_time_${task}")
@@ -456,7 +533,13 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(onLastEndTime)
+            when (val result = model.add(onLastEndTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (advanceEarliestEndTimeEnabled) {
@@ -464,7 +547,7 @@ abstract class TaskTimeImpl<
                 onEarliestEndTime = LinearSymbols1(
                     "on_earliest_end_time",
                     Shape1(tasks.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
                         LinearExpressionSymbol(LinearPolynomial(1), "on_earliest_end_time_${task}")
@@ -485,7 +568,13 @@ abstract class TaskTimeImpl<
                 }
             }
         }
-        model.addSymbols(onEarliestEndTime)
+        when (val result = model.add(onEarliestEndTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (delayLastEndTimeEnabled || advanceEarliestEndTimeEnabled) {
             if (!::onTime.isInitialized) {
@@ -506,7 +595,13 @@ abstract class TaskTimeImpl<
                     { (_, t) -> "$t" }
                 )
             }
-            model.addSymbols(onTime)
+            when (val result = model.add(onTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (delayLastEndTimeEnabled) {
@@ -514,7 +609,7 @@ abstract class TaskTimeImpl<
                 notOnLastEndTime = LinearSymbols1(
                     "not_on_last_end_time",
                     Shape1(tasks.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled) {
                         LinearExpressionSymbol(LinearPolynomial(0), "not_on_last_end_time_${task}")
@@ -534,7 +629,13 @@ abstract class TaskTimeImpl<
                     }
                 }
             }
-            model.addSymbols(notOnLastEndTime)
+            when (val result = model.add(notOnLastEndTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (advanceEarliestEndTimeEnabled) {
@@ -542,7 +643,7 @@ abstract class TaskTimeImpl<
                 notOnEarliestEndTime = LinearSymbols1(
                     "on_earliest_end_time",
                     Shape1(tasks.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
                         LinearExpressionSymbol(LinearPolynomial(0), "not_on_earliest_end_time_${task}")
@@ -563,7 +664,13 @@ abstract class TaskTimeImpl<
                 }
             }
         }
-        model.addSymbols(notOnEarliestEndTime)
+        when (val result = model.add(notOnEarliestEndTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (delayLastEndTimeEnabled || advanceEarliestEndTimeEnabled) {
             if (!::notOnTime.isInitialized) {
@@ -584,7 +691,13 @@ abstract class TaskTimeImpl<
                     { (_, t) -> "$t" }
                 )
             }
-            model.addSymbols(notOnTime)
+            when (val result = model.add(notOnTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -613,7 +726,7 @@ class TaskSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearSymbols1
     override lateinit var estimateEndTime: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (!::est.isInitialized) {
             est = if (timeWindow.continues) {
                 val est = URealVariable1("est", Shape1(tasks.size))
@@ -659,14 +772,20 @@ class TaskSchedulingTaskTime<
                 est
             }
         }
-        model.addVars(est)
+        when (val result = model.add(est)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (delayEnabled || advanceEnabled) {
             if (!::estSlack.isInitialized) {
                 estSlack = LinearSymbols1(
                     "est_slack",
                     Shape1(tasks.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled && !task.advanceEnabled) {
                         LinearExpressionSymbol(LinearPolynomial(), "est_slack_$task")
@@ -701,7 +820,13 @@ class TaskSchedulingTaskTime<
                     }
                 }
             }
-            model.addSymbols(estSlack)
+            when (val result = model.add(estSlack)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (!::estimateStartTime.isInitialized) {
@@ -727,7 +852,13 @@ class TaskSchedulingTaskTime<
                 }
             }
         }
-        model.addSymbols(estimateStartTime)
+        when (val result = model.add(estimateStartTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::estimateEndTime.isInitialized) {
             estimateEndTime = flatMap(
@@ -758,7 +889,13 @@ class TaskSchedulingTaskTime<
                 }
             }
         }
-        model.addSymbols(estimateEndTime)
+        when (val result = model.add(estimateEndTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return super.register(model)
     }
@@ -791,7 +928,7 @@ open class IterativeTaskSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearExpressionSymbols1
     override lateinit var estimateEndTime: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (withRedundancy) {
             TODO("NOT IMPLEMENT YET")
         }
@@ -810,7 +947,13 @@ open class IterativeTaskSchedulingTaskTime<
                 { (_, t) -> "$t" }
             )
         }
-        model.addSymbols(estimateStartTime)
+        when (val result = model.add(estimateStartTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::estimateEndTime.isInitialized) {
             estimateEndTime = flatMap(
@@ -826,13 +969,19 @@ open class IterativeTaskSchedulingTaskTime<
                 { (_, t) -> "$t" }
             )
         }
-        model.addSymbols(estimateEndTime)
+        when (val result = model.add(estimateEndTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::estSlack.isInitialized) {
             estSlack = LinearSymbols1(
                 "est_slack",
                 Shape1(tasks.size)
-            ) { (i, _) ->
+            ) { i, _ ->
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
                     LinearExpressionSymbol(LinearPolynomial(), "est_slack_$task")
@@ -867,7 +1016,13 @@ open class IterativeTaskSchedulingTaskTime<
                 }
             }
         }
-        model.addSymbols(estSlack)
+        when (val result = model.add(estSlack)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return super.register(model)
     }
@@ -875,7 +1030,7 @@ open class IterativeTaskSchedulingTaskTime<
     open fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try {
         assert(tasks.isNotEmpty())
 

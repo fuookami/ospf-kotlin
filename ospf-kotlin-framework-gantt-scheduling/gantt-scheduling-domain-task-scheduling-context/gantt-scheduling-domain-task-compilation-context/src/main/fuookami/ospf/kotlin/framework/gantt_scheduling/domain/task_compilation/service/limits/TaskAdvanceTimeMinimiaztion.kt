@@ -31,7 +31,7 @@ class TaskAdvanceTimeMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (taskTime.advanceEnabled) {
             val cost = MutableLinearPolynomial()
             for (task in tasks) {
@@ -51,11 +51,23 @@ class TaskAdvanceTimeMinimization<
                         threshold = LinearPolynomial(thisThreshold),
                         name = "advance_time_threshold_$task"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     cost += thisCoefficient * slack
                 }
             }
-            model.minimize(cost, "task advance time")
+            when (val result = model.minimize(cost, "task advance time")) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

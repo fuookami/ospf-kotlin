@@ -6,10 +6,23 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
         <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-loading-context</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.8</version>
     </parent>
 
     <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>

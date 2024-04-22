@@ -74,7 +74,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>> by x::dependencies
+    override val dependencies: Set<Symbol> by x::dependencies
     override val cells get() = polyY.cells
     override val cached
         get() = if (::polyY.isInitialized) {
@@ -89,11 +89,11 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::k.isInitialized) {
             k = PctVariable1("${name}_k", Shape1(points.size))
         }
@@ -125,20 +125,38 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
-        model.addConstraint(
+    override fun register(model: AbstractLinearMechanismModel): Try {
+        when (val result = model.addConstraint(
             x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
             "${name}_x"
-        )
+        )) {
+            is Ok -> {}
 
-        model.addConstraint(
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
             sum(k) eq Flt64.one,
             "${name}_k"
-        )
-        model.addConstraint(
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        when (val result = model.addConstraint(
             sum(b) eq Flt64.one,
             "${name}_b"
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         for (i in 0 until size) {
             val poly = MutableLinearPolynomial()
@@ -148,10 +166,16 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             if (i != (size - 1)) {
                 poly += b[i]
             }
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 k[i] leq poly,
                 "${name}_kb_i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -171,6 +195,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return x.value(results, tokenList, zeroIfNone)?.let { y(it) }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return x.value(tokenTable, zeroIfNone)?.let { y(it) }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return x.value(results, tokenTable, zeroIfNone)?.let { y(it) }
     }
 }
 

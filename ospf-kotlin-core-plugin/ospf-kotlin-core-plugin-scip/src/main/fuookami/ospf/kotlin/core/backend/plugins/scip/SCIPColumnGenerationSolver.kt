@@ -27,7 +27,7 @@ class SCIPColumnGenerationSolver(
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(metaModel)) {
             is Ok -> {
                 LinearTriadModel(result.value)
             }
@@ -71,7 +71,7 @@ class SCIPColumnGenerationSolver(
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(metaModel)) {
             is Ok -> {
                 LinearTriadModel(result.value)
             }
@@ -141,7 +141,7 @@ class SCIPColumnGenerationSolver(
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(metaModel)) {
             is Ok -> {
                 LinearTriadModel(result.value)
             }

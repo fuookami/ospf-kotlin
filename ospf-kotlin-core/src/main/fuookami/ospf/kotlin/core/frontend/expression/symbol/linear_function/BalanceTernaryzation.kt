@@ -80,11 +80,11 @@ class BalanceTernaryzationFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (x.discrete && x.range.range in ValueRange(-Flt64.one, Flt64.one)) {
             polyY = x
             return ok
@@ -155,7 +155,7 @@ class BalanceTernaryzationFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (::piecewiseFunction.isInitialized) {
             when (val result = piecewiseFunction.register(model)) {
                 is Ok -> {}
@@ -165,66 +165,138 @@ class BalanceTernaryzationFunction(
                 }
             }
         } else if (::b.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 x eq x.lowerBound * b[0] + x.upperBound * b[1],
                 "${name}_xb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y[1] geq b[1],
                 "${name}_yb_pos_lb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y[1] leq (Flt64.one / epsilon) * b[1],
                 "${name}_yb_pos_ub"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y[0] geq b[0],
                 "${name}_yb_neg_lb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y[0] leq (Flt64.one / epsilon) * b[0],
                 "${name}_yb_neg_ub"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 b[0] + y[1] leq Flt64.one,
                 "${name}_yb_pos"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 b[1] + y[0] leq Flt64.one,
                 "${name}_yb_neg"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else if (::y.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 x.upperBound * y[1] geq x,
                 "${name}_plb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 x.lowerBound * y[0] leq x,
                 "${name}_nlb"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
 
             if (extract) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     x geq (x.lowerBound - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
                     "${name}_pub"
-                )
+                )) {
+                    is Ok -> {}
 
-                model.addConstraint(
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
                     x leq (x.upperBound + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
                     "${name}_nlb"
-                )
+                )) {
+                    is Ok -> {}
 
-                model.addConstraint(
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
                     sum(y) leq Flt64.one,
                     "${name}_y"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -253,6 +325,30 @@ class BalanceTernaryzationFunction(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val value = x.value(results, tokenList, zeroIfNone)
+            ?: return null
+        return if (value ls Flt64.zero) {
+            -Flt64.one
+        } else if (value gr Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val value = x.value(tokenTable, zeroIfNone)
+            ?: return null
+        return if (value ls Flt64.zero) {
+            -Flt64.one
+        } else if (value gr Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val value = x.value(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one

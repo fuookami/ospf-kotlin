@@ -18,7 +18,7 @@ data object TaskSolutionAnalyzer {
         tasks: List<T>,
         bunches: List<List<B>>,
         compilation: BunchCompilation<B, T, E, A>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Solution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTask = ArrayList<T>()

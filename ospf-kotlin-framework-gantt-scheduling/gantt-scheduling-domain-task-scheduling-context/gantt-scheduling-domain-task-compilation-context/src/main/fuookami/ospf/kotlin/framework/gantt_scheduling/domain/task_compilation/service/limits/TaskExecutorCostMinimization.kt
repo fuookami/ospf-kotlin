@@ -20,8 +20,8 @@ class TaskExecutorCostMinimization<
     private val costCalculator: Extractor<Flt64?, Pair<T, E>> = { Flt64.one },
     override val name: String = "task_executor_cost"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
-        model.minimize(
+    override fun invoke(model: AbstractLinearMetaModel): Try {
+        when (val result = model.minimize(
             sum(tasks.flatMap { t ->
                 executors.map { e ->
                     val coefficient = costCalculator(Pair(t, e)) ?: Flt64.infinity
@@ -29,7 +29,13 @@ class TaskExecutorCostMinimization<
                 }
             }),
             "task executor"
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }

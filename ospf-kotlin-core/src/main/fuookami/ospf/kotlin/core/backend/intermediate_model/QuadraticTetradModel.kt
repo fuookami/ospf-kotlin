@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 
 data class QuadraticConstraintCell(
     override val rowIndex: Int,
@@ -44,44 +45,102 @@ class BasicQuadraticTetradModel(
 
     override fun clone() = copy()
 
+    fun normalized(): Boolean {
+        return variables.any {
+            !(it.lowerBound.isNegativeInfinity() || (it.lowerBound eq Flt64.zero))
+                    || !(it.upperBound.isInfinity() || (it.upperBound eq Flt64.zero))
+        }
+    }
+
+    fun linearRelax() {
+        variables.forEach {
+            when (it.type) {
+                is Binary -> {
+                    it._type = Percentage
+                }
+
+                is Ternary, is UInteger -> {
+                    it._type = UContinuous
+                }
+
+                is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer -> {
+                    it._type = Continuous
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    fun normalize() {
+        for (variable in variables) {
+            if (!(variable.lowerBound.isNegativeInfinity() || (variable.lowerBound eq Flt64.zero))) {
+                constraints._lhs.add(
+                    listOf(
+                        QuadraticConstraintCell(
+                            constraints.size,
+                            variable.index,
+                            null,
+                            Flt64.one
+                        )
+                    )
+                )
+                constraints._signs.add(Sign.GreaterEqual)
+                constraints._rhs.add(variable.lowerBound)
+                constraints._names.add("${variable.name}_lb")
+                variable._lowerBound = Flt64.negativeInfinity
+            }
+            if (!(variable.upperBound.isInfinity() || (variable.upperBound eq Flt64.zero))) {
+                constraints._lhs.add(
+                    listOf(
+                        QuadraticConstraintCell(
+                            constraints.size,
+                            variable.index,
+                            null,
+                            Flt64.one
+                        )
+                    )
+                )
+                constraints._signs.add(Sign.LessEqual)
+                constraints._rhs.add(variable.upperBound)
+                constraints._names.add("${variable.name}_ub")
+                variable._upperBound = Flt64.infinity
+            }
+        }
+    }
+
     override fun exportLP(writer: FileWriter): Try {
         writer.append("Subject To\n")
-        var i = 0
-        var j = 0
-        while (i != constraints.size) {
+        for (i in constraints.indices) {
             writer.append(" ${constraints.names[i]}: ")
             var flag = false
-            var k = 0
-            while (j != constraints.lhs.size && i == constraints.lhs[j].rowIndex) {
-                val coefficient = if (k != 0) {
-                    if (constraints.lhs[j].coefficient leq Flt64.zero) {
+            for (j in constraints.lhs[i].indices) {
+                val coefficient = if (j != 0) {
+                    if (constraints.lhs[i][j].coefficient leq Flt64.zero) {
                         writer.append(" - ")
                     } else {
                         writer.append(" + ")
                     }
-                    abs(constraints.lhs[j].coefficient)
+                    abs(constraints.lhs[i][j].coefficient)
                 } else {
-                    constraints.lhs[j].coefficient
+                    constraints.lhs[i][j].coefficient
                 }
                 if (coefficient neq Flt64.zero) {
                     if (coefficient neq Flt64.one) {
                         writer.append("$coefficient ")
                     }
-                    if (constraints.lhs[j].colIndex2 == null) {
-                        writer.append("${variables[constraints.lhs[j].colIndex1]}")
+                    if (constraints.lhs[i][j].colIndex2 == null) {
+                        writer.append("${variables[constraints.lhs[i][j].colIndex1]}")
                     } else {
-                        writer.append("${variables[constraints.lhs[j].colIndex1]} * ${variables[constraints.lhs[j].colIndex2!!]}")
+                        writer.append("${variables[constraints.lhs[i][j].colIndex1]} * ${variables[constraints.lhs[i][j].colIndex2!!]}")
                     }
                 }
                 flag = true
-                ++j
-                ++k
             }
             if (!flag) {
                 writer.append("0")
             }
             writer.append(" ${constraints.signs[i]} ${constraints.rhs[i]}\n")
-            ++i
         }
         writer.append("\n")
 
@@ -141,7 +200,7 @@ data class QuadraticTetradModel(
     override val name: String by impl::name
 
     companion object {
-        suspend operator fun invoke(model: QuadraticModel): QuadraticTetradModel {
+        suspend operator fun invoke(model: QuadraticMechanismModel): QuadraticTetradModel {
             val tokens = model.tokens.tokens
             val tokenIndexes = model.tokens.tokenIndexMap
 
@@ -165,12 +224,9 @@ data class QuadraticTetradModel(
                     variables.map { it!! }
                 }
 
-                val constraintPromise = async(Dispatchers.Default) {
-                    val lhs = ArrayList<QuadraticConstraintCell>()
-                    val signs = ArrayList<Sign>()
-                    val rhs = ArrayList<Flt64>()
-                    val names = ArrayList<String>()
-                    for ((index, constraint) in model.constraints.withIndex()) {
+                val constraintPromises = model.constraints.withIndex().map { (index, constraint) ->
+                    async(Dispatchers.Default) {
+                        val lhs = ArrayList<QuadraticConstraintCell>()
                         for (cell in constraint.lhs) {
                             val temp = cell as QuadraticCell
                             lhs.add(
@@ -182,6 +238,17 @@ data class QuadraticTetradModel(
                                 )
                             )
                         }
+                        lhs
+                    }
+                }
+
+                val constraintPromise = async(Dispatchers.Default) {
+                    val lhs = ArrayList<List<QuadraticConstraintCell>>()
+                    val signs = ArrayList<Sign>()
+                    val rhs = ArrayList<Flt64>()
+                    val names = ArrayList<String>()
+                    for ((index, constraint) in model.constraints.withIndex()) {
+                        lhs.add(constraintPromises[index].await())
                         signs.add(constraint.sign)
                         rhs.add(constraint.rhs)
                         names.add(constraint.name)
@@ -243,6 +310,18 @@ data class QuadraticTetradModel(
 
     override fun copy() = QuadraticTetradModel(impl.copy(), objective.copy())
     override fun clone() = copy()
+
+    fun normalized() {
+        impl.normalized()
+    }
+
+    fun linearRelax() {
+        impl.linearRelax()
+    }
+
+    fun normalize() {
+        impl.normalize()
+    }
 
     override fun exportLP(writer: FileWriter): Try {
         writer.write("${objective.category}\n")

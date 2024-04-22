@@ -31,7 +31,7 @@ class TaskAdvanceEarliestEndTimeMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (taskTime.advanceEarliestEndTimeEnabled) {
             val cost = MutableLinearPolynomial()
             for (task in tasks) {
@@ -51,15 +51,27 @@ class TaskAdvanceEarliestEndTimeMinimization<
                         threshold = LinearPolynomial(thisThreshold),
                         name = "advance_earliest_end_time_threshold_$task"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     cost += thisCoefficient * slack
                 }
             }
 
-            model.minimize(
+            when (val result = model.minimize(
                 cost,
                 "task advance earliest end time"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

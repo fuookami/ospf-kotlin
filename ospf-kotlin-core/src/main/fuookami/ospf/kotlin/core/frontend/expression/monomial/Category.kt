@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 
 sealed class Category {
     abstract val code: UInt64
@@ -26,6 +27,10 @@ data object Standard : Category() {
 
 data object Nonlinear : Category() {
     override val code = UInt64.ten
+}
+
+infix fun Category.ord(rhs: Category): Order {
+    return this.code ord rhs.code
 }
 
 fun max(lhs: Category, rhs: Category): Category {

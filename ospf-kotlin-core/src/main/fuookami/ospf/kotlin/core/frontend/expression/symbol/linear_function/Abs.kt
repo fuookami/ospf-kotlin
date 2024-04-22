@@ -63,11 +63,11 @@ class AbsFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::neg.isInitialized) {
             neg = PctVar("${name}_neg")
         }
@@ -112,22 +112,40 @@ class AbsFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
-        model.addConstraint(
+    override fun register(model: AbstractLinearMechanismModel): Try {
+        when (val result = model.addConstraint(
             x eq (-m * neg + m * pos),
             name
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (extract) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 neg + pos leq Flt64.one,
                 "${name}_b"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 neg leq Flt64.one - p,
                 "${name}_n"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -149,4 +167,11 @@ class AbsFunction(
         return x.value(results, tokenList, zeroIfNone)?.let { abs(it) }
     }
 
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return x.value(tokenTable, zeroIfNone)?.let { abs(it) }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return x.value(results, tokenTable, zeroIfNone)?.let { abs(it) }
+    }
 }

@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.utils.math
 import java.math.*
 import kotlin.math.*
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -23,7 +24,7 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
     }
     var num = ds.replace(".", "").toLong()
     var den = 1L
-    for (n in 1 until ds.length - index) {
+    for (n in 1 until (ds.length - index)) {
         den *= 10L
     }
     while ((num % 2L == 0L) && (den % 2L == 0L)) {
@@ -171,6 +172,15 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
     override fun toFlt32() = copy()
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = FltX(value.toDouble())
+
+    fun toFloat() = value
+    fun floor() = Flt32(floor(value))
+    fun ceil() = Flt32(ceil(value))
+    fun round() = Flt32(round(value))
+
+    fun floorTo(precision: Int = decimalDigits) = Flt32(floor(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    fun ceilTo(precision: Int = decimalDigits) = Flt32(ceil(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    fun roundTo(precision: Int = decimalDigits) = Flt32(round(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
 }
 
 data object Flt64Serializer : KSerializer<Flt64> {
@@ -269,6 +279,10 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
     fun floor() = Flt64(floor(value))
     fun ceil() = Flt64(ceil(value))
     fun round() = Flt64(round(value))
+
+    fun floorTo(precision: Int = decimalDigits) = Flt64(floor(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    fun ceilTo(precision: Int = decimalDigits) = Flt64(ceil(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    fun roundTo(precision: Int = decimalDigits) = Flt64(round(value * 10.0.pow(precision)) / 10.0.pow(precision))
 }
 
 data object FltXSerializer : KSerializer<FltX> {
@@ -280,6 +294,25 @@ data object FltXSerializer : KSerializer<FltX> {
 
     override fun deserialize(decoder: Decoder): FltX {
         return FltX(decoder.decodeString())
+    }
+}
+
+data object FltXJsonSerializer : KSerializer<FltX> {
+    @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+    override val descriptor: SerialDescriptor = SerialDescriptor("FltX", JsonElement::class.serializer().descriptor)
+
+    @OptIn(InternalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): FltX {
+        decoder as? JsonDecoder ?: throw IllegalStateException(
+            "This serializer can be used only with Json format." + "Expected Decoder to be JsonDecoder, got ${this::class}"
+        )
+
+        val element = decoder.decodeSerializableValue(JsonPrimitive::class.serializer())
+        return FltX(element.content)
+    }
+
+    override fun serialize(encoder: Encoder, value: FltX) {
+        encoder.encodeString(value.toString())
     }
 }
 
@@ -303,8 +336,11 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
     }
 
     constructor(value: Double) : this(BigDecimal.valueOf(value))
-    constructor(value: Long) : this(BigDecimal.valueOf(value))
-    constructor(value: String) : this(BigDecimal(value))
+    constructor(value: Double, scale: Int, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
+    constructor(value: Long, scale: Int = 2) : this(BigDecimal.valueOf(value).setScale(scale))
+    constructor(value: String, scale: Int = 2) : this(BigDecimal(value).setScale(scale))
+
+    fun withScale(scale: Int) = FltX(value.setScale(scale))
 
     override val constants: FloatingNumberConstants<FltX> get() = Companion
 
@@ -361,4 +397,36 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = copy()
+
+    fun toDecimal() = value
+
+    fun floor(): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(0, RoundingMode.FLOOR).setScale(scale))
+    }
+
+    fun ceil(): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(0, RoundingMode.CEILING).setScale(scale))
+    }
+
+    fun round(): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(0, RoundingMode.HALF_UP).setScale(scale))
+    }
+
+    fun floorTo(precision: Int = decimalDigits): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(precision, RoundingMode.FLOOR).setScale(scale))
+    }
+
+    fun ceilTo(precision: Int = decimalDigits): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(precision, RoundingMode.CEILING).setScale(scale))
+    }
+
+    fun roundTo(precision: Int = decimalDigits): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(precision, RoundingMode.HALF_UP).setScale(scale))
+    }
 }

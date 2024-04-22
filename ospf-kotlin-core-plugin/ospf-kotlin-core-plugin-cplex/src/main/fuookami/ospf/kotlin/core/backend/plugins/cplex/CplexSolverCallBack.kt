@@ -6,6 +6,7 @@ import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+typealias NativeCallback = IloCplex.Callback.() -> Unit
 typealias Function = (IloCplex, List<IloNumVar>, List<IloRange>) -> Try
 
 enum class Point {
@@ -16,8 +17,13 @@ enum class Point {
 }
 
 class CplexSolverCallBack(
+    internal var nativeCallback: NativeCallback? = null,
     private val map: MutableMap<Point, Function> = EnumMap(Point::class.java)
 ) : Copyable<CplexSolverCallBack> {
+    fun set(function: NativeCallback) {
+        nativeCallback = function
+    }
+
     fun set(point: Point, function: Function): CplexSolverCallBack {
         map[point] = function
         return this
@@ -36,8 +42,6 @@ class CplexSolverCallBack(
     }
 
     override fun copy(): CplexSolverCallBack {
-        return CplexSolverCallBack(
-            map.toMutableMap()
-        )
+        return CplexSolverCallBack(nativeCallback, map.toMutableMap())
     }
 }

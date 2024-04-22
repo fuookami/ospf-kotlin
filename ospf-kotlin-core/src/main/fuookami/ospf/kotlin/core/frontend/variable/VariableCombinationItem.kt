@@ -25,8 +25,8 @@ sealed class VariableCombination<T, Type : VariableType<T>, S : Shape>(
     val identifier = IdentifierGenerator.gen()
 
     init {
-        super.init { iv: Pair<Int, IntArray> ->
-            CombinationVariableItem(this, type, "${name}_${iv.second.joinToString("_") { "$it" }}", iv.first, constants)
+        super.init { i, v ->
+            CombinationVariableItem(this, type, "${name}_${v.joinToString("_") { "$it" }}", i, constants)
         }
     }
 }

@@ -37,9 +37,9 @@ class IfFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             dependencies.addAll(inequality.lhs.dependencies)
             dependencies.addAll(inequality.rhs.dependencies)
             return dependencies
@@ -65,12 +65,12 @@ class IfFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         inequality.lhs.cells
         inequality.rhs.cells
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::y.isInitialized) {
             y = BinVar("${name}_y")
         }
@@ -90,7 +90,7 @@ class IfFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = inequality.register(name, y, model)) {
             is Ok -> {}
 
@@ -128,6 +128,38 @@ class IfFunction(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (inequality.isTrue(results, tokenList, zeroIfNone)) {
+            true -> {
+                Flt64.one
+            }
+
+            false -> {
+                Flt64.zero
+            }
+
+            null -> {
+                null
+            }
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (inequality.isTrue(tokenTable, zeroIfNone)) {
+            true -> {
+                Flt64.one
+            }
+
+            false -> {
+                Flt64.zero
+            }
+
+            null -> {
+                null
+            }
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (inequality.isTrue(results, tokenTable, zeroIfNone)) {
             true -> {
                 Flt64.one
             }

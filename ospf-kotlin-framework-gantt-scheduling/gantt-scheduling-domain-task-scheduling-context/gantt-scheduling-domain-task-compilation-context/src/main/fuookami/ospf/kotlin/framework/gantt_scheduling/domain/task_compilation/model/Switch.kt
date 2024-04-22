@@ -16,7 +16,7 @@ interface Switch {
     val switch: LinearSymbols3
     val switchTime: LinearSymbols2
 
-    fun register(model: LinearMetaModel): Try
+    fun register(model: MetaModel): Try
 }
 
 class TaskSchedulingSwitch<
@@ -35,13 +35,13 @@ class TaskSchedulingSwitch<
     override lateinit var switch: LinearSymbols3
     override lateinit var switchTime: LinearSymbols2
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (taskTime != null) {
             if (!::frontOf.isInitialized) {
                 frontOf = LinearSymbols2(
                     "front_of",
                     Shape2(tasks.size, tasks.size)
-                ) { (_, v) ->
+                ) { _, v ->
                     val task1 = tasks[v[0]]
                     val task2 = tasks[v[1]]
                     if (task1 == task2) {
@@ -54,7 +54,13 @@ class TaskSchedulingSwitch<
                     }
                 }
             }
-            model.addSymbols(frontOf)
+            when (val result = model.add(frontOf)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (taskTime != null) {
@@ -62,7 +68,7 @@ class TaskSchedulingSwitch<
                 betweenIn = LinearSymbols3(
                     "between_in",
                     Shape3(tasks.size, tasks.size, tasks.size)
-                ) { (_, v) ->
+                ) { _, v ->
                     val task1 = tasks[v[1]]
                     val task2 = tasks[v[2]]
                     val task3 = tasks[v[3]]
@@ -78,14 +84,20 @@ class TaskSchedulingSwitch<
                     }
                 }
             }
-            model.addSymbols(betweenIn)
+            when (val result = model.add(betweenIn)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (!::switch.isInitialized) {
             switch = LinearSymbols3(
                 "switch",
                 Shape3(executors.size, tasks.size, tasks.size)
-            ) { (_, v) ->
+            ) { _, v ->
                 val executor = executors[v[0]]
                 val task1 = tasks[v[1]]
                 val task2 = tasks[v[2]]
@@ -125,7 +137,7 @@ class TaskSchedulingSwitch<
             switchTime = LinearSymbols2(
                 "switch_time",
                 Shape2(tasks.size, tasks.size)
-            ) { (_, v) ->
+            ) { _, v ->
                 val task1 = tasks[v[0]]
                 val task2 = tasks[v[1]]
                 val thisSwitch = sum(switch[_a, task1, task2])
@@ -142,7 +154,13 @@ class TaskSchedulingSwitch<
                     name = "switch_time_${task1}_$task2"
                 )
             }
-            model.addSymbols(switchTime)
+            when (val result = model.add(switchTime)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

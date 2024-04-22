@@ -14,8 +14,17 @@ class BunchCostMinimization<
     private val compilation: BunchCompilation<*, T, E, A>,
     override val name: String = "bunch_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
-        model.minimize(compilation.bunchCost, "bunch cost")
+    override fun invoke(model: AbstractLinearMetaModel): Try {
+        when (val result = model.minimize(
+            compilation.bunchCost,
+            "bunch cost"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }

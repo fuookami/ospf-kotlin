@@ -41,7 +41,7 @@ interface ConstraintCell : Cell {
 }
 
 class Constraint<Cell>(
-    lhs: List<Cell>,
+    lhs: List<List<Cell>>,
     signs: List<Sign>,
     rhs: List<Flt64>,
     names: List<String>
@@ -52,7 +52,7 @@ class Constraint<Cell>(
     internal val _rhs = rhs.toMutableList()
     internal val _names = names.toMutableList()
 
-    val lhs: List<Cell> by ::_lhs
+    val lhs: List<List<Cell>> by ::_lhs
     val signs: List<Sign> by ::_signs
     val rhs: List<Flt64> by ::_rhs
     val names: List<String> by ::_names
@@ -60,8 +60,8 @@ class Constraint<Cell>(
     val size: Int get() = rhs.size
     val indices: IntRange get() = rhs.indices
 
-    override fun copy() = Constraint<Cell>(
-        lhs.map { it.copy() },
+    override fun copy() = Constraint(
+        lhs.map { line -> line.map { it.copy() } },
         signs.toList(),
         rhs.map { it.copy() },
         names.toList()
@@ -74,7 +74,7 @@ class Objective<Cell : Copyable<Cell>>(
     val category: ObjectCategory,
     val obj: List<Cell>
 ) : Cloneable, Copyable<Objective<Cell>> {
-    override fun copy() = Objective<Cell>(category, obj.toList())
+    override fun copy() = Objective(category, obj.toList())
     override fun clone() = copy()
 }
 

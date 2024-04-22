@@ -27,7 +27,7 @@ class ProduceOverQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (products.isNotEmpty()) {
             val cost = MutableLinearPolynomial()
             for ((product, _) in products) {
@@ -41,11 +41,26 @@ class ProduceOverQuantityMinimization<
                         threshold = LinearPolynomial(thresholdValue),
                         name = "produce_over_quantity_minimization_threshold_$product"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     cost += coefficient(product) * slack
                 }
             }
-            model.minimize(cost, "produce over quantity")
+            when (val result = model.minimize(
+                cost,
+                "produce over quantity"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
         return ok
     }

@@ -487,9 +487,9 @@ open class ValueRangeSerializer<T>(
     }
 }
 
-data object ValueRangeInt64Serializer: ValueRangeSerializer<Int64>(ValueWrapperSerializer<Int64>())
-data object ValueRangeUInt64Serializer: ValueRangeSerializer<UInt64>(ValueWrapperSerializer<UInt64>())
-data object ValueRangeFlt64Serializer: ValueRangeSerializer<Flt64>(ValueWrapperSerializer<Flt64>())
+data object ValueRangeInt64Serializer : ValueRangeSerializer<Int64>(ValueWrapperSerializer<Int64>())
+data object ValueRangeUInt64Serializer : ValueRangeSerializer<UInt64>(ValueWrapperSerializer<UInt64>())
+data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapperSerializer<Flt64>())
 
 // todo: Bound<T>
 
@@ -651,6 +651,14 @@ data class ValueRange<T>(
             }
             return _upperBound
         }
+    val mean: ValueWrapper<T>
+        get() {
+            @Throws(IllegalArgumentException::class)
+            if (empty) {
+                throw IllegalArgumentException("Illegal argument of value range: ${lowerInterval.lowerSign}${_lowerBound}, ${_upperBound}${upperInterval.upperSign}!!!")
+            }
+            return (_lowerBound + _upperBound) / constants.two
+        }
 
     val fixed by lazy {
         lowerInterval == IntervalType.Closed
@@ -688,7 +696,13 @@ data class ValueRange<T>(
     }
 
     operator fun contains(value: ValueRange<T>): Boolean {
-        return intersect(value) eq value
+        return when (lowerInterval) {
+            IntervalType.Open -> lowerBound ls value.lowerBound
+            IntervalType.Closed -> lowerBound leq value.lowerBound
+        } && when (upperInterval) {
+            IntervalType.Open -> upperBound gr value.upperBound
+            IntervalType.Closed -> upperBound geq value.upperBound
+        }
     }
 
     override fun plus(rhs: ValueRange<T>) = ValueRange(

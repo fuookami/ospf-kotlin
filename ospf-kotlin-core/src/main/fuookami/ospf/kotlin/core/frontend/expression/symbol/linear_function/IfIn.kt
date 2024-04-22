@@ -50,9 +50,9 @@ class IfInFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             dependencies.addAll(x.dependencies)
             for (inequality in inequalities) {
                 dependencies.addAll(inequality.lhs.dependencies)
@@ -81,7 +81,7 @@ class IfInFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         for (inequality in inequalities) {
             inequality.lhs.cells
@@ -89,7 +89,7 @@ class IfInFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::y.isInitialized) {
             y = BinVar("${name}_y")
         }
@@ -109,7 +109,7 @@ class IfInFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         for (inequality in inequalities) {
             when (val result = inequality.register(name, y, model)) {
                 is Ok -> {}
@@ -146,6 +146,28 @@ class IfInFunction(
         val xValue = x.value(results, tokenList, zeroIfNone) ?: return null
         val lbValue = lb.value(results, tokenList, zeroIfNone) ?: return null
         val ubValue = ub.value(results, tokenList, zeroIfNone) ?: return null
+        return if (lbValue leq xValue && xValue leq ubValue) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.value(tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.value(tokenTable, zeroIfNone) ?: return null
+        val ubValue = ub.value(tokenTable, zeroIfNone) ?: return null
+        return if (lbValue leq xValue && xValue leq ubValue) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.value(results, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.value(results, tokenTable, zeroIfNone) ?: return null
+        val ubValue = ub.value(results, tokenTable, zeroIfNone) ?: return null
         return if (lbValue leq xValue && xValue leq ubValue) {
             Flt64.one
         } else {

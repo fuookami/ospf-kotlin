@@ -13,8 +13,14 @@ class TaskCostMinimization<
     private val compilation: IterativeTaskCompilation<*, *, E, A>,
     override val name: String = "task_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
-        model.minimize(compilation.taskCost, "task cost")
+    override fun invoke(model: AbstractLinearMetaModel): Try {
+        when (val result = model.minimize(compilation.taskCost, "task cost")) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }

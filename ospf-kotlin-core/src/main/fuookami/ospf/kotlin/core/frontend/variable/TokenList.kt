@@ -22,14 +22,22 @@ sealed interface AbstractTokenList {
     val tokens: Collection<Token>
     val tokenIndexMap: BiMap<Token, Int>
 
+    operator fun get(index: Int): Token {
+        return tokenIndexMap.inverse[index] ?: tokens.find { it.solverIndex == index }!!
+    }
+
+    fun indexOf(token: Token): Int {
+        return tokenIndexMap[token] ?: token.solverIndex
+    }
+
+    fun indexOf(item: AbstractVariableItem<*, *>): Int? {
+        return find(item)?.let { indexOf(it) }
+    }
+
     fun find(item: AbstractVariableItem<*, *>): Token?
 
     fun find(index: Int): Token? {
         return tokenIndexMap.inverse[index]
-    }
-
-    fun indexOf(item: AbstractVariableItem<*, *>): Int? {
-        return find(item)?.let { tokenIndexMap[it] }
     }
 
     fun setSolution(solution: List<Flt64>) {
@@ -113,6 +121,12 @@ class AutoAddTokenTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
     currentIndex: Int
 ) : MutableTokenList(list, currentIndex) {
+    companion object {
+        operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
+            return AutoAddTokenTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+        }
+    }
+
     constructor() : this(
         list = HashMap(),
         currentIndex = 0
@@ -131,6 +145,12 @@ class ManualAddTokenTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
     currentIndex: Int
 ) : MutableTokenList(list, currentIndex) {
+    companion object {
+        operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
+            return ManualAddTokenTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+        }
+    }
+
     constructor() : this(
         list = HashMap(),
         currentIndex = 0

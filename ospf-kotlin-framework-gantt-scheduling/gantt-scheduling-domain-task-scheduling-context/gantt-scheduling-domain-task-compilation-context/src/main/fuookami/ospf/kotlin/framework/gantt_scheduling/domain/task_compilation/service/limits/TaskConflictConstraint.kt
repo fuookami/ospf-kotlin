@@ -19,18 +19,24 @@ class TaskConflictConstraint<
     private val compilation: TaskCompilation<T, E, A>,
     private val conflict: (T, T) -> Boolean,
     override val name: String = "task_conflict"
-) : Pipeline<LinearMetaModel> {
-    override operator fun invoke(model: LinearMetaModel): Try {
+) : Pipeline<AbstractLinearMetaModel> {
+    override operator fun invoke(model: AbstractLinearMetaModel): Try {
         val x = compilation.x
 
         for (executor in executors) {
             for (i in 0 until (tasks.size - 1)) {
                 for (j in (i + 1) until tasks.size) {
                     if (conflict(tasks[i], tasks[j])) {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             (x[tasks[i], executor] + x[tasks[j], executor]) leq Flt64.one,
                             "${name}_${tasks[i]}_${tasks[j]}"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             }

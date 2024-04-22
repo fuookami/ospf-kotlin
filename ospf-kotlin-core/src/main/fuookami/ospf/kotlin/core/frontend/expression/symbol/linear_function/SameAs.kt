@@ -41,9 +41,9 @@ class SameAsFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (inequality in inequalities) {
                 dependencies.addAll(inequality.lhs.dependencies)
                 dependencies.addAll(inequality.rhs.dependencies)
@@ -71,14 +71,14 @@ class SameAsFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!constraint) {
             if (!::u.isInitialized) {
                 u = BinVariable1("${name}_u", Shape1(inequalities.size))
@@ -114,7 +114,7 @@ class SameAsFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (::u.isInitialized) {
             for ((i, inequality) in inequalities.withIndex()) {
                 when (val result = inequality.register(name, u[i], model)) {
@@ -126,15 +126,27 @@ class SameAsFunction(
                 }
             }
 
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y leq sum(u) / UInt64(inequalities.size),
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else {
             for (inequality in inequalities) {
                 when (val result = inequality.register(name, y, model)) {
@@ -178,6 +190,38 @@ class SameAsFunction(
         var counter = UInt64.zero
         for ((i, inequality) in inequalities.withIndex()) {
             if (inequality.isTrue(results, tokenList, zeroIfNone) ?: return null) {
+                if (UInt64(i) != counter) {
+                    return Flt64.zero
+                } else {
+                    counter += UInt64.one
+                }
+            } else if (counter != UInt64.zero) {
+                return Flt64.zero
+            }
+        }
+        return Flt64.one
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var counter = UInt64.zero
+        for ((i, inequality) in inequalities.withIndex()) {
+            if (inequality.isTrue(tokenTable, zeroIfNone) ?: return null) {
+                if (UInt64(i) != counter) {
+                    return Flt64.zero
+                } else {
+                    counter += UInt64.one
+                }
+            } else if (counter != UInt64.zero) {
+                return Flt64.zero
+            }
+        }
+        return Flt64.one
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var counter = UInt64.zero
+        for ((i, inequality) in inequalities.withIndex()) {
+            if (inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null) {
                 if (UInt64(i) != counter) {
                     return Flt64.zero
                 } else {

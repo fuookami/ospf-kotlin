@@ -2,19 +2,18 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 
-sealed interface Cell<C : Category> {
+sealed interface Cell {
     fun value(): Flt64?
     fun value(solution: List<Flt64>): Flt64
     fun value(solution: Map<VariableItemKey, Flt64>): Flt64?
 }
 
 class LinearCell(
-    private val tokenTable: LinearTokenTable,
+    private val tokenTable: TokenTable,
     val coefficient: Flt64,
     val token: Token
-) : Cell<Linear> {
+) : Cell {
     override fun value(): Flt64? {
         return token.result?.let { coefficient * it }
     }
@@ -37,11 +36,11 @@ class LinearCell(
 }
 
 class QuadraticCell(
-    private val tokenTable: QuadraticTokenTable,
+    private val tokenTable: TokenTable,
     val coefficient: Flt64,
     val token1: Token,
     val token2: Token? = null
-) : Cell<Quadratic> {
+) : Cell {
     override fun value(): Flt64? {
         return if (token2 == null) {
             token1.result?.let { coefficient * it }

@@ -6,11 +6,11 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-interface Pipeline<in M : ModelInterface> {
+interface Pipeline<in M : Model> {
     val name: String
 
     fun register(model: M) {
-        if (model is MetaModel<*, *, *>) {
+        if (model is MetaModel) {
             model.registerConstraintGroup(name)
         }
     }
@@ -20,7 +20,7 @@ interface Pipeline<in M : ModelInterface> {
 
 interface CGPipeline<
     in Args : Any,
-    in Model : MetaModel<*, *, *>,
+    in Model : MetaModel,
     in Map : AbstractShadowPriceMap<Args, Map>
 > : Pipeline<Model> {
     fun extractor(): ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance Map>? {
@@ -32,7 +32,7 @@ interface CGPipeline<
     }
 }
 
-interface HAPipeline<in M : ModelInterface> : Pipeline<M> {
+interface HAPipeline<in M : Model> : Pipeline<M> {
     data class Obj(
         val tag: String,
         val value: Flt64
@@ -66,7 +66,7 @@ interface HAPipeline<in M : ModelInterface> : Pipeline<M> {
 
 typealias PipelineList<M> = List<Pipeline<M>>
 
-operator fun <M : ModelInterface> PipelineList<M>.invoke(model: M): Try {
+operator fun <M : Model> PipelineList<M>.invoke(model: M): Try {
     for (pipeline in this) {
         pipeline.register(model)
         when (val ret = pipeline(model)) {

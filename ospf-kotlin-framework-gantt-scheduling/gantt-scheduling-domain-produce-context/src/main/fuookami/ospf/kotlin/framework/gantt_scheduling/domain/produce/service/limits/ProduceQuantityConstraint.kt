@@ -24,52 +24,88 @@ class ProduceQuantityConstraint<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val products = products.filterIsInstance<Pair<Product, ProductDemand>>()
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         for ((product, demand) in products) {
             if (produce.overEnabled && demand.overEnabled) {
                 when (val overQuantity = produce.overQuantity[product]) {
                     is AbstractSlackFunction<*> -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             overQuantity.polyX leq demand.quantity.upperBound.toFlt64(),
                             "${name}_ub_$product"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
 
                     else -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             produce.quantity[product] leq demand.quantity.upperBound.toFlt64(),
                             "${name}_ub_$product"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     produce.quantity[product] leq demand.quantity.upperBound.toFlt64(),
                     "${name}_ub_$product"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
 
             if (produce.lessEnabled && demand.lessEnabled) {
                 when (val lessQuantity = produce.lessQuantity[product]) {
                     is AbstractSlackFunction<*> -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             lessQuantity.polyX geq demand.quantity.lowerBound.toFlt64(),
                             "${name}_lb_$product"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
 
                     else -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             produce.quantity[product] geq demand.quantity.lowerBound.toFlt64(),
                             "${name}_lb_$product"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     produce.quantity[product] geq demand.quantity.lowerBound.toFlt64(),
                     "${name}_lb_$product"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
         return ok
@@ -100,7 +136,7 @@ class ProduceQuantityConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         val thisShadowPrices = HashMap<Product, Flt64>()

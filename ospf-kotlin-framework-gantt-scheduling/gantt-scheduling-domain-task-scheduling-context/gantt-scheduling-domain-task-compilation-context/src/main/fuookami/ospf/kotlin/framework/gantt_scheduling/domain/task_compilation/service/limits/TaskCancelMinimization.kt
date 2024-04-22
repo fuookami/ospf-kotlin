@@ -25,15 +25,21 @@ class TaskCancelMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (compilation.taskCancelEnabled) {
-            model.minimize(
+            when (val result = model.minimize(
                 sum(tasks.map { task ->
                     val thisCoefficient = coefficient(task) ?: Flt64.infinity
                     thisCoefficient * compilation.y[task]
                 }),
                 "task cancel"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

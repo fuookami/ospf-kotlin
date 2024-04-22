@@ -18,7 +18,7 @@ class Makespan<
 ) {
     lateinit var makespan: LinearSymbol
 
-    fun register(model: LinearMetaModel): Try {
+    fun register(model: MetaModel): Try {
         if (!::makespan.isInitialized) {
             makespan = if (extra) {
                 MinMaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
@@ -26,7 +26,13 @@ class Makespan<
                 MaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
             }
         }
-        model.addSymbol(makespan)
+        when (val result = model.add(makespan)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }

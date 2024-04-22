@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 
-sealed class Constraint<C : Category>(
-    val lhs: List<Cell<C>>,
+sealed class Constraint(
+    val lhs: List<Cell>,
     val sign: Sign,
     val rhs: Flt64,
     val name: String = ""
@@ -30,15 +30,15 @@ sealed class Constraint<C : Category>(
 }
 
 class LinearConstraint(
-    lhs: List<Cell<Linear>>,
+    lhs: List<LinearCell>,
     sign: Sign,
     rhs: Flt64,
     name: String = ""
-) : Constraint<Linear>(lhs, sign, rhs, name) {
+) : Constraint(lhs, sign, rhs, name) {
     companion object {
         operator fun invoke(
-            inequality: Inequality<*, LinearMonomialCell, Linear>,
-            tokens: LinearTokenTable
+            inequality: Inequality<*, LinearMonomialCell>,
+            tokens: TokenTable
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
             var rhs = Flt64.zero
@@ -62,15 +62,40 @@ class LinearConstraint(
 }
 
 class QuadraticConstraint(
-    lhs: List<Cell<Quadratic>>,
+    lhs: List<QuadraticCell>,
     sign: Sign,
     rhs: Flt64,
     name: String = ""
-) : Constraint<Quadratic>(lhs, sign, rhs, name) {
+) : Constraint(lhs, sign, rhs, name) {
     companion object {
+        @JvmName("constructByLinearInequality")
         operator fun invoke(
-            inequality: Inequality<*, QuadraticMonomialCell, Quadratic>,
-            tokens: QuadraticTokenTable
+            inequality: Inequality<*, LinearMonomialCell>,
+            tokens: TokenTable
+        ): QuadraticConstraint {
+            val lhs = ArrayList<QuadraticCell>()
+            var rhs = Flt64.zero
+            for (cell in inequality.cells) {
+                when (val temp = cell.cell) {
+                    is Either.Left -> {
+                        val token = tokens.find(temp.value.variable)
+                        if (token != null && temp.value.coefficient neq Flt64.zero) {
+                            lhs.add(QuadraticCell(tokens, temp.value.coefficient, token))
+                        }
+                    }
+
+                    is Either.Right -> {
+                        rhs += temp.value
+                    }
+                }
+            }
+            return QuadraticConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name)
+        }
+
+        @JvmName("constructByQuadraticInequality")
+        operator fun invoke(
+            inequality: Inequality<*, QuadraticMonomialCell>,
+            tokens: TokenTable
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero

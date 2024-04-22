@@ -130,9 +130,17 @@ fun RedisClient.set(name: String, value: Map<String, String>, ex: Duration = 1.d
     this.jedis.expire(name, ex.inWholeSeconds)
 }
 
-fun <T> RedisClient.set(name: String, serializer: KSerializer<T>, value: T, ex: Duration = 1.days) {
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T: Any> RedisClient.set(name: String, value: T, ex: Duration = 1.days) {
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
+    set(name, { json.encodeToString(T::class.serializer(), it) }, value, ex)
+}
+
+fun <T> RedisClient.set(name: String, serializer: (T) -> String, value: T, ex: Duration = 1.days) {
     this.jedis.del(name)
-    this.jedis.set(name, Json.encodeToString(serializer, value))
+    this.jedis.set(name, serializer(value))
     this.jedis.expire(name, ex.inWholeSeconds)
 }
 
@@ -152,8 +160,16 @@ fun RedisClient.getMap(name: String): Map<String, String>? {
     return this.jedis.hgetAll(name)
 }
 
-fun <T> RedisClient.getObj(name: String, serializer: KSerializer<T>): T? {
-    return this.jedis.get(name)?.let { Json.decodeFromString(serializer, it) }
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T: Any> RedisClient.getObj(name: String): T? {
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
+    return getObj(name) { json.decodeFromString(T::class.serializer(), it) }
+}
+
+fun <T> RedisClient.getObj(name: String, deserializer: (String) -> T): T? {
+    return this.jedis.get(name)?.let { deserializer(it) }
 }
 
 data class RedisContext(

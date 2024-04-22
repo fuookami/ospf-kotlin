@@ -3,11 +3,13 @@ package fuookami.ospf.kotlin.core.frontend.model.callback
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-interface AbstractCallBackModelInterface<Obj, V> : ModelInterface {
-    val tokens: MutableTokenList
+interface AbstractCallBackModelInterface<Obj, V> : Model {
+    val defaultObjective: V
+
+    val tokens: MutableTokenTable
     val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
 
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution>, String>>
@@ -67,9 +69,18 @@ interface AbstractCallBackModelInterface<Obj, V> : ModelInterface {
         }
         return true
     }
+
+    fun flush()
 }
 
 interface CallBackModelInterface : AbstractCallBackModelInterface<Flt64, Flt64> {
+    override val defaultObjective: Flt64
+        get() = if (objectCategory == ObjectCategory.Minimum) {
+            Flt64.negativeInfinity
+        } else {
+            Flt64.infinity
+        }
+
     override fun objectiveValue(): Flt64 {
         return Flt64.zero
     }
@@ -85,6 +96,12 @@ interface CallBackModelInterface : AbstractCallBackModelInterface<Flt64, Flt64> 
 
 interface MultiObjectiveModelInterface : AbstractCallBackModelInterface<MulObj, List<Flt64>> {
     val objectiveSize: Int
+    override val defaultObjective: List<Flt64>
+        get() = if (objectCategory == ObjectCategory.Minimum) {
+            (0 until objectiveSize).map { Flt64.negativeInfinity }
+        } else {
+            (0 until objectiveSize).map { Flt64.infinity }
+        }
 
     override fun objectiveValue(): List<Flt64> {
         return (0 until objectiveSize).map { Flt64.zero }

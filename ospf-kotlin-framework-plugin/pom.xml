@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.8</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -17,6 +17,7 @@
         <module>ospf-kotlin-framework-plugin-message-kafka</module>
         <module>ospf-kotlin-framework-plugin-persistence-mongodb</module>
         <module>ospf-kotlin-framework-plugin-persistence-mysql</module>
+        <module>ospf-kotlin-framework-plugin-persistence-sqlite</module>
         <module>ospf-kotlin-framework-plugin-persistence-redis</module>
     </modules>
 

@@ -7,8 +7,28 @@ import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
+@JvmName("calculateLinearPolynomialCells")
+private fun cells(
+    monomials: List<LinearMonomial>,
+    constant: Flt64
+): List<LinearMonomialCell> {
+    val cells = HashMap<AbstractVariableItem<*, *>, Flt64>()
+    var totalConstant = constant
+    for (monomial in monomials) {
+        val thisCells = monomial.cells
+        for (cell in thisCells) {
+            if (cell.isConstant) {
+                totalConstant += cell.constant!!
+            } else {
+                cells[cell.pair!!.variable] = (cells[cell.pair!!.variable] ?: Flt64.zero) + cell.pair!!.coefficient
+            }
+        }
+    }
+    return cells.map { LinearMonomialCell(it.value, it.key) } + LinearMonomialCell(totalConstant)
+}
+
 sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
-    Polynomial<Self, LinearMonomial, LinearMonomialCell, Linear> {
+    Polynomial<Self, LinearMonomial, LinearMonomialCell> {
     abstract override val monomials: List<LinearMonomial>
     override val category get() = Linear
 
@@ -21,7 +41,7 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
             return _range!!
         }
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
             return monomials.mapNotNull {
                 when (val symbol = it.symbol.symbol) {
@@ -40,11 +60,17 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     override val cells: List<LinearMonomialCell>
         get() {
             if (_cells.isEmpty()) {
-                _cells = cells(monomials, constant) { LinearMonomialCell(it) }
+                _cells = cells(monomials, constant)
             }
             return _cells
         }
     override val cached: Boolean = _cells.isNotEmpty()
+
+    abstract operator fun plus(rhs: LinearSymbol): Self
+    abstract operator fun plus(rhs: Iterable<LinearSymbol>): Self
+
+    abstract operator fun minus(rhs: LinearSymbol): Self
+    abstract operator fun minus(rhs: Iterable<LinearSymbol>): Self
 
     override fun toMutable(): MutableLinearPolynomial {
         return MutableLinearPolynomial(
@@ -244,7 +270,7 @@ class LinearPolynomial(
         )
     }
 
-    override fun plus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell, Linear>): LinearPolynomial {
+    override fun plus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell>): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.monomials.map { it.copy() })
         return LinearPolynomial(
@@ -309,7 +335,7 @@ class LinearPolynomial(
         )
     }
 
-    override fun minus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell, Linear>): LinearPolynomial {
+    override fun minus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell>): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.monomials.map { -it })
         return LinearPolynomial(
@@ -346,7 +372,7 @@ class MutableLinearPolynomial(
     override var name: String = "",
     override var displayName: String? = null
 ) : AbstractLinearPolynomial<MutableLinearPolynomial>(),
-    MutablePolynomial<MutableLinearPolynomial, LinearMonomial, LinearMonomialCell, Linear> {
+    MutablePolynomial<MutableLinearPolynomial, LinearMonomial, LinearMonomialCell> {
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
@@ -484,7 +510,7 @@ class MutableLinearPolynomial(
         )
     }
 
-    override fun plus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell, Linear>): MutableLinearPolynomial {
+    override fun plus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell>): MutableLinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.monomials.map { it.copy() })
         return MutableLinearPolynomial(
@@ -510,13 +536,12 @@ class MutableLinearPolynomial(
         monomials.addAll(rhs.map { LinearMonomial(it) })
     }
 
-    override fun plusAssign(rhs: LinearSymbol) {
+    fun plusAssign(rhs: LinearSymbol) {
         monomials.add(LinearMonomial(rhs))
     }
 
-    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignSymbols")
-    override fun plusAssign(rhs: Iterable<LinearSymbol>) {
+    fun plusAssign(rhs: Iterable<LinearSymbol>) {
         monomials.addAll(rhs.map { LinearMonomial(it) })
     }
 
@@ -524,7 +549,7 @@ class MutableLinearPolynomial(
         monomials.add(rhs)
     }
 
-    override fun plusAssign(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell, Linear>) {
+    override fun plusAssign(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell>) {
         monomials.addAll(rhs.monomials.map { it.copy() })
         constant += rhs.constant
     }
@@ -582,7 +607,7 @@ class MutableLinearPolynomial(
         )
     }
 
-    override fun minus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell, Linear>): MutableLinearPolynomial {
+    override fun minus(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell>): MutableLinearPolynomial {
         val monomials = monomials.map { it.copy() }.toMutableList()
         monomials.addAll(rhs.monomials.map { -it })
         return MutableLinearPolynomial(
@@ -608,13 +633,12 @@ class MutableLinearPolynomial(
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
     }
 
-    override fun minusAssign(rhs: LinearSymbol) {
+    fun minusAssign(rhs: LinearSymbol) {
         monomials.add(LinearMonomial(-Flt64.one, rhs))
     }
 
-    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignSymbols")
-    override fun minusAssign(rhs: Iterable<LinearSymbol>) {
+    fun minusAssign(rhs: Iterable<LinearSymbol>) {
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
     }
 
@@ -622,7 +646,7 @@ class MutableLinearPolynomial(
         monomials.add(-rhs)
     }
 
-    override fun minusAssign(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell, Linear>) {
+    override fun minusAssign(rhs: Polynomial<*, LinearMonomial, LinearMonomialCell>) {
         monomials.addAll(rhs.monomials.map { -it })
         constant -= rhs.constant
     }

@@ -91,9 +91,9 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             dependencies.addAll(x.dependencies)
             dependencies.addAll(y.dependencies)
             return dependencies
@@ -112,12 +112,12 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         y.cells
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::u.isInitialized) {
             u = PctVariable1("${name}_u", Shape1(size))
         }
@@ -165,43 +165,79 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         val m = calculateM()
 
         for (i in 0 until size) {
             val rhs = polyU(i)
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 (u[i] - m * w[i] + m) geq rhs,
                 "${name}_ul_$i"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 (u[i] + m * w[i] - m) leq rhs,
                 "${name}_ur_$i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         for (i in 0 until size) {
             val rhs = polyV(i)
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 (v[i] - m * w[i] + m) geq rhs,
                 "${name}_vl_$i"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 (v[i] + m * w[i] - m) leq rhs,
                 "${name}_vr_$i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
-        model.addConstraint(
+        when (val result = model.addConstraint(
             sum(w) eq Flt64.one,
             "${name}_w"
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         for (i in 0 until size) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 (u[i] + v[i]) leq w[i],
                 "${name}_uv_$i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -323,6 +359,18 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val thisX = x.value(results, tokenList, zeroIfNone) ?: return null
         val thisY = y.value(results, tokenList, zeroIfNone) ?: return null
+        return z(thisX, thisY)
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val thisX = x.value(tokenTable, zeroIfNone) ?: return null
+        val thisY = y.value(tokenTable, zeroIfNone) ?: return null
+        return z(thisX, thisY)
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val thisX = x.value(results, tokenTable, zeroIfNone) ?: return null
+        val thisY = y.value(results, tokenTable, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 }

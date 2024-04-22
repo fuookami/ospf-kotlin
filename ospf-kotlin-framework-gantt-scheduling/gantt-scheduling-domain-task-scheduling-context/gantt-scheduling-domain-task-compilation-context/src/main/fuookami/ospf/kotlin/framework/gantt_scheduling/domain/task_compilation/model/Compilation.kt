@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -24,7 +25,7 @@ interface Compilation {
     val taskCompilation: LinearSymbols1
     val executorCompilation: LinearSymbols1
 
-    fun register(model: LinearMetaModel): Try
+    fun register(model: MetaModel): Try
 }
 
 class TaskCompilation<
@@ -46,7 +47,7 @@ class TaskCompilation<
     override lateinit var taskCompilation: LinearSymbols1
     override lateinit var executorCompilation: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(tasks.size, executors.size))
             for (task in tasks) {
@@ -71,7 +72,13 @@ class TaskCompilation<
                 }
             }
         }
-        model.addVars(x)
+        when (val result = model.add(x)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::taskAssignment.isInitialized) {
             taskAssignment = map(
@@ -87,7 +94,13 @@ class TaskCompilation<
                 }
             }
         }
-        model.addSymbols(taskAssignment)
+        when (val result = model.add(taskAssignment)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (taskCancelEnabled) {
             if (!::y.isInitialized) {
@@ -102,7 +115,13 @@ class TaskCompilation<
                     }
                 }
             }
-            model.addVars(y)
+            when (val result = model.add(y)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (!::taskCompilation.isInitialized) {
@@ -122,7 +141,13 @@ class TaskCompilation<
                 taskCompilation[task].range.set(ValueRange(Flt64.one, Flt64.one))
             }
         }
-        model.addSymbols(taskCompilation)
+        when (val result = model.add(taskCompilation)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (withExecutorLeisure) {
             if (!::z.isInitialized) {
@@ -131,30 +156,52 @@ class TaskCompilation<
                     z[executor].name = "${z.name}_${executor}"
                 }
             }
-            model.addVars(z)
-        }
+            when (val result = model.add(z)) {
+                is Ok -> {}
 
-        if (!::executorCompilation.isInitialized) {
-            executorCompilation = LinearSymbols1(
-                "executor_compilation",
-                Shape1(executors.size)
-            ) { (i, _) ->
-                if (withExecutorLeisure) {
-                    val or = OrFunction(
-                        tasks.map { LinearPolynomial(x[it, executors[i]]) },
-                        "executor_compilation_or_${executors[i]}"
-                    )
-                    model.addSymbol(or)
-                    LinearExpressionSymbol(or + z[executors[i]], "executor_compilation_${executors[i]}")
-                } else {
-                    OrFunction(
-                        tasks.map { LinearPolynomial(x[it, executors[i]]) },
-                        "executor_compilation_${executors[i]}"
-                    )
+                is Failed -> {
+                    return Failed(result.error)
                 }
             }
         }
-        model.addSymbols(executorCompilation)
+
+        if (!::executorCompilation.isInitialized) {
+            try {
+                executorCompilation = LinearSymbols1(
+                    "executor_compilation",
+                    Shape1(executors.size)
+                ) { i, _ ->
+                    if (withExecutorLeisure) {
+                        val or = OrFunction(
+                            tasks.map { LinearPolynomial(x[it, executors[i]]) },
+                            "executor_compilation_or_${executors[i]}"
+                        )
+                        when (val result = model.add(or)) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                throw ApplicationException(result.error)
+                            }
+                        }
+                        LinearExpressionSymbol(or + z[executors[i]], "executor_compilation_${executors[i]}")
+                    } else {
+                        OrFunction(
+                            tasks.map { LinearPolynomial(x[it, executors[i]]) },
+                            "executor_compilation_${executors[i]}"
+                        )
+                    }
+                }
+            } catch (e: ApplicationException) {
+                return Failed(e.error)
+            }
+        }
+        when (val result = model.add(executorCompilation)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }
@@ -206,7 +253,7 @@ open class IterativeTaskCompilation<
     private lateinit var xor: BinVariable1
     override lateinit var executorCompilation: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
             for (task in originTasks) {
@@ -217,12 +264,24 @@ open class IterativeTaskCompilation<
                 }
             }
         }
-        model.addVars(y)
+        when (val result = model.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::taskCost.isInitialized) {
             taskCost = LinearExpressionSymbol(LinearPolynomial(), "bunch_cost")
         }
-        model.addSymbol(taskCost)
+        when (val result = model.add(taskCost)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::taskAssignment.isInitialized) {
             taskAssignment = flatMap(
@@ -233,7 +292,13 @@ open class IterativeTaskCompilation<
                 { (_, t), (_, e) -> "${t}_$e" }
             )
         }
-        model.addSymbols(taskAssignment)
+        when (val result = model.add(taskAssignment)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::taskCompilation.isInitialized) {
             taskCompilation = flatMap(
@@ -243,18 +308,36 @@ open class IterativeTaskCompilation<
                 { (_, t) -> "$t" }
             )
         }
-        model.addSymbols(taskCompilation)
+        when (val result = model.add(taskCompilation)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::xor.isInitialized) {
             xor = BinVariable1("xor", Shape1(executors.size))
         }
-        model.addVars(xor)
+        when (val result = model.add(xor)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (withExecutorLeisure) {
             if (!::z.isInitialized) {
                 z = BinVariable1("z", Shape1(executors.size))
             }
-            model.addVars(z)
+            when (val result = model.add(z)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (!::executorCompilation.isInitialized) {
@@ -271,7 +354,13 @@ open class IterativeTaskCompilation<
                 { e -> "$e" }
             )
         }
-        model.addSymbols(executorCompilation)
+        when (val result = model.add(executorCompilation)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }
@@ -279,7 +368,7 @@ open class IterativeTaskCompilation<
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         cost: (IT) -> Cost,
         conflict: (IT, IT) -> Boolean
     ): Ret<List<IT>> {
@@ -289,7 +378,13 @@ open class IterativeTaskCompilation<
         for (task in unduplicatedTasks) {
             xi[task].name = "${xi.name}_${task.index}_${task.executor}"
         }
-        model.addVars(xi)
+        when (val result = model.add(xi)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
         _x.add(xi)
 
         taskCost.flush()
@@ -320,10 +415,16 @@ open class IterativeTaskCompilation<
         for (executor in executors) {
             val thisTasks = unduplicatedTasks.filter { it.executor == executor }
             for (task in thisTasks) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     xor[executor] geq xi[task],
                     "xor_${executor}_${iteration}_${task}"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -331,10 +432,16 @@ open class IterativeTaskCompilation<
             for ((otherIteration, otherTasks) in tasksIteration.withIndex()) {
                 for (task2 in otherTasks) {
                     if (task1 != task2 && conflict(task1, task2)) {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             xi[task1] + x[otherIteration][task2] leq Flt64.one,
                             "task_conflict_${task1}_${otherIteration}_${task2}"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             }

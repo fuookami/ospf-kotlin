@@ -20,12 +20,18 @@ class TaskStepConflictConstraint<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val conflictTaskGroup: List<List<T>> = TODO("not implement yet")
 
-    override operator fun invoke(model: LinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel): Try {
         for ((i, tasks) in conflictTaskGroup.withIndex()) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 sum(tasks.map { t -> compilation.taskCompilation[t] }) leq UInt64.one,
                 "task_step_conflict_$i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -37,7 +43,7 @@ class TaskStepConflictConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         TODO("not implement yet")

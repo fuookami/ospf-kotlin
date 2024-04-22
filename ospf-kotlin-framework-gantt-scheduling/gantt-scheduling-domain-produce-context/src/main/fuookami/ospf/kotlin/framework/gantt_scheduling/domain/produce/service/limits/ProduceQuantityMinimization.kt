@@ -21,8 +21,8 @@ class ProduceQuantityMinimization<
     private val coefficient: (Product) -> Flt64 = { Flt64.one },
     override val name: String = "produce_quantity_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: LinearMetaModel): Try {
-        model.minimize(
+    override operator fun invoke(model: AbstractLinearMetaModel): Try {
+        when (val result = model.minimize(
             sum(products.map {
                 val thresholdValue = threshold(it)
                 if (thresholdValue eq Flt64.zero) {
@@ -34,12 +34,24 @@ class ProduceQuantityMinimization<
                         threshold = LinearPolynomial(thresholdValue),
                         name = "produce_quantity_minimization_threshold_$it"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     coefficient(it) * slack
                 }
             }),
             "produce quantity"
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
         return ok
     }
 }

@@ -261,6 +261,9 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
 
     override fun exp() = toFlt64().exp()
 
+    fun toInt() = value.toInt()
+    fun toLong() = value.toLong()
+
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
     override fun toInt32() = Int32(value.toInt())

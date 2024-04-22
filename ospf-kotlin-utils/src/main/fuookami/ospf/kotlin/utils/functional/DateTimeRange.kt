@@ -6,7 +6,7 @@ class LocalDateClosedRangeIterator(
     private var current: LocalDate,
     private val range: ClosedRange<LocalDate>,
     private val step: DatePeriod
-): Iterator<LocalDate> {
+) : Iterator<LocalDate> {
     override fun hasNext(): Boolean {
         return current <= range.endInclusive
     }
@@ -30,7 +30,7 @@ class LocalDateOpenEndRangeIterator(
     private var current: LocalDate,
     val range: OpenEndRange<LocalDate>,
     val step: DatePeriod
-): Iterator<LocalDate> {
+) : Iterator<LocalDate> {
     override fun hasNext(): Boolean {
         return current < range.endExclusive
     }

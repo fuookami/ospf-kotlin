@@ -24,52 +24,88 @@ class ResourceCapacityConstraint<
     private val usage: ResourceUsage<S, R, C>,
     override val name: String = "${usage.name}_resource_capacity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         for (slot in usage.timeSlots) {
             if (usage.overEnabled && slot.resourceCapacity.overEnabled) {
                 when (val overQuantity = usage.overQuantity[slot]) {
                     is AbstractSlackFunction<*> -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             overQuantity.polyX leq slot.resourceCapacity.quantity.upperBound.toFlt64(),
                             "${name}_ub_$slot"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
 
                     else -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             usage.quantity[slot] leq slot.resourceCapacity.quantity.upperBound.toFlt64(),
                             "${name}_ub_$slot"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     usage.quantity[slot] leq slot.resourceCapacity.quantity.upperBound.toFlt64(),
                     "${usage.name}_${name}_ub_$slot"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
 
             if (usage.lessEnabled && slot.resourceCapacity.lessEnabled) {
                 when (val lessQuantity = usage.lessQuantity[slot]) {
                     is AbstractSlackFunction<*> -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             lessQuantity.polyX geq slot.resourceCapacity.quantity.lowerBound.toFlt64(),
                             "${name}_lb_$slot"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
 
                     else -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             usage.quantity[slot] geq slot.resourceCapacity.quantity.lowerBound.toFlt64(),
                             "${name}_lb_$slot"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     usage.quantity[slot] geq slot.resourceCapacity.quantity.lowerBound.toFlt64(),
                     "${name}_lb_$slot"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -103,7 +139,7 @@ class ResourceCapacityConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         val thisShadowPrices = HashMap<ResourceTimeSlot<R, C>, Flt64>()

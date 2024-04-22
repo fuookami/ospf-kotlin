@@ -34,12 +34,18 @@ class TaskDelayLastEndTimeConstraint<
         tasks.filter { it.lastEndTime != null }
     }
 
-    override operator fun invoke(model: LinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel): Try {
         for (task in tasks) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 taskTime.estimateEndTime[task] leq timeWindow.valueOf(task.lastEndTime!!),
                 "${name}_$task"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
         return ok
     }
@@ -63,7 +69,7 @@ class TaskDelayLastEndTimeConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         val indices = model.indicesOfConstraintGroup(name) ?: model.constraints.indices

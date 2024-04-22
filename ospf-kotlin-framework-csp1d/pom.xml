@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.8</version>
     </parent>
 
     <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>

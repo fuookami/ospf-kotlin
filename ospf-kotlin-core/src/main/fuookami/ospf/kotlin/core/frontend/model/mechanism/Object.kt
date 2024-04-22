@@ -1,12 +1,13 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+sealed interface Object
 
-sealed interface Object<C : Category>
-
-class SingleObject<C : Category>(
+class SingleObject(
     val category: ObjectCategory,
-    val subObjects: List<SubObject<C>>
-) : Object<C> {}
+    subObjects: List<SubObject>
+) : Object {
+    internal val _subObjects: MutableList<SubObject> = subObjects.toMutableList()
+    val subObjects: List<SubObject> by ::_subObjects
+}
 
-class MultiObject<C : Category> {}
+class MultiObject {}

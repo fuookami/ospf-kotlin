@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -7,10 +8,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 data class LinearMonomialCell internal constructor(
     val cell: Either<LinearCellPair, Flt64>
-) : MonomialCell<LinearMonomialCell, Linear> {
+) : MonomialCell<LinearMonomialCell> {
+    private val logger = logger()
+
     data class LinearCellPair(
         val coefficient: Flt64,
         val variable: AbstractVariableItem<*, *>
@@ -218,7 +222,27 @@ data class LinearMonomialCell internal constructor(
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
-                tokenList.find(cell.value.variable)?.result?.let { cell.value.coefficient * it }
+                val token = tokenList.find(cell.value.variable)
+                if (token != null) {
+                    val result = token.result
+                    if (result != null) {
+                        cell.value.coefficient * result
+                    } else {
+                        logger.trace { "Unknown result for ${cell.value.variable}" }
+                        if (zeroIfNone) {
+                            Flt64.zero
+                        } else {
+                            null
+                        }
+                    }
+                } else {
+                    logger.trace { "Unknown token for ${cell.value.variable}" }
+                    if (zeroIfNone) {
+                        Flt64.zero
+                    } else {
+                        null
+                    }
+                }
             }
 
             is Either.Right -> {
@@ -234,7 +258,18 @@ data class LinearMonomialCell internal constructor(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
-                tokenList.indexOf(cell.value.variable)?.let { cell.value.coefficient * results[it] }
+                val index = tokenList.indexOf(cell.value.variable)
+                if (index != null) {
+                    val result = results[index]
+                    cell.value.coefficient * result
+                } else {
+                    logger.trace { "Unknown result for ${cell.value.variable}" }
+                    if (zeroIfNone) {
+                        Flt64.zero
+                    } else {
+                        null
+                    }
+                }
             }
 
             is Either.Right -> {
@@ -252,7 +287,9 @@ typealias LinearMonomialSymbolUnit = Either<AbstractVariableItem<*, *>, LinearSy
 
 data class LinearMonomialSymbol(
     val symbol: LinearMonomialSymbolUnit
-) : MonomialSymbol<Linear>, Eq<LinearMonomialSymbol> {
+) : MonomialSymbol, Eq<LinearMonomialSymbol> {
+    private val logger = logger()
+
     companion object {
         operator fun invoke(variable: AbstractVariableItem<*, *>): LinearMonomialSymbol {
             return LinearMonomialSymbol(Either.Left(variable))
@@ -411,7 +448,7 @@ data class LinearMonomialSymbol(
 
             is Either.Right -> {
                 when (val exprSymbol = symbol.value) {
-                    is ExpressionSymbol<*, *, *, *> -> {
+                    is ExpressionSymbol -> {
                         "(${exprSymbol.toRawString(unfold)})"
                     }
 
@@ -426,12 +463,27 @@ data class LinearMonomialSymbol(
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is Either.Left -> {
-                tokenList.find(symbol.value)?.result
-                    ?: if (zeroIfNone) {
+                val token = tokenList.find(symbol.value)
+                if (token != null) {
+                    val result = token.result
+                    if (result != null) {
+                        result
+                    } else {
+                        logger.trace { "Unknown result for ${symbol.value}" }
+                        if (zeroIfNone) {
+                            Flt64.zero
+                        } else {
+                            null
+                        }
+                    }
+                } else {
+                    logger.trace { "Unknown token for ${symbol.value}" }
+                    if (zeroIfNone) {
                         Flt64.zero
                     } else {
                         null
                     }
+                }
             }
 
             is Either.Right -> {
@@ -443,16 +495,45 @@ data class LinearMonomialSymbol(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is Either.Left -> {
-                tokenList.indexOf(symbol.value)?.let { results[it] }
-                    ?: if (zeroIfNone) {
+                val index = tokenList.indexOf(symbol.value)
+                if (index != null) {
+                    results[index]
+                } else {
+                    logger.trace { "Unknown result for ${symbol.value}" }
+                    if (zeroIfNone) {
                         Flt64.zero
                     } else {
                         null
                     }
+                }
             }
 
             is Either.Right -> {
                 symbol.value.value(results, tokenList, zeroIfNone)
+            }
+        }
+    }
+
+    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is Either.Left -> {
+                value(tokenTable.tokenList, zeroIfNone)
+            }
+
+            is Either.Right -> {
+                symbol.value.value(tokenTable, zeroIfNone)
+            }
+        }
+    }
+
+    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is Either.Left -> {
+                value(results, tokenTable.tokenList, zeroIfNone)
+            }
+
+            is Either.Right -> {
+                symbol.value.value(results, tokenTable, zeroIfNone)
             }
         }
     }
@@ -463,7 +544,7 @@ data class LinearMonomial(
     override val symbol: LinearMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<LinearMonomial, LinearMonomialCell, Linear> {
+) : Monomial<LinearMonomial, LinearMonomialCell> {
     companion object {
         operator fun invoke(item: AbstractVariableItem<*, *>): LinearMonomial {
             return LinearMonomial(Flt64.one, LinearMonomialSymbol(item))
@@ -562,14 +643,6 @@ data class LinearMonomial(
                 "$coefficient * $symbol"
             }
         }
-    }
-
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return symbol.value(tokenList, zeroIfNone)?.let { coefficient * it }
-    }
-
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return symbol.value(results, tokenList, zeroIfNone)?.let { coefficient * it }
     }
 }
 

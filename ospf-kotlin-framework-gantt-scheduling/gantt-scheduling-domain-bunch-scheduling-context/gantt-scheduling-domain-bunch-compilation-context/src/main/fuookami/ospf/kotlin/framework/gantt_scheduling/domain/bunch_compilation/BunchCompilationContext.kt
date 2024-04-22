@@ -21,7 +21,7 @@ interface BunchCompilationContext<
 
     val columnAmount get() = UInt64(aggregation.bunches.size - aggregation.removedBunches.size)
 
-    fun register(model: LinearMetaModel): Try {
+    fun register(model: AbstractLinearMetaModel): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
 
@@ -44,7 +44,7 @@ interface BunchCompilationContext<
     suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<List<B>> {
         val unduplicatedBunches = when (val result = aggregation.addColumns(
             iteration = iteration,
@@ -69,7 +69,7 @@ interface BunchCompilationContext<
         reducedCost: (B) -> Flt64,
         fixedBunches: Set<B>,
         keptBunches: Set<B>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Flt64> {
         return aggregation.removeColumns(
             maximumReducedCost,
@@ -83,7 +83,7 @@ interface BunchCompilationContext<
 
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         for (pipeline in pipelineList) {
@@ -99,17 +99,17 @@ interface BunchCompilationContext<
         return ok
     }
 
-    fun extractFixedBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<B>> {
+    fun extractFixedBunches(iteration: UInt64, model: AbstractLinearMetaModel): Ret<Set<B>> {
         return aggregation.extractFixedBunches(iteration, model)
     }
 
-    fun extractKeptBunches(iteration: UInt64, model: LinearMetaModel): Ret<Set<B>> {
+    fun extractKeptBunches(iteration: UInt64, model: AbstractLinearMetaModel): Ret<Set<B>> {
         return aggregation.extractKeptBunches(iteration, model)
     }
 
     fun extractHiddenExecutors(
         executors: List<E>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<E>> {
         return aggregation.extractHiddenExecutors(executors, model)
     }
@@ -118,7 +118,7 @@ interface BunchCompilationContext<
         fixedBunches: Set<B>,
         hiddenExecutors: Set<E>,
         shadowPriceMap: Map,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
     ): Ret<Set<E>>
 
     fun globallyFix(fixedBunches: Set<B>): Try {
@@ -129,16 +129,16 @@ interface BunchCompilationContext<
         iteration: UInt64,
         bar: Flt64,
         fixedBunches: Set<B>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<B>> {
         return aggregation.locallyFix(iteration, bar, fixedBunches, model)
     }
 
-    fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
+    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
         return aggregation.logResult(iteration, model)
     }
 
-    fun logBunchCost(iteration: UInt64, model: LinearMetaModel): Try {
+    fun logBunchCost(iteration: UInt64, model: AbstractLinearMetaModel): Try {
         return aggregation.logBunchCost(iteration, model)
     }
 
@@ -149,7 +149,7 @@ interface BunchCompilationContext<
     fun analyzeTaskSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Solution<T, E, A>> {
         return TaskSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
     }
@@ -157,7 +157,7 @@ interface BunchCompilationContext<
     fun analyzeBunchSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<BunchSolution<B, T, E, A>> {
         return BunchSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
     }
@@ -172,21 +172,21 @@ interface ExtractBunchCompilationContext<
 > {
     val baseContext: BunchCompilationContext<Args, B, T, E, A>
 
-    fun register(model: LinearMetaModel): Try
+    fun register(model: MetaModel): Try
 
     fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try
 
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try
 
-    fun logResult(iteration: UInt64, model: LinearMetaModel): Try {
+    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
         return ok
     }
 }

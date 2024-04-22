@@ -24,52 +24,88 @@ class ConsumptionQuantityConstraint<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val materials = materials.filterIsInstance<Pair<Material, MaterialReserves>>()
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         for ((material, reserve) in materials) {
             if (consumption.overEnabled && reserve.overEnabled) {
                 when (val overQuantity = consumption.overQuantity[material]) {
                     is AbstractSlackFunction<*> -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             overQuantity.polyX leq reserve.quantity.upperBound.toFlt64(),
                             "${name}_ub_$material"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
 
                     else -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             consumption.quantity[material] leq reserve.quantity.upperBound.toFlt64(),
                             "${name}_ub_$material"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     consumption.quantity[material] leq reserve.quantity.upperBound.toFlt64(),
                     "${name}_ub_$material"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
 
             if (consumption.lessEnabled && reserve.lessEnabled) {
                 when (val lessQuantity = consumption.lessQuantity[material]) {
                     is AbstractSlackFunction<*> -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             lessQuantity.polyX geq reserve.quantity.lowerBound.toFlt64(),
                             "${name}_lb_$material"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
 
                     else -> {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             consumption.quantity[material] geq reserve.quantity.lowerBound.toFlt64(),
                             "${name}_lb_$material"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     }
                 }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     consumption.quantity[material] geq reserve.quantity.lowerBound.toFlt64(),
                     "${name}_lb_$material"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -101,7 +137,7 @@ class ConsumptionQuantityConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         val thisShadowPrices = HashMap<Material, Flt64>()

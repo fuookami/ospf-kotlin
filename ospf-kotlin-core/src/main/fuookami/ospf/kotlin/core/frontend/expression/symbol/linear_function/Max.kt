@@ -16,9 +16,11 @@ sealed class AbstractMaxFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
-    private lateinit var minMax: RealVar
+    private lateinit var minmax: RealVar
     private lateinit var u: BinVariable1
     private lateinit var y: AbstractLinearPolynomial<*>
+
+    override val discrete by lazy { polynomials.all { it.discrete } }
 
     override val range get() = y.range
     override val lowerBound
@@ -36,9 +38,9 @@ sealed class AbstractMaxFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -59,30 +61,28 @@ sealed class AbstractMaxFunction(
         )
     private var m = possibleRange
 
-    override val discrete by lazy { polynomials.all { it.discrete } }
-
     override fun flush(force: Boolean) {
         if (::y.isInitialized) {
             y.flush(force)
             val newM = possibleRange
             if (m neq newM) {
-                minMax.range.set(m)
+                minmax.range.set(m)
                 m = newM
             }
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
-        if (!::minMax.isInitialized) {
-            minMax = RealVar("${name}_y")
+    override fun register(tokenTable: MutableTokenTable): Try {
+        if (!::minmax.isInitialized) {
+            minmax = RealVar("${name}_y")
         }
-        when (val result = tokenTable.add(minMax)) {
+        when (val result = tokenTable.add(minmax)) {
             is Ok -> {}
 
             is Failed -> {
@@ -106,26 +106,52 @@ sealed class AbstractMaxFunction(
             }
         }
 
+        if (!::y.isInitialized) {
+            y = LinearPolynomial(minmax)
+            y.range.set(m)
+        }
+
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
-            model.addConstraint(
-                minMax geq polynomial,
+            when (val result = model.addConstraint(
+                minmax geq polynomial,
                 "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (::u.isInitialized) {
             for ((i, polynomial) in polynomials.withIndex()) {
-                model.addConstraint(
-                    minMax leq (polynomial + m.upperBound.toFlt64() * (Flt64.one - u[i])),
+                when (val result = model.addConstraint(
+                    minmax leq (polynomial + m.upperBound.toFlt64() * (Flt64.one - u[i])),
                     "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
 
-            model.addConstraint(sum(u) eq Flt64.one, "${name}_u")
+            when (val result = model.addConstraint(
+                sum(u) eq Flt64.one,
+                "${name}_u"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -141,6 +167,14 @@ sealed class AbstractMaxFunction(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return polynomials.maxOf { it.value(results, tokenList, zeroIfNone) ?: return null }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return polynomials.maxOf { it.value(tokenTable, zeroIfNone) ?: return null }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return polynomials.maxOf { it.value(results, tokenTable, zeroIfNone) ?: return null }
     }
 }
 

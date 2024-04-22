@@ -8,5 +8,6 @@ data class SolverConfig(
     val time: Duration = 30.seconds,
     val threadNum: UInt64 = UInt64(Runtime.getRuntime().availableProcessors()),
     val gap: Flt64 = Flt64.zero,
+    val notImprovementTime: Duration? = null,
     val extraConfig: Any? = null
 )

@@ -20,6 +20,11 @@ class JsonNamingPolicy(
     }
 }
 
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> readFromJson(path: String, namingPolicy: JsonNamingPolicy? = null): T {
+    return readFromJson(T::class.serializer(), path, namingPolicy)
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: JsonNamingPolicy? = null): T {
     val file = File(path)
@@ -30,6 +35,11 @@ fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: Jso
         }
     }
     return json.decodeFromStream(serializer, FileInputStream(file))
+}
+
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> readFromJson(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): T {
+    return readFromJson(T::class.serializer(), stream, namingPolicy)
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -43,8 +53,35 @@ fun <T> readFromJson(serializer: KSerializer<T>, stream: InputStream, namingPoli
     return json.decodeFromStream(serializer, stream)
 }
 
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> writeJson(value: T, namingPolicy: JsonNamingPolicy? = null): String {
+    val stream = ByteArrayOutputStream()
+    writeJsonToStream(stream, T::class.serializer(), value, namingPolicy)
+    return stream.toString()
+}
+
+fun <T> writeJson(serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null): String {
+    val stream = ByteArrayOutputStream()
+    writeJsonToStream(stream, serializer, value, namingPolicy)
+    return stream.toString()
+}
+
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> writeJsonToFile(path: String, value: T, namingPolicy: JsonNamingPolicy? = null) {
+    writeJsonToStream(File(path).outputStream(), T::class.serializer(), value, namingPolicy)
+}
+
 fun <T> writeJsonToFile(path: String, serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null) {
     writeJsonToStream(File(path).outputStream(), serializer, value, namingPolicy)
+}
+
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> writeJsonToStream(
+    stream: OutputStream,
+    value: T,
+    namingPolicy: JsonNamingPolicy? = null
+) {
+    writeJsonToStream(stream, T::class.serializer(), value, namingPolicy)
 }
 
 @OptIn(ExperimentalSerializationApi::class)

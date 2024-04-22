@@ -16,7 +16,7 @@ class FirstFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
-    private lateinit var bins: SymbolCombination<BinaryzationFunction, LinearMonomialCell, Linear, Shape1>
+    private lateinit var bins: SymbolCombination<BinaryzationFunction, Shape1>
     private val y: BinVariable1 = BinVariable1("${name}_first", Shape1(polynomials.size))
     private lateinit var polyY: AbstractLinearPolynomial<*>
 
@@ -38,9 +38,9 @@ class FirstFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -83,13 +83,13 @@ class FirstFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound ls Flt64.zero) {
@@ -98,7 +98,7 @@ class FirstFunction(
         }
 
         if (!::bins.isInitialized) {
-            bins = SymbolCombination("${name}_bin", Shape1(polynomials.size)) { (i, _) ->
+            bins = SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
                 BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
             }
         }
@@ -124,7 +124,7 @@ class FirstFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         for (bin in bins) {
             when (val result = bin.register(model)) {
                 is Ok -> {}
@@ -140,14 +140,26 @@ class FirstFunction(
                 continue
             }
 
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y[i] geq y[i - 1] - bins[i],
                 "${name}_lb_$i"
-            )
-            model.addConstraint(
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 y[i] leq Flt64.one - bins[i],
                 "${name}_ub_$i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -174,6 +186,26 @@ class FirstFunction(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
             val value = polynomial.value(results, tokenList, zeroIfNone) ?: return null
+            if (value neq Flt64.zero) {
+                return Flt64(i)
+            }
+        }
+        return -Flt64.one
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        for ((i, polynomial) in polynomials.withIndex()) {
+            val value = polynomial.value(tokenTable, zeroIfNone) ?: return null
+            if (value neq Flt64.zero) {
+                return Flt64(i)
+            }
+        }
+        return -Flt64.one
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        for ((i, polynomial) in polynomials.withIndex()) {
+            val value = polynomial.value(results, tokenTable, zeroIfNone) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }

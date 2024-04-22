@@ -251,6 +251,9 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
 
     override fun exp() = toFlt64().exp()
 
+    fun toInt() = value
+    fun toLong() = value.toLong()
+
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
     override fun toInt32() = copy()
@@ -331,7 +334,7 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
     override fun exp() = toFlt64().exp()
 
     fun toInt() = value.toInt()
-    fun toLong() = value.toLong()
+    fun toLong() = value
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())

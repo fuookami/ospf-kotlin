@@ -20,7 +20,7 @@ interface Produce {
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: LinearMetaModel): Try
+    fun register(model: MetaModel): Try
 }
 
 abstract class AbstractProduce<
@@ -33,13 +33,13 @@ abstract class AbstractProduce<
     override lateinit var lessQuantity: LinearSymbols1
     override lateinit var overQuantity: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
                 overQuantity = LinearSymbols1(
                     "produce_over_quantity",
                     Shape1(products.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val (product, demand) = products[i]
                     if (demand != null && demand.overEnabled) {
                         val slack = SlackFunction(
@@ -50,15 +50,21 @@ abstract class AbstractProduce<
                             name = "produce_over_quantity_$product"
                         )
                         demand.overQuantity?.let {
-                            (slack.pos as URealVar).range.leq(it)
+                            slack.pos!!.range.leq(it)
                         }
                         slack
                     } else {
-                        ExpressionSymbol(LinearPolynomial(), "produce_over_quantity_$product")
+                        LinearExpressionSymbol(LinearPolynomial(), "produce_over_quantity_$product")
                     }
                 }
             }
-            model.addSymbols(overQuantity)
+            when (val result = model.add(overQuantity)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (lessEnabled) {
@@ -66,7 +72,7 @@ abstract class AbstractProduce<
                 lessQuantity = LinearSymbols1(
                     "produce_less_quantity",
                     Shape1(products.size)
-                ) { (i, _) ->
+                ) { i, _ ->
                     val (product, demand) = products[i]
                     if (demand != null && demand.lessEnabled) {
                         val slack = SlackFunction(
@@ -78,15 +84,21 @@ abstract class AbstractProduce<
                             name = "produce_less_quantity_$product"
                         )
                         demand.lessQuantity?.let {
-                            (slack.neg as URealVar).range.leq(it)
+                            slack.neg!!.range.leq(it)
                         }
                         slack
                     } else {
-                        ExpressionSymbol(LinearPolynomial(), "produce_less_quantity_$product")
+                        LinearExpressionSymbol(LinearPolynomial(), "produce_less_quantity_$product")
                     }
                 }
             }
-            model.addSymbols(lessQuantity)
+            when (val result = model.add(lessQuantity)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -104,7 +116,7 @@ class TaskSchedulingProduce<
 ) : AbstractProduce<T, E, A>(products.sortedBy { it.first.index }) {
     override lateinit var quantity: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -121,7 +133,7 @@ class BunchSchedulingProduce<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (products.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = flatMap(
@@ -141,7 +153,13 @@ class BunchSchedulingProduce<
                     }
                 }
             }
-            model.addSymbols(quantity)
+            when (val result = model.add(quantity)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return super.register(model)

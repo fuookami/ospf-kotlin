@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.core.backend.intermediate_model
 
 import java.io.*
 import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -75,10 +75,12 @@ class BasicLinearTriadModel(
         for (variable in variables) {
             if (!(variable.lowerBound.isNegativeInfinity() || (variable.lowerBound eq Flt64.zero))) {
                 constraints._lhs.add(
-                    LinearConstraintCell(
-                        constraints.size,
-                        variable.index,
-                        Flt64.one
+                    listOf(
+                        LinearConstraintCell(
+                            constraints.size,
+                            variable.index,
+                            Flt64.one
+                        )
                     )
                 )
                 constraints._signs.add(Sign.GreaterEqual)
@@ -88,10 +90,12 @@ class BasicLinearTriadModel(
             }
             if (!(variable.upperBound.isInfinity() || (variable.upperBound eq Flt64.zero))) {
                 constraints._lhs.add(
-                    LinearConstraintCell(
-                        constraints.size,
-                        variable.index,
-                        Flt64.one
+                    listOf(
+                        LinearConstraintCell(
+                            constraints.size,
+                            variable.index,
+                            Flt64.one
+                        )
                     )
                 )
                 constraints._signs.add(Sign.LessEqual)
@@ -104,38 +108,32 @@ class BasicLinearTriadModel(
 
     override fun exportLP(writer: FileWriter): Try {
         writer.append("Subject To\n")
-        var i = 0
-        var j = 0
-        while (i != constraints.size) {
+        for (i in constraints.indices) {
             writer.append(" ${constraints.names[i]}: ")
             var flag = false
-            var k = 0
-            while (j != constraints.lhs.size && i == constraints.lhs[j].rowIndex) {
-                val coefficient = if (k != 0) {
-                    if (constraints.lhs[j].coefficient leq Flt64.zero) {
+            for (j in constraints.lhs[i].indices) {
+                val coefficient = if (j != 0) {
+                    if (constraints.lhs[i][j].coefficient leq Flt64.zero) {
                         writer.append(" - ")
                     } else {
                         writer.append(" + ")
                     }
-                    abs(constraints.lhs[j].coefficient)
+                    abs(constraints.lhs[i][j].coefficient)
                 } else {
-                    constraints.lhs[j].coefficient
+                    constraints.lhs[i][j].coefficient
                 }
                 if (coefficient neq Flt64.zero) {
                     if (coefficient neq Flt64.one) {
                         writer.append("$coefficient ")
                     }
-                    writer.append("${variables[constraints.lhs[j].colIndex]}")
+                    writer.append("${variables[constraints.lhs[i][j].colIndex]}")
                 }
                 flag = true
-                ++j
-                ++k
             }
             if (!flag) {
                 writer.append("0")
             }
             writer.append(" ${constraints.signs[i]} ${constraints.rhs[i]}\n")
-            ++i
         }
         writer.append("\n")
 
@@ -194,12 +192,16 @@ data class LinearTriadModel(
     override val constraints: LinearConstraint by impl::constraints
     override val name: String by impl::name
 
+    private val logger = logger()
+
     companion object {
-        suspend operator fun invoke(model: LinearModel): LinearTriadModel {
+        suspend operator fun invoke(model: LinearMechanismModel): LinearTriadModel {
             val tokens = model.tokens.tokens
             val tokenIndexes = model.tokens.tokenIndexMap
 
             return coroutineScope {
+                logger.trace("Creating LinearTriadModel for $model")
+
                 val variablePromise = async(Dispatchers.Default) {
                     val variables = ArrayList<Variable?>()
                     for (i in tokens.indices) {
@@ -219,12 +221,9 @@ data class LinearTriadModel(
                     variables.map { it!! }
                 }
 
-                val constraintPromise = async(Dispatchers.Default) {
-                    val lhs = ArrayList<LinearConstraintCell>()
-                    val signs = ArrayList<Sign>()
-                    val rhs = ArrayList<Flt64>()
-                    val names = ArrayList<String>()
-                    for ((index, constraint) in model.constraints.withIndex()) {
+                val constraintPromises = model.constraints.withIndex().map { (index, constraint) ->
+                    async(Dispatchers.Default) {
+                        val lhs = ArrayList<LinearConstraintCell>()
                         for (cell in constraint.lhs) {
                             val temp = cell as LinearCell
                             lhs.add(
@@ -235,6 +234,17 @@ data class LinearTriadModel(
                                 )
                             )
                         }
+                        lhs
+                    }
+                }
+
+                val constraintPromise = async(Dispatchers.Default) {
+                    val lhs = ArrayList<List<LinearConstraintCell>>()
+                    val signs = ArrayList<Sign>()
+                    val rhs = ArrayList<Flt64>()
+                    val names = ArrayList<String>()
+                    for ((index, constraint) in model.constraints.withIndex()) {
+                        lhs.add(constraintPromises[index].await())
                         signs.add(constraint.sign)
                         rhs.add(constraint.rhs)
                         names.add(constraint.name)
@@ -279,7 +289,7 @@ data class LinearTriadModel(
                     objective
                 }
 
-                LinearTriadModel(
+                val ret = LinearTriadModel(
                     BasicLinearTriadModel(
                         variablePromise.await(),
                         constraintPromise.await(),
@@ -287,6 +297,8 @@ data class LinearTriadModel(
                     ),
                     LinearObjective(objectiveCategory, objectivePromise.await())
                 )
+                logger.trace("LinearTriadModel created for $model")
+                ret
             }
         }
     }
@@ -306,7 +318,7 @@ data class LinearTriadModel(
         impl.normalize()
     }
 
-    fun dual(): LinearTriadModel {
+    suspend fun dual(): LinearTriadModel {
         val variables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
             var upperBound = Flt64.infinity
@@ -331,18 +343,23 @@ data class LinearTriadModel(
             )
         }
 
-        val cellGroups = this.constraints.lhs.groupBy { it.colIndex }
+        val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex }
         val coefficients = this.constraints.indices.map {
             cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
         }
-        val lhs = this.variables.indices.flatMap {
-            coefficients[it].map { cell ->
-                LinearConstraintCell(
-                    it,
-                    cell.first,
-                    cell.second
-                )
+        val lhs = coroutineScope {
+            val constraintPromises = this@LinearTriadModel.variables.indices.map {
+                async(Dispatchers.Default) {
+                    coefficients[it].map { cell ->
+                        LinearConstraintCell(
+                            it,
+                            cell.first,
+                            cell.second
+                        )
+                    }
+                }
             }
+            constraintPromises.map { it.await() }
         }
         val signs = this.variables.map {
             if (it.lowerBound.isNegativeInfinity() && it.upperBound.isInfinity()) {
@@ -410,5 +427,9 @@ data class LinearTriadModel(
                 ok
             }
         }
+    }
+
+    override fun toString(): String {
+        return name
     }
 }

@@ -383,7 +383,7 @@ class BranchAndPriceAlgorithm<
         logger.info { "Heart beat, current optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
     }
 
-    private suspend fun register(model: LinearMetaModel): Try {
+    private suspend fun register(model: AbstractLinearMetaModel): Try {
         when (val result = context.register(model)) {
             is Ok -> {}
 
@@ -479,7 +479,7 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun extractShadowPrice(
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Ret<Map> {
         val map = policy.shadowPriceMap()
@@ -505,7 +505,7 @@ class BranchAndPriceAlgorithm<
         return Ok(map)
     }
 
-    private suspend fun addColumns(iteration: UInt64, newTasks: List<IT>, model: LinearMetaModel): Try {
+    private suspend fun addColumns(iteration: UInt64, newTasks: List<IT>, model: AbstractLinearMetaModel): Try {
         val beginTime = Clock.System.now()
 
         val unduplicatedPlans = when (val result = context.addColumns(iteration, newTasks, model)) {
@@ -532,7 +532,7 @@ class BranchAndPriceAlgorithm<
         shadowPriceMap: Map,
         fixedTasks: Set<IT>,
         keptTasks: Set<IT>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Result<Flt64, Error> {
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
@@ -556,7 +556,7 @@ class BranchAndPriceAlgorithm<
 
     private fun fixTasks(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try {
         return when (val result = context.extractFixedTasks(iteration, model)) {
             is Ok -> {
@@ -572,7 +572,7 @@ class BranchAndPriceAlgorithm<
 
     private fun keepTasks(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try {
         return when (val result = context.extractKeptTasks(iteration, model)) {
             is Ok -> {
@@ -586,7 +586,7 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun hideExecutors(model: LinearMetaModel): Try {
+    private fun hideExecutors(model: AbstractLinearMetaModel): Try {
         return when (val result = context.extractHiddenExecutors(
             executors,
             model
@@ -604,7 +604,7 @@ class BranchAndPriceAlgorithm<
 
     private fun selectFreeExecutors(
         shadowPriceMap: Map,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<E>> {
         return when (val result = context.selectFreeExecutors(
             fixedTasks,
@@ -640,7 +640,7 @@ class BranchAndPriceAlgorithm<
         return Ok(fixedTasks)
     }
 
-    private fun locallyFix(iteration: UInt64, fixedTasks: Set<IT>, model: LinearMetaModel): Ret<Set<IT>> {
+    private fun locallyFix(iteration: UInt64, fixedTasks: Set<IT>, model: AbstractLinearMetaModel): Ret<Set<IT>> {
         val fixBar = Flt64(0.9)
         return when (val ret = context.locallyFix(iteration, fixBar, fixedTasks, model)) {
             is Ok -> {
@@ -669,7 +669,7 @@ class BranchAndPriceAlgorithm<
 
     private fun analyzeSolution(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Result<Solution<T, E, A>, Error> {
         return when (val result = context.analyzeSolution(iteration, tasks, model)) {
             is Ok -> {
@@ -682,7 +682,7 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun logLPResults(iteration: UInt64, model: LinearMetaModel): Try {
+    private fun logLPResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
         when (val result = context.logResult(iteration, model)) {
             is Ok -> {}
 
@@ -693,7 +693,7 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 
-    private fun logMILPResults(iteration: UInt64, model: LinearMetaModel): Try {
+    private fun logMILPResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
         when (val result = logLPResults(iteration, model)) {
             is Ok -> {}
 

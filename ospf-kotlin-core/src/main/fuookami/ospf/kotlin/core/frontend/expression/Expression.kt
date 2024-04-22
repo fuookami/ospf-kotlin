@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.frontend.expression
 import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 open class ExpressionRange<V>(
     private var _range: ValueRange<V>,
@@ -171,4 +172,6 @@ interface Expression {
 
     fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+    fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
+    fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
 }

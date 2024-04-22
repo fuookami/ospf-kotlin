@@ -5,6 +5,11 @@ import kotlinx.serialization.*
 import kotlinx.serialization.csv.*
 import kotlinx.serialization.builtins.*
 
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> readFromCSV(path: String): List<T> {
+    return readFromCSV(T::class.serializer(), path)
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromCSV(serializer: KSerializer<T>, path: String): List<T> {
     val file = File(path)
@@ -15,6 +20,11 @@ fun <T> readFromCSV(serializer: KSerializer<T>, path: String): List<T> {
     return csv.decodeFromString(ListSerializer(serializer), String(file.readBytes()).replace("\r\n", "\n"))
 }
 
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> readFromCSV(stream: InputStream): List<T> {
+    return readFromCSV(T::class.serializer(), stream)
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromCSV(serializer: KSerializer<T>, stream: InputStream): List<T> {
     val csv = Csv {
@@ -22,6 +32,11 @@ fun <T> readFromCSV(serializer: KSerializer<T>, stream: InputStream): List<T> {
         ignoreUnknownColumns = true
     }
     return csv.decodeFromString(ListSerializer(serializer), String(stream.readBytes()).replace("\r\n", "\n"))
+}
+
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> writeCSVToFile(path: String, value: List<T>) {
+    return writeCSVToFile(path, T::class.serializer(), value)
 }
 
 @OptIn(ExperimentalSerializationApi::class)

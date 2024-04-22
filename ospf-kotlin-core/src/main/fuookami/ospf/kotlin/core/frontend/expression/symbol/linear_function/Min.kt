@@ -20,6 +20,8 @@ sealed class AbstractMinFunction(
     private lateinit var u: BinVariable1
     private lateinit var y: AbstractLinearPolynomial<*>
 
+    override val discrete by lazy { polynomials.all { it.discrete } }
+
     override val range get() = y.range
     override val lowerBound
         get() = if (::y.isInitialized) {
@@ -36,9 +38,9 @@ sealed class AbstractMinFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -59,8 +61,6 @@ sealed class AbstractMinFunction(
         )
     private var m = possibleRange
 
-    override val discrete by lazy { polynomials.all { it.discrete } }
-
     override fun flush(force: Boolean) {
         if (::y.isInitialized) {
             y.flush(force)
@@ -72,13 +72,13 @@ sealed class AbstractMinFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
     }
 
-    override fun register(tokenTable: LinearMutableTokenTable): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::maxmin.isInitialized) {
             maxmin = RealVar("${name}_maxmin")
         }
@@ -114,23 +114,44 @@ sealed class AbstractMinFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 maxmin leq polynomial,
                 "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (::u.isInitialized) {
             for ((i, polynomial) in polynomials.withIndex()) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     maxmin geq (polynomial - m.upperBound.toFlt64() * (Flt64.one - u[i])),
                     "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
 
-            model.addConstraint(sum(u) eq Flt64.one, "${name}_u")
+            when (val result = model.addConstraint(
+                sum(u) eq Flt64.one,
+                "${name}_u"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -146,6 +167,14 @@ sealed class AbstractMinFunction(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return polynomials.minOf { it.value(results, tokenList, zeroIfNone) ?: return null }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return polynomials.minOf { it.value(tokenTable, zeroIfNone) ?: return null }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return polynomials.minOf { it.value(results, tokenTable, zeroIfNone) ?: return null }
     }
 }
 

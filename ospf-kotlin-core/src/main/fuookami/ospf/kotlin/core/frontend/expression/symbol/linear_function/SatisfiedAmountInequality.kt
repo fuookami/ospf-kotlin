@@ -42,9 +42,9 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (inequality in inequalities) {
                 dependencies.addAll(inequality.lhs.dependencies)
                 dependencies.addAll(inequality.rhs.dependencies)
@@ -76,14 +76,14 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::u.isInitialized) {
             u = BinVariable1("${name}_u", Shape1(inequalities.size))
         }
@@ -126,7 +126,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, inequality) in inequalities.withIndex()) {
             when (val result = inequality.register(name, u[i], model)) {
                 is Ok -> {}
@@ -138,25 +138,49 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
 
         if (::y.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 sum(u) geq amount!!.lowerBound.toFlt64() - UInt64(inequalities.size) * (Flt64.one - y),
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 sum(u) leq amount!!.upperBound.toFlt64() + UInt64(inequalities.size) * (Flt64.one - y),
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 sum(u) geq amount!!.lowerBound.toFlt64(),
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 sum(u) leq amount!!.upperBound.toFlt64(),
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -209,9 +233,46 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             counter.toFlt64()
         }
     }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var counter = UInt64.zero
+        for (inequality in inequalities) {
+            if (inequality.isTrue(tokenTable, zeroIfNone) ?: return null) {
+                counter += UInt64.one
+            }
+        }
+        return if (amount != null) {
+            if (amount!!.contains(counter)) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+        } else {
+            counter.toFlt64()
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var counter = UInt64.zero
+        for (inequality in inequalities) {
+            if (inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null) {
+                counter += UInt64.one
+            }
+        }
+        return if (amount != null) {
+            if (amount!!.contains(counter)) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+        } else {
+            counter.toFlt64()
+        }
+    }
 }
 
-class AnyFunction(
+// todo: optimize
+open class AnyFunction(
     inequalities: List<LinearInequality>,
     name: String,
     displayName: String? = null
@@ -223,6 +284,13 @@ class AnyFunction(
         return "any(${inequalities.joinToString(", ") { it.toRawString(unfold) }})"
     }
 }
+
+class InListFunction(
+    val x: AbstractLinearPolynomial<*>,
+    val list: List<AbstractLinearPolynomial<*>>,
+    name: String,
+    displayName: String? = null
+) : AnyFunction(list.map { x eq it }, name, displayName)
 
 class NotAllFunction(
     inequalities: List<LinearInequality>,
@@ -237,6 +305,7 @@ class NotAllFunction(
     }
 }
 
+// todo: optimize
 class AllFunction(
     inequalities: List<LinearInequality>,
     name: String,

@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.math.*
 
 enum class ErrorCode(private val code: UInt8) {
     None(UInt8(0x00U)),
+    AuthenticationError(UInt8(0x01U)),
 
     NotAFile(UInt8(0x10U)),
     NotADirectory(UInt8(0x11U)),

@@ -20,7 +20,7 @@ class SwitchCostMinimization<
     private val coefficient: Extractor<Flt64?, Triple<E, T, T>> = { Flt64.one },
     override val name: String = "switch_cost_minimization"
 )  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         val cost = MutableLinearPolynomial()
         for (executor in executors) {
             for (task1 in tasks) {
@@ -30,7 +30,13 @@ class SwitchCostMinimization<
                 }
             }
         }
-        model.minimize(cost, "switch cost")
+        when (val result = model.minimize(cost, "switch cost")) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }

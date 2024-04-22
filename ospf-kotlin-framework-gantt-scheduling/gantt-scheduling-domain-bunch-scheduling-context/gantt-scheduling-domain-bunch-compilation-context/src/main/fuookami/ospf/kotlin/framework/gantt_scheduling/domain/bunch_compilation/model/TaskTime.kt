@@ -41,7 +41,7 @@ open class BunchSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearExpressionSymbols1
     override lateinit var estimateEndTime: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (withRedundancy) {
             if (!::estRedundancy.isInitialized) {
                 estRedundancy = if (timeWindow.continues) {
@@ -84,7 +84,13 @@ open class BunchSchedulingTaskTime<
                     est
                 }
             }
-            model.addVars(estRedundancy)
+            when (val result = model.add(estRedundancy)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (!::estimateStartTime.isInitialized) {
@@ -101,7 +107,13 @@ open class BunchSchedulingTaskTime<
                 { (_, t) -> "$t" }
             )
         }
-        model.addSymbols(estimateStartTime)
+        when (val result = model.add(estimateStartTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::estimateEndTime.isInitialized) {
             estimateEndTime = flatMap(
@@ -117,13 +129,19 @@ open class BunchSchedulingTaskTime<
                 { (_, t) -> "$t" }
             )
         }
-        model.addSymbols(estimateEndTime)
+        when (val result = model.add(estimateEndTime)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::estSlack.isInitialized) {
             estSlack = LinearSymbols1(
                 "est_slack",
                 Shape1(tasks.size)
-            ) { (i, _) ->
+            ) { i, _ ->
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
                     LinearExpressionSymbol(LinearPolynomial(), "est_slack_$task")
@@ -158,7 +176,13 @@ open class BunchSchedulingTaskTime<
                 }
             }
         }
-        model.addSymbols(estSlack)
+        when (val result = model.add(estSlack)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return super.register(model)
     }
@@ -166,7 +190,7 @@ open class BunchSchedulingTaskTime<
     open fun addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try {
         assert(bunches.isNotEmpty())
 

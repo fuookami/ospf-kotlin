@@ -46,7 +46,7 @@ class Not(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>> by x::dependencies
+    override val dependencies: Set<Symbol> by x::dependencies
     override val cells get() = polyY.cells
     override val cached
         get() = if (::polyY.isInitialized) {
@@ -76,11 +76,11 @@ class Not(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (x.discrete && x.range.range in ValueRange(Flt64.zero, Flt64.one)) {
             polyY = x
             return ok
@@ -152,7 +152,7 @@ class Not(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (::piecewiseFunction.isInitialized) {
             when (val result = piecewiseFunction.register(model)) {
                 is Ok -> {}
@@ -162,30 +162,60 @@ class Not(
                 }
             }
         } else if (::b.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 x eq x.upperBound * b,
                 "${name}_xb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 (Flt64.one - y) geq b,
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 (Flt64.one - y) leq (Flt64.one / epsilon) * b,
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else if (::y.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 x.upperBound * (Flt64.one - y) geq x,
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
             if (extract) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     (Flt64.one - y) leq x,
                     "${name}_ub"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -212,6 +242,26 @@ class Not(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val value = x.value(results, tokenList, zeroIfNone)
+            ?: return null
+        return if (value eq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val value = x.value(tokenTable, zeroIfNone)
+            ?: return null
+        return if (value eq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val value = x.value(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one

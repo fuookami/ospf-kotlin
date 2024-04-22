@@ -2,15 +2,18 @@ package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import kotlin.time.*
 import kotlinx.datetime.*
+import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class SCIPLinearSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -19,6 +22,42 @@ class SCIPLinearSolver(
     override suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         val impl = SCIPLinearSolverImpl(config, callBack)
         return impl(model)
+    }
+
+    override suspend fun invoke(model: LinearTriadModelView, solutionAmount: UInt64): Ret<Pair<SolverOutput, List<Solution>>> {
+        return if (solutionAmount leq UInt64.one) {
+            this(model).map { it to emptyList() }
+        } else {
+            val results = ArrayList<Solution>()
+            val impl = SCIPLinearSolverImpl(config, callBack.ifNull { SCIPSolverCallBack() }.copy()
+                .configuration { scip, _, _ ->
+                    scip.setIntParam("heuristics/dins/solnum", min(UInt64.ten, solutionAmount).toInt())
+                    ok
+                }
+                .analyzingSolution { scip, variables, _ ->
+                    val bestSol = scip.bestSol
+                    val sols = scip.sols
+                    var i = UInt64.zero
+                    for (sol in sols) {
+                        if (sol != bestSol) {
+                            val thisResults = java.util.ArrayList<Flt64>()
+                            for (scipVar in variables) {
+                                thisResults.add(Flt64(scip.getSolVal(sol, scipVar)))
+                            }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ++i
+                        if (i >= solutionAmount) {
+                            break
+                        }
+                    }
+                    ok
+                }
+            )
+            impl(model).map { it to results }
+        }
     }
 }
 
@@ -43,7 +82,7 @@ private class SCIPLinearSolverImpl(
         super.finalize()
     }
 
-    operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
         mip = model.containsNotBinaryInteger
         val processes = arrayOf(
             { it.init(model.name) },
@@ -65,7 +104,7 @@ private class SCIPLinearSolverImpl(
         return Ok(output)
     }
 
-    private fun dump(model: LinearTriadModelView): Try {
+    private suspend fun dump(model: LinearTriadModelView): Try {
         scipVars = model.variables.map {
             scip.createVar(
                 it.name,
@@ -76,7 +115,13 @@ private class SCIPLinearSolverImpl(
             )
         }.toList()
 
-        if (model.variables.any { it.initialResult != null }) {
+        if (model.variables.all { it.initialResult != null }) {
+            val initialSolution = scip.createSol()
+            for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+            }
+            scip.addSolFree(initialSolution)
+        } else if (model.variables.any { it.initialResult != null }) {
             val initialSolution = scip.createPartialSol()
             for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
                 scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
@@ -84,41 +129,47 @@ private class SCIPLinearSolverImpl(
             scip.addSolFree(initialSolution)
         }
 
-        var i = 0
-        var j = 0
-        val constraints = ArrayList<jscip.Constraint>()
-        while (i != model.constraints.size) {
-            var lhs = Flt64.negativeInfinity
-            var rhs = Flt64.infinity
-            when (model.constraints.signs[i]) {
-                Sign.GreaterEqual -> {
-                    lhs = model.constraints.rhs[i]
-                }
+        val constraints = coroutineScope {
+            val promises = model.constraints.indices.map { i ->
+                i to async(Dispatchers.Default) {
+                    var lb = Flt64.negativeInfinity
+                    var ub = Flt64.infinity
+                    when (model.constraints.signs[i]) {
+                        Sign.GreaterEqual -> {
+                            lb = model.constraints.rhs[i]
+                        }
 
-                Sign.LessEqual -> {
-                    rhs = model.constraints.rhs[i]
-                }
+                        Sign.LessEqual -> {
+                            ub = model.constraints.rhs[i]
+                        }
 
-                Sign.Equal -> {
-                    lhs = model.constraints.rhs[i]
-                    rhs = model.constraints.rhs[i]
+                        Sign.Equal -> {
+                            lb = model.constraints.rhs[i]
+                            ub = model.constraints.rhs[i]
+                        }
+                    }
+                    val vars = ArrayList<jscip.Variable>()
+                    val coefficients = ArrayList<Double>()
+                    for (cell in model.constraints.lhs[i]) {
+                        vars.add(scipVars[cell.colIndex])
+                        coefficients.add(cell.coefficient.toDouble())
+                    }
+                    Triple(lb, coefficients to vars, ub)
                 }
             }
-            val vars = ArrayList<jscip.Variable>()
-            val coefficients = ArrayList<Double>()
-            while (j != model.constraints.lhs.size && i == model.constraints.lhs[j].rowIndex) {
-                val cell = model.constraints.lhs[j]
-                vars.add(scipVars[cell.colIndex])
-                coefficients.add(cell.coefficient.toDouble())
-                ++j
+            promises.map {
+                val (lb, cells, ub) = it.second.await()
+                val (coefficients, vars) = cells
+                val constraint = scip.createConsLinear(
+                    model.constraints.names[it.first],
+                    vars.toTypedArray(),
+                    coefficients.toDoubleArray(),
+                    lb.toDouble(),
+                    ub.toDouble()
+                )
+                scip.addCons(constraint)
+                constraint
             }
-            val constraint = scip.createConsLinear(
-                model.constraints.names[i], vars.toTypedArray(),
-                coefficients.toDoubleArray(), lhs.toDouble(), rhs.toDouble()
-            )
-            constraints.add(constraint)
-            ++i
-            scip.addCons(constraint)
         }
         scipConstraints = constraints
 
@@ -145,10 +196,15 @@ private class SCIPLinearSolverImpl(
         return ok
     }
 
-    private fun configure(): Try {
+    private suspend fun configure(): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toDouble())
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
+
+        // todo: use call back to control it
+        if (config.notImprovementTime != null) {
+            scip.setRealParam("limits/stallnodes", config.notImprovementTime!!.toDouble(DurationUnit.MILLISECONDS))
+        }
 
         when (val result = callBack?.execIfContain(Point.Configuration, scip, scipVars, scipConstraints)) {
             is Failed -> {
@@ -160,7 +216,7 @@ private class SCIPLinearSolverImpl(
         return ok
     }
 
-    private fun solve(): Try {
+    private suspend fun solve(): Try {
         val begin = Clock.System.now()
         scip.solveConcurrent()
         val stage = scip.stage
@@ -172,7 +228,7 @@ private class SCIPLinearSolverImpl(
         return ok
     }
 
-    private fun analyzeSolution(): Try {
+    private suspend fun analyzeSolution(): Try {
         return if (status.succeeded()) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()

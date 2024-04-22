@@ -18,22 +18,28 @@ class TaskTimeConflictConstraint<
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
     override val name: String = "task_time_conflict"
-) : Pipeline<LinearMetaModel> {
+) : Pipeline<AbstractLinearMetaModel> {
     val tasks = tasks
         .filter { it.time != null && !it.advanceEnabled && !it.delayEnabled }
         .sortedBy { it.time!!.start }
 
-    override operator fun invoke(model: LinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel): Try {
         val x = compilation.x
 
         for (executor in executors) {
             for (i in 0 until (tasks.size - 1)) {
                 for (j in (i + 1) until tasks.size) {
                     if (tasks[i].time!!.withIntersection(tasks[j].time!!)) {
-                        model.addConstraint(
+                        when (val result = model.addConstraint(
                             (x[tasks[i], executor] + x[tasks[j], executor]) leq Flt64.one,
                             "${name}_${tasks[i]}_${tasks[j]}"
-                        )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Failed(result.error)
+                            }
+                        }
                     } else {
                         continue
                     }

@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-abstract class Inequality<Self : Inequality<Self, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>(
-    open val lhs: Polynomial<*, *, Cell, C>,
-    open val rhs: Polynomial<*, *, Cell, C>,
+abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cell>>(
+    open val lhs: Polynomial<*, *, Cell>,
+    open val rhs: Polynomial<*, *, Cell>,
     val sign: Sign,
     var name: String = "",
     var displayName: String? = null
@@ -19,11 +19,9 @@ abstract class Inequality<Self : Inequality<Self, Cell, C>, Cell : MonomialCell<
     open val cells: List<Cell>
         get() {
             if (_cells.isEmpty()) {
-                val notConstantCells =
-                    lhs.cells.filter { !it.isConstant } + rhs.cells.filter { !it.isConstant }.map { -it }
-                val constant =
-                    lhs.cells.mapNotNull { it.constant }.sum() + rhs.cells.mapNotNull { it.constant }.sum()
-                _cells = notConstantCells + listOf(MonomialCell.invoke(constant, lhs.category))
+                val notConstantCells = lhs.cells.filter { !it.isConstant } + rhs.cells.filter { !it.isConstant }.map { -it }
+                val constant = lhs.cells.mapNotNull { it.constant }.sum() + rhs.cells.mapNotNull { it.constant }.sum()
+                _cells = notConstantCells + listOf(MonomialCell(constant, lhs.category))
             }
             return _cells
         }
@@ -44,10 +42,6 @@ abstract class Inequality<Self : Inequality<Self, Cell, C>, Cell : MonomialCell<
         return sign(lhsValue, rhsValue)
     }
 
-    fun isTrue(tokenTable: TokenTable<Cell, C>, zeroIfNone: Boolean = false): Boolean? {
-        return isTrue(tokenTable.tokenList, zeroIfNone)
-    }
-
     fun isTrue(result: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Boolean? {
         val lhsValue = lhs.value(result, tokenList, zeroIfNone)
             ?: return null
@@ -56,7 +50,11 @@ abstract class Inequality<Self : Inequality<Self, Cell, C>, Cell : MonomialCell<
         return sign(lhsValue, rhsValue)
     }
 
-    fun isTrue(result: List<Flt64>, tokenTable: TokenTable<Cell, C>, zeroIfNone: Boolean = false): Boolean? {
+    fun isTrue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Boolean? {
+        return isTrue(tokenTable.tokenList, zeroIfNone)
+    }
+
+    fun isTrue(result: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Boolean? {
         return isTrue(result, tokenTable.tokenList, zeroIfNone)
     }
 

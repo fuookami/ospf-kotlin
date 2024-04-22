@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 
 sealed class AbstractMultiArray<out T : Any, S : Shape>(
     val shape: S,
-    ctor: ((Pair<Int, IntArray>) -> T)? = null
+    ctor: ((Int, IntArray) -> T)? = null
 ) : Collection<T> {
     internal lateinit var list: MutableList<@UnsafeVariance T>
 
@@ -17,9 +17,9 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     val dimension by shape::dimension
     override val size get() = list.size
 
-    protected fun init(ctor: (Pair<Int, IntArray>) -> @UnsafeVariance T) {
+    protected fun init(ctor: (Int, IntArray) -> @UnsafeVariance T) {
         if (!::list.isInitialized) {
-            list = (0 until shape.size).map { ctor(Pair(it, shape.vector(it))) }.toMutableList()
+            list = (0..<shape.size).map { ctor(it, shape.vector(it)) }.toMutableList()
         }
     }
 
@@ -68,12 +68,12 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
 
 open class MultiArray<out T : Any, S : Shape>(
     shape: S,
-    ctor: ((Pair<Int, IntArray>) -> T)? = null
+    ctor: ((Int, IntArray) -> T)? = null
 ) : AbstractMultiArray<T, S>(shape, ctor)
 
 open class MutableMultiArray<T : Any, S : Shape>(
     shape: S,
-    ctor: ((Pair<Int, IntArray>) -> T)? = null
+    ctor: ((Int, IntArray) -> T)? = null
 ) : AbstractMultiArray<T, S>(shape, ctor) {
     operator fun set(i: Int, value: T) {
         list[i] = value

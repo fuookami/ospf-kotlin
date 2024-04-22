@@ -13,7 +13,7 @@ class LinearInequality(
     sign: Sign,
     name: String = "",
     displayName: String? = null
-) : Inequality<LinearInequality, LinearMonomialCell, Linear>(lhs, rhs, sign, name, displayName) {
+) : Inequality<LinearInequality, LinearMonomialCell>(lhs, rhs, sign, name, displayName) {
     override val cells: List<LinearMonomialCell>
         get() {
             if (_cells.isEmpty()) {

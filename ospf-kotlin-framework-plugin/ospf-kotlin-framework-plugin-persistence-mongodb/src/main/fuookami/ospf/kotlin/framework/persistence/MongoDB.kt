@@ -118,25 +118,45 @@ object MongoDB {
     }
 }
 
-private val json = Json {
-    ignoreUnknownKeys = true
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
+    insert(collection, T::class.serializer(), data)
 }
 
-@Synchronized
 fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, data: T) {
-    this.getCollection(collection)
-        .insertOne(Document.parse(json.encodeToString(serializer, data)))
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
+    insert(collection, { json.encodeToString(serializer, it) }, data)
 }
 
 @Synchronized
-fun <T> MongoDatabase.get(collectionName: String, serializer: KSerializer<T>, query: Map<String, String>): List<T> {
+fun <T> MongoDatabase.insert(collection: String, serializer: (T) -> String, data: T) {
+    this.getCollection(collection)
+        .insertOne(Document.parse(serializer(data)))
+}
+
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Map<String, String>): List<T> {
+    return get(collectionName, T::class.serializer(), query)
+}
+
+fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, query: Map<String, String>): List<T> {
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
+    return get(collectionName, { json.decodeFromString(deserializer, it) }, query)
+}
+
+@Synchronized
+fun <T> MongoDatabase.get(collectionName: String, deserializer: (String) -> T, query: Map<String, String>): List<T> {
     val collection = this.getCollection(collectionName)
     val iterator =
         collection.find(Document.parse("{${query.entries.joinToString(", ") { "\"${it.key}\": { \$regex: /${it.value}/ }" }}}"))
     val cursor = iterator.iterator()
     val results = ArrayList<T>()
     while (cursor.hasNext()) {
-        results.add(json.decodeFromString(serializer, cursor.next().toJson()))
+        results.add(deserializer(cursor.next().toJson()))
     }
     return results
 }

@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.8</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -30,7 +30,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <kotlin.version>1.9.22</kotlin.version>
+        <kotlin.version>1.9.24</kotlin.version>
         <!-- 3rd-party -->
         <ktorm.version>3.6.0</ktorm.version>
         <http4k.version>5.13.7.0</http4k.version>

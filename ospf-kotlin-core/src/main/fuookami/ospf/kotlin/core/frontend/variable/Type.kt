@@ -11,7 +11,7 @@ sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberFie
     val isIntegerType get() = false
     val isUnsignedIntegerType get() = false
     val isContinuousType get() = !isIntegerType
-    val isNotBinaryIntegerType get() = isBinaryType && !isIntegerType
+    val isNotBinaryIntegerType get() = !isBinaryType && isIntegerType
 }
 
 sealed interface IntegerVariableType<T : IntegerNumber<T>> : VariableTypeInterface<T> {

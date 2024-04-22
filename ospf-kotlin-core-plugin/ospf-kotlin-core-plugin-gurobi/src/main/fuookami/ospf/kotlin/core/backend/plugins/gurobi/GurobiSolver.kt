@@ -16,7 +16,7 @@ abstract class GurobiSolver {
         env.dispose()
     }
 
-    protected fun init(server: String, password: String, connectionTime: Duration, name: String): Try {
+    protected suspend fun init(server: String, password: String, connectionTime: Duration, name: String): Try {
         return try {
             env = GRBEnv(true)
             env.set(GRB.IntParam.ServerTimeout, connectionTime.toInt(DurationUnit.SECONDS))
@@ -35,7 +35,7 @@ abstract class GurobiSolver {
         }
     }
 
-    protected fun init(name: String): Try {
+    protected suspend fun init(name: String): Try {
         return try {
             env = GRBEnv()
             grbModel = GRBModel(env)
@@ -48,7 +48,7 @@ abstract class GurobiSolver {
         }
     }
 
-    protected fun solve(): Try {
+    protected suspend fun solve(): Try {
         return try {
             grbModel.optimize()
 
@@ -60,7 +60,7 @@ abstract class GurobiSolver {
         }
     }
 
-    protected fun analyzeStatus(): Try {
+    protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (grbModel.get(GRB.IntAttr.Status)) {
                 GRB.OPTIMAL -> {

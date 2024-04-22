@@ -24,7 +24,7 @@ abstract class AbstractTaskSchedulingAggregation<
     val switch: TaskSchedulingSwitch<T, E, A> =
         TaskSchedulingSwitch(timeWindow, tasks, executors, compilation)
 
-    open fun register(model: LinearMetaModel): Try {
+    open fun register(model: MetaModel): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
 
@@ -94,7 +94,7 @@ open class TaskCompilationAggregationWithTime<
     val makespan: Makespan<T, E, A> =
         Makespan(tasks, taskTime, makespanExtra)
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         when (val result = super.register(model)) {
             is Ok -> {}
 

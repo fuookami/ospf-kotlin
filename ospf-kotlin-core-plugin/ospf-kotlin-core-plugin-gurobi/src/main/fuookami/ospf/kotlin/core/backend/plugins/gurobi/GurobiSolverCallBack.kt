@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 typealias LinearFunction = (GRBModel, List<GRBVar>, List<GRBConstr>) -> Try
+typealias NativeCallback = GRBCallback.() -> Unit
 typealias QuadraticFunction = (GRBModel, List<GRBVar>, List<GRBQConstr>) -> Try
 
 enum class Point {
@@ -16,8 +17,13 @@ enum class Point {
 }
 
 class GurobiLinearSolverCallBack(
+    internal var nativeCallback: NativeCallback? = null,
     private val map: MutableMap<Point, LinearFunction> = EnumMap(Point::class.java)
 ) : Copyable<GurobiLinearSolverCallBack> {
+    fun set(function: NativeCallback) {
+        nativeCallback = function
+    }
+
     operator fun set(point: Point, function: LinearFunction): GurobiLinearSolverCallBack {
         map[point] = function
         return this
@@ -36,13 +42,18 @@ class GurobiLinearSolverCallBack(
     }
 
     override fun copy(): GurobiLinearSolverCallBack {
-        return GurobiLinearSolverCallBack(map.toMutableMap())
+        return GurobiLinearSolverCallBack(nativeCallback, map.toMutableMap())
     }
 }
 
 class GurobiQuadraticSolverCallBack(
+    internal var nativeCallback: NativeCallback? = null,
     private val map: MutableMap<Point, QuadraticFunction> = EnumMap(Point::class.java)
 ) : Copyable<GurobiQuadraticSolverCallBack> {
+    fun set(function: NativeCallback) {
+        nativeCallback = function
+    }
+
     operator fun set(point: Point, function: QuadraticFunction): GurobiQuadraticSolverCallBack {
         map[point] = function
         return this
@@ -61,6 +72,6 @@ class GurobiQuadraticSolverCallBack(
     }
 
     override fun copy(): GurobiQuadraticSolverCallBack {
-        return GurobiQuadraticSolverCallBack(map.toMutableMap())
+        return GurobiQuadraticSolverCallBack(nativeCallback, map.toMutableMap())
     }
 }

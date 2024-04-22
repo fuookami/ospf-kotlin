@@ -5,11 +5,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 
-sealed class SubObject<C : Category>(
+sealed class SubObject(
     val category: ObjectCategory,
     val name: String = ""
 ) {
-    abstract val cells: List<Cell<C>>
+    abstract val cells: List<Cell>
     abstract val constant: Flt64
 
     fun value(): Flt64? {
@@ -34,12 +34,12 @@ class LinearSubObject(
     override val cells: ArrayList<LinearCell>,
     override val constant: Flt64 = Flt64.zero,
     name: String = ""
-) : SubObject<Linear>(category, name) {
+) : SubObject(category, name) {
     companion object {
         operator fun invoke(
             category: ObjectCategory,
-            poly: Polynomial<*, *, LinearMonomialCell, Linear>,
-            tokens: LinearTokenTable,
+            poly: Polynomial<*, *, LinearMonomialCell>,
+            tokens: TokenTable,
             name: String
         ): LinearSubObject {
             val cells = ArrayList<LinearCell>()
@@ -65,12 +65,12 @@ class QuadraticSubObject(
     override val cells: ArrayList<QuadraticCell>,
     override val constant: Flt64 = Flt64.zero,
     name: String = ""
-) : SubObject<Quadratic>(category, name) {
+) : SubObject(category, name) {
     companion object {
         operator fun invoke(
             category: ObjectCategory,
-            poly: Polynomial<*, *, QuadraticMonomialCell, Quadratic>,
-            tokens: QuadraticTokenTable,
+            poly: Polynomial<*, *, QuadraticMonomialCell>,
+            tokens: TokenTable,
             name: String
         ): QuadraticSubObject {
             val cells = ArrayList<QuadraticCell>()

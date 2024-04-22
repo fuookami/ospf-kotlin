@@ -23,12 +23,18 @@ class TaskOnTimeMaximization<
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "task_on_time_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (threshold eq UInt64.zero) {
-            model.maximize(
+            when (val result = model.maximize(
                 coefficient * sum(taskTime.onTime[_a]),
                 "task on time"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else {
             val slack = SlackFunction(
                 UInteger,
@@ -36,8 +42,23 @@ class TaskOnTimeMaximization<
                 threshold = LinearPolynomial(threshold),
                 name = "task_on_time_threshold"
             )
-            model.addSymbol(slack)
-            model.maximize(coefficient * slack, "task on time")
+            when (val result = model.add(slack)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.maximize(
+                coefficient * slack,
+                "task on time"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

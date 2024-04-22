@@ -21,8 +21,8 @@ class ConsumptionQuantityMaximization<
     private val coefficient: (Material) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_quantity_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
-        model.maximize(
+    override fun invoke(model: AbstractLinearMetaModel): Try {
+        when (val result = model.maximize(
             sum(materials.map {
                 val thresholdValue = threshold(it)
                 if (thresholdValue eq Flt64.zero) {
@@ -34,12 +34,24 @@ class ConsumptionQuantityMaximization<
                         threshold = LinearPolynomial(thresholdValue),
                         name = "consumption_quantity_maximization_threshold_$it"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     coefficient(it) * slack
                 }
             }),
             "consumption quantity"
-        )
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
         return ok
     }
 }

@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
@@ -27,10 +28,16 @@ class BinaryzationFunction(
     private lateinit var b: PctVar
     private lateinit var y: BinVar
     private lateinit var polyY: AbstractLinearPolynomial<*>
+    private val _range: ExpressionRange<Flt64> = ExpressionRange(possibleRange.toFlt64(), Flt64)
 
     override val discrete = true
 
-    override val range get() = polyY.range
+    override val range
+        get() = if (::polyY.isInitialized) {
+            polyY.range
+        } else {
+            _range
+        }
     override val lowerBound
         get() = if (::polyY.isInitialized) {
             polyY.lowerBound
@@ -76,11 +83,11 @@ class BinaryzationFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (x.discrete && x.range.range in ValueRange(Flt64.zero, Flt64.one)) {
             polyY = x
             return ok
@@ -145,14 +152,14 @@ class BinaryzationFunction(
 
             if (!::polyY.isInitialized) {
                 polyY = LinearPolynomial(y)
-                polyY.range.set(possibleRange.toFlt64())
+                polyY.range.set(_range.range)
             }
         }
 
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         if (::piecewiseFunction.isInitialized) {
             when (val result = piecewiseFunction.register(model)) {
                 is Ok -> {}
@@ -162,30 +169,60 @@ class BinaryzationFunction(
                 }
             }
         } else if (::b.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 x eq x.upperBound * b,
                 "${name}_xb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y geq b,
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y leq (Flt64.one / epsilon) * b,
                 "${name}_ub"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else if (::y.isInitialized) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 x.upperBound * y geq x,
                 "${name}_lb"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
             if (extract) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     y leq x,
                     "${name}_ub"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -212,6 +249,26 @@ class BinaryzationFunction(
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val value = x.value(results, tokenList, zeroIfNone)
+            ?: return null
+        return if (value neq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val value = x.value(tokenTable, zeroIfNone)
+            ?: return null
+        return if (value neq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val value = x.value(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one

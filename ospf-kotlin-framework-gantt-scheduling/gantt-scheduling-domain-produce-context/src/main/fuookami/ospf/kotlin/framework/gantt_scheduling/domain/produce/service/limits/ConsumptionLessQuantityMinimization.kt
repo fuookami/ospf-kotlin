@@ -27,7 +27,7 @@ class ConsumptionLessQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (materials.isNotEmpty()) {
             val cost = MutableLinearPolynomial()
             for ((material, _) in materials) {
@@ -41,11 +41,26 @@ class ConsumptionLessQuantityMinimization<
                         threshold = LinearPolynomial(thresholdValue),
                         name = "consumption_less_quantity_minimization_threshold_$material"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     cost += coefficient(material) * slack
                 }
             }
-            model.minimize(cost, "consumption less quantity")
+            when (val result = model.minimize(
+                cost,
+                "consumption less quantity"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
         return ok
     }

@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
@@ -77,8 +78,9 @@ class FunctionalCallBackModelPolicy<V>(
 }
 
 class CallBackModel internal constructor(
+    category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: MutableTokenList = ManualAddTokenTokenList(),
+    override val tokens: MutableTokenTable = ManualAddTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<Flt64>
@@ -103,13 +105,46 @@ class CallBackModel internal constructor(
         ) = CallBackModel(policy = FunctionalCallBackModelPolicy(objectiveComparator, initialSolutionGenerator))
 
         operator fun invoke(
-            model: SingleObjectModel<*, *>,
+            model: AbstractMetaModel,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel {
-            val tokens: MutableTokenList = ManualAddTokenTokenList()
-            for (token in model.tokens.tokens) {
-                tokens.add(token.variable)
-            }
+            val tokens = model.tokens.copy()
+            val constraints = model.constraints.map { constraint ->
+                Pair(
+                    { solution: Solution -> constraint.isTrue(solution, tokens) },
+                    constraint.name
+                )
+            }.toMutableList()
+            val objectiveFunction = model.subObjects.map { objective ->
+                Pair(
+                    { solution: Solution ->
+                        if (objective.category == model.objectCategory) {
+                            objective.value(solution, tokens)
+                        } else {
+                            -objective.value(solution, tokens)!!
+                        }
+                    },
+                    objective.name
+                )
+            }.toMutableList()
+            return CallBackModel(
+                model.category,
+                model.objectCategory,
+                tokens,
+                constraints,
+                objectiveFunction,
+                FunctionalCallBackModelPolicy(
+                    dumpObjectiveComparator(model.objectCategory),
+                    initialSolutionGenerator
+                )
+            )
+        }
+
+        operator fun invoke(
+            model: SingleObjectMechanismModel,
+            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+        ): CallBackModel {
+            val tokens = ManualAddTokenTable(model.tokens)
             val constraints = model.constraints.map { constraint ->
                 Pair<Extractor<Boolean?, Solution>, String>(
                     { solution: Solution -> constraint.isTrue(solution) },
@@ -129,6 +164,7 @@ class CallBackModel internal constructor(
                 )
             }.toMutableList()
             return CallBackModel(
+                Nonlinear,
                 model.objectFunction.category,
                 tokens,
                 constraints,
@@ -156,20 +192,22 @@ class CallBackModel internal constructor(
         return policy.compareObjective(lhs, rhs)
     }
 
-    override fun addVar(item: AbstractVariableItem<*, *>) {
+    override fun add(item: AbstractVariableItem<*, *>): Try {
         tokens.add(item)
+        return ok
     }
 
-    override fun addVars(items: Iterable<AbstractVariableItem<*, *>>) {
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
         tokens.add(items)
+        return ok
     }
 
     override fun remove(item: AbstractVariableItem<*, *>) {
         tokens.remove(item)
     }
 
-    override fun addConstraint(
-        inequality: Inequality<*, *, *>,
+    fun addConstraint(
+        inequality: Inequality<*, *>,
         name: String?,
         displayName: String?
     ) {
@@ -181,12 +219,30 @@ class CallBackModel internal constructor(
         )
     }
 
+    override fun addObject(
+        category: ObjectCategory,
+        variable: AbstractVariableItem<*, *>,
+        name: String?,
+        displayName: String?
+    ): Try {
+        return addObject(category, LinearPolynomial(variable), name, displayName)
+    }
+
+    override fun <T : RealNumber<T>> addObject(
+        category: ObjectCategory,
+        constant: T,
+        name: String?,
+        displayName: String?
+    ): Try {
+        return addObject(category, LinearPolynomial(constant), name, displayName)
+    }
+
     fun addObject(
         category: ObjectCategory,
         expression: Expression,
         name: String?,
         displayName: String?
-    ) {
+    ): Try {
         _objectiveFunctions.add(
             Pair(
                 { solution: Solution ->
@@ -199,14 +255,14 @@ class CallBackModel internal constructor(
                 name ?: String()
             )
         )
+        return ok
     }
 
-    override fun addObject(
+    fun addObject(
         category: ObjectCategory,
-        polynomial: Polynomial<*, *, *, *>,
-        name: String?,
-        displayName: String?
-    ) {
+        polynomial: Polynomial<*, *, *>,
+        name: String?
+    ): Try {
         _objectiveFunctions.add(
             Pair(
                 { solution: Solution ->
@@ -219,17 +275,7 @@ class CallBackModel internal constructor(
                 name ?: String()
             )
         )
-    }
-
-    override fun <T : RealNumber<T>> addObject(
-        category: ObjectCategory,
-        constant: T,
-        name: String?,
-        displayName: String?
-    ) {
-        _objectiveFunctions.add(
-            Pair({ constant.toFlt64() }, name ?: String())
-        )
+        return ok
     }
 
     fun addObject(
@@ -237,7 +283,7 @@ class CallBackModel internal constructor(
         func: Extractor<Flt64?, Solution>,
         name: String? = null,
         displayName: String? = null
-    ) {
+    ): Try {
         _objectiveFunctions.add(
             Pair(
                 { solution: Solution ->
@@ -250,38 +296,39 @@ class CallBackModel internal constructor(
                 name ?: String()
             )
         )
+        return ok
     }
 
     fun maximize(
         expression: Expression,
         name: String?,
         displayName: String?
-    ) {
-        addObject(ObjectCategory.Maximum, expression, name, displayName)
+    ): Try {
+        return addObject(ObjectCategory.Maximum, expression, name, displayName)
     }
 
     fun maximize(
         func: Extractor<Flt64?, Solution>,
         name: String?,
         displayName: String?
-    ) {
-        addObject(ObjectCategory.Maximum, func, name, displayName)
+    ): Try {
+        return addObject(ObjectCategory.Maximum, func, name, displayName)
     }
 
     fun minimize(
         expression: Expression,
         name: String?,
         displayName: String?
-    ) {
-        addObject(ObjectCategory.Minimum, expression, name, displayName)
+    ): Try {
+        return addObject(ObjectCategory.Minimum, expression, name, displayName)
     }
 
     fun minimize(
         func: Extractor<Flt64?, Solution>,
         name: String?,
         displayName: String?
-    ) {
-        addObject(ObjectCategory.Minimum, func, name, displayName)
+    ): Try {
+        return addObject(ObjectCategory.Minimum, func, name, displayName)
     }
 
     override fun setSolution(solution: Solution) {
@@ -290,6 +337,10 @@ class CallBackModel internal constructor(
 
     override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         tokens.setSolution(solution)
+    }
+
+    override fun flush() {
+        tokens.flush()
     }
 
     override fun clearSolution() {

@@ -23,7 +23,7 @@ class XorFunction(
 
     private lateinit var maxmin: MaxMinFunction
     private lateinit var minmax: MinMaxFunction
-    private lateinit var bins: SymbolCombination<BinaryzationFunction, LinearMonomialCell, Linear, Shape1>
+    private lateinit var bins: SymbolCombination<BinaryzationFunction, Shape1>
     private lateinit var y: BinVar
     private lateinit var polyY: AbstractLinearPolynomial<*>
 
@@ -45,9 +45,9 @@ class XorFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -80,13 +80,13 @@ class XorFunction(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound ls Flt64.zero) {
@@ -118,7 +118,7 @@ class XorFunction(
             }
 
             if (!::bins.isInitialized) {
-                bins = SymbolCombination("${name}_bin", Shape1(2)) { (i, _) ->
+                bins = SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
                     if (i == 0) {
                         BinaryzationFunction(LinearPolynomial(minmax), name = "${name}_bin_$i")
                     } else {
@@ -137,7 +137,7 @@ class XorFunction(
             }
         } else {
             if (!::bins.isInitialized) {
-                bins = SymbolCombination("${name}_bin", Shape1(polynomials.size)) { (i, _) ->
+                bins = SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
                     BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
                 }
             }
@@ -170,7 +170,7 @@ class XorFunction(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         for (bin in bins) {
             when (val result = bin.register(model)) {
                 is Ok -> {}
@@ -182,7 +182,7 @@ class XorFunction(
         }
 
         for ((i, bin) in bins.withIndex()) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y geq bin - sum(bins.withIndex().mapNotNull {
                     if (it.index == i) {
                         null
@@ -191,19 +191,37 @@ class XorFunction(
                     }
                 }),
                 "${name}_yb_$i"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (extract) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 y leq sum(bins),
                 "${name}_y_1"
-            )
+            )) {
+                is Ok -> {}
 
-            model.addConstraint(
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 y leq Flt64(bins.size) - sum(bins),
                 "${name}_y_2"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -241,6 +259,44 @@ class XorFunction(
         var one = false
         for (polynomial in polynomials) {
             val result = polynomial.value(results, tokenList, zeroIfNone)
+                ?: return null
+            if (result eq Flt64.zero) {
+                zero = true
+            }
+            if (result eq Flt64.one) {
+                one = true
+            }
+            if (zero && one) {
+                return Flt64.one
+            }
+        }
+        return Flt64.zero
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var zero = false
+        var one = false
+        for (polynomial in polynomials) {
+            val result = polynomial.value(tokenTable, zeroIfNone)
+                ?: return null
+            if (result eq Flt64.zero) {
+                zero = true
+            }
+            if (result eq Flt64.one) {
+                one = true
+            }
+            if (zero && one) {
+                return Flt64.one
+            }
+        }
+        return Flt64.zero
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var zero = false
+        var one = false
+        for (polynomial in polynomials) {
+            val result = polynomial.value(results, tokenTable, zeroIfNone)
                 ?: return null
             if (result eq Flt64.zero) {
                 zero = true

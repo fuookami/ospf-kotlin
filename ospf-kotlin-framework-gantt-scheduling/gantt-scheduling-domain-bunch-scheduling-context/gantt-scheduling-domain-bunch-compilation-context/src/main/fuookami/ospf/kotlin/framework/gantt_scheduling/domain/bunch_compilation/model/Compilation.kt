@@ -57,7 +57,7 @@ open class BunchCompilation<
     override lateinit var taskCompilation: LinearExpressionSymbols1
     override lateinit var executorCompilation: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
             for (task in tasks) {
@@ -68,12 +68,24 @@ open class BunchCompilation<
                 }
             }
         }
-        model.addVars(y)
+        when (val result = model.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::bunchCost.isInitialized) {
             bunchCost = LinearExpressionSymbol(LinearPolynomial(), "bunch_cost")
         }
-        model.addSymbol(bunchCost)
+        when (val result = model.add(bunchCost)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::taskAssignment.isInitialized) {
             taskAssignment = flatMap(
@@ -84,7 +96,13 @@ open class BunchCompilation<
                 { (_, t), (_, e) -> "${t}_$e" }
             )
         }
-        model.addSymbols(taskAssignment)
+        when (val result = model.add(taskAssignment)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (!::taskCompilation.isInitialized) {
             taskCompilation = flatMap(
@@ -94,13 +112,25 @@ open class BunchCompilation<
                 { (_, t) -> "$t" }
             )
         }
-        model.addSymbols(taskCompilation)
+        when (val result = model.add(taskCompilation)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         if (withExecutorLeisure) {
             if (!::z.isInitialized) {
                 z = BinVariable1("z", Shape1(executors.size))
             }
-            model.addVars(z)
+            when (val result = model.add(z)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         if (!::executorCompilation.isInitialized) {
@@ -117,7 +147,13 @@ open class BunchCompilation<
                 { e -> "$e" }
             )
         }
-        model.addSymbols(executorCompilation)
+        when (val result = model.add(executorCompilation)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }
@@ -125,7 +161,7 @@ open class BunchCompilation<
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<List<B>> {
         val unduplicatedBunches = aggregation.addColumns(newBunches)
 
@@ -133,7 +169,13 @@ open class BunchCompilation<
         for (bunch in unduplicatedBunches) {
             xi[bunch].name = "${xi.name}_${bunch.index}_${bunch.executor}"
         }
-        model.addVars(xi)
+        when (val result = model.add(xi)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
         _x.add(xi)
 
         bunchCost.flush()

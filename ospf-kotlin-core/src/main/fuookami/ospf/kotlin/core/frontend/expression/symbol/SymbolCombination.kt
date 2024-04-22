@@ -4,48 +4,72 @@ import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 
-class SymbolCombination<out Sym : Symbol<Cell, C>, Cell : MonomialCell<Cell, C>, C : Category, S : Shape>(
+class SymbolCombination<out Sym : Symbol, S : Shape>(
     val name: String,
     shape: S,
-    ctor: (Pair<Int, IntArray>) -> Sym
+    ctor: (Int, IntArray) -> Sym
 ) : MultiArray<Sym, S>(shape, ctor)
 
-typealias Symbols<Cell, C> = MultiArray<Symbol<Cell, C>, *>
-typealias Symbols1<Cell, C> = MultiArray<Symbol<Cell, C>, Shape1>
-typealias Symbols2<Cell, C> = MultiArray<Symbol<Cell, C>, Shape2>
-typealias Symbols3<Cell, C> = MultiArray<Symbol<Cell, C>, Shape3>
-typealias Symbols4<Cell, C> = MultiArray<Symbol<Cell, C>, Shape4>
-typealias DynSymbols<Cell, C> = MultiArray<Symbol<Cell, C>, DynShape>
-typealias SymbolView<Cell, C> = MultiArrayView<Symbol<Cell, C>, *>
-typealias SymbolView1<Cell, C> = MultiArrayView<Symbol<Cell, C>, Shape1>
-typealias SymbolView2<Cell, C> = MultiArrayView<Symbol<Cell, C>, Shape2>
-typealias SymbolView3<Cell, C> = MultiArrayView<Symbol<Cell, C>, Shape3>
-typealias SymbolView4<Cell, C> = MultiArrayView<Symbol<Cell, C>, Shape4>
-typealias DynSymbolView<Cell, C> = MultiArrayView<Symbol<Cell, C>, DynShape>
+typealias Symbols = MultiArray<Symbol, *>
+typealias Symbols1 = MultiArray<Symbol, Shape1>
+typealias Symbols2 = MultiArray<Symbol, Shape2>
+typealias Symbols3 = MultiArray<Symbol, Shape3>
+typealias Symbols4 = MultiArray<Symbol, Shape4>
+typealias DynSymbols = MultiArray<Symbol, DynShape>
+typealias SymbolView = MultiArrayView<Symbol, *>
+typealias SymbolView1 = MultiArrayView<Symbol, Shape1>
+typealias SymbolView2 = MultiArrayView<Symbol, Shape2>
+typealias SymbolView3 = MultiArrayView<Symbol, Shape3>
+typealias SymbolView4 = MultiArrayView<Symbol, Shape4>
+typealias DynSymbolView = MultiArrayView<Symbol, DynShape>
 
-typealias LinearSymbols1 = SymbolCombination<LinearSymbol, LinearMonomialCell, Linear, Shape1>
-typealias LinearSymbols2 = SymbolCombination<LinearSymbol, LinearMonomialCell, Linear, Shape2>
-typealias LinearSymbols3 = SymbolCombination<LinearSymbol, LinearMonomialCell, Linear, Shape3>
-typealias LinearSymbols4 = SymbolCombination<LinearSymbol, LinearMonomialCell, Linear, Shape4>
-typealias DynLinearSymbols = SymbolCombination<LinearSymbol, LinearMonomialCell, Linear, DynShape>
+typealias LinearSymbols1 = SymbolCombination<LinearSymbol, Shape1>
+typealias LinearSymbols2 = SymbolCombination<LinearSymbol, Shape2>
+typealias LinearSymbols3 = SymbolCombination<LinearSymbol, Shape3>
+typealias LinearSymbols4 = SymbolCombination<LinearSymbol, Shape4>
+typealias DynLinearSymbols = SymbolCombination<LinearSymbol, DynShape>
 
-typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbol, LinearMonomialCell, Linear, Shape1>
-typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbol, LinearMonomialCell, Linear, Shape2>
-typealias LinearExpressionSymbols3 = SymbolCombination<LinearExpressionSymbol, LinearMonomialCell, Linear, Shape3>
-typealias LinearExpressionSymbols4 = SymbolCombination<LinearExpressionSymbol, LinearMonomialCell, Linear, Shape4>
-typealias DynLinearExpressionSymbols = SymbolCombination<LinearExpressionSymbol, LinearMonomialCell, Linear, DynShape>
+typealias QuadraticSymbols1 = SymbolCombination<QuadraticSymbol, Shape1>
+typealias QuadraticSymbols2 = SymbolCombination<QuadraticSymbol, Shape2>
+typealias QuadraticSymbols3 = SymbolCombination<QuadraticSymbol, Shape3>
+typealias QuadraticSymbols4 = SymbolCombination<QuadraticSymbol, Shape4>
+typealias DynQuadraticSymbols = SymbolCombination<QuadraticSymbol, DynShape>
 
-typealias LinearFunctionSymbols1 = SymbolCombination<LinearFunctionSymbol, LinearMonomialCell, Linear, Shape1>
-typealias LinearFunctionSymbols2 = SymbolCombination<LinearFunctionSymbol, LinearMonomialCell, Linear, Shape2>
-typealias LinearFunctionSymbols3 = SymbolCombination<LinearFunctionSymbol, LinearMonomialCell, Linear, Shape3>
-typealias LinearFunctionSymbols4 = SymbolCombination<LinearFunctionSymbol, LinearMonomialCell, Linear, Shape4>
-typealias DynLinearFunctionSymbols = SymbolCombination<LinearFunctionSymbol, LinearMonomialCell, Linear, DynShape>
+typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbol, Shape1>
+typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbol, Shape2>
+typealias LinearExpressionSymbols3 = SymbolCombination<LinearExpressionSymbol, Shape3>
+typealias LinearExpressionSymbols4 = SymbolCombination<LinearExpressionSymbol, Shape4>
+typealias DynLinearExpressionSymbols = SymbolCombination<LinearExpressionSymbol, DynShape>
+
+typealias QuadraticExpressionSymbols1 = SymbolCombination<QuadraticExpressionSymbol, Shape1>
+typealias QuadraticExpressionSymbols2 = SymbolCombination<QuadraticExpressionSymbol, Shape2>
+typealias QuadraticExpressionSymbols3 = SymbolCombination<QuadraticExpressionSymbol, Shape3>
+typealias QuadraticExpressionSymbols4 = SymbolCombination<QuadraticExpressionSymbol, Shape4>
+typealias DynQuadraticExpressionSymbols = SymbolCombination<QuadraticExpressionSymbol, DynShape>
+
+typealias LinearFunctionSymbols1 = SymbolCombination<LinearFunctionSymbol, Shape1>
+typealias LinearFunctionSymbols2 = SymbolCombination<LinearFunctionSymbol, Shape2>
+typealias LinearFunctionSymbols3 = SymbolCombination<LinearFunctionSymbol, Shape3>
+typealias LinearFunctionSymbols4 = SymbolCombination<LinearFunctionSymbol, Shape4>
+typealias DynLinearFunctionSymbols = SymbolCombination<LinearFunctionSymbol, DynShape>
+
+typealias QuadraticFunctionSymbols1 = SymbolCombination<QuadraticFunctionSymbol, Shape1>
+typealias QuadraticFunctionSymbols2 = SymbolCombination<QuadraticFunctionSymbol, Shape2>
+typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticFunctionSymbol, Shape3>
+typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticFunctionSymbol, Shape4>
+typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticFunctionSymbol, DynShape>
 
 typealias LinearSymbolView1 = MultiArrayView<LinearSymbol, Shape1>
 typealias LinearSymbolView2 = MultiArrayView<LinearSymbol, Shape2>
 typealias LinearSymbolView3 = MultiArrayView<LinearSymbol, Shape3>
 typealias LinearSymbolView4 = MultiArrayView<LinearSymbol, Shape4>
 typealias DynLinearSymbolView = MultiArrayView<LinearSymbol, DynShape>
+
+typealias QuadraticSymbolView1 = MultiArrayView<QuadraticSymbol, Shape1>
+typealias QuadraticSymbolView2 = MultiArrayView<QuadraticSymbol, Shape2>
+typealias QuadraticSymbolView3 = MultiArrayView<QuadraticSymbol, Shape3>
+typealias QuadraticSymbolView4 = MultiArrayView<QuadraticSymbol, Shape4>
+typealias DynQuadraticSymbolView = MultiArrayView<QuadraticSymbol, DynShape>
 
 data object LinearSymbols {
     operator fun invoke(
@@ -55,10 +79,10 @@ data object LinearSymbols {
         return SymbolCombination(
             name = name,
             shape = shape,
-            ctor = { (_, v) ->
+            ctor = { _, v ->
                 LinearExpressionSymbol(
                     MutableLinearPolynomial(),
-                    "${name}_${v.joinToString("_") { "$it" }}"
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
                 )
             }
         )
@@ -71,10 +95,10 @@ data object LinearSymbols {
         return SymbolCombination(
             name = name,
             shape = shape,
-            ctor = { (_, v) ->
+            ctor = { _, v ->
                 LinearExpressionSymbol(
                     MutableLinearPolynomial(),
-                    "${name}_${v.joinToString("_") { "$it" }}"
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
                 )
             }
         )
@@ -87,10 +111,10 @@ data object LinearSymbols {
         return SymbolCombination(
             name = name,
             shape = shape,
-            ctor = { (_, v) ->
+            ctor = { _, v ->
                 LinearExpressionSymbol(
                     MutableLinearPolynomial(),
-                    "${name}_${v.joinToString("_") { "$it" }}"
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
                 )
             }
         )
@@ -103,10 +127,10 @@ data object LinearSymbols {
         return SymbolCombination(
             name = name,
             shape = shape,
-            ctor = { (_, v) ->
+            ctor = { _, v ->
                 LinearExpressionSymbol(
                     MutableLinearPolynomial(),
-                    "${name}_${v.joinToString("_") { "$it" }}"
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
                 )
             }
         )
@@ -119,10 +143,10 @@ data object LinearSymbols {
         return SymbolCombination(
             name = name,
             shape = shape,
-            ctor = { (_, v) ->
+            ctor = { _, v ->
                 LinearExpressionSymbol(
                     MutableLinearPolynomial(),
-                    "${name}_${v.joinToString("_") { "$it" }}"
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
                 )
             }
         )
@@ -139,10 +163,10 @@ fun <T> map(
     return LinearExpressionSymbols1(
         name,
         Shape1(l.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l[v.second[0]]),
-            "${name}_${suffix(Pair(v.second[0], l[v.second[0]]))}"
+            ctor(l[v[0]]),
+            name = "${name}_${suffix(Pair(v[0], l[v[0]]))}"
         )
     }
 }
@@ -157,10 +181,10 @@ fun <T> flatMap(
     return LinearExpressionSymbols1(
         name,
         Shape1(l.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l[v.second[0]]),
-            "${name}_${suffix(Pair(v.second[0], l[v.second[0]]))}"
+            ctor(l[v[0]]),
+            name = "${name}_${suffix(Pair(v[0], l[v[0]]))}"
         )
     }
 }
@@ -177,10 +201,10 @@ fun <T1, T2> map(
     return LinearExpressionSymbols2(
         name,
         Shape2(l1.size, l2.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l1[v.second[0]], l2[v.second[1]]),
-            "${name}_${suffix(Pair(v.second[0], l1[v.second[0]]), Pair(v.second[1], l2[v.second[1]]))}"
+            ctor(l1[v[0]], l2[v[1]]),
+            name = "${name}_${suffix(Pair(v[0], l1[v[0]]), Pair(v[1], l2[v[1]]))}"
         )
     }
 }
@@ -197,10 +221,10 @@ fun <T1, T2> flatMap(
     return LinearExpressionSymbols2(
         name,
         Shape2(l1.size, l2.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l1[v.second[0]], l2[v.second[1]]),
-            "${name}_${suffix(Pair(v.second[0], l1[v.second[0]]), Pair(v.second[1], l2[v.second[1]]))}"
+            ctor(l1[v[0]], l2[v[1]]),
+            name = "${name}_${suffix(Pair(v[0], l1[v[0]]), Pair(v[1], l2[v[1]]))}"
         )
     }
 }
@@ -219,14 +243,14 @@ fun <T1, T2, T3> map(
     return LinearExpressionSymbols3(
         name,
         Shape3(l1.size, l2.size, l3.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l1[v.second[0]], l2[v.second[1]], l3[v.second[2]]),
-            "${name}_${
+            ctor(l1[v[0]], l2[v[1]], l3[v[2]]),
+            name = "${name}_${
                 suffix(
-                    Pair(v.second[0], l1[v.second[0]]),
-                    Pair(v.second[1], l2[v.second[1]]),
-                    Pair(v.second[2], l3[v.second[2]])
+                    Pair(v[0], l1[v[0]]),
+                    Pair(v[1], l2[v[1]]),
+                    Pair(v[2], l3[v[2]])
                 )
             }"
         )
@@ -247,14 +271,14 @@ fun <T1, T2, T3> flatMap(
     return LinearExpressionSymbols3(
         name,
         Shape3(l1.size, l2.size, l3.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l1[v.second[0]], l2[v.second[1]], l3[v.second[2]]),
-            "${name}_${
+            ctor(l1[v[0]], l2[v[1]], l3[v[2]]),
+            name = "${name}_${
                 suffix(
-                    Pair(v.second[0], l1[v.second[0]]),
-                    Pair(v.second[1], l2[v.second[1]]),
-                    Pair(v.second[2], l3[v.second[2]])
+                    Pair(v[0], l1[v[0]]),
+                    Pair(v[1], l2[v[1]]),
+                    Pair(v[2], l3[v[2]])
                 )
             }"
         )
@@ -278,15 +302,15 @@ fun <T1, T2, T3, T4> map(
     return LinearExpressionSymbols4(
         name,
         Shape4(l1.size, l2.size, l3.size, l4.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l1[v.second[0]], l2[v.second[1]], l3[v.second[2]], l4[v.second[4]]),
-            "${name}_${
+            ctor(l1[v[0]], l2[v[1]], l3[v[2]], l4[v[4]]),
+            name = "${name}_${
                 suffix(
-                    Pair(v.second[0], l1[v.second[0]]),
-                    Pair(v.second[1], l2[v.second[1]]),
-                    Pair(v.second[2], l3[v.second[2]]),
-                    Pair(v.second[3], l4[v.second[3]])
+                    Pair(v[0], l1[v[0]]),
+                    Pair(v[1], l2[v[1]]),
+                    Pair(v[2], l3[v[2]]),
+                    Pair(v[3], l4[v[3]])
                 )
             }"
         )
@@ -310,15 +334,15 @@ fun <T1, T2, T3, T4> flatMap(
     return LinearExpressionSymbols4(
         name,
         Shape4(l1.size, l2.size, l3.size, l4.size)
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(l1[v.second[0]], l2[v.second[1]], l3[v.second[2]], l4[v.second[4]]),
-            "${name}_${
+            ctor(l1[v[0]], l2[v[1]], l3[v[2]], l4[v[4]]),
+            name = "${name}_${
                 suffix(
-                    Pair(v.second[0], l1[v.second[0]]),
-                    Pair(v.second[1], l2[v.second[1]]),
-                    Pair(v.second[2], l3[v.second[2]]),
-                    Pair(v.second[3], l4[v.second[3]])
+                    Pair(v[0], l1[v[0]]),
+                    Pair(v[1], l2[v[1]]),
+                    Pair(v[2], l3[v[2]]),
+                    Pair(v[3], l4[v[3]])
                 )
             }"
         )
@@ -336,10 +360,10 @@ fun map(
     return DynLinearExpressionSymbols(
         name,
         DynShape(ls.map { it.size }.toIntArray())
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(ls.mapIndexed { i, l -> l[v.second[i]] }),
-            "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v.second[i], l[v.second[i]]) })}"
+            ctor(ls.mapIndexed { i, l -> l[v[i]] }),
+            name = "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v[i], l[v[i]]) })}"
         )
     }
 }
@@ -355,10 +379,10 @@ fun flatMap(
     return DynLinearExpressionSymbols(
         name,
         DynShape(ls.map { it.size }.toIntArray())
-    ) { v ->
+    ) { _, v ->
         LinearExpressionSymbol(
-            ctor(ls.mapIndexed { i, l -> l[v.second[i]] }),
-            "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v.second[i], l[v.second[i]]) })}"
+            ctor(ls.mapIndexed { i, l -> l[v[i]] }),
+            name = "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v[i], l[v[i]]) })}"
         )
     }
 }

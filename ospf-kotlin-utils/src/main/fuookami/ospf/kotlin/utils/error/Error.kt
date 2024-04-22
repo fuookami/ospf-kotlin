@@ -44,3 +44,13 @@ open class ExErr<T>(
 ) : Error() {
     constructor(code: ErrorCode, value: T) : this(code, code.toString(), value)
 }
+
+data class ApplicationException(
+    val error: Error
+) : Throwable() {
+    override val message: String by error::message
+
+    override fun toString(): String {
+        return "$error"
+    }
+}

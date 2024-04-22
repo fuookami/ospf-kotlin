@@ -39,7 +39,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     val removedTasks: Set<IT> by compilation::removedTasks
     val lastIterationTasks: List<IT> by compilation::lastIterationTasks
 
-    open fun register(model: LinearMetaModel): Try {
+    open fun register(model: MetaModel): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
 
@@ -54,7 +54,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<List<IT>> {
         val unduplicatedTasks = when (val result = compilation.addColumns(
             iteration = iteration,
@@ -81,7 +81,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         reducedCost: (IT) -> Flt64,
         fixedTasks: Set<IT>,
         keptTasks: Set<IT>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Flt64> {
         for (task in tasks) {
             if (removedTasks.contains(task)) {
@@ -112,21 +112,21 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
     open fun extractFixedTasks(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<IT>> {
         return extractTasks(iteration, model) { it eq Flt64.one }
     }
 
     open fun extractKeptTasks(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<IT>> {
         return extractTasks(iteration, model) { it gr Flt64.zero }
     }
 
     open fun extractHiddenExecutors(
         executors: List<E>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<E>> {
         val z = compilation.z
         val ret = HashSet<E>()
@@ -156,7 +156,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         iteration: UInt64,
         bar: Flt64,
         fixedTasks: Set<IT>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<Set<IT>> {
         var flag = true
         val ret = HashSet<IT>()
@@ -214,7 +214,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
     open fun logResult(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try {
         for (token in model.tokens.tokens) {
             if (token.result!! gr Flt64.zero) {
@@ -231,7 +231,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
     open fun logTaskCost(
         iteration: UInt64,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Try {
         for (token in model.tokens.tokens) {
             if ((token.result!! eq Flt64.one) && token.name.startsWith("x")) {
@@ -284,7 +284,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
     private fun extractTasks(
         iteration: UInt64,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         predicate: (Flt64) -> Boolean
     ): Ret<Set<IT>> {
         val ret = HashSet<IT>()
@@ -337,7 +337,7 @@ open class IterativeTaskCompilationAggregationWithTime<
         IterativeTaskSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
     val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         when (val result = super.register(model)) {
             is Ok -> {}
 
@@ -368,7 +368,7 @@ open class IterativeTaskCompilationAggregationWithTime<
     override suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: LinearMetaModel
+        model: AbstractLinearMetaModel
     ): Ret<List<IT>> {
         val unduplicatedBunches = when (val result = super.addColumns(iteration, newTasks, model)) {
             is Ok -> {

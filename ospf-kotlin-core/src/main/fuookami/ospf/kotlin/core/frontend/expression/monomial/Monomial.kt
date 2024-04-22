@@ -5,20 +5,25 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-sealed interface MonomialCell<Self : MonomialCell<Self, C>, C : Category>
+sealed interface MonomialCell<Self : MonomialCell<Self>>
     : Cloneable, Copyable<Self>, Neg<Self>, Plus<Self, Self>, Minus<Self, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
     companion object {
         @Suppress("UNCHECKED_CAST")
-        operator fun <Cell : MonomialCell<Cell, C>, C : Category> invoke(constant: Flt64, category: C): Cell {
+        operator fun <Cell : MonomialCell<Cell>> invoke(constant: Flt64, category: Category): Cell {
             return when (category) {
                 is Linear -> {
                     LinearMonomialCell(constant) as Cell
                 }
 
+                is Quadratic -> {
+                    QuadraticMonomialCell(constant) as Cell
+                }
+
                 else -> {
-                    throw IllegalArgumentException("Unknown monomial cell type: ${category::class}")
+                    TODO("NOT IMPLEMENT YET")
                 }
             }
         }
@@ -39,7 +44,7 @@ sealed interface MonomialCell<Self : MonomialCell<Self, C>, C : Category>
     fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
 }
 
-sealed interface MonomialSymbol<C : Category> {
+sealed interface MonomialSymbol {
     val name: String
     val displayName: String?
     val category: Category
@@ -50,14 +55,16 @@ sealed interface MonomialSymbol<C : Category> {
 
     fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+    fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
+    fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
 
     fun toRawString(unfold: Boolean = false): String
 }
 
-sealed interface Monomial<Self : Monomial<Self, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
-    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, Cell, C>>, Times<Flt64, Self>, Div<Flt64, Self> {
+sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>>
+    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, Cell>>, Times<Flt64, Self>, Div<Flt64, Self> {
     val coefficient: Flt64
-    val symbol: MonomialSymbol<C>
+    val symbol: MonomialSymbol
     val category: Category get() = symbol.category
     override val discrete: Boolean get() = (coefficient.round() eq coefficient) && symbol.discrete
     val cells: List<Cell>
@@ -97,11 +104,19 @@ sealed interface Monomial<Self : Monomial<Self, Cell, C>, Cell : MonomialCell<Ce
         }
     }
 
-    fun value(tokenTable: AbstractTokenTable<Cell, C>, zeroIfNone: Boolean): Flt64? {
-        return value(tokenTable.tokenList, zeroIfNone)
+    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return symbol.value(tokenList, zeroIfNone)?.let { coefficient * it }
     }
 
-    fun value(results: List<Flt64>, tokenTable: AbstractTokenTable<Cell, C>, zeroIfNone: Boolean): Flt64? {
-        return value(results, tokenTable.tokenList, zeroIfNone)
+    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return symbol.value(results, tokenList, zeroIfNone)?.let { coefficient * it }
+    }
+
+    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return symbol.value(tokenTable, zeroIfNone)?.let { coefficient * it }
+    }
+
+    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return symbol.value(results, tokenTable, zeroIfNone)?.let { coefficient * it }
     }
 }

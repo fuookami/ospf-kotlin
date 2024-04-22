@@ -21,18 +21,30 @@ class ExecutorCompilationConstraint<
     private val compilation: Compilation,
     override val name: String = "executor_compilation"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         for (executor in executors) {
             if (compilation.withExecutorLeisure) {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     compilation.executorCompilation[executor] eq UInt64.one,
                     "${name}_$executor"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             } else {
-                model.addConstraint(
+                when (val result = model.addConstraint(
                     compilation.executorCompilation[executor] leq UInt64.one,
                     "${name}_$executor"
-                )
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -64,7 +76,7 @@ class ExecutorCompilationConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: LinearMetaModel,
+        model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
         val indices = model.indicesOfConstraintGroup(name) ?: model.constraints.indices

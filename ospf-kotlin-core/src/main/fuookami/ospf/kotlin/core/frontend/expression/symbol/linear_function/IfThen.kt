@@ -42,9 +42,9 @@ class IfThen(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol<*, *>>
+    override val dependencies: Set<Symbol>
         get() {
-            val dependencies = HashSet<Symbol<*, *>>()
+            val dependencies = HashSet<Symbol>()
             dependencies.addAll(p.lhs.dependencies)
             dependencies.addAll(p.rhs.dependencies)
             dependencies.addAll(q.lhs.dependencies)
@@ -72,7 +72,7 @@ class IfThen(
         }
     }
 
-    override suspend fun prepare() {
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
         p.lhs.cells
         p.rhs.cells
         q.lhs.cells
@@ -83,7 +83,7 @@ class IfThen(
         return displayName ?: name
     }
 
-    override fun register(tokenTable: MutableTokenTable<LinearMonomialCell, Linear>): Try {
+    override fun register(tokenTable: MutableTokenTable): Try {
         if (!::pu.isInitialized) {
             pu = BinVar(p.name.ifEmpty { "${name}_pu" })
         }
@@ -130,7 +130,7 @@ class IfThen(
         return ok
     }
 
-    override fun register(model: AbstractLinearModel): Try {
+    override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = p.register(name, pu, model)) {
             is Ok -> {}
 
@@ -148,15 +148,27 @@ class IfThen(
         }
 
         if (constraint) {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 pu leq qu,
                 "${name}_u"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         } else {
-            model.addConstraint(
+            when (val result = model.addConstraint(
                 pu leq qu + (Flt64.one - y),
                 "${name}_u"
-            )
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok
@@ -179,6 +191,26 @@ class IfThen(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val pv = p.isTrue(results, tokenList, zeroIfNone) ?: return null
         val qv = q.isTrue(results, tokenList, zeroIfNone) ?: return null
+        return if (UInt8(qv) geq UInt8(pv)) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val pv = p.isTrue(tokenTable, zeroIfNone) ?: return null
+        val qv = q.isTrue(tokenTable, zeroIfNone) ?: return null
+        return if (UInt8(qv) geq UInt8(pv)) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        val pv = p.isTrue(results, tokenTable, zeroIfNone) ?: return null
+        val qv = q.isTrue(results, tokenTable, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {

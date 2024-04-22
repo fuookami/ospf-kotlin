@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -7,12 +8,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-
-private typealias QuadraticExprSymbol = Symbol<QuadraticMonomialCell, Quadratic>
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 data class QuadraticMonomialCell internal constructor(
     val cell: Either<QuadraticCellTriple, Flt64>
-) : MonomialCell<QuadraticMonomialCell, Quadratic> {
+) : MonomialCell<QuadraticMonomialCell> {
+    private val logger = logger()
+
     data class QuadraticCellTriple(
         val coefficient: Flt64,
         val variable1: AbstractVariableItem<*, *>,
@@ -44,7 +46,7 @@ data class QuadraticMonomialCell internal constructor(
             if (variable1 != rhs.variable1 || variable2 != rhs.variable2) {
                 throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.minus: not same variable.")
             }
-            return QuadraticCellTriple(coefficient + rhs.coefficient, variable1, variable2)
+            return QuadraticCellTriple(coefficient - rhs.coefficient, variable1, variable2)
         }
 
         operator fun times(rhs: Flt64) = QuadraticCellTriple(coefficient * rhs, variable1, variable2)
@@ -330,11 +332,67 @@ data class QuadraticMonomialCell internal constructor(
         return when (cell) {
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
-                    tokenList.find(cell.value.variable1)?.result?.let { cell.value.coefficient * it }
+                    val token = tokenList.find(cell.value.variable1)
+                    if (token != null) {
+                        val result = token.result
+                        if (result != null) {
+                            cell.value.coefficient * result
+                        } else {
+                            logger.trace { "Unknown result for ${cell.value.variable1}." }
+                            if (zeroIfNone) {
+                                Flt64.zero
+                            } else {
+                                null
+                            }
+                        }
+                    } else {
+                        logger.trace { "Unknown token for ${cell.value.variable1}." }
+                        if (zeroIfNone) {
+                            Flt64.zero
+                        } else {
+                            null
+                        }
+                    }
                 } else {
-                    tokenList.find(cell.value.variable1)?.result?.let { result1 ->
-                        tokenList.find(cell.value.variable2!!)?.result?.let { result2 ->
-                            cell.value.coefficient * result1 * result2
+                    val token1 = tokenList.find(cell.value.variable1)
+                    if (token1 != null) {
+                        val token2 = tokenList.find(cell.value.variable2!!)
+                        if (token2 != null) {
+                            val result1 = token1.result
+                            if (result1 != null) {
+                                val result2 = token2.result
+                                if (result2 != null) {
+                                    cell.value.coefficient * result1 * result2
+                                } else {
+                                    logger.trace { "Unknown result for ${cell.value.variable1}." }
+                                    if (zeroIfNone) {
+                                        Flt64.zero
+                                    } else {
+                                        null
+                                    }
+                                }
+                            } else {
+                                logger.trace { "Unknown result for ${cell.value.variable1}." }
+                                if (zeroIfNone) {
+                                    Flt64.zero
+                                } else {
+                                    null
+                                }
+                            }
+                        } else {
+                            logger.trace { "Unknown token for ${cell.value.variable1}." }
+                            if (zeroIfNone) {
+                                Flt64.zero
+                            } else {
+                                null
+                            }
+                        }
+                    } else {
+                        logger.trace { "Unknown token for ${cell.value.variable1}." }
+                        if (zeroIfNone) {
+                            Flt64.zero
+                        } else {
+                            null
                         }
                     }
                 }
@@ -353,12 +411,38 @@ data class QuadraticMonomialCell internal constructor(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
-                if (cell.value.variable1 == null) {
-                    tokenList.indexOf(cell.value.variable1)?.let { cell.value.coefficient * results[it] }
+                if (cell.value.variable2 == null) {
+                    val index = tokenList.indexOf(cell.value.variable1)
+                    if (index != null) {
+                        results[index]
+                    } else {
+                        logger.trace { "Unknown index for ${cell.value.variable1}." }
+                        if (zeroIfNone) {
+                            Flt64.zero
+                        } else {
+                            null
+                        }
+                    }
                 } else {
-                    tokenList.indexOf(cell.value.variable1)?.let { token1 ->
-                        tokenList.indexOf(cell.value.variable2!!)?.let { token2 ->
-                            cell.value.coefficient * results[token1] * results[token2]
+                    val index = tokenList.indexOf(cell.value.variable1)
+                    if (index != null) {
+                        val index2 = tokenList.indexOf(cell.value.variable2!!)
+                        if (index2 != null) {
+                            results[index] * results[index2]
+                        } else {
+                            logger.trace { "Unknown index for ${cell.value.variable2}." }
+                            if (zeroIfNone) {
+                                Flt64.zero
+                            } else {
+                                null
+                            }
+                        }
+                    } else {
+                        logger.trace { "Unknown index for ${cell.value.variable1}." }
+                        if (zeroIfNone) {
+                            Flt64.zero
+                        } else {
+                            null
                         }
                     }
                 }
@@ -380,22 +464,22 @@ typealias QuadraticMonomialSymbolUnit = Variant3<AbstractVariableItem<*, *>, Lin
 data class QuadraticMonomialSymbol(
     val symbol1: QuadraticMonomialSymbolUnit,
     val symbol2: QuadraticMonomialSymbolUnit? = null
-) : MonomialSymbol<Quadratic>, Eq<QuadraticMonomialSymbol> {
+) : MonomialSymbol, Eq<QuadraticMonomialSymbol> {
     init {
         assert(symbol2 == null || (symbol1.category == Linear && symbol2.category == Linear))
     }
 
     companion object {
+        private val logger = logger()
+
         operator fun invoke(variable: AbstractVariableItem<*, *>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V1(variable))
         }
 
-        @JvmName("constructByLinearSymbol")
         operator fun invoke(symbol: LinearSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V2(symbol))
         }
 
-        @JvmName("constructByQuadraticSymbol")
         operator fun invoke(symbol: QuadraticSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V3(symbol))
         }
@@ -406,35 +490,30 @@ data class QuadraticMonomialSymbol(
             )
         }
 
-        @JvmName("constructByVariableAndLinearSymbol")
         operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V1(variable), Variant3.V2(symbol)
             )
         }
 
-        @JvmName("constructByVariableAndQuadraticSymbol")
         operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V1(variable), Variant3.V3(symbol)
             )
         }
 
-        @JvmName("constructByLinearSymbolAndLinearSymbol")
         operator fun invoke(symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V2(symbol1), Variant3.V2(symbol2)
             )
         }
 
-        @JvmName("constructByLinearSymbolAndQuadraticSymbol")
         operator fun invoke(symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V2(symbol1), Variant3.V3(symbol2)
             )
         }
 
-        @JvmName("constructByQuadraticSymbolAndQuadraticSymbol")
         operator fun invoke(symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V3(symbol1), Variant3.V3(symbol2)
@@ -613,7 +692,7 @@ data class QuadraticMonomialSymbol(
 
                 is Variant3.V2 -> {
                     when (val exprSymbol = this.value) {
-                        is ExpressionSymbol<*, *, *, *> -> {
+                        is ExpressionSymbol -> {
                             "(${exprSymbol.toRawString(unfold)})"
                         }
 
@@ -625,7 +704,7 @@ data class QuadraticMonomialSymbol(
 
                 is Variant3.V3 -> {
                     when (val exprSymbol = this.value) {
-                        is ExpressionSymbol<*, *, *, *> -> {
+                        is ExpressionSymbol -> {
                             "(${exprSymbol.toRawString(unfold)})"
                         }
 
@@ -640,12 +719,27 @@ data class QuadraticMonomialSymbol(
         fun QuadraticMonomialSymbolUnit.value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
             return when (this) {
                 is Variant3.V1 -> {
-                    tokenList.find(this.value)?.result
-                        ?: if (zeroIfNone) {
+                    val token = tokenList.find(this.value)
+                    if (token != null) {
+                        val result = token.result
+                        if (result != null) {
+                            result
+                        } else {
+                            logger.trace { "Unknown result for ${this.value}." }
+                            if (zeroIfNone) {
+                                Flt64.zero
+                            } else {
+                                null
+                            }
+                        }
+                    } else {
+                        logger.trace { "Unknown token for ${this.value}." }
+                        if (zeroIfNone) {
                             Flt64.zero
                         } else {
                             null
                         }
+                    }
                 }
 
                 is Variant3.V2 -> {
@@ -661,12 +755,17 @@ data class QuadraticMonomialSymbol(
         fun QuadraticMonomialSymbolUnit.value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
             return when (this) {
                 is Variant3.V1 -> {
-                    tokenList.indexOf(this.value)?.let { results[it] }
-                        ?: if (zeroIfNone) {
+                    val index = tokenList.indexOf(this.value)
+                    if (index != null) {
+                        results[index]
+                    } else {
+                        logger.trace { "Unknown token for ${this.value}." }
+                        if (zeroIfNone) {
                             Flt64.zero
                         } else {
                             null
                         }
+                    }
                 }
 
                 is Variant3.V2 -> {
@@ -675,6 +774,38 @@ data class QuadraticMonomialSymbol(
 
                 is Variant3.V3 -> {
                     this.value.value(results, tokenList, zeroIfNone)
+                }
+            }
+        }
+
+        fun QuadraticMonomialSymbolUnit.value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+            return when (this) {
+                is Variant3.V1 -> {
+                    value(tokenTable.tokenList, zeroIfNone)
+                }
+
+                is Variant3.V2 -> {
+                    this.value.value(tokenTable, zeroIfNone)
+                }
+
+                is Variant3.V3 -> {
+                    this.value.value(tokenTable, zeroIfNone)
+                }
+            }
+        }
+
+        fun QuadraticMonomialSymbolUnit.value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+            return when (this) {
+                is Variant3.V1 -> {
+                    value(results, tokenTable.tokenList, zeroIfNone)
+                }
+
+                is Variant3.V2 -> {
+                    this.value.value(results, tokenTable, zeroIfNone)
+                }
+
+                is Variant3.V3 -> {
+                    this.value.value(results, tokenTable, zeroIfNone)
                 }
             }
         }
@@ -806,6 +937,30 @@ data class QuadraticMonomialSymbol(
             }
         }
     }
+
+    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return if (symbol2 == null) {
+            symbol1.value(tokenTable, zeroIfNone)
+        } else {
+            symbol1.value(tokenTable, zeroIfNone)?.let { value1 ->
+                symbol2.value(tokenTable, zeroIfNone)?.let { value2 ->
+                    value1 * value2
+                }
+            }
+        }
+    }
+
+    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return if (symbol2 == null) {
+            symbol1.value(results, tokenTable, zeroIfNone)
+        } else {
+            symbol1.value(results, tokenTable, zeroIfNone)?.let { value1 ->
+                symbol2.value(results, tokenTable, zeroIfNone)?.let { value2 ->
+                    value1 * value2
+                }
+            }
+        }
+    }
 }
 
 class QuadraticMonomial(
@@ -813,7 +968,7 @@ class QuadraticMonomial(
     override val symbol: QuadraticMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<QuadraticMonomial, QuadraticMonomialCell, Quadratic> {
+) : Monomial<QuadraticMonomial, QuadraticMonomialCell> {
     companion object {
         operator fun invoke(item: AbstractVariableItem<*, *>): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item))
@@ -847,142 +1002,114 @@ class QuadraticMonomial(
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item1, item2))
         }
 
-        @JvmName("constructByVariableAndLinearSymbol")
         operator fun invoke(item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByIntVariableAndLinearSymbol")
         operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByDoubleVariableAndLinearSymbol")
         operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByFlt64VariableAndLinearSymbol")
         operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByVariableAndQuadraticSymbol")
         operator fun invoke(item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByIntVariableAndQuadraticSymbol")
         operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByDoubleVariableAndQuadraticSymbol")
         operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByFlt64VariableAndQuadraticSymbol")
         operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item, symbol))
         }
 
-        @JvmName("constructByLinearSymbol")
         operator fun invoke(symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByIntLinearSymbol")
         operator fun invoke(coefficient: Int, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByDoubleLinearSymbol")
         operator fun invoke(coefficient: Double, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByFlt64LinearSymbol")
         operator fun invoke(coefficient: Flt64, symbol: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByLinearSymbolAndLinearSymbol")
         operator fun invoke(symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByIntLinearSymbolAndLinearSymbol")
         operator fun invoke(coefficient: Int, symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByDoubleLinearSymbolAndLinearSymbol")
         operator fun invoke(coefficient: Double, symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByFlt64LinearSymbolAndLinearSymbol")
         operator fun invoke(coefficient: Flt64, symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByLinearSymbolAndQuadraticSymbol")
         operator fun invoke(symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByIntLinearSymbolAndQuadraticSymbol")
         operator fun invoke(coefficient: Int, symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByDoubleLinearSymbolAndQuadraticSymbol")
         operator fun invoke(coefficient: Double, symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByFlt64LinearSymbolAndQuadraticSymbol")
         operator fun invoke(coefficient: Flt64, symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByQuadraticSymbol")
         operator fun invoke(symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByIntQuadraticSymbol")
         operator fun invoke(coefficient: Int, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByDoubleQuadraticSymbol")
         operator fun invoke(coefficient: Double, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByFlt64QuadraticSymbol")
         operator fun invoke(coefficient: Flt64, symbol: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol))
         }
 
-        @JvmName("constructByQuadraticSymbolAndQuadraticSymbol")
         operator fun invoke(symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByIntQuadraticSymbolAndQuadraticSymbol")
         operator fun invoke(coefficient: Int, symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByDoubleQuadraticSymbolAndQuadraticSymbol")
         operator fun invoke(coefficient: Double, symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        @JvmName("constructByFlt64QuadraticSymbolAndQuadraticSymbol")
         operator fun invoke(coefficient: Flt64, symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
         }
@@ -1067,7 +1194,6 @@ class QuadraticMonomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    @JvmName("timesLinearSymbol")
     operator fun times(rhs: LinearSymbol): QuadraticMonomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1090,7 +1216,6 @@ class QuadraticMonomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    @JvmName("timesQuadraticSymbol")
     operator fun times(rhs: QuadraticSymbol): QuadraticMonomial {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1230,14 +1355,6 @@ class QuadraticMonomial(
             }
         }
     }
-
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return symbol.value(tokenList, zeroIfNone)?.let { coefficient * it }
-    }
-
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return symbol.value(results, tokenList, zeroIfNone)?.let { coefficient * it }
-    }
 }
 
 // symbol and constant
@@ -1262,7 +1379,7 @@ operator fun Double.times(rhs: QuadraticSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-operator fun <T: RealNumber<T>> T.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun <T : RealNumber<T>> T.times(rhs: QuadraticSymbol): QuadraticMonomial {
     return QuadraticMonomial(this.toFlt64(), rhs)
 }
 
@@ -1274,7 +1391,7 @@ operator fun QuadraticSymbol.div(rhs: Double): QuadraticMonomial {
     return this.div(Flt64(rhs))
 }
 
-operator fun <T: RealNumber<T>> QuadraticSymbol.div(rhs: T): QuadraticMonomial {
+operator fun <T : RealNumber<T>> QuadraticSymbol.div(rhs: T): QuadraticMonomial {
     return QuadraticMonomial(rhs.toFlt64().reciprocal(), this)
 }
 
@@ -1288,7 +1405,7 @@ operator fun Double.times(rhs: QuadraticMonomial): QuadraticMonomial {
     return QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
 }
 
-operator fun <T: RealNumber<T>> T.times(rhs: QuadraticMonomial): QuadraticMonomial {
+operator fun <T : RealNumber<T>> T.times(rhs: QuadraticMonomial): QuadraticMonomial {
     return QuadraticMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
 }
 
@@ -1300,22 +1417,18 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractVariableItem<*, *>): 
 
 // symbol and variable
 
-@JvmName("variableTimesLinearSymbol")
 operator fun AbstractVariableItem<*, *>.times(rhs: LinearSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-@JvmName("linearSymbolTimesVariable")
 operator fun LinearSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
 
-@JvmName("variableTimesQuadraticSymbol")
 operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-@JvmName("quadraticSymbolTimesVariable")
 operator fun QuadraticSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
@@ -1370,12 +1483,10 @@ operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticMonomial): Quadratic
 
 // symbol and symbol
 
-@JvmName("linearSymbolTimesLinearSymbol")
 operator fun LinearSymbol.times(rhs: LinearSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-@JvmName("linearSymbolTimesQuadraticSymbol")
 @Throws(IllegalArgumentException::class)
 operator fun LinearSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
     if (rhs.category == Quadratic) {
@@ -1385,7 +1496,6 @@ operator fun LinearSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-@JvmName("quadraticSymbolTimesQuadraticSymbol")
 @Throws(IllegalArgumentException::class)
 operator fun QuadraticSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
@@ -1397,7 +1507,6 @@ operator fun QuadraticSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
 
 // monomial and symbol
 
-@JvmName("linearSymbolTimesLinearMonomial")
 operator fun LinearSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     return when (val symbol = rhs.symbol.symbol) {
         is Either.Left -> {
@@ -1410,7 +1519,6 @@ operator fun LinearSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     }
 }
 
-@JvmName("linearMonomialTimesLinearSymbol")
 operator fun LinearMonomial.times(rhs: LinearSymbol): QuadraticMonomial {
     return when (val symbol = this.symbol.symbol) {
         is Either.Left -> {
@@ -1424,7 +1532,6 @@ operator fun LinearMonomial.times(rhs: LinearSymbol): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
-@JvmName("linearMonomialTimesQuadraticSymbol")
 operator fun LinearMonomial.times(rhs: QuadraticSymbol): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of LinearMonomial.times: over quadratic.")
@@ -1441,7 +1548,6 @@ operator fun LinearMonomial.times(rhs: QuadraticSymbol): QuadraticMonomial {
     }
 }
 
-@JvmName("quadraticSymbolTimesLinearMonomial")
 @Throws(IllegalArgumentException::class)
 operator fun QuadraticSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     if (this.category == Quadratic) {
@@ -1459,7 +1565,6 @@ operator fun QuadraticSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     }
 }
 
-@JvmName("linearSymbolTimesQuadraticMonomial")
 @Throws(IllegalArgumentException::class)
 operator fun LinearSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (rhs.category == Quadratic) {
@@ -1482,7 +1587,6 @@ operator fun LinearSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     }
 }
 
-@JvmName("quadraticSymbolTimesQuadraticMonomial")
 @Throws(IllegalArgumentException::class)
 operator fun QuadraticSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {

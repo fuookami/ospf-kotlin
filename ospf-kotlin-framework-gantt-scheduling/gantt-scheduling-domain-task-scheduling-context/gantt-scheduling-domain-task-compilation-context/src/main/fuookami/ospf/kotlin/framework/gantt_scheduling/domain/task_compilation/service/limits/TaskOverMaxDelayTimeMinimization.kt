@@ -31,7 +31,7 @@ class TaskOverMaxDelayTimeMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (taskTime.overMaxDelayEnabled) {
             val cost = MutableLinearPolynomial()
             for (task in tasks) {
@@ -51,11 +51,26 @@ class TaskOverMaxDelayTimeMinimization<
                         threshold = LinearPolynomial(thisThreshold),
                         name = "over_max_delay_time_threshold_$task"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     cost += thisCoefficient * slack
                 }
             }
-            model.minimize(cost, "task over max delay time")
+            when (val result = model.minimize(
+                cost,
+                "task over max delay time"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

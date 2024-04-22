@@ -10,14 +10,14 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
+sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
     : Expression, Copyable<Self>, Neg<Self>,
     Plus<Flt64, Self>, Minus<Flt64, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
     val category: Category
     val monomials: List<M>
     val constant: Flt64
     override val discrete: Boolean get() = monomials.all { it.discrete } && constant.round() eq constant
-    val dependencies: Set<Symbol<*, *>>
+    val dependencies: Set<Symbol>
     val cells: List<Cell>
     val cached: Boolean
 
@@ -34,13 +34,8 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusVariables")
     operator fun plus(rhs: Iterable<AbstractVariableItem<*, *>>): Self
-    operator fun plus(rhs: Symbol<Cell, C>): Self
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("plusSymbols")
-    operator fun plus(rhs: Iterable<Symbol<Cell, C>>): Self
     operator fun plus(rhs: M): Self
-    operator fun plus(rhs: Polynomial<*, M, Cell, C>): Self
+    operator fun plus(rhs: Polynomial<*, M, Cell>): Self
 
     operator fun <T : RealNumber<T>> minus(rhs: T): Self {
         return this.minus(rhs.toFlt64())
@@ -51,13 +46,8 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusVariables")
     operator fun minus(rhs: Iterable<AbstractVariableItem<*, *>>): Self
-    operator fun minus(rhs: Symbol<Cell, C>): Self
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("minusSymbols")
-    operator fun minus(rhs: Iterable<Symbol<Cell, C>>): Self
     operator fun minus(rhs: M): Self
-    operator fun minus(rhs: Polynomial<*, M, Cell, C>): Self
+    operator fun minus(rhs: Polynomial<*, M, Cell>): Self
 
     operator fun <T : RealNumber<T>> times(rhs: T): Self {
         return this.times(rhs.toFlt64())
@@ -67,8 +57,8 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
         return this.div(rhs.toFlt64())
     }
 
-    fun toMutable(): MutablePolynomial<*, M, Cell, C>
-    fun asMutable(): MutablePolynomial<*, M, Cell, C>? {
+    fun toMutable(): MutablePolynomial<*, M, Cell>
+    fun asMutable(): MutablePolynomial<*, M, Cell>? {
         return null
     }
 
@@ -97,10 +87,6 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
         return ret
     }
 
-    fun value(tokenTable: AbstractTokenTable<Cell, C>, zeroIfNone: Boolean = false): Flt64? {
-        return value(tokenTable.tokenList, zeroIfNone)
-    }
-
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
@@ -111,13 +97,29 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell, C>, M : Monomial<M,
         return ret
     }
 
-    fun value(results: List<Flt64>, tokenTable: AbstractTokenTable<Cell, C>, zeroIfNone: Boolean = false): Flt64? {
-        return value(results, tokenTable.tokenList, zeroIfNone)
+    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var ret = constant
+        for (monomial in monomials) {
+            val thisValue = monomial.value(tokenTable, zeroIfNone)
+                ?: return null
+            ret += thisValue
+        }
+        return ret
+    }
+
+    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        var ret = constant
+        for (monomial in monomials) {
+            val thisValue = monomial.value(results, tokenTable, zeroIfNone)
+                ?: return null
+            ret += thisValue
+        }
+        return ret
     }
 }
 
-sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M : Monomial<M, Cell, C>, Cell : MonomialCell<Cell, C>, C : Category>
-    : Polynomial<Self, M, Cell, C>, PlusAssign<Flt64>, MinusAssign<Flt64>, TimesAssign<Flt64>, DivAssign<Flt64> {
+sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
+    : Polynomial<Self, M, Cell>, PlusAssign<Flt64>, MinusAssign<Flt64>, TimesAssign<Flt64>, DivAssign<Flt64> {
     operator fun plusAssign(rhs: Int) {
         this.plusAssign(Flt64(rhs))
     }
@@ -135,13 +137,8 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignVariables")
     operator fun plusAssign(rhs: Iterable<AbstractVariableItem<*, *>>)
-    operator fun plusAssign(rhs: Symbol<Cell, C>)
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("plusAssignSymbols")
-    operator fun plusAssign(rhs: Iterable<Symbol<Cell, C>>)
     operator fun plusAssign(rhs: M)
-    operator fun plusAssign(rhs: Polynomial<*, M, Cell, C>)
+    operator fun plusAssign(rhs: Polynomial<*, M, Cell>)
 
     operator fun minusAssign(rhs: Int) {
         this.minusAssign(Flt64(rhs))
@@ -160,13 +157,8 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignVariables")
     operator fun minusAssign(rhs: Iterable<AbstractVariableItem<*, *>>)
-    operator fun minusAssign(rhs: Symbol<Cell, C>)
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("minusAssignSymbols")
-    operator fun minusAssign(rhs: Iterable<Symbol<Cell, C>>)
     operator fun minusAssign(rhs: M)
-    operator fun minusAssign(rhs: Polynomial<*, M, Cell, C>)
+    operator fun minusAssign(rhs: Polynomial<*, M, Cell>)
 
     operator fun timesAssign(rhs: Int) {
         this.timesAssign(Flt64(rhs))
@@ -194,7 +186,7 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell, C>, M
 }
 
 internal fun possibleRange(
-    monomials: List<Monomial<*, *, *>>,
+    monomials: List<Monomial<*, *>>,
     constant: Flt64
 ): ValueRange<Flt64> {
     return if (monomials.isEmpty()) {
@@ -212,31 +204,4 @@ internal fun possibleRange(
         ret += constant
         ret
     }
-}
-
-internal fun <Cell : MonomialCell<Cell, C>, C : Category> cells(
-    monomials: List<Monomial<*, Cell, C>>,
-    constant: Flt64,
-    ctor: Extractor<Cell, Flt64>
-): List<Cell> {
-    val cells = ArrayList<Cell>()
-    var totalConstant = constant
-    for (monomial in monomials) {
-        val thisCells = monomial.cells
-        for (cell in thisCells) {
-            if (cell.isConstant) {
-                totalConstant += cell.constant!!
-            } else {
-                var sameCell = cells.find { it == cell }
-                if (sameCell != null) {
-                    sameCell += cell
-                } else {
-                    cells.add(cell.copy())
-                }
-            }
-        }
-    }
-    cells.sortBy { it.hashCode() }
-    cells.add(ctor(totalConstant))
-    return cells
 }

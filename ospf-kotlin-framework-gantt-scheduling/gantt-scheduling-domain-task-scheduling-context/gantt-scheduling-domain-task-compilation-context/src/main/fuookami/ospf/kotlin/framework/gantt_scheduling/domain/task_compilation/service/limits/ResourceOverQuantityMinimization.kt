@@ -29,7 +29,7 @@ class ResourceOverQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         if (slots.isNotEmpty()) {
             val cost = MutableLinearPolynomial()
             for (slot in slots) {
@@ -44,11 +44,23 @@ class ResourceOverQuantityMinimization<
                         threshold = LinearPolynomial(thresholdValue),
                         name = "${quantity.name}_${slot}_over_quantity_threshold"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     cost += thisCoefficient * slack
                 }
             }
-            model.minimize(cost, "${quantity.name} over quantity")
+            when (val result = model.minimize(cost, "${quantity.name} over quantity")) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         return ok

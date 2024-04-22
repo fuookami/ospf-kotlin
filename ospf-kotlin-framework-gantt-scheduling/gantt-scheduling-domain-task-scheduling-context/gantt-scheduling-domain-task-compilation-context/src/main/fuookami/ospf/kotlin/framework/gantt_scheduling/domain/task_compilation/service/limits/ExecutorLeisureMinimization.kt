@@ -18,13 +18,22 @@ class ExecutorLeisureMinimization<
     private val executorLeisureCostCalculator: Extractor<Flt64?, E>? = null,
     override val name: String = "executor_leisure_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: LinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel): Try {
         if (compilation.withExecutorLeisure) {
             executorLeisureCostCalculator?.let {
-                model.minimize(sum(executors.map { e ->
-                    val penalty = it(e) ?: Flt64.infinity
-                    penalty * compilation.z[e]
-                }), "executor leisure")
+                when (val result = model.minimize(
+                    sum(executors.map { e ->
+                        val penalty = it(e) ?: Flt64.infinity
+                        penalty * compilation.z[e]
+                    }),
+                    "executor leisure"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 

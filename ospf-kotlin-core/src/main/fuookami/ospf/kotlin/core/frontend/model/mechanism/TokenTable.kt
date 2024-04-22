@@ -1,28 +1,31 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import java.util.*
+import java.util.concurrent.*
 import kotlin.collections.*
+import kotlinx.coroutines.*
 import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 class RepeatedSymbolError(
-    val repeatedSymbol: Symbol<*, *>,
-    val symbol: Symbol<*, *>
+    val repeatedSymbol: Symbol,
+    val symbol: Symbol
 ) : Throwable() {
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
 }
 
-sealed interface AbstractTokenTable<Cell : MonomialCell<Cell, C>, C : Category> {
+sealed interface AbstractTokenTable {
+    val category: Category
     val tokenList: AbstractTokenList
     val tokens: Collection<Token> get() = tokenList.tokens
     val tokenIndexMap: BiMap<Token, Int> get() = tokenList.tokenIndexMap
-    val symbols: Collection<Symbol<Cell, C>>
+    val symbols: Collection<Symbol>
 
     fun find(item: AbstractVariableItem<*, *>): Token? {
         return tokenList.find(item)
@@ -32,37 +35,65 @@ sealed interface AbstractTokenTable<Cell : MonomialCell<Cell, C>, C : Category> 
         return tokenList.find(index)
     }
 
+    operator fun get(index: Int): Token {
+        return tokenIndexMap.inverse[index] ?: tokenList.tokens.find { it.solverIndex == index }!!
+    }
+
+    fun indexOf(token: Token): Int {
+        return tokenIndexMap[token] ?: token.solverIndex
+    }
+
+    fun indexOf(item: AbstractVariableItem<*, *>): Int? {
+        return find(item)?.let { indexOf(it) }
+    }
+
     fun setSolution(solution: List<Flt64>) {
+        flush()
         tokenList.setSolution(solution)
     }
 
     fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        flush()
         tokenList.setSolution(solution)
     }
 
+    fun flush() {}
+
     fun clearSolution() {
+        flush()
         tokenList.clearSolution()
     }
 }
 
-data class TokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
+data class TokenTable(
+    override val category: Category,
     override val tokenList: TokenList,
-    override val symbols: List<Symbol<Cell, C>>
-) : AbstractTokenTable<Cell, C> {
-    constructor(tokenTable: MutableTokenTable<Cell, C>) : this(
+    override val symbols: List<Symbol>
+) : AbstractTokenTable {
+    constructor(tokenTable: MutableTokenTable) : this(
+        category = tokenTable.category,
         tokenList = TokenList(tokenTable.tokenList),
         symbols = tokenTable.symbols.toList()
     )
 
     override val tokens by tokenList::tokens
+
+    internal val cachedSymbolValue: MutableMap<Pair<Symbol, List<Flt64>?>, Flt64?> = ConcurrentHashMap()
+
+    override fun flush() {
+        cachedSymbolValue.clear()
+    }
 }
 
-sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
+sealed class MutableTokenTable(
+    override val category: Category,
     override val tokenList: MutableTokenList,
-    protected val _symbols: MutableList<Symbol<Cell, C>> = ArrayList()
-) : Copyable<MutableTokenTable<Cell, C>>, AbstractTokenTable<Cell, C> {
-    private val _symbolsMap: MutableMap<String, Symbol<Cell, C>> = _symbols.associateBy { it.name }.toMutableMap()
+    protected val _symbols: MutableList<Symbol> = ArrayList()
+) : Copyable<MutableTokenTable>, AbstractTokenTable {
+    private val _symbolsMap: MutableMap<String, Symbol> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
+
+    internal val cachedSymbolValue: MutableMap<Pair<Symbol, List<Flt64>?>, Flt64?> = ConcurrentHashMap()
 
     fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
@@ -77,7 +108,11 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
         return tokenList.remove(item)
     }
 
-    fun add(symbol: Symbol<Cell, C>): Try {
+    fun add(symbol: Symbol): Try {
+        if ((symbol.operationCategory ord category) is Order.Greater) {
+            return Failed(Err(ErrorCode.ApplicationError, "${symbol.name} over $category"))
+        }
+
         if (_symbolsMap.containsKey(symbol.name)) {
             return Failed(
                 ExErr(
@@ -93,7 +128,7 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
     }
 
     @JvmName("addSymbols")
-    fun add(symbols: Iterable<Symbol<Cell, C>>): Try {
+    fun add(symbols: Iterable<Symbol>): Try {
         for (symbol in symbols) {
             when (val result = add(symbol)) {
                 is Ok -> {}
@@ -106,50 +141,130 @@ sealed class MutableTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
         return ok
     }
 
-    fun remove(symbol: Symbol<Cell, C>) {
+    fun remove(symbol: Symbol) {
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
     }
+
+    override fun flush() {
+        cachedSymbolValue.clear()
+    }
 }
 
-typealias LinearAbstractTokenTable = AbstractTokenTable<LinearMonomialCell, Linear>
-typealias LinearTokenTable = TokenTable<LinearMonomialCell, Linear>
-typealias LinearMutableTokenTable = MutableTokenTable<LinearMonomialCell, Linear>
+suspend fun Collection<Symbol>.register(tokenTable: MutableTokenTable): Try {
+    return coroutineScope {
+        val completedSymbols = HashSet<Symbol>()
+        var dependencies = this@register.associateWith { it.dependencies.toMutableSet() }.toMap()
+        var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
+        dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
+        while (readySymbols.isNotEmpty()) {
+            for (symbol in readySymbols) {
+                when (val result = (symbol as? FunctionSymbol)?.register(tokenTable)) {
+                    null -> {}
 
-typealias QuadraticAbstractTokenTable = AbstractTokenTable<QuadraticMonomialCell, Quadratic>
-typealias QuadraticTokenTable = TokenTable<QuadraticMonomialCell, Quadratic>
-typealias QuadraticMutableTokenTable = MutableTokenTable<QuadraticMonomialCell, Quadratic>
+                    is Ok -> {}
 
-class AutoAddTokenTable<Cell : MonomialCell<Cell, C>, C : Category> private constructor(
+                    is Failed -> {
+                        return@coroutineScope Failed(result.error)
+                    }
+                }
+            }
+
+            val jobs = readySymbols.map {
+                launch {
+                    it.prepare(tokenTable)
+                }
+            }
+
+            completedSymbols.addAll(readySymbols.flatMap {
+                when (it) {
+                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction<*> -> {
+                        listOfNotNull(it, it.pos, it.neg, it.polyX)
+                    }
+
+                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackRangeFunction<*> -> {
+                        listOfNotNull(it, it.pos, it.neg, it.polyX)
+                    }
+
+                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function.AbstractSlackFunction<*> -> {
+                        listOfNotNull(it, it.pos, it.neg, it.polyX)
+                    }
+
+                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function.AbstractSlackRangeFunction<*> -> {
+                        listOfNotNull(it, it.pos, it.neg, it.polyX)
+                    }
+
+                    else -> {
+                        listOf(it)
+                    }
+                }
+            })
+            val newReadySymbols = dependencies.filter {
+                !completedSymbols.contains(it.key) && it.value.all { dependency ->
+                    completedSymbols.contains(
+                        dependency
+                    )
+                }
+            }.keys.toSet()
+            dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
+            for ((_, dependency) in dependencies) {
+                dependency.removeAll(readySymbols)
+            }
+            readySymbols = newReadySymbols
+        }
+
+        ok
+    }
+}
+
+class AutoAddTokenTable private constructor(
+    category: Category,
     tokenList: MutableTokenList,
-    symbols: List<Symbol<Cell, C>>
-) : MutableTokenTable<Cell, C>(tokenList, symbols.toMutableList()) {
-    constructor() : this(
+    symbols: List<Symbol>
+) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
+    companion object {
+        operator fun invoke(tokenTable: AbstractTokenTable): MutableTokenTable {
+            return AutoAddTokenTable(
+                category = tokenTable.category,
+                tokenList = AutoAddTokenTokenList(tokenTable.tokenList),
+                symbols = tokenTable.symbols.toMutableList()
+            )
+        }
+    }
+
+    constructor(category: Category) : this(
+        category = category,
         tokenList = AutoAddTokenTokenList(),
         symbols = ArrayList()
     )
 
-    override fun copy(): MutableTokenTable<Cell, C> {
-        return AutoAddTokenTable(tokenList.copy(), _symbols.toMutableList())
+    override fun copy(): MutableTokenTable {
+        return AutoAddTokenTable(category, tokenList.copy(), _symbols.toMutableList())
     }
 }
 
-class ManualAddTokenTable<Cell : MonomialCell<Cell, C>, C : Category>(
+class ManualAddTokenTable private constructor(
+    category: Category,
     tokenList: MutableTokenList,
-    symbols: List<Symbol<Cell, C>>
-) : MutableTokenTable<Cell, C>(tokenList, symbols.toMutableList()) {
-    constructor() : this(
+    symbols: List<Symbol>
+) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
+    companion object {
+        operator fun invoke(tokenTable: AbstractTokenTable): MutableTokenTable {
+            return ManualAddTokenTable(
+                category = tokenTable.category,
+                tokenList = ManualAddTokenTokenList(tokenTable.tokenList),
+                symbols = tokenTable.symbols.toMutableList()
+            )
+        }
+    }
+
+    constructor(category: Category) : this(
+        category = category,
         tokenList = ManualAddTokenTokenList(),
         symbols = ArrayList()
     )
 
-    override fun copy(): MutableTokenTable<Cell, C> {
-        return ManualAddTokenTable(tokenList.copy(), _symbols.toMutableList())
+    override fun copy(): MutableTokenTable {
+        return ManualAddTokenTable(category, tokenList.copy(), _symbols.toMutableList())
     }
 }
-
-typealias LinearAutoAddTokenTable = AutoAddTokenTable<LinearMonomialCell, Linear>
-typealias LinearManualAddTokenTable = ManualAddTokenTable<LinearMonomialCell, Linear>
-
-typealias QuadraticAutoAddTokenTable = AutoAddTokenTable<QuadraticMonomialCell, Quadratic>
-typealias QuadraticManualAddTokenTable = ManualAddTokenTable<QuadraticMonomialCell, Quadratic>

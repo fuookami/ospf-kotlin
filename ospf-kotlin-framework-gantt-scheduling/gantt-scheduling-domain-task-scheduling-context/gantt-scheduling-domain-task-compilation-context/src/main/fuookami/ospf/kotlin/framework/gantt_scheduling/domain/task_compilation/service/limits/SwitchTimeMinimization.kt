@@ -25,7 +25,7 @@ class SwitchTimeMinimization<
     private val coefficient: Extractor<Flt64?, Pair<T, T>> = { Flt64.one },
     override val name: String = "switch_time_minimization"
 )  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: LinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel): Try {
         val cost = MutableLinearPolynomial()
         for (task1 in tasks) {
             for (task2 in tasks) {
@@ -45,12 +45,24 @@ class SwitchTimeMinimization<
                         threshold = LinearPolynomial(thisThreshold),
                         name = "switch_time_threshold_${task1}_${task2}"
                     )
-                    model.addSymbol(slack)
+                    when (val result = model.add(slack)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                             return Failed(result.error)
+                        }
+                    }
                     cost += thisCoefficient * slack
                 }
             }
         }
-        model.minimize(cost, "switch time")
+        when (val result = model.minimize(cost, "switch time")) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
 
         return ok
     }

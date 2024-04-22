@@ -126,14 +126,14 @@ data class TimeWindow(
 
     fun upperByScale(scale: UInt64): TimeWindow {
         val scaleInterval = scale.toInt() * interval
-        val (upperUnit, upperInterval) = if (upperInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
+        val (upperUnit, upperInterval) = if (scaleInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
             Pair(DurationUnit.DAYS, 1.toDuration(DurationUnit.DAYS))
-        } else if (upperInterval > 1.toDuration(DurationUnit.HOURS) && durationUnit.ordinal < DurationUnit.HOURS.ordinal) {
+        } else if (scaleInterval > 1.toDuration(DurationUnit.HOURS) && durationUnit.ordinal < DurationUnit.HOURS.ordinal) {
             Pair(DurationUnit.HOURS, 1.toDuration(DurationUnit.HOURS))
-        } else if (upperInterval > 1.toDuration(DurationUnit.MINUTES) && durationUnit.ordinal < DurationUnit.MINUTES.ordinal) {
+        } else if (scaleInterval > 1.toDuration(DurationUnit.MINUTES) && durationUnit.ordinal < DurationUnit.MINUTES.ordinal) {
             Pair(DurationUnit.MINUTES, 1.toDuration(DurationUnit.MINUTES))
         } else {
-            Pair(durationUnit, upperInterval)
+            Pair(durationUnit, scaleInterval)
         }
         return TimeWindow(
             window = window,

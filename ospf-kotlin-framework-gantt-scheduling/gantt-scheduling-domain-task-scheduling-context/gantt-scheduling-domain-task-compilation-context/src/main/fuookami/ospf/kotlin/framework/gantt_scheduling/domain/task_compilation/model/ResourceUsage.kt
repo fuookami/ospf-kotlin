@@ -53,7 +53,7 @@ interface ResourceUsage<
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: LinearMetaModel): Try
+    fun register(model: MetaModel): Try
 }
 
 abstract class AbstractResourceUsage<
@@ -64,14 +64,14 @@ abstract class AbstractResourceUsage<
     override lateinit var overQuantity: LinearSymbols1
     override lateinit var lessQuantity: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (overEnabled) {
                 if (!::overQuantity.isInitialized) {
                     overQuantity = LinearSymbols1(
                         "${name}_over_quantity",
                         Shape1(timeSlots.size)
-                    ) { (i, _) ->
+                    ) { i, _ ->
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.overEnabled) {
                             val slack = SlackFunction(
@@ -82,7 +82,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_over_quantity_$slot"
                             )
                             slot.resourceCapacity.overQuantity?.let {
-                                (slack.pos as URealVar).range.leq(it)
+                                slack.pos!!.range.leq(it)
                             }
                             slack
                         } else {
@@ -90,7 +90,13 @@ abstract class AbstractResourceUsage<
                         }
                     }
                 }
-                model.addSymbols(overQuantity)
+                when (val result = model.add(overQuantity)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
 
             if (lessEnabled) {
@@ -98,7 +104,7 @@ abstract class AbstractResourceUsage<
                     lessQuantity = LinearSymbols1(
                         "${name}_less_quantity",
                         Shape1(timeSlots.size)
-                    ) { (i, _) ->
+                    ) { i, _ ->
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.lessEnabled) {
                             val slack = SlackFunction(
@@ -110,7 +116,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_less_quantity_$slot"
                             )
                             slot.resourceCapacity.lessQuantity?.let {
-                                (slack.neg as URealVar).range.leq(it)
+                                slack.neg!!.range.leq(it)
                             }
                             slack
                         } else {
@@ -118,7 +124,13 @@ abstract class AbstractResourceUsage<
                         }
                     }
                 }
-                model.addSymbols(lessQuantity)
+                when (val result = model.add(lessQuantity)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
             }
         }
 
@@ -201,7 +213,7 @@ class TaskSchedulingConnectionResourceUsage<
 ) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, interval) {
     override lateinit var quantity: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -278,7 +290,7 @@ class TaskSchedulingExecutionResourceUsage<
 ) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, interval) {
     override lateinit var quantity: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -363,7 +375,7 @@ class TaskSchedulingStorageResourceUsage<
 ) : AbstractStorageResourceUsage<R, C>(timeWindow, resources, interval) {
     override lateinit var quantity: LinearSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -382,7 +394,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: MetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = flatMap(

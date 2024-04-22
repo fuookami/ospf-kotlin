@@ -119,14 +119,14 @@ typealias GanttSchedulingShadowPriceExtractor<E, A> = AbstractGanttSchedulingSha
 >
 
 typealias AbstractGanttSchedulingCGPipeline<Args, E, A> = CGPipeline<
-    Args, LinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>
+    Args, AbstractLinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>
 >
 typealias GanttSchedulingCGPipeline<E, A> = AbstractGanttSchedulingCGPipeline<
     GanttSchedulingShadowPriceArguments<E, A>, E, A
 >
 
 typealias AbstractGanttSchedulingCGPipelineList<Args, E, A> = List<
-    CGPipeline<Args, LinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>
+    CGPipeline<Args, AbstractLinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>
 >
 typealias GanttSchedulingCGPipelineList<E, A> = AbstractGanttSchedulingCGPipelineList<
     GanttSchedulingShadowPriceArguments<E, A>, E, A

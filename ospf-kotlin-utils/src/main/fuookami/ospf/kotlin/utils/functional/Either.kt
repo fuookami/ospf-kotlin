@@ -1,6 +1,50 @@
 package fuookami.ospf.kotlin.utils.functional
 
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.descriptors.*
 import fuookami.ospf.kotlin.utils.concept.*
+
+data class EitherSerializer<L, R>(
+    val leftSerializer: KSerializer<L>,
+    val rightSerializer: KSerializer<R>,
+) : KSerializer<Either<L, R>> {
+    @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+    override val descriptor: SerialDescriptor = SerialDescriptor("Either", JsonElement::class.serializer().descriptor)
+
+    @OptIn(InternalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): Either<L, R> {
+        decoder as? JsonDecoder ?: throw IllegalStateException(
+            "This serializer can be used only with Json format." +
+                    "Expected Decoder to be JsonDecoder, got ${this::class}"
+        )
+        val json = Json {
+            ignoreUnknownKeys = true
+        }
+        val element = decoder.decodeSerializableValue(JsonElement::class.serializer())
+        return try {
+            val leftValue = json.decodeFromJsonElement(leftSerializer, element)
+            Either.Left(leftValue)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            val rightValue = json.decodeFromJsonElement(rightSerializer, element)
+            Either.Right(rightValue)
+        }
+    }
+
+    override fun serialize(encoder: Encoder, value: Either<L, R>) {
+        when (value) {
+            is Either.Left -> {
+                encoder.encodeSerializableValue(leftSerializer, value.value)
+            }
+
+            is Either.Right -> {
+                encoder.encodeSerializableValue(rightSerializer, value.value)
+            }
+        }
+    }
+}
 
 sealed class Either<L, R> {
     data class Left<L, R>(val value: L) : Either<L, R>() {
