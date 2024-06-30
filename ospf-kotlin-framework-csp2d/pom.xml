@@ -2,12 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.8</version>
+        <artifactId>ospf-kotlin-parent</artifactId>
+        <version>1.0.9</version>
+        <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
+    <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
     <artifactId>ospf-kotlin-framework-csp2d</artifactId>
