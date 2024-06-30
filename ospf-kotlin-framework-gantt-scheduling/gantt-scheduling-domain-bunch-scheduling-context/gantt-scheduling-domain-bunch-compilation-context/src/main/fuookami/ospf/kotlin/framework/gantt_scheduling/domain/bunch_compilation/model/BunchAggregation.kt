@@ -21,11 +21,20 @@ data class BunchAggregation<
         get() = _bunchesIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
     suspend fun addColumns(newBunches: List<B>): List<B> {
-        val unduplicatedNewBunches = ArrayList<B>()
-        for (bunch in newBunches) {
-            if (unduplicatedNewBunches.all { bunch neq it }) {
-                unduplicatedNewBunches.add(bunch)
+        val unduplicatedNewBunches = coroutineScope {
+            val promises = ArrayList<Deferred<List<B>>>()
+            for (bunches in newBunches.groupBy { Pair(it.executor, it.tasks.size) }.values) {
+                promises.add(async(Dispatchers.Default) {
+                    val unduplicatedNewBunches = ArrayList<B>()
+                    for (bunch in bunches) {
+                        if (unduplicatedNewBunches.all { bunch neq it }) {
+                            unduplicatedNewBunches.add(bunch)
+                        }
+                    }
+                    unduplicatedNewBunches
+                })
             }
+            promises.flatMap { it.await() }
         }
 
         val unduplicatedBunches = coroutineScope {

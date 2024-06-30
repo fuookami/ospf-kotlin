@@ -17,13 +17,14 @@ abstract class AbstractBunchCompilationAggregation<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    tasks: List<T>,
-    executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet()
+    protected val tasks: List<T>,
+    protected val executors: List<E>,
+    protected val lockCancelTasks: Set<T> = emptySet(),
+    withExecutorLeisure: Boolean = true
 ) {
     private val logger = org.apache.logging.log4j.kotlin.logger("BunchSchedulingAggregation")
 
-    val compilation: BunchCompilation<B, T, E, A> = BunchCompilation(tasks, executors, lockCancelTasks)
+    val compilation: BunchCompilation<B, T, E, A> = BunchCompilation(tasks, executors, lockCancelTasks, withExecutorLeisure)
 
     val bunchesIteration: List<List<B>> by compilation::bunchesIteration
     val bunches: List<B> by compilation::bunches
@@ -300,8 +301,9 @@ open class BunchCompilationAggregation<
 >(
     tasks: List<T>,
     executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet()
-) : AbstractBunchCompilationAggregation<B, T, E, A>(tasks, executors, lockCancelTasks)
+    lockCancelTasks: Set<T> = emptySet(),
+    withExecutorLeisure: Boolean = true
+) : AbstractBunchCompilationAggregation<B, T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure)
 
 open class BunchCompilationAggregationWithTime<
     B : AbstractTaskBunch<T, E, A>,
@@ -313,9 +315,10 @@ open class BunchCompilationAggregationWithTime<
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
+    withExecutorLeisure: Boolean = true,
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractBunchCompilationAggregation<B, T, E, A>(tasks, executors, lockCancelTasks) {
+) : AbstractBunchCompilationAggregation<B, T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure) {
     val taskTime: BunchSchedulingTaskTime<B, T, E, A> =
         BunchSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
     val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
