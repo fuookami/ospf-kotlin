@@ -17,73 +17,66 @@ class LinearFunction(
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
-    private lateinit var y: RealVar
-    private lateinit var polyY: AbstractQuadraticPolynomial<*>
+    private val y: RealVar by lazy {
+        RealVar("${name}_y")
+    }
+
+    private val polyY: AbstractQuadraticPolynomial<*> by lazy {
+        if (polynomial.category == Linear) {
+            polynomial.copy()
+        } else {
+            val polyY = QuadraticPolynomial(y)
+            polyY.range.set(polynomial.range.valueRange)
+            polyY
+        }
+    }
 
     override val discrete = polynomial.discrete
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            polynomial.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            polynomial.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
     override val dependencies: Set<Symbol> get() = polynomial.dependencies
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            y.range.set(polynomial.range.valueRange)
-            polyY.range.set(polynomial.range.valueRange)
-        }
+        polynomial.flush(force)
+        polyY.flush(force)
+        y.range.set(polynomial.range.valueRange)
+        polyY.range.set(polynomial.range.valueRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         polynomial.cells
 
-        if (tokenTable.tokenList.tokens.any { it.result != null } && ::y.isInitialized) {
-            polynomial.value(tokenTable)?.let {
-                logger.trace { "Setting LinearFunction ${name}.y initial solution: $it" }
-                tokenTable.find(y)?.let { token -> token._result = it }
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            polynomial.value(tokenTable)?.let { yValue ->
+                if (polynomial.category == Linear) {
+                    logger.trace { "Setting LinearFunction ${name}.y initial solution: $yValue" }
+                    tokenTable.find(y)?.let { token ->
+                        token._result = yValue
+                    }
+                }
+
                 when (tokenTable) {
-                    is AutoAddTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = it
+                    is TokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = yValue
                     }
 
                     is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = it
+                        tokenTable.cachedSymbolValue[this to null] = yValue
                     }
-
-                    else -> {}
                 }
             }
         }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (polynomial.category == Linear) {
-            polyY = polynomial
-        } else {
-            if (!::y.isInitialized) {
-                y = RealVar("${name}_y")
-            }
+        if (polynomial.category != Linear) {
             when (val result = tokenTable.add(y)) {
                 is Ok -> {}
 
@@ -91,18 +84,13 @@ class LinearFunction(
                     return Failed(result.error)
                 }
             }
-
-            if (!::polyY.isInitialized) {
-                polyY = QuadraticPolynomial(y)
-                polyY.range.set(polynomial.range.valueRange)
-            }
         }
 
         return ok
     }
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
-        if (::y.isInitialized) {
+        if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
                 y eq polynomial,
                 name

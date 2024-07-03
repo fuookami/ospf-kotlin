@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -13,35 +14,55 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class XorFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
-    val extract: Boolean = true,
+    private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
+    private val logger = logger()
+
     init {
         assert(polynomials.size >= 2)
     }
 
-    private lateinit var maxmin: MaxMinFunction
-    private lateinit var minmax: MinMaxFunction
-    private lateinit var bins: SymbolCombination<BinaryzationFunction, Shape1>
-    private lateinit var y: BinVar
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    private val maxmin: MaxMinFunction by lazy {
+        MaxMinFunction(polynomials, "${name}_maxmin")
+    }
+
+    private val minmax: MinMaxFunction by lazy {
+        MinMaxFunction(polynomials, "${name}_minmax")
+    }
+
+    private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
+        if (polynomials.size > 2) {
+            SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
+                if (i == 0) {
+                    BinaryzationFunction(LinearPolynomial(minmax), name = "${name}_bin_$i")
+                } else {
+                    BinaryzationFunction(LinearPolynomial(maxmin), name = "${name}_bin_$i")
+                }
+            }
+        } else {
+            SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
+                BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
+            }
+        }
+    }
+
+    private val y: BinVar by lazy {
+        BinVar(name = "${name}_y")
+    }
+
+    private val polyY: AbstractLinearPolynomial<*> by lazy {
+        val polyY = LinearPolynomial(y, "${name}_y")
+        polyY.range.set(possibleRange)
+        polyY
+    }
 
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -54,12 +75,7 @@ class XorFunction(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     private val possibleRange
         get() = ValueRange(
@@ -74,15 +90,65 @@ class XorFunction(
         )
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        if (polynomials.size > 2) {
+            maxmin.flush(force)
+            minmax.flush(force)
         }
+        for (bin in bins) {
+            bin.flush(force)
+        }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
+        }
+        if (polynomials.size > 2) {
+            maxmin.prepare(tokenTable)
+            minmax.prepare(tokenTable)
+        }
+        for (bin in bins) {
+            bin.prepare(tokenTable)
+        }
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            var zero = false
+            var one = false
+            for (polynomial in polynomials) {
+                val result = polynomial.value(tokenTable) ?: return
+                if (result eq Flt64.zero) {
+                    zero = true
+                }
+                if (result eq Flt64.one) {
+                    one = true
+                }
+                if (zero && one) {
+                    break
+                }
+            }
+            val bin = zero && one
+            val yValue = if (bin) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+
+            logger.trace { "Setting XorFunction ${name}.y initial solution: $bin" }
+            tokenTable.find(y)?.let { token ->
+                token._result = yValue
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+            }
         }
     }
 
@@ -95,9 +161,6 @@ class XorFunction(
         }
 
         if (polynomials.size > 2) {
-            if (!::minmax.isInitialized) {
-                minmax = MinMaxFunction(polynomials, "${name}_minmax")
-            }
             when (val result = minmax.register(tokenTable)) {
                 is Ok -> {}
 
@@ -106,9 +169,6 @@ class XorFunction(
                 }
             }
 
-            if (!::maxmin.isInitialized) {
-                maxmin = MaxMinFunction(polynomials, "${name}_maxmin")
-            }
             when (val result = maxmin.register(tokenTable)) {
                 is Ok -> {}
 
@@ -117,15 +177,6 @@ class XorFunction(
                 }
             }
 
-            if (!::bins.isInitialized) {
-                bins = SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
-                    if (i == 0) {
-                        BinaryzationFunction(LinearPolynomial(minmax), name = "${name}_bin_$i")
-                    } else {
-                        BinaryzationFunction(LinearPolynomial(maxmin), name = "${name}_bin_$i")
-                    }
-                }
-            }
             for (bin in bins) {
                 when (val result = bin.register(tokenTable)) {
                     is Ok -> {}
@@ -136,11 +187,6 @@ class XorFunction(
                 }
             }
         } else {
-            if (!::bins.isInitialized) {
-                bins = SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
-                    BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
-                }
-            }
             for (bin in bins) {
                 when (val result = bin.register(tokenTable)) {
                     is Ok -> {}
@@ -152,19 +198,12 @@ class XorFunction(
             }
         }
 
-        if (!::y.isInitialized) {
-            y = BinVar(name = "${name}_y")
-        }
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-
-        if (!::polyY.isInitialized) {
-            polyY = LinearPolynomial(y, "${name}_y")
         }
 
         return ok

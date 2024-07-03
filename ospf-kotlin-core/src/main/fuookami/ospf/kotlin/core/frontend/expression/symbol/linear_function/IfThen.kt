@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -19,26 +20,38 @@ class IfThen(
     private val p by lazy { p.normalize() }
     private val q by lazy { q.normalize() }
 
-    private lateinit var pu: BinVar
-    private lateinit var qu: BinVar
-    private lateinit var y: BinVar
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    private val pu: BinVar by lazy {
+        BinVar(p.name.ifEmpty { "${name}_pu" })
+    }
+
+    private val qu: BinVar by lazy {
+        BinVar(q.name.ifEmpty { "${name}_qu" })
+    }
+
+    private val u: UIntVar by lazy {
+        UIntVar("${name}_u")
+    }
+
+    private val y: BinaryzationFunction by lazy {
+        BinaryzationFunction(
+            x = LinearPolynomial(Flt64.two * u),
+            name = "${name}_y"
+        )
+    }
+
+    private val polyY: AbstractLinearPolynomial<*> by lazy {
+        if (!constraint) {
+            LinearPolynomial(y)
+        } else {
+            LinearPolynomial(1)
+        }
+    }
 
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -52,12 +65,7 @@ class IfThen(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     private val possibleRange: ValueRange<Flt64>
         get() {
@@ -66,10 +74,13 @@ class IfThen(
         }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        p.flush(force)
+        q.flush(force)
+        if (!constraint) {
+            y.flush(force)
         }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
@@ -77,6 +88,53 @@ class IfThen(
         p.rhs.cells
         q.lhs.cells
         q.rhs.cells
+        y.prepare(tokenTable)
+
+        if (!constraint && tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val pBin = p.isTrue(tokenTable) ?: return
+            val qBin = q.isTrue(tokenTable) ?: return
+
+            logger.trace { "Setting IfThenFunction ${name}.pu initial solution: $pBin" }
+            tokenTable.find(pu)?.let { token ->
+                token._result = if (pBin) {
+                    Flt64.one
+                } else {
+                    Flt64.zero
+                }
+            }
+
+            logger.trace { "Setting IfThenFunction ${name}.qu initial solution: $qBin" }
+            tokenTable.find(qu)?.let { token ->
+                token._result = if (qBin) {
+                    Flt64.one
+                } else {
+                    Flt64.zero
+                }
+            }
+
+            val uValue = UInt8(qBin).toFlt64() - UInt8(pBin).toFlt64() + Flt64.one
+            logger.trace { "Setting IfThenFunction ${name}.u initial solution: $uValue" }
+            tokenTable.find(u)?.let { token ->
+                token._result = uValue
+            }
+
+            val bin = uValue neq Flt64.zero
+            val yValue = if (bin) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+            }
+        }
     }
 
     override fun toString(): String {
@@ -84,9 +142,6 @@ class IfThen(
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::pu.isInitialized) {
-            pu = BinVar(p.name.ifEmpty { "${name}_pu" })
-        }
         when (val result = tokenTable.add(pu)) {
             is Ok -> {}
 
@@ -95,9 +150,6 @@ class IfThen(
             }
         }
 
-        if (!::qu.isInitialized) {
-            qu = BinVar(q.name.ifEmpty { "${name}_qu" })
-        }
         when (val result = tokenTable.add(qu)) {
             is Ok -> {}
 
@@ -107,10 +159,7 @@ class IfThen(
         }
 
         if (!constraint) {
-            if (!::y.isInitialized) {
-                y = BinVar("${name}_y")
-            }
-            when (val result = tokenTable.add(y)) {
+            when (val result = tokenTable.add(u)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -118,12 +167,12 @@ class IfThen(
                 }
             }
 
-            if (!::polyY.isInitialized) {
-                polyY = LinearPolynomial(y)
-            }
-        } else {
-            if (!::polyY.isInitialized) {
-                polyY = LinearPolynomial(1)
+            when (val result = tokenTable.add(y)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
         }
 
@@ -160,7 +209,7 @@ class IfThen(
             }
         } else {
             when (val result = model.addConstraint(
-                pu leq qu + (Flt64.one - y),
+                u eq (qu - pu + Flt64.one),
                 "${name}_u"
             )) {
                 is Ok -> {}

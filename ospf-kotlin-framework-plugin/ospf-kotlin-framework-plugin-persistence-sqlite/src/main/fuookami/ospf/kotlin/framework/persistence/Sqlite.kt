@@ -4,6 +4,7 @@ import kotlinx.serialization.*
 import org.ktorm.database.*
 import org.ktorm.support.sqlite.*
 import org.apache.commons.dbcp2.*
+import org.apache.logging.log4j.kotlin.*
 
 data class SqliteClientKey(
     val name: String
@@ -17,6 +18,8 @@ data class SqliteConfigBuilder(
     var maxIdle: Int = 10,
     var maxOpenPreparedStatements: Int = 100
 ) {
+    private val logger = logger()
+
     operator fun invoke(): SqliteConfig? {
         return try {
             SqliteConfig(
@@ -28,6 +31,9 @@ data class SqliteConfigBuilder(
                 maxOpenPreparedStatements = maxOpenPreparedStatements
             )
         } catch (e: Exception) {
+            if (url == null) {
+                logger.error("url is not set")
+            }
             null
         }
     }
@@ -47,7 +53,7 @@ data class SqliteConfig(
 
 object Sqlite {
     @get:Synchronized
-    private val clients: MutableMap<SqliteClientKey, Database> = HashMap()
+    private val clients: MutableMap<SqliteClientKey, BasicDataSource> = HashMap()
 
     @Synchronized
     fun init(builder: SqliteConfigBuilder.() -> Unit): Database? {
@@ -59,7 +65,7 @@ object Sqlite {
     @Synchronized
     operator fun invoke(config: SqliteConfig): Database? {
         if (clients.containsKey(config.key)) {
-            return clients[config.key]
+            return Database.connect(clients[config.key]!!, SQLiteDialect())
         }
 
         return try {
@@ -73,9 +79,8 @@ object Sqlite {
                     addConnectionProperty(key, value)
                 }
             }
-            val client = Database.connect(dataSource, SQLiteDialect())
-            clients[config.key] = client
-            client
+            clients[config.key] = dataSource
+            Database.connect(dataSource, SQLiteDialect())
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -84,16 +89,19 @@ object Sqlite {
 
     @Synchronized
     operator fun invoke(key: SqliteClientKey? = null): Database? {
-        return if (key != null) {
+        return (if (key != null) {
             clients[key]
         } else {
             null
+        } ?: clients.values.firstOrNull())?.let {
+            Database.connect(it, SQLiteDialect())
         }
-            ?: clients.values.firstOrNull()
     }
 
     @Synchronized
     operator fun invoke(name: String): Database? {
-        return clients.filterKeys { it.name == name }.entries.firstOrNull()?.value
+        return clients.filterKeys { it.name == name }.entries.firstOrNull()?.value?.let {
+            Database.connect(it, SQLiteDialect())
+        }
     }
 }

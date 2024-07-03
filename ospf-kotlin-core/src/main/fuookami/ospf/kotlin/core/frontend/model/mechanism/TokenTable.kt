@@ -26,6 +26,7 @@ sealed interface AbstractTokenTable {
     val tokens: Collection<Token> get() = tokenList.tokens
     val tokenIndexMap: BiMap<Token, Int> get() = tokenList.tokenIndexMap
     val symbols: Collection<Symbol>
+    val cachedSolution: Boolean get() = tokenList.tokens.any { it._result != null }
 
     fun find(item: AbstractVariableItem<*, *>): Token? {
         return tokenList.find(item)
@@ -62,6 +63,10 @@ sealed interface AbstractTokenTable {
     fun clearSolution() {
         flush()
         tokenList.clearSolution()
+    }
+
+    fun cached(symbol: Symbol, solution: List<Flt64>? = null): Boolean? {
+        return null
     }
 }
 
@@ -149,6 +154,10 @@ sealed class MutableTokenTable(
     override fun flush() {
         cachedSymbolValue.clear()
     }
+
+    override fun cached(symbol: Symbol, solution: List<Flt64>?): Boolean {
+         return !cachedSymbolValue.containsKey(symbol to solution)
+    }
 }
 
 suspend fun Collection<Symbol>.register(tokenTable: MutableTokenTable): Try {
@@ -176,29 +185,7 @@ suspend fun Collection<Symbol>.register(tokenTable: MutableTokenTable): Try {
                 }
             }
 
-            completedSymbols.addAll(readySymbols.flatMap {
-                when (it) {
-                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction<*> -> {
-                        listOfNotNull(it, it.pos, it.neg, it.polyX)
-                    }
-
-                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackRangeFunction<*> -> {
-                        listOfNotNull(it, it.pos, it.neg, it.polyX)
-                    }
-
-                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function.AbstractSlackFunction<*> -> {
-                        listOfNotNull(it, it.pos, it.neg, it.polyX)
-                    }
-
-                    is fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function.AbstractSlackRangeFunction<*> -> {
-                        listOfNotNull(it, it.pos, it.neg, it.polyX)
-                    }
-
-                    else -> {
-                        listOf(it)
-                    }
-                }
-            })
+            completedSymbols.addAll(readySymbols)
             val newReadySymbols = dependencies.filter {
                 !completedSymbols.contains(it.key) && it.value.all { dependency ->
                     completedSymbols.contains(

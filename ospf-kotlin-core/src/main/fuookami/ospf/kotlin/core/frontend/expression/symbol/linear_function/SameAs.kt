@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -17,29 +18,37 @@ class SameAsFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
-    private val inequalities by lazy { inequalities.map { it.normalize() } }
+    private val logger = logger()
 
-    private lateinit var u: BinVariable1
-    private lateinit var y: BinVar
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    private val inequalities by lazy {
+        inequalities.map { it.normalize() }
+    }
+
+    private val u: BinVariable1 by lazy {
+        BinVariable1("${name}_u", Shape1(inequalities.size))
+    }
+
+    private val y: BinVar by lazy {
+        val y = BinVar("${name}_y")
+        if (fixedValue != null) {
+            y.range.eq(fixedValue)
+        }
+        y
+    }
+
+    private val polyY: AbstractLinearPolynomial<*> by lazy {
+        val polyY = LinearPolynomial(y)
+        polyY.range.set(possibleRange)
+        polyY
+    }
 
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
-    override val category: Category = Linear
+    override val category = Linear
 
     override val dependencies: Set<Symbol>
         get() {
@@ -51,12 +60,7 @@ class SameAsFunction(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     private val possibleRange: ValueRange<Flt64>
         get() {
@@ -65,10 +69,11 @@ class SameAsFunction(
         }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        for (inequality in inequalities) {
+            inequality.flush(force)
         }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
@@ -76,13 +81,47 @@ class SameAsFunction(
             inequality.lhs.cells
             inequality.rhs.cells
         }
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val values = inequalities.map { it.isTrue(tokenTable) ?: return }
+            if (!constraint && inequalities.size > 1) {
+                for (i in inequalities.indices) {
+                    logger.trace { "Setting SameAsFunction ${name}.u[$i] to ${values[i]}" }
+                    tokenTable.find(u[i])?.let { token ->
+                        token._result = if (values[i]) {
+                            Flt64.one
+                        } else {
+                            Flt64.zero
+                        }
+                    }
+                }
+            }
+
+            val bin = values.all { it } || values.all { !it }
+            val yValue = if (bin) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+            logger.trace { "Setting SameAsFunction ${name}.y to $bin" }
+            tokenTable.find(y)?.let { token ->
+                token._result = yValue
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!constraint) {
-            if (!::u.isInitialized) {
-                u = BinVariable1("${name}_u", Shape1(inequalities.size))
-            }
+        if (!constraint && inequalities.size > 1) {
             when (val result = tokenTable.add(u)) {
                 is Ok -> {}
 
@@ -92,12 +131,6 @@ class SameAsFunction(
             }
         }
 
-        if (!::y.isInitialized) {
-            y = BinVar("${name}_y")
-        }
-        if (fixedValue != null) {
-            y.range.eq(fixedValue)
-        }
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -106,16 +139,11 @@ class SameAsFunction(
             }
         }
 
-        if (!::polyY.isInitialized) {
-            polyY = LinearPolynomial(y)
-            polyY.range.set(possibleRange)
-        }
-
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        if (::u.isInitialized) {
+        if (!constraint && inequalities.size > 1) {
             for ((i, inequality) in inequalities.withIndex()) {
                 when (val result = inequality.register(name, u[i], model)) {
                     is Ok -> {}
@@ -171,15 +199,12 @@ class SameAsFunction(
     }
 
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        var counter = UInt64.zero
-        for ((i, inequality) in inequalities.withIndex()) {
-            if (inequality.isTrue(tokenList, zeroIfNone) ?: return null) {
-                if (UInt64(i) != counter) {
-                    return Flt64.zero
-                } else {
-                    counter += UInt64.one
-                }
-            } else if (counter != UInt64.zero) {
+        var lastValue: Boolean? = null
+        for (inequality in inequalities) {
+            val value = inequality.isTrue(tokenList, zeroIfNone) ?: return null
+            if (lastValue == null) {
+                lastValue = value
+            } else if (lastValue != value) {
                 return Flt64.zero
             }
         }
@@ -187,15 +212,12 @@ class SameAsFunction(
     }
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        var counter = UInt64.zero
-        for ((i, inequality) in inequalities.withIndex()) {
-            if (inequality.isTrue(results, tokenList, zeroIfNone) ?: return null) {
-                if (UInt64(i) != counter) {
-                    return Flt64.zero
-                } else {
-                    counter += UInt64.one
-                }
-            } else if (counter != UInt64.zero) {
+        var lastValue: Boolean? = null
+        for (inequality in inequalities) {
+            val value = inequality.isTrue(results, tokenList, zeroIfNone) ?: return null
+            if (lastValue == null) {
+                lastValue = value
+            } else if (lastValue != value) {
                 return Flt64.zero
             }
         }
@@ -203,15 +225,12 @@ class SameAsFunction(
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        var counter = UInt64.zero
-        for ((i, inequality) in inequalities.withIndex()) {
-            if (inequality.isTrue(tokenTable, zeroIfNone) ?: return null) {
-                if (UInt64(i) != counter) {
-                    return Flt64.zero
-                } else {
-                    counter += UInt64.one
-                }
-            } else if (counter != UInt64.zero) {
+        var lastValue: Boolean? = null
+        for (inequality in inequalities) {
+            val value = inequality.isTrue(tokenTable, zeroIfNone) ?: return null
+            if (lastValue == null) {
+                lastValue = value
+            } else if (lastValue != value) {
                 return Flt64.zero
             }
         }
@@ -219,15 +238,12 @@ class SameAsFunction(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        var counter = UInt64.zero
-        for ((i, inequality) in inequalities.withIndex()) {
-            if (inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null) {
-                if (UInt64(i) != counter) {
-                    return Flt64.zero
-                } else {
-                    counter += UInt64.one
-                }
-            } else if (counter != UInt64.zero) {
+        var lastValue: Boolean? = null
+        for (inequality in inequalities) {
+            val value = inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null
+            if (lastValue == null) {
+                lastValue = value
+            } else if (lastValue != value) {
                 return Flt64.zero
             }
         }

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -16,6 +17,8 @@ class ProductFunction(
     override var name: String = polynomials.joinToString("*") { "$it" },
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
+    private val logger = logger()
+
     constructor(
         x: AbstractQuadraticPolynomial<*>,
         y: AbstractQuadraticPolynomial<*>,
@@ -27,24 +30,23 @@ class ProductFunction(
         assert(polynomials.all { it.category != Quadratic })
     }
 
-    private lateinit var y: RealVariable1
-    private lateinit var polyY: AbstractQuadraticPolynomial<*>
+    private val y: RealVariable1 by lazy {
+        RealVariable1("${name}_y", Shape1(polynomials.size - 1))
+    }
 
-    override val discrete = polynomials.all { it.discrete }
+    private val polyY: AbstractQuadraticPolynomial<*> by lazy {
+        val polyY = QuadraticPolynomial(y.last())
+        polyY.range.set(possibleRange)
+        polyY
+    }
+
+    override val discrete by lazy {
+        polynomials.all { it.discrete }
+    }
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -57,25 +59,47 @@ class ProductFunction(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
-    private val possibleRange get() = polynomials.fold(ValueRange(Flt64.one, Flt64.one)) { lhs, rhs -> lhs * rhs.range.valueRange }
+    private val possibleRange get() = polynomials.fold(ValueRange(Flt64.one, Flt64.one)) { lhs, rhs ->
+        lhs * rhs.range.valueRange
+    }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
         }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
+        }
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val values = polynomials.map { it.value(tokenTable) ?: return }
+
+            var yValue = values[0]
+            for (i in y.indices) {
+                yValue *= values[i + 1]
+
+                logger.trace { "Setting ProductFunction ${name}.y[$i] initial solution: $yValue" }
+                tokenTable.find(y[i])?.let { token ->
+                    token._result = yValue
+                }
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+            }
         }
     }
 
@@ -84,20 +108,12 @@ class ProductFunction(
             return Failed(Err(ErrorCode.ApplicationFailed, "Invalid argument of QuadraticPolynomial.times: over quadratic."))
         }
 
-        if (!::y.isInitialized) {
-            y = RealVariable1("${name}_y", Shape1(polynomials.size - 1))
-        }
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-
-        if (!::polyY.isInitialized) {
-            polyY = QuadraticPolynomial(y.last())
-            polyY.range.set(possibleRange)
         }
 
         return ok

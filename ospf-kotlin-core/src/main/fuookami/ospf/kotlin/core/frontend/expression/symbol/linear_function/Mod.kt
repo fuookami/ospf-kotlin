@@ -18,36 +18,35 @@ class ModFunction(
 ) : LinearFunctionSymbol {
     private val logger = logger()
 
-    private lateinit var q: IntVar
-    private lateinit var r: URealVar
-    private lateinit var y: AbstractLinearPolynomial<*>
+    private val q: IntVar by lazy {
+        IntVar("${name}_q")
+    }
 
-    override val discrete: Boolean by lazy { x.discrete && (d.round() eq d) }
+    private val r: URealVar by lazy {
+        val r = URealVar("${name}_r")
+        r.range.leq(possibleUpperBound)
+        r
+    }
+
+    private val y: AbstractLinearPolynomial<*> by lazy {
+        val y = LinearPolynomial(r, "${name}_y")
+        y.range.set(ValueRange(Flt64.zero, possibleUpperBound))
+        y
+    }
+
+    override val discrete: Boolean by lazy {
+        x.discrete && (d.round() eq d)
+    }
 
     override val range get() = y.range
-    override val lowerBound
-        get() = if (::y.isInitialized) {
-            y.lowerBound
-        } else {
-            Flt64.zero
-        }
-    override val upperBound
-        get() = if (::y.isInitialized) {
-            y.upperBound
-        } else {
-            possibleUpperBound
-        }
+    override val lowerBound get() = y.lowerBound
+    override val upperBound get() = y.upperBound
 
     override val category: Category = Linear
 
     override val dependencies by x::dependencies
     override val cells get() = y.cells
-    override val cached
-        get() = if (::y.isInitialized) {
-            y.cached
-        } else {
-            false
-        }
+    override val cached get() = y.cached
 
     private val possibleUpperBound
         get() = if (d geq Flt64.zero) {
@@ -57,15 +56,14 @@ class ModFunction(
         }
 
     override fun flush(force: Boolean) {
-        if (::y.isInitialized) {
-            y.flush(force)
-        }
+        x.flush(force)
+        y.flush(force)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
-        if (tokenTable.tokenList.tokens.any { it.result != null }) {
+        if (tokenTable.cachedSolution) {
             x.value(tokenTable)?.let { xValue ->
                 val qValue = (xValue / d).let {
                     if (it geq Flt64.zero) {
@@ -81,24 +79,19 @@ class ModFunction(
                 tokenTable.find(r)?.let { token -> token._result = rValue }
 
                 when (tokenTable) {
-                    is AutoAddTokenTable -> {
+                    is TokenTable -> {
                         tokenTable.cachedSymbolValue[this to null] = rValue
                     }
 
                     is MutableTokenTable -> {
                         tokenTable.cachedSymbolValue[this to null] = rValue
                     }
-
-                    else -> {}
                 }
             }
         }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::q.isInitialized) {
-            q = IntVar("${name}_q")
-        }
         when (val result = tokenTable.add(q)) {
             is Ok -> {}
 
@@ -107,22 +100,12 @@ class ModFunction(
             }
         }
 
-        if (!::r.isInitialized) {
-            r = URealVar("${name}_r")
-            r.range.leq(possibleUpperBound)
-        }
         when (val result = tokenTable.add(r)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-
-        if (!::y.isInitialized) {
-            y = LinearPolynomial(r)
-            y.name = "${name}_y"
-            y.range.set(ValueRange(Flt64.zero, possibleUpperBound))
         }
 
         return ok

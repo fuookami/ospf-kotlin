@@ -19,25 +19,31 @@ sealed class AbstractMinFunction(
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
-    private lateinit var maxmin: RealVar
-    private lateinit var u: BinVariable1
-    private lateinit var y: AbstractQuadraticPolynomial<*>
+    private val maxmin: RealVar by lazy {
+        RealVar("${name}_maxmin")
+    }
 
-    override val discrete by lazy { polynomials.all { it.discrete } }
+    private val u: BinVariable1 by lazy {
+        val u = BinVariable1("${name}_u", Shape1(polynomials.size))
+        for ((i, polynomial) in polynomials.withIndex()) {
+            u[i].name = "${u.name}_${polynomial.name.ifEmpty { "$i" }}"
+        }
+        u
+    }
+
+    private val y: AbstractQuadraticPolynomial<*> by lazy {
+        val y = QuadraticPolynomial(maxmin, "${name}_y")
+        y.range.set(m)
+        y
+    }
+
+    override val discrete by lazy {
+        polynomials.all { it.discrete }
+    }
 
     override val range get() = y.range
-    override val lowerBound
-        get() = if (::y.isInitialized) {
-            y.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::y.isInitialized) {
-            y.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = y.lowerBound
+    override val upperBound get() = y.upperBound
 
     override val category: Category = Linear
 
@@ -50,12 +56,7 @@ sealed class AbstractMinFunction(
             return dependencies
         }
     override val cells get() = y.cells
-    override val cached
-        get() = if (::y.isInitialized) {
-            y.cached
-        } else {
-            false
-        }
+    override val cached get() = y.cached
 
     private val possibleRange
         get() = ValueRange(
@@ -65,13 +66,14 @@ sealed class AbstractMinFunction(
     private var m = possibleRange
 
     override fun flush(force: Boolean) {
-        if (::y.isInitialized) {
-            y.flush(force)
-            val newM = possibleRange
-            if (m neq newM) {
-                maxmin.range.set(m)
-                m = newM
-            }
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
+        }
+        y.flush(force)
+        val newM = possibleRange
+        if (m neq newM) {
+            maxmin.range.set(m)
+            m = newM
         }
     }
 
@@ -80,29 +82,47 @@ sealed class AbstractMinFunction(
             polynomial.cells
         }
 
-        if (tokenTable.tokenList.tokens.any { it.result != null }) {
-            val (maxIndex, minValue) = polynomials.mapIndexed { index, polynomial ->
-                val value = polynomial.value(tokenTable) ?: return
-                index to value
-            }.minBy { it.second }
-            logger.trace { "Setting MaxFunction ${name}.minMax initial solution: $minValue" }
-            tokenTable.find(maxmin)?.let { token -> token._result = minValue }
-            for (i in polynomials.indices) {
-                if (i == maxIndex) {
-                    logger.trace { "Setting MaxFunction ${name}.u_${i} initial solution: 1" }
-                    tokenTable.find(u[i])?.let { token -> token._result = Flt64.one }
-                } else {
-                    logger.trace { "Setting MaxFunction ${name}.u_${i} initial solution: 0" }
-                    tokenTable.find(u[i])?.let { token -> token._result = Flt64.zero }
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val values = polynomials.map { it.value(tokenTable) }
+
+            if (values.all { it != null }) {
+                val min = values.withIndex().minByOrNull { it.value!! } ?: return
+
+                logger.trace { "Setting MinFunction ${name}.maxmin to ${min.value}" }
+                tokenTable.find(maxmin)?.let { token ->
+                    token._result = min.value!!
+                }
+
+                if (exact) {
+                    for (i in polynomials.indices) {
+                        if (i == min.index) {
+                            logger.trace { "Setting MinFunction ${name}.u[$i] to true" }
+                            tokenTable.find(u[i])?.let { token ->
+                                token._result = Flt64.one
+                            }
+                        } else {
+                            logger.trace { "Setting MinFunction ${name}.u[$i] to false" }
+                            tokenTable.find(u[i])?.let { token ->
+                                token._result = Flt64.zero
+                            }
+                        }
+                    }
+                }
+
+                when (tokenTable) {
+                    is TokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = min.value!!
+                    }
+
+                    is MutableTokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = min.value!!
+                    }
                 }
             }
         }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::maxmin.isInitialized) {
-            maxmin = RealVar("${name}_maxmin")
-        }
         when (val result = tokenTable.add(maxmin)) {
             is Ok -> {}
 
@@ -112,12 +132,6 @@ sealed class AbstractMinFunction(
         }
 
         if (exact) {
-            if (!::u.isInitialized) {
-                u = BinVariable1("${name}_u", Shape1(polynomials.size))
-                for ((i, polynomial) in polynomials.withIndex()) {
-                    u[i].name = "${u.name}_${polynomial.name.ifEmpty { "$i" }}"
-                }
-            }
             when (val result = tokenTable.add(u)) {
                 is Ok -> {}
 
@@ -125,11 +139,6 @@ sealed class AbstractMinFunction(
                     return Failed(result.error)
                 }
             }
-        }
-
-        if (!::y.isInitialized) {
-            y = QuadraticPolynomial(maxmin, "${name}_y")
-            y.range.set(m)
         }
 
         return ok
@@ -149,7 +158,7 @@ sealed class AbstractMinFunction(
             }
         }
 
-        if (::u.isInitialized) {
+        if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
                     maxmin geq (polynomial - m.upperBound.toFlt64() * (Flt64.one - u[i])),

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -17,23 +18,25 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     override var displayName: String? = null,
     private val ctor: (String) -> V
 ) : LinearFunctionSymbol {
-    private lateinit var y: V
-    private lateinit var u: BinVar
-    private lateinit var polyY: LinearPolynomial
+    private val logger = logger()
+
+    private val y: V by lazy {
+        ctor("${name}_y")
+    }
+
+    private val u: BinVar by lazy {
+        BinVar("${name}_u")
+    }
+
+    private val polyY: LinearPolynomial by lazy {
+        val polyY = LinearPolynomial(y, "${name}_y")
+        polyY.range.set(possibleRange)
+        polyY
+    }
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -45,12 +48,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     private val possibleRange
         get() = ValueRange(
@@ -59,21 +57,58 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         )
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
-        }
+        x.flush(force)
+        flag?.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         flag?.cells
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.value(tokenTable) ?: return
+
+            val bin = if (flag != null) {
+                (flag.value(tokenTable) ?: return) gr Flt64.zero
+            } else {
+                val bin = xValue gr Flt64.zero
+                logger.trace { "Setting SemiFunction ${name}.u to $bin" }
+                tokenTable.find(u)?.let { token ->
+                    token._result = if (bin) {
+                        Flt64.one
+                    } else {
+                        Flt64.zero
+                    }
+                }
+                bin
+            }
+
+            val yValue = if (bin) {
+                xValue
+            } else {
+                Flt64.zero
+            }
+
+            logger.trace { "Setting SemiFunction ${name}.y to $yValue" }
+            tokenTable.find(y)?.let { token ->
+                token._result = yValue
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::y.isInitialized) {
-            y = ctor("${name}_y")
-        }
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -83,9 +118,6 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         }
 
         if (flag == null) {
-            if (!::u.isInitialized) {
-                u = BinVar("${name}_u")
-            }
             when (val result = tokenTable.add(u)) {
                 is Ok -> {}
 
@@ -93,12 +125,6 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return Failed(result.error)
                 }
             }
-        }
-
-        if (!::polyY.isInitialized) {
-            polyY = LinearPolynomial(y)
-            polyY.name = "${name}_y"
-            polyY.range.set(possibleRange)
         }
 
         return ok

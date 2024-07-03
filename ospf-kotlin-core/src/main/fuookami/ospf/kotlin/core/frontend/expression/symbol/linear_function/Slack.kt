@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -23,225 +23,10 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     override var displayName: String? = null,
     private val ctor: (String) -> V
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     init {
         assert(withNegative || withPositive)
-    }
-
-    data class SlackPositive<V : Variable<*>>(
-        val parent: AbstractSlackFunction<V>
-    ) : LinearSymbol {
-        override var name: String = "${parent.name}_pos"
-        override var displayName: String? = parent.displayName?.let { "${it}_pos" }
-
-        override val dependencies: Set<Symbol> = setOf(parent)
-        override val cells: List<LinearMonomialCell> get() = listOf(LinearMonomialCell(parent._pos!!))
-        override val cached: Boolean = true
-        override val range: ExpressionRange<Flt64> get() = ExpressionRange(ValueRange(parent._pos!!.lowerBound, parent._pos!!.upperBound))
-        override val lowerBound: Flt64 get() = parent._pos!!.lowerBound
-        override val upperBound: Flt64 get() = parent._pos!!.upperBound
-
-        override val category: Category = Linear
-
-        override fun flush(force: Boolean) {}
-        override suspend fun prepare(tokenTable: AbstractTokenTable) {}
-
-        override fun toString(): String {
-            return displayName ?: name
-        }
-
-        override fun toRawString(unfold: Boolean): String {
-            return "slack_pos(${parent.x.toRawString(unfold)}, ${parent.y.toRawString(unfold)})"
-        }
-
-        override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(tokenList, zeroIfNone) ?: return null
-            val yValue = parent.y.value(tokenList, zeroIfNone) ?: return null
-            return max(Flt64.zero, xValue - yValue)
-        }
-
-        override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(results, tokenList, zeroIfNone) ?: return null
-            val yValue = parent.y.value(results, tokenList, zeroIfNone) ?: return null
-            return max(Flt64.zero, xValue - yValue)
-        }
-
-        override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(tokenTable, zeroIfNone) ?: return null
-            val yValue = parent.y.value(tokenTable, zeroIfNone) ?: return null
-            val value = max(Flt64.zero, xValue - yValue)
-            when (tokenTable) {
-                is ManualAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = value
-                }
-
-                is AutoAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = value
-                }
-
-                else -> {}
-            }
-            return value
-        }
-
-        override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(results, tokenTable, zeroIfNone) ?: return null
-            val yValue = parent.y.value(results, tokenTable, zeroIfNone) ?: return null
-            val value = max(Flt64.zero, xValue - yValue)
-            when (tokenTable) {
-                is ManualAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to results] = value
-                }
-
-                is AutoAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to results] = value
-                }
-
-                else -> {}
-            }
-            return value
-        }
-    }
-
-    data class SlackNegative<V : Variable<*>>(
-        val parent: AbstractSlackFunction<V>
-    ) : LinearSymbol {
-        override var name: String = "${parent.name}_neg"
-        override var displayName: String? = parent.displayName?.let { "${it}_neg" }
-
-        override val dependencies: Set<Symbol> = setOf(parent)
-        override val cells: List<LinearMonomialCell> get() = listOf(LinearMonomialCell(parent._neg!!))
-        override val cached: Boolean = true
-        override val range: ExpressionRange<Flt64> get() = ExpressionRange(ValueRange(parent._neg!!.lowerBound, parent._neg!!.upperBound))
-        override val lowerBound: Flt64 get() = parent._neg!!.lowerBound
-        override val upperBound: Flt64 get() = parent._neg!!.upperBound
-
-        override val category: Category = Linear
-
-        override fun flush(force: Boolean) {}
-        override suspend fun prepare(tokenTable: AbstractTokenTable) {}
-
-        override fun toString(): String {
-            return displayName ?: name
-        }
-
-        override fun toRawString(unfold: Boolean): String {
-            return "slack_neg(${parent.x.toRawString(unfold)}, ${parent.y.toRawString(unfold)})"
-        }
-
-        override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(tokenList, zeroIfNone) ?: return null
-            val yValue = parent.y.value(tokenList, zeroIfNone) ?: return null
-            return max(Flt64.zero, yValue - xValue)
-        }
-
-        override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(results, tokenList, zeroIfNone) ?: return null
-            val yValue = parent.y.value(results, tokenList, zeroIfNone) ?: return null
-            return max(Flt64.zero, yValue - xValue)
-        }
-
-        override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(tokenTable, zeroIfNone) ?: return null
-            val yValue = parent.y.value(tokenTable, zeroIfNone) ?: return null
-            val value = max(Flt64.zero, yValue - xValue)
-            when (tokenTable) {
-                is ManualAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = value
-                }
-
-                is AutoAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = value
-                }
-
-                else -> {}
-            }
-            return value
-        }
-
-        override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            val xValue = parent.x.value(results, tokenTable, zeroIfNone) ?: return null
-            val yValue = parent.y.value(results, tokenTable, zeroIfNone) ?: return null
-            val value = max(Flt64.zero, yValue - xValue)
-            when (tokenTable) {
-                is ManualAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to results] = value
-                }
-
-                is AutoAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to results] = value
-                }
-
-                else -> {}
-            }
-            return value
-        }
-    }
-
-    data class SlackPolynomialX<V : Variable<*>>(
-        val parent: AbstractSlackFunction<V>
-    ) : LinearSymbol {
-        override var name: String = "${parent.name}_x"
-        override var displayName: String? = parent.displayName?.let { "${it}_x" }
-
-        override val dependencies: Set<Symbol> = setOf(parent)
-        override val cells: List<LinearMonomialCell> get() = parent._polyX.cells
-        override val cached: Boolean get() = parent._polyX.cached
-        override val range: ExpressionRange<Flt64> get() = parent._polyX.range
-        override val lowerBound: Flt64 get() = parent._polyX.lowerBound
-        override val upperBound: Flt64 get() = parent._polyX.upperBound
-
-        override val category: Category = Linear
-
-        override fun flush(force: Boolean) {}
-        override suspend fun prepare(tokenTable: AbstractTokenTable) {}
-
-        override fun toString(): String {
-            return displayName ?: name
-        }
-
-        override fun toRawString(unfold: Boolean): String {
-            return "slack_x(${parent.x.toRawString(unfold)}, ${parent.y.toRawString(unfold)})"
-        }
-
-        override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-            return parent.y.value(tokenList, zeroIfNone)
-        }
-
-        override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-            return parent.y.value(results, tokenList, zeroIfNone)
-        }
-
-        override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            val value = parent.y.value(tokenTable, zeroIfNone) ?: return null
-            when (tokenTable) {
-                is ManualAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = value
-                }
-
-                is AutoAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = value
-                }
-
-                else -> {}
-            }
-            return value
-        }
-
-        override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            val value = parent.y.value(results, tokenTable, zeroIfNone) ?: return null
-            when (tokenTable) {
-                is ManualAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to results] = value
-                }
-
-                is AutoAddTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to results] = value
-                }
-
-                else -> {}
-            }
-            return value
-        }
     }
 
     private val _neg: V? by lazy {
@@ -251,12 +36,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             null
         }
     }
-    val neg: SlackNegative<V>? by lazy {
-        if (withNegative) {
-            SlackNegative(this)
-        } else {
-            null
-        }
+    val neg: AbstractLinearPolynomial<*>? by lazy {
+        _neg?.let { LinearPolynomial(it) }
     }
 
     private val _pos: V? by lazy {
@@ -266,52 +47,42 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             null
         }
     }
-    val pos: SlackPositive<V>? by lazy {
-        if (withPositive) {
-            SlackPositive(this)
-        } else {
-            null
-        }
+    val pos: AbstractLinearPolynomial<*>? by lazy {
+        _pos?.let { LinearPolynomial(it) }
     }
 
-    private val _polyX: AbstractLinearPolynomial<*> by lazy {
-        val polynomial = if (_neg != null && _pos != null) {
-            x + _neg!! - _pos!!
-        } else if (_neg != null) {
-            x + _neg!!
-        } else if (_pos != null) {
-            x - _pos!!
+    val polyX: AbstractLinearPolynomial<*> by lazy {
+        val polynomial = if (neg != null && pos != null) {
+            x + neg!! - pos!!
+        } else if (neg != null) {
+            x + neg!!
+        } else if (pos != null) {
+            x - pos!!
         } else {
             x
         }
         polynomial.name = "${name}_x"
         polynomial
     }
-    val polyX: SlackPolynomialX<V> by lazy {
-        SlackPolynomialX(this)
+
+    private val polyY: AbstractLinearPolynomial<*> by lazy {
+        val polyY = if (neg != null && pos != null) {
+            neg!! + pos!!
+        } else if (neg != null) {
+            LinearPolynomial(neg!!)
+        } else if (pos != null) {
+            LinearPolynomial(pos!!)
+        } else {
+            LinearPolynomial()
+        }
+        polyY.name = "${name}_y"
+        polyY.range.set(possibleRange)
+        polyY
     }
 
-    private lateinit var polyY: AbstractLinearPolynomial<*>
-    private val _range = ExpressionRange<Flt64>(possibleRange)
-
-    override val range
-        get() = if (::polyY.isInitialized) {
-            polyY.range
-        } else {
-            _range
-        }
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val range get() = polyY.range
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -323,12 +94,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     private val possibleRange: ValueRange<Flt64>
         get() {
@@ -345,31 +111,34 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        x.flush(force)
+        y.flush(force)
+        neg?.flush(force)
+        pos?.flush(force)
+        polyX.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
 
-            if (_neg != null && neg != null) {
-                when (_neg) {
-                    is UIntVar -> {
-                        (_neg!! as UIntVar).range.set(ValueRange(neg!!.lowerBound.toUInt64(), neg!!.upperBound.toUInt64()))
-                    }
+        if (_neg != null && neg != null) {
+            when (_neg) {
+                is UIntVar -> {
+                    (_neg!! as UIntVar).range.set(ValueRange(neg!!.lowerBound.toUInt64(), neg!!.upperBound.toUInt64()))
+                }
 
-                    is URealVar -> {
-                        (_neg!! as URealVar).range.set(ValueRange(neg!!.lowerBound, neg!!.upperBound))
-                    }
+                is URealVar -> {
+                    (_neg!! as URealVar).range.set(ValueRange(neg!!.lowerBound, neg!!.upperBound))
                 }
             }
+        }
 
-            if (_pos != null && pos != null) {
-                when (_pos) {
-                    is UIntVar -> {
-                        (_pos!! as UIntVar).range.set(ValueRange(pos!!.lowerBound.toUInt64(), pos!!.upperBound.toUInt64()))
-                    }
+        if (_pos != null && pos != null) {
+            when (_pos) {
+                is UIntVar -> {
+                    (_pos!! as UIntVar).range.set(ValueRange(pos!!.lowerBound.toUInt64(), pos!!.upperBound.toUInt64()))
+                }
 
-                    is URealVar -> {
-                        (_pos!! as URealVar).range.set(ValueRange(pos!!.lowerBound, pos!!.upperBound))
-                    }
+                is URealVar -> {
+                    (_pos!! as URealVar).range.set(ValueRange(pos!!.lowerBound, pos!!.upperBound))
                 }
             }
         }
@@ -378,6 +147,37 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         y.cells
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.value(tokenTable) ?: return
+            val yValue = y.value(tokenTable) ?: return
+            val negValue = yValue - xValue
+            val posValue = xValue - yValue
+
+            if (_neg != null) {
+                logger.trace { "Setting SlackFunction ${name}.neg initial solution: $negValue" }
+                tokenTable.find(_neg!!)?.let { token ->
+                    token._result = negValue
+                }
+            }
+            if (_pos != null) {
+                logger.trace { "Setting SlackFunction ${name}.pos initial solution: $posValue" }
+                tokenTable.find(_pos!!)?.let { token ->
+                    token._result = posValue
+                }
+            }
+
+            val slackValue = negValue + posValue
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = slackValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = slackValue
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
@@ -399,20 +199,6 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     return Failed(result.error)
                 }
             }
-        }
-
-        if (!::polyY.isInitialized) {
-            polyY = if (_pos != null && _neg != null) {
-                _neg!! + pos!!
-            } else if (_neg != null) {
-                LinearPolynomial(_neg!!)
-            } else if (_pos != null) {
-                LinearPolynomial(_pos!!)
-            } else {
-                LinearPolynomial()
-            }
-            polyY.name = "${name}_y"
-            polyY.range.set(_range.range)
         }
 
         return ok

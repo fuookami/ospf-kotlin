@@ -28,6 +28,8 @@ inline operator fun <reified T: Any> Pushing.invoke(value: LogRecordPO<T>): Try 
 }
 
 interface Saving {
+    val async: Boolean get() = true
+
     operator fun <T: Any> invoke(serializer: KSerializer<T>, value: LogRecordPO<T>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -183,17 +185,32 @@ class LogContext private constructor(
     ) {
         if (saving != null) {
             val saving = this.saving
+            val record = LogRecordPO(
+                app = app,
+                version = version,
+                serviceId = serviceId,
+                step = step,
+                value = value,
+                type = type,
+                availableTime = availableTime
+            )
 
-            scope.launch(Dispatchers.IO) {
-                val record = LogRecordPO(
-                    app = app,
-                    version = version,
-                    serviceId = serviceId,
-                    step = step,
-                    value = value,
-                    type = type,
-                    availableTime = availableTime
-                )
+            if (saving.async) {
+                scope.launch(Dispatchers.IO) {
+                    when (val result = saving(
+                        serializer = serializer,
+                        value = record
+                    )) {
+                        is Ok -> {
+                            logger.info { "saving log success" }
+                        }
+
+                        is Failed -> {
+                            logger.info { "saving log failed: ${result.error.message}" }
+                        }
+                    }
+                }
+            } else {
                 when (val result = saving(
                     serializer = serializer,
                     value = record
@@ -222,17 +239,32 @@ class LogContext private constructor(
     ) {
         if (saving != null) {
             val saving = this.saving
+            val record = LogRecordPO(
+                app = app,
+                version = version,
+                serviceId = serviceId,
+                step = step,
+                value = value,
+                type = type,
+                availableTime = availableTime
+            )
 
-            scope.launch(Dispatchers.IO) {
-                val record = LogRecordPO(
-                    app = app,
-                    version = version,
-                    serviceId = serviceId,
-                    step = step,
-                    value = value,
-                    type = type,
-                    availableTime = availableTime
-                )
+            if (saving.async) {
+                scope.launch(Dispatchers.IO) {
+                    when (val result = saving(
+                        serializer = serializer,
+                        value = record
+                    )) {
+                        is Ok -> {
+                            logger.info { "saving log success" }
+                        }
+
+                        is Failed -> {
+                            logger.info { "saving log failed: ${result.error.message}" }
+                        }
+                    }
+                }
+            } else {
                 when (val result = saving(
                     serializer = serializer,
                     value = record
@@ -261,17 +293,32 @@ class LogContext private constructor(
     ) {
         if (saving != null) {
             val saving = this.saving
+            val record = LogRecordPO(
+                app = app,
+                version = version,
+                serviceId = serviceId,
+                step = step,
+                value = value,
+                type = type,
+                availableTime = availableTime
+            )
 
-            scope.launch(Dispatchers.IO) {
-                val record = LogRecordPO(
-                    app = app,
-                    version = version,
-                    serviceId = serviceId,
-                    step = step,
-                    value = value,
-                    type = type,
-                    availableTime = availableTime
-                )
+            if (saving.async) {
+                scope.launch(Dispatchers.IO) {
+                    when (val result = saving(
+                        serializer = serializer,
+                        value = record
+                    )) {
+                        is Ok -> {
+                            logger.info { "saving log success" }
+                        }
+
+                        is Failed -> {
+                            logger.info { "saving log failed: ${result.error.message}" }
+                        }
+                    }
+                }
+            } else {
                 when (val result = saving(
                     serializer = serializer,
                     value = record

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -19,6 +20,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     companion object {
         fun Triangle3.bottomArea(): Flt64 {
             return Flt64(.5) * (-p2.y * p3.x + p1.y * (-p2.x + p3.x) + p1.x * (p2.y - p3.y) + p2.x * p3.y);
@@ -48,10 +51,11 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
     }
 
-    val size get() = triangles.size
+    val size by triangles::size
+    val indices by triangles::indices
 
     fun z(x: Flt64, y: Flt64): Flt64? {
-        for (i in 0 until size) {
+        for (i in indices) {
             val u = this.calculateU(i, x, y)
             val v = this.calculateV(i, x, y)
 
@@ -69,25 +73,33 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         return null
     }
 
-    private lateinit var u: PctVariable1
-    private lateinit var v: PctVariable1
-    private lateinit var w: BinVariable1
+    private val u: PctVariable1 by lazy {
+        PctVariable1("${name}_u", Shape1(size))
+    }
 
-    private lateinit var polyZ: LinearPolynomial
+    private val v: PctVariable1 by lazy {
+        PctVariable1("${name}_v", Shape1(size))
+    }
+
+    private val w: BinVariable1 by lazy {
+        BinVariable1("${name}_w", Shape1(size))
+    }
+
+    private val polyZ: LinearPolynomial by lazy {
+        val polyZ = calculatePolyZ()
+        polyZ.name = "${name}_z"
+        polyZ.range.set(
+            ValueRange(
+                triangles.minOf { minOf(it.p1.z, it.p2.z, it.p3.z) },
+                triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
+            )
+        )
+        polyZ
+    }
 
     override val range get() = polyZ.range
-    override val lowerBound
-        get() = if (::polyZ.isInitialized) {
-            polyZ.lowerBound
-        } else {
-            triangles.minOf { minOf(it.p1.z, it.p2.z, it.p3.z) }
-        }
-    override val upperBound
-        get() = if (::polyZ.isInitialized) {
-            polyZ.upperBound
-        } else {
-            triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
-        }
+    override val lowerBound get() = polyZ.lowerBound
+    override val upperBound get() = polyZ.upperBound
 
     override val category: Category = Linear
 
@@ -99,28 +111,75 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             return dependencies
         }
     override val cells get() = polyZ.cells
-    override val cached
-        get() = if (::polyZ.isInitialized) {
-            polyZ.cached
-        } else {
-            false
-        }
+    override val cached get() = polyZ.cached
 
     override fun flush(force: Boolean) {
-        if (::polyZ.isInitialized) {
-            polyZ.flush(force)
-        }
+        x.flush(force)
+        y.flush(force)
+        polyZ.flush(force)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         y.cells
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.value(tokenTable) ?: return
+            val yValue = y.value(tokenTable) ?: return
+
+            var zValue: Flt64? = null
+            for (i in indices) {
+                val uValue = this.calculateU(i, xValue, yValue)
+                val vValue = this.calculateV(i, xValue, yValue)
+
+                if ((Flt64.zero leq uValue) && (uValue leq Flt64.one)
+                    && (Flt64.zero leq vValue) && (vValue leq Flt64.one)
+                    && (Flt64.zero leq (uValue + vValue)) && ((uValue + vValue) leq Flt64.one)
+                ) {
+                    logger.trace { "Setting BivariateLinearPiecewiseFunction ${name}.w[$i] initial solution: true" }
+                    tokenTable.find(w[i])?.let { token ->
+                        token._result = Flt64.one
+                    }
+                    logger.trace { "Setting BivariateLinearPiecewiseFunction ${name}.u[$i] initial solution: $uValue" }
+                    tokenTable.find(u[i])?.let { token ->
+                        token._result = uValue
+                    }
+                    logger.trace { "Setting BivariateLinearPiecewiseFunction ${name}.v[$i] initial solution: $vValue" }
+                    tokenTable.find(v[i])?.let { token ->
+                        token._result = vValue
+                    }
+                    val triangle = triangles[i]
+                    zValue = triangle.p1.z + (triangle.p2.z - triangle.p1.z) * uValue + (triangle.p3.z - triangle.p1.z) * vValue
+                } else {
+                    logger.trace { "Setting BivariateLinearPiecewiseFunction ${name}.w[$i] initial solution: false" }
+                    tokenTable.find(w[i])?.let { token ->
+                        token._result = Flt64.zero
+                    }
+                    logger.trace { "Setting BivariateLinearPiecewiseFunction ${name}.u[$i] initial solution: 0" }
+                    tokenTable.find(u[i])?.let { token ->
+                        token._result = Flt64.zero
+                    }
+                    logger.trace { "Setting BivariateLinearPiecewiseFunction ${name}.v[$i] initial solution: 0" }
+                    tokenTable.find(v[i])?.let { token ->
+                        token._result = Flt64.zero
+                    }
+                }
+            }
+            if (zValue != null) {
+                when (tokenTable) {
+                    is TokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = zValue
+                    }
+
+                    is MutableTokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = zValue
+                    }
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::u.isInitialized) {
-            u = PctVariable1("${name}_u", Shape1(size))
-        }
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 
@@ -129,9 +188,6 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
         }
 
-        if (!::v.isInitialized) {
-            v = PctVariable1("${name}_v", Shape1(size))
-        }
         when (val result = tokenTable.add(v)) {
             is Ok -> {}
 
@@ -140,9 +196,6 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
         }
 
-        if (!::w.isInitialized) {
-            w = BinVariable1("${name}_w", Shape1(size))
-        }
         when (val result = tokenTable.add(w)) {
             is Ok -> {}
 
@@ -151,24 +204,13 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
         }
 
-        if (!::polyZ.isInitialized) {
-            polyZ = calculatePolyZ()
-            polyZ.name = "${name}_z"
-            polyZ.range.set(
-                ValueRange(
-                    triangles.minOf { minOf(it.p1.z, it.p2.z, it.p3.z) },
-                    triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
-                )
-            )
-        }
-
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         val m = calculateM()
 
-        for (i in 0 until size) {
+        for (i in indices) {
             val rhs = polyU(i)
             when (val result = model.addConstraint(
                 (u[i] - m * w[i] + m) geq rhs,
@@ -192,7 +234,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
         }
 
-        for (i in 0 until size) {
+        for (i in indices) {
             val rhs = polyV(i)
             when (val result = model.addConstraint(
                 (v[i] - m * w[i] + m) geq rhs,
@@ -227,7 +269,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
         }
 
-        for (i in 0 until size) {
+        for (i in indices) {
             when (val result = model.addConstraint(
                 (u[i] + v[i]) leq w[i],
                 "${name}_uv_$i"

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -16,29 +17,43 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     open val amount: ValueRange<UInt64>? = null
 
-    protected val inequalities by lazy { inequalities.map { it.normalize() } }
+    protected val inequalities by lazy {
+        inequalities.map { it.normalize() }
+    }
 
-    private lateinit var u: BinVariable1
-    private lateinit var y: BinVar
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    private val u: BinVariable1 by lazy {
+        BinVariable1("${name}_u", Shape1(inequalities.size))
+    }
+
+    private val y: BinVar by lazy {
+        BinVar("${name}_y")
+    }
+
+    private val polyY: AbstractLinearPolynomial<*> by lazy {
+        if (amount != null) {
+            if (!constraint) {
+                val polyY = LinearPolynomial(y)
+                polyY.range.set(possibleRange)
+                polyY
+            } else {
+                LinearPolynomial(1)
+            }
+        } else {
+            val polyY = sum(u)
+            polyY.range.set(possibleRange)
+            polyY
+        }
+    }
 
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -52,12 +67,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     private val possibleRange: ValueRange<Flt64>
         get() {
@@ -70,10 +80,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        for (inequality in inequalities) {
+            inequality.flush(force)
         }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
@@ -81,12 +92,44 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             inequality.lhs.cells
             inequality.rhs.cells
         }
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val count = inequalities.count { (it.isTrue(tokenTable) ?: return) }
+
+            val yValue = if (amount != null) {
+                if (!constraint) {
+                    val bin = amount!!.contains(UInt64(count))
+                    val yValue = if (bin) {
+                        Flt64.one
+                    } else {
+                        Flt64.zero
+                    }
+
+                    logger.trace { "Setting SatisfiedAmountInequalityFunction ${name}.y to $bin" }
+                    tokenTable.find(y)?.let { token ->
+                        token._result = yValue
+                    }
+                    yValue
+                } else {
+                    Flt64.one
+                }
+            } else {
+                Flt64(count)
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = yValue
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::u.isInitialized) {
-            u = BinVariable1("${name}_u", Shape1(inequalities.size))
-        }
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 
@@ -95,31 +138,13 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             }
         }
 
-        if (amount != null) {
-            if (!constraint) {
-                if (!::y.isInitialized) {
-                    y = BinVar("${name}_y")
-                }
-                when (val result = tokenTable.add(y)) {
-                    is Ok -> {}
+        if (amount != null && !constraint) {
+            when (val result = tokenTable.add(y)) {
+                is Ok -> {}
 
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
+                is Failed -> {
+                    return Failed(result.error)
                 }
-
-                if (!::polyY.isInitialized) {
-                    polyY = LinearPolynomial(y)
-                    polyY.range.set(possibleRange)
-                }
-            } else {
-                polyY = LinearPolynomial(1)
-                polyY.range.set(possibleRange)
-            }
-        } else {
-            if (!::polyY.isInitialized) {
-                polyY = sum(u)
-                polyY.range.set(possibleRange)
             }
         }
 
@@ -137,48 +162,50 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             }
         }
 
-        if (::y.isInitialized) {
-            when (val result = model.addConstraint(
-                sum(u) geq amount!!.lowerBound.toFlt64() - UInt64(inequalities.size) * (Flt64.one - y),
-                "${name}_lb"
-            )) {
-                is Ok -> {}
+        if (amount != null) {
+            if (!constraint) {
+                when (val result = model.addConstraint(
+                    sum(u) geq amount!!.lowerBound.toFlt64() - UInt64(inequalities.size) * (Flt64.one - y),
+                    "${name}_lb"
+                )) {
+                    is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
-            }
 
-            when (val result = model.addConstraint(
-                sum(u) leq amount!!.upperBound.toFlt64() + UInt64(inequalities.size) * (Flt64.one - y),
-                "${name}_ub"
-            )) {
-                is Ok -> {}
+                when (val result = model.addConstraint(
+                    sum(u) leq amount!!.upperBound.toFlt64() + UInt64(inequalities.size) * (Flt64.one - y),
+                    "${name}_ub"
+                )) {
+                    is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
-            }
-        } else {
-            when (val result = model.addConstraint(
-                sum(u) geq amount!!.lowerBound.toFlt64(),
-                "${name}_lb"
-            )) {
-                is Ok -> {}
+            } else {
+                when (val result = model.addConstraint(
+                    sum(u) geq amount!!.lowerBound.toFlt64(),
+                    "${name}_lb"
+                )) {
+                    is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
-            }
 
-            when (val result = model.addConstraint(
-                sum(u) leq amount!!.upperBound.toFlt64(),
-                "${name}_ub"
-            )) {
-                is Ok -> {}
+                when (val result = model.addConstraint(
+                    sum(u) leq amount!!.upperBound.toFlt64(),
+                    "${name}_ub"
+                )) {
+                    is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
             }
         }

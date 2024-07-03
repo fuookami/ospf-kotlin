@@ -7,7 +7,6 @@ import org.ktorm.entity.*
 import org.ktorm.schema.*
 import org.ktorm.database.*
 import org.ktorm.support.sqlite.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.serialization.*
 import fuookami.ospf.kotlin.framework.log.*
@@ -177,13 +176,15 @@ data class LogRecordPersistenceSaving(
     val db: Database,
     val tableName: String
 ): Saving {
+    override val async = db.dialect !is SQLiteDialect
+
     @Synchronized
     override fun <T : Any> invoke(serializer: KSerializer<T>, value: LogRecordPO<T>): Try {
         if (db.dialect is SQLiteDialect) {
             val table = LogRecordStringRDAO(tableName)
             db.useTransaction {
                 it.connection.createStatement().use { stmt ->
-                    stmt.executeUpdate("PRAGMA busy_timeout = 30000;")
+                    stmt.execute("PRAGMA busy_timeout = 30000;")
                 }
 
                 db.sequenceOf(table).add(value.stringRPO(serializer))
@@ -205,7 +206,7 @@ data class LogRecordPersistenceSaving(
         db.useTransaction {
             if (db.dialect is SQLiteDialect) {
                 it.connection.createStatement().use { stmt ->
-                    stmt.executeUpdate("PRAGMA busy_timeout = 30000;")
+                    stmt.execute("PRAGMA busy_timeout = 30000;")
                 }
             }
 
@@ -222,7 +223,7 @@ data class LogRecordPersistenceSaving(
         db.useTransaction {
             if (db.dialect is SQLiteDialect) {
                 it.connection.createStatement().use { stmt ->
-                    stmt.executeUpdate("PRAGMA busy_timeout = 30000;")
+                    stmt.execute("PRAGMA busy_timeout = 30000;")
                 }
             }
             db.sequenceOf(table).add(value.byteRPO(serializer))

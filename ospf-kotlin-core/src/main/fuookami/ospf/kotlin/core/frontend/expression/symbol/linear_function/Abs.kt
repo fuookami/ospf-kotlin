@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -17,60 +18,85 @@ class AbsFunction(
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol {
-    private lateinit var neg: PctVar
-    private lateinit var pos: PctVar
-    private lateinit var p: BinVar
+    private val logger = logger()
 
-    private lateinit var y: MutableLinearPolynomial
+    private val neg: PctVar by lazy {
+        PctVar("${name}_neg")
+    }
+
+    private val pos: PctVar by lazy {
+        PctVar("${name}_pos")
+    }
+
+    private val p: BinVar by lazy {
+        BinVar("${name}_p")
+    }
+
+    private val y: MutableLinearPolynomial by lazy {
+        MutableLinearPolynomial(
+            (m * pos + m * neg).toMutable(),
+            "${name}_abs_y"
+        )
+    }
+
+    override val discrete by lazy {
+        x.discrete
+    }
 
     override val range get() = y.range
-    override val lowerBound
-        get() = if (::y.isInitialized) {
-            y.lowerBound
-        } else {
-            Flt64.zero
-        }
-    override val upperBound
-        get() = if (::y.isInitialized) {
-            y.upperBound
-        } else {
-            possibleUpperBound
-        }
+    override val lowerBound get() = y.lowerBound
+    override val upperBound get() = y.upperBound
 
     override val category: Category = Linear
 
     override val dependencies by x::dependencies
     override val cells get() = y.cells
-    override val cached
-        get() = if (::y.isInitialized) {
-            y.cached
-        } else {
-            false
-        }
+    override val cached get() = y.cached
 
     private val possibleUpperBound get() = max(abs(x.lowerBound), abs(x.upperBound))
     private var m = possibleUpperBound
 
     override fun flush(force: Boolean) {
-        if (::y.isInitialized) {
-            y.flush(force)
-            val newM = possibleUpperBound
-            if (m neq newM) {
-                y.range.set(ValueRange(-m, m))
-                y.asMutable() *= m / newM
-                m = newM
-            }
+        x.flush(force)
+        y.flush(force)
+        val newM = possibleUpperBound
+        if (m neq newM) {
+            y.range.set(ValueRange(-m, m))
+            y.asMutable() *= m / newM
+            m = newM
         }
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            x.value(tokenTable)?.let { xValue ->
+                val pValue = xValue geq Flt64.zero
+                val yValue = abs(xValue)
+                val posValue = if (pValue) { yValue / m } else { Flt64.zero }
+                val negValue = if (!pValue) { yValue / m } else { Flt64.zero }
+                logger.trace { "Setting AbsFunction ${name}.pos initial solution: $posValue" }
+                tokenTable.find(pos)?.let { token -> token._result = posValue }
+                logger.trace { "Setting AbsFunction ${name}.neg initial solution: $negValue" }
+                tokenTable.find(neg)?.let { token -> token._result = negValue }
+                logger.trace { "Setting AbsFunction ${name}.p initial solution: $pValue" }
+                tokenTable.find(p)?.let { token -> token._result = if (pValue) { Flt64.one } else { Flt64.zero } }
+
+                when (tokenTable) {
+                    is TokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = yValue
+                    }
+
+                    is MutableTokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = yValue
+                    }
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::neg.isInitialized) {
-            neg = PctVar("${name}_neg")
-        }
         when (val result = tokenTable.add(neg)) {
             is Ok -> {}
 
@@ -79,9 +105,6 @@ class AbsFunction(
             }
         }
 
-        if (!::pos.isInitialized) {
-            pos = PctVar("${name}_pos")
-        }
         when (val result = tokenTable.add(pos)) {
             is Ok -> {}
 
@@ -91,9 +114,6 @@ class AbsFunction(
         }
 
         if (extract) {
-            if (!::p.isInitialized) {
-                p = BinVar("${name}_p")
-            }
             when (val result = tokenTable.add(p)) {
                 is Ok -> {}
 
@@ -103,11 +123,7 @@ class AbsFunction(
             }
         }
 
-        if (!::y.isInitialized) {
-            y = (m * pos + m * neg).toMutable()
-            y.name = "${name}_abs_y"
-            y.range.set(ValueRange(Flt64.zero, m))
-        }
+        y.range.set(ValueRange(Flt64.zero, m))
 
         return ok
     }

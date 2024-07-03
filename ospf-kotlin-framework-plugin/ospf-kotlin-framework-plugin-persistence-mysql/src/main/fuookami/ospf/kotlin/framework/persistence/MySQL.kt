@@ -4,6 +4,7 @@ import kotlinx.serialization.*
 import org.ktorm.database.*
 import org.ktorm.support.mysql.*
 import org.apache.commons.dbcp2.*
+import org.apache.logging.log4j.kotlin.*
 
 data class MySQLClientKey(
     val name: String,
@@ -21,6 +22,8 @@ data class MySQLConfigBuilder(
     val maxIdle: Int = 10,
     val maxOpenPreparedStatements: Int = 100
 ) {
+    private val logger = logger()
+
     operator fun invoke(): MySQLConfig? {
         return try {
             MySQLConfig(
@@ -35,6 +38,21 @@ data class MySQLConfigBuilder(
                 maxOpenPreparedStatements = maxOpenPreparedStatements
             )
         } catch (e: Exception) {
+            if (url == null) {
+                logger.error("MySQL url is not set")
+            }
+            if (name == null) {
+                logger.error("MySQL name is not set")
+            }
+            if (database == null) {
+                logger.error("MySQL database is not set")
+            }
+            if (userName == null) {
+                logger.error("MySQL user name is not set")
+            }
+            if (password == null) {
+                logger.error("MySQL password is not set")
+            }
             null
         }
     }
@@ -57,7 +75,7 @@ data class MySQLConfig(
 
 object MySQL {
     @get:Synchronized
-    private val clients: MutableMap<MySQLClientKey, Database> = HashMap()
+    private val clients: MutableMap<MySQLClientKey, BasicDataSource> = HashMap()
 
     @Synchronized
     fun init(builder: MySQLConfigBuilder.() -> Unit): Database? {
@@ -69,7 +87,7 @@ object MySQL {
     @Synchronized
     operator fun invoke(config: MySQLConfig): Database? {
         if (clients.containsKey(config.key)) {
-            return clients[config.key]
+            return Database.connect(clients[config.key]!!, MySqlDialect())
         }
 
         return try {
@@ -85,9 +103,8 @@ object MySQL {
                     addConnectionProperty(key, value)
                 }
             }
-            val client = Database.connect(dataSource, MySqlDialect())
-            clients[config.key] = client
-            client
+            clients[config.key] = dataSource
+            Database.connect(dataSource, MySqlDialect())
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -96,21 +113,23 @@ object MySQL {
 
     @Synchronized
     operator fun invoke(key: MySQLClientKey? = null): Database? {
-        return if (key != null) {
+        return (if (key != null) {
             clients[key]
         } else {
             null
+        } ?: clients.values.firstOrNull())?.let {
+            Database.connect(it, MySqlDialect())
         }
-            ?: clients.values.firstOrNull()
     }
 
     @Synchronized
     operator fun invoke(name: String, dataBase: String? = null): Database? {
-        return if (dataBase != null) {
+        return (if (dataBase != null) {
             clients[MySQLClientKey(name = name, database = dataBase)]
         } else {
             null
+        } ?: clients.filterKeys { it.name == name }.entries.firstOrNull()?.value)?.let {
+                Database.connect(it, MySqlDialect())
         }
-            ?: clients.filterKeys { it.name == name }.entries.firstOrNull()?.value
     }
 }

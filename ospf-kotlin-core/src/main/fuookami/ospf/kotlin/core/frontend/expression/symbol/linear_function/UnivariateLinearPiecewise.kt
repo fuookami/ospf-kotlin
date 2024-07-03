@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -17,6 +18,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     init {
         assert(points.foldIndexed(true) { index, acc, point ->
             if (!acc) {
@@ -32,6 +35,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     }
 
     val size by points::size
+    val indices by points::indices
+
     val empty: Boolean get() = size == 0
     val fixed: Boolean get() = size == 1
     val piecewise: Boolean get() = size >= 2
@@ -44,7 +49,11 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             return null
         }
 
-        for (i in 0 until (size - 1)) {
+        for (i in indices) {
+            if (i == (size - 1)) {
+                continue
+            }
+
             if (points[i + 1].x geq x) {
                 val dy = points[i + 1].y - points[i].y
                 val dx = points[i + 1].x - points[i].x
@@ -54,49 +63,95 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         return null
     }
 
-    private lateinit var k: PctVariable1
-    internal lateinit var b: BinVariable1
-    private lateinit var polyY: LinearPolynomial
+    private val k: PctVariable1 by lazy {
+        PctVariable1("${name}_k", Shape1(points.size))
+    }
+
+    internal val b: BinVariable1 by lazy {
+        BinVariable1("${name}_b", Shape1(points.size - 1))
+    }
+
+    private val polyY: LinearPolynomial by lazy {
+        val polyY = LinearPolynomial(
+            sum(points.mapIndexed { i, p -> p.y * k[i] }),
+            "${name}_y"
+        )
+        polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }))
+        polyY
+    }
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            points.minOf { it.y }
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            points.maxOf { it.y }
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
     override val dependencies: Set<Symbol> by x::dependencies
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-        }
+        x.flush(force)
+        polyY.flush(force)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.value(tokenTable) ?: return
+            var yValue: Flt64? = null
+            for (i in indices) {
+                if (i == (size - 1)) {
+                    continue
+                }
+
+                if (points[i].x leq xValue && xValue leq points[i + 1].x) {
+                    val dx = points[i + 1].x - points[i].x
+                    val lhs = (xValue - points[i].x) / dx
+                    val rhs = (points[i + 1].x - xValue) / dx
+                    yValue = points[i].y * lhs + points[i + 1].y * rhs
+
+                    logger.trace { "Setting UnivariateLinearPiecewiseFunction ${name}.b[$i] initial solution: true" }
+                    tokenTable.find(b[i])?.let { token ->
+                        token._result = Flt64.one
+                    }
+                    logger.trace { "Setting UnivariateLinearPiecewiseFunction ${name}.k[$i] initial solution: $lhs" }
+                    tokenTable.find(k[i])?.let { token ->
+                        token._result = lhs
+                    }
+                    logger.trace { "Setting UnivariateLinearPiecewiseFunction ${name}.k[${i + 1}] initial solution: $rhs" }
+                    tokenTable.find(k[i + 1])?.let { token ->
+                        token._result = rhs
+                    }
+                } else {
+                    logger.trace { "Setting UnivariateLinearPiecewiseFunction ${name}.b[$i] initial solution: false" }
+                    tokenTable.find(b[i])?.let { token ->
+                        token._result = Flt64.zero
+                    }
+                    tokenTable.find(k[i])?.let { token ->
+                        if (token._result == null) {
+                            logger.trace { "Setting UnivariateLinearPiecewiseFunction ${name}.k[$i] initial solution: 0" }
+                            token._result = Flt64.zero
+                        }
+                    }
+                }
+            }
+            if (yValue != null) {
+                when (tokenTable) {
+                    is TokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = yValue
+                    }
+
+                    is MutableTokenTable -> {
+                        tokenTable.cachedSymbolValue[this to null] = yValue
+                    }
+                }
+            }
+        }
     }
 
     override fun register(tokenTable: MutableTokenTable): Try {
-        if (!::k.isInitialized) {
-            k = PctVariable1("${name}_k", Shape1(points.size))
-        }
         when (val result = tokenTable.add(k)) {
             is Ok -> {}
 
@@ -105,21 +160,12 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             }
         }
 
-        if (!::b.isInitialized) {
-            b = BinVariable1("${name}_b", Shape1(points.size - 1))
-        }
         when (val result = tokenTable.add(b)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-
-        if (!::polyY.isInitialized) {
-            polyY = sum(points.mapIndexed { i, p -> p.y * k[i] })
-            polyY.name = "${name}_y"
-            polyY.range.set(ValueRange(points.minOf { it.y }, points.maxOf { it.y }))
         }
 
         return ok
@@ -158,7 +204,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             }
         }
 
-        for (i in 0 until size) {
+        for (i in indices) {
             val poly = MutableLinearPolynomial()
             if (i != 0) {
                 poly += b[i - 1]

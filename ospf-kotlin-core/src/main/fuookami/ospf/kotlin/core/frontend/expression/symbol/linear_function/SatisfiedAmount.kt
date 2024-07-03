@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -10,37 +11,20 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-sealed class AbstractSatisfiedAmountPolynomialFunction(
+abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
+    protected val amount: UInt64? = null,
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    private val extract: Boolean = true,
-    override var name: String,
-    override var displayName: String? = null
+    protected val parent: LinearFunctionSymbol
 ) : LinearFunctionSymbol {
-    open val amount: UInt64? = null
-
-    private lateinit var or: OrFunction
-    private lateinit var and: AndFunction
-    private lateinit var bins: SymbolCombination<BinaryzationFunction, Shape1>
-    private lateinit var y: BinVar
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    protected abstract val polyY: AbstractLinearPolynomial<*>
 
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
-    override val category: Category = Linear
+    override val category get() = Linear
 
     override val dependencies: Set<Symbol>
         get() {
@@ -51,21 +35,16 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
+    override val cached get() = polyY.cached
 
-    private val possibleRange: ValueRange<Flt64>
+    protected val possibleRange: ValueRange<Flt64>
         get() {
             val minAmount = UInt64(polynomials.count { it.lowerBound neq Flt64.zero })
             val maxAmount = UInt64(polynomials.size - polynomials.count { it.upperBound eq Flt64.zero })
             return if (amount != null) {
-                if (minAmount geq amount!!) {
+                if (minAmount geq amount) {
                     ValueRange(Flt64.one, Flt64.one)
-                } else if (maxAmount ls amount!!) {
+                } else if (maxAmount ls amount) {
                     ValueRange(Flt64.zero, Flt64.zero)
                 } else {
                     ValueRange(Flt64.zero, Flt64.one)
@@ -76,148 +55,18 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
         }
+
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
-    }
-
-    override fun register(tokenTable: MutableTokenTable): Try {
-        if (amount?.let { it == UInt64.one } == true) {
-            if (!::or.isInitialized) {
-                or = OrFunction(polynomials, name, displayName)
-            }
-            when (val result = or.register(tokenTable)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-        } else if (amount?.let { it == UInt64(polynomials.size) } == true) {
-            if (!::and.isInitialized) {
-                and = AndFunction(polynomials, name, displayName)
-            }
-            when (val result = and.register(tokenTable)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-        } else {
-            if (!::bins.isInitialized) {
-                bins = SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
-                    if (i == 0) {
-                        BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
-                    } else {
-                        BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
-                    }
-                }
-            }
-            for (bin in bins) {
-                when (val result = bin.register(tokenTable)) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                }
-            }
-
-            if (amount != null) {
-                if (!::y.isInitialized) {
-                    y = BinVar("${name}_y")
-                }
-                when (val result = tokenTable.add(y)) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                }
-
-                if (!::polyY.isInitialized) {
-                    polyY = LinearPolynomial(y)
-                    polyY.range.set(possibleRange)
-                }
-            } else {
-                if (!::polyY.isInitialized) {
-                    polyY = sum(bins)
-                    polyY.range.set(possibleRange)
-                }
-            }
-        }
-
-        return ok
-    }
-
-    override fun register(model: AbstractLinearMechanismModel): Try {
-        if (::or.isInitialized) {
-            when (val result = or.register(model)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-        } else if (::and.isInitialized) {
-            when (val result = and.register(model)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-        } else if (::bins.isInitialized) {
-            for (bin in bins) {
-                when (val result = bin.register(model)) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                }
-            }
-
-            if (::y.isInitialized) {
-                when (val result = model.addConstraint(
-                    y geq (sum(bins) - amount!! + UInt64.one) / UInt64(polynomials.size),
-                    "${name}_ub"
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                }
-
-                if (extract) {
-                    when (val result = model.addConstraint(
-                        y leq sum(bins) / amount!!,
-                        "${name}_lb"
-                    )) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-                    }
-                }
-            }
-        }
-
-        return ok
-    }
-
-    override fun toString(): String {
-        return displayName ?: name
     }
 
     override fun toRawString(unfold: Boolean): String {
@@ -238,7 +87,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
         return if (amount != null) {
-            if (counter geq amount!!) {
+            if (counter geq amount) {
                 Flt64.one
             } else {
                 Flt64.zero
@@ -258,7 +107,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
         return if (amount != null) {
-            if (counter geq amount!!) {
+            if (counter geq amount) {
                 Flt64.one
             } else {
                 Flt64.zero
@@ -278,7 +127,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
         return if (amount != null) {
-            if (counter geq amount!!) {
+            if (counter geq amount) {
                 Flt64.one
             } else {
                 Flt64.zero
@@ -298,7 +147,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             }
         }
         return if (amount != null) {
-            if (counter geq amount!!) {
+            if (counter geq amount) {
                 Flt64.one
             } else {
                 Flt64.zero
@@ -309,19 +158,401 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
     }
 }
 
+private class SatisfiedAmountPolynomialFunctionAnyImpl(
+    polynomials: List<AbstractLinearPolynomial<*>>,
+    parent: LinearFunctionSymbol,
+    override var name: String,
+    override var displayName: String? = null
+) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64.one, polynomials, parent) {
+    private val or: OrFunction by lazy {
+        OrFunction(polynomials, name, displayName)
+    }
+
+    override val polyY: AbstractLinearPolynomial<*> by lazy {
+        val polyY = LinearPolynomial(or)
+        polyY.range.set(possibleRange)
+        polyY
+    }
+
+    override fun flush(force: Boolean) {
+        super.flush(force)
+        or.flush(force)
+    }
+
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+        super.prepare(tokenTable)
+        or.prepare(tokenTable)
+
+        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            val bin = or.value(tokenTable) ?: return
+            val yValue = if (bin eq Flt64.one) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[parent to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[parent to null] = yValue
+                }
+            }
+        }
+    }
+
+    override fun register(tokenTable: MutableTokenTable): Try {
+        when (val result = or.register(tokenTable)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(model: AbstractLinearMechanismModel): Try {
+        when (val result = or.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+}
+
+private class SatisfiedAmountPolynomialFunctionAllImpl(
+    polynomials: List<AbstractLinearPolynomial<*>>,
+    parent: LinearFunctionSymbol,
+    override var name: String,
+    override var displayName: String? = null
+) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64(polynomials.size), polynomials, parent) {
+    private val and: AndFunction by lazy {
+        AndFunction(polynomials, name, displayName)
+    }
+
+    override val polyY: AbstractLinearPolynomial<*> by lazy {
+        val polyY = LinearPolynomial(and)
+        polyY.range.set(possibleRange)
+        polyY
+    }
+
+    override fun flush(force: Boolean) {
+        super.flush(force)
+        and.flush(force)
+    }
+
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+        super.prepare(tokenTable)
+        and.prepare(tokenTable)
+
+        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            val bin = and.value(tokenTable) ?: return
+            val yValue = if (bin eq Flt64.one) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[parent to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[parent to null] = yValue
+                }
+            }
+        }
+    }
+
+    override fun register(tokenTable: MutableTokenTable): Try {
+        when (val result = and.register(tokenTable)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(model: AbstractLinearMechanismModel): Try {
+        when (val result = and.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+}
+
+private class SatisfiedAmountPolynomialFunctionSomeImpl(
+    amount: UInt64?,
+    polynomials: List<AbstractLinearPolynomial<*>>,
+    private val extract: Boolean = true,
+    parent: LinearFunctionSymbol,
+    override var name: String,
+    override var displayName: String? = null
+) : AbstractSatisfiedAmountPolynomialFunctionImpl(amount, polynomials, parent) {
+    private val logger = logger()
+
+    private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
+        SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
+            BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
+        }
+    }
+
+    private val y: BinVar by lazy {
+        BinVar("${name}_y")
+    }
+
+    override val polyY: AbstractLinearPolynomial<*> by lazy {
+        if (amount != null) {
+            val polyY = LinearPolynomial(y)
+            polyY.range.set(possibleRange)
+            polyY
+        } else {
+            val polyY = sum(bins)
+            polyY.range.set(possibleRange)
+            polyY
+        }
+    }
+
+    override fun flush(force: Boolean) {
+        super.flush(force)
+        for (bin in bins) {
+            bin.flush(force)
+        }
+    }
+
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+        super.prepare(tokenTable)
+        for (bin in bins) {
+            bin.prepare(tokenTable)
+        }
+
+        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            val count = bins.count { (it.value(tokenTable) ?: return) eq Flt64.one }
+
+            val yValue = if (amount != null) {
+                val bin = UInt64(count) >= amount
+                val yValue = if (bin) {
+                    Flt64.one
+                } else {
+                    Flt64.zero
+                }
+
+                logger.trace { "Setting SatisfiedAmountPolynomialFunction ${name}.y to $bin" }
+                tokenTable.find(y)?.let { token ->
+                    token._result = yValue
+                }
+                yValue
+            } else {
+                Flt64(count)
+            }
+
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[parent to null] = yValue
+                }
+
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[parent to null] = yValue
+                }
+            }
+        }
+    }
+
+    override fun register(tokenTable: MutableTokenTable): Try {
+        for (bin in bins) {
+            when (val result = bin.register(tokenTable)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (amount != null) {
+            when (val result = tokenTable.add(y)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(model: AbstractLinearMechanismModel): Try {
+        for (bin in bins) {
+            when (val result = bin.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (amount != null) {
+            when (val result = model.addConstraint(
+                y geq (sum(bins) - amount + UInt64.one) / UInt64(polynomials.size),
+                "${name}_ub"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            if (extract) {
+                when (val result = model.addConstraint(
+                    y leq sum(bins) / amount,
+                    "${name}_lb"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        return ok
+    }
+}
+
+sealed class AbstractSatisfiedAmountPolynomialFunction(
+    protected val polynomials: List<AbstractLinearPolynomial<*>>,
+    private val extract: Boolean = true,
+    impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
+    override var name: String,
+    override var displayName: String? = null
+) : LinearFunctionSymbol {
+    open val amount: UInt64? = null
+
+    private val impl: AbstractSatisfiedAmountPolynomialFunctionImpl by lazy {
+        impl ?: when (amount) {
+            UInt64.one -> {
+                SatisfiedAmountPolynomialFunctionAnyImpl(polynomials, this, name, displayName)
+            }
+
+            UInt64(polynomials.size) -> {
+                SatisfiedAmountPolynomialFunctionAllImpl(polynomials, this, name, displayName)
+            }
+
+            else -> {
+                SatisfiedAmountPolynomialFunctionSomeImpl(amount, polynomials, extract, this, name, displayName)
+            }
+        }
+    }
+
+    override val discrete = true
+
+    override val range get() = impl.range
+    override val lowerBound get() = impl.lowerBound
+    override val upperBound get() = impl.upperBound
+
+    override val category get() = Linear
+
+    override val dependencies: Set<Symbol> get() = impl.dependencies
+    override val cells get() = impl.cells
+    override val cached get() = impl.cached
+
+    override fun flush(force: Boolean) {
+        impl.flush(force)
+    }
+
+    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+        impl.prepare(tokenTable)
+    }
+
+    override fun register(tokenTable: MutableTokenTable): Try {
+        when (val result = impl.register(tokenTable)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(model: AbstractLinearMechanismModel): Try {
+        when (val result = impl.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun toString(): String {
+        return displayName ?: name
+    }
+
+    override fun toRawString(unfold: Boolean): String {
+        return if (amount != null) {
+            "satisfied_amount_${amount}(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+        } else {
+            "satisfied_amount(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+        }
+    }
+
+    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return impl.value(tokenList, zeroIfNone)
+    }
+
+    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return impl.value(results, tokenList, zeroIfNone)
+    }
+
+    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return impl.calculateValue(tokenTable, zeroIfNone)
+    }
+
+    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return impl.calculateValue(results, tokenTable, zeroIfNone)
+    }
+}
+
 class SatisfiedAmountPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
+    impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
     name: String,
     displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunction(polynomials, name = name, displayName = displayName)
+) : AbstractSatisfiedAmountPolynomialFunction(polynomials, impl = impl, name = name, displayName = displayName)
 
 class AtLeastPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     override val amount: UInt64,
     extract: Boolean = true,
+    impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
     name: String,
     displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunction(polynomials, extract, name, displayName), LinearLogicFunctionSymbol {
+) : AbstractSatisfiedAmountPolynomialFunction(polynomials, extract, impl = impl, name = name, displayName = displayName), LinearLogicFunctionSymbol {
     init {
         assert(amount != UInt64.zero)
         assert(UInt64(polynomials.size) geq amount)
@@ -335,10 +566,11 @@ class AtLeastPolynomialFunction(
 data object SatisfiedAmountFunction {
     operator fun invoke(
         polynomials: List<AbstractLinearPolynomial<*>>,
+        impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
         name: String,
         displayName: String? = null
     ): SatisfiedAmountPolynomialFunction {
-        return SatisfiedAmountPolynomialFunction(polynomials, name, displayName)
+        return SatisfiedAmountPolynomialFunction(polynomials, impl = impl, name = name, displayName = displayName)
     }
 
     operator fun invoke(
@@ -346,7 +578,7 @@ data object SatisfiedAmountFunction {
         name: String,
         displayName: String? = null
     ): SatisfiedAmountInequalityFunction {
-        return SatisfiedAmountInequalityFunction(inequalities, name, displayName)
+        return SatisfiedAmountInequalityFunction(inequalities, name = name, displayName = displayName)
     }
 }
 
@@ -355,10 +587,11 @@ data object AtLeastFunction {
         polynomials: List<AbstractLinearPolynomial<*>>,
         amount: UInt64,
         extract: Boolean = true,
+        impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
         name: String,
         displayName: String? = null
     ): AtLeastPolynomialFunction {
-        return AtLeastPolynomialFunction(polynomials, amount, extract, name, displayName)
+        return AtLeastPolynomialFunction(polynomials, amount, extract, impl = impl, name = name, displayName = displayName)
     }
 
     operator fun invoke(
@@ -368,6 +601,6 @@ data object AtLeastFunction {
         name: String,
         displayName: String? = null
     ): AtLeastInequalityFunction {
-        return AtLeastInequalityFunction(inequalities, constraint, amount, name, displayName)
+        return AtLeastInequalityFunction(inequalities, constraint, amount, name = name, displayName = displayName)
     }
 }

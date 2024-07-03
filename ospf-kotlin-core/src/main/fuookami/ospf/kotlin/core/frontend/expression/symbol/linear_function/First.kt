@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
+import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -16,25 +17,25 @@ class FirstFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
-    private lateinit var bins: SymbolCombination<BinaryzationFunction, Shape1>
-    private val y: BinVariable1 = BinVariable1("${name}_first", Shape1(polynomials.size))
-    private lateinit var polyY: AbstractLinearPolynomial<*>
+    private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
+        SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
+            BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
+        }
+    }
+
+    private val y: BinVariable1 by lazy {
+        BinVariable1("${name}_first", Shape1(polynomials.size))
+    }
+
+    private val polyY: AbstractLinearPolynomial<*> by lazy {
+        sum(y)
+    }
 
     override val discrete = true
 
     override val range get() = polyY.range
-    override val lowerBound
-        get() = if (::polyY.isInitialized) {
-            polyY.lowerBound
-        } else {
-            possibleRange.lowerBound.toFlt64()
-        }
-    override val upperBound
-        get() = if (::polyY.isInitialized) {
-            polyY.upperBound
-        } else {
-            possibleRange.upperBound.toFlt64()
-        }
+    override val lowerBound get() = polyY.lowerBound
+    override val upperBound get() = polyY.upperBound
 
     override val category: Category = Linear
 
@@ -47,16 +48,7 @@ class FirstFunction(
             return dependencies
         }
     override val cells get() = polyY.cells
-    override val cached
-        get() = if (::polyY.isInitialized) {
-            polyY.cached
-        } else {
-            false
-        }
-
-    operator fun get(i: Int): BinVariable {
-        return y[i]
-    }
+    override val cached get() = polyY.cached
 
     private val possibleRange: ValueRange<Flt64>
         get() {
@@ -77,15 +69,60 @@ class FirstFunction(
         }
 
     override fun flush(force: Boolean) {
-        if (::polyY.isInitialized) {
-            polyY.flush(force)
-            polyY.range.set(possibleRange)
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
         }
+        for (bin in bins) {
+            bin.flush(force)
+        }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override suspend fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
+        }
+        for (bin in bins) {
+            bin.prepare(tokenTable)
+        }
+
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            var first: Int? = null
+            polynomials.withIndex().forEach { (i, polynomial) ->
+                if (first == null) {
+                    polynomial.value(tokenTable)?.let { value ->
+                        val bin = value gr Flt64.zero
+
+                        if (bin) {
+                            first = i
+                        }
+                        logger.trace { "Setting FirstFunction ${name}.y[$i] initial solution: $bin" }
+                        tokenTable.find(y[i])?.let { token ->
+                            token._result = if (bin) {
+                                Flt64.zero
+                            } else {
+                                Flt64.one
+                            }
+                        }
+                    }
+                } else {
+                    logger.trace { "Setting FirstFunction ${name}.y[$i] initial solution: false" }
+                    tokenTable.find(y[i])?.let { token ->
+                        token._result = Flt64.zero
+                    }
+                }
+            }
+            
+            when (tokenTable) {
+                is TokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = Flt64(first ?: polynomials.size)
+                }
+                
+                is MutableTokenTable -> {
+                    tokenTable.cachedSymbolValue[this to null] = Flt64(first ?: polynomials.size)
+                }
+            }
         }
     }
 
@@ -97,11 +134,6 @@ class FirstFunction(
             }
         }
 
-        if (!::bins.isInitialized) {
-            bins = SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
-                BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
-            }
-        }
         for (bin in bins) {
             when (val result = bin.register(tokenTable)) {
                 is Ok -> {}
@@ -112,7 +144,6 @@ class FirstFunction(
             }
         }
 
-        y[0].range.eq(true)
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -151,8 +182,18 @@ class FirstFunction(
                 }
             }
             when (val result = model.addConstraint(
+                y[i] leq y[i - 1],
+                "${name}_ub0_$i"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
                 y[i] leq Flt64.one - bins[i],
-                "${name}_ub_$i"
+                "${name}_ub1_$i"
             )) {
                 is Ok -> {}
 

@@ -683,11 +683,17 @@ class MutableLinearPolynomial(
 // variable and constant
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: Int): LinearPolynomial {
-    return this.plus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = Flt64(rhs)
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: Double): LinearPolynomial {
-    return this.plus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = Flt64(rhs)
+    )
 }
 
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.plus(rhs: T): LinearPolynomial {
@@ -698,11 +704,17 @@ operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.plus(rhs: T): Linear
 }
 
 operator fun AbstractVariableItem<*, *>.minus(rhs: Int): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = -Flt64(rhs)
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.minus(rhs: Double): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = -Flt64(rhs)
+    )
 }
 
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.minus(rhs: T): LinearPolynomial {
@@ -713,11 +725,17 @@ operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.minus(rhs: T): Linea
 }
 
 operator fun Int.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun Double.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun <T : RealNumber<T>> T.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
@@ -728,11 +746,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: AbstractVariableItem<*, *>): Linear
 }
 
 operator fun Int.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun Double.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun <T : RealNumber<T>> T.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
@@ -745,11 +769,17 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractVariableItem<*, *>): Linea
 // symbol and constant
 
 operator fun LinearSymbol.plus(rhs: Int): LinearPolynomial {
-    return this.plus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = Flt64(rhs)
+    )
 }
 
 operator fun LinearSymbol.plus(rhs: Double): LinearPolynomial {
-    return this.plus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = Flt64(rhs)
+    )
 }
 
 operator fun <T : RealNumber<T>> LinearSymbol.plus(rhs: T): LinearPolynomial {
@@ -760,11 +790,17 @@ operator fun <T : RealNumber<T>> LinearSymbol.plus(rhs: T): LinearPolynomial {
 }
 
 operator fun LinearSymbol.minus(rhs: Int): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = -Flt64(rhs)
+    )
 }
 
 operator fun LinearSymbol.minus(rhs: Double): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this)),
+        constant = -Flt64(rhs)
+    )
 }
 
 operator fun <T : RealNumber<T>> LinearSymbol.minus(rhs: T): LinearPolynomial {
@@ -775,7 +811,10 @@ operator fun <T : RealNumber<T>> LinearSymbol.minus(rhs: T): LinearPolynomial {
 }
 
 operator fun Int.plus(rhs: LinearSymbol): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun Double.plus(rhs: LinearSymbol): LinearPolynomial {
@@ -790,11 +829,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: LinearSymbol): LinearPolynomial {
 }
 
 operator fun Int.minus(rhs: LinearSymbol): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun Double.minus(rhs: LinearSymbol): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
+        constant = Flt64(this)
+    )
 }
 
 operator fun <T : RealNumber<T>> T.minus(rhs: LinearSymbol): LinearPolynomial {
@@ -807,11 +852,17 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearSymbol): LinearPolynomial {
 // monomial and constant
 
 operator fun LinearMonomial.plus(rhs: Int): LinearPolynomial {
-    return this.plus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(this.copy()),
+        constant = Flt64(rhs)
+    )
 }
 
 operator fun LinearMonomial.plus(rhs: Double): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(this.copy()),
+        constant = Flt64(rhs)
+    )
 }
 
 operator fun <T : RealNumber<T>> LinearMonomial.plus(rhs: T): LinearPolynomial {
@@ -822,11 +873,17 @@ operator fun <T : RealNumber<T>> LinearMonomial.plus(rhs: T): LinearPolynomial {
 }
 
 operator fun LinearMonomial.minus(rhs: Int): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(this.copy()),
+        constant = -Flt64(rhs)
+    )
 }
 
 operator fun LinearMonomial.minus(rhs: Double): LinearPolynomial {
-    return this.minus(Flt64(rhs))
+    return LinearPolynomial(
+        monomials = listOf(this.copy()),
+        constant = -Flt64(rhs)
+    )
 }
 
 operator fun <T : RealNumber<T>> LinearMonomial.minus(rhs: T): LinearPolynomial {
@@ -837,11 +894,17 @@ operator fun <T : RealNumber<T>> LinearMonomial.minus(rhs: T): LinearPolynomial 
 }
 
 operator fun Int.plus(rhs: LinearMonomial): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(rhs.copy()),
+        constant = Flt64(this)
+    )
 }
 
 operator fun Double.plus(rhs: LinearMonomial): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(rhs.copy()),
+        constant = Flt64(this)
+    )
 }
 
 operator fun <T : RealNumber<T>> T.plus(rhs: LinearMonomial): LinearPolynomial {
@@ -852,11 +915,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: LinearMonomial): LinearPolynomial {
 }
 
 operator fun Int.minus(rhs: LinearMonomial): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(-rhs),
+        constant = Flt64(this)
+    )
 }
 
 operator fun Double.minus(rhs: LinearMonomial): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = listOf(-rhs),
+        constant = Flt64(this)
+    )
 }
 
 operator fun <T : RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial {
@@ -869,11 +938,17 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial 
 // polynomial and constant
 
 operator fun Int.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = rhs.monomials.map { it.copy() },
+        constant = Flt64(this) + rhs.constant
+    )
 }
 
 operator fun Double.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    return Flt64(this).plus(rhs)
+    return LinearPolynomial(
+        monomials = rhs.monomials.map { it.copy() },
+        constant = Flt64(this) + rhs.constant
+    )
 }
 
 operator fun <T : RealNumber<T>> T.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
@@ -884,11 +959,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: AbstractLinearPolynomial<*>): Linea
 }
 
 operator fun Int.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = rhs.monomials.map { -it },
+        constant = Flt64(this) - rhs.constant
+    )
 }
 
 operator fun Double.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    return Flt64(this).minus(rhs)
+    return LinearPolynomial(
+        monomials = rhs.monomials.map { -it },
+        constant = Flt64(this) - rhs.constant
+    )
 }
 
 operator fun <T : RealNumber<T>> T.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
@@ -899,17 +980,22 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractLinearPolynomial<*>): Line
 }
 
 operator fun Int.times(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    return Flt64(this).times(rhs)
+    return LinearPolynomial(
+        monomials = rhs.monomials.map { this * it },
+        constant = Flt64(this) * rhs.constant
+    )
 }
 
 operator fun Double.times(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    return Flt64(this).times(rhs)
+    return LinearPolynomial(
+        monomials = rhs.monomials.map { this * it },
+        constant = Flt64(this) * rhs.constant
+    )
 }
 
 operator fun <T : RealNumber<T>> T.times(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
-    val monomials = rhs.monomials.map { this * it }
     return LinearPolynomial(
-        monomials = monomials,
+        monomials = rhs.monomials.map { this * it },
         constant = this.toFlt64() * rhs.constant
     )
 }
@@ -917,47 +1003,67 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractLinearPolynomial<*>): Line
 // variable and variable
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
+    )
 }
 
 // symbol and variable
 
 operator fun LinearSymbol.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
+    )
 }
 
 operator fun LinearSymbol.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: LinearSymbol): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.minus(rhs: LinearSymbol): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
+    )
 }
 
 // monomial and variable
 
 operator fun LinearMonomial.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(this.copy(), LinearMonomial(rhs)))
+    return LinearPolynomial(
+        monomials = listOf(this.copy(), LinearMonomial(rhs))
+    )
 }
 
 operator fun LinearMonomial.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(this.copy(), LinearMonomial(-Flt64.one, rhs)))
+    return LinearPolynomial(
+        monomials = listOf(this.copy(), LinearMonomial(-Flt64.one, rhs))
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: LinearMonomial): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), rhs.copy()))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), rhs.copy())
+    )
 }
 
 operator fun AbstractVariableItem<*, *>.minus(rhs: LinearMonomial): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), -rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), -rhs)
+    )
 }
 
 // polynomial and variable
@@ -983,29 +1089,41 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearPolynomial): LinearPoly
 // symbol and symbol
 
 operator fun LinearSymbol.plus(rhs: LinearSymbol): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
+    )
 }
 
 operator fun LinearSymbol.minus(rhs: LinearSymbol): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs)))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
+    )
 }
 
 // monomial and symbol
 
 operator fun LinearMonomial.plus(rhs: LinearSymbol): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(this.copy(), LinearMonomial(rhs)))
+    return LinearPolynomial(
+        monomials = listOf(this.copy(), LinearMonomial(rhs))
+    )
 }
 
 operator fun LinearMonomial.minus(rhs: LinearSymbol): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(this.copy(), LinearMonomial(-Flt64.one, rhs)))
+    return LinearPolynomial(
+        monomials = listOf(this.copy(), LinearMonomial(-Flt64.one, rhs))
+    )
 }
 
 operator fun LinearSymbol.plus(rhs: LinearMonomial): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), rhs.copy()))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), rhs.copy())
+    )
 }
 
 operator fun LinearSymbol.minus(rhs: LinearMonomial): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(LinearMonomial(this), -rhs))
+    return LinearPolynomial(
+        monomials = listOf(LinearMonomial(this), -rhs)
+    )
 }
 
 // polynomial and symbol
@@ -1025,11 +1143,15 @@ operator fun LinearSymbol.minus(rhs: LinearPolynomial): LinearPolynomial {
 // monomial and monomial
 
 operator fun LinearMonomial.plus(rhs: LinearMonomial): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(this.copy(), rhs.copy()))
+    return LinearPolynomial(
+        monomials = listOf(this.copy(), rhs.copy())
+    )
 }
 
 operator fun LinearMonomial.minus(rhs: LinearMonomial): LinearPolynomial {
-    return LinearPolynomial(monomials = listOf(this.copy(), -rhs))
+    return LinearPolynomial(
+        monomials = listOf(this.copy(), -rhs)
+    )
 }
 
 // polynomial and monomial
