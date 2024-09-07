@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 interface AbstractCallBackModelInterface<Obj, V> : Model {
     val defaultObjective: V
 
-    val tokens: MutableTokenTable
+    val tokens: AbstractMutableTokenTable
     val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
 
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution>, String>>

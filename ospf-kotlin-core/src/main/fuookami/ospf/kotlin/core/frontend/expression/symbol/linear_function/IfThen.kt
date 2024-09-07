@@ -84,7 +84,7 @@ class IfThenFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         p.lhs.cells
         p.rhs.cells
         q.lhs.cells
@@ -134,7 +134,7 @@ class IfThenFunction(
         return displayName ?: name
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(pu)) {
             is Ok -> {}
 

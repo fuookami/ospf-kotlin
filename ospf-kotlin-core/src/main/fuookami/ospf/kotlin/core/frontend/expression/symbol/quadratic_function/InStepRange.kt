@@ -70,7 +70,7 @@ class InStepRangeFunction(
         y.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         lb.cells
         ub.cells
         stepLinear.prepare(tokenTable)
@@ -89,7 +89,7 @@ class InStepRangeFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(stepLinear)) {
             is Ok -> {}
 

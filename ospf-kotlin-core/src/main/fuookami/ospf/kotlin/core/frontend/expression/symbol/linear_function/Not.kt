@@ -105,7 +105,7 @@ class NotFunctionImpl(
         Flt64.one - x
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -121,7 +121,7 @@ class NotFunctionImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         return ok
     }
 
@@ -161,7 +161,7 @@ class NotFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         piecewiseFunction.prepare(tokenTable)
 
@@ -172,7 +172,7 @@ class NotFunctionPiecewiseImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = piecewiseFunction.register(tokenTable)) {
             is Ok -> {}
 
@@ -218,7 +218,7 @@ class NotFunctionDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -240,7 +240,7 @@ class NotFunctionDiscreteImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -306,7 +306,7 @@ class NotFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -333,7 +333,7 @@ class NotFunctionExtractAndNotDiscreteImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(b)) {
             is Ok -> {}
 
@@ -432,11 +432,11 @@ class NotFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

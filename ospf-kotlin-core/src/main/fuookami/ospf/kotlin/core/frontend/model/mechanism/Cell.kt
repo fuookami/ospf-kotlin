@@ -10,7 +10,7 @@ sealed interface Cell {
 }
 
 class LinearCell(
-    private val tokenTable: TokenTable,
+    private val tokenTable: AbstractTokenTable,
     val coefficient: Flt64,
     val token: Token
 ) : Cell {
@@ -36,7 +36,7 @@ class LinearCell(
 }
 
 class QuadraticCell(
-    private val tokenTable: TokenTable,
+    private val tokenTable: AbstractTokenTable,
     val coefficient: Flt64,
     val token1: Token,
     val token2: Token? = null

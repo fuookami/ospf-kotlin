@@ -80,7 +80,7 @@ class FunctionalCallBackModelPolicy<V>(
 class CallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: MutableTokenTable = ManualAddTokenTable(category),
+    override val tokens: AbstractMutableTokenTable = ManualAddTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<Flt64>
@@ -142,9 +142,14 @@ class CallBackModel internal constructor(
 
         operator fun invoke(
             model: SingleObjectMechanismModel,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+            concurrent: Boolean = true
         ): CallBackModel {
-            val tokens = ManualAddTokenTable(model.tokens)
+            val tokens = if (concurrent) {
+                ConcurrentManualAddTokenTable(model.tokens)
+            } else {
+                ManualAddTokenTable(model.tokens)
+            }
             val constraints = model.constraints.map { constraint ->
                 Pair<Extractor<Boolean?, Solution>, String>(
                     { solution: Solution -> constraint.isTrue(solution) },

@@ -96,7 +96,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         polyY.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
@@ -144,7 +144,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(k)) {
             is Ok -> {}
 

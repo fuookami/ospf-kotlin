@@ -75,7 +75,7 @@ class ProductFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -97,7 +97,7 @@ class ProductFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (polynomials.any { it.category == Quadratic }) {
             return Failed(Err(ErrorCode.ApplicationFailed, "Invalid argument of QuadraticPolynomial.times: over quadratic."))
         }

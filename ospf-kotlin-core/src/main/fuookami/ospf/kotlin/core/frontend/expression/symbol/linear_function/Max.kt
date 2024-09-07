@@ -76,7 +76,7 @@ sealed class AbstractMaxFunction(
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -113,7 +113,7 @@ sealed class AbstractMaxFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(minmax)) {
             is Ok -> {}
 

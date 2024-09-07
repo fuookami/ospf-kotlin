@@ -65,7 +65,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         flag?.cells
 
@@ -102,7 +102,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 

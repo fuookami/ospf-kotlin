@@ -77,7 +77,7 @@ class ModFunction(
         y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         d.cells
 
@@ -107,7 +107,7 @@ class ModFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(dLinear)) {
             is Ok -> {}
 

@@ -41,7 +41,7 @@ sealed interface MetaModel : Model {
     val constraints: List<Inequality<*, *>>
     override val objectCategory: ObjectCategory
     val subObjects: List<SubObject<*, *, *>>
-    val tokens: MutableTokenTable
+    val tokens: AbstractMutableTokenTable
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokens.add(item)
@@ -141,21 +141,36 @@ sealed interface MetaModel : Model {
     }
 
     private suspend fun exportOpm(writer: FileWriter, unfold: Boolean): Try {
-        when (val result = coroutineScope<Ret<AbstractTokenTable>> {
-            val temp = tokens.copy()
-            when (val result = tokens.symbols.register(temp)) {
-                is Ok -> {
-                    Ok(temp)
-                }
+        when (val result = when (tokens) {
+            is MutableTokenTable -> {
+                val temp = tokens.copy() as MutableTokenTable
+                when (val result = tokens.symbols.register(temp)) {
+                    is Ok -> {
+                        Ok(temp)
+                    }
 
-                is Failed -> {
-                    Failed(result.error)
+                    is Failed -> {
+                        Failed(result.error)
+                    }
+                }
+            }
+
+            is ConcurrentMutableTokenTable -> {
+                coroutineScope<Ret<AbstractTokenTable>> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(temp)
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
             }
         }) {
-            is Ok -> {
-                result.value
-            }
+            is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
@@ -212,12 +227,21 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel
 
 abstract class AbstractMetaModel(
     val category: Category,
-    manualTokenAddition: Boolean = true
+    manualTokenAddition: Boolean = true,
+    concurrent: Boolean = true
 ) : MetaModel {
-    override val tokens: MutableTokenTable = if (manualTokenAddition) {
-        ManualAddTokenTable(category)
+    override val tokens: AbstractMutableTokenTable = if (concurrent) {
+        if (manualTokenAddition) {
+            ConcurrentManualAddTokenTable(category)
+        } else {
+            ConcurrentAutoAddTokenTable(category)
+        }
     } else {
-        AutoAddTokenTable(category)
+        if (manualTokenAddition) {
+             ManualAddTokenTable(category)
+        } else {
+             AutoAddTokenTable(category)
+        }
     }
 
     private var currentConstraintGroup: String? = null
@@ -229,7 +253,7 @@ abstract class AbstractMetaModel(
             assert(currentConstraintGroupIndexLowerBound != null)
 
             constraintGroupIndexMap[currentConstraintGroup!!] =
-                currentConstraintGroupIndexLowerBound!! until constraints.size
+                currentConstraintGroupIndexLowerBound!!..<constraints.size
         }
         currentConstraintGroup = name
         currentConstraintGroupIndexLowerBound = constraints.size
@@ -240,7 +264,7 @@ abstract class AbstractMetaModel(
             assert(currentConstraintGroupIndexLowerBound != null)
 
             constraintGroupIndexMap[currentConstraintGroup!!] =
-                currentConstraintGroupIndexLowerBound!! until constraints.size
+                currentConstraintGroupIndexLowerBound!!..<constraints.size
             currentConstraintGroup = null
             currentConstraintGroupIndexLowerBound = null
         }

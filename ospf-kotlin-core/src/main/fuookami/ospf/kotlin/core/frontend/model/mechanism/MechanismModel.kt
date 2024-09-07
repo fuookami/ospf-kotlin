@@ -43,7 +43,7 @@ class LinearMechanismModel(
     override var name: String,
     private val _constraints: MutableList<LinearConstraint>,
     override val objectFunction: SingleObject,
-    override val tokens: TokenTable
+    override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
     companion object {
         private val logger = logger()
@@ -99,15 +99,32 @@ class LinearMechanismModel(
             return Ok(model)
         }
 
-        private suspend fun unfold(tokens: MutableTokenTable): Ret<TokenTable> {
-            val temp = tokens.copy()
-            return when (val result = tokens.symbols.register(temp)) {
-                is Ok -> {
-                    Ok(TokenTable(temp))
+        private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
+            return when (tokens) {
+                is MutableTokenTable -> {
+                   val temp = tokens.copy() as MutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(TokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
 
-                is Failed -> {
-                    Failed(result.error)
+                is ConcurrentMutableTokenTable -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(ConcurrentTokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
             }
         }
@@ -134,7 +151,7 @@ class QuadraticMechanismModel(
     override var name: String,
     private val _constraints: MutableList<QuadraticConstraint>,
     override val objectFunction: SingleObject,
-    override val tokens: TokenTable
+    override val tokens: AbstractTokenTable
 ) : AbstractQuadraticMechanismModel, SingleObjectMechanismModel {
     companion object {
         suspend operator fun invoke(metaMechanismModel: QuadraticMetaModel): Ret<QuadraticMechanismModel> {
@@ -182,15 +199,32 @@ class QuadraticMechanismModel(
             return Ok(model)
         }
 
-        private suspend fun unfold(tokens: MutableTokenTable): Ret<TokenTable> {
-            val temp = tokens.copy()
-            return when (val result = tokens.symbols.register(temp)) {
-                is Ok -> {
-                    Ok(TokenTable(temp))
+        private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
+            return when (tokens) {
+                is MutableTokenTable -> {
+                    val temp = tokens.copy() as MutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(TokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
 
-                is Failed -> {
-                    Failed(result.error)
+                is ConcurrentMutableTokenTable -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(ConcurrentTokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
             }
         }

@@ -64,7 +64,7 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -180,7 +180,7 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
         or.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         super.prepare(tokenTable)
         or.prepare(tokenTable)
 
@@ -196,7 +196,7 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = or.register(tokenTable)) {
             is Ok -> {}
 
@@ -242,7 +242,7 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
         and.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         super.prepare(tokenTable)
         and.prepare(tokenTable)
 
@@ -258,7 +258,7 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = and.register(tokenTable)) {
             is Ok -> {}
 
@@ -322,7 +322,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         super.prepare(tokenTable)
         for (bin in bins) {
             bin.prepare(tokenTable)
@@ -352,7 +352,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         for (bin in bins) {
             when (val result = bin.register(tokenTable)) {
                 is Ok -> {}
@@ -458,11 +458,11 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

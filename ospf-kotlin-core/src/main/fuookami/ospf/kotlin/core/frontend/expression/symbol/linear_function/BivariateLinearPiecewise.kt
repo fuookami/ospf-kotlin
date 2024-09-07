@@ -120,7 +120,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         polyZ.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         y.cells
 
@@ -172,7 +172,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 

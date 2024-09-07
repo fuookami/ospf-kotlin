@@ -111,7 +111,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         lb.cells
         ub.cells
@@ -146,7 +146,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(_neg)) {
             is Ok -> {}
 

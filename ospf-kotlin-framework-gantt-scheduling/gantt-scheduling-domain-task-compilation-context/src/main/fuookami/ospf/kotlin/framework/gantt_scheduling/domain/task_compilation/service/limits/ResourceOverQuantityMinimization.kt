@@ -42,7 +42,7 @@ class ResourceOverQuantityMinimization<
                         UContinuous,
                         x = LinearPolynomial(quantity.overQuantity[slot]),
                         threshold = LinearPolynomial(thresholdValue),
-                        name = "${quantity.name}_${slot}_over_quantity_threshold"
+                        name = "${quantity.name}_${slot}_${name}_${thresholdValue}_over_quantity_threshold"
                     )
                     when (val result = model.add(slack)) {
                         is Ok -> {}

@@ -88,7 +88,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
@@ -122,7 +122,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 

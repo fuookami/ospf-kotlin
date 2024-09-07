@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 interface Symbol : Expression {
@@ -17,7 +16,7 @@ interface Symbol : Expression {
     val dependencies: Set<Symbol>
 
     fun flush(force: Boolean = false)
-    suspend fun prepare(tokenTable: AbstractTokenTable)
+    fun prepare(tokenTable: AbstractTokenTable)
 
     fun toRawString(unfold: Boolean = false): String
 }
@@ -198,7 +197,7 @@ class LinearExpressionSymbol(
         return _polynomial
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         cells
     }
 }
@@ -350,13 +349,13 @@ class QuadraticExpressionSymbol(
         return _polynomial
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         cells
     }
 }
 
 interface FunctionSymbol : Symbol {
-    fun register(tokenTable: MutableTokenTable): Try
+    fun register(tokenTable: AbstractMutableTokenTable): Try
 
     override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {

@@ -118,7 +118,7 @@ class BalanceTernaryzationFunctionImpl(
         x.copy()
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -138,7 +138,7 @@ class BalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         return ok
     }
 
@@ -180,7 +180,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         piecewiseFunction.prepare(tokenTable)
 
@@ -191,7 +191,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = piecewiseFunction.register(tokenTable)) {
             is Ok -> {}
 
@@ -238,7 +238,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -274,7 +274,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -374,7 +374,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -427,7 +427,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(b)) {
             is Ok -> {}
 
@@ -570,11 +570,11 @@ class BalanceTernaryzationFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

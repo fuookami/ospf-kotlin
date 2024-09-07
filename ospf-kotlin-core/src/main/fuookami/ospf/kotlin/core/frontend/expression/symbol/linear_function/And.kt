@@ -130,7 +130,7 @@ private class AndFunctionOnePolynomialImpl(
         bin.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         polynomial.cells
         bin.prepare(tokenTable)
 
@@ -141,7 +141,7 @@ private class AndFunctionOnePolynomialImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = bin.register(tokenTable)) {
             is Ok -> {}
 
@@ -192,7 +192,7 @@ private class AndFunctionMultiPolynomialImpl(
         bin.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -206,7 +206,7 @@ private class AndFunctionMultiPolynomialImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = maxmin.register(tokenTable)) {
             is Ok -> {}
 
@@ -263,7 +263,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -292,7 +292,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -366,11 +366,11 @@ class AndFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {

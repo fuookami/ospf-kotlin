@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -105,7 +104,7 @@ class BinaryzationFunctionImpl(
         x.copy()
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
@@ -121,7 +120,7 @@ class BinaryzationFunctionImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         return ok
     }
 
@@ -158,7 +157,7 @@ class BinaryzationFunctionLinearImpl(
         linearX.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         linearX.prepare(tokenTable)
 
@@ -180,7 +179,7 @@ class BinaryzationFunctionLinearImpl(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -253,11 +252,11 @@ class BinaryzationFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

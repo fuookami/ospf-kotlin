@@ -77,7 +77,7 @@ class SameAsFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
@@ -113,7 +113,7 @@ class SameAsFunction(
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (!constraint && inequalities.size > 1) {
             when (val result = tokenTable.add(u)) {
                 is Ok -> {}
