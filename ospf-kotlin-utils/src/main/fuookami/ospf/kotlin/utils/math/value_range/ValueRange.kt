@@ -174,11 +174,68 @@ data class ValueRange<T>(
         }
 
         @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            lb: T,
+            ub: Infinity,
+            lbInterval: Interval = Interval.Closed
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            val lowerBound = when (val result = ValueWrapper(lb, constants)) {
+                is Ok -> {
+                    result.value
+                }
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            return ValueRange(
+                lb = lowerBound,
+                ub = ValueWrapper.Infinity(constants),
+                lbInterval = lbInterval,
+                ubInterval = Interval.Open,
+                constants = constants
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        inline operator fun <reified T> invoke(
+            lb: NegativeInfinity,
+            ub: T,
+            ubInterval: Interval = Interval.Closed
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            val upperBound = when (val result = ValueWrapper(ub, constants)) {
+                is Ok -> {
+                    result.value
+                }
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            return ValueRange(
+                lb = ValueWrapper.NegativeInfinity(constants),
+                ub = upperBound,
+                lbInterval = Interval.Open,
+                ubInterval = ubInterval,
+                constants = constants
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
         inline fun <reified T> geq(
             lb: T,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             return geq(lb, lbInterval, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        inline fun <reified T> gr(
+            lb: T
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return geq(lb, Interval.Open, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
         }
 
         fun <T> geq(
@@ -210,6 +267,13 @@ data class ValueRange<T>(
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             return leq(ub, lbInterval, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        inline fun <reified T> ls(
+            ub: T
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return leq(ub, Interval.Open, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
         }
 
         fun <T> leq(

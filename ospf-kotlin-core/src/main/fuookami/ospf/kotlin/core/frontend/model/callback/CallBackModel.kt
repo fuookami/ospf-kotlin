@@ -87,8 +87,8 @@ class CallBackModel internal constructor(
 ) : CallBackModelInterface {
     companion object {
         private fun dumpObjectiveComparator(category: ObjectCategory): PartialComparator<Flt64> = when (category) {
-            ObjectCategory.Maximum -> { lhs, rhs -> lhs gr rhs }
-            ObjectCategory.Minimum -> { lhs, rhs -> lhs ls rhs }
+            ObjectCategory.Maximum -> { lhs, rhs -> lhs geq rhs }
+            ObjectCategory.Minimum -> { lhs, rhs -> lhs leq rhs }
         }
 
         operator fun invoke(
