@@ -138,4 +138,21 @@ class ValueRangeTest {
         assert(negInfRange != null && negInfRange.upperBound.value.unwrap() eq Flt64.three)
         assert(negInfRange != null && negInfRange.upperBound.interval == Interval.Closed)
     }
+
+    @Test
+    fun contains() {
+        val range = ValueRange(Flt64.one, Flt64.three).value!!
+        assert(range.contains(Flt64.one))
+        assert(range.contains(Flt64.two))
+        assert(range.contains(Flt64.three))
+        assert(!range.contains(Flt64.zero))
+        assert(!range.contains(Flt64.ten))
+
+        assert(range.contains(ValueRange(Flt64.one, Flt64.two).value!!))
+        assert(range.contains(ValueRange(Flt64.two, Flt64.three).value!!))
+        assert(range.contains(ValueRange(Flt64.one, Flt64.three).value!!))
+        assert(!range.contains(ValueRange(Flt64.zero, Flt64.one).value!!))
+        assert(!range.contains(ValueRange(Flt64.zero, Flt64.two).value!!))
+        assert(!range.contains(ValueRange(Flt64.two, Flt64.ten).value!!))
+    }
 }

@@ -101,15 +101,25 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         get() {
             return if (withNegative && withPositive) {
                 val max = max(y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap(), x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap())
-                return if (max leq Flt64.zero) {
+                if (max leq Flt64.zero) {
                     ValueRange(Flt64.zero, Flt64.zero).value!!
                 } else {
                     ValueRange(Flt64.zero, max).value!!
                 }
             } else if (withNegative) {
-                ValueRange(Flt64.zero, y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap()).value!!
+                val max = y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap()
+                if (max leq Flt64.zero) {
+                    ValueRange(Flt64.zero, Flt64.zero).value!!
+                } else {
+                    ValueRange(Flt64.zero, max).value!!
+                }
             } else if (withPositive) {
-                ValueRange(Flt64.zero, x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()).value!!
+                val max = x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()
+                if (max leq Flt64.zero) {
+                    ValueRange(Flt64.zero, Flt64.zero).value!!
+                } else {
+                    ValueRange(Flt64.zero, max).value!!
+                }
             } else {
                 ValueRange(Flt64.zero, Flt64.zero).value!!
             }
