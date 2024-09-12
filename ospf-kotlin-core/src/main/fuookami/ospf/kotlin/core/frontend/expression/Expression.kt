@@ -113,6 +113,10 @@ open class ExpressionRange<V>(
             ).value!!
         )
     }
+
+    override fun toString(): String {
+        return range?.toString() ?: "empty"
+    }
 }
 
 interface Expression {

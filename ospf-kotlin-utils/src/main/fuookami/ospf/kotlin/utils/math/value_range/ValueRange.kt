@@ -425,8 +425,9 @@ data class ValueRange<T>(
         return if (lowerBound.value.isNegativeInfinity || upperBound.value.isInfinity) {
             true
         } else if (!lowerBound.value.isInfinityOrNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity) {
-            lowerBound.interval.lowerBoundOperator<T>()(value, lowerBound.value.unwrap())
-                    && upperBound.interval.upperBoundOperator<T>()(upperBound.value.unwrap(), value)
+            val lhs = lowerBound.interval.lowerBoundOperator<T>()(lowerBound.value.unwrap(), value)
+            val rhs = upperBound.interval.upperBoundOperator<T>()(upperBound.value.unwrap(), value)
+            lhs && rhs
         } else {
             false
         }
@@ -440,8 +441,9 @@ data class ValueRange<T>(
         ) {
             val lbInterval = lowerBound.interval intersect valueRange.lowerBound.interval
             val ubInterval = upperBound.interval intersect valueRange.upperBound.interval
-            lbInterval.lowerBoundOperator<T>()(lowerBound.value.unwrap(), valueRange.lowerBound.value.unwrap())
-                    && ubInterval.upperBoundOperator<T>()(upperBound.value.unwrap(), valueRange.upperBound.value.unwrap())
+            val lhs = lbInterval.lowerBoundOperator<T>()(lowerBound.value.unwrap(), valueRange.lowerBound.value.unwrap())
+            val rhs = ubInterval.upperBoundOperator<T>()(upperBound.value.unwrap(), valueRange.upperBound.value.unwrap())
+            lhs && rhs
         } else {
             false
         }

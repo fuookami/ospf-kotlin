@@ -55,6 +55,10 @@ class Bound<T>(
     override fun div(rhs: Bound<T>): Bound<T> = Bound(value / rhs.value, interval intersect rhs.interval)
 
     fun toFlt64(): Bound<Flt64> = Bound(ValueWrapper(value.toFlt64()).value!!, interval)
+
+    override fun toString(): String {
+        return "Bound($value, $interval)"
+    }
 }
 
 @JvmName("negBoundFlt32")
