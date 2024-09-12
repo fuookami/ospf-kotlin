@@ -341,6 +341,23 @@ data class ValueRange<T>(
         }
     }
 
+    val mean by lazy {
+        (lowerBound.value + upperBound.value) / constants.two
+    }
+
+    val diff by lazy {
+        upperBound.value - lowerBound.value
+    }
+
+    val gap by lazy {
+        try {
+            diff / max(constants.decimalPrecision, abs(mean.unwrap()))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            constants.nan!!
+        }
+    }
+
     val fixed: Boolean by lazy {
         if (lowerBound.interval != Interval.Closed || upperBound.interval != Interval.Closed) {
             false
