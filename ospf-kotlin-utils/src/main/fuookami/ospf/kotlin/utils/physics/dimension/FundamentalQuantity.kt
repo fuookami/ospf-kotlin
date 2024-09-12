@@ -17,7 +17,7 @@ enum class FundamentalQuantityDimension {
         override fun toString() = "Θ"
     },
     SubstanceAmount {
-        override fun toString() = "n"
+        override fun toString() = "N"
     },
     LuminousIntensity {
         override fun toString() = "J"
@@ -32,6 +32,17 @@ enum class FundamentalQuantityDimension {
         override fun toString() = "B"
     }
 }
+
+val L = FundamentalQuantityDimension.Length
+val M = FundamentalQuantityDimension.Mass
+val T = FundamentalQuantityDimension.Time
+val I = FundamentalQuantityDimension.Current
+val Theta = FundamentalQuantityDimension.Temperature
+val ng = FundamentalQuantityDimension.SubstanceAmount
+val J = FundamentalQuantityDimension.LuminousIntensity
+val rad = FundamentalQuantityDimension.Rad
+val sr = FundamentalQuantityDimension.Sr
+val B = FundamentalQuantityDimension.Information
 
 data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val index: Int = 1) {
     operator fun plus(rhs: FundamentalQuantity): FundamentalQuantity {
