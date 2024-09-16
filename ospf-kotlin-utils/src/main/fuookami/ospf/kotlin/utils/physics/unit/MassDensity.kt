@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object KilogramPerLiter : PhysicalUnit() {
+object KilogramPerLiter : PhysicalUnit() {
     private val unit = Kilogram / Liter
 
     override val name = "kilogram per liter"
@@ -13,7 +13,7 @@ data object KilogramPerLiter : PhysicalUnit() {
     override val scale by unit::scale
 }
 
-data object KilogramPerCubicMeter : PhysicalUnit() {
+object KilogramPerCubicMeter : PhysicalUnit() {
     private val unit = Kilogram / CubicMeter
 
     override val name = "kilogram per cubic meter"

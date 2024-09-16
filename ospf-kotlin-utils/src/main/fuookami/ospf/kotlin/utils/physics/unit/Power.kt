@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object Watt : PhysicalUnit() {
+object Watt : PhysicalUnit() {
     private val unit = Newton * MeterPerSecond
 
     override val name = "watt"

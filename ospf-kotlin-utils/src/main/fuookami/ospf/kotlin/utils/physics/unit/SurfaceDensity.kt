@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object GramPerSquareMeter : PhysicalUnit() {
+object GramPerSquareMeter : PhysicalUnit() {
     private val unit = Gram / SquaredMeter
 
     override val name = "gram per square meter"
@@ -13,7 +13,7 @@ data object GramPerSquareMeter : PhysicalUnit() {
     override val scale by unit::scale
 }
 
-data object KilogramPerSquareMeter : PhysicalUnit() {
+object KilogramPerSquareMeter : PhysicalUnit() {
     private val unit = Kilogram / SquaredMeter
 
     override val name = "kilogram per square meter"

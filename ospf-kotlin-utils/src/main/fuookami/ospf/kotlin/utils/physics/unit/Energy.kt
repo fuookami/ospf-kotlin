@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object Joule : PhysicalUnit() {
+object Joule : PhysicalUnit() {
     private val unit = Watt * Second
 
     override val name = "joule"

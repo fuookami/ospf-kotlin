@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.utils.physics.unit.*
 class UnitTest {
     @Test
     fun units() {
-        // assert(Newton == Kilogram * MeterPerSquareSecond)
+        val newton = Kilogram * MeterPerSquareSecond
+        assert(Newton == newton)
     }
 }

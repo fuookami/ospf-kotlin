@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
 abstract class PhysicalUnit {
@@ -21,9 +22,7 @@ abstract class PhysicalUnit {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as PhysicalUnit
+        if (other !is PhysicalUnit) return false
 
         if (system != other.system) return false
         if (quantity != other.quantity) return false

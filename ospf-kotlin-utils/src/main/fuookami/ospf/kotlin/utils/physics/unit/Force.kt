@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object Newton : PhysicalUnit() {
+object Newton : PhysicalUnit() {
     private val unit = Kilogram * MeterPerSquareSecond
 
     override val name = "newton"

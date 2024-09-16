@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object CubicDecimeter : PhysicalUnit() {
+object CubicDecimeter : PhysicalUnit() {
     private val unit = Decimeter * Decimeter * Decimeter
 
     override val name = "cubic decimeter"
@@ -13,7 +13,7 @@ data object CubicDecimeter : PhysicalUnit() {
     override val scale by unit::scale
 }
 
-data object Liter : PhysicalUnit() {
+object Liter : PhysicalUnit() {
     private val unit = CubicDecimeter
 
     override val name = "liter"
@@ -24,7 +24,7 @@ data object Liter : PhysicalUnit() {
     override val scale by unit::scale
 }
 
-data object CubicMeter : PhysicalUnit() {
+object CubicMeter : PhysicalUnit() {
     private val unit = Meter * Meter * Meter
 
     override val name = "cubic meter"

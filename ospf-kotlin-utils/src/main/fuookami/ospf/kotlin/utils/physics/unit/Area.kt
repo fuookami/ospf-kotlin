@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object SquaredMeter : PhysicalUnit() {
+object SquaredMeter : PhysicalUnit() {
     private val unit = Meter * Meter
 
     override val name = "square meter"

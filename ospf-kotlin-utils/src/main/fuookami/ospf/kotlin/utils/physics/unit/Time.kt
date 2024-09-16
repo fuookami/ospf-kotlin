@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object Millisecond : PhysicalUnit() {
+object Millisecond : PhysicalUnit() {
     override val name: String = "millisecond"
     override val symbol: String = "ms"
 
@@ -12,7 +12,7 @@ data object Millisecond : PhysicalUnit() {
     override val scale: Scale = Scale(Flt64.ten, -Flt64.three)
 }
 
-data object Second : PhysicalUnit() {
+object Second : PhysicalUnit() {
     override val name: String = "second"
     override val symbol: String = "s"
 
@@ -21,7 +21,7 @@ data object Second : PhysicalUnit() {
     override val scale: Scale = Scale()
 }
 
-data object Minute : PhysicalUnit() {
+object Minute : PhysicalUnit() {
     override val name: String = "minute"
     override val symbol: String = "min"
 
@@ -30,7 +30,7 @@ data object Minute : PhysicalUnit() {
     override val scale: Scale = Scale(Flt64(60.0), Flt64.one)
 }
 
-data object Hour : PhysicalUnit() {
+object Hour : PhysicalUnit() {
     override val name: String = "hour"
     override val symbol: String = "h"
 
@@ -39,7 +39,7 @@ data object Hour : PhysicalUnit() {
     override val scale: Scale = Scale(Flt64(60.0), Flt64.two)
 }
 
-data object Day : PhysicalUnit() {
+object Day : PhysicalUnit() {
     override val name: String = "day"
     override val symbol: String = "d"
 

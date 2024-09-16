@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.utils.physics.unit
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
-data object Millimeter : PhysicalUnit() {
+object Millimeter : PhysicalUnit() {
     override val name = "millimeter"
     override val symbol = "mm"
 
@@ -12,7 +12,7 @@ data object Millimeter : PhysicalUnit() {
     override val scale = Scale(Flt64.ten, -Flt64.three)
 }
 
-data object Centimeter : PhysicalUnit() {
+object Centimeter : PhysicalUnit() {
     override val name = "centimeter"
     override val symbol = "cm"
 
@@ -21,7 +21,7 @@ data object Centimeter : PhysicalUnit() {
     override val scale = Scale(Flt64.ten, -Flt64.two)
 }
 
-data object Decimeter : PhysicalUnit() {
+object Decimeter : PhysicalUnit() {
     override val name = "decimeter"
     override val symbol = "dm"
 
@@ -30,7 +30,7 @@ data object Decimeter : PhysicalUnit() {
     override val scale = Scale(Flt64.ten, -Flt64.one)
 }
 
-data object Meter : PhysicalUnit() {
+object Meter : PhysicalUnit() {
     override val name = "meter"
     override val symbol = "m"
 
@@ -39,7 +39,7 @@ data object Meter : PhysicalUnit() {
     override val scale = Scale()
 }
 
-data object Kilometer : PhysicalUnit() {
+object Kilometer : PhysicalUnit() {
     override val name = "kilometer"
     override val symbol = "km"
 
