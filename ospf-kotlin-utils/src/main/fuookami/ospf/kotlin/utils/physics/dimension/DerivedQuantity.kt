@@ -61,6 +61,22 @@ operator fun FundamentalQuantity.div(other: DerivedQuantity): DerivedQuantity {
     return DerivedQuantity(indexes.map { FundamentalQuantity(it.key, it.value) })
 }
 
+operator fun DerivedQuantity.times(other: Int): DerivedQuantity {
+    val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
+    for (quantity in this.quantities) {
+        indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index * other
+    }
+    return DerivedQuantity(indexes.map { FundamentalQuantity(it.key, it.value) })
+}
+
+operator fun DerivedQuantity.div(other: Int): DerivedQuantity {
+    val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
+    for (quantity in this.quantities) {
+        indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index / other
+    }
+    return DerivedQuantity(indexes.map { FundamentalQuantity(it.key, it.value) })
+}
+
 operator fun DerivedQuantity.times(other: FundamentalQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {

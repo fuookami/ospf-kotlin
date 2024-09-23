@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.utils.math
 
-import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 

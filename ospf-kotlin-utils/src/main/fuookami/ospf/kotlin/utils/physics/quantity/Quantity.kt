@@ -13,6 +13,26 @@ data class Quantity<V : Arithmetic<V>>(
     }
 }
 
+infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Arithmetic<V>, V: Eq<V> {
+    return if (this.unit == other.unit) {
+        this.value eq other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        false
+    }
+}
+
+infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Arithmetic<V>, V: PartialOrd<V> {
+    return if (this.unit == other.unit) {
+        this.value partialOrd other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        null
+    }
+}
+
 operator fun <V : Arithmetic<V>> V.times(unit: PhysicalUnit): Quantity<V> {
     return Quantity(this, unit)
 }

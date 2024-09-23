@@ -36,7 +36,7 @@ val Velocity = DerivedQuantity(Length / Time, "velocity", "v")
 // ω = rad / t
 val AngularVelocity = DerivedQuantity(PlaneAngle / Time, "angular velocity", "w")
 // k = L^-1
-val WaveNumber = DerivedQuantity(listOf(L * -1), "wave number", "k")
+val WaveNumber = DerivedQuantity(Length * -1, "wave number", "k")
 // a = v / t
 val Acceleration = DerivedQuantity(Velocity / Time, "acceleration", "a")
 // α = ω / t
@@ -46,7 +46,7 @@ val Momentum = DerivedQuantity(Mass * Velocity, "momentum", "M")
 // L = m * ω
 val AngularMomentum = DerivedQuantity(Mass * AngularVelocity, "angular momentum", "L")
 // l = m * L^2
-val MomentOfInertia = DerivedQuantity(Mass * (L * 2), "moment of inertia", "I")
+val MomentOfInertia = DerivedQuantity(Mass * (Length * 2), "moment of inertia", "I")
 // F = m * a
 val Force = DerivedQuantity(Mass * Acceleration, "force", "F")
 val Gravity = DerivedQuantity(Force, "gravity", "g")
@@ -65,17 +65,20 @@ val SpecificVolume = DerivedQuantity(Volume / Mass, "specific volume", "v")
 val Energy = DerivedQuantity(Force * Length, "energy", "E")
 val Work = DerivedQuantity(Energy, "work", "W")
 val Heat = DerivedQuantity(Energy, "heat", "Q")
-
-// L^3 t^-1
-val FlowVelocity = DerivedQuantity(listOf(L * 3, T * -1), "flow velocity")
-
-// L^2 m t^-3
-val Power = DerivedQuantity(listOf(L * 2, M * 1, T * -3), "power")
-
+// c = N / V
+val Molarity = DerivedQuantity(AmountOfSubstance / Volume, "molarity", "c")
+// Vm = V / N
+val MolarVolume = DerivedQuantity(Volume / AmountOfSubstance, "molar volume", "Vm")
+// P = F * v
+val Power = DerivedQuantity(Force * Velocity, "power", "P")
+// Q = S * v
+val FlowRate = DerivedQuantity(Area * Velocity, "flow rate", "Q")
 // m / L
 val LinearDensity = DerivedQuantity(Mass / Length, "linear density")
 // m / S
 val SurfaceDensity = DerivedQuantity(Mass / Area, "surface density")
+// E * t
+val Action = DerivedQuantity(Energy * Time, "action")
 
 // Electromagnetism
 
@@ -83,5 +86,8 @@ val SurfaceDensity = DerivedQuantity(Mass / Area, "surface density")
 
 // Radiology
 
-
 // Other
+// N / t
+val CatalyticActivity = DerivedQuantity(AmountOfSubstance / Time, "catalytic activity")
+// i / t
+val Bandwidth = DerivedQuantity(Information / Time, "bandwidth")

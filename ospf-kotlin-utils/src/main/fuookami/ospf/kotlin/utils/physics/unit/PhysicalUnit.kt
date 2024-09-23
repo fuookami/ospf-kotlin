@@ -49,7 +49,29 @@ data class AnonymousPhysicalUnit(
     override val scale: Scale,
     override val name: String? = null,
     override val symbol: String? = null
-) : PhysicalUnit()
+) : PhysicalUnit() {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PhysicalUnit) return false
+
+        if (system != other.system) return false
+        if (quantity != other.quantity) return false
+        if (scale != other.scale) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = system.hashCode()
+        result = 31 * result + quantity.hashCode()
+        result = 31 * result + scale.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return symbol ?: TODO("not implemented yet")
+    }
+}
 
 operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
     return if (this.system != other.system) {
