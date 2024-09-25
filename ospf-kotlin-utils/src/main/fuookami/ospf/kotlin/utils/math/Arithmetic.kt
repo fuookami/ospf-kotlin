@@ -95,6 +95,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
 interface RealNumberConstants<Self : RealNumber<Self>> : ArithmeticConstants<Self> {
     val two: Self
     val three: Self
+    val five: Self
     val ten: Self
 
     val minimum: Self

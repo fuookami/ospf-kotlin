@@ -64,6 +64,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
         override val one: UInt8 get() = UInt8(1U)
         override val two: UInt8 get() = UInt8(2U)
         override val three: UInt8 get() = UInt8(3U)
+        override val five: UInt8 get() = UInt8(5U)
         override val ten: UInt8 get() = UInt8(10U)
         override val minimum: UInt8 get() = UInt8(UByte.MIN_VALUE)
         override val maximum: UInt8 get() = UInt8(UByte.MAX_VALUE)
@@ -142,6 +143,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
         override val one: UInt16 get() = UInt16(1U)
         override val two: UInt16 get() = UInt16(2U)
         override val three: UInt16 get() = UInt16(3U)
+        override val five: UInt16 get() = UInt16(5U)
         override val ten: UInt16 get() = UInt16(10U)
         override val minimum: UInt16 get() = UInt16(UShort.MIN_VALUE)
         override val maximum: UInt16 get() = UInt16(UShort.MAX_VALUE)
@@ -220,6 +222,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
         override val one: UInt32 get() = UInt32(1U)
         override val two: UInt32 get() = UInt32(2U)
         override val three: UInt32 get() = UInt32(3U)
+        override val five: UInt32 get() = UInt32(5U)
         override val ten: UInt32 get() = UInt32(10U)
         override val minimum: UInt32 get() = UInt32(UInt.MIN_VALUE)
         override val maximum: UInt32 get() = UInt32(UInt.MAX_VALUE)
@@ -303,6 +306,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
         override val one: UInt64 get() = UInt64(1UL)
         override val two: UInt64 get() = UInt64(2UL)
         override val three: UInt64 get() = UInt64(3UL)
+        override val five: UInt64 get() = UInt64(5UL)
         override val ten: UInt64 get() = UInt64(10UL)
         override val minimum: UInt64 get() = UInt64(ULong.MIN_VALUE)
         override val maximum: UInt64 get() = UInt64(ULong.MAX_VALUE)
@@ -384,6 +388,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
         override val one: UIntX get() = UIntX(1L)
         override val two: UIntX get() = UIntX(2L)
         override val three: UIntX get() = UIntX(3L)
+        override val five: UIntX get() = UIntX(5L)
         override val ten: UIntX get() = UIntX(10L)
         override val minimum: UIntX get() = UIntX(0L)
         override val maximum: UIntX get() = UIntX(Double.MAX_VALUE.toString())
@@ -454,4 +459,20 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = FltX(value.toBigDecimal())
+}
+
+fun String.toUInt8() = UInt8(toUByte())
+fun String.toUInt8OrNull() = toUByteOrNull()?.let { UInt8(it) }
+fun String.toUInt16() = UInt16(toUShort())
+fun String.toUInt16OrNull() = toUShortOrNull()?.let { UInt16(it) }
+fun String.toUInt32() = UInt32(toUInt())
+fun String.toUInt32OrNull() = toUIntOrNull()?.let { UInt32(it) }
+fun String.toUInt64() = UInt64(toULong())
+fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
+fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
+fun String.toUIntXOrNull(radix: Int = 10) = try {
+    UIntX(this, radix)
+} catch (e: Exception) {
+    e.printStackTrace()
+    null
 }

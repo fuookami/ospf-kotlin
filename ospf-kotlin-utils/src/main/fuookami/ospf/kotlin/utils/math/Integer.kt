@@ -51,6 +51,7 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
         override val one: Int8 get() = Int8(1)
         override val two: Int8 get() = Int8(2)
         override val three: Int8 get() = Int8(3)
+        override val five: Int8 get() = Int8(5)
         override val ten: Int8 get() = Int8(10)
         override val minimum: Int8 get() = Int8(Byte.MIN_VALUE)
         override val maximum: Int8 get() = Int8(Byte.MAX_VALUE)
@@ -130,6 +131,7 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
         override val one: Int16 get() = Int16(1)
         override val two: Int16 get() = Int16(2)
         override val three: Int16 get() = Int16(3)
+        override val five: Int16 get() = Int16(5)
         override val ten: Int16 get() = Int16(10)
         override val minimum: Int16 get() = Int16(Short.MIN_VALUE)
         override val maximum: Int16 get() = Int16(Short.MAX_VALUE)
@@ -209,6 +211,7 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
         override val one: Int32 get() = Int32(1)
         override val two: Int32 get() = Int32(2)
         override val three: Int32 get() = Int32(3)
+        override val five: Int32 get() = Int32(5)
         override val ten: Int32 get() = Int32(10)
         override val minimum: Int32 get() = Int32(Int.MIN_VALUE)
         override val maximum: Int32 get() = Int32(Int.MAX_VALUE)
@@ -291,6 +294,7 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
         override val one: Int64 get() = Int64(1L)
         override val two: Int64 get() = Int64(2L)
         override val three: Int64 get() = Int64(3L)
+        override val five: Int64 get() = Int64(5L)
         override val ten: Int64 get() = Int64(10L)
         override val minimum: Int64 get() = Int64(Long.MIN_VALUE)
         override val maximum: Int64 get() = Int64(Long.MAX_VALUE)
@@ -373,6 +377,7 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
         override val one: IntX get() = IntX(1L)
         override val two: IntX get() = IntX(2L)
         override val three: IntX get() = IntX(3L)
+        override val five: IntX get() = IntX(5L)
         override val ten: IntX get() = IntX(10L)
         override val minimum: IntX get() = IntX(Double.MIN_VALUE.toString())
         override val maximum: IntX get() = IntX(Double.MAX_VALUE.toString())
@@ -438,4 +443,20 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = FltX(value.toBigDecimal())
+}
+
+fun String.toInt8() = Int8(toByte())
+fun String.toInt8OrNull() = toByteOrNull()?.let { Int8(it) }
+fun String.toInt16() = Int16(toShort())
+fun String.toInt16OrNull() = toShortOrNull()?.let { Int16(it) }
+fun String.toInt32() = Int32(toInt())
+fun String.toInt32OrNull() = toIntOrNull()?.let { Int32(it) }
+fun String.toInt64() = Int64(toLong())
+fun String.toInt64OrNull() = toLongOrNull()?.let { Int64(it) }
+fun String.toIntX(radix: Int = 10) = IntX(this, radix)
+fun String.toIntXOrNull(radix: Int = 10) = try {
+    IntX(this, radix)
+} catch (e: Exception) {
+    e.printStackTrace()
+    null
 }

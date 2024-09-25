@@ -125,6 +125,7 @@ abstract class RationalConstants<Self, I> protected constructor(
     override val one: Self get() = ctor(constants.one, constants.one)
     override val two: Self get() = ctor(constants.two, constants.one)
     override val three: Self get() = ctor(constants.three, constants.one)
+    override val five: Self get() = ctor(constants.five, constants.one)
     override val ten: Self get() = ctor(constants.ten, constants.one)
     override val minimum: Self get() = ctor(constants.minimum, constants.one)
     override val maximum: Self get() = ctor(constants.maximum, constants.one)

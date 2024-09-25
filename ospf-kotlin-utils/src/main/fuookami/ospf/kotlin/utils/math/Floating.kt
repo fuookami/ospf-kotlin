@@ -103,6 +103,7 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
         override val one: Flt32 get() = Flt32(1.0F)
         override val two: Flt32 get() = Flt32(2.0F)
         override val three: Flt32 get() = Flt32(3.0F)
+        override val five: Flt32 get() = Flt32(5.0F)
         override val ten: Flt32 get() = Flt32(10.0F)
         override val minimum: Flt32 get() = Flt32(-Float.MAX_VALUE)
         override val maximum: Flt32 get() = Flt32(Float.MAX_VALUE)
@@ -205,6 +206,7 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
         override val one: Flt64 get() = Flt64(1.0)
         override val two: Flt64 get() = Flt64(2.0)
         override val three: Flt64 get() = Flt64(3.0)
+        override val five: Flt64 get() = Flt64(5.0)
         override val ten: Flt64 get() = Flt64(10.0)
         override val minimum: Flt64 get() = Flt64(-Double.MAX_VALUE)
         override val maximum: Flt64 get() = Flt64(Double.MAX_VALUE)
@@ -324,6 +326,7 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
         override val one: FltX get() = FltX(BigDecimal.ONE)
         override val two: FltX get() = FltX(2L)
         override val three: FltX get() = FltX(3L)
+        override val five: FltX get() = FltX(5L)
         override val ten: FltX get() = FltX(10L)
         override val minimum: FltX get() = FltX(-Double.MAX_VALUE)
         override val maximum: FltX get() = FltX(Double.MAX_VALUE)
@@ -432,3 +435,10 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
         return FltX(value.setScale(precision, RoundingMode.HALF_UP).setScale(scale))
     }
 }
+
+fun String.toFlt32() = Flt32(toFloat())
+fun String.toFlt32OrNull() = toFloatOrNull()?.let { Flt32(it) }
+fun String.toFlt64() = Flt64(toDouble())
+fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
+fun String.toFltX() = FltX(toBigDecimal())
+fun String.toFltXOrNull() = toBigDecimalOrNull()?.let { FltX(it) }
