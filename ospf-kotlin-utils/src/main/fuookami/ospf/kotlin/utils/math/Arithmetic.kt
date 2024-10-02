@@ -150,6 +150,7 @@ data object NegativeInfinity {
 }
 
 val <T> Collection<T>.usize get() = UInt64(size)
+val <T> Collection<T>.uIndices get() = UInt64.zero until usize
 val <T> List<T>.lastUIndex get() = UInt64(lastIndex)
 val <K, V> Map<K, V>.usize get() = UInt64(size)
 operator fun <T> List<T>.get(index: UInt32) = get(index.toInt())

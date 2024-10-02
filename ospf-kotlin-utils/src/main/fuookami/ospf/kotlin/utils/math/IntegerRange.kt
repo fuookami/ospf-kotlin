@@ -77,6 +77,8 @@ class IntegerRange<I>(
     val first: I by ::start
     val last: I by lazy { getProgressionLastElement(start, endInclusive, step, constants) }
 
+    infix fun step(step: I) = IntegerRange(start, endInclusive, step, constants)
+
     override fun iterator(): Iterator<I> = IntegerIterator(first, last, step, constants)
 
     override fun contains(value: I) = if (step > constants.zero) {
@@ -135,6 +137,8 @@ class NumericUIntegerRange<NI, I>(
 
     val first: I by lazy { converter(start) }
     val last: I by lazy { getProgressionLastElement(converter(start), converter(endInclusive), step, constants) }
+
+    infix fun step(step: NI) = NumericUIntegerRange(start, endInclusive, step, constants, ctor, converter)
 
     override fun iterator(): Iterator<NI> = NumericIntegerIterator(first, last, step, constants, ctor)
 

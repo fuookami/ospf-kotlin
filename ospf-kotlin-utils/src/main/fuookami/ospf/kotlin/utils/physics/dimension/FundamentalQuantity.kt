@@ -55,6 +55,10 @@ data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val 
         return FundamentalQuantity(dimension, this.index - rhs.index)
     }
 
+    operator fun unaryMinus(): FundamentalQuantity {
+        return FundamentalQuantity(dimension, -index)
+    }
+
     override fun toString() = "$dimension$index"
 }
 

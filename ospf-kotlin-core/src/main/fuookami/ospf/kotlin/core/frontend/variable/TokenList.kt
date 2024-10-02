@@ -39,7 +39,7 @@ sealed interface AbstractTokenList {
     }
 
     fun setSolution(solution: List<Flt64>) {
-        assert(solution.size == tokens.size)
+        assert(solution.size >= tokens.size)
         val tokenIndexMap = tokenIndexMap(tokens)
         for (token in tokens) {
             token._result = solution[tokenIndexMap[token]!!]

@@ -65,11 +65,11 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
 
     val key get() = VariableItemKey(identifier, index)
 
-    open fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
+    open infix fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
         return identifier == item.identifier
     }
 
-    open fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
+    open infix fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
         return identifier == combination.identifier
     }
 

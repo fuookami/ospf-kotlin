@@ -11,6 +11,10 @@ class DerivedQuantity(
     constructor(quantity: FundamentalQuantity, name: String? = null, symbol: String? = null) : this(listOf(quantity), name, symbol)
     constructor(quantity: DerivedQuantity, name: String? = null, symbol: String? = null) : this(quantity.quantities.toList(), name, symbol)
 
+    operator fun unaryMinus(): DerivedQuantity {
+        return DerivedQuantity(quantities.map { -it })
+    }
+
     override fun toString(): String {
         return symbol ?: name ?: quantities.joinToString(separator = " * ") { "${it.dimension}^${it.index}" }
     }

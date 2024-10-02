@@ -108,6 +108,39 @@ inline fun <T, C : MutableCollection<T>> Iterable<T?>.filterNotNullTo(
     return destination
 }
 
+inline fun <reified U, T> Iterable<T>.filterIsNotInstance(): List<T> {
+    return this.filterIsNotInstanceTo<U, T, MutableList<T>>(ArrayList())
+}
+
+inline fun <reified U, T, C : MutableCollection<in T>> Iterable<T>.filterIsNotInstanceTo(
+    destination: C
+): C {
+    for (element in this.iterator()) {
+        if (element !is U) {
+            destination.add(element)
+        }
+    }
+    return destination
+}
+
+inline fun <reified U, T> Iterable<T>.filterIsNotInstance(
+    crossinline predicate: Predicate<U>
+): List<T> {
+    return this.filterIsNotInstanceTo<U, T, MutableList<T>>(ArrayList(), predicate)
+}
+
+inline fun <reified U, T, C : MutableCollection<in T>> Iterable<T>.filterIsNotInstanceTo(
+    destination: C,
+    crossinline predicate: Predicate<U>
+): C {
+    for (element in this.iterator()) {
+        if (element !is U || predicate(element)) {
+            destination.add(element)
+        }
+    }
+    return destination
+}
+
 inline fun <reified U, T> Iterable<T>.filterIsInstance(
     crossinline predicate: Predicate<U>
 ): List<U> {
