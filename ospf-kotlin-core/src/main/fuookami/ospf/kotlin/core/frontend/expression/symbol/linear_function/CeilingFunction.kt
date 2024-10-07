@@ -11,11 +11,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class IntDivFunction(
+class CeilingFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
-    override var name: String = "${x}_intDiv_${d}",
-    override var displayName: String? = "$x intDiv $d"
+    override var name: String = "ceil_${x}_${d}",
+    override var displayName: String? = "⌈$x/$d⌉"
 ) : LinearFunctionSymbol {
     private val logger = logger()
 
@@ -58,8 +58,8 @@ class IntDivFunction(
 
     private val possibleRange
         get() = ValueRange(
-            (x.lowerBound!!.value.unwrap() / d).floor(),
-            (x.upperBound!!.value.unwrap() / d).floor()
+            (x.lowerBound!!.value.unwrap() / d).ceil(),
+            (x.upperBound!!.value.unwrap() / d).ceil()
         ).value!!
 
     private val possibleModUpperBound
@@ -84,15 +84,15 @@ class IntDivFunction(
             x.value(tokenTable)?.let { xValue ->
                 val qValue = (xValue / d).let {
                     if (it geq Flt64.zero) {
-                        it.floor()
-                    } else {
                         it.ceil()
+                    } else {
+                        it.floor()
                     }
                 }
-                logger.trace { "Setting ModFunction ${name}.q initial solution: $qValue" }
+                logger.trace { "Setting CeilingFunction ${name}.q initial solution: $qValue" }
                 tokenTable.find(q)?.let { token -> token._result = qValue }
-                val rValue = xValue - qValue * d
-                logger.trace { "Setting ModFunction ${name}.r initial solution: $rValue" }
+                val rValue = qValue * d - xValue
+                logger.trace { "Setting CeilingFunction ${name}.r initial solution: $rValue" }
                 tokenTable.find(r)?.let { token -> token._result = rValue }
 
                 tokenTable.cache(this, null, qValue)
@@ -122,7 +122,7 @@ class IntDivFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq (d * q + r),
+            x eq (d * q - r),
             name = name
         )) {
             is Ok -> {}
@@ -140,15 +140,15 @@ class IntDivFunction(
     }
 
     override fun toRawString(unfold: Boolean): String {
-        return "${x.toRawString(unfold)} intDiv $d"
+        return "⌈${x.toRawString(unfold)} / $d⌉"
     }
 
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenList, zeroIfNone)?.let { (it / d).floor() }
+        return x.value(tokenList, zeroIfNone)?.let { (it / d).ceil() }
     }
 
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenList, zeroIfNone)?.let { (it / d).floor() }
+        return x.value(results, tokenList, zeroIfNone)?.let { (it / d).ceil() }
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
@@ -156,6 +156,6 @@ class IntDivFunction(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenTable, zeroIfNone)?.let { (it / d).floor() }
+        return x.value(results, tokenTable, zeroIfNone)?.let { (it / d).ceil() }
     }
 }

@@ -12,11 +12,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class IntDivFunction(
+class FloorFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,
-    override var name: String = "${x}_intDiv_${d}",
-    override var displayName: String? = "$x intDiv $d"
+    override var name: String = "floor_${x}_${d}",
+    override var displayName: String? = "⌊$x/$d⌋"
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
@@ -47,6 +47,20 @@ class IntDivFunction(
         y
     }
 
+    override val discrete by lazy {
+        x.discrete && d.discrete
+    }
+
+    override val range get() = y.range
+    override val lowerBound get() = y.lowerBound
+    override val upperBound get() = y.upperBound
+
+    override val category: Category = Linear
+
+    override val dependencies get() = x.dependencies + d.dependencies
+    override val cells get() = y.cells
+    override val cached get() = y.cached
+
     private val possibleRange: ValueRange<Flt64>
         get() {
             return if (d.range.range!!.contains(Flt64.zero)) {
@@ -76,20 +90,6 @@ class IntDivFunction(
                 d.lowerBound!!.value.unwrap().ceil().abs()
             }
         )
-
-    override val discrete by lazy {
-        x.discrete && d.discrete
-    }
-
-    override val range get() = y.range
-    override val lowerBound get() = y.lowerBound
-    override val upperBound get() = y.upperBound
-
-    override val category: Category = Linear
-
-    override val dependencies get() = x.dependencies + d.dependencies
-    override val cells get() = y.cells
-    override val cached get() = y.cached
 
     override fun flush(force: Boolean) {
         x.flush(force)
