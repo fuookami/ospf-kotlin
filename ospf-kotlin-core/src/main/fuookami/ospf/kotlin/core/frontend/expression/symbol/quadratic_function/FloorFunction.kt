@@ -115,12 +115,12 @@ class FloorFunction(
                             it.ceil()
                         }
                     }
-                    logger.trace { "Setting ModFunction ${name}.q initial solution: $qValue" }
+                    logger.trace { "Setting FloorFunction ${name}.q initial solution: $qValue" }
                     tokenTable.find(q)?.let { token ->
                         token._result = qValue
                     }
                     val rValue = xValue - dValue * qValue
-                    logger.trace { "Setting ModFunction ${name}.r initial solution: $rValue" }
+                    logger.trace { "Setting FloorFunction ${name}.r initial solution: $rValue" }
                     tokenTable.find(r)?.let { token ->
                         token._result = rValue
                     }
@@ -187,13 +187,13 @@ class FloorFunction(
     }
 
     override fun toRawString(unfold: Boolean): String {
-        return "${x.toRawString(unfold)} mod $d"
+        return "⌊${x.toRawString(unfold)} / ${d.toRawString(unfold)}⌋"
     }
 
     override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return x.value(tokenList, zeroIfNone)?.let { xValue ->
             d.value(tokenList, zeroIfNone)?.let { dValue ->
-                xValue % dValue
+                (xValue / dValue).floor()
             }
         }
     }
@@ -201,7 +201,7 @@ class FloorFunction(
     override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return x.value(results, tokenList, zeroIfNone)?.let { xValue ->
             d.value(results, tokenList, zeroIfNone)?.let { dValue ->
-                xValue % dValue
+                (xValue / dValue).floor()
             }
         }
     }
@@ -209,7 +209,7 @@ class FloorFunction(
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return x.value(tokenTable, zeroIfNone)?.let { xValue ->
             d.value(tokenTable, zeroIfNone)?.let { dValue ->
-                xValue % dValue
+                (xValue / dValue).floor()
             }
         }
     }
@@ -217,7 +217,7 @@ class FloorFunction(
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return x.value(results, tokenTable, zeroIfNone)?.let { xValue ->
             d.value(results, tokenTable, zeroIfNone)?.let { dValue ->
-                xValue % dValue
+                (xValue / dValue).floor()
             }
         }
     }
