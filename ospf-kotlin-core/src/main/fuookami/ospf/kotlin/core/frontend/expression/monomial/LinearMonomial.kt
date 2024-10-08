@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -284,7 +285,7 @@ data class LinearMonomialCell internal constructor(
     }
 }
 
-typealias LinearMonomialSymbolUnit = Either<AbstractVariableItem<*, *>, LinearSymbol>
+typealias LinearMonomialSymbolUnit = Either<AbstractVariableItem<*, *>, LinearIntermediateSymbol>
 
 data class LinearMonomialSymbol(
     val symbol: LinearMonomialSymbolUnit
@@ -296,7 +297,7 @@ data class LinearMonomialSymbol(
             return LinearMonomialSymbol(Either.Left(variable))
         }
 
-        operator fun invoke(symbol: LinearSymbol): LinearMonomialSymbol {
+        operator fun invoke(symbol: LinearIntermediateSymbol): LinearMonomialSymbol {
             return LinearMonomialSymbol(Either.Right(symbol))
         }
     }
@@ -563,19 +564,19 @@ data class LinearMonomial(
             return LinearMonomial(coefficient.toFlt64(), LinearMonomialSymbol(item))
         }
 
-        operator fun invoke(symbol: LinearSymbol): LinearMonomial {
+        operator fun invoke(symbol: LinearIntermediateSymbol): LinearMonomial {
             return LinearMonomial(Flt64.one, LinearMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Int, symbol: LinearSymbol): LinearMonomial {
+        operator fun invoke(coefficient: Int, symbol: LinearIntermediateSymbol): LinearMonomial {
             return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Double, symbol: LinearSymbol): LinearMonomial {
+        operator fun invoke(coefficient: Double, symbol: LinearIntermediateSymbol): LinearMonomial {
             return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(symbol))
         }
 
-        operator fun <T : RealNumber<T>> invoke(coefficient: T, symbol: LinearSymbol): LinearMonomial {
+        operator fun <T : RealNumber<T>> invoke(coefficient: T, symbol: LinearIntermediateSymbol): LinearMonomial {
             return LinearMonomial(coefficient.toFlt64(), LinearMonomialSymbol(symbol))
         }
     }
@@ -685,39 +686,39 @@ operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.div(rhs: T): LinearM
 
 // symbol and constant
 
-operator fun LinearSymbol.times(rhs: Int): LinearMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: Int): LinearMonomial {
     return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
 }
 
-operator fun LinearSymbol.times(rhs: Double): LinearMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: Double): LinearMonomial {
     return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
 }
 
-operator fun <T : RealNumber<T>> LinearSymbol.times(rhs: T): LinearMonomial {
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.times(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
 }
 
-operator fun Int.times(rhs: LinearSymbol): LinearMonomial {
+operator fun Int.times(rhs: LinearIntermediateSymbol): LinearMonomial {
     return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
-operator fun Double.times(rhs: LinearSymbol): LinearMonomial {
+operator fun Double.times(rhs: LinearIntermediateSymbol): LinearMonomial {
     return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
-operator fun <T : RealNumber<T>> T.times(rhs: LinearSymbol): LinearMonomial {
+operator fun <T : RealNumber<T>> T.times(rhs: LinearIntermediateSymbol): LinearMonomial {
     return LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs))
 }
 
-operator fun LinearSymbol.div(rhs: Int): LinearMonomial {
+operator fun LinearIntermediateSymbol.div(rhs: Int): LinearMonomial {
     return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
 }
 
-operator fun LinearSymbol.div(rhs: Double): LinearMonomial {
+operator fun LinearIntermediateSymbol.div(rhs: Double): LinearMonomial {
     return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
 }
 
-operator fun <T : RealNumber<T>> LinearSymbol.div(rhs: T): LinearMonomial {
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.div(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
 

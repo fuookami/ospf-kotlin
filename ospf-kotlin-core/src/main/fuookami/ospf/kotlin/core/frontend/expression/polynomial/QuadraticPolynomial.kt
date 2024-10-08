@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -42,10 +43,10 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
             return _range!!
         }
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
             return monomials.flatMapNotNull {
-                val symbols = ArrayList<Symbol>()
+                val symbols = ArrayList<IntermediateSymbol>()
                 when (val symbol = it.symbol.symbol1) {
                     is Variant3.V2 -> {
                         symbols.add(symbol.value)
@@ -82,29 +83,29 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
         }
     override val cached: Boolean = _cells.isNotEmpty()
 
-    abstract operator fun plus(rhs: LinearSymbol): Self
+    abstract operator fun plus(rhs: LinearIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusLinearSymbols")
-    abstract operator fun plus(rhs: Iterable<LinearSymbol>): Self
-    abstract operator fun plus(rhs: QuadraticSymbol): Self
+    abstract operator fun plus(rhs: Iterable<LinearIntermediateSymbol>): Self
+    abstract operator fun plus(rhs: QuadraticIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusQuadraticSymbols")
-    abstract operator fun plus(rhs: Iterable<QuadraticSymbol>): Self
+    abstract operator fun plus(rhs: Iterable<QuadraticIntermediateSymbol>): Self
     abstract operator fun plus(rhs: LinearMonomial): Self
     abstract operator fun plus(rhs: AbstractLinearPolynomial<*>): Self
 
-    abstract operator fun minus(rhs: LinearSymbol): Self
+    abstract operator fun minus(rhs: LinearIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusLinearSymbols")
-    abstract operator fun minus(rhs: Iterable<LinearSymbol>): Self
-    abstract operator fun minus(rhs: QuadraticSymbol): Self
+    abstract operator fun minus(rhs: Iterable<LinearIntermediateSymbol>): Self
+    abstract operator fun minus(rhs: QuadraticIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusQuadraticSymbols")
-    abstract operator fun minus(rhs: Iterable<QuadraticSymbol>): Self
+    abstract operator fun minus(rhs: Iterable<QuadraticIntermediateSymbol>): Self
     abstract operator fun minus(rhs: LinearMonomial): Self
     abstract operator fun minus(rhs: AbstractLinearPolynomial<*>): Self
 
@@ -114,17 +115,17 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
     @JvmName("timesVariables")
     abstract operator fun times(rhs: Iterable<AbstractVariableItem<*, *>>): Self
 
-    abstract operator fun times(rhs: LinearSymbol): Self
+    abstract operator fun times(rhs: LinearIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesLinearSymbols")
-    abstract operator fun times(rhs: Iterable<LinearSymbol>): Self
+    abstract operator fun times(rhs: Iterable<LinearIntermediateSymbol>): Self
 
-    abstract operator fun times(rhs: QuadraticSymbol): Self
+    abstract operator fun times(rhs: QuadraticIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesQuadraticSymbols")
-    abstract operator fun times(rhs: Iterable<QuadraticSymbol>): Self
+    abstract operator fun times(rhs: Iterable<QuadraticIntermediateSymbol>): Self
     abstract operator fun times(rhs: LinearMonomial): Self
     abstract operator fun times(rhs: QuadraticMonomial): Self
     abstract operator fun times(rhs: AbstractLinearPolynomial<*>): Self
@@ -183,7 +184,7 @@ class QuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): QuadraticPolynomial {
@@ -195,7 +196,7 @@ class QuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: QuadraticSymbol,
+            symbol: QuadraticIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): QuadraticPolynomial {
@@ -336,7 +337,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): QuadraticPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return QuadraticPolynomial(
@@ -347,7 +348,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusLinearSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): QuadraticPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return QuadraticPolynomial(
@@ -356,7 +357,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+    override fun plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return QuadraticPolynomial(
@@ -367,7 +368,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusQuadraticSymbols")
-    override fun plus(rhs: Iterable<QuadraticSymbol>): QuadraticPolynomial {
+    override fun plus(rhs: Iterable<QuadraticIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return QuadraticPolynomial(
@@ -439,7 +440,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): QuadraticPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return QuadraticPolynomial(
@@ -450,7 +451,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusLinearSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): QuadraticPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return QuadraticPolynomial(
@@ -459,7 +460,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+    override fun minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return QuadraticPolynomial(
@@ -470,7 +471,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusQuadraticSymbols")
-    override fun minus(rhs: Iterable<QuadraticSymbol>): QuadraticPolynomial {
+    override fun minus(rhs: Iterable<QuadraticIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return QuadraticPolynomial(
@@ -547,7 +548,7 @@ class QuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: LinearSymbol): QuadraticPolynomial {
+    override fun times(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -560,7 +561,7 @@ class QuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesLinearSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<LinearSymbol>): QuadraticPolynomial {
+    override fun times(rhs: Iterable<LinearIntermediateSymbol>): QuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -571,7 +572,7 @@ class QuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: QuadraticSymbol): QuadraticPolynomial {
+    override fun times(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -584,7 +585,7 @@ class QuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesQuadraticSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<QuadraticSymbol>): QuadraticPolynomial {
+    override fun times(rhs: Iterable<QuadraticIntermediateSymbol>): QuadraticPolynomial {
         if (this.category == Quadratic || rhs.any { it.category == Quadratic }) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -682,7 +683,7 @@ class MutableQuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): MutableQuadraticPolynomial {
@@ -694,7 +695,7 @@ class MutableQuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: QuadraticSymbol,
+            symbol: QuadraticIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): MutableQuadraticPolynomial {
@@ -818,7 +819,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): MutableQuadraticPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return MutableQuadraticPolynomial(
@@ -829,7 +830,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusLinearSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): MutableQuadraticPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return MutableQuadraticPolynomial(
@@ -838,7 +839,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: QuadraticSymbol): MutableQuadraticPolynomial {
+    override fun plus(rhs: QuadraticIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return MutableQuadraticPolynomial(
@@ -849,7 +850,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusQuadraticSymbols")
-    override fun plus(rhs: Iterable<QuadraticSymbol>): MutableQuadraticPolynomial {
+    override fun plus(rhs: Iterable<QuadraticIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return MutableQuadraticPolynomial(
@@ -911,23 +912,23 @@ class MutableQuadraticPolynomial(
         monomials.addAll(rhs.map { QuadraticMonomial(it) })
     }
 
-    operator fun plusAssign(rhs: LinearSymbol) {
+    operator fun plusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(QuadraticMonomial(rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignLinearSymbols")
-    operator fun plusAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun plusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(it) })
     }
 
-    operator fun plusAssign(rhs: QuadraticSymbol) {
+    operator fun plusAssign(rhs: QuadraticIntermediateSymbol) {
         monomials.add(QuadraticMonomial(rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignQuadraticSymbols")
-    operator fun plusAssign(rhs: Iterable<QuadraticSymbol>) {
+    operator fun plusAssign(rhs: Iterable<QuadraticIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(it) })
     }
 
@@ -973,7 +974,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): MutableQuadraticPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return MutableQuadraticPolynomial(
@@ -984,7 +985,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusLinearSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): MutableQuadraticPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return MutableQuadraticPolynomial(
@@ -993,7 +994,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: QuadraticSymbol): MutableQuadraticPolynomial {
+    override fun minus(rhs: QuadraticIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return MutableQuadraticPolynomial(
@@ -1004,7 +1005,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusQuadraticSymbols")
-    override fun minus(rhs: Iterable<QuadraticSymbol>): MutableQuadraticPolynomial {
+    override fun minus(rhs: Iterable<QuadraticIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return MutableQuadraticPolynomial(
@@ -1066,23 +1067,23 @@ class MutableQuadraticPolynomial(
         monomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
     }
 
-    operator fun minusAssign(rhs: LinearSymbol) {
+    operator fun minusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(QuadraticMonomial(-Flt64.one, rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignLinearSymbols")
-    operator fun minusAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun minusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
     }
 
-    operator fun minusAssign(rhs: QuadraticSymbol) {
+    operator fun minusAssign(rhs: QuadraticIntermediateSymbol) {
         monomials.add(QuadraticMonomial(-Flt64.one, rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignQuadraticSymbols")
-    operator fun minusAssign(rhs: Iterable<QuadraticSymbol>) {
+    operator fun minusAssign(rhs: Iterable<QuadraticIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
     }
 
@@ -1133,7 +1134,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: LinearSymbol): MutableQuadraticPolynomial {
+    override fun times(rhs: LinearIntermediateSymbol): MutableQuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1146,7 +1147,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesLinearSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<LinearSymbol>): MutableQuadraticPolynomial {
+    override fun times(rhs: Iterable<LinearIntermediateSymbol>): MutableQuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1157,7 +1158,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: QuadraticSymbol): MutableQuadraticPolynomial {
+    override fun times(rhs: QuadraticIntermediateSymbol): MutableQuadraticPolynomial {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1170,7 +1171,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesQuadraticSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<QuadraticSymbol>): MutableQuadraticPolynomial {
+    override fun times(rhs: Iterable<QuadraticIntermediateSymbol>): MutableQuadraticPolynomial {
         if (this.category == Quadratic || rhs.any { it.category == Quadratic }) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1252,7 +1253,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: LinearSymbol) {
+    operator fun timesAssign(rhs: LinearIntermediateSymbol) {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1265,7 +1266,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesAssignLinearSymbols")
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun timesAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1276,7 +1277,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: QuadraticSymbol) {
+    operator fun timesAssign(rhs: QuadraticIntermediateSymbol) {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1289,7 +1290,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesAssignQuadraticSymbols")
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: Iterable<QuadraticSymbol>) {
+    operator fun timesAssign(rhs: Iterable<QuadraticIntermediateSymbol>) {
         if (this.category == Quadratic || rhs.any { it.category == Quadratic }) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1365,60 +1366,60 @@ class MutableQuadraticPolynomial(
 
 // symbol and constant
 
-operator fun QuadraticSymbol.plus(rhs: Int): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: Int): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
-operator fun QuadraticSymbol.plus(rhs: Double): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: Double): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
-operator fun <T : RealNumber<T>> QuadraticSymbol.plus(rhs: T): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.plus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this)),
         constant = rhs.toFlt64()
     )
 }
 
-operator fun QuadraticSymbol.minus(rhs: Int): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: Int): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
-operator fun QuadraticSymbol.minus(rhs: Double): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: Double): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
-operator fun <T : RealNumber<T>> QuadraticSymbol.minus(rhs: T): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.minus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this)),
         constant = -rhs.toFlt64()
     )
 }
 
-operator fun Int.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Int.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
-operator fun Double.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Double.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
-operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(rhs)),
         constant = this.toFlt64()
     )
 }
 
-operator fun Int.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Int.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
-operator fun Double.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Double.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
-operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(-Flt64.one, rhs)),
         constant = this.toFlt64()
@@ -1536,19 +1537,19 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractQuadraticPolynomial<*>): Q
 
 // symbol and variable
 
-operator fun QuadraticSymbol.plus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
@@ -1609,95 +1610,95 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractQuadraticPolynomial<*
 
 // symbol and symbol
 
-operator fun QuadraticSymbol.plus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun LinearSymbol.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun LinearSymbol.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun QuadraticSymbol.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
 // monomial and symbol
 
-operator fun LinearMonomial.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearMonomial.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun LinearMonomial.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearMonomial.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun QuadraticSymbol.plus(rhs: LinearMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: LinearMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-rhs)))
 }
 
-operator fun QuadraticMonomial.plus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticMonomial.minus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun LinearSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
-operator fun LinearSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
 }
 
-operator fun QuadraticMonomial.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticMonomial.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun QuadraticSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
-operator fun QuadraticSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
 }
 
 // polynomial and symbol
 
-operator fun LinearSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant, this))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun AbstractLinearPolynomial<*>.times(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.times(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { it * rhs }.toMutableList()
     newMonomials.add(QuadraticMonomial(this.constant, rhs))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs))
     return QuadraticPolynomial(
@@ -1706,7 +1707,7 @@ operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticSymbol): QuadraticPo
     )
 }
 
-operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
     return QuadraticPolynomial(
@@ -1716,7 +1717,7 @@ operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticSymbol): QuadraticP
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
     }
@@ -1726,7 +1727,7 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticSymbol): QuadraticP
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun QuadraticSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(it) })
     return QuadraticPolynomial(
@@ -1735,7 +1736,7 @@ operator fun QuadraticSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPo
     )
 }
 
-operator fun QuadraticSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(-it) })
     return QuadraticPolynomial(
@@ -1745,7 +1746,7 @@ operator fun QuadraticSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticP
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticSymbol.times: over quadratic.")
     }
@@ -1755,7 +1756,7 @@ operator fun QuadraticSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticP
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun QuadraticSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
     return QuadraticPolynomial(
@@ -1764,7 +1765,7 @@ operator fun QuadraticSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): Quadrati
     )
 }
 
-operator fun QuadraticSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
     return QuadraticPolynomial(
@@ -1774,7 +1775,7 @@ operator fun QuadraticSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): Quadrat
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticSymbol.times: over quadratic.")
     }
@@ -1992,8 +1993,8 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractQuadraticPolynomial<
 
 @JvmName("sumQuadraticSymbols")
 fun qsum(
-    symbols: Iterable<QuadraticSymbol>,
-    ctor: (QuadraticSymbol) -> QuadraticMonomial = { QuadraticMonomial(it) }
+    symbols: Iterable<QuadraticIntermediateSymbol>,
+    ctor: (QuadraticIntermediateSymbol) -> QuadraticMonomial = { QuadraticMonomial(it) }
 ): QuadraticPolynomial {
     val monomials = ArrayList<QuadraticMonomial>()
     for (symbol in symbols) {
@@ -2021,7 +2022,7 @@ fun qsum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolyno
 @JvmName("sumMapQuadraticSymbols")
 fun <T> qsumSymbols(
     objs: Iterable<T>,
-    ctor: (T) -> QuadraticSymbol?
+    ctor: (T) -> QuadraticIntermediateSymbol?
 ): QuadraticPolynomial {
     return qsum(objs.mapNotNull(ctor))
 }

@@ -97,15 +97,15 @@ class QuadraticInequality(
 
 // symbol and constant
 
-infix fun QuadraticSymbol.ls(rhs: Int): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: Int): QuadraticInequality {
     return this.ls(Flt64(rhs))
 }
 
-infix fun QuadraticSymbol.ls(rhs: Double): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: Double): QuadraticInequality {
     return this.ls(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> QuadraticSymbol.ls(rhs: T): QuadraticInequality {
+infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.ls(rhs: T): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.toFlt64()),
@@ -113,15 +113,15 @@ infix fun <T : RealNumber<T>> QuadraticSymbol.ls(rhs: T): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: Int): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: Int): QuadraticInequality {
     return this.leq(Flt64(rhs))
 }
 
-infix fun QuadraticSymbol.leq(rhs: Double): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: Double): QuadraticInequality {
     return this.leq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> QuadraticSymbol.leq(rhs: T): QuadraticInequality {
+infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.leq(rhs: T): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.toFlt64()),
@@ -129,15 +129,15 @@ infix fun <T : RealNumber<T>> QuadraticSymbol.leq(rhs: T): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: Int): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: Int): QuadraticInequality {
     return this.eq(Flt64(rhs))
 }
 
-infix fun QuadraticSymbol.eq(rhs: Double): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: Double): QuadraticInequality {
     return this.eq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> QuadraticSymbol.eq(rhs: T): QuadraticInequality {
+infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.eq(rhs: T): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.toFlt64()),
@@ -145,15 +145,15 @@ infix fun <T : RealNumber<T>> QuadraticSymbol.eq(rhs: T): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: Int): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: Int): QuadraticInequality {
     return this.neq(Flt64(rhs))
 }
 
-infix fun QuadraticSymbol.neq(rhs: Double): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: Double): QuadraticInequality {
     return this.neq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> QuadraticSymbol.neq(rhs: T): QuadraticInequality {
+infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.neq(rhs: T): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.toFlt64()),
@@ -161,15 +161,15 @@ infix fun <T : RealNumber<T>> QuadraticSymbol.neq(rhs: T): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: Int): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: Int): QuadraticInequality {
     return this.gr(Flt64(rhs))
 }
 
-infix fun QuadraticSymbol.gr(rhs: Double): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: Double): QuadraticInequality {
     return this.gr(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> QuadraticSymbol.gr(rhs: T): QuadraticInequality {
+infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.gr(rhs: T): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.toFlt64()),
@@ -177,15 +177,15 @@ infix fun <T : RealNumber<T>> QuadraticSymbol.gr(rhs: T): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: Int): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: Int): QuadraticInequality {
     return this.geq(Flt64(rhs))
 }
 
-infix fun QuadraticSymbol.geq(rhs: Double): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: Double): QuadraticInequality {
     return this.geq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> QuadraticSymbol.geq(rhs: T): QuadraticInequality {
+infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.geq(rhs: T): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.toFlt64()),
@@ -193,15 +193,15 @@ infix fun <T : RealNumber<T>> QuadraticSymbol.geq(rhs: T): QuadraticInequality {
     )
 }
 
-infix fun Int.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Int.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).ls(rhs)
 }
 
-infix fun Double.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Double.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).ls(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun <T : RealNumber<T>> T.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.toFlt64()),
         QuadraticPolynomial(rhs),
@@ -209,15 +209,15 @@ infix fun <T : RealNumber<T>> T.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun Int.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Int.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).leq(rhs)
 }
 
-infix fun Double.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Double.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).leq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun <T : RealNumber<T>> T.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.toFlt64()),
         QuadraticPolynomial(rhs),
@@ -225,15 +225,15 @@ infix fun <T : RealNumber<T>> T.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun Int.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Int.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).eq(rhs)
 }
 
-infix fun Double.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Double.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).eq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun <T : RealNumber<T>> T.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.toFlt64()),
         QuadraticPolynomial(rhs),
@@ -241,15 +241,15 @@ infix fun <T : RealNumber<T>> T.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun Int.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Int.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).neq(rhs)
 }
 
-infix fun Double.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Double.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).neq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun <T : RealNumber<T>> T.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.toFlt64()),
         QuadraticPolynomial(rhs),
@@ -257,15 +257,15 @@ infix fun <T : RealNumber<T>> T.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun Int.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Int.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).gr(rhs)
 }
 
-infix fun Double.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Double.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).gr(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun <T : RealNumber<T>> T.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.toFlt64()),
         QuadraticPolynomial(rhs),
@@ -273,15 +273,15 @@ infix fun <T : RealNumber<T>> T.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun Int.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Int.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).geq(rhs)
 }
 
-infix fun Double.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun Double.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).geq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun <T : RealNumber<T>> T.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.toFlt64()),
         QuadraticPolynomial(rhs),
@@ -679,7 +679,7 @@ infix fun <T : RealNumber<T>> T.geq(rhs: AbstractQuadraticPolynomial<*>): Quadra
 
 // symbol and variable
 
-infix fun QuadraticSymbol.ls(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -687,7 +687,7 @@ infix fun QuadraticSymbol.ls(rhs: AbstractVariableItem<*, *>): QuadraticInequali
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -695,7 +695,7 @@ infix fun QuadraticSymbol.leq(rhs: AbstractVariableItem<*, *>): QuadraticInequal
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -703,7 +703,7 @@ infix fun QuadraticSymbol.eq(rhs: AbstractVariableItem<*, *>): QuadraticInequali
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -711,7 +711,7 @@ infix fun QuadraticSymbol.neq(rhs: AbstractVariableItem<*, *>): QuadraticInequal
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -719,7 +719,7 @@ infix fun QuadraticSymbol.gr(rhs: AbstractVariableItem<*, *>): QuadraticInequali
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: AbstractVariableItem<*, *>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -727,7 +727,7 @@ infix fun QuadraticSymbol.geq(rhs: AbstractVariableItem<*, *>): QuadraticInequal
     )
 }
 
-infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -735,7 +735,7 @@ infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticSymbol): QuadraticInequali
     )
 }
 
-infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -743,7 +743,7 @@ infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -751,7 +751,7 @@ infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticSymbol): QuadraticInequali
     )
 }
 
-infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -759,7 +759,7 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -767,7 +767,7 @@ infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticSymbol): QuadraticInequali
     )
 }
 
-infix fun AbstractVariableItem<*, *>.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractVariableItem<*, *>.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -973,7 +973,7 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractQuadraticPolynomial<*>): Q
 
 // symbol and symbol
 
-infix fun LinearSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -981,7 +981,7 @@ infix fun LinearSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -989,7 +989,7 @@ infix fun LinearSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -997,7 +997,7 @@ infix fun LinearSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1005,7 +1005,7 @@ infix fun LinearSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1013,7 +1013,7 @@ infix fun LinearSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1021,7 +1021,7 @@ infix fun LinearSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.ls(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1029,7 +1029,7 @@ infix fun QuadraticSymbol.ls(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1037,7 +1037,7 @@ infix fun QuadraticSymbol.leq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1045,7 +1045,7 @@ infix fun QuadraticSymbol.eq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1053,7 +1053,7 @@ infix fun QuadraticSymbol.neq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1061,7 +1061,7 @@ infix fun QuadraticSymbol.gr(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1069,7 +1069,7 @@ infix fun QuadraticSymbol.geq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1077,7 +1077,7 @@ infix fun QuadraticSymbol.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1085,7 +1085,7 @@ infix fun QuadraticSymbol.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1093,7 +1093,7 @@ infix fun QuadraticSymbol.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1101,7 +1101,7 @@ infix fun QuadraticSymbol.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1109,7 +1109,7 @@ infix fun QuadraticSymbol.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1119,7 +1119,7 @@ infix fun QuadraticSymbol.geq(rhs: QuadraticSymbol): QuadraticInequality {
 
 // monomial and symbol
 
-infix fun LinearMonomial.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearMonomial.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1127,7 +1127,7 @@ infix fun LinearMonomial.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearMonomial.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearMonomial.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1135,7 +1135,7 @@ infix fun LinearMonomial.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearMonomial.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearMonomial.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1143,7 +1143,7 @@ infix fun LinearMonomial.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearMonomial.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearMonomial.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1151,7 +1151,7 @@ infix fun LinearMonomial.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearMonomial.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearMonomial.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1159,7 +1159,7 @@ infix fun LinearMonomial.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearMonomial.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun LinearMonomial.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1167,7 +1167,7 @@ infix fun LinearMonomial.geq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.ls(rhs: LinearMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: LinearMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1175,7 +1175,7 @@ infix fun QuadraticSymbol.ls(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: LinearMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: LinearMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1183,7 +1183,7 @@ infix fun QuadraticSymbol.leq(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: LinearMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: LinearMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1191,7 +1191,7 @@ infix fun QuadraticSymbol.eq(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: LinearMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: LinearMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1199,7 +1199,7 @@ infix fun QuadraticSymbol.neq(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: LinearMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: LinearMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1207,7 +1207,7 @@ infix fun QuadraticSymbol.gr(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: LinearMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: LinearMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1215,7 +1215,7 @@ infix fun QuadraticSymbol.geq(rhs: LinearMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.ls(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.ls(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1223,7 +1223,7 @@ infix fun QuadraticMonomial.ls(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.leq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.leq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1231,7 +1231,7 @@ infix fun QuadraticMonomial.leq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.eq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.eq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1239,7 +1239,7 @@ infix fun QuadraticMonomial.eq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.neq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.neq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1247,7 +1247,7 @@ infix fun QuadraticMonomial.neq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.gr(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.gr(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1255,7 +1255,7 @@ infix fun QuadraticMonomial.gr(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.geq(rhs: LinearSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.geq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1263,7 +1263,7 @@ infix fun QuadraticMonomial.geq(rhs: LinearSymbol): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1271,7 +1271,7 @@ infix fun LinearSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1279,7 +1279,7 @@ infix fun LinearSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1287,7 +1287,7 @@ infix fun LinearSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1295,7 +1295,7 @@ infix fun LinearSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1303,7 +1303,7 @@ infix fun LinearSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1311,7 +1311,7 @@ infix fun LinearSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1319,7 +1319,7 @@ infix fun QuadraticMonomial.ls(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1327,7 +1327,7 @@ infix fun QuadraticMonomial.leq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1335,7 +1335,7 @@ infix fun QuadraticMonomial.eq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1343,7 +1343,7 @@ infix fun QuadraticMonomial.neq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1351,7 +1351,7 @@ infix fun QuadraticMonomial.gr(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticMonomial.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun QuadraticMonomial.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this.copy()),
         QuadraticPolynomial(rhs),
@@ -1359,7 +1359,7 @@ infix fun QuadraticMonomial.geq(rhs: QuadraticSymbol): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1367,7 +1367,7 @@ infix fun QuadraticSymbol.ls(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1375,7 +1375,7 @@ infix fun QuadraticSymbol.leq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1383,7 +1383,7 @@ infix fun QuadraticSymbol.eq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1391,7 +1391,7 @@ infix fun QuadraticSymbol.neq(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1399,7 +1399,7 @@ infix fun QuadraticSymbol.gr(rhs: QuadraticMonomial): QuadraticInequality {
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs.copy()),
@@ -1409,7 +1409,7 @@ infix fun QuadraticSymbol.geq(rhs: QuadraticMonomial): QuadraticInequality {
 
 // polynomial and symbol
 
-infix fun AbstractLinearPolynomial<*>.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractLinearPolynomial<*>.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1417,7 +1417,7 @@ infix fun AbstractLinearPolynomial<*>.ls(rhs: QuadraticSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractLinearPolynomial<*>.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1425,7 +1425,7 @@ infix fun AbstractLinearPolynomial<*>.leq(rhs: QuadraticSymbol): QuadraticInequa
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractLinearPolynomial<*>.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1433,7 +1433,7 @@ infix fun AbstractLinearPolynomial<*>.eq(rhs: QuadraticSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractLinearPolynomial<*>.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1441,7 +1441,7 @@ infix fun AbstractLinearPolynomial<*>.neq(rhs: QuadraticSymbol): QuadraticInequa
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractLinearPolynomial<*>.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1449,7 +1449,7 @@ infix fun AbstractLinearPolynomial<*>.gr(rhs: QuadraticSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractLinearPolynomial<*>.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1457,7 +1457,7 @@ infix fun AbstractLinearPolynomial<*>.geq(rhs: QuadraticSymbol): QuadraticInequa
     )
 }
 
-infix fun QuadraticSymbol.ls(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1465,7 +1465,7 @@ infix fun QuadraticSymbol.ls(rhs: AbstractLinearPolynomial<*>): QuadraticInequal
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1473,7 +1473,7 @@ infix fun QuadraticSymbol.leq(rhs: AbstractLinearPolynomial<*>): QuadraticInequa
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1481,7 +1481,7 @@ infix fun QuadraticSymbol.eq(rhs: AbstractLinearPolynomial<*>): QuadraticInequal
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1489,7 +1489,7 @@ infix fun QuadraticSymbol.neq(rhs: AbstractLinearPolynomial<*>): QuadraticInequa
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1497,7 +1497,7 @@ infix fun QuadraticSymbol.gr(rhs: AbstractLinearPolynomial<*>): QuadraticInequal
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: AbstractLinearPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         QuadraticPolynomial(rhs),
@@ -1505,7 +1505,7 @@ infix fun QuadraticSymbol.geq(rhs: AbstractLinearPolynomial<*>): QuadraticInequa
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.ls(rhs: LinearSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1513,7 +1513,7 @@ infix fun AbstractQuadraticPolynomial<*>.ls(rhs: LinearSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1521,7 +1521,7 @@ infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearSymbol): QuadraticInequa
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.eq(rhs: LinearSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1529,7 +1529,7 @@ infix fun AbstractQuadraticPolynomial<*>.eq(rhs: LinearSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.neq(rhs: LinearSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1537,7 +1537,7 @@ infix fun AbstractQuadraticPolynomial<*>.neq(rhs: LinearSymbol): QuadraticInequa
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.gr(rhs: LinearSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1545,7 +1545,7 @@ infix fun AbstractQuadraticPolynomial<*>.gr(rhs: LinearSymbol): QuadraticInequal
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1553,7 +1553,7 @@ infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearSymbol): QuadraticInequa
     )
 }
 
-infix fun LinearSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1561,7 +1561,7 @@ infix fun LinearSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequal
     )
 }
 
-infix fun LinearSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1569,7 +1569,7 @@ infix fun LinearSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequa
     )
 }
 
-infix fun LinearSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1577,7 +1577,7 @@ infix fun LinearSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequal
     )
 }
 
-infix fun LinearSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1585,7 +1585,7 @@ infix fun LinearSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequa
     )
 }
 
-infix fun LinearSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1593,7 +1593,7 @@ infix fun LinearSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequal
     )
 }
 
-infix fun LinearSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1601,7 +1601,7 @@ infix fun LinearSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequa
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.ls(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1609,7 +1609,7 @@ infix fun AbstractQuadraticPolynomial<*>.ls(rhs: QuadraticSymbol): QuadraticIneq
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.leq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1617,7 +1617,7 @@ infix fun AbstractQuadraticPolynomial<*>.leq(rhs: QuadraticSymbol): QuadraticIne
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.eq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1625,7 +1625,7 @@ infix fun AbstractQuadraticPolynomial<*>.eq(rhs: QuadraticSymbol): QuadraticIneq
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.neq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1633,7 +1633,7 @@ infix fun AbstractQuadraticPolynomial<*>.neq(rhs: QuadraticSymbol): QuadraticIne
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.gr(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1641,7 +1641,7 @@ infix fun AbstractQuadraticPolynomial<*>.gr(rhs: QuadraticSymbol): QuadraticIneq
     )
 }
 
-infix fun AbstractQuadraticPolynomial<*>.geq(rhs: QuadraticSymbol): QuadraticInequality {
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return QuadraticInequality(
         this.copy(),
         QuadraticPolynomial(rhs),
@@ -1649,7 +1649,7 @@ infix fun AbstractQuadraticPolynomial<*>.geq(rhs: QuadraticSymbol): QuadraticIne
     )
 }
 
-infix fun QuadraticSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1657,7 +1657,7 @@ infix fun QuadraticSymbol.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticIneq
     )
 }
 
-infix fun QuadraticSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1665,7 +1665,7 @@ infix fun QuadraticSymbol.leq(rhs: AbstractQuadraticPolynomial<*>): QuadraticIne
     )
 }
 
-infix fun QuadraticSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1673,7 +1673,7 @@ infix fun QuadraticSymbol.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticIneq
     )
 }
 
-infix fun QuadraticSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1681,7 +1681,7 @@ infix fun QuadraticSymbol.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticIne
     )
 }
 
-infix fun QuadraticSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),
@@ -1689,7 +1689,7 @@ infix fun QuadraticSymbol.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticIneq
     )
 }
 
-infix fun QuadraticSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+infix fun QuadraticIntermediateSymbol.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return QuadraticInequality(
         QuadraticPolynomial(this),
         rhs.copy(),

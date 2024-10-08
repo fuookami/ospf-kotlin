@@ -22,11 +22,11 @@ data class Token(
     val lowerBound by variable::lowerBound
     val upperBound by variable::upperBound
 
-    fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
+    infix fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
         return variable.belongsTo(item)
     }
 
-    fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
+    infix fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
         return variable.belongsTo(combination)
     }
 

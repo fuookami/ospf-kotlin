@@ -20,4 +20,10 @@ class QuantityTest {
         assert((value * value) partialOrd (Flt64.two * SquaredMeter) is Order.Less)
         assert((value * value) partialOrd (Flt64.one * CubicMeter) == null)
     }
+
+    @Test
+    fun convert() {
+        val value = Flt64.one * Meter
+        assert(value.to(Kilometer)!! eq (Flt64(0.001) * Kilometer))
+    }
 }

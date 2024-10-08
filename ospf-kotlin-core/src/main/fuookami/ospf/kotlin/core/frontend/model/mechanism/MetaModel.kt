@@ -5,6 +5,7 @@ import java.nio.file.Path
 import kotlin.io.path.*
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -57,17 +58,17 @@ sealed interface MetaModel : Model {
         tokens.remove(item)
     }
 
-    fun add(symbol: Symbol): Try {
+    fun add(symbol: IntermediateSymbol): Try {
         return tokens.add(symbol)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
-    fun add(symbols: Iterable<Symbol>): Try {
+    fun add(symbols: Iterable<IntermediateSymbol>): Try {
         return tokens.add(symbols)
     }
 
-    fun remove(symbol: Symbol) {
+    fun remove(symbol: IntermediateSymbol) {
         tokens.remove(symbol)
     }
 

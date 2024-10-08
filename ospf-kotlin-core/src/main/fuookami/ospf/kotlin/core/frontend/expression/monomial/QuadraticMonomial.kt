@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -460,7 +461,7 @@ data class QuadraticMonomialCell internal constructor(
     }
 }
 
-typealias QuadraticMonomialSymbolUnit = Variant3<AbstractVariableItem<*, *>, LinearSymbol, QuadraticSymbol>
+typealias QuadraticMonomialSymbolUnit = Variant3<AbstractVariableItem<*, *>, LinearIntermediateSymbol, QuadraticIntermediateSymbol>
 
 data class QuadraticMonomialSymbol(
     val symbol1: QuadraticMonomialSymbolUnit,
@@ -477,11 +478,11 @@ data class QuadraticMonomialSymbol(
             return QuadraticMonomialSymbol(Variant3.V1(variable))
         }
 
-        operator fun invoke(symbol: LinearSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol: LinearIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V2(symbol))
         }
 
-        operator fun invoke(symbol: QuadraticSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V3(symbol))
         }
 
@@ -491,31 +492,31 @@ data class QuadraticMonomialSymbol(
             )
         }
 
-        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V1(variable), Variant3.V2(symbol)
             )
         }
 
-        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V1(variable), Variant3.V3(symbol)
             )
         }
 
-        operator fun invoke(symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V2(symbol1), Variant3.V2(symbol2)
             )
         }
 
-        operator fun invoke(symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V2(symbol1), Variant3.V3(symbol2)
             )
         }
 
-        operator fun invoke(symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(
                 Variant3.V3(symbol1), Variant3.V3(symbol2)
             )
@@ -1003,115 +1004,115 @@ class QuadraticMonomial(
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item1, item2))
         }
 
-        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item, symbol))
         }
 
-        operator fun invoke(symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Int, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Double, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Flt64, symbol: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, symbol: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Int, symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Double, symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Flt64, symbol1: LinearSymbol, symbol2: LinearSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Int, symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Double, symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Flt64, symbol1: LinearSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Int, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Double, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(coefficient: Flt64, symbol: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, symbol: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol))
         }
 
-        operator fun invoke(symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Int, symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Int, symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Double, symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Double, symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
-        operator fun invoke(coefficient: Flt64, symbol1: QuadraticSymbol, symbol2: QuadraticSymbol): QuadraticMonomial {
+        operator fun invoke(coefficient: Flt64, symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial {
             return QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
         }
 
@@ -1193,7 +1194,7 @@ class QuadraticMonomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun times(rhs: LinearSymbol): QuadraticMonomial {
+    operator fun times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
         }
@@ -1215,7 +1216,7 @@ class QuadraticMonomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun times(rhs: QuadraticSymbol): QuadraticMonomial {
+    operator fun times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
         }
@@ -1358,39 +1359,39 @@ class QuadraticMonomial(
 
 // symbol and constant
 
-operator fun QuadraticSymbol.times(rhs: Int): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: Int): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
 
-operator fun QuadraticSymbol.times(rhs: Double): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: Double): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
 
-operator fun QuadraticSymbol.times(rhs: Flt64): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: Flt64): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
 
-operator fun Int.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun Int.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-operator fun Double.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun Double.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-operator fun <T : RealNumber<T>> T.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun <T : RealNumber<T>> T.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     return QuadraticMonomial(this.toFlt64(), rhs)
 }
 
-operator fun QuadraticSymbol.div(rhs: Int): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.div(rhs: Int): QuadraticMonomial {
     return this.div(Flt64(rhs))
 }
 
-operator fun QuadraticSymbol.div(rhs: Double): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.div(rhs: Double): QuadraticMonomial {
     return this.div(Flt64(rhs))
 }
 
-operator fun <T : RealNumber<T>> QuadraticSymbol.div(rhs: T): QuadraticMonomial {
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.div(rhs: T): QuadraticMonomial {
     return QuadraticMonomial(rhs.toFlt64().reciprocal(), this)
 }
 
@@ -1416,19 +1417,19 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractVariableItem<*, *>): 
 
 // symbol and variable
 
-operator fun AbstractVariableItem<*, *>.times(rhs: LinearSymbol): QuadraticMonomial {
+operator fun AbstractVariableItem<*, *>.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-operator fun LinearSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
 
-operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
-operator fun QuadraticSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
 }
 
@@ -1482,12 +1483,12 @@ operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticMonomial): Quadratic
 
 // symbol and symbol
 
-operator fun LinearSymbol.times(rhs: LinearSymbol): QuadraticMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun LinearSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
     }
@@ -1496,7 +1497,7 @@ operator fun LinearSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
     }
@@ -1506,7 +1507,7 @@ operator fun QuadraticSymbol.times(rhs: QuadraticSymbol): QuadraticMonomial {
 
 // monomial and symbol
 
-operator fun LinearSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     return when (val symbol = rhs.symbol.symbol) {
         is Either.Left -> {
             QuadraticMonomial(rhs.coefficient, symbol.value, this)
@@ -1518,7 +1519,7 @@ operator fun LinearSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     }
 }
 
-operator fun LinearMonomial.times(rhs: LinearSymbol): QuadraticMonomial {
+operator fun LinearMonomial.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
     return when (val symbol = this.symbol.symbol) {
         is Either.Left -> {
             QuadraticMonomial(this.coefficient, symbol.value, rhs)
@@ -1531,7 +1532,7 @@ operator fun LinearMonomial.times(rhs: LinearSymbol): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun LinearMonomial.times(rhs: QuadraticSymbol): QuadraticMonomial {
+operator fun LinearMonomial.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of LinearMonomial.times: over quadratic.")
     }
@@ -1548,7 +1549,7 @@ operator fun LinearMonomial.times(rhs: QuadraticSymbol): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
     }
@@ -1565,7 +1566,7 @@ operator fun QuadraticSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun LinearSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
+operator fun LinearIntermediateSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
     }
@@ -1587,7 +1588,7 @@ operator fun LinearSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
     }

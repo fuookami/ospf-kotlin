@@ -20,6 +20,18 @@ abstract class PhysicalUnit {
         }
     }
 
+    fun to(unit: PhysicalUnit): Scale? {
+        return if (quantity == unit.quantity) {
+            if (system == unit.system) {
+                scale / unit.scale
+            } else {
+                TODO("not implemented yet")
+            }
+        } else {
+            null
+        }
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is PhysicalUnit) return false

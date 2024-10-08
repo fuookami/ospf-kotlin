@@ -278,15 +278,15 @@ infix fun <T : RealNumber<T>> T.geq(rhs: AbstractVariableItem<*, *>): LinearIneq
 
 // symbol and constant
 
-infix fun LinearSymbol.ls(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: Int): LinearInequality {
     return this.ls(Flt64(rhs))
 }
 
-infix fun LinearSymbol.ls(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: Double): LinearInequality {
     return this.ls(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.ls(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.ls(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -294,15 +294,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.ls(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: Int): LinearInequality {
     return this.leq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.leq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: Double): LinearInequality {
     return this.leq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.leq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.leq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -310,15 +310,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.leq(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: Int): LinearInequality {
     return this.eq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.eq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: Double): LinearInequality {
     return this.eq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.eq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.eq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -326,15 +326,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.eq(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: Int): LinearInequality {
     return this.neq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.neq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: Double): LinearInequality {
     return this.neq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.neq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.neq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -342,15 +342,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.neq(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: Int): LinearInequality {
     return this.gr(Flt64(rhs))
 }
 
-infix fun LinearSymbol.gr(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: Double): LinearInequality {
     return this.gr(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.gr(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.gr(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -358,15 +358,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.gr(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: Int): LinearInequality {
     return this.geq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.geq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: Double): LinearInequality {
     return this.geq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.geq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.geq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -374,15 +374,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.geq(rhs: T): LinearInequality {
     )
 }
 
-infix fun Int.ls(rhs: LinearSymbol): LinearInequality {
+infix fun Int.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).ls(rhs)
 }
 
-infix fun Double.ls(rhs: LinearSymbol): LinearInequality {
+infix fun Double.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).ls(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.ls(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -390,15 +390,15 @@ infix fun <T : RealNumber<T>> T.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.leq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).leq(rhs)
 }
 
-infix fun Double.leq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).leq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.leq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -406,15 +406,15 @@ infix fun <T : RealNumber<T>> T.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.eq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).eq(rhs)
 }
 
-infix fun Double.eq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).eq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.eq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -422,15 +422,15 @@ infix fun <T : RealNumber<T>> T.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.neq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).neq(rhs)
 }
 
-infix fun Double.neq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).neq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.neq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -438,15 +438,15 @@ infix fun <T : RealNumber<T>> T.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.gr(rhs: LinearSymbol): LinearInequality {
+infix fun Int.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).gr(rhs)
 }
 
-infix fun Double.gr(rhs: LinearSymbol): LinearInequality {
+infix fun Double.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).gr(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.gr(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -454,15 +454,15 @@ infix fun <T : RealNumber<T>> T.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.geq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).geq(rhs)
 }
 
-infix fun Double.geq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).geq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.geq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -910,7 +910,7 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractVariableItem<*, *>): Linea
 
 // symbol and variable
 
-infix fun LinearSymbol.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -918,7 +918,7 @@ infix fun LinearSymbol.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -926,7 +926,7 @@ infix fun LinearSymbol.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -934,7 +934,7 @@ infix fun LinearSymbol.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -942,7 +942,7 @@ infix fun LinearSymbol.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -950,7 +950,7 @@ infix fun LinearSymbol.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -958,7 +958,7 @@ infix fun LinearSymbol.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.ls(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -966,7 +966,7 @@ infix fun AbstractVariableItem<*, *>.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.leq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -974,7 +974,7 @@ infix fun AbstractVariableItem<*, *>.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.eq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -982,7 +982,7 @@ infix fun AbstractVariableItem<*, *>.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.neq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -990,7 +990,7 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.gr(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -998,7 +998,7 @@ infix fun AbstractVariableItem<*, *>.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.geq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1204,7 +1204,7 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractLinearPolynomial<*>): Line
 
 // symbol and symbol
 
-infix fun LinearSymbol.ls(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1212,7 +1212,7 @@ infix fun LinearSymbol.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1220,7 +1220,7 @@ infix fun LinearSymbol.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1228,7 +1228,7 @@ infix fun LinearSymbol.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1236,7 +1236,7 @@ infix fun LinearSymbol.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1244,7 +1244,7 @@ infix fun LinearSymbol.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1254,7 +1254,7 @@ infix fun LinearSymbol.geq(rhs: LinearSymbol): LinearInequality {
 
 // monomial and symbol
 
-infix fun LinearMonomial.ls(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1262,7 +1262,7 @@ infix fun LinearMonomial.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.leq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1270,7 +1270,7 @@ infix fun LinearMonomial.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.eq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1278,7 +1278,7 @@ infix fun LinearMonomial.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.neq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1286,7 +1286,7 @@ infix fun LinearMonomial.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.gr(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1294,7 +1294,7 @@ infix fun LinearMonomial.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.geq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1302,7 +1302,7 @@ infix fun LinearMonomial.geq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.ls(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1310,7 +1310,7 @@ infix fun LinearSymbol.ls(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1318,7 +1318,7 @@ infix fun LinearSymbol.leq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1326,7 +1326,7 @@ infix fun LinearSymbol.eq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1334,7 +1334,7 @@ infix fun LinearSymbol.neq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1342,7 +1342,7 @@ infix fun LinearSymbol.gr(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1352,7 +1352,7 @@ infix fun LinearSymbol.geq(rhs: LinearMonomial): LinearInequality {
 
 // polynomial and symbol
 
-infix fun AbstractLinearPolynomial<*>.ls(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1360,7 +1360,7 @@ infix fun AbstractLinearPolynomial<*>.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.leq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1368,7 +1368,7 @@ infix fun AbstractLinearPolynomial<*>.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.eq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1376,7 +1376,7 @@ infix fun AbstractLinearPolynomial<*>.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.neq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1384,7 +1384,7 @@ infix fun AbstractLinearPolynomial<*>.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.gr(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1392,7 +1392,7 @@ infix fun AbstractLinearPolynomial<*>.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.geq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1400,7 +1400,7 @@ infix fun AbstractLinearPolynomial<*>.geq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1408,7 +1408,7 @@ infix fun LinearSymbol.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1416,7 +1416,7 @@ infix fun LinearSymbol.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1424,7 +1424,7 @@ infix fun LinearSymbol.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1432,7 +1432,7 @@ infix fun LinearSymbol.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1440,7 +1440,7 @@ infix fun LinearSymbol.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),

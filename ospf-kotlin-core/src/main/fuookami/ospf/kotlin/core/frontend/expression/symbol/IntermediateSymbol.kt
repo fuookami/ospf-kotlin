@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -8,12 +9,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-interface Symbol : Expression {
+interface IntermediateSymbol : Expression {
     val category: Category
     val operationCategory: Category get() = category
 
     val cached: Boolean
-    val dependencies: Set<Symbol>
+    val dependencies: Set<IntermediateSymbol>
 
     fun flush(force: Boolean = false)
     fun prepare(tokenTable: AbstractTokenTable)
@@ -21,11 +22,11 @@ interface Symbol : Expression {
     fun toRawString(unfold: Boolean = false): String
 }
 
-interface LinearSymbol : Symbol {
+interface LinearIntermediateSymbol : IntermediateSymbol {
     val cells: List<LinearMonomialCell>
 }
 
-interface QuadraticSymbol : Symbol {
+interface QuadraticIntermediateSymbol : IntermediateSymbol {
     val cells: List<QuadraticMonomialCell>
 }
 
@@ -34,7 +35,7 @@ abstract class ExpressionSymbol(
     override val category: Category = _polynomial.category,
     override var name: String = "",
     override var displayName: String? = null
-) : Symbol {
+) : IntermediateSymbol {
     open val polynomial: Polynomial<*, *, *> by ::_polynomial
 
     open fun asMutable(): MutablePolynomial<*, *, *> {
@@ -104,7 +105,7 @@ class LinearExpressionSymbol(
     category: Category = _polynomial.category,
     name: String = "",
     displayName: String? = null
-) : LinearSymbol, ExpressionSymbol(_polynomial, category, name, displayName) {
+) : LinearIntermediateSymbol, ExpressionSymbol(_polynomial, category, name, displayName) {
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
@@ -123,7 +124,7 @@ class LinearExpressionSymbol(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -207,7 +208,7 @@ class QuadraticExpressionSymbol(
     category: Category = _polynomial.category,
     name: String = "",
     displayName: String? = null
-) : QuadraticSymbol, ExpressionSymbol(_polynomial, category, name, displayName) {
+) : QuadraticIntermediateSymbol, ExpressionSymbol(_polynomial, category, name, displayName) {
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
@@ -226,7 +227,7 @@ class QuadraticExpressionSymbol(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -242,7 +243,7 @@ class QuadraticExpressionSymbol(
         }
 
         operator fun invoke(
-            symbol: QuadraticSymbol,
+            symbol: QuadraticIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -354,7 +355,7 @@ class QuadraticExpressionSymbol(
     }
 }
 
-interface FunctionSymbol : Symbol {
+interface FunctionSymbol : IntermediateSymbol {
     fun register(tokenTable: AbstractMutableTokenTable): Try
 
     override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
@@ -399,13 +400,13 @@ interface LogicFunctionSymbol : FunctionSymbol {
     }
 }
 
-interface LinearFunctionSymbol : LinearSymbol, FunctionSymbol {
+interface LinearFunctionSymbol : LinearIntermediateSymbol, FunctionSymbol {
     fun register(model: AbstractLinearMechanismModel): Try
 }
 
 interface LinearLogicFunctionSymbol : LinearFunctionSymbol, LogicFunctionSymbol {}
 
-interface QuadraticFunctionSymbol : QuadraticSymbol, FunctionSymbol {
+interface QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSymbol {
     fun register(model: AbstractQuadraticMechanismModel): Try
 }
 

@@ -4,6 +4,7 @@ import kotlin.collections.*
 import kotlinx.coroutines.*
 import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -13,8 +14,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 class RepeatedSymbolError(
-    val repeatedSymbol: Symbol,
-    val symbol: Symbol
+    val repeatedSymbol: IntermediateSymbol,
+    val symbol: IntermediateSymbol
 ) : Throwable() {
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
 }
@@ -24,7 +25,7 @@ sealed interface AbstractTokenTable {
     val tokenList: AbstractTokenList
     val tokens: Collection<Token> get() = tokenList.tokens
     val tokenIndexMap: BiMap<Token, Int> get() = tokenList.tokenIndexMap
-    val symbols: Collection<Symbol>
+    val symbols: Collection<IntermediateSymbol>
     val cachedSolution: Boolean get() = tokenList.cachedSolution
 
     fun find(item: AbstractVariableItem<*, *>): Token? {
@@ -64,19 +65,19 @@ sealed interface AbstractTokenTable {
         tokenList.clearSolution()
     }
 
-    fun cached(symbol: Symbol, solution: List<Flt64>? = null): Boolean? {
+    fun cached(symbol: IntermediateSymbol, solution: List<Flt64>? = null): Boolean? {
         return null
     }
 
-    fun cachedValue(symbol: Symbol, solution: List<Flt64>? = null): Flt64? {
+    fun cachedValue(symbol: IntermediateSymbol, solution: List<Flt64>? = null): Flt64? {
         return null
     }
 
-    fun cache(symbol: Symbol, solution: List<Flt64>? = null, value: Flt64): Flt64 {
+    fun cache(symbol: IntermediateSymbol, solution: List<Flt64>? = null, value: Flt64): Flt64 {
         return value
     }
 
-    fun cache(symbol: Symbol, solution: List<Flt64>? = null, value: () -> Flt64): Flt64 {
+    fun cache(symbol: IntermediateSymbol, solution: List<Flt64>? = null, value: () -> Flt64): Flt64 {
         return cache(symbol, solution, value())
     }
 }
@@ -88,17 +89,17 @@ sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
 
-    fun add(symbol: Symbol): Try
+    fun add(symbol: IntermediateSymbol): Try
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
-    fun add(symbols: Iterable<Symbol>): Try
-    fun remove(symbol: Symbol)
+    fun add(symbols: Iterable<IntermediateSymbol>): Try
+    fun remove(symbol: IntermediateSymbol)
 }
 
 data class TokenTable(
     override val category: Category,
     override val tokenList: TokenList,
-    override val symbols: List<Symbol>
+    override val symbols: List<IntermediateSymbol>
 ) : AbstractTokenTable {
     constructor(tokenTable: MutableTokenTable) : this(
         category = tokenTable.category,
@@ -108,21 +109,21 @@ data class TokenTable(
 
     override val tokens by tokenList::tokens
 
-    private val cachedSymbolValue: MutableMap<Pair<Symbol, List<Flt64>?>, Flt64?> = HashMap()
+    private val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
 
     override fun flush() {
         cachedSymbolValue.clear()
     }
 
-    override fun cached(symbol: Symbol, solution: List<Flt64>?): Boolean {
+    override fun cached(symbol: IntermediateSymbol, solution: List<Flt64>?): Boolean {
         return cachedSymbolValue.containsKey(symbol to solution)
     }
 
-    override fun cachedValue(symbol: Symbol, solution: List<Flt64>?): Flt64? {
+    override fun cachedValue(symbol: IntermediateSymbol, solution: List<Flt64>?): Flt64? {
         return cachedSymbolValue[symbol to solution]
     }
 
-    override fun cache(symbol: Symbol, solution: List<Flt64>?, value: Flt64): Flt64 {
+    override fun cache(symbol: IntermediateSymbol, solution: List<Flt64>?, value: Flt64): Flt64 {
         cachedSymbolValue[symbol to solution] = value
         return value
     }
@@ -131,12 +132,12 @@ data class TokenTable(
 sealed class MutableTokenTable(
     override val category: Category,
     override val tokenList: MutableTokenList,
-    protected val _symbols: MutableList<Symbol> = ArrayList()
+    protected val _symbols: MutableList<IntermediateSymbol> = ArrayList()
 ) : AbstractMutableTokenTable {
-    private val _symbolsMap: MutableMap<String, Symbol> = _symbols.associateBy { it.name }.toMutableMap()
+    private val _symbolsMap: MutableMap<String, IntermediateSymbol> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
 
-    private val cachedSymbolValue: MutableMap<Pair<Symbol, List<Flt64>?>, Flt64?> = HashMap()
+    private val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
@@ -152,7 +153,7 @@ sealed class MutableTokenTable(
         return tokenList.remove(item)
     }
 
-    override fun add(symbol: Symbol): Try {
+    override fun add(symbol: IntermediateSymbol): Try {
         if ((symbol.operationCategory ord category) is Order.Greater) {
             return Failed(Err(ErrorCode.ApplicationError, "${symbol.name} over $category"))
         }
@@ -175,7 +176,7 @@ sealed class MutableTokenTable(
 
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
-    override fun add(symbols: Iterable<Symbol>): Try {
+    override fun add(symbols: Iterable<IntermediateSymbol>): Try {
         for (symbol in symbols) {
             when (val result = add(symbol)) {
                 is Ok -> {}
@@ -188,7 +189,7 @@ sealed class MutableTokenTable(
         return ok
     }
 
-    override fun remove(symbol: Symbol) {
+    override fun remove(symbol: IntermediateSymbol) {
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
     }
@@ -197,22 +198,22 @@ sealed class MutableTokenTable(
         cachedSymbolValue.clear()
     }
 
-    override fun cached(symbol: Symbol, solution: List<Flt64>?): Boolean {
+    override fun cached(symbol: IntermediateSymbol, solution: List<Flt64>?): Boolean {
         return cachedSymbolValue.containsKey(symbol to solution)
     }
 
-    override fun cachedValue(symbol: Symbol, solution: List<Flt64>?): Flt64? {
+    override fun cachedValue(symbol: IntermediateSymbol, solution: List<Flt64>?): Flt64? {
         return cachedSymbolValue[symbol to solution]
     }
 
-    override fun cache(symbol: Symbol, solution: List<Flt64>?, value: Flt64): Flt64 {
+    override fun cache(symbol: IntermediateSymbol, solution: List<Flt64>?, value: Flt64): Flt64 {
         cachedSymbolValue[symbol to solution] = value
         return value
     }
 }
 
-fun Collection<Symbol>.register(tokenTable: MutableTokenTable): Try {
-    val completedSymbols = HashSet<Symbol>()
+fun Collection<IntermediateSymbol>.register(tokenTable: MutableTokenTable): Try {
+    val completedSymbols = HashSet<IntermediateSymbol>()
     var dependencies = this@register.associateWith { it.dependencies.toMutableSet() }.toMap()
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
@@ -252,7 +253,7 @@ fun Collection<Symbol>.register(tokenTable: MutableTokenTable): Try {
 data class ConcurrentTokenTable(
     override val category: Category,
     override val tokenList: TokenList,
-    override val symbols: List<Symbol>
+    override val symbols: List<IntermediateSymbol>
 ) : AbstractTokenTable {
     constructor(tokenTable: ConcurrentMutableTokenTable) : this(
         category = tokenTable.category,
@@ -263,7 +264,7 @@ data class ConcurrentTokenTable(
     override val tokens by tokenList::tokens
 
     private val lock = Any()
-    private val cachedSymbolValue: MutableMap<Pair<Symbol, List<Flt64>?>, Flt64?> = HashMap()
+    private val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
 
     override fun flush() {
         synchronized(lock) {
@@ -271,19 +272,19 @@ data class ConcurrentTokenTable(
         }
     }
 
-    override fun cached(symbol: Symbol, solution: List<Flt64>?): Boolean {
+    override fun cached(symbol: IntermediateSymbol, solution: List<Flt64>?): Boolean {
         return synchronized(lock) {
             cachedSymbolValue.containsKey(symbol to solution)
         }
     }
 
-    override fun cachedValue(symbol: Symbol, solution: List<Flt64>?): Flt64? {
+    override fun cachedValue(symbol: IntermediateSymbol, solution: List<Flt64>?): Flt64? {
         return synchronized(lock) {
             cachedSymbolValue[symbol to solution]
         }
     }
 
-    override fun cache(symbol: Symbol, solution: List<Flt64>?, value: Flt64): Flt64 {
+    override fun cache(symbol: IntermediateSymbol, solution: List<Flt64>?, value: Flt64): Flt64 {
         synchronized(lock) {
             cachedSymbolValue[symbol to solution] = value
         }
@@ -294,7 +295,7 @@ data class ConcurrentTokenTable(
 class AutoAddTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
-    symbols: List<Symbol>
+    symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
         operator fun invoke(tokenTable: AbstractTokenTable): AutoAddTokenTable {
@@ -320,7 +321,7 @@ class AutoAddTokenTable private constructor(
 class ManualAddTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
-    symbols: List<Symbol>
+    symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
         operator fun invoke(tokenTable: AbstractTokenTable): ManualAddTokenTable {
@@ -346,13 +347,13 @@ class ManualAddTokenTable private constructor(
 sealed class ConcurrentMutableTokenTable(
     override val category: Category,
     override val tokenList: MutableTokenList,
-    protected val _symbols: MutableList<Symbol> = ArrayList()
+    protected val _symbols: MutableList<IntermediateSymbol> = ArrayList()
 ) : AbstractMutableTokenTable {
-    private val _symbolsMap: MutableMap<String, Symbol> = _symbols.associateBy { it.name }.toMutableMap()
+    private val _symbolsMap: MutableMap<String, IntermediateSymbol> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
 
     private val lock = Any()
-    private val cachedSymbolValue: MutableMap<Pair<Symbol, List<Flt64>?>, Flt64?> = HashMap()
+    private val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
@@ -368,7 +369,7 @@ sealed class ConcurrentMutableTokenTable(
         return tokenList.remove(item)
     }
 
-    override fun add(symbol: Symbol): Try {
+    override fun add(symbol: IntermediateSymbol): Try {
         if ((symbol.operationCategory ord category) is Order.Greater) {
             return Failed(Err(ErrorCode.ApplicationError, "${symbol.name} over $category"))
         }
@@ -391,7 +392,7 @@ sealed class ConcurrentMutableTokenTable(
 
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
-    override fun add(symbols: Iterable<Symbol>): Try {
+    override fun add(symbols: Iterable<IntermediateSymbol>): Try {
         for (symbol in symbols) {
             when (val result = add(symbol)) {
                 is Ok -> {}
@@ -404,7 +405,7 @@ sealed class ConcurrentMutableTokenTable(
         return ok
     }
 
-    override fun remove(symbol: Symbol) {
+    override fun remove(symbol: IntermediateSymbol) {
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
     }
@@ -415,19 +416,19 @@ sealed class ConcurrentMutableTokenTable(
         }
     }
 
-    override fun cached(symbol: Symbol, solution: List<Flt64>?): Boolean {
+    override fun cached(symbol: IntermediateSymbol, solution: List<Flt64>?): Boolean {
         return synchronized(lock) {
             cachedSymbolValue.containsKey(symbol to solution)
         }
     }
 
-    override fun cachedValue(symbol: Symbol, solution: List<Flt64>?): Flt64? {
+    override fun cachedValue(symbol: IntermediateSymbol, solution: List<Flt64>?): Flt64? {
         return synchronized(lock) {
             cachedSymbolValue[symbol to solution]
         }
     }
 
-    override fun cache(symbol: Symbol, solution: List<Flt64>?, value: Flt64): Flt64 {
+    override fun cache(symbol: IntermediateSymbol, solution: List<Flt64>?, value: Flt64): Flt64 {
         synchronized(lock) {
             cachedSymbolValue[symbol to solution] = value
         }
@@ -435,9 +436,9 @@ sealed class ConcurrentMutableTokenTable(
     }
 }
 
-suspend fun Collection<Symbol>.register(tokenTable: ConcurrentMutableTokenTable): Try {
+suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutableTokenTable): Try {
     return coroutineScope {
-        val completedSymbols = HashSet<Symbol>()
+        val completedSymbols = HashSet<IntermediateSymbol>()
         var dependencies = this@register.associateWith { it.dependencies.toMutableSet() }.toMap()
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
@@ -483,7 +484,7 @@ suspend fun Collection<Symbol>.register(tokenTable: ConcurrentMutableTokenTable)
 class ConcurrentAutoAddTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
-    symbols: List<Symbol>
+    symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
         operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
@@ -509,7 +510,7 @@ class ConcurrentAutoAddTokenTable private constructor(
 class ConcurrentManualAddTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
-    symbols: List<Symbol>
+    symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
         operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {

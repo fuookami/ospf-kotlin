@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -41,7 +42,7 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
             return _range!!
         }
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
             return monomials.mapNotNull {
                 when (val symbol = it.symbol.symbol) {
@@ -66,11 +67,11 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
         }
     override val cached: Boolean = _cells.isNotEmpty()
 
-    abstract operator fun plus(rhs: LinearSymbol): Self
-    abstract operator fun plus(rhs: Iterable<LinearSymbol>): Self
+    abstract operator fun plus(rhs: LinearIntermediateSymbol): Self
+    abstract operator fun plus(rhs: Iterable<LinearIntermediateSymbol>): Self
 
-    abstract operator fun minus(rhs: LinearSymbol): Self
-    abstract operator fun minus(rhs: Iterable<LinearSymbol>): Self
+    abstract operator fun minus(rhs: LinearIntermediateSymbol): Self
+    abstract operator fun minus(rhs: Iterable<LinearIntermediateSymbol>): Self
 
     override fun toMutable(): MutableLinearPolynomial {
         return MutableLinearPolynomial(
@@ -125,7 +126,7 @@ class LinearPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): LinearPolynomial {
@@ -241,7 +242,7 @@ class LinearPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): LinearPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(LinearMonomial(rhs))
         return LinearPolynomial(
@@ -252,7 +253,7 @@ class LinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): LinearPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { LinearMonomial(it) })
         return LinearPolynomial(
@@ -306,7 +307,7 @@ class LinearPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): LinearPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(LinearMonomial(-Flt64.one, rhs))
         return LinearPolynomial(
@@ -317,7 +318,7 @@ class LinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): LinearPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
         return LinearPolynomial(
@@ -387,7 +388,7 @@ class MutableLinearPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): MutableLinearPolynomial {
@@ -481,7 +482,7 @@ class MutableLinearPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): MutableLinearPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): MutableLinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(LinearMonomial(rhs))
         return MutableLinearPolynomial(
@@ -492,7 +493,7 @@ class MutableLinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): MutableLinearPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): MutableLinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { LinearMonomial(it) })
         return MutableLinearPolynomial(
@@ -536,12 +537,12 @@ class MutableLinearPolynomial(
         monomials.addAll(rhs.map { LinearMonomial(it) })
     }
 
-    fun plusAssign(rhs: LinearSymbol) {
+    fun plusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(LinearMonomial(rhs))
     }
 
     @JvmName("plusAssignSymbols")
-    fun plusAssign(rhs: Iterable<LinearSymbol>) {
+    fun plusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { LinearMonomial(it) })
     }
 
@@ -578,7 +579,7 @@ class MutableLinearPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): MutableLinearPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): MutableLinearPolynomial {
         val monomials = monomials.map { it.copy() }.toMutableList()
         monomials.add(LinearMonomial(-Flt64.one, rhs))
         return MutableLinearPolynomial(
@@ -589,7 +590,7 @@ class MutableLinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): MutableLinearPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): MutableLinearPolynomial {
         val monomials = monomials.map { it.copy() }.toMutableList()
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
         return MutableLinearPolynomial(
@@ -633,12 +634,12 @@ class MutableLinearPolynomial(
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
     }
 
-    fun minusAssign(rhs: LinearSymbol) {
+    fun minusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(LinearMonomial(-Flt64.one, rhs))
     }
 
     @JvmName("minusAssignSymbols")
-    fun minusAssign(rhs: Iterable<LinearSymbol>) {
+    fun minusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
     }
 
@@ -768,81 +769,81 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractVariableItem<*, *>): Linea
 
 // symbol and constant
 
-operator fun LinearSymbol.plus(rhs: Int): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: Int): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = Flt64(rhs)
     )
 }
 
-operator fun LinearSymbol.plus(rhs: Double): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: Double): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = Flt64(rhs)
     )
 }
 
-operator fun <T : RealNumber<T>> LinearSymbol.plus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.plus(rhs: T): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = rhs.toFlt64()
     )
 }
 
-operator fun LinearSymbol.minus(rhs: Int): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: Int): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = -Flt64(rhs)
     )
 }
 
-operator fun LinearSymbol.minus(rhs: Double): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: Double): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = -Flt64(rhs)
     )
 }
 
-operator fun <T : RealNumber<T>> LinearSymbol.minus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.minus(rhs: T): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = -rhs.toFlt64()
     )
 }
 
-operator fun Int.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Int.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(rhs)),
         constant = Flt64(this)
     )
 }
 
-operator fun Double.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Double.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return Flt64(this).plus(rhs)
 }
 
-operator fun <T : RealNumber<T>> T.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(rhs)),
         constant = this.toFlt64()
     )
 }
 
-operator fun Int.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Int.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
         constant = Flt64(this)
     )
 }
 
-operator fun Double.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Double.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
         constant = Flt64(this)
     )
 }
 
-operator fun <T : RealNumber<T>> T.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
         constant = this.toFlt64()
@@ -1016,25 +1017,25 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractVariableItem<*, *>): 
 
 // symbol and variable
 
-operator fun LinearSymbol.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
     )
 }
 
-operator fun LinearSymbol.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
 }
 
-operator fun AbstractVariableItem<*, *>.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun AbstractVariableItem<*, *>.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
     )
 }
 
-operator fun AbstractVariableItem<*, *>.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun AbstractVariableItem<*, *>.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
@@ -1088,13 +1089,13 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearPolynomial): LinearPoly
 
 // symbol and symbol
 
-operator fun LinearSymbol.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
     )
 }
 
-operator fun LinearSymbol.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
@@ -1102,25 +1103,25 @@ operator fun LinearSymbol.minus(rhs: LinearSymbol): LinearPolynomial {
 
 // monomial and symbol
 
-operator fun LinearMonomial.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearMonomial.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(this.copy(), LinearMonomial(rhs))
     )
 }
 
-operator fun LinearMonomial.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearMonomial.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(this.copy(), LinearMonomial(-Flt64.one, rhs))
     )
 }
 
-operator fun LinearSymbol.plus(rhs: LinearMonomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: LinearMonomial): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), rhs.copy())
     )
 }
 
-operator fun LinearSymbol.minus(rhs: LinearMonomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: LinearMonomial): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), -rhs)
     )
@@ -1128,13 +1129,13 @@ operator fun LinearSymbol.minus(rhs: LinearMonomial): LinearPolynomial {
 
 // polynomial and symbol
 
-operator fun LinearSymbol.plus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: LinearPolynomial): LinearPolynomial {
     val newMonomials = arrayListOf(LinearMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
     return LinearPolynomial(monomials = newMonomials)
 }
 
-operator fun LinearSymbol.minus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: LinearPolynomial): LinearPolynomial {
     val newMonomials = arrayListOf(LinearMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
     return LinearPolynomial(monomials = newMonomials)
@@ -1184,8 +1185,8 @@ fun sum(
 
 @JvmName("sumLinearSymbols")
 fun sum(
-    symbols: Iterable<LinearSymbol>,
-    ctor: (LinearSymbol) -> LinearMonomial = { LinearMonomial(it) }
+    symbols: Iterable<LinearIntermediateSymbol>,
+    ctor: (LinearIntermediateSymbol) -> LinearMonomial = { LinearMonomial(it) }
 ): LinearPolynomial {
     val monomials = ArrayList<LinearMonomial>()
     for (symbol in symbols) {
@@ -1221,7 +1222,7 @@ fun <T> sumVars(
 @JvmName("sumMapLinearSymbols")
 fun <T> sumSymbols(
     objs: Iterable<T>,
-    ctor: (T) -> LinearSymbol?
+    ctor: (T) -> LinearIntermediateSymbol?
 ): LinearPolynomial {
     return sum(objs.mapNotNull(ctor))
 }

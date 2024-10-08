@@ -16,7 +16,7 @@ class Makespan<
     private val taskTime: TaskTime,
     private val extra: Boolean = false
 ) {
-    lateinit var makespan: LinearSymbol
+    lateinit var makespan: LinearIntermediateSymbol
 
     fun register(model: MetaModel): Try {
         if (!::makespan.isInitialized) {

@@ -38,6 +38,23 @@ data class Rectangle<P : Point<D>, D : Dimension>(
     }
 
     val area: Flt64 by lazy { length * width }
+
+    private val leftUpperRightBottom: List<Flt64> by lazy {
+        val minMaxValues = p1.indices.map {
+            minMax(p1[it], p2[it], p3[it], p4[it])
+        }
+        minMaxValues.map { it.first } + minMaxValues.map { it.second }
+    }
+
+    val leftUpperPoint: Point<D> get() = Point(
+        leftUpperRightBottom.subList(0, p1.dim.size),
+        p1.dim
+    )
+
+    val rightBottomPoint: Point<D> get() = Point(
+        leftUpperRightBottom.subList(p1.dim.size, p1.dim.size * 2),
+        p1.dim
+    )
 }
 
 typealias Rectangle2 = Rectangle<Point2, Dim2>

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.monomial
+package fuookami.ospf.kotlin.utils.math.symbol
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*

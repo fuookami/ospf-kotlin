@@ -4,14 +4,10 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
 
-data class Quantity<V : Arithmetic<V>>(
+data class Quantity<V>(
     val value: V,
     val unit: PhysicalUnit
-) {
-    fun to(unit: PhysicalUnit): Quantity<V> {
-        TODO("not implemented yet")
-    }
-}
+)
 
 infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Arithmetic<V>, V: Eq<V> {
     return if (this.unit == other.unit) {
@@ -30,6 +26,20 @@ infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Arith
         TODO("not implemented yet")
     } else {
         null
+    }
+}
+
+@JvmName("convertQuantityUInt64")
+fun Quantity<UInt64>.to(unit: PhysicalUnit): Quantity<UInt64>? {
+    return this.unit.to(unit)?.value?.let {
+        Quantity(it.toUInt64() * this.value, unit)
+    }
+}
+
+@JvmName("convertQuantityFlt64")
+fun Quantity<Flt64>.to(unit: PhysicalUnit): Quantity<Flt64>? {
+    return this.unit.to(unit)?.value?.let {
+        Quantity(it * this.value, unit)
     }
 }
 
