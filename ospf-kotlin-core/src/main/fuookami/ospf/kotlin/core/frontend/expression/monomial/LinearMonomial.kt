@@ -4,6 +4,8 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -734,4 +736,50 @@ operator fun Double.times(rhs: LinearMonomial): LinearMonomial {
 
 operator fun <T : RealNumber<T>> T.times(rhs: LinearMonomial): LinearMonomial {
     return LinearMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
+}
+
+// monomial and unit
+
+operator fun LinearMonomial.times(rhs: PhysicalUnit): Quantity<LinearMonomial> {
+    return Quantity(this, rhs)
+}
+
+// unit and monomial
+
+operator fun PhysicalUnit.times(rhs: LinearMonomial): Quantity<LinearMonomial> {
+    return Quantity(rhs, this)
+}
+
+// quantity and monomial
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: LinearMonomial): Quantity<LinearMonomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+// monomial and quantity
+
+operator fun <T : RealNumber<T>> LinearMonomial.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> LinearMonomial.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(this / rhs.value, rhs.unit.reciprocal())
+}
+
+// quantity and quantity monomial
+
+@JvmName("quantityTimesQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<LinearMonomial>): Quantity<LinearMonomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+// quantity monomial and quantity
+
+@JvmName("quantityMonomialTimesQuantity")
+operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(this.value / rhs.value, this.unit / rhs.unit)
 }

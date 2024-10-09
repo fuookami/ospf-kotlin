@@ -85,6 +85,14 @@ data class AnonymousPhysicalUnit(
     }
 }
 
+data object NoneUnit : PhysicalUnit() {
+    override val system = SI
+    override val quantity = DerivedQuantity(emptyList())
+    override val scale = Scale()
+    override val name: String? = null
+    override val symbol: String? = null
+}
+
 operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
     return if (this.system != other.system) {
         TODO("not implemented yet")
@@ -107,4 +115,8 @@ operator fun PhysicalUnit.div(other: PhysicalUnit): PhysicalUnit {
             scale = this.scale / other.scale
         )
     }
+}
+
+fun PhysicalUnit.reciprocal(): PhysicalUnit {
+    return NoneUnit / this
 }
