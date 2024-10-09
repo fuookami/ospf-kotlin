@@ -686,6 +686,72 @@ operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.div(rhs: T): LinearM
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
 
+// variable and quantity
+
+operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this)), rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: AbstractVariableItem<*, *>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs)), this.unit)
+}
+
+operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this)), rhs.unit.reciprocal())
+}
+
+// quantity variable and constant
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Int): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this.value)), this.unit)
+}
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Double): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this.value)), this.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.times(rhs: T): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this.value)), this.unit)
+}
+
+operator fun Int.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs.value)), rhs.unit)
+}
+
+operator fun Double.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs.value)), rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> T.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs.value)), rhs.unit)
+}
+
+operator fun Quantity<AbstractVariableItem<*, *>>.div(rhs: Int): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
+}
+
+operator fun Quantity<AbstractVariableItem<*, *>>.div(rhs: Double): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.div(rhs: T): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
+}
+
+// quantity variable and quantity
+
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this.value)), this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs.value)), this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this.value)), this.unit / rhs.unit)
+}
+
 // symbol and constant
 
 operator fun LinearIntermediateSymbol.times(rhs: Int): LinearMonomial {
@@ -724,6 +790,24 @@ operator fun <T : RealNumber<T>> LinearIntermediateSymbol.div(rhs: T): LinearMon
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
 
+// symbol and quantity
+
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this)), rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: LinearIntermediateSymbol): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs)), this.unit)
+}
+
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
+    return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this)), rhs.unit.reciprocal())
+}
+
+// quantity symbol and constant
+
+// quantity symbol and quantity
+
 // monomial and constant
 
 operator fun Int.times(rhs: LinearMonomial): LinearMonomial {
@@ -744,19 +828,11 @@ operator fun LinearMonomial.times(rhs: PhysicalUnit): Quantity<LinearMonomial> {
     return Quantity(this, rhs)
 }
 
-// unit and monomial
-
-operator fun PhysicalUnit.times(rhs: LinearMonomial): Quantity<LinearMonomial> {
-    return Quantity(rhs, this)
-}
-
-// quantity and monomial
+// monomial and quantity
 
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: LinearMonomial): Quantity<LinearMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
-
-// monomial and quantity
 
 operator fun <T : RealNumber<T>> LinearMonomial.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
@@ -766,14 +842,12 @@ operator fun <T : RealNumber<T>> LinearMonomial.div(rhs: Quantity<T>): Quantity<
     return Quantity(this / rhs.value, rhs.unit.reciprocal())
 }
 
-// quantity and quantity monomial
+// quantity monomial and quantity
 
 @JvmName("quantityTimesQuantityMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<LinearMonomial>): Quantity<LinearMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
-
-// quantity monomial and quantity
 
 @JvmName("quantityMonomialTimesQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {

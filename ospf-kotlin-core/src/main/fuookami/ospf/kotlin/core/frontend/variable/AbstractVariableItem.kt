@@ -3,6 +3,8 @@ package fuookami.ospf.kotlin.core.frontend.variable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 
 data class VariableItemKey(
     val identifier: UInt64,
@@ -111,3 +113,11 @@ typealias IntVariable = AbstractVariableItem<Int64, Integer>
 typealias UIntVariable = AbstractVariableItem<UInt64, UInteger>
 typealias RealVariable = AbstractVariableItem<Flt64, Continuous>
 typealias URealVariable = AbstractVariableItem<Flt64, UContinuous>
+
+operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
+    return Quantity(this, rhs)
+}
+
+operator fun AbstractVariableItem<*, *>.div(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
+    return Quantity(this, rhs.reciprocal())
+}

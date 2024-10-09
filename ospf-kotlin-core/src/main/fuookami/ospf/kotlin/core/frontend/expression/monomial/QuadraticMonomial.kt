@@ -4,6 +4,8 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -1679,4 +1681,40 @@ operator fun LinearMonomial.times(rhs: QuadraticMonomial): QuadraticMonomial {
             }
         }
     }
+}
+
+// monomial and unit
+
+operator fun QuadraticMonomial.times(rhs: PhysicalUnit): Quantity<QuadraticMonomial> {
+    return Quantity(this, rhs)
+}
+
+// monomial and quantity
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+operator fun <T : RealNumber<T>> QuadraticMonomial.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> QuadraticMonomial.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this / rhs.value, rhs.unit.reciprocal())
+}
+
+// quantity monomial and quantity
+
+@JvmName("quantityTimesQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityMonomialTimesQuantity")
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this.value / rhs.value, this.unit / rhs.unit)
 }

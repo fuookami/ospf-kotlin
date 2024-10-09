@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -411,3 +413,19 @@ interface QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSymbol 
 }
 
 interface QuadraticLogicFunctionSymbol : QuadraticFunctionSymbol, LogicFunctionSymbol {}
+
+operator fun LinearIntermediateSymbol.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol> {
+    return Quantity(this, rhs)
+}
+
+operator fun LinearIntermediateSymbol.div(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol> {
+    return Quantity(this, rhs.reciprocal())
+}
+
+operator fun QuadraticIntermediateSymbol.times(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol> {
+    return Quantity(this, rhs)
+}
+
+operator fun QuadraticIntermediateSymbol.div(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol> {
+    return Quantity(this, rhs.reciprocal())
+}
