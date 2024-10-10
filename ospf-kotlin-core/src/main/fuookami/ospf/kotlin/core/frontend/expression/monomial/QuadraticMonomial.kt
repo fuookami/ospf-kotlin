@@ -1397,24 +1397,92 @@ operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.div(rhs: T): Quadra
     return QuadraticMonomial(rhs.toFlt64().reciprocal(), this)
 }
 
-// monomial and constant
+// symbol and quantity
 
-operator fun Int.times(rhs: QuadraticMonomial): QuadraticMonomial {
-    return QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value.toFlt64(), this), rhs.unit)
 }
 
-operator fun Double.times(rhs: QuadraticMonomial): QuadraticMonomial {
-    return QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value.toFlt64(), rhs), this.unit)
 }
 
-operator fun <T : RealNumber<T>> T.times(rhs: QuadraticMonomial): QuadraticMonomial {
-    return QuadraticMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value.toFlt64().reciprocal(), this), rhs.unit.reciprocal())
+}
+
+// quantity symbol and constant
+
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Int): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+}
+
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Double): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+}
+
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Flt64): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+}
+
+operator fun Int.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+}
+
+operator fun Double.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+}
+
+operator fun Flt64.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+}
+
+operator fun Quantity<QuadraticIntermediateSymbol>.div(rhs: Int): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(Flt64(rhs).reciprocal(), this.value), this.unit)
+}
+
+operator fun Quantity<QuadraticIntermediateSymbol>.div(rhs: Double): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(Flt64(rhs).reciprocal(), this.value), this.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.div(rhs: T): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.toFlt64().reciprocal(), this.value), this.unit.reciprocal())
+}
+
+// quantity symbol and quantity
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value.toFlt64(), this.value), this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value.toFlt64(), rhs.value), this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value.toFlt64().reciprocal(), this.value), this.unit / rhs.unit)
 }
 
 // variable and variable
 
 operator fun AbstractVariableItem<*, *>.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
     return QuadraticMonomial(this, rhs)
+}
+
+// quantity variable and variable
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
+}
+
+operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+}
+
+// quantity variable and quantity variable
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
 }
 
 // symbol and variable
@@ -1433,6 +1501,247 @@ operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticIntermediateSymbol):
 
 operator fun QuadraticIntermediateSymbol.times(rhs: AbstractVariableItem<*, *>): QuadraticMonomial {
     return QuadraticMonomial(rhs, this)
+}
+
+// quantity symbol and variable
+
+operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+}
+
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+}
+
+operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+}
+
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+}
+
+// symbol and quantity variable
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
+}
+
+operator fun LinearIntermediateSymbol.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value, this), rhs.unit)
+}
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
+}
+
+operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value, this), rhs.unit)
+}
+
+// quantity symbol and quantity variable
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
+}
+
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value, this.value), this.unit * rhs.unit)
+}
+
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
+}
+
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.value, this.value), this.unit * rhs.unit)
+}
+
+// symbol and symbol
+
+operator fun LinearIntermediateSymbol.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
+    return QuadraticMonomial(this, rhs)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun LinearIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
+    if (rhs.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return QuadraticMonomial(this, rhs)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun QuadraticIntermediateSymbol.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
+    if (this.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return QuadraticMonomial(rhs, this)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
+    if (this.category == Quadratic || rhs.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return QuadraticMonomial(this, rhs)
+}
+
+// quantity symbol and symbol
+
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
+    if (rhs.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
+    if (this.value.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
+    if (this.value.category == Quadratic || rhs.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
+}
+
+// quantity symbol and quantity symbol
+
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    if (rhs.value.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    if (this.value.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return Quantity(QuadraticMonomial(rhs.value, this.value), this.unit * rhs.unit)
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
+    }
+
+    return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
+}
+
+// monomial and constant
+
+operator fun Int.times(rhs: QuadraticMonomial): QuadraticMonomial {
+    return QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+}
+
+operator fun Double.times(rhs: QuadraticMonomial): QuadraticMonomial {
+    return QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+}
+
+operator fun <T : RealNumber<T>> T.times(rhs: QuadraticMonomial): QuadraticMonomial {
+    return QuadraticMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
+}
+
+// monomial and unit
+
+operator fun QuadraticMonomial.times(rhs: PhysicalUnit): Quantity<QuadraticMonomial> {
+    return Quantity(this, rhs)
+}
+
+// monomial and quantity
+
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+operator fun <T : RealNumber<T>> QuadraticMonomial.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> QuadraticMonomial.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this / rhs.value, rhs.unit.reciprocal())
+}
+
+// quantity monomial and constant
+
+operator fun Int.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
+    return Quantity(Flt64(this) * rhs.value, rhs.unit)
+}
+
+operator fun Double.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
+    return Quantity(Flt64(this) * rhs.value, rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> T.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
+    return Quantity(this.toFlt64() * rhs.value, rhs.unit)
+}
+
+operator fun Quantity<QuadraticMonomial>.times(rhs: Int): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * Flt64(rhs), this.unit)
+}
+
+operator fun Quantity<QuadraticMonomial>.times(rhs: Double): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * Flt64(rhs), this.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.times(rhs: T): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs.toFlt64(), this.unit)
+}
+
+operator fun Quantity<QuadraticMonomial>.div(rhs: Int): Quantity<QuadraticMonomial> {
+    return Quantity(this.value / Flt64(rhs), this.unit)
+}
+
+operator fun Quantity<QuadraticMonomial>.div(rhs: Double): Quantity<QuadraticMonomial> {
+    return Quantity(this.value / Flt64(rhs), this.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.div(rhs: T): Quantity<QuadraticMonomial> {
+    return Quantity(this.value / rhs.toFlt64(), this.unit)
+}
+
+// quantity monomial and quantity
+
+@JvmName("quantityTimesQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityMonomialTimesQuantity")
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
+    return Quantity(this.value / rhs.value, this.unit / rhs.unit)
 }
 
 // monomial and variable
@@ -1483,29 +1792,11 @@ operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticMonomial): Quadratic
     }
 }
 
-// symbol and symbol
+// quantity monomial and variable
 
-operator fun LinearIntermediateSymbol.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
-    return QuadraticMonomial(this, rhs)
-}
+// monomial and quantity variable
 
-@Throws(IllegalArgumentException::class)
-operator fun LinearIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
-    if (rhs.category == Quadratic) {
-        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
-    }
-
-    return QuadraticMonomial(this, rhs)
-}
-
-@Throws(IllegalArgumentException::class)
-operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
-    if (this.category == Quadratic || rhs.category == Quadratic) {
-        throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
-    }
-
-    return QuadraticMonomial(this, rhs)
-}
+// quantity monomial and quantity variable
 
 // monomial and symbol
 
@@ -1611,6 +1902,12 @@ operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticMonomial): Quadrati
     }
 }
 
+// quantity monomial and symbol
+
+// monomial and quantity symbol
+
+// quantity monomial and quantity symbol
+
 // monomial and monomial
 
 operator fun LinearMonomial.times(rhs: LinearMonomial): QuadraticMonomial {
@@ -1683,38 +1980,6 @@ operator fun LinearMonomial.times(rhs: QuadraticMonomial): QuadraticMonomial {
     }
 }
 
-// monomial and unit
+// quantity monomial and monomial
 
-operator fun QuadraticMonomial.times(rhs: PhysicalUnit): Quantity<QuadraticMonomial> {
-    return Quantity(this, rhs)
-}
-
-// monomial and quantity
-
-operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
-    return Quantity(this.value * rhs, this.unit)
-}
-
-operator fun <T : RealNumber<T>> QuadraticMonomial.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
-    return Quantity(this * rhs.value, rhs.unit)
-}
-
-operator fun <T : RealNumber<T>> QuadraticMonomial.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
-    return Quantity(this / rhs.value, rhs.unit.reciprocal())
-}
-
-// quantity monomial and quantity
-
-@JvmName("quantityTimesQuantityMonomial")
-operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
-    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
-}
-
-@JvmName("quantityMonomialTimesQuantity")
-operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
-    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
-}
-
-operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
-    return Quantity(this.value / rhs.value, this.unit / rhs.unit)
-}
+// quantity monomial and quantity monomial
