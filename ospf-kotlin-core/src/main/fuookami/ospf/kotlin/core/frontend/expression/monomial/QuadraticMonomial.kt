@@ -1399,30 +1399,36 @@ operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.div(rhs: T): Quadra
 
 // symbol and quantity
 
+@JvmName("symbolTimesQuantity")
 operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value.toFlt64(), this), rhs.unit)
 }
 
+@JvmName("quantityTimesSymbol")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value.toFlt64(), rhs), this.unit)
 }
 
+@JvmName("symbolDivQuantity")
 operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value.toFlt64().reciprocal(), this), rhs.unit.reciprocal())
 }
 
 // quantity symbol and constant
 
+@JvmName("quantitySymbolTimesInt")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Int): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
 }
 
+@JvmName("quantitySymbolTimesDouble")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Double): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
 }
 
-operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Flt64): Quantity<QuadraticMonomial> {
-    return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
+@JvmName("quantitySymbolTimesRealNumber")
+operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.times(rhs: T): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(rhs.toFlt64(), this.value), this.unit)
 }
 
 operator fun Int.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
@@ -1433,8 +1439,8 @@ operator fun Double.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<
     return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
 }
 
-operator fun Flt64.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
-    return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
+operator fun <T : RealNumber<T>> T.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
+    return Quantity(QuadraticMonomial(this.toFlt64(), rhs.value), rhs.unit)
 }
 
 operator fun Quantity<QuadraticIntermediateSymbol>.div(rhs: Int): Quantity<QuadraticMonomial> {

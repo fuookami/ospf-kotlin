@@ -767,6 +767,8 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractVariableItem<*, *>): Linea
     )
 }
 
+// quantity variable and quantity
+
 // symbol and constant
 
 operator fun LinearIntermediateSymbol.plus(rhs: Int): LinearPolynomial {
@@ -849,6 +851,8 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearIntermediateSymbol): LinearP
         constant = this.toFlt64()
     )
 }
+
+// quantity symbol and quantity
 
 // monomial and constant
 
@@ -936,6 +940,8 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial 
     )
 }
 
+// quantity monomial and quantity
+
 // polynomial and constant
 
 operator fun Int.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
@@ -1001,6 +1007,12 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractLinearPolynomial<*>): Line
     )
 }
 
+// quantity polynomial and quantity
+
+// polynomial and quantity
+
+// quantity polynomial and quantity
+
 // variable and variable
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
@@ -1014,6 +1026,8 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractVariableItem<*, *>): 
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
 }
+
+// quantity variable and quantity variable
 
 // symbol and variable
 
@@ -1041,6 +1055,8 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearIntermediateSymbol): Li
     )
 }
 
+// quantity symbol and quantity variable
+
 // monomial and variable
 
 operator fun LinearMonomial.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
@@ -1067,6 +1083,8 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearMonomial): LinearPolyno
     )
 }
 
+// quantity monomial and quantity variable
+
 // polynomial and variable
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: LinearPolynomial): LinearPolynomial {
@@ -1087,6 +1105,8 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearPolynomial): LinearPoly
     )
 }
 
+// quantity polynomial and quantity variable
+
 // symbol and symbol
 
 operator fun LinearIntermediateSymbol.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
@@ -1100,6 +1120,8 @@ operator fun LinearIntermediateSymbol.minus(rhs: LinearIntermediateSymbol): Line
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
 }
+
+// quantity symbol and quantity symbol
 
 // monomial and symbol
 
@@ -1127,6 +1149,8 @@ operator fun LinearIntermediateSymbol.minus(rhs: LinearMonomial): LinearPolynomi
     )
 }
 
+// quantity monomial and quantity symbol
+
 // polynomial and symbol
 
 operator fun LinearIntermediateSymbol.plus(rhs: LinearPolynomial): LinearPolynomial {
@@ -1140,6 +1164,8 @@ operator fun LinearIntermediateSymbol.minus(rhs: LinearPolynomial): LinearPolyno
     newMonomials.addAll(rhs.monomials.map { -it })
     return LinearPolynomial(monomials = newMonomials)
 }
+
+// quantity polynomial and quantity symbol
 
 // monomial and monomial
 
@@ -1155,6 +1181,8 @@ operator fun LinearMonomial.minus(rhs: LinearMonomial): LinearPolynomial {
     )
 }
 
+// quantity monomial and quantity monomial
+
 // polynomial and monomial
 
 operator fun LinearMonomial.plus(rhs: LinearPolynomial): LinearPolynomial {
@@ -1168,6 +1196,8 @@ operator fun LinearMonomial.minus(rhs: LinearPolynomial): LinearPolynomial {
     newMonomials.addAll(rhs.monomials.map { -it })
     return LinearPolynomial(monomials = newMonomials)
 }
+
+// quantity polynomial and quantity monomial
 
 // sigma
 
@@ -1241,3 +1271,5 @@ fun <T> flatSum(
 ): LinearPolynomial {
     return sum(objs.flatMap(ctor).filterNotNull())
 }
+
+// quantity sigma
