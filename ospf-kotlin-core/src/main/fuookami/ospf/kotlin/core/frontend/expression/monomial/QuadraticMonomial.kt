@@ -1431,40 +1431,49 @@ operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.times(rhs
     return Quantity(QuadraticMonomial(rhs.toFlt64(), this.value), this.unit)
 }
 
+@JvmName("intTimesQuantitySymbol")
 operator fun Int.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
 }
 
+@JvmName("doubleTimesQuantitySymbol")
 operator fun Double.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
 }
 
+@JvmName("realNumberTimesQuantitySymbol")
 operator fun <T : RealNumber<T>> T.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.toFlt64(), rhs.value), rhs.unit)
 }
 
+@JvmName("quantitySymbolDivInt")
 operator fun Quantity<QuadraticIntermediateSymbol>.div(rhs: Int): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(Flt64(rhs).reciprocal(), this.value), this.unit)
 }
 
+@JvmName("quantitySymbolDivDouble")
 operator fun Quantity<QuadraticIntermediateSymbol>.div(rhs: Double): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(Flt64(rhs).reciprocal(), this.value), this.unit)
 }
 
+@JvmName("quantitySymbolDivRealNumber")
 operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.div(rhs: T): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.toFlt64().reciprocal(), this.value), this.unit.reciprocal())
 }
 
 // quantity symbol and quantity
 
+@JvmName("quantitySymbolTimesQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value.toFlt64(), this.value), this.unit * rhs.unit)
 }
 
+@JvmName("quantityTimesQuantitySymbol")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value.toFlt64(), rhs.value), this.unit * rhs.unit)
 }
 
+@JvmName("quantitySymbolDivQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value.toFlt64().reciprocal(), this.value), this.unit / rhs.unit)
 }
@@ -1477,16 +1486,19 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractVariableItem<*, *>): 
 
 // quantity variable and variable
 
+@JvmName("quantityVariableTimesVariable")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
 }
 
+@JvmName("variableTimesQuantityVariable")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
 }
 
 // quantity variable and quantity variable
 
+@JvmName("quantityVariableTimesQuantityVariable")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
 }
@@ -1511,54 +1523,66 @@ operator fun QuadraticIntermediateSymbol.times(rhs: AbstractVariableItem<*, *>):
 
 // quantity symbol and variable
 
+@JvmName("variableTimesQuantityLinearSymbol")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
 }
 
+@JvmName("quantityLinearSymbolTimesVariable")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
 }
 
+@JvmName("variableTimesQuantityQuadraticSymbol")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this, rhs.value), rhs.unit)
 }
 
+@JvmName("quantityQuadraticSymbolTimesVariable")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs, this.value), this.unit)
 }
 
 // symbol and quantity variable
 
+@JvmName("quantityVariableTimesLinearSymbol")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
 }
 
+@JvmName("linearSymbolTimesQuantityVariable")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value, this), rhs.unit)
 }
 
+@JvmName("quantityVariableTimesQuadraticSymbol")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
 }
 
+@JvmName("quadraticSymbolTimesQuantityVariable")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value, this), rhs.unit)
 }
 
 // quantity symbol and quantity variable
 
+@JvmName("quantityVariableTimesQuantityLinearSymbol")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
 }
 
+@JvmName("quantityLinearSymbolTimesQuantityVariable")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value, this.value), this.unit * rhs.unit)
 }
 
+@JvmName("quantityVariableTimesQuantityQuadraticSymbol")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
 }
 
+@JvmName("quantityQuadraticSymbolTimesQuantityVariable")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(rhs.value, this.value), this.unit * rhs.unit)
 }
@@ -1598,11 +1622,13 @@ operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticIntermediateSymbol)
 
 // quantity symbol and symbol
 
+@JvmName("quantityLinearSymbolTimesLinearSymbol")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs), this.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearSymbolTimesQuadraticSymbol")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1612,6 +1638,7 @@ operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticIntermediate
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesLinearSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1621,6 +1648,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearIntermediate
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesQuadraticSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1631,11 +1659,13 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticIntermedi
 
 // quantity symbol and quantity symbol
 
+@JvmName("quantityLinearSymbolTimesQuantityLinearSymbol")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(QuadraticMonomial(this.value, rhs.value), this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearSymbolTimesQuantityQuadraticSymbol")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1645,6 +1675,7 @@ operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticInt
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesQuantityLinearSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1654,6 +1685,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearInt
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1684,52 +1716,64 @@ operator fun QuadraticMonomial.times(rhs: PhysicalUnit): Quantity<QuadraticMonom
 
 // monomial and quantity
 
+@JvmName("quantityTimesMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@JvmName("monomialTimesQuantity")
 operator fun <T : RealNumber<T>> QuadraticMonomial.times(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@JvmName("monomialDivQuantity")
 operator fun <T : RealNumber<T>> QuadraticMonomial.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(this / rhs.value, rhs.unit.reciprocal())
 }
 
 // quantity monomial and constant
 
+@JvmName("intTimesQuantityMonomial")
 operator fun Int.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(Flt64(this) * rhs.value, rhs.unit)
 }
 
+@JvmName("doubleTimesQuantityMonomial")
 operator fun Double.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(Flt64(this) * rhs.value, rhs.unit)
 }
 
+@JvmName("realNumberTimesQuantityMonomial")
 operator fun <T : RealNumber<T>> T.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.toFlt64() * rhs.value, rhs.unit)
 }
 
+@JvmName("quantityMonomialTimesInt")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Int): Quantity<QuadraticMonomial> {
     return Quantity(this.value * Flt64(rhs), this.unit)
 }
 
+@JvmName("quantityMonomialTimesDouble")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Double): Quantity<QuadraticMonomial> {
     return Quantity(this.value * Flt64(rhs), this.unit)
 }
 
+@JvmName("quantityMonomialTimesRealNumber")
 operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.times(rhs: T): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.toFlt64(), this.unit)
 }
 
+@JvmName("intTimesQuantityMonomial")
 operator fun Quantity<QuadraticMonomial>.div(rhs: Int): Quantity<QuadraticMonomial> {
     return Quantity(this.value / Flt64(rhs), this.unit)
 }
 
+@JvmName("doubleTimesQuantityMonomial")
 operator fun Quantity<QuadraticMonomial>.div(rhs: Double): Quantity<QuadraticMonomial> {
     return Quantity(this.value / Flt64(rhs), this.unit)
 }
 
+@JvmName("realNumberTimesQuantityMonomial")
 operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.div(rhs: T): Quantity<QuadraticMonomial> {
     return Quantity(this.value / rhs.toFlt64(), this.unit)
 }
@@ -1746,6 +1790,7 @@ operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.times(rhs: Quantity
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@JvmName("quantityMonomialDivQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.div(rhs: Quantity<T>): Quantity<QuadraticMonomial> {
     return Quantity(this.value / rhs.value, this.unit / rhs.unit)
 }
@@ -1800,15 +1845,18 @@ operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticMonomial): Quadratic
 
 // quantity monomial and variable
 
+@JvmName("quantityLinearMonomialTimesVariable")
 operator fun Quantity<LinearMonomial>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@JvmName("variableTimesQuantityLinearMonomial")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(rhs.value * this, rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("variableTimesQuantityQuadraticMonomial")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1818,6 +1866,7 @@ operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<QuadraticMonomial>):
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesVariable")
 operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1828,15 +1877,18 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractVariableItem<*, *>):
 
 // monomial and quantity variable
 
+@JvmName("linearMonomialTimesQuantityVariable")
 operator fun LinearMonomial.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@JvmName("quantityVariableTimesLinearMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticMonomialTimesQuantityVariable")
 operator fun QuadraticMonomial.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1845,6 +1897,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<AbstractVariableItem<*, *>>):
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@JvmName("quantityVariableTimesQuadraticMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1855,15 +1908,18 @@ operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: QuadraticMonomial):
 
 // quantity monomial and quantity variable
 
+@JvmName("quantityLinearMonomialTimesQuantityVariable")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@JvmName("quantityVariableTimesQuantityLinearMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuantityVariable")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1873,6 +1929,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractVariableIte
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityVariableTimesQuantityQuadraticMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -1987,15 +2044,18 @@ operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticMonomial): Quadrati
 
 // quantity monomial and symbol
 
+@JvmName("quantityLinearMonomialTimesLinearSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@JvmName("linearSymbolTimesQuantityLinearMonomial")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(rhs.value * this, rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearMonomialTimesQuadraticSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2005,6 +2065,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: QuadraticIntermediateSymbol): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticSymbolTimesQuantityLinearMonomial")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2014,6 +2075,7 @@ operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<LinearMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesLinearSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2023,6 +2085,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: LinearIntermediateSymbol): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("linearSymbolTimesQuantityQuadraticMonomial")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2032,6 +2095,7 @@ operator fun LinearIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuadraticSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2041,6 +2105,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticIntermediateSymbol)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticSymbolTimesQuantityQuadraticMonomial")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2051,15 +2116,18 @@ operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>)
 
 // monomial and quantity symbol
 
+@JvmName("linearMonomialTimesQuantityLinearSymbol")
 operator fun LinearMonomial.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@JvmName("quantityLinearSymbolTimesLinearMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticMonomialTimesQuantityLinearSymbol")
 operator fun QuadraticMonomial.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2069,6 +2137,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<LinearIntermediateSymbol>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearSymbolTimesQuadraticMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2078,6 +2147,7 @@ operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticMonomial): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("linearMonomialTimesQuantityQuadraticSymbol")
 operator fun LinearMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2087,6 +2157,7 @@ operator fun LinearMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesLinearMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2096,6 +2167,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearMonomial): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticMonomialTimesQuantityQuadraticSymbol")
 operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2105,6 +2177,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesQuadraticMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2115,15 +2188,18 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticMonomial)
 
 // quantity monomial and quantity symbol
 
+@JvmName("quantityLinearMonomialTimesQuantityLinearSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@JvmName("quantityLinearSymbolTimesQuantityLinearMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearMonomialTimesQuantityQuadraticSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2133,6 +2209,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticIntermediateS
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesQuantityLinearMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2142,6 +2219,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearMon
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuantityLinearSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2151,6 +2229,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearIntermediateS
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("QuantityLinearSymbolTimesQuantityQuadraticMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2160,6 +2239,7 @@ operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticMon
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2169,6 +2249,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticIntermedia
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticSymbolTimesQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2251,15 +2332,18 @@ operator fun LinearMonomial.times(rhs: QuadraticMonomial): QuadraticMonomial {
 
 // quantity monomial and monomial
 
+@JvmName("quantityLinearMonomialTimesLinearMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@JvmName("linearMonomialTimesQuantityLinearMonomial")
 operator fun LinearMonomial.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(rhs.value * this, rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearMonomialTimesQuadraticMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2269,6 +2353,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: QuadraticMonomial): Quantity<Qu
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticMonomialTimesQuantityLinearMonomial")
 operator fun QuadraticMonomial.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2278,6 +2363,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<LinearMonomial>): Quantity<Qu
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesLinearMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2287,6 +2373,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: LinearMonomial): Quantity<Qu
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("linearMonomialTimesQuantityQuadraticMonomial")
 operator fun LinearMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2297,6 +2384,7 @@ operator fun LinearMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity<Qu
 
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuadraticMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2306,6 +2394,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticMonomial): Quantity
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quadraticMonomialTimesQuantityQuadraticMonomial")
 operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2316,11 +2405,13 @@ operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity
 
 // quantity monomial and quantity monomial
 
+@JvmName("quantityLinearMonomialTimesQuantityLinearMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityLinearMonomialTimesQuantityQuadraticMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2330,6 +2421,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuantityLinearMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2339,6 +2431,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@JvmName("quantityQuadraticMonomialTimesQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")

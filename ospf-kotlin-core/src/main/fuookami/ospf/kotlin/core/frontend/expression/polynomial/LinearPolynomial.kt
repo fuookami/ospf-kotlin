@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -768,6 +769,21 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractVariableItem<*, *>): Linea
 }
 
 // quantity variable and quantity
+
+@JvmName("quantityVariablePlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.unit.to(rhs.unit)!!.value * this.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
 
 // symbol and constant
 
