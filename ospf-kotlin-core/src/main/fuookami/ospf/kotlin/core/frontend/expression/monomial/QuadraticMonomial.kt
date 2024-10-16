@@ -1361,6 +1361,7 @@ class QuadraticMonomial(
 
 // quantity symbol conversion
 
+@JvmName("quantitySymbolConversion")
 fun Quantity<QuadraticIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<QuadraticMonomial>? {
     return this.unit.to(targetUnit)?.let {
         Quantity(it.value * this.value, targetUnit)
@@ -1369,6 +1370,7 @@ fun Quantity<QuadraticIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity
 
 // quantity monomial conversion
 
+@JvmName("quantityMonomialConversion")
 fun Quantity<QuadraticMonomial>.to(targetUnit: PhysicalUnit): Quantity<QuadraticMonomial>? {
     return this.unit.to(targetUnit)?.let {
         Quantity(it.value * this.value, targetUnit)

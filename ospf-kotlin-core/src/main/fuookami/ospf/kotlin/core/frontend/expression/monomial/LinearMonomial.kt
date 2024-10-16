@@ -650,6 +650,7 @@ data class LinearMonomial(
 
 // quantity variable conversion
 
+@JvmName("quantityVariableConversion")
 fun Quantity<AbstractVariableItem<*, *>>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
     return unit.to(targetUnit)?.let {
         Quantity(it.value * this.value, this.unit)
@@ -658,6 +659,7 @@ fun Quantity<AbstractVariableItem<*, *>>.to(targetUnit: PhysicalUnit): Quantity<
 
 // quantity symbol conversion
 
+@JvmName("quantitySymbolConversion")
 fun Quantity<LinearIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
     return unit.to(targetUnit)?.let {
         Quantity(it.value * this.value, this.unit)
@@ -666,6 +668,7 @@ fun Quantity<LinearIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<Li
 
 // quantity monomial conversion
 
+@JvmName("quantityMonomialConversion")
 fun Quantity<LinearMonomial>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
     return unit.to(targetUnit)?.let {
         Quantity(it.value * this.value, this.unit)

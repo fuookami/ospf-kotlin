@@ -202,9 +202,15 @@ inline fun <T> _findLowerBoundImpl(
     } else {
         var left = 0
         var right = list.size
-        var mid = (left + right) / 2
         while (left < right) {
-
+            val mid = (left + right) / 2
+            if (time.start < extractor(list[mid]).start) {
+                right = mid
+            } else if (time.start >= extractor(list[mid]).end) {
+                left = mid + 1
+            } else {
+                return mid
+            }
         }
         left
     }
@@ -222,9 +228,15 @@ suspend inline fun <T> _findLowerBoundParallellyImpl(
     } else {
         var left = 0
         var right = list.size
-        var mid = (left + right) / 2
         while (left < right) {
-
+            val mid = (left + right) / 2
+            if (time.start < extractor(list[mid]).start) {
+                right = mid
+            } else if (time.start >= extractor(list[mid]).end) {
+                left = mid + 1
+            } else {
+                return mid
+            }
         }
         left
     }
@@ -242,9 +254,15 @@ inline fun <T> _findUpperBoundImpl(
     } else {
         var left = 0
         var right = list.size
-        var mid = (left + right) / 2
         while (left < right) {
-
+            val mid = (left + right) / 2
+            if (time.end < extractor(list[mid]).start) {
+                right = mid
+            } else if (time.end >= extractor(list[mid]).end) {
+                left = mid + 1
+            } else {
+                return mid + 1
+            }
         }
         left
     }
@@ -262,9 +280,15 @@ suspend inline fun <T> _findUpperBoundParallellyImpl(
     } else {
         var left = 0
         var right = list.size
-        var mid = (left + right) / 2
         while (left < right) {
-
+            val mid = (left + right) / 2
+            if (time.end < extractor(list[mid]).start) {
+                right = mid
+            } else if (time.end >= extractor(list[mid]).end) {
+                left = mid + 1
+            } else {
+                return mid + 1
+            }
         }
         left
     }

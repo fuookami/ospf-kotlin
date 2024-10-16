@@ -894,7 +894,7 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearIntermediateSymbol): LinearP
 
 // quantity symbol and quantity
 
-@JvmName("quantityVariablePlusQuantity")
+@JvmName("quantitySymbolPlusQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
     return if (this.unit == rhs.unit) {
         Quantity(this.value + rhs.value, this.unit)
@@ -909,7 +909,7 @@ operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.plus(rhs: Qu
     }
 }
 
-@JvmName("quantityPlusQuantityVariable")
+@JvmName("quantityPlusQuantitySymbol")
 operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
     return if (this.unit == rhs.unit) {
         Quantity(this.value + rhs.value, this.unit)
@@ -1012,7 +1012,7 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial 
 
 // quantity monomial and quantity
 
-@JvmName("quantityVariablePlusQuantity")
+@JvmName("quantityMonomialPlusQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
     return if (this.unit == rhs.unit) {
         Quantity(this.value + rhs.value, this.unit)
@@ -1027,7 +1027,7 @@ operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.plus(rhs: Quantity<T>)
     }
 }
 
-@JvmName("quantityPlusQuantityVariable")
+@JvmName("quantityPlusQuantityMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
     return if (this.unit == rhs.unit) {
         Quantity(this.value + rhs.value, this.unit)
@@ -1115,7 +1115,7 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractLinearPolynomial<*>): Line
 
 // quantity polynomial and quantity
 
-@JvmName("quantityVariablePlusQuantity")
+@JvmName("quantityPolynomialPlusQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearPolynomial>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
     return if (this.unit == rhs.unit) {
         Quantity(this.value + rhs.value, this.unit)
