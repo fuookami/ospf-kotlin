@@ -74,7 +74,8 @@ private class CplexQuadraticSolverImpl(
     lateinit var cplexConstraint: List<IloRange>
     lateinit var output: SolverOutput
 
-    private var bestObj = Flt64.infinity
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
@@ -187,15 +188,17 @@ private class CplexQuadraticSolverImpl(
         cplex.setParam(IloCplex.IntParam.OptimalityTarget, IloCplex.OptimalityTarget.OptimalGlobal)
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null) {
-            cplex.use(object : IloCplex.ControlCallback() {
+            cplex.use(object : IloCplex.MIPInfoCallback() {
                 override fun main() {
                     callBack?.nativeCallback?.invoke(this)
 
                     if (config.notImprovementTime != null) {
-                        val currentObj = Flt64(bestObjValue)
+                        val currentObj = Flt64(incumbentObjValue)
+                        val currentBound = Flt64(bestObjValue)
                         val currentTime = cplexTime.seconds
-                        if (currentObj neq bestObj) {
+                        if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
                             bestObj = currentObj
+                            bestBound = currentBound
                             bestTime = currentTime
                         } else if (currentTime - bestTime >= config.notImprovementTime!!) {
                             abort()

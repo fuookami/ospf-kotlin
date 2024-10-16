@@ -190,6 +190,86 @@ fun List<TimeRange>.backAt(i: Int): TimeRange {
     }
 }
 
+inline fun <T> _findLowerBoundImpl(
+    list: List<T>,
+    time: TimeRange,
+    crossinline extractor: Extractor<TimeRange, T>
+): Int {
+    return if (time.start <= extractor(list.first()).start) {
+        0
+    } else if (time.start >= extractor(list.last()).end) {
+        list.size
+    } else {
+        var left = 0
+        var right = list.size
+        var mid = (left + right) / 2
+        while (left < right) {
+
+        }
+        left
+    }
+}
+
+suspend inline fun <T> _findLowerBoundParallellyImpl(
+    list: List<T>,
+    time: TimeRange,
+    crossinline extractor: SuspendExtractor<TimeRange, T>
+): Int {
+    return if (time.start <= extractor(list.first()).start) {
+        0
+    } else if (time.start >= extractor(list.last()).end) {
+        list.size
+    } else {
+        var left = 0
+        var right = list.size
+        var mid = (left + right) / 2
+        while (left < right) {
+
+        }
+        left
+    }
+}
+
+inline fun <T> _findUpperBoundImpl(
+    list: List<T>,
+    time: TimeRange,
+    crossinline extractor: Extractor<TimeRange, T>
+): Int {
+    return if (time.end <= extractor(list.first()).start) {
+        0
+    } else if (time.end >= extractor(list.last()).end) {
+        list.size
+    } else {
+        var left = 0
+        var right = list.size
+        var mid = (left + right) / 2
+        while (left < right) {
+
+        }
+        left
+    }
+}
+
+suspend inline fun <T> _findUpperBoundParallellyImpl(
+    list: List<T>,
+    time: TimeRange,
+    crossinline extractor: SuspendExtractor<TimeRange, T>
+): Int {
+    return if (time.start <= extractor(list.first()).start) {
+        0
+    } else if (time.start >= extractor(list.last()).end) {
+        list.size
+    } else {
+        var left = 0
+        var right = list.size
+        var mid = (left + right) / 2
+        while (left < right) {
+
+        }
+        left
+    }
+}
+
 inline fun <T> List<T>.findImpl(
     time: TimeRange,
     crossinline extractor: Extractor<TimeRange, T>
@@ -203,67 +283,8 @@ inline fun <T> List<T>.findImpl(
             null
         }
     } else {
-        val lowerBound = if (time.start <= extractor(this@findImpl.first()).start) {
-            0
-        } else if (time.start >= extractor(this@findImpl.last()).end) {
-            this@findImpl.size
-        } else {
-            var step = this@findImpl.size / 2
-            var i = if (this@findImpl.size % 2 == 0) {
-                this@findImpl.size / 2 - 1
-            } else {
-                this@findImpl.size / 2
-            }
-            while (i < this@findImpl.size) {
-                if (extractor(this@findImpl[i]).contains(time.start)) {
-                    break
-                } else if (time.start < extractor(this@findImpl[i]).start) {
-                    if (i == 0 || extractor(this@findImpl[i - 1]).end <= time.start) {
-                        break
-                    } else {
-                        i -= min(i, step)
-                    }
-                } else {
-                    i += step
-                }
-                if (step == 0) {
-                    break
-                }
-                step /= 2
-            }
-            i
-        }
-        val upperBound = if (time.end <= extractor(this@findImpl.first()).start) {
-            0
-        } else if (time.end >= extractor(this@findImpl.last()).end) {
-            this@findImpl.size
-        } else {
-            var step = this@findImpl.size / 2
-            var i = if (this@findImpl.size % 2 == 0) {
-                this@findImpl.size / 2 - 1
-            } else {
-                this@findImpl.size / 2
-            }
-            while (i < this@findImpl.size) {
-                if (extractor(this@findImpl[i]).contains(time.end)) {
-                    ++i
-                    break
-                } else if (time.end <= extractor(this@findImpl[i]).start) {
-                    if (i == 0 || extractor(this@findImpl[i - 1]).start < time.end) {
-                        break
-                    } else {
-                        i -= min(i, step)
-                    }
-                } else {
-                    i += step
-                }
-                if (step == 0) {
-                    break
-                }
-                step /= 2
-            }
-            i
-        }
+        val lowerBound = _findLowerBoundImpl(this@findImpl, time, extractor)
+        val upperBound = _findUpperBoundImpl(this@findImpl, time, extractor)
         Pair(lowerBound, upperBound)
     }
 }
@@ -282,72 +303,11 @@ suspend inline fun <T> List<T>.findParallellyImpl(
         }
     } else {
         coroutineScope {
-            val lowerBoundPromise = if (time.start <= extractor(this@findParallellyImpl.first()).start) {
-                async(Dispatchers.Default) {
-                    0
-                }
-            } else if (time.start >= extractor(this@findParallellyImpl.last()).end) {
-                async(Dispatchers.Default) {
-                    this@findParallellyImpl.size
-                }
-            } else {
-                async(Dispatchers.Default) {
-                    var step = this@findParallellyImpl.size / 2
-                    var i = if (this@findParallellyImpl.size % 2 == 0) {
-                        this@findParallellyImpl.size / 2 - 1
-                    } else {
-                        this@findParallellyImpl.size / 2
-                    }
-                    while (i < this@findParallellyImpl.size) {
-                        if (extractor(this@findParallellyImpl[i]).contains(time.start)) {
-                            break
-                        } else if (time.start < extractor(this@findParallellyImpl[i]).start) {
-                            if (i == 0 || extractor(this@findParallellyImpl[i - 1]).end <= time.start) {
-                                break
-                            } else {
-                                i -= min(i, step)
-                            }
-                        } else {
-                            i += step
-                        }
-                        step /= 2
-                    }
-                    i
-                }
+            val lowerBoundPromise = async(Dispatchers.Default) {
+                _findLowerBoundParallellyImpl(this@findParallellyImpl, time, extractor)
             }
-            val upperBoundPromise = if (time.end >= extractor(this@findParallellyImpl.last()).end) {
-                async(Dispatchers.Default) {
-                    this@findParallellyImpl.size
-                }
-            } else if (time.end <= extractor(this@findParallellyImpl.first()).start) {
-                async(Dispatchers.Default) {
-                    0
-                }
-            } else {
-                async(Dispatchers.Default) {
-                    var step = this@findParallellyImpl.size / 2
-                    var i = if (this@findParallellyImpl.size % 2 == 0) {
-                        this@findParallellyImpl.size / 2 - 1
-                    } else {
-                        this@findParallellyImpl.size / 2
-                    }
-                    while (i < this@findParallellyImpl.size) {
-                        if (extractor(this@findParallellyImpl[i]).contains(time.end)) {
-                            ++i
-                            break
-                        } else if (time.end <= extractor(this@findParallellyImpl[i]).start) {
-                            if (i == 0 || extractor(this@findParallellyImpl[i - 1]).start < time.end) {
-                                break
-                            } else {
-                                i -= min(i, step)
-                            }
-                        } else {
-                            i += step
-                        }
-                        step /= 2
-                    }
-                    i + 1
-                }
+            val upperBoundPromise = async(Dispatchers.Default) {
+                _findUpperBoundParallellyImpl(this@findParallellyImpl, time, extractor)
             }
             Pair(lowerBoundPromise.await(), upperBoundPromise.await())
         }

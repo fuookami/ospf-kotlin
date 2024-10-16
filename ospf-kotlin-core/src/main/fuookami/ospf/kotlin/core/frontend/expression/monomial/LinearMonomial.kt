@@ -648,6 +648,30 @@ data class LinearMonomial(
     }
 }
 
+// quantity variable conversion
+
+fun Quantity<AbstractVariableItem<*, *>>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
+    return unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, this.unit)
+    }
+}
+
+// quantity symbol conversion
+
+fun Quantity<LinearIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
+    return unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, this.unit)
+    }
+}
+
+// quantity monomial conversion
+
+fun Quantity<LinearMonomial>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
+    return unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, this.unit)
+    }
+}
+
 // variable and constant
 
 operator fun AbstractVariableItem<*, *>.times(rhs: Int): LinearMonomial {

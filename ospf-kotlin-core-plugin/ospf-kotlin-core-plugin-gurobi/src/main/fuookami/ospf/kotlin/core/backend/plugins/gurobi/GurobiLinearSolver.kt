@@ -64,7 +64,8 @@ private class GurobiLinearSolverImpl(
     lateinit var grbConstraints: List<GRBConstr>
     lateinit var output: SolverOutput
 
-    private var bestObj = Flt64.infinity
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
@@ -186,9 +187,11 @@ private class GurobiLinearSolverImpl(
 
                         if (where == GRB.CB_MIP && config.notImprovementTime != null) {
                             val currentObj = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBST))
+                            val currentBound = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBND))
                             val currentTime = getDoubleInfo(GRB.Callback.RUNTIME).seconds
-                            if (currentObj neq bestObj) {
+                            if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
                                 bestObj = currentObj
+                                bestBound = currentBound
                                 bestTime = currentTime
                             } else if (currentTime - bestTime >= config.notImprovementTime!!) {
                                 abort()

@@ -1359,6 +1359,22 @@ class QuadraticMonomial(
     }
 }
 
+// quantity symbol conversion
+
+fun Quantity<QuadraticIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<QuadraticMonomial>? {
+    return this.unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, targetUnit)
+    }
+}
+
+// quantity monomial conversion
+
+fun Quantity<QuadraticMonomial>.to(targetUnit: PhysicalUnit): Quantity<QuadraticMonomial>? {
+    return this.unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, targetUnit)
+    }
+}
+
 // symbol and constant
 
 operator fun QuadraticIntermediateSymbol.times(rhs: Int): QuadraticMonomial {

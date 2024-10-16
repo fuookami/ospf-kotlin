@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -1361,6 +1363,14 @@ class MutableQuadraticPolynomial(
     override fun divAssign(rhs: Flt64) {
         monomials = monomials.map { it / rhs }.toMutableList()
         constant /= rhs
+    }
+}
+
+// quantity polynomial conversion
+
+fun Quantity<QuadraticPolynomial>.to(targetUnit: PhysicalUnit): Quantity<QuadraticPolynomial>? {
+    return unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, targetUnit)
     }
 }
 
