@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
 
-data class Quantity<V>(
+data class Quantity<out V>(
     val value: V,
     val unit: PhysicalUnit
 )
@@ -293,4 +293,8 @@ operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arit
     } else {
         TODO("not implemented yet")
     }
+}
+
+operator fun <V> Quantity<V>.unaryMinus(): Quantity<V> where V : Arithmetic<V>, V : Neg<V> {
+    return Quantity(-this.value, this.unit)
 }

@@ -1374,6 +1374,12 @@ fun Quantity<QuadraticPolynomial>.to(targetUnit: PhysicalUnit): Quantity<Quadrat
     }
 }
 
+// unary minus polynomial
+
+operator fun Quantity<QuadraticPolynomial>.unaryMinus(): Quantity<QuadraticPolynomial> {
+    return Quantity(-this.value, this.unit)
+}
+
 // symbol and constant
 
 operator fun QuadraticIntermediateSymbol.plus(rhs: Int): QuadraticPolynomial {

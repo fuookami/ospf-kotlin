@@ -675,6 +675,35 @@ fun Quantity<LinearMonomial>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomi
     }
 }
 
+// unary minus variable
+
+operator fun AbstractVariableItem<*, *>.unaryMinus(): LinearMonomial {
+    return -Flt64.one * this
+}
+
+@JvmName("unaryMinusQuantityVariable")
+operator fun Quantity<AbstractVariableItem<*, *>>.unaryMinus(): Quantity<LinearMonomial> {
+    return Quantity(-this.value, this.unit)
+}
+
+// unary minus symbol
+
+operator fun LinearIntermediateSymbol.unaryMinus(): LinearMonomial {
+    return -Flt64.one * this
+}
+
+@JvmName("unaryMinusQuantitySymbol")
+operator fun Quantity<LinearIntermediateSymbol>.unaryMinus(): Quantity<LinearMonomial> {
+    return Quantity(-this.value, this.unit)
+}
+
+// unary minus monomial
+
+@JvmName("unaryMinusQuantityMonomial")
+operator fun Quantity<LinearMonomial>.unaryMinus(): Quantity<LinearMonomial> {
+    return Quantity(-this.value, this.unit)
+}
+
 // variable and constant
 
 operator fun AbstractVariableItem<*, *>.times(rhs: Int): LinearMonomial {

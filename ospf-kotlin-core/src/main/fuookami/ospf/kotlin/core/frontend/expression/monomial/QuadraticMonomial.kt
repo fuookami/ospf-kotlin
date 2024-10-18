@@ -1377,6 +1377,24 @@ fun Quantity<QuadraticMonomial>.to(targetUnit: PhysicalUnit): Quantity<Quadratic
     }
 }
 
+// unary minus symbol
+
+operator fun QuadraticIntermediateSymbol.unaryMinus(): QuadraticMonomial {
+    return -Flt64.one * this
+}
+
+@JvmName("unaryMinusQuantitySymbol")
+operator fun Quantity<QuadraticIntermediateSymbol>.unaryMinus(): Quantity<QuadraticMonomial> {
+    return Quantity(-this.value, this.unit)
+}
+
+// unary minus monomial
+
+@JvmName("unaryMinusMonomial")
+operator fun Quantity<QuadraticMonomial>.unaryMinus(): Quantity<QuadraticMonomial> {
+    return Quantity(-this.value, this.unit)
+}
+
 // symbol and constant
 
 operator fun QuadraticIntermediateSymbol.times(rhs: Int): QuadraticMonomial {

@@ -50,8 +50,24 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     operator fun minus(rhs: M): Self
     operator fun minus(rhs: Polynomial<*, M, Cell>): Self
 
+    operator fun times(rhs: Int): Self {
+        return this.times(Flt64(rhs))
+    }
+
+    operator fun times(rhs: Double): Self {
+        return this.times(Flt64(rhs))
+    }
+
     operator fun <T : RealNumber<T>> times(rhs: T): Self {
         return this.times(rhs.toFlt64())
+    }
+
+    operator fun div(rhs: Int): Self {
+        return this.div(Flt64(rhs))
+    }
+
+    operator fun div(rhs: Double): Self {
+        return this.div(Flt64(rhs))
     }
 
     operator fun <T : RealNumber<T>> div(rhs: T): Self {
