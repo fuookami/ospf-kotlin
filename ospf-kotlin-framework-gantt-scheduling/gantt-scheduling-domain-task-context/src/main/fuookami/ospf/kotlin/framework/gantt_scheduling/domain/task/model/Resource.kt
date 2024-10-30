@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
@@ -11,11 +12,12 @@ open class ResourceCapacity(
     val lessQuantity: Flt64? = null,
     val overQuantity: Flt64? = null,
     val interval: Duration = Duration.INFINITE,
+    val name: String? = null
 ) {
     open val lessEnabled: Boolean get() = lessQuantity != null
     open val overEnabled: Boolean get() = overQuantity != null
 
-    override fun toString() = "${quantity}_${interval}"
+    override fun toString() = name ?: "${quantity}_${interval}"
 }
 
 abstract class Resource<out C : ResourceCapacity> : ManualIndexed() {
@@ -135,13 +137,13 @@ abstract class StorageResource<out C : ResourceCapacity>(
         return supplyBy(task, time) - costBy(task, time)
     }
 
-    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+    open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
         bunch: AbstractTaskBunch<T, E, A>,
         time: TimeRange
     ): Flt64 {
         var sum = Flt64.zero
         for (i in bunch.tasks.indices) {
-            sum += usedQuantity(bunch.tasks[i], time)
+            sum += costBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
                 is TimeRange -> {
                     if (currentTime.end >= time.end) {
@@ -151,5 +153,30 @@ abstract class StorageResource<out C : ResourceCapacity>(
             }
         }
         return sum
+    }
+
+    open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
+        bunch: AbstractTaskBunch<T, E, A>,
+        time: TimeRange
+    ): Flt64 {
+        var sum = Flt64.zero
+        for (i in bunch.tasks.indices) {
+            sum += supplyBy(bunch.tasks[i], time)
+            when (val currentTime = bunch.tasks[i].time) {
+                is TimeRange -> {
+                    if (currentTime.end >= time.end) {
+                        break
+                    }
+                }
+            }
+        }
+        return sum
+    }
+
+    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+        bunch: AbstractTaskBunch<T, E, A>,
+        time: TimeRange
+    ): Flt64 {
+        return supplyBy(bunch, time) - costBy(bunch, time)
     }
 }

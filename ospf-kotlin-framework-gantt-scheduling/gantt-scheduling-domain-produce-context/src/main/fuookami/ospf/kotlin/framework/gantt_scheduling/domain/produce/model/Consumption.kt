@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -45,7 +46,7 @@ abstract class AbstractConsumption<
                         val slack = SlackFunction(
                             UContinuous,
                             x = LinearPolynomial(quantity[product]),
-                            threshold = LinearPolynomial(demand.quantity.upperBound.toFlt64()),
+                            threshold = LinearPolynomial(demand.quantity.upperBound.value.unwrap()),
                             constraint = false,
                             name = "consumption_over_quantity_$product"
                         )
@@ -78,7 +79,7 @@ abstract class AbstractConsumption<
                         val slack = SlackFunction(
                             UContinuous,
                             x = LinearPolynomial(quantity[product]),
-                            threshold = LinearPolynomial(demand.quantity.lowerBound.toFlt64()),
+                            threshold = LinearPolynomial(demand.quantity.lowerBound.value.unwrap()),
                             withPositive = false,
                             constraint = false,
                             name = "consumption_less_quantity_$product"
@@ -146,9 +147,9 @@ class BunchSchedulingConsumption<
                     if (reserve != null) {
                         quantity[material].range.set(
                             ValueRange(
-                                reserve.quantity.lowerBound.toFlt64() - (reserve.lessQuantity ?: Flt64.zero),
-                                reserve.quantity.upperBound.toFlt64() + (reserve.overQuantity ?: Flt64.zero)
-                            )
+                                reserve.quantity.lowerBound.value.unwrap() - (reserve.lessQuantity ?: Flt64.zero),
+                                reserve.quantity.upperBound.value.unwrap() + (reserve.overQuantity ?: Flt64.zero)
+                            ).value!!
                         )
                     }
                 }

@@ -17,25 +17,34 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 class GurobiLinearSolver(
-    private val config: SolverConfig = SolverConfig(),
+    override val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack? = null
 ) : LinearSolver {
-    override suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
-        val impl = GurobiLinearSolverImpl(config, callBack)
+    override val name = "gurobi"
+
+    override suspend operator fun invoke(
+        model: LinearTriadModelView,
+        statusCallBack: SolvingStatusCallBack?
+    ): Ret<SolverOutput> {
+        val impl = GurobiLinearSolverImpl(config, callBack, statusCallBack)
         return impl(model)
     }
 
-    override suspend fun invoke(model: LinearTriadModelView, solutionAmount: UInt64): Ret<Pair<SolverOutput, List<Solution>>> {
+    override suspend fun invoke(
+        model: LinearTriadModelView,
+        solutionAmount: UInt64,
+        statusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
             val impl = GurobiLinearSolverImpl(config, callBack.ifNull { GurobiLinearSolverCallBack() }.copy()
                 .configuration { gurobi, _, _ ->
-                    if (solutionAmount != UInt64.zero) {
+                    if (solutionAmount gr UInt64.one) {
                         gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
                         gurobi.set(GRB.IntParam.PoolSearchMode, 2);
-                        gurobi.set(GRB.IntParam.PoolSolutions, min(UInt64.ten, solutionAmount).toInt())
+                        gurobi.set(GRB.IntParam.PoolSolutions, solutionAmount.toInt())
                     }
                     ok
                 }.analyzingSolution { gurobi, variables, _ ->
@@ -47,7 +56,7 @@ class GurobiLinearSolver(
                         }
                     }
                     ok
-                }
+                }, statusCallBack
             )
             impl(model).map { it to results }
         }
@@ -56,13 +65,15 @@ class GurobiLinearSolver(
 
 private class GurobiLinearSolverImpl(
     private val config: SolverConfig,
-    private val callBack: GurobiLinearSolverCallBack? = null
+    private val callBack: GurobiLinearSolverCallBack? = null,
+    private val statusCallBack: SolvingStatusCallBack? = null
 ) : GurobiSolver() {
     lateinit var grbVars: List<GRBVar>
     lateinit var grbConstraints: List<GRBConstr>
     lateinit var output: SolverOutput
 
-    private var bestObj = Flt64.infinity
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
@@ -177,19 +188,39 @@ private class GurobiLinearSolverImpl(
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
             grbModel.set(GRB.IntParam.Threads, config.threadNum.toInt())
 
-            if (config.notImprovementTime != null || callBack?.nativeCallback != null) {
+            if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
                 grbModel.setCallback(object: GRBCallback() {
                     override fun callback() {
                         callBack?.nativeCallback?.invoke(this)
 
-                        if (where == GRB.CB_MIP && config.notImprovementTime != null) {
+                        if (where == GRB.CB_MIP) {
                             val currentObj = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBST))
+                            val currentBound = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBND))
                             val currentTime = getDoubleInfo(GRB.Callback.RUNTIME).seconds
-                            if (currentObj neq bestObj) {
-                                bestObj = currentObj
-                                bestTime = currentTime
-                            } else if (currentTime - bestTime >= config.notImprovementTime!!) {
-                                abort()
+
+                            if (config.notImprovementTime != null) {
+                                if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
+                                    bestObj = currentObj
+                                    bestBound = currentBound
+                                    bestTime = currentTime
+                                } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                                    abort()
+                                }
+                            }
+
+                            statusCallBack?.let {
+                                when (it(SolvingStatus(
+                                    solver = "gurobi",
+                                    obj = currentObj,
+                                    possibleBestObj = currentBound,
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                ))) {
+                                    is Ok -> {}
+
+                                    is Failed -> {
+                                        abort()
+                                    }
+                                }
                             }
                         }
                     }

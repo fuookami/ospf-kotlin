@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
+import kotlin.math.*
 import kotlin.time.*
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
@@ -38,29 +39,38 @@ data class TimeWindow(
             )
         }
     }
-    fun valueOf(duration: Duration) = if (continues) {
-        Flt64(duration.toDouble(durationUnit))
-    } else {
-        Flt64(duration.toInt(durationUnit))
-    }
 
-    fun durationOf(duration: Flt64) = if (continues) {
-        duration.toDouble().toDuration(durationUnit)
-    } else {
-        duration.round().toDouble().toDuration(durationUnit)
-    }
+    val Duration.value: Flt64 get() = Flt64(this.toDouble(durationUnit))
+    val Duration.floor: Duration get() = floor(this.toDouble(durationUnit)).toDuration(durationUnit)
+    val Duration.ceil: Duration get() = ceil(this.toDouble(durationUnit)).toDuration(durationUnit)
 
-    fun valueOf(timePoint: Instant) = if (continues) {
-        Flt64((timePoint - window.start).toDouble(durationUnit))
-    } else {
-        Flt64((timePoint - window.start).toInt(durationUnit))
-    }
+    fun valueOf(duration: Duration) = duration.value
+    fun floor(duration: Duration) = duration.floor
+    fun ceil(duration: Duration) = duration.ceil
 
-    fun instantOf(timePoint: Flt64) = if (continues) {
-        window.start + timePoint.toDouble().toDuration(durationUnit)
-    } else {
-        window.start + timePoint.round().toDouble().toDuration(durationUnit)
-    }
+    val Instant.value: Flt64 get() = Flt64((this - window.start).toDouble(durationUnit))
+    val Instant.floor: Instant get() = window.start + (this - window.start).floor
+    val Instant.ceil: Instant get() = window.start + (this - window.start).ceil
+
+    fun valueOf(instant: Instant) = instant.value
+    fun floor(instant: Instant) = instant.floor
+    fun ceil(instant: Instant) = instant.ceil
+
+    val Flt64.duration: Duration get() = this.toDouble().toDuration(durationUnit)
+    val Int64.duration: Duration get() = this.toFlt64().duration
+    val UInt64.duration: Duration get() = this.toFlt64().duration
+
+    fun durationOf(duration: Flt64) = duration.duration
+    fun durationOf(duration: Int64) = duration.toFlt64().duration
+    fun durationOf(duration: UInt64) = duration.toFlt64().duration
+
+    val Flt64.instant: Instant get() = window.start + this.toDouble().toDuration(durationUnit)
+    val Int64.instant: Instant get() = window.start + this.toFlt64().duration
+    val UInt64.instant: Instant get() = window.start + this.toFlt64().duration
+
+    fun instantOf(instant: Flt64) = window.start + instant.duration
+    fun instantOf(instant: Int64) = window.start + instant.toFlt64().duration
+    fun instantOf(instant: UInt64) = window.start + instant.toFlt64().duration
 
     val empty: Boolean by window::empty
     val start: Instant by window::start
@@ -150,6 +160,20 @@ data class TimeWindow(
             val duration = min(end - current, interval)
             timeSlots.add(TimeRange(
                 start = current,
+                end = current + duration
+            ))
+            current += duration
+        }
+        timeSlots
+    }
+
+    val roundTimeSlots: List<TimeRange> by lazy {
+        val timeSlots = ArrayList<TimeRange>()
+        var current = start.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant()
+        while (current != end) {
+            val duration = min(end - current, upper.interval)
+            timeSlots.add(TimeRange(
+                start = max(start, current),
                 end = current + duration
             ))
             current += duration

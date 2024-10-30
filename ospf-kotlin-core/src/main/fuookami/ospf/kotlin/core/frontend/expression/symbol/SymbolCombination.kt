@@ -4,36 +4,36 @@ import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 
-class SymbolCombination<out Sym : Symbol, S : Shape>(
+class SymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
     val name: String,
     shape: S,
     ctor: (Int, IntArray) -> Sym
 ) : MultiArray<Sym, S>(shape, ctor)
 
-typealias Symbols = MultiArray<Symbol, *>
-typealias Symbols1 = MultiArray<Symbol, Shape1>
-typealias Symbols2 = MultiArray<Symbol, Shape2>
-typealias Symbols3 = MultiArray<Symbol, Shape3>
-typealias Symbols4 = MultiArray<Symbol, Shape4>
-typealias DynSymbols = MultiArray<Symbol, DynShape>
-typealias SymbolView = MultiArrayView<Symbol, *>
-typealias SymbolView1 = MultiArrayView<Symbol, Shape1>
-typealias SymbolView2 = MultiArrayView<Symbol, Shape2>
-typealias SymbolView3 = MultiArrayView<Symbol, Shape3>
-typealias SymbolView4 = MultiArrayView<Symbol, Shape4>
-typealias DynSymbolView = MultiArrayView<Symbol, DynShape>
+typealias Symbols = MultiArray<IntermediateSymbol, *>
+typealias Symbols1 = MultiArray<IntermediateSymbol, Shape1>
+typealias Symbols2 = MultiArray<IntermediateSymbol, Shape2>
+typealias Symbols3 = MultiArray<IntermediateSymbol, Shape3>
+typealias Symbols4 = MultiArray<IntermediateSymbol, Shape4>
+typealias DynSymbols = MultiArray<IntermediateSymbol, DynShape>
+typealias SymbolView = MultiArrayView<IntermediateSymbol, *>
+typealias SymbolView1 = MultiArrayView<IntermediateSymbol, Shape1>
+typealias SymbolView2 = MultiArrayView<IntermediateSymbol, Shape2>
+typealias SymbolView3 = MultiArrayView<IntermediateSymbol, Shape3>
+typealias SymbolView4 = MultiArrayView<IntermediateSymbol, Shape4>
+typealias DynSymbolView = MultiArrayView<IntermediateSymbol, DynShape>
 
-typealias LinearSymbols1 = SymbolCombination<LinearSymbol, Shape1>
-typealias LinearSymbols2 = SymbolCombination<LinearSymbol, Shape2>
-typealias LinearSymbols3 = SymbolCombination<LinearSymbol, Shape3>
-typealias LinearSymbols4 = SymbolCombination<LinearSymbol, Shape4>
-typealias DynLinearSymbols = SymbolCombination<LinearSymbol, DynShape>
+typealias LinearSymbols1 = SymbolCombination<LinearIntermediateSymbol, Shape1>
+typealias LinearSymbols2 = SymbolCombination<LinearIntermediateSymbol, Shape2>
+typealias LinearSymbols3 = SymbolCombination<LinearIntermediateSymbol, Shape3>
+typealias LinearSymbols4 = SymbolCombination<LinearIntermediateSymbol, Shape4>
+typealias DynLinearSymbols = SymbolCombination<LinearIntermediateSymbol, DynShape>
 
-typealias QuadraticSymbols1 = SymbolCombination<QuadraticSymbol, Shape1>
-typealias QuadraticSymbols2 = SymbolCombination<QuadraticSymbol, Shape2>
-typealias QuadraticSymbols3 = SymbolCombination<QuadraticSymbol, Shape3>
-typealias QuadraticSymbols4 = SymbolCombination<QuadraticSymbol, Shape4>
-typealias DynQuadraticSymbols = SymbolCombination<QuadraticSymbol, DynShape>
+typealias QuadraticSymbols1 = SymbolCombination<QuadraticIntermediateSymbol, Shape1>
+typealias QuadraticSymbols2 = SymbolCombination<QuadraticIntermediateSymbol, Shape2>
+typealias QuadraticSymbols3 = SymbolCombination<QuadraticIntermediateSymbol, Shape3>
+typealias QuadraticSymbols4 = SymbolCombination<QuadraticIntermediateSymbol, Shape4>
+typealias DynQuadraticSymbols = SymbolCombination<QuadraticIntermediateSymbol, DynShape>
 
 typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbol, Shape1>
 typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbol, Shape2>
@@ -59,17 +59,17 @@ typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticFunctionSymbol,
 typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticFunctionSymbol, Shape4>
 typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticFunctionSymbol, DynShape>
 
-typealias LinearSymbolView1 = MultiArrayView<LinearSymbol, Shape1>
-typealias LinearSymbolView2 = MultiArrayView<LinearSymbol, Shape2>
-typealias LinearSymbolView3 = MultiArrayView<LinearSymbol, Shape3>
-typealias LinearSymbolView4 = MultiArrayView<LinearSymbol, Shape4>
-typealias DynLinearSymbolView = MultiArrayView<LinearSymbol, DynShape>
+typealias LinearSymbolView1 = MultiArrayView<LinearIntermediateSymbol, Shape1>
+typealias LinearSymbolView2 = MultiArrayView<LinearIntermediateSymbol, Shape2>
+typealias LinearSymbolView3 = MultiArrayView<LinearIntermediateSymbol, Shape3>
+typealias LinearSymbolView4 = MultiArrayView<LinearIntermediateSymbol, Shape4>
+typealias DynLinearSymbolView = MultiArrayView<LinearIntermediateSymbol, DynShape>
 
-typealias QuadraticSymbolView1 = MultiArrayView<QuadraticSymbol, Shape1>
-typealias QuadraticSymbolView2 = MultiArrayView<QuadraticSymbol, Shape2>
-typealias QuadraticSymbolView3 = MultiArrayView<QuadraticSymbol, Shape3>
-typealias QuadraticSymbolView4 = MultiArrayView<QuadraticSymbol, Shape4>
-typealias DynQuadraticSymbolView = MultiArrayView<QuadraticSymbol, DynShape>
+typealias QuadraticSymbolView1 = MultiArrayView<QuadraticIntermediateSymbol, Shape1>
+typealias QuadraticSymbolView2 = MultiArrayView<QuadraticIntermediateSymbol, Shape2>
+typealias QuadraticSymbolView3 = MultiArrayView<QuadraticIntermediateSymbol, Shape3>
+typealias QuadraticSymbolView4 = MultiArrayView<QuadraticIntermediateSymbol, Shape4>
+typealias DynQuadraticSymbolView = MultiArrayView<QuadraticIntermediateSymbol, DynShape>
 
 data object LinearSymbols {
     operator fun invoke(

@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
-import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 internal fun QuadraticInequality.register(
@@ -17,7 +16,7 @@ internal fun QuadraticInequality.register(
 ): Try {
     when (sign) {
         Sign.Less, Sign.LessEqual -> {
-            val m = lhs.upperBound - rhs.constant
+            val m = lhs.upperBound!!.value.unwrap() - rhs.constant
             when (val result = model.addConstraint(
                 lhs leq rhs + m * (Flt64.one - flag),
                 name.ifEmpty { parentName }
@@ -31,7 +30,7 @@ internal fun QuadraticInequality.register(
         }
 
         Sign.Greater, Sign.GreaterEqual -> {
-            val m = rhs.constant - lhs.lowerBound
+            val m = rhs.constant - lhs.lowerBound!!.value.unwrap()
             when (val result = model.addConstraint(
                 lhs geq rhs - m * (Flt64.one - flag),
                 name.ifEmpty { parentName }
@@ -45,8 +44,8 @@ internal fun QuadraticInequality.register(
         }
 
         Sign.Equal -> {
-            val m1 = lhs.upperBound - rhs.constant
-            val m2 = rhs.constant - lhs.lowerBound
+            val m1 = lhs.upperBound!!.value.unwrap() - rhs.constant
+            val m2 = rhs.constant - lhs.lowerBound!!.value.unwrap()
             when (val result = model.addConstraint(
                 lhs leq rhs + m1 * (Flt64.one - flag),
                 name.ifEmpty { "${parentName}_ub" }

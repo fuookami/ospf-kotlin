@@ -2,14 +2,14 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
@@ -87,9 +87,9 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             dependencies.addAll(x.dependencies)
             dependencies.addAll(y.dependencies)
             return dependencies
@@ -100,14 +100,31 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     private val possibleRange: ValueRange<Flt64>
         get() {
             return if (withNegative && withPositive) {
-                val max = max(y.upperBound - x.lowerBound, x.upperBound - y.lowerBound)
-                ValueRange(Flt64.zero, max)
+                val max = max(
+                    y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap(),
+                    x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()
+                )
+                if (max leq Flt64.zero) {
+                    ValueRange(Flt64.zero, Flt64.zero).value!!
+                } else {
+                    ValueRange(Flt64.zero, max).value!!
+                }
             } else if (withNegative) {
-                ValueRange(Flt64.zero, y.upperBound - x.lowerBound)
+                val max = y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap()
+                if (max leq Flt64.zero) {
+                    ValueRange(Flt64.zero, Flt64.zero).value!!
+                } else {
+                    ValueRange(Flt64.zero, max).value!!
+                }
             } else if (withPositive) {
-                ValueRange(Flt64.zero, x.upperBound - y.lowerBound)
+                val max = x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()
+                if (max leq Flt64.zero) {
+                    ValueRange(Flt64.zero, Flt64.zero).value!!
+                } else {
+                    ValueRange(Flt64.zero, max).value!!
+                }
             } else {
-                ValueRange(Flt64.zero, Flt64.zero)
+                ValueRange(Flt64.zero, Flt64.zero).value!!
             }
         }
 
@@ -122,11 +139,11 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (_neg != null && neg != null) {
             when (_neg) {
                 is UIntVar -> {
-                    (_neg!! as UIntVar).range.set(ValueRange(neg!!.lowerBound.toUInt64(), neg!!.upperBound.toUInt64()))
+                    (_neg!! as UIntVar).range.set(ValueRange(neg!!.lowerBound!!.value.unwrap().toUInt64(), neg!!.upperBound!!.value.unwrap().toUInt64()).value!!)
                 }
 
                 is URealVar -> {
-                    (_neg!! as URealVar).range.set(ValueRange(neg!!.lowerBound, neg!!.upperBound))
+                    (_neg!! as URealVar).range.set(ValueRange(neg!!.lowerBound!!.value.unwrap(), neg!!.upperBound!!.value.unwrap()).value!!)
                 }
             }
         }
@@ -134,25 +151,25 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (_pos != null && pos != null) {
             when (_pos) {
                 is UIntVar -> {
-                    (_pos!! as UIntVar).range.set(ValueRange(pos!!.lowerBound.toUInt64(), pos!!.upperBound.toUInt64()))
+                    (_pos!! as UIntVar).range.set(ValueRange(pos!!.lowerBound!!.value.unwrap().toUInt64(), pos!!.upperBound!!.value.unwrap().toUInt64()).value!!)
                 }
 
                 is URealVar -> {
-                    (_pos!! as URealVar).range.set(ValueRange(pos!!.lowerBound, pos!!.upperBound))
+                    (_pos!! as URealVar).range.set(ValueRange(pos!!.lowerBound!!.value.unwrap(), pos!!.upperBound!!.value.unwrap()).value!!)
                 }
             }
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         y.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val xValue = x.value(tokenTable) ?: return
             val yValue = y.value(tokenTable) ?: return
-            val negValue = yValue - xValue
-            val posValue = xValue - yValue
+            val negValue = max(Flt64.zero, yValue - xValue)
+            val posValue = max(Flt64.zero, xValue - yValue)
 
             if (_neg != null) {
                 logger.trace { "Setting SlackFunction ${name}.neg initial solution: $negValue" }
@@ -168,19 +185,11 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             }
 
             val slackValue = negValue + posValue
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = slackValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = slackValue
-                }
-            }
+            tokenTable.cache(this, null, slackValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (_neg != null) {
             when (val result = tokenTable.add(_neg!!)) {
                 is Ok -> {}

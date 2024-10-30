@@ -21,7 +21,7 @@ abstract class TaskStep<
 ) {
     open val displayName: String? by ::name
 
-    abstract fun duration(task: @UnsafeVariance T, executor: @UnsafeVariance E): Duration
+    abstract fun duration(step: @UnsafeVariance S, executor: @UnsafeVariance E): Duration
 
     override fun toString(): String {
         return displayName ?: name

@@ -1,11 +1,12 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed interface MonomialCell<Self : MonomialCell<Self>>
@@ -50,8 +51,8 @@ sealed interface MonomialSymbol {
     val category: Category
     val discrete: Boolean get() = false
     val range: ExpressionRange<*>
-    val lowerBound: Flt64
-    val upperBound: Flt64
+    val lowerBound: Bound<Flt64>?
+    val upperBound: Bound<Flt64>?
 
     fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?

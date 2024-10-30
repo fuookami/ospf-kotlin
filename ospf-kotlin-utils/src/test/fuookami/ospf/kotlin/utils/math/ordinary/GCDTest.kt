@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
 import fuookami.ospf.kotlin.utils.math.*
 
 class GCDTest {

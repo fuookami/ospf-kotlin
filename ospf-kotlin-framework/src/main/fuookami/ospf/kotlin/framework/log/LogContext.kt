@@ -28,8 +28,6 @@ inline operator fun <reified T: Any> Pushing.invoke(value: LogRecordPO<T>): Try 
 }
 
 interface Saving {
-    val async: Boolean get() = true
-
     operator fun <T: Any> invoke(serializer: KSerializer<T>, value: LogRecordPO<T>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -95,93 +93,83 @@ class LogContext private constructor(
             )
         }
 
-        fun Build(builder: LogContextBuilder.() -> Unit): LogContext {
+        fun build(builder: LogContextBuilder.() -> Unit): LogContext {
             val context = LogContextBuilder()
             builder(context)
             return context()
         }
     }
 
-    @OptIn(InternalSerializationApi::class, DelicateCoroutinesApi::class)
+    @OptIn(InternalSerializationApi::class)
     inline fun <reified T : Any> push(
         step: String,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
-        return push(step, { writeJson(LogRecordPO.serializer(T::class.serializer()), it) }, value, type, availableTime, scope)
+        return push(step, { writeJson(LogRecordPO.serializer(T::class.serializer()), it) }, value, type, availableTime)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> push(
         step: String,
         serializer: KSerializer<T>,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
-        return push(step, { writeJson(LogRecordPO.serializer(serializer), it) }, value, type, availableTime, scope)
+        return push(step, { writeJson(LogRecordPO.serializer(serializer), it) }, value, type, availableTime)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> push(
         step: String,
         serializer: (LogRecordPO<T>) -> String,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
         if (pushing != null) {
             val pushing = this.pushing
 
-            scope.launch(Dispatchers.IO) {
-                val record = LogRecordPO(
-                    app = app,
-                    version = version,
-                    serviceId = serviceId,
-                    step = step,
-                    value = value,
-                    type = type,
-                    availableTime = availableTime
-                )
-                when (val result = pushing(
-                    serializer = serializer,
-                    value = record
-                )) {
-                    is Ok -> {
-                        logger.info { "pushing log success" }
-                    }
+            val record = LogRecordPO(
+                app = app,
+                version = version,
+                serviceId = serviceId,
+                step = step,
+                value = value,
+                type = type,
+                availableTime = availableTime
+            )
+            when (val result = pushing(
+                serializer = serializer,
+                value = record
+            )) {
+                is Ok -> {
+                    logger.info { "pushing log success" }
+                }
 
-                    is Failed -> {
-                        logger.info { "pushing log failed: ${result.error.message}" }
-                    }
+                is Failed -> {
+                    logger.info { "pushing log failed: ${result.error.message}" }
                 }
             }
         }
     }
 
-    @OptIn(InternalSerializationApi::class, DelicateCoroutinesApi::class)
+    @OptIn(InternalSerializationApi::class)
     inline fun <reified T : Any> save(
         step: String,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
-        return save(step, T::class.serializer(), value, type, availableTime, scope)
+        return save(step, T::class.serializer(), value, type, availableTime)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> save(
         step: String,
         serializer: KSerializer<T>,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
         if (saving != null) {
             val saving = this.saving
@@ -195,47 +183,28 @@ class LogContext private constructor(
                 availableTime = availableTime
             )
 
-            if (saving.async) {
-                scope.launch(Dispatchers.IO) {
-                    when (val result = saving(
-                        serializer = serializer,
-                        value = record
-                    )) {
-                        is Ok -> {
-                            logger.info { "saving log success" }
-                        }
-
-                        is Failed -> {
-                            logger.info { "saving log failed: ${result.error.message}" }
-                        }
-                    }
+            when (val result = saving(
+                serializer = serializer,
+                value = record
+            )) {
+                is Ok -> {
+                    logger.info { "saving log success" }
                 }
-            } else {
-                when (val result = saving(
-                    serializer = serializer,
-                    value = record
-                )) {
-                    is Ok -> {
-                        logger.info { "saving log success" }
-                    }
 
-                    is Failed -> {
-                        logger.info { "saving log failed: ${result.error.message}" }
-                    }
+                is Failed -> {
+                    logger.info { "saving log failed: ${result.error.message}" }
                 }
             }
         }
     }
 
     @JvmName("saveAsString")
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> save(
         step: String,
         serializer: (T) -> String,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
         if (saving != null) {
             val saving = this.saving
@@ -249,47 +218,28 @@ class LogContext private constructor(
                 availableTime = availableTime
             )
 
-            if (saving.async) {
-                scope.launch(Dispatchers.IO) {
-                    when (val result = saving(
-                        serializer = serializer,
-                        value = record
-                    )) {
-                        is Ok -> {
-                            logger.info { "saving log success" }
-                        }
-
-                        is Failed -> {
-                            logger.info { "saving log failed: ${result.error.message}" }
-                        }
-                    }
+            when (val result = saving(
+                serializer = serializer,
+                value = record
+            )) {
+                is Ok -> {
+                    logger.info { "saving log success" }
                 }
-            } else {
-                when (val result = saving(
-                    serializer = serializer,
-                    value = record
-                )) {
-                    is Ok -> {
-                        logger.info { "saving log success" }
-                    }
 
-                    is Failed -> {
-                        logger.info { "saving log failed: ${result.error.message}" }
-                    }
+                is Failed -> {
+                    logger.info { "saving log failed: ${result.error.message}" }
                 }
             }
         }
     }
 
     @JvmName("saveAsBytes")
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T : Any> save(
         step: String,
         serializer: (T) -> ByteArray,
         value: T,
         type: LogRecordType = LogRecordType.Info,
-        availableTime: Duration = 90.days,
-        scope: CoroutineScope = GlobalScope
+        availableTime: Duration = 90.days
     ) {
         if (saving != null) {
             val saving = this.saving
@@ -303,33 +253,16 @@ class LogContext private constructor(
                 availableTime = availableTime
             )
 
-            if (saving.async) {
-                scope.launch(Dispatchers.IO) {
-                    when (val result = saving(
-                        serializer = serializer,
-                        value = record
-                    )) {
-                        is Ok -> {
-                            logger.info { "saving log success" }
-                        }
-
-                        is Failed -> {
-                            logger.info { "saving log failed: ${result.error.message}" }
-                        }
-                    }
+            when (val result = saving(
+                serializer = serializer,
+                value = record
+            )) {
+                is Ok -> {
+                    logger.info { "saving log success" }
                 }
-            } else {
-                when (val result = saving(
-                    serializer = serializer,
-                    value = record
-                )) {
-                    is Ok -> {
-                        logger.info { "saving log success" }
-                    }
 
-                    is Failed -> {
-                        logger.info { "saving log failed: ${result.error.message}" }
-                    }
+                is Failed -> {
+                    logger.info { "saving log failed: ${result.error.message}" }
                 }
             }
         }

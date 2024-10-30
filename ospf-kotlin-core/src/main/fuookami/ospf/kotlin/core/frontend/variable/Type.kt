@@ -30,13 +30,13 @@ sealed interface UIntegerVariableType<T : UIntegerNumber<T>> : VariableTypeInter
 }
 
 sealed interface ContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
-    override val minimum get() = constants.minimum
-    override val maximum get() = constants.maximum
+    override val minimum get() = -constants.decimalPrecision.reciprocal()
+    override val maximum get() = constants.decimalPrecision.reciprocal()
 }
 
 sealed interface UContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInterface<T> {
     override val minimum get() = constants.zero
-    override val maximum get() = constants.maximum
+    override val maximum get() = constants.decimalPrecision.reciprocal()
 }
 
 sealed class VariableType<T>(

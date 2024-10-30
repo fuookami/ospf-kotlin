@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -45,7 +46,7 @@ abstract class AbstractProduce<
                         val slack = SlackFunction(
                             UContinuous,
                             x = LinearPolynomial(quantity[product]),
-                            threshold = LinearPolynomial(demand.quantity.upperBound.toFlt64()),
+                            threshold = LinearPolynomial(demand.quantity.upperBound.value.unwrap()),
                             constraint = false,
                             name = "produce_over_quantity_$product"
                         )
@@ -78,7 +79,7 @@ abstract class AbstractProduce<
                         val slack = SlackFunction(
                             UContinuous,
                             x = LinearPolynomial(quantity[product]),
-                            threshold = LinearPolynomial(demand.quantity.lowerBound.toFlt64()),
+                            threshold = LinearPolynomial(demand.quantity.lowerBound.value.unwrap()),
                             withPositive = false,
                             constraint = false,
                             name = "produce_less_quantity_$product"
@@ -146,9 +147,9 @@ class BunchSchedulingProduce<
                     if (demand != null) {
                         quantity[product].range.set(
                             ValueRange(
-                                demand.quantity.lowerBound.toFlt64() - (demand.lessQuantity ?: Flt64.zero),
-                                demand.quantity.upperBound.toFlt64() + (demand.overQuantity ?: Flt64.zero)
-                            )
+                                demand.quantity.lowerBound.value.unwrap() - (demand.lessQuantity ?: Flt64.zero),
+                                demand.quantity.upperBound.value.unwrap() + (demand.overQuantity ?: Flt64.zero)
+                            ).value!!
                         )
                     }
                 }

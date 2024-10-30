@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.math.*
 import kotlin.time.*
-import kotlinx.datetime.Instant
+import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -29,6 +29,22 @@ open class WorkingCalendar(
     open val unavailableTimes = unavailableTimes.sortedBy { it.start }
 
     fun actualTime(
+        time: Instant,
+        connectionTime: Duration = Duration.ZERO
+    ): Instant {
+        var currentTime = time
+        for (unavailableTime in unavailableTimes) {
+            if (currentTime < unavailableTime.start) {
+                break
+            }
+            if (unavailableTime.contains(currentTime)) {
+                currentTime = unavailableTime.end + connectionTime
+            }
+        }
+        return currentTime
+    }
+
+    fun actualTime(
         time: TimeRange,
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
@@ -47,10 +63,43 @@ open class WorkingCalendar(
         }
         return currentTime
     }
+
+    fun validTime(
+        time: TimeRange,
+        connectionTime: Duration = Duration.ZERO
+    ): Duration {
+        var currentTime = time.duration
+        for (unavailableTime in unavailableTimes) {
+            val intersectionTime = time.intersectionWith(unavailableTime)?.duration ?: Duration.ZERO
+            if (intersectionTime != Duration.ZERO) {
+                currentTime -= min(
+                    currentTime,
+                    intersectionTime + connectionTime
+                )
+            }
+        }
+        return currentTime
+    }
+
+    fun validTimes(
+        time: TimeRange,
+        connectionTime: Duration = Duration.ZERO,
+    ): List<TimeRange> {
+        var currentTime = mutableListOf(time)
+        for (unavailableTime in unavailableTimes) {
+            currentTime = currentTime.flatMap { thisRestTime ->
+                val diff = thisRestTime - unavailableTime
+                diff.filter { thisRestTime.duration > connectionTime }
+            }.toMutableList()
+        }
+        return currentTime
+    }
 }
 
 open class Productivity<T>(
     val timeWindow: TimeRange,
+    val weekDays: Set<DayOfWeek> = emptySet(),
+    val monthDays: Set<Int> = emptySet(),
     val capacities: Map<T, Duration>
 ) {
     open fun capacityOf(material: T): Duration? {
@@ -59,10 +108,14 @@ open class Productivity<T>(
 
     open fun new(
         timeWindow: TimeRange? = null,
+        weekDays: Set<DayOfWeek>? = null,
+        monthDays: Set<Int>? = null,
         capacities: Map<T, Duration>? = null
     ): Productivity<T> {
         return Productivity(
             timeWindow = timeWindow ?: this.timeWindow,
+            weekDays = weekDays ?: this.weekDays,
+            monthDays = monthDays ?: this.monthDays,
             capacities = capacities ?: this.capacities
         )
     }
@@ -194,7 +247,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     fun actualQuantity(
         material: T,
         time: TimeRange,
-        connectionTime: Duration
+        connectionTime: Duration = Duration.ZERO
     ): Q {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
         return actualQuantity(
@@ -208,7 +261,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     suspend fun actualQuantityParallelly(
         material: T,
         time: TimeRange,
-        connectionTime: Duration
+        connectionTime: Duration = Duration.ZERO
     ): Q {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
         return actualQuantity(
@@ -224,22 +277,23 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
-        connectionTime: Duration
+        connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         var currentTime = max(startTime, productivityCalendar.first().timeWindow.start)
         var restQuantity = quantity
         for (calendar in productivityCalendar) {
+            // todo: calculate with dayOfWeek and dayOfMonth appointment
             currentTime = max(
                 currentTime,
                 calendar.timeWindow.start + connectionTime
             )
             val currentProductivity = calendar.capacityOf(material)
-                ?.let { Flt64.one / timeWindow.valueOf(it) }
+                ?.let { Flt64.one / with(timeWindow) { it.value } }
                 ?: Flt64.zero
-            val maxProduceTime = timeWindow.valueOf(calendar.timeWindow.end - currentTime)
+            val maxProduceTime = with(timeWindow) { (calendar.timeWindow.end - currentTime).value }
             val maxProduceQuantity = floor(maxProduceTime * currentProductivity)
             if (maxProduceQuantity >= restQuantity) {
-                val thisProduceTime = timeWindow.durationOf(restQuantity.toFlt64() / currentProductivity)
+                val thisProduceTime = with(timeWindow) { (restQuantity.toFlt64() / currentProductivity).duration }
                 currentTime += thisProduceTime
                 restQuantity = constants.zero
                 break
@@ -264,22 +318,23 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
-        connectionTime: Duration
+        connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         var currentTime = min(endTime, productivityCalendar.first().timeWindow.end)
         var restAmount = quantity
         for (calendar in productivityCalendar) {
+            // todo: calculate with dayOfWeek and dayOfMonth appointment
             currentTime = min(
                 currentTime,
                 calendar.timeWindow.end
             )
             val currentProductivity = calendar.capacityOf(material)
-                ?.let { Flt64.one / timeWindow.valueOf(it) }
+                ?.let { Flt64.one / with(timeWindow) { it.value } }
                 ?: Flt64.zero
-            val maxProduceTime = timeWindow.valueOf(currentTime - calendar.timeWindow.start - connectionTime)
+            val maxProduceTime = with(timeWindow) { (currentTime - calendar.timeWindow.start - connectionTime).value }
             val maxProduceAmount = floor(maxProduceTime * currentProductivity)
             if (maxProduceAmount >= restAmount) {
-                val thisProduceTime = timeWindow.durationOf(restAmount.toFlt64() / currentProductivity)
+                val thisProduceTime = with(timeWindow) { (restAmount.toFlt64() / currentProductivity).duration }
                 currentTime -= thisProduceTime
                 restAmount = constants.zero
                 break
@@ -303,21 +358,21 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         productivityCalendar: List<Productivity<T>>,
-        connectionTime: Duration
+        connectionTime: Duration = Duration.ZERO
     ): Q {
         var quantity = constants.zero
         for (calendar in productivityCalendar) {
-            val intersection = time.intersectionWith(calendar.timeWindow)
-                ?: continue
-            val produceTime = timeWindow.valueOf(
+            // todo: calculate with dayOfWeek and dayOfMonth appointment
+            val intersection = time.intersectionWith(calendar.timeWindow) ?: continue
+            val produceTime = with(timeWindow) {
                 if (intersection.start == calendar.timeWindow.start) {
                     intersection.duration - connectionTime
                 } else {
                     intersection.duration
-                }
-            )
+                }.value
+            }
             val currentProductivity = calendar.capacityOf(material)
-                ?.let { Flt64.one / timeWindow.valueOf(it) }
+                ?.let { Flt64.one / with(timeWindow) { it.value } }
                 ?: Flt64.zero
             quantity += floor(produceTime * currentProductivity)
         }
@@ -336,9 +391,4 @@ open class ContinuousProductivityCalendar<P, T>(
     timeWindow: TimeWindow,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
-) : ProductivityCalendar<Flt64, P, T>(
-    timeWindow,
-    productivity,
-    unavailableTimes,
-    Flt64,
-    { it }) where P : Productivity<T>
+) : ProductivityCalendar<Flt64, P, T>(timeWindow, productivity, unavailableTimes, Flt64, { it }) where P : Productivity<T>

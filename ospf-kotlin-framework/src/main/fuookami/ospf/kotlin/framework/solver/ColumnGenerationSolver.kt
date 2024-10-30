@@ -8,19 +8,23 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 interface ColumnGenerationSolver {
+    val name: String
+
     suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel,
-        toLogModel: Boolean = false
+        toLogModel: Boolean = false,
+        statusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput>
 
     suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel,
         amount: UInt64,
-        toLogModel: Boolean = false
+        toLogModel: Boolean = false,
+        statusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        return solveMILP(name, metaModel, toLogModel)
+        return solveMILP(name, metaModel, toLogModel, statusCallBack)
             .map { Pair(it, listOf(it.solution)) }
     }
 
@@ -38,6 +42,7 @@ interface ColumnGenerationSolver {
     suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel,
-        toLogModel: Boolean = false
+        toLogModel: Boolean = false,
+        statusCallBack: SolvingStatusCallBack? = null
     ): Ret<LPResult>
 }

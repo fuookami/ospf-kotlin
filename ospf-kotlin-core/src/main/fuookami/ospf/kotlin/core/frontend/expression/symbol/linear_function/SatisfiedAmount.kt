@@ -2,10 +2,11 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -26,9 +27,9 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -39,18 +40,18 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
 
     protected val possibleRange: ValueRange<Flt64>
         get() {
-            val minAmount = UInt64(polynomials.count { it.lowerBound neq Flt64.zero })
-            val maxAmount = UInt64(polynomials.size - polynomials.count { it.upperBound eq Flt64.zero })
+            val minAmount = UInt64(polynomials.count { it.lowerBound!!.value.unwrap() neq Flt64.zero })
+            val maxAmount = UInt64(polynomials.size - polynomials.count { it.upperBound!!.value.unwrap() eq Flt64.zero })
             return if (amount != null) {
                 if (minAmount geq amount) {
-                    ValueRange(Flt64.one, Flt64.one)
+                    ValueRange(Flt64.one, Flt64.one).value!!
                 } else if (maxAmount ls amount) {
-                    ValueRange(Flt64.zero, Flt64.zero)
+                    ValueRange(Flt64.zero, Flt64.zero).value!!
                 } else {
-                    ValueRange(Flt64.zero, Flt64.one)
+                    ValueRange(Flt64.zero, Flt64.one).value!!
                 }
             } else {
-                ValueRange(minAmount.toFlt64(), maxAmount.toFlt64())
+                ValueRange(minAmount.toFlt64(), maxAmount.toFlt64()).value!!
             }
         }
 
@@ -63,7 +64,7 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -179,7 +180,7 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
         or.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         super.prepare(tokenTable)
         or.prepare(tokenTable)
 
@@ -191,19 +192,11 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
                 Flt64.zero
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = yValue
-                }
-            }
+            tokenTable.cache(parent, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = or.register(tokenTable)) {
             is Ok -> {}
 
@@ -249,7 +242,7 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
         and.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         super.prepare(tokenTable)
         and.prepare(tokenTable)
 
@@ -261,19 +254,11 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
                 Flt64.zero
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = yValue
-                }
-            }
+            tokenTable.cache(parent, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = and.register(tokenTable)) {
             is Ok -> {}
 
@@ -337,7 +322,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         super.prepare(tokenTable)
         for (bin in bins) {
             bin.prepare(tokenTable)
@@ -363,19 +348,11 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 Flt64(count)
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = yValue
-                }
-            }
+            tokenTable.cache(parent, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         for (bin in bins) {
             when (val result = bin.register(tokenTable)) {
                 is Ok -> {}
@@ -473,7 +450,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol> get() = impl.dependencies
+    override val dependencies: Set<IntermediateSymbol> get() = impl.dependencies
     override val cells get() = impl.cells
     override val cached get() = impl.cached
 
@@ -481,11 +458,11 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

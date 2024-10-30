@@ -39,7 +39,7 @@ class LinearSubObject(
         operator fun invoke(
             category: ObjectCategory,
             poly: Polynomial<*, *, LinearMonomialCell>,
-            tokens: TokenTable,
+            tokens: AbstractTokenTable,
             name: String
         ): LinearSubObject {
             val cells = ArrayList<LinearCell>()
@@ -70,7 +70,7 @@ class QuadraticSubObject(
         operator fun invoke(
             category: ObjectCategory,
             poly: Polynomial<*, *, QuadraticMonomialCell>,
-            tokens: TokenTable,
+            tokens: AbstractTokenTable,
             name: String
         ): QuadraticSubObject {
             val cells = ArrayList<QuadraticCell>()

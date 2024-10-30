@@ -2,6 +2,7 @@ package  fuookami.ospf.kotlin.core.frontend.variable
 
 import kotlin.random.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 
 data class Token(
     val variable: AbstractVariableItem<*, *>,
@@ -13,21 +14,19 @@ data class Token(
 
     val name by variable::name
     val type by variable::type
-    val range: ValueRange<Flt64>
-        get() = ValueRange(
-            lowerBound.toFlt64(),
-            upperBound.toFlt64(),
-            variable.range.lowerInterval,
-            variable.range.upperInterval
-        )
+    val range: ValueRange<Flt64>? get() = if (lowerBound != null && upperBound!= null) {
+        ValueRange(lowerBound!!, upperBound!!, Flt64)
+    } else {
+        null
+    }
     val lowerBound by variable::lowerBound
     val upperBound by variable::upperBound
 
-    fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
+    infix fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
         return variable.belongsTo(item)
     }
 
-    fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
+    infix fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
         return variable.belongsTo(combination)
     }
 
@@ -35,22 +34,22 @@ data class Token(
         return if (variable.type.isUnsignedIntegerType) {
             Flt64(
                 rng.nextULong(
-                    lowerBound.round().toDouble().toULong(),
-                    upperBound.round().toDouble().toULong()
+                    lowerBound!!.value.unwrap().round().toDouble().toULong(),
+                    upperBound!!.value.unwrap().round().toDouble().toULong()
                 ).toDouble()
             )
         } else if (variable.type.isIntegerType) {
             Flt64(
                 rng.nextLong(
-                    lowerBound.round().toDouble().toLong(),
-                    upperBound.round().toDouble().toLong()
+                    lowerBound!!.value.unwrap().round().toDouble().toLong(),
+                    upperBound!!.value.unwrap().round().toDouble().toLong()
                 ).toDouble()
             )
         } else {
             Flt64(
                 rng.nextDouble(
-                    lowerBound.toDouble(),
-                    upperBound.toDouble()
+                    lowerBound!!.value.unwrap().toDouble(),
+                    upperBound!!.value.unwrap().toDouble()
                 )
             )
         }

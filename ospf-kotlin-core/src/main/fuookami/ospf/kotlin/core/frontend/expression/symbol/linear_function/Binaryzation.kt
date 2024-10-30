@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -31,17 +33,17 @@ abstract class AbstractBinaryzationFunctionImpl(
 
     protected val possibleRange
         get() = ValueRange(
-            if (x.lowerBound eq Flt64.zero) {
+            if (x.lowerBound!!.value.unwrap() eq Flt64.zero) {
                 UInt8.zero
             } else {
                 UInt8.one
             },
-            if (x.upperBound eq Flt64.zero) {
+            if (x.upperBound!!.value.unwrap() eq Flt64.zero) {
                 UInt8.zero
             } else {
                 UInt8.one
             }
-        )
+        ).value!!
 
     override fun flush(force: Boolean) {
         x.flush(force)
@@ -104,7 +106,7 @@ class BinaryzationFunctionImpl(
         x.copy()
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -115,20 +117,12 @@ class BinaryzationFunctionImpl(
                     Flt64.zero
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         return ok
     }
 
@@ -168,26 +162,18 @@ class BinaryzationFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         piecewiseFunction.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             piecewiseFunction.value(tokenTable)?.let { yValue ->
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = piecewiseFunction.register(tokenTable)) {
             is Ok -> {}
 
@@ -233,7 +219,7 @@ class BinaryzationFunctionDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -250,20 +236,12 @@ class BinaryzationFunctionDiscreteImpl(
                     token._result = yValue
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -277,7 +255,7 @@ class BinaryzationFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x.upperBound * y geq x,
+            x.upperBound!!.value.unwrap() * y geq x,
             "${name}_lb"
         )) {
             is Ok -> {}
@@ -329,12 +307,12 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.value(tokenTable)?.let { xValue ->
-                val pct = xValue / x.upperBound
+                val pct = xValue / x.upperBound!!.value.unwrap()
                 val bin = xValue gr Flt64.zero
                 val yValue = if (bin) {
                     Flt64.one
@@ -351,20 +329,12 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
                     token._result = yValue
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(b)) {
             is Ok -> {}
 
@@ -386,7 +356,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq x.upperBound * b,
+            x eq x.upperBound!!.value.unwrap() * b,
             "${name}_xb"
         )) {
             is Ok -> {}
@@ -436,7 +406,7 @@ class BinaryzationFunction(
     }
 
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
-        impl ?: if (x.discrete && x.range.range in ValueRange(Flt64.zero, Flt64.one)) {
+        impl ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
             BinaryzationFunctionImpl(x, this, name, displayName)
         } else if (x.discrete) {
             BinaryzationFunctionDiscreteImpl(x, this, extract, name, displayName)
@@ -455,7 +425,7 @@ class BinaryzationFunction(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol> get() = impl.dependencies
+    override val dependencies: Set<IntermediateSymbol> get() = impl.dependencies
     override val cells get() = impl.cells
     override val cached get() = impl.cached
 
@@ -463,11 +433,11 @@ class BinaryzationFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

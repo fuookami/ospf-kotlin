@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model.callback
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -80,15 +81,15 @@ class FunctionalCallBackModelPolicy<V>(
 class CallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: MutableTokenTable = ManualAddTokenTable(category),
+    override val tokens: AbstractMutableTokenTable = ManualAddTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<Flt64>
 ) : CallBackModelInterface {
     companion object {
         private fun dumpObjectiveComparator(category: ObjectCategory): PartialComparator<Flt64> = when (category) {
-            ObjectCategory.Maximum -> { lhs, rhs -> lhs gr rhs }
-            ObjectCategory.Minimum -> { lhs, rhs -> lhs ls rhs }
+            ObjectCategory.Maximum -> { lhs, rhs -> lhs geq rhs }
+            ObjectCategory.Minimum -> { lhs, rhs -> lhs leq rhs }
         }
 
         operator fun invoke(
@@ -142,9 +143,14 @@ class CallBackModel internal constructor(
 
         operator fun invoke(
             model: SingleObjectMechanismModel,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+            concurrent: Boolean = true
         ): CallBackModel {
-            val tokens = ManualAddTokenTable(model.tokens)
+            val tokens = if (concurrent) {
+                ConcurrentManualAddTokenTable(model.tokens)
+            } else {
+                ManualAddTokenTable(model.tokens)
+            }
             val constraints = model.constraints.map { constraint ->
                 Pair<Extractor<Boolean?, Solution>, String>(
                     { solution: Solution -> constraint.isTrue(solution) },

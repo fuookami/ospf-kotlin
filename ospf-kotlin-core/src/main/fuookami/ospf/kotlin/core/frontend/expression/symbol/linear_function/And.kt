@@ -2,10 +2,11 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -25,9 +26,9 @@ abstract class AbstractAndFunctionImpl(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -38,17 +39,17 @@ abstract class AbstractAndFunctionImpl(
 
     protected val possibleRange
         get() = ValueRange(
-            if (polynomials.any { it.lowerBound.toFlt64() eq Flt64.zero }) {
+            if (polynomials.any { it.lowerBound!!.value.unwrap() eq Flt64.zero }) {
                 Flt64.zero
             } else {
                 Flt64.one
             },
-            if (polynomials.any { it.upperBound.toFlt64() eq Flt64.zero }) {
+            if (polynomials.any { it.upperBound!!.value.unwrap() eq Flt64.zero }) {
                 Flt64.zero
             } else {
                 Flt64.one
             }
-        )
+        ).value!!
 
     override fun flush(force: Boolean) {
         for (polynomial in polynomials) {
@@ -129,26 +130,18 @@ private class AndFunctionOnePolynomialImpl(
         bin.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         polynomial.cells
         bin.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             bin.value(tokenTable)?.let { binValue ->
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = binValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = binValue
-                    }
-                }
+                tokenTable.cache(parent, null, binValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = bin.register(tokenTable)) {
             is Ok -> {}
 
@@ -199,7 +192,7 @@ private class AndFunctionMultiPolynomialImpl(
         bin.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -208,20 +201,12 @@ private class AndFunctionMultiPolynomialImpl(
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             bin.value(tokenTable)?.let { binValue ->
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = binValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = binValue
-                    }
-                }
+                tokenTable.cache(parent, null, binValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = maxmin.register(tokenTable)) {
             is Ok -> {}
 
@@ -278,7 +263,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -297,27 +282,17 @@ private class AndFunctionMultiPolynomialBinaryImpl(
                 }
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = if (yValue) {
-                        Flt64.one
-                    } else {
-                        Flt64.zero
-                    }
+            tokenTable.cache(
+                parent, null, if (yValue) {
+                    Flt64.one
+                } else {
+                    Flt64.zero
                 }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[parent to null] = if (yValue) {
-                        Flt64.one
-                    } else {
-                        Flt64.zero
-                    }
-                }
-            }
+            )
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -368,7 +343,7 @@ class AndFunction(
     private val impl: AbstractAndFunctionImpl by lazy {
         impl ?: if (polynomials.size == 1) {
             AndFunctionOnePolynomialImpl(polynomials[0], this, name, displayName)
-        } else if (polynomials.all { it.discrete && it.upperBound leq Flt64.one }) {
+        } else if (polynomials.all { it.discrete && it.upperBound!!.value.unwrap() leq Flt64.one }) {
             AndFunctionMultiPolynomialBinaryImpl(polynomials, this, name, displayName)
         } else {
             AndFunctionMultiPolynomialImpl(polynomials, this, name, displayName)
@@ -383,7 +358,7 @@ class AndFunction(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol> get() = impl.dependencies
+    override val dependencies: Set<IntermediateSymbol> get() = impl.dependencies
     override val cells get() = impl.cells
     override val cached get() = impl.cached
 
@@ -391,14 +366,14 @@ class AndFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
-            if (polynomial.lowerBound ls Flt64.zero) {
+            if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
             }
         }

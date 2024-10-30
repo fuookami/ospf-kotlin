@@ -2,11 +2,12 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -50,9 +51,9 @@ class ProductFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -61,9 +62,10 @@ class ProductFunction(
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
 
-    private val possibleRange get() = polynomials.fold(ValueRange(Flt64.one, Flt64.one)) { lhs, rhs ->
-        lhs * rhs.range.valueRange
-    }
+    private val possibleRange
+        get() = polynomials.fold(ValueRange(Flt64.one, Flt64.one).value!!) { lhs, rhs ->
+            (lhs * rhs.range.valueRange!!)!!
+        }
 
     override fun flush(force: Boolean) {
         for (polynomial in polynomials) {
@@ -73,7 +75,7 @@ class ProductFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -91,19 +93,11 @@ class ProductFunction(
                 }
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-            }
+            tokenTable.cache(this, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (polynomials.any { it.category == Quadratic }) {
             return Failed(Err(ErrorCode.ApplicationFailed, "Invalid argument of QuadraticPolynomial.times: over quadratic."))
         }

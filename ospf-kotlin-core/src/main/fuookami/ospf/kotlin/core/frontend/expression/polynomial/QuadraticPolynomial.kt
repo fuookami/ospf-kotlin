@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -42,10 +45,10 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
             return _range!!
         }
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
             return monomials.flatMapNotNull {
-                val symbols = ArrayList<Symbol>()
+                val symbols = ArrayList<IntermediateSymbol>()
                 when (val symbol = it.symbol.symbol1) {
                     is Variant3.V2 -> {
                         symbols.add(symbol.value)
@@ -82,29 +85,29 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
         }
     override val cached: Boolean = _cells.isNotEmpty()
 
-    abstract operator fun plus(rhs: LinearSymbol): Self
+    abstract operator fun plus(rhs: LinearIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusLinearSymbols")
-    abstract operator fun plus(rhs: Iterable<LinearSymbol>): Self
-    abstract operator fun plus(rhs: QuadraticSymbol): Self
+    abstract operator fun plus(rhs: Iterable<LinearIntermediateSymbol>): Self
+    abstract operator fun plus(rhs: QuadraticIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusQuadraticSymbols")
-    abstract operator fun plus(rhs: Iterable<QuadraticSymbol>): Self
+    abstract operator fun plus(rhs: Iterable<QuadraticIntermediateSymbol>): Self
     abstract operator fun plus(rhs: LinearMonomial): Self
     abstract operator fun plus(rhs: AbstractLinearPolynomial<*>): Self
 
-    abstract operator fun minus(rhs: LinearSymbol): Self
+    abstract operator fun minus(rhs: LinearIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusLinearSymbols")
-    abstract operator fun minus(rhs: Iterable<LinearSymbol>): Self
-    abstract operator fun minus(rhs: QuadraticSymbol): Self
+    abstract operator fun minus(rhs: Iterable<LinearIntermediateSymbol>): Self
+    abstract operator fun minus(rhs: QuadraticIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusQuadraticSymbols")
-    abstract operator fun minus(rhs: Iterable<QuadraticSymbol>): Self
+    abstract operator fun minus(rhs: Iterable<QuadraticIntermediateSymbol>): Self
     abstract operator fun minus(rhs: LinearMonomial): Self
     abstract operator fun minus(rhs: AbstractLinearPolynomial<*>): Self
 
@@ -114,17 +117,17 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
     @JvmName("timesVariables")
     abstract operator fun times(rhs: Iterable<AbstractVariableItem<*, *>>): Self
 
-    abstract operator fun times(rhs: LinearSymbol): Self
+    abstract operator fun times(rhs: LinearIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesLinearSymbols")
-    abstract operator fun times(rhs: Iterable<LinearSymbol>): Self
+    abstract operator fun times(rhs: Iterable<LinearIntermediateSymbol>): Self
 
-    abstract operator fun times(rhs: QuadraticSymbol): Self
+    abstract operator fun times(rhs: QuadraticIntermediateSymbol): Self
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesQuadraticSymbols")
-    abstract operator fun times(rhs: Iterable<QuadraticSymbol>): Self
+    abstract operator fun times(rhs: Iterable<QuadraticIntermediateSymbol>): Self
     abstract operator fun times(rhs: LinearMonomial): Self
     abstract operator fun times(rhs: QuadraticMonomial): Self
     abstract operator fun times(rhs: AbstractLinearPolynomial<*>): Self
@@ -183,7 +186,7 @@ class QuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): QuadraticPolynomial {
@@ -195,7 +198,7 @@ class QuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: QuadraticSymbol,
+            symbol: QuadraticIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): QuadraticPolynomial {
@@ -336,7 +339,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): QuadraticPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return QuadraticPolynomial(
@@ -347,7 +350,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusLinearSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): QuadraticPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return QuadraticPolynomial(
@@ -356,7 +359,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+    override fun plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return QuadraticPolynomial(
@@ -367,7 +370,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusQuadraticSymbols")
-    override fun plus(rhs: Iterable<QuadraticSymbol>): QuadraticPolynomial {
+    override fun plus(rhs: Iterable<QuadraticIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return QuadraticPolynomial(
@@ -439,7 +442,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): QuadraticPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return QuadraticPolynomial(
@@ -450,7 +453,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusLinearSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): QuadraticPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return QuadraticPolynomial(
@@ -459,7 +462,7 @@ class QuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+    override fun minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return QuadraticPolynomial(
@@ -470,7 +473,7 @@ class QuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusQuadraticSymbols")
-    override fun minus(rhs: Iterable<QuadraticSymbol>): QuadraticPolynomial {
+    override fun minus(rhs: Iterable<QuadraticIntermediateSymbol>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return QuadraticPolynomial(
@@ -547,7 +550,7 @@ class QuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: LinearSymbol): QuadraticPolynomial {
+    override fun times(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -560,7 +563,7 @@ class QuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesLinearSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<LinearSymbol>): QuadraticPolynomial {
+    override fun times(rhs: Iterable<LinearIntermediateSymbol>): QuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -571,7 +574,7 @@ class QuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: QuadraticSymbol): QuadraticPolynomial {
+    override fun times(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -584,7 +587,7 @@ class QuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesQuadraticSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<QuadraticSymbol>): QuadraticPolynomial {
+    override fun times(rhs: Iterable<QuadraticIntermediateSymbol>): QuadraticPolynomial {
         if (this.category == Quadratic || rhs.any { it.category == Quadratic }) {
             throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
         }
@@ -682,7 +685,7 @@ class MutableQuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): MutableQuadraticPolynomial {
@@ -694,7 +697,7 @@ class MutableQuadraticPolynomial(
         }
 
         operator fun invoke(
-            symbol: QuadraticSymbol,
+            symbol: QuadraticIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): MutableQuadraticPolynomial {
@@ -818,7 +821,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): MutableQuadraticPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return MutableQuadraticPolynomial(
@@ -829,7 +832,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusLinearSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): MutableQuadraticPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return MutableQuadraticPolynomial(
@@ -838,7 +841,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun plus(rhs: QuadraticSymbol): MutableQuadraticPolynomial {
+    override fun plus(rhs: QuadraticIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(rhs))
         return MutableQuadraticPolynomial(
@@ -849,7 +852,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusQuadraticSymbols")
-    override fun plus(rhs: Iterable<QuadraticSymbol>): MutableQuadraticPolynomial {
+    override fun plus(rhs: Iterable<QuadraticIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(it) })
         return MutableQuadraticPolynomial(
@@ -911,23 +914,23 @@ class MutableQuadraticPolynomial(
         monomials.addAll(rhs.map { QuadraticMonomial(it) })
     }
 
-    operator fun plusAssign(rhs: LinearSymbol) {
+    operator fun plusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(QuadraticMonomial(rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignLinearSymbols")
-    operator fun plusAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun plusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(it) })
     }
 
-    operator fun plusAssign(rhs: QuadraticSymbol) {
+    operator fun plusAssign(rhs: QuadraticIntermediateSymbol) {
         monomials.add(QuadraticMonomial(rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusAssignQuadraticSymbols")
-    operator fun plusAssign(rhs: Iterable<QuadraticSymbol>) {
+    operator fun plusAssign(rhs: Iterable<QuadraticIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(it) })
     }
 
@@ -973,7 +976,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): MutableQuadraticPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return MutableQuadraticPolynomial(
@@ -984,7 +987,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusLinearSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): MutableQuadraticPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return MutableQuadraticPolynomial(
@@ -993,7 +996,7 @@ class MutableQuadraticPolynomial(
         )
     }
 
-    override fun minus(rhs: QuadraticSymbol): MutableQuadraticPolynomial {
+    override fun minus(rhs: QuadraticIntermediateSymbol): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
         return MutableQuadraticPolynomial(
@@ -1004,7 +1007,7 @@ class MutableQuadraticPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusQuadraticSymbols")
-    override fun minus(rhs: Iterable<QuadraticSymbol>): MutableQuadraticPolynomial {
+    override fun minus(rhs: Iterable<QuadraticIntermediateSymbol>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
         return MutableQuadraticPolynomial(
@@ -1066,23 +1069,23 @@ class MutableQuadraticPolynomial(
         monomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
     }
 
-    operator fun minusAssign(rhs: LinearSymbol) {
+    operator fun minusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(QuadraticMonomial(-Flt64.one, rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignLinearSymbols")
-    operator fun minusAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun minusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
     }
 
-    operator fun minusAssign(rhs: QuadraticSymbol) {
+    operator fun minusAssign(rhs: QuadraticIntermediateSymbol) {
         monomials.add(QuadraticMonomial(-Flt64.one, rhs))
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignQuadraticSymbols")
-    operator fun minusAssign(rhs: Iterable<QuadraticSymbol>) {
+    operator fun minusAssign(rhs: Iterable<QuadraticIntermediateSymbol>) {
         monomials.addAll(rhs.map { QuadraticMonomial(-Flt64.one, it) })
     }
 
@@ -1133,7 +1136,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: LinearSymbol): MutableQuadraticPolynomial {
+    override fun times(rhs: LinearIntermediateSymbol): MutableQuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1146,7 +1149,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesLinearSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<LinearSymbol>): MutableQuadraticPolynomial {
+    override fun times(rhs: Iterable<LinearIntermediateSymbol>): MutableQuadraticPolynomial {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1157,7 +1160,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: QuadraticSymbol): MutableQuadraticPolynomial {
+    override fun times(rhs: QuadraticIntermediateSymbol): MutableQuadraticPolynomial {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1170,7 +1173,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesQuadraticSymbols")
     @Throws(IllegalArgumentException::class)
-    override fun times(rhs: Iterable<QuadraticSymbol>): MutableQuadraticPolynomial {
+    override fun times(rhs: Iterable<QuadraticIntermediateSymbol>): MutableQuadraticPolynomial {
         if (this.category == Quadratic || rhs.any { it.category == Quadratic }) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.times: over quadratic.")
         }
@@ -1252,7 +1255,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: LinearSymbol) {
+    operator fun timesAssign(rhs: LinearIntermediateSymbol) {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1265,7 +1268,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesAssignLinearSymbols")
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun timesAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         if (this.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1276,7 +1279,7 @@ class MutableQuadraticPolynomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: QuadraticSymbol) {
+    operator fun timesAssign(rhs: QuadraticIntermediateSymbol) {
         if (this.category == Quadratic || rhs.category == Quadratic) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1289,7 +1292,7 @@ class MutableQuadraticPolynomial(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("timesAssignQuadraticSymbols")
     @Throws(IllegalArgumentException::class)
-    operator fun timesAssign(rhs: Iterable<QuadraticSymbol>) {
+    operator fun timesAssign(rhs: Iterable<QuadraticIntermediateSymbol>) {
         if (this.category == Quadratic || rhs.any { it.category == Quadratic }) {
             throw IllegalArgumentException("Invalid argument of MutableQuadraticPolynomial.timesAssign: over quadratic.")
         }
@@ -1363,66 +1366,142 @@ class MutableQuadraticPolynomial(
     }
 }
 
+// quantity polynomial conversion
+
+fun Quantity<AbstractQuadraticPolynomial<*>>.to(targetUnit: PhysicalUnit): Quantity<QuadraticPolynomial>? {
+    return unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, targetUnit)
+    }
+}
+
+// unary minus polynomial
+
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.unaryMinus(): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(-this.value), this.unit)
+}
+
 // symbol and constant
 
-operator fun QuadraticSymbol.plus(rhs: Int): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: Int): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
-operator fun QuadraticSymbol.plus(rhs: Double): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: Double): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
-operator fun <T : RealNumber<T>> QuadraticSymbol.plus(rhs: T): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.plus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this)),
         constant = rhs.toFlt64()
     )
 }
 
-operator fun QuadraticSymbol.minus(rhs: Int): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: Int): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
-operator fun QuadraticSymbol.minus(rhs: Double): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: Double): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
-operator fun <T : RealNumber<T>> QuadraticSymbol.minus(rhs: T): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.minus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this)),
         constant = -rhs.toFlt64()
     )
 }
 
-operator fun Int.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Int.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
-operator fun Double.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Double.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
-operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(rhs)),
         constant = this.toFlt64()
     )
 }
 
-operator fun Int.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Int.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
-operator fun Double.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun Double.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
-operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(-Flt64.one, rhs)),
         constant = this.toFlt64()
     )
+}
+
+// quantity symbol and quantity
+
+@JvmName("quantitySymbolPlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantitySymbol")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.toFlt64().value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantitySymbol")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.toFlt64().value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and constant
@@ -1487,6 +1566,68 @@ operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticMonomial): QuadraticPolyn
     )
 }
 
+// quantity monomial and quantity
+
+@JvmName("quantityMonomialPlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.plus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.minus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.toFlt64().value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.toFlt64().value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and constant
 
 operator fun Int.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
@@ -1534,22 +1675,255 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractQuadraticPolynomial<*>): Q
     )
 }
 
+// quantity polynomial and constant
+
+@JvmName("quantityPolynomialTimesInt")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Int): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * Flt64(rhs)), this.unit)
+}
+
+@JvmName("quantityPolynomialTimesDouble")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Double): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * Flt64(rhs)), this.unit)
+}
+
+@JvmName("quantityPolynomialTimesRealNumber")
+operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: T): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("intTimesQuantityPolynomial")
+operator fun Int.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(Flt64(this) * rhs.value, rhs.unit)
+}
+
+@JvmName("doubleTimesQuantityPolynomial")
+operator fun Double.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(Flt64(this) * rhs.value, rhs.unit)
+}
+
+@JvmName("realNumberTimesQuantityPolynomial")
+operator fun <T : RealNumber<T>> T.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityPolynomialDivInt")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: Int): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value / Flt64(rhs)), this.unit)
+}
+
+@JvmName("quantityPolynomialDivDouble")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: Double): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value / Flt64(rhs)), this.unit)
+}
+
+@JvmName("quantityPolynomialDivRealNumber")
+operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: T): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value / rhs), this.unit)
+}
+
+// polynomial and quantity
+
+@JvmName("polynomialTimesQuantity")
+operator fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.times(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("quantityTimesPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("polynomialDivQuantity")
+operator fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.div(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this / rhs.value), rhs.unit.reciprocal())
+}
+
+// quantity polynomial and quantity
+
+@JvmName("quantityPolynomialPlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.value + rhs.toFlt64().to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.value - rhs.toFlt64().to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantityPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.toFlt64().value + rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.toFlt64().to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantityPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.toFlt64().value - rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.toFlt64().to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialTimesQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.value * rhs.toFlt64().to(this.unit)!!.value), this.unit * rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value * rhs.value), this.unit * rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityTimesQuantityPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.toFlt64().value * rhs.to(this.unit)!!.value), this.unit * rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.toFlt64().to(rhs.unit)!!.value * rhs.value), this.unit * rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialDivQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value / rhs.value), this.unit / rhs.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.value / rhs.toFlt64().to(this.unit)!!.value), this.unit / rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value / rhs.value), this.unit / rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and variable
 
-operator fun QuadraticSymbol.plus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
+}
+
+// quantity symbol and quantity variable
+
+@JvmName("quantitySymbolPlusQuantityVariable")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantityVariable")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariablePlusQuantitySymbol")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantitySymbol")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and variable
@@ -1568,6 +1942,68 @@ operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticMonomial): QuadraticP
 
 operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
+}
+
+// quantity monomial and quantity variable
+
+@JvmName("quantityMonomialPlusQuantityVariable")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantityVariable")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariablePlusQuantityMonomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantityMonomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // polynomial and variable
@@ -1590,6 +2026,12 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractQuadraticPolynomial<*
     )
 }
 
+operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
+    val newMonomials = this.monomials.map { it * rhs }.toMutableList()
+    newMonomials.add(QuadraticMonomial(this.constant, rhs))
+    return QuadraticPolynomial(monomials = newMonomials)
+}
+
 operator fun AbstractVariableItem<*, *>.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant, this))
@@ -1607,97 +2049,497 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractQuadraticPolynomial<*
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+// quantity polynomial and variable
+
+@JvmName("quantityLinearPolynomialTimesVariable")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesVariable")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("variableTimesQuantityLinearPolynomial")
+operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("variableTimesQuantityQuadraticPolynomial")
+operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+// polynomial and quantity variable
+
+@JvmName("linearPolynomialTimesQuantityVariable")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityVariable")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("quantityVariableTimesLinearPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quantityVariableTimesQuadraticPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+// quantity polynomial and quantity variable
+
+@JvmName("quantityQuadraticPolynomialPlusQuantityVariable")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialMinusQuantityVariable")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariablePlusQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialTimesQuantityVariable")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuantityVariable")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
+}
+
+@JvmName("quantityVariableTimesLinearPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityVariableTimesQuadraticPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
 // symbol and symbol
 
-operator fun QuadraticSymbol.plus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun LinearSymbol.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun LinearSymbol.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun QuadraticSymbol.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
+}
+
+// quantity symbol and quantity symbol
+
+@JvmName("quantityQuadraticSymbolPlusQuantityLinearSymbol")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolMinusQuantityLinearSymbol")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolPlusQuantityQuadraticSymbol")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolMinusQuantityQuadraticSymbol")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolPlusQuantityQuadraticSymbol")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolMinusQuantityQuadraticSymbol")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and symbol
 
-operator fun LinearMonomial.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearMonomial.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun LinearMonomial.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun LinearMonomial.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun QuadraticSymbol.plus(rhs: LinearMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticSymbol.minus(rhs: LinearMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-rhs)))
 }
 
-operator fun QuadraticMonomial.plus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticMonomial.minus(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun LinearSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
-operator fun LinearSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
 }
 
-operator fun QuadraticMonomial.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
-operator fun QuadraticMonomial.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun QuadraticMonomial.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
-operator fun QuadraticSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
-operator fun QuadraticSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
+}
+
+// quantity monomial and quantity symbol
+
+@JvmName("quantityLinearMonomialPlusQuantityQuadraticSymbol")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialMinusQuantityQuadraticSymbol")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolPlusQuantityLinearMonomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolMinusQuantityLinearMonomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialPlusQuantityLinearSymbol")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialMinusQuantityLinearSymbol")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolPlusQuantityQuadraticMonomial")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolMinusQuantityQuadraticMonomial")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialPlusQuantityQuadraticSymbol")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialMinusQuantityQuadraticSymbol")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolPlusQuantityQuadraticMonomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolMinusQuantityQuadraticMonomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // polynomial and symbol
 
-operator fun LinearSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant, this))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun AbstractLinearPolynomial<*>.times(rhs: LinearSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.times(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { it * rhs }.toMutableList()
     newMonomials.add(QuadraticMonomial(this.constant, rhs))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs))
     return QuadraticPolynomial(
@@ -1706,7 +2548,7 @@ operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticSymbol): QuadraticPo
     )
 }
 
-operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
     return QuadraticPolynomial(
@@ -1716,7 +2558,7 @@ operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticSymbol): QuadraticP
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticSymbol): QuadraticPolynomial {
+operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
     }
@@ -1726,7 +2568,36 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticSymbol): QuadraticP
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun QuadraticSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+    val newMonomials = mutableListOf(QuadraticMonomial(this))
+    newMonomials.addAll(rhs.monomials.map { it.copy() })
+    return QuadraticPolynomial(
+        monomials = newMonomials,
+        constant = rhs.constant
+    )
+}
+
+operator fun LinearIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+    val newMonomials = mutableListOf(QuadraticMonomial(this))
+    newMonomials.addAll(rhs.monomials.map { -it })
+    return QuadraticPolynomial(
+        monomials = newMonomials,
+        constant = -rhs.constant
+    )
+}
+
+@Throws(IllegalArgumentException::class)
+operator fun LinearIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+    if (rhs.category == Quadratic) {
+        throw IllegalArgumentException("Invalid argument of LinearSymbol.times: over quadratic.")
+    }
+
+    val newMonomials = rhs.monomials.map { this * it }.toMutableList()
+    newMonomials.add(QuadraticMonomial(rhs.constant, this))
+    return QuadraticPolynomial(monomials = newMonomials)
+}
+
+operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(it) })
     return QuadraticPolynomial(
@@ -1735,7 +2606,7 @@ operator fun QuadraticSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPo
     )
 }
 
-operator fun QuadraticSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(-it) })
     return QuadraticPolynomial(
@@ -1745,7 +2616,7 @@ operator fun QuadraticSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticP
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticSymbol.times: over quadratic.")
     }
@@ -1755,7 +2626,7 @@ operator fun QuadraticSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticP
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
-operator fun QuadraticSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
     return QuadraticPolynomial(
@@ -1764,7 +2635,7 @@ operator fun QuadraticSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): Quadrati
     )
 }
 
-operator fun QuadraticSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
     return QuadraticPolynomial(
@@ -1774,7 +2645,7 @@ operator fun QuadraticSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): Quadrat
 }
 
 @Throws(IllegalArgumentException::class)
-operator fun QuadraticSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
+operator fun QuadraticIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticSymbol.times: over quadratic.")
     }
@@ -1782,6 +2653,242 @@ operator fun QuadraticSymbol.times(rhs: AbstractQuadraticPolynomial<*>): Quadrat
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant, this))
     return QuadraticPolynomial(monomials = newMonomials)
+}
+
+// quantity polynomial and symbol
+
+@JvmName("linearSymbolTimesQuantityLinearPolynomial")
+operator fun LinearIntermediateSymbol.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialTimesLinearSymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticSymbolTimesQuantityLinearPolynomial")
+operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialTimesQuadraticSymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearSymbolTimesQuantityQuadraticPolynomial")
+operator fun LinearIntermediateSymbol.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesLinearSymbol")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("quadraticSymbolTimesQuantityQuadraticPolynomial")
+operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuadraticSymbol")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+// polynomial and quantity symbol
+
+@JvmName("quantityLinearSymbolTimesLinearPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearPolynomialTimesQuantityLinearSymbol")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticSymbolTimesLinearPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearPolynomialTimesQuantityQuadraticSymbol")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearSymbolTimesQuadraticPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityLinearSymbol")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("quantityQuadraticSymbolTimesQuadraticPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityQuadraticSymbol")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+// quantity polynomial and quantity symbol
+
+@JvmName("quantityLinearSymbolTimesQuantityLinearPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialTimesQuantityLinearSymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityQuadraticSymbolTimesQuantityLinearPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityQuadraticSymbolPlusQuantityLinearPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolMinusQuantityLinearPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialTimesQuantityQuadraticSymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialPlusQuantityQuadraticSymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialMinusQuantityQuadraticSymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("QuantityLinearSymbolTimesQuantityQuadraticPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityLinearSymbolPlusQuantityQuadraticPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolMinusQuantityQuadraticPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolTimesQuantityQuadraticPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityQuadraticSymbolPlusQuantityQuadraticPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticSymbolMinusQuantityQuadraticPolynomial")
+operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and monomial
@@ -1822,7 +2929,111 @@ operator fun QuadraticMonomial.minus(rhs: QuadraticMonomial): QuadraticPolynomia
     )
 }
 
+// quantity monomial and quantity monomial
+
+@JvmName("quantityLinearMonomialPlusQuantityQuadraticMonomial")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialMinusQuantityQuadraticMonomial")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialPlusQuantityLinearMonomial")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialMinusQuantityLinearMonomial")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialPlusQuantityQuadraticMonomial")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialMinusQuantityQuadraticMonomial")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and monomial
+
+operator fun LinearMonomial.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
+    val newMonomials = rhs.monomials.map { this * it }.toMutableList()
+    newMonomials.add(QuadraticMonomial(rhs.constant * this))
+    return QuadraticPolynomial(monomials = newMonomials)
+}
+
+operator fun AbstractLinearPolynomial<*>.times(rhs: LinearMonomial): QuadraticPolynomial {
+    val newMonomials = this.monomials.map { it * rhs }.toMutableList()
+    newMonomials.add(QuadraticMonomial(this.constant * rhs))
+    return QuadraticPolynomial(monomials = newMonomials)
+}
 
 operator fun LinearMonomial.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
@@ -1850,10 +3061,7 @@ operator fun LinearMonomial.times(rhs: AbstractQuadraticPolynomial<*>): Quadrati
 
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant * this))
-    return QuadraticPolynomial(
-        monomials = newMonomials,
-        constant = -rhs.constant
-    )
+    return QuadraticPolynomial(monomials = newMonomials)
 }
 
 operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
@@ -1943,6 +3151,392 @@ operator fun QuadraticMonomial.times(rhs: AbstractQuadraticPolynomial<*>): Quadr
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+// quantity polynomial and monomial
+
+@JvmName("linearMonomialTimesQuantityLinearPolynomial")
+operator fun LinearMonomial.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialTimesLinearMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: LinearMonomial): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearMonomialTimesQuantityQuadraticPolynomial")
+operator fun LinearMonomial.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesLinearMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: LinearMonomial): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("quadraticMonomialPlusQuantityLinearPolynomial")
+operator fun QuadraticMonomial.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialPlusQuadraticMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: QuadraticMonomial): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticMonomialTimesQuantityQuadraticPolynomial")
+operator fun QuadraticMonomial.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuadraticMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: QuadraticMonomial): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+// polynomial and quantity monomial
+
+@JvmName("quantityLinearMonomialTimesLinearPolynomial")
+operator fun Quantity<LinearMonomial>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearPolynomialTimesQuantityLinearMonomial")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearMonomialTimesQuadraticPolynomial")
+operator fun Quantity<LinearMonomial>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityLinearMonomial")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("quantityQuadraticMonomialTimesLinearPolynomial")
+operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearPolynomialTimesQuantityQuadraticMonomial")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticMonomialTimesQuadraticPolynomial")
+operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityQuadraticMonomial")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+// quantity polynomial and quantity monomial
+
+@JvmName("quantityLinearMonomialTimesQuantityLinearPolynomial")
+operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value * rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value * rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value * rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialTimesQuantityLinearMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value * rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value * rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value * rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialPlusQuantityQuadraticPolynomial")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialMinusQuantityQuadraticPolynomial")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialTimesQuantityQuadraticPolynomial")
+operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value * rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value * rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value * rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialPlusQuantityLinearMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialMinusQuantityLinearMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuantityLinearMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value * rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value * rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialPlusQuantityLinearPolynomial")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialMinusQuantityLinearPolynomial")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialTimesQuantityLinearPolynomial")
+operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value * rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value * rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value * rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialPlusQuantityQuadraticMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialMinusQuantityQuadraticMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialTimesQuantityQuadraticMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value * rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value * rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value * rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialPlusQuantityQuadraticPolynomial")
+operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialMinusQuantityQuadraticPolynomial")
+operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticMonomialTimesQuantityQuadraticPolynomial")
+operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value * rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value * rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value * rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialPlusQuantityQuadraticMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialMinusQuantityQuadraticMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuantityQuadraticMonomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value * rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value * rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and polynomial
 
 operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
@@ -1988,12 +3582,166 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractQuadraticPolynomial<
     )
 }
 
+// quantity polynomial and polynomial
+
+@JvmName("quantityLinearPolynomialTimesLinearPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("linearPolynomialTimesQuantityLinearPolynomial")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialTimesQuadraticPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityLinearPolynomial")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("linearPolynomialTimesQuantityQuadraticPolynomial")
+operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesLinearPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("quadraticPolynomialTimesQuantityQuadraticPolynomial")
+operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuadraticPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
+}
+
+// quantity polynomial and quantity polynomial
+
+@JvmName("quantityLinearPolynomialTimesQuantityLinearPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityLinearPolynomialPlusQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialMinusQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        } else {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialTimesQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialPlusQuantityLinearPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialMinusQuantityLinearPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuantityLinearPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
+}
+
+@JvmName("quantityQuadraticPolynomialPlusQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialMinusQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(QuadraticPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(QuadraticPolynomial(this.to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        } else {
+            Quantity(QuadraticPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityQuadraticPolynomialTimesQuantityQuadraticPolynomial")
+operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
+    return Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
+}
+
 // sigma
 
 @JvmName("sumQuadraticSymbols")
-fun qsum(
-    symbols: Iterable<QuadraticSymbol>,
-    ctor: (QuadraticSymbol) -> QuadraticMonomial = { QuadraticMonomial(it) }
+fun sum(
+    symbols: Iterable<QuadraticIntermediateSymbol>,
+    ctor: (QuadraticIntermediateSymbol) -> QuadraticMonomial = { QuadraticMonomial(it) }
 ): QuadraticPolynomial {
     val monomials = ArrayList<QuadraticMonomial>()
     for (symbol in symbols) {
@@ -2003,12 +3751,12 @@ fun qsum(
 }
 
 @JvmName("sumQuadraticMonomials")
-fun qsum(monomials: Iterable<QuadraticMonomial>): QuadraticPolynomial {
+fun sum(monomials: Iterable<QuadraticMonomial>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = monomials.toList())
 }
 
 @JvmName("sumQuadraticPolynomials")
-fun qsum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolynomial {
+fun sum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolynomial {
     val monomials = ArrayList<QuadraticMonomial>()
     var constant = Flt64.zero
     for (polynomial in polynomials) {
@@ -2018,25 +3766,68 @@ fun qsum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolyno
     return QuadraticPolynomial(monomials = monomials, constant = constant)
 }
 
-@JvmName("sumMapQuadraticSymbols")
-fun <T> qsumSymbols(
+fun <T> sumSymbols(
     objs: Iterable<T>,
-    ctor: (T) -> QuadraticSymbol?
+    ctor: (T) -> QuadraticIntermediateSymbol?
 ): QuadraticPolynomial {
-    return qsum(objs.mapNotNull(ctor))
+    return sum(objs.mapNotNull(ctor))
 }
 
-fun <T> qsum(
+fun <T> sum(
     objs: Iterable<T>,
     ctor: (T) -> QuadraticMonomial?
 ): QuadraticPolynomial {
-    return qsum(objs.mapNotNull(ctor))
+    return sum(objs.mapNotNull(ctor))
 }
 
 @JvmName("sumMapQuadraticMonomials")
-fun <T> flatQSum(
+fun <T> flatSum(
     objs: Iterable<T>,
     ctor: (T) -> Iterable<QuadraticMonomial?>
 ): QuadraticPolynomial {
-    return qsum(objs.flatMap(ctor).filterNotNull())
+    return sum(objs.flatMap(ctor).filterNotNull())
+}
+
+// quantity sigma
+
+@JvmName("sumQuantityLinearMonomials")
+fun sum(monomials: Iterable<Quantity<QuadraticMonomial>>): Quantity<QuadraticPolynomial> {
+    val quantityMonomials = monomials.toList()
+    return if (quantityMonomials.isEmpty()) {
+        Quantity(QuadraticPolynomial(), NoneUnit)
+    } else {
+        quantityMonomials.subList(1, quantityMonomials.size)
+            .fold(Quantity(QuadraticPolynomial(monomials = listOf(quantityMonomials.first().value)), quantityMonomials.first().unit)) { acc, quantity ->
+                acc + quantity
+            }
+    }
+}
+
+@JvmName("sumQuantityLinearPolynomials")
+fun sum(polynomials: Iterable<Quantity<AbstractQuadraticPolynomial<*>>>): Quantity<QuadraticPolynomial> {
+    val quantityPolynomials = polynomials.toList()
+    return if (quantityPolynomials.isEmpty()) {
+        Quantity(QuadraticPolynomial(), NoneUnit)
+    } else {
+        quantityPolynomials.subList(1, quantityPolynomials.size)
+            .fold(Quantity(QuadraticPolynomial(quantityPolynomials.first().value), quantityPolynomials.first().unit)) { acc, quantity ->
+                acc + quantity
+            }
+    }
+}
+
+@JvmName("sumMapQuantityMonomials")
+fun <T> sum(
+    objs: Iterable<T>,
+    extractor: (T) -> Quantity<QuadraticMonomial>?
+): Quantity<QuadraticPolynomial> {
+    return sum(objs.mapNotNull(extractor))
+}
+
+@JvmName("sumMapQuantityMonomialLists")
+fun <T> flatSum(
+    objs: Iterable<T>,
+    extractor: (T) -> Iterable<Quantity<QuadraticMonomial>?>
+): Quantity<QuadraticPolynomial> {
+    return sum(objs.flatMap(extractor).filterNotNull())
 }

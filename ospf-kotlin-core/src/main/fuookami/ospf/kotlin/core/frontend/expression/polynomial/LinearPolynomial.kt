@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
@@ -41,7 +44,7 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
             return _range!!
         }
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
             return monomials.mapNotNull {
                 when (val symbol = it.symbol.symbol) {
@@ -66,11 +69,11 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
         }
     override val cached: Boolean = _cells.isNotEmpty()
 
-    abstract operator fun plus(rhs: LinearSymbol): Self
-    abstract operator fun plus(rhs: Iterable<LinearSymbol>): Self
+    abstract operator fun plus(rhs: LinearIntermediateSymbol): Self
+    abstract operator fun plus(rhs: Iterable<LinearIntermediateSymbol>): Self
 
-    abstract operator fun minus(rhs: LinearSymbol): Self
-    abstract operator fun minus(rhs: Iterable<LinearSymbol>): Self
+    abstract operator fun minus(rhs: LinearIntermediateSymbol): Self
+    abstract operator fun minus(rhs: Iterable<LinearIntermediateSymbol>): Self
 
     override fun toMutable(): MutableLinearPolynomial {
         return MutableLinearPolynomial(
@@ -125,7 +128,7 @@ class LinearPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): LinearPolynomial {
@@ -241,7 +244,7 @@ class LinearPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): LinearPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(LinearMonomial(rhs))
         return LinearPolynomial(
@@ -252,7 +255,7 @@ class LinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): LinearPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { LinearMonomial(it) })
         return LinearPolynomial(
@@ -306,7 +309,7 @@ class LinearPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): LinearPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(LinearMonomial(-Flt64.one, rhs))
         return LinearPolynomial(
@@ -317,7 +320,7 @@ class LinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): LinearPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): LinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
         return LinearPolynomial(
@@ -387,7 +390,7 @@ class MutableLinearPolynomial(
         }
 
         operator fun invoke(
-            symbol: LinearSymbol,
+            symbol: LinearIntermediateSymbol,
             name: String = "",
             displayName: String? = null
         ): MutableLinearPolynomial {
@@ -481,7 +484,7 @@ class MutableLinearPolynomial(
         )
     }
 
-    override fun plus(rhs: LinearSymbol): MutableLinearPolynomial {
+    override fun plus(rhs: LinearIntermediateSymbol): MutableLinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.add(LinearMonomial(rhs))
         return MutableLinearPolynomial(
@@ -492,7 +495,7 @@ class MutableLinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("plusSymbols")
-    override fun plus(rhs: Iterable<LinearSymbol>): MutableLinearPolynomial {
+    override fun plus(rhs: Iterable<LinearIntermediateSymbol>): MutableLinearPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
         newMonomials.addAll(rhs.map { LinearMonomial(it) })
         return MutableLinearPolynomial(
@@ -536,12 +539,12 @@ class MutableLinearPolynomial(
         monomials.addAll(rhs.map { LinearMonomial(it) })
     }
 
-    fun plusAssign(rhs: LinearSymbol) {
+    operator fun plusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(LinearMonomial(rhs))
     }
 
     @JvmName("plusAssignSymbols")
-    fun plusAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun plusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { LinearMonomial(it) })
     }
 
@@ -578,7 +581,7 @@ class MutableLinearPolynomial(
         )
     }
 
-    override fun minus(rhs: LinearSymbol): MutableLinearPolynomial {
+    override fun minus(rhs: LinearIntermediateSymbol): MutableLinearPolynomial {
         val monomials = monomials.map { it.copy() }.toMutableList()
         monomials.add(LinearMonomial(-Flt64.one, rhs))
         return MutableLinearPolynomial(
@@ -589,7 +592,7 @@ class MutableLinearPolynomial(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("minusAssignSymbols")
-    override fun minus(rhs: Iterable<LinearSymbol>): MutableLinearPolynomial {
+    override fun minus(rhs: Iterable<LinearIntermediateSymbol>): MutableLinearPolynomial {
         val monomials = monomials.map { it.copy() }.toMutableList()
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
         return MutableLinearPolynomial(
@@ -633,12 +636,12 @@ class MutableLinearPolynomial(
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
     }
 
-    fun minusAssign(rhs: LinearSymbol) {
+    operator fun minusAssign(rhs: LinearIntermediateSymbol) {
         monomials.add(LinearMonomial(-Flt64.one, rhs))
     }
 
     @JvmName("minusAssignSymbols")
-    fun minusAssign(rhs: Iterable<LinearSymbol>) {
+    operator fun minusAssign(rhs: Iterable<LinearIntermediateSymbol>) {
         monomials.addAll(rhs.map { LinearMonomial(-Flt64.one, it) })
     }
 
@@ -678,6 +681,20 @@ class MutableLinearPolynomial(
         monomials = monomials.map { it / rhs }.toMutableList()
         constant /= rhs
     }
+}
+
+// quantity polynomial conversion
+
+fun Quantity<AbstractLinearPolynomial<*>>.to(targetUnit: PhysicalUnit): Quantity<LinearPolynomial>? {
+    return this.unit.to(targetUnit)?.let {
+        Quantity(it.value * this.value, targetUnit)
+    }
+}
+
+// unary minus polynomial
+
+operator fun Quantity<AbstractLinearPolynomial<*>>.unaryMinus(): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(-this.value), this.unit)
 }
 
 // variable and constant
@@ -766,87 +783,211 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractVariableItem<*, *>): Linea
     )
 }
 
+// quantity variable and quantity
+
+@JvmName("quantityVariablePlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantityVariable")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantityVariable")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and constant
 
-operator fun LinearSymbol.plus(rhs: Int): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: Int): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = Flt64(rhs)
     )
 }
 
-operator fun LinearSymbol.plus(rhs: Double): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: Double): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = Flt64(rhs)
     )
 }
 
-operator fun <T : RealNumber<T>> LinearSymbol.plus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.plus(rhs: T): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = rhs.toFlt64()
     )
 }
 
-operator fun LinearSymbol.minus(rhs: Int): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: Int): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = -Flt64(rhs)
     )
 }
 
-operator fun LinearSymbol.minus(rhs: Double): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: Double): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = -Flt64(rhs)
     )
 }
 
-operator fun <T : RealNumber<T>> LinearSymbol.minus(rhs: T): LinearPolynomial {
+operator fun <T : RealNumber<T>> LinearIntermediateSymbol.minus(rhs: T): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this)),
         constant = -rhs.toFlt64()
     )
 }
 
-operator fun Int.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Int.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(rhs)),
         constant = Flt64(this)
     )
 }
 
-operator fun Double.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Double.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return Flt64(this).plus(rhs)
 }
 
-operator fun <T : RealNumber<T>> T.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(rhs)),
         constant = this.toFlt64()
     )
 }
 
-operator fun Int.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Int.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
         constant = Flt64(this)
     )
 }
 
-operator fun Double.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun Double.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
         constant = Flt64(this)
     )
 }
 
-operator fun <T : RealNumber<T>> T.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun <T : RealNumber<T>> T.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(-Flt64.one, rhs)),
         constant = this.toFlt64()
     )
+}
+
+// quantity symbol and quantity
+
+@JvmName("quantitySymbolPlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantitySymbol")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantitySymbol")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and constant
@@ -935,6 +1076,74 @@ operator fun <T : RealNumber<T>> T.minus(rhs: LinearMonomial): LinearPolynomial 
     )
 }
 
+// quantity monomial and quantity
+
+@JvmName("quantityMonomialPlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+             Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.minus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.toFlt64().to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantityMonomial")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+// polynomial and unit
+
+operator fun AbstractLinearPolynomial<*>.times(rhs: PhysicalUnit): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this), rhs)
+}
+
 // polynomial and constant
 
 operator fun Int.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
@@ -1000,6 +1209,147 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractLinearPolynomial<*>): Line
     )
 }
 
+// polynomial and quantity
+
+@JvmName("polynomialTimesQuantity")
+operator fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.times(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this * rhs.value), rhs.unit)
+}
+
+@JvmName("quantityTimesPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: AbstractLinearPolynomial<*>): Quantity<LinearPolynomial> {
+    return Quantity(this.value * rhs, this.unit)
+}
+
+@JvmName("polynomialDivQuantity")
+operator fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.div(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this / rhs.value), rhs.unit.reciprocal())
+}
+
+// quantity polynomial and constant
+
+@JvmName("quantityPolynomialTimesInt")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Int): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("quantityPolynomialTimesDouble")
+operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Double): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value * rhs), this.unit)
+}
+
+@JvmName("quantityPolynomialTimesRealNumber")
+operator fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.times(rhs: T): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value * rhs.toFlt64()), this.unit)
+}
+
+@JvmName("intTimesQuantityPolynomial")
+operator fun Int.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("doubleTimesQuantityPolynomial")
+operator fun Double.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return Quantity(this * rhs.value, rhs.unit)
+}
+
+@JvmName("realNumberTimesQuantityPolynomial")
+operator fun <T : RealNumber<T>> T.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return Quantity(this.toFlt64() * rhs.value, rhs.unit)
+}
+
+@JvmName("quantityPolynomialDivInt")
+operator fun Quantity<AbstractLinearPolynomial<*>>.div(rhs: Int): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value / rhs), this.unit)
+}
+
+@JvmName("quantityPolynomialDivDouble")
+operator fun Quantity<AbstractLinearPolynomial<*>>.div(rhs: Double): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value / rhs), this.unit)
+}
+
+@JvmName("quantityPolynomialDivRealNumber")
+operator fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.div(rhs: T): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value / rhs.toFlt64()), this.unit)
+}
+
+// quantity polynomial and quantity
+
+@JvmName("quantityPolynomialPlusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value + rhs.toFlt64().to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(LinearPolynomial(this.to(rhs.unit)!!.value + rhs.value), rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPlusQuantityPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialMinusQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value - rhs.toFlt64().to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(LinearPolynomial(this.to(rhs.unit)!!.value - rhs.value), rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMinusQuantityPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.toFlt64().unit.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialTimesQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value * rhs.value), this.unit * rhs.unit)
+}
+
+@JvmName("quantityTimesQuantityPolynomial")
+operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return Quantity(this.value * rhs.value, this.unit * rhs.unit)
+}
+
+@JvmName("quantityPolynomialDivQuantity")
+operator fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.div(rhs: Quantity<T>): Quantity<LinearPolynomial> {
+    return Quantity(LinearPolynomial(this.value / rhs.value), this.unit / rhs.unit)
+}
+
 // variable and variable
 
 operator fun AbstractVariableItem<*, *>.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
@@ -1014,30 +1364,124 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractVariableItem<*, *>): 
     )
 }
 
+// quantity variable and quantity variable
+
+@JvmName("quantityVariablePlusQuantityVariable")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantityVariable")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and variable
 
-operator fun LinearSymbol.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
     )
 }
 
-operator fun LinearSymbol.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: AbstractVariableItem<*, *>): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
 }
 
-operator fun AbstractVariableItem<*, *>.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun AbstractVariableItem<*, *>.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
     )
 }
 
-operator fun AbstractVariableItem<*, *>.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun AbstractVariableItem<*, *>.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
+}
+
+// quantity symbol and quantity variable
+
+@JvmName("quantitySymbolPlusQuantityVariable")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariablePlusQuantitySymbol")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantityVariable")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantitySymbol")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and variable
@@ -1066,9 +1510,71 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearMonomial): LinearPolyno
     )
 }
 
+// quantity monomial and quantity variable
+
+@JvmName("quantityMonomialPlusQuantityVariable")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariablePlusQuantityMonomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantityVariable")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantityMonomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and variable
 
-operator fun AbstractVariableItem<*, *>.plus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun AbstractVariableItem<*, *>.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val monomials = arrayListOf(LinearMonomial(this))
     monomials.addAll(rhs.monomials.map { it.copy() })
     return LinearPolynomial(
@@ -1077,7 +1583,7 @@ operator fun AbstractVariableItem<*, *>.plus(rhs: LinearPolynomial): LinearPolyn
     )
 }
 
-operator fun AbstractVariableItem<*, *>.minus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val monomials = arrayListOf(LinearMonomial(this))
     monomials.addAll(rhs.monomials.map { -it })
     return LinearPolynomial(
@@ -1086,58 +1592,276 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: LinearPolynomial): LinearPoly
     )
 }
 
+// quantity polynomial and quantity variable
+
+@JvmName("quantityPolynomialPlusQuantityVariable")
+operator fun Quantity<LinearPolynomial>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariablePlusQuantityPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<LinearPolynomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialMinusQuantityVariable")
+operator fun Quantity<LinearPolynomial>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableMinusQuantityPolynomial")
+operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<LinearPolynomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and symbol
 
-operator fun LinearSymbol.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(rhs))
     )
 }
 
-operator fun LinearSymbol.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), LinearMonomial(-Flt64.one, rhs))
     )
 }
 
+// quantity symbol and quantity symbol
+
+@JvmName("quantitySymbolPlusQuantitySymbol")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantitySymbol")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // monomial and symbol
 
-operator fun LinearMonomial.plus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearMonomial.plus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(this.copy(), LinearMonomial(rhs))
     )
 }
 
-operator fun LinearMonomial.minus(rhs: LinearSymbol): LinearPolynomial {
+operator fun LinearMonomial.minus(rhs: LinearIntermediateSymbol): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(this.copy(), LinearMonomial(-Flt64.one, rhs))
     )
 }
 
-operator fun LinearSymbol.plus(rhs: LinearMonomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: LinearMonomial): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), rhs.copy())
     )
 }
 
-operator fun LinearSymbol.minus(rhs: LinearMonomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: LinearMonomial): LinearPolynomial {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(this), -rhs)
     )
 }
 
+// quantity monomial and quantity symbol
+
+@JvmName("quantityMonomialPlusQuantitySymbol")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolPlusQuantityMnomial")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantitySymbol")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantityMonomial")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and symbol
 
-operator fun LinearSymbol.plus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(LinearMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
     return LinearPolynomial(monomials = newMonomials)
 }
 
-operator fun LinearSymbol.minus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun LinearIntermediateSymbol.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(LinearMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
     return LinearPolynomial(monomials = newMonomials)
+}
+
+// quantity polynomial and quantity symbol
+
+@JvmName("quantityPolynomialPlusQuantitySymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolPlusQuantityPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialMinusQuantitySymbol")
+operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolMinusQuantityPolynomial")
+operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and monomial
@@ -1154,18 +1878,144 @@ operator fun LinearMonomial.minus(rhs: LinearMonomial): LinearPolynomial {
     )
 }
 
+// quantity monomial and quantity monomial
+
+@JvmName("quantityMonomialPlusQuantityMonomial")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantityMnomial")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and monomial
 
-operator fun LinearMonomial.plus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun LinearMonomial.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { it.copy() })
     return LinearPolynomial(monomials = newMonomials)
 }
 
-operator fun LinearMonomial.minus(rhs: LinearPolynomial): LinearPolynomial {
+operator fun LinearMonomial.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { -it })
     return LinearPolynomial(monomials = newMonomials)
+}
+
+// quantity polynomial and quantity monomial
+
+@JvmName("quantityPolynomialPlusQuantityMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialPlusQuantityPolynomial")
+operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value + rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialMinusQuantityMonomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialMinusQuantityPolynomial")
+operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(this.value - rhs.value, this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(this.value - rhs.to(this.unit)!!.value, this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+// quantity polynomial and quantity polynomial
+
+@JvmName("quantityPolynomialPlusQuantityPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value + rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value + rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value + rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialMinusQuantityPolynomial")
+operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<LinearPolynomial> {
+    return if (this.unit == rhs.unit) {
+        Quantity(LinearPolynomial(this.value - rhs.value), this.unit)
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            Quantity(LinearPolynomial(this.value - rhs.to(this.unit)!!.value), this.unit)
+        } else {
+            Quantity(this.to(rhs.unit)!!.value - rhs.value, rhs.unit)
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // sigma
@@ -1184,8 +2034,8 @@ fun sum(
 
 @JvmName("sumLinearSymbols")
 fun sum(
-    symbols: Iterable<LinearSymbol>,
-    ctor: (LinearSymbol) -> LinearMonomial = { LinearMonomial(it) }
+    symbols: Iterable<LinearIntermediateSymbol>,
+    ctor: (LinearIntermediateSymbol) -> LinearMonomial = { LinearMonomial(it) }
 ): LinearPolynomial {
     val monomials = ArrayList<LinearMonomial>()
     for (symbol in symbols) {
@@ -1210,33 +2060,76 @@ fun sum(polynomials: Iterable<AbstractLinearPolynomial<*>>): LinearPolynomial {
     return LinearPolynomial(monomials = monomials, constant = constant)
 }
 
-@JvmName("sumMapVariables")
 fun <T> sumVars(
     objs: Iterable<T>,
-    ctor: (T) -> AbstractVariableItem<*, *>?
+    extractor: (T) -> AbstractVariableItem<*, *>?
 ): LinearPolynomial {
-    return sum(objs.mapNotNull(ctor))
+    return sum(objs.mapNotNull(extractor))
 }
 
-@JvmName("sumMapLinearSymbols")
 fun <T> sumSymbols(
     objs: Iterable<T>,
-    ctor: (T) -> LinearSymbol?
+    extractor: (T) -> LinearIntermediateSymbol?
 ): LinearPolynomial {
-    return sum(objs.mapNotNull(ctor))
+    return sum(objs.mapNotNull(extractor))
 }
 
+@JvmName("sumMapMonomials")
 fun <T> sum(
     objs: Iterable<T>,
-    ctor: (T) -> LinearMonomial?
+    extractor: (T) -> LinearMonomial?
 ): LinearPolynomial {
-    return sum(objs.mapNotNull(ctor))
+    return sum(objs.mapNotNull(extractor))
 }
 
-@JvmName("sumMapLinearMonomials")
+@JvmName("sumMapMonomialLists")
 fun <T> flatSum(
     objs: Iterable<T>,
-    ctor: (T) -> Iterable<LinearMonomial?>
+    extractor: (T) -> Iterable<LinearMonomial?>
 ): LinearPolynomial {
-    return sum(objs.flatMap(ctor).filterNotNull())
+    return sum(objs.flatMap(extractor).filterNotNull())
+}
+
+// quantity sigma
+
+@JvmName("sumQuantityLinearMonomials")
+fun sum(monomials: Iterable<Quantity<LinearMonomial>>): Quantity<LinearPolynomial> {
+    val quantityMonomials = monomials.toList()
+    return if (quantityMonomials.isEmpty()) {
+        Quantity(LinearPolynomial(), NoneUnit)
+    } else {
+        quantityMonomials.subList(1, quantityMonomials.size)
+            .fold(Quantity(LinearPolynomial(monomials = listOf(quantityMonomials.first().value)), quantityMonomials.first().unit)) { acc, quantity ->
+                acc + quantity
+            }
+    }
+}
+
+@JvmName("sumQuantityLinearPolynomials")
+fun sum(polynomials: Iterable<Quantity<AbstractLinearPolynomial<*>>>): Quantity<LinearPolynomial> {
+    val quantityPolynomials = polynomials.toList()
+    return if (quantityPolynomials.isEmpty()) {
+        Quantity(LinearPolynomial(), NoneUnit)
+    } else {
+        quantityPolynomials.subList(1, quantityPolynomials.size)
+            .fold(Quantity(LinearPolynomial(quantityPolynomials.first().value), quantityPolynomials.first().unit)) { acc, quantity ->
+                acc + quantity
+            }
+    }
+}
+
+@JvmName("sumMapQuantityMonomials")
+fun <T> sum(
+    objs: Iterable<T>,
+    extractor: (T) -> Quantity<LinearMonomial>?
+): Quantity<LinearPolynomial> {
+    return sum(objs.mapNotNull(extractor))
+}
+
+@JvmName("sumMapQuantityMonomialLists")
+fun <T> flatSum(
+    objs: Iterable<T>,
+    extractor: (T) -> Iterable<Quantity<LinearMonomial>?>
+): Quantity<LinearPolynomial> {
+    return sum(objs.flatMap(extractor).filterNotNull())
 }

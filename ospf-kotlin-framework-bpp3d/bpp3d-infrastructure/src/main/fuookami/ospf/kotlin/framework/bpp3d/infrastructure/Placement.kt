@@ -3,14 +3,15 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 data class Placement2<
-        T : CuboidUnit<T>,
-        P : ProjectivePlane
-        >(
+    T : CuboidUnit<T>,
+    P : ProjectivePlane
+>(
     val projection: Projection<*, T, P>,
     val position: Point2
 ) : Copyable<Placement2<T, P>> {
@@ -42,17 +43,17 @@ data class Placement2<
         withBorder: Boolean = true
     ): Boolean {
         val lowerInterval = if (withBorder && withLowerBound) {
-            IntervalType.Closed
+            Interval.Closed
         } else {
-            IntervalType.Open
+            Interval.Open
         }
         val upperInterval = if (withBorder && withUpperBound) {
-            IntervalType.Closed
+            Interval.Closed
         } else {
-            IntervalType.Open
+            Interval.Open
         }
-        val xRange = ValueRange(x, maxX, lowerInterval, upperInterval, Flt64)
-        val yRange = ValueRange(y, maxY, lowerInterval, upperInterval, Flt64)
+        val xRange = ValueRange(x, maxX, lowerInterval, upperInterval, Flt64).value!!
+        val yRange = ValueRange(y, maxY, lowerInterval, upperInterval, Flt64).value!!
         return xRange.contains(point.x) && yRange.contains(point.y)
     }
 
@@ -164,18 +165,18 @@ data class Placement3<T : CuboidUnit<T>>(
         withBorder: Boolean = true
     ): Boolean {
         val lowerInterval = if (withBorder && withLowerBound) {
-            IntervalType.Closed
+            Interval.Closed
         } else {
-            IntervalType.Open
+            Interval.Open
         }
         val upperInterval = if (withBorder && withUpperBound) {
-            IntervalType.Closed
+            Interval.Closed
         } else {
-            IntervalType.Open
+            Interval.Open
         }
-        val xRange = ValueRange(absoluteX, maxAbsoluteX, lowerInterval, upperInterval, Flt64)
-        val yRange = ValueRange(absoluteY, maxAbsoluteY, lowerInterval, upperInterval, Flt64)
-        val zRange = ValueRange(absoluteZ, maxAbsoluteZ, lowerInterval, upperInterval, Flt64)
+        val xRange = ValueRange(absoluteX, maxAbsoluteX, lowerInterval, upperInterval, Flt64).value!!
+        val yRange = ValueRange(absoluteY, maxAbsoluteY, lowerInterval, upperInterval, Flt64).value!!
+        val zRange = ValueRange(absoluteZ, maxAbsoluteZ, lowerInterval, upperInterval, Flt64).value!!
         return xRange.contains(point.x) && yRange.contains(point.y) && zRange.contains(point.z)
     }
 

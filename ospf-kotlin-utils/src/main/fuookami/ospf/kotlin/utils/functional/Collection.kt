@@ -2,12 +2,13 @@ package fuookami.ospf.kotlin.utils.functional
 
 import java.util.*
 import kotlin.*
+import kotlin.time.*
+import kotlin.random.Random
 import kotlin.collections.*
 import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
-import kotlin.random.Random
 
 fun <T> List<T>.shuffle(
     randomGenerator: Generator<Int> = { Random.nextInt(0, this.size) }
@@ -101,6 +102,39 @@ inline fun <T, C : MutableCollection<T>> Iterable<T?>.filterNotNullTo(
 ): C {
     for (element in this.iterator()) {
         if (element != null && predicate(element)) {
+            destination.add(element)
+        }
+    }
+    return destination
+}
+
+inline fun <reified U, T> Iterable<T>.filterIsNotInstance(): List<T> {
+    return this.filterIsNotInstanceTo<U, T, MutableList<T>>(ArrayList())
+}
+
+inline fun <reified U, T, C : MutableCollection<in T>> Iterable<T>.filterIsNotInstanceTo(
+    destination: C
+): C {
+    for (element in this.iterator()) {
+        if (element !is U) {
+            destination.add(element)
+        }
+    }
+    return destination
+}
+
+inline fun <reified U, T> Iterable<T>.filterIsNotInstance(
+    crossinline predicate: Predicate<U>
+): List<T> {
+    return this.filterIsNotInstanceTo<U, T, MutableList<T>>(ArrayList(), predicate)
+}
+
+inline fun <reified U, T, C : MutableCollection<in T>> Iterable<T>.filterIsNotInstanceTo(
+    destination: C,
+    crossinline predicate: Predicate<U>
+): C {
+    for (element in this.iterator()) {
+        if (element !is U || predicate(element)) {
             destination.add(element)
         }
     }
@@ -1035,10 +1069,26 @@ inline fun <K, V> Map<K, V>.toSortedMapWithPartialThreeWayComparator(
     return this.toSortedMap { lhs, rhs -> comparator(lhs, rhs)?.value ?: 0 }
 }
 
+fun Iterable<Duration>.sum(): Duration {
+    return this.fold(Duration.ZERO) { acc, duration -> acc + duration }
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T>.sum(): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
     for (element in this) {
+        sum += element
+    }
+    return sum
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> Iterable<T?>.sumOrNull(): T? where T : Arithmetic<T>, T : Plus<T, T> {
+    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    for (element in this) {
+        if (element == null) {
+            return null
+        }
         sum += element
     }
     return sum
@@ -1055,11 +1105,43 @@ inline fun <T, reified U> Iterable<T>.sumOf(
     return sum
 }
 
+inline fun <T, reified U> Iterable<T>.sumOfOrNull(
+    crossinline extractor: Extractor<U?, T>
+): U? where U : Arithmetic<U>, U : Plus<U, U> {
+    return this.sumOfOrNull(extractor) { null }
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <T, reified U> Iterable<T>.sumOfOrNull(
+    crossinline extractor: Extractor<U?, T>,
+    crossinline defaultValue: (T) -> U?
+): U? where U : Arithmetic<U>, U : Plus<U, U> {
+    var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
+    for (element in this) {
+        val value = element?.let { extractor(it) } ?: defaultValue(element)
+        if (value == null) {
+            return null
+        }
+        sum += value
+    }
+    return sum
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V>.sum(): V where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
     for (element in this) {
         sum += element.value
+    }
+    return sum
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <K, reified V> Map<K, V?>.sumOrNull(): V? where V : Arithmetic<V>, V : Plus<V, V> {
+    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    for (element in this) {
+        val value = element.value ?: return null
+        sum += value
     }
     return sum
 }
@@ -1075,10 +1157,44 @@ inline fun <K, V, reified T> Map<K, V>.sumOf(
     return sum
 }
 
+inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
+    crossinline extractor: Extractor<T?, Map.Entry<K, V>>
+): T? where T : Arithmetic<T>, T : Plus<T, T> {
+    return this.sumOfOrNull(extractor) { null }
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
+    crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
+    crossinline defaultValue: (Map.Entry<K, V>) -> T?
+): T? where T : Arithmetic<T>, T : Plus<T, T> {
+    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    for (element in this) {
+        val value = element.value?.let { extractor(element) } ?: defaultValue(element)
+        if (value == null) {
+            return null
+        }
+        sum += value
+    }
+    return sum
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T>.sum(): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
     for (element in this) {
+        sum += element
+    }
+    return sum
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> Sequence<T?>.sumOrNull(): T? where T : Arithmetic<T>, T : Plus<T, T> {
+    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    for (element in this) {
+        if (element == null) {
+            return null
+        }
         sum += element
     }
     return sum
@@ -1091,6 +1207,28 @@ inline fun <T, reified U> Sequence<T>.sumOf(
     var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
     for (element in this) {
         sum += extractor(element)
+    }
+    return sum
+}
+
+inline fun <T, reified U> Sequence<T>.sumOfOrNull(
+    crossinline extractor: Extractor<U?, T>
+): U? where U : Arithmetic<U>, U : Plus<U, U> {
+    return this.sumOfOrNull(extractor) { null }
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <T, reified U> Sequence<T>.sumOfOrNull(
+    crossinline extractor: Extractor<U?, T>,
+    crossinline defaultValue: (T) -> U? = { null }
+): U? where U : Arithmetic<U>, U : Plus<U, U> {
+    var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
+    for (element in this) {
+        val value = element?.let { extractor(it) } ?: defaultValue(element)
+        if (value == null) {
+            return null
+        }
+        sum += value
     }
     return sum
 }

@@ -23,7 +23,7 @@ interface MutationMode {
 
 data object StaticMutationMode : MutationMode {
     override fun invoke(population: Population, model: CallBackModelInterface): Flt64 {
-        return population.mutationRange.upperBound.toFlt64()
+        return population.mutationRange.upperBound.value.unwrap()
     }
 }
 
@@ -32,15 +32,15 @@ data object AdaptiveDynamicMutationMode : MutationMode {
         val (minFitness, maxFitness) = population.chromosomes
             .mapNotNull { it.fitness }
             .minMaxWithPartialThreeWayComparatorOrNull { lhs, rhs -> model.compareObjective(lhs, rhs) }
-            ?: return population.mutationRange.upperBound.toFlt64()
+            ?: return population.mutationRange.upperBound.value.unwrap()
         val x = abs(maxFitness - minFitness) / max(minFitness, maxFitness)
 
         return if (x ls Flt64.decimalPrecision) {
-            population.mutationRange.upperBound.toFlt64()
+            population.mutationRange.upperBound.value.unwrap()
         } else {
             return min(
-                population.mutationRange.lowerBound.toFlt64() * x,
-                population.mutationRange.upperBound.toFlt64()
+                population.mutationRange.lowerBound.value.unwrap() * x,
+                population.mutationRange.upperBound.value.unwrap()
             )
         }
     }

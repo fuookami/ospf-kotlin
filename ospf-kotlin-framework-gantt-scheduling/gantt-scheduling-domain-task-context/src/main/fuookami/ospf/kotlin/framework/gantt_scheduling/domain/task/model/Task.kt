@@ -121,7 +121,7 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
     val lastEndTime: Instant? get() = null
 
     val duration: Duration? get() = time?.duration
-    fun duration(executor: @UnsafeVariance E): Duration = duration!!
+    fun duration(executor: @UnsafeVariance E, time: Instant? = null): Duration = duration!!
 
     val minDuration: Duration? get() = null
     val maxDuration: Duration? get() = null
@@ -309,7 +309,7 @@ open class AbstractPlannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     override val lastEndTime: Instant? get() = plan.lastEndTime
 
     override val duration: Duration? by lazy { assignmentPolicy?.time?.duration ?: plan.duration }
-    override fun duration(executor: @UnsafeVariance E): Duration {
+    override fun duration(executor: @UnsafeVariance E, time: Instant?): Duration {
         return assignmentPolicy?.time?.duration ?: plan.duration(executor)
     }
 

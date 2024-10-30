@@ -78,11 +78,11 @@ open class CommonSAAPolicy<V>(
         }
         for (point in disturbancePoints) {
             val token = model.tokens[point]
-            val newValue = newSolution[point] + step * (token.upperBound - token.lowerBound) * randomGenerator()!!
-            newSolution[point] = if (newValue gr token.upperBound) {
-                token.upperBound
-            } else if (newValue ls token.lowerBound) {
-                token.lowerBound
+            val newValue = newSolution[point] + step * (token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()) * randomGenerator()!!
+            newSolution[point] = if (newValue gr token.upperBound!!.value.unwrap()) {
+                token.upperBound!!.value.unwrap()
+            } else if (newValue ls token.lowerBound!!.value.unwrap()) {
+                token.lowerBound!!.value.unwrap()
             } else {
                 newValue
             }

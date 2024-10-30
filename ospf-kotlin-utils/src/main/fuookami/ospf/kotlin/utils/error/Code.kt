@@ -36,6 +36,7 @@ enum class ErrorCode(private val code: UInt8) {
     ApplicationError(UInt8(0x31U)),
     ApplicationException(UInt8(0x32U)),
     ApplicationStopped(UInt8(0x33U)),
+    IllegalArgument(UInt8(0x34U)),
 
     Other(UInt8.maximum - UInt8.one),
     Unknown(UInt8.maximum);

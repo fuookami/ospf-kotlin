@@ -2,11 +2,12 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -66,9 +67,9 @@ class XorFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -80,14 +81,14 @@ class XorFunction(
     private val possibleRange
         get() = ValueRange(
             Flt64.zero,
-            if (polynomials.all { it.upperBound.toFlt64() eq Flt64.zero }
-                || polynomials.all { it.lowerBound.toFlt64() eq Flt64.one }
+            if (polynomials.all { it.upperBound!!.value.unwrap() eq Flt64.zero }
+                || polynomials.all { it.lowerBound!!.value.unwrap() eq Flt64.one }
             ) {
                 Flt64.zero
             } else {
                 Flt64.one
             }
-        )
+        ).value!!
 
     override fun flush(force: Boolean) {
         if (polynomials.size > 2) {
@@ -101,7 +102,7 @@ class XorFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -140,22 +141,14 @@ class XorFunction(
                 token._result = yValue
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-            }
+            tokenTable.cache(this, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
-            if (polynomial.lowerBound ls Flt64.zero) {
+            if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
             }
         }

@@ -30,7 +30,7 @@ class ConsumptionQuantityConstraint<
                 when (val overQuantity = consumption.overQuantity[material]) {
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
-                            overQuantity.polyX leq reserve.quantity.upperBound.toFlt64(),
+                            overQuantity.polyX leq reserve.quantity.upperBound.value.unwrap(),
                             "${name}_ub_$material"
                         )) {
                             is Ok -> {}
@@ -43,7 +43,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] leq reserve.quantity.upperBound.toFlt64(),
+                            consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap(),
                             "${name}_ub_$material"
                         )) {
                             is Ok -> {}
@@ -56,7 +56,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] leq reserve.quantity.upperBound.toFlt64(),
+                    consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap(),
                     "${name}_ub_$material"
                 )) {
                     is Ok -> {}
@@ -71,7 +71,7 @@ class ConsumptionQuantityConstraint<
                 when (val lessQuantity = consumption.lessQuantity[material]) {
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
-                            lessQuantity.polyX geq reserve.quantity.lowerBound.toFlt64(),
+                            lessQuantity.polyX geq reserve.quantity.lowerBound.value.unwrap(),
                             "${name}_lb_$material"
                         )) {
                             is Ok -> {}
@@ -84,7 +84,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] geq reserve.quantity.lowerBound.toFlt64(),
+                            consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap(),
                             "${name}_lb_$material"
                         )) {
                             is Ok -> {}
@@ -97,7 +97,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] geq reserve.quantity.lowerBound.toFlt64(),
+                    consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap(),
                     "${name}_lb_$material"
                 )) {
                     is Ok -> {}

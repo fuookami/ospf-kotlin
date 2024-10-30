@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.core.frontend.inequality
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
 
 class LinearInequality(
     override val lhs: AbstractLinearPolynomial<*>,
@@ -276,17 +278,199 @@ infix fun <T : RealNumber<T>> T.geq(rhs: AbstractVariableItem<*, *>): LinearIneq
     )
 }
 
+// quantity variable and quantity
+
+@JvmName("quantityVariableLsQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.ls(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.leq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableEqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.eq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableNeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.neq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGrQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.gr(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.geq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLsQuantityVariable")
+infix fun <T : RealNumber<T>> Quantity<T>.ls(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLeqQuantityVariable")
+infix fun <T : RealNumber<T>> Quantity<T>.leq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityEqQuantityVariable")
+infix fun <T : RealNumber<T>> Quantity<T>.eq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityNeqQuantityVariable")
+infix fun <T : RealNumber<T>> Quantity<T>.neq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGrQuantityVariable")
+infix fun <T : RealNumber<T>> Quantity<T>.gr(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGeqQuantityVariable")
+infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and constant
 
-infix fun LinearSymbol.ls(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: Int): LinearInequality {
     return this.ls(Flt64(rhs))
 }
 
-infix fun LinearSymbol.ls(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: Double): LinearInequality {
     return this.ls(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.ls(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.ls(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -294,15 +478,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.ls(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: Int): LinearInequality {
     return this.leq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.leq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: Double): LinearInequality {
     return this.leq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.leq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.leq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -310,15 +494,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.leq(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: Int): LinearInequality {
     return this.eq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.eq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: Double): LinearInequality {
     return this.eq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.eq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.eq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -326,15 +510,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.eq(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: Int): LinearInequality {
     return this.neq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.neq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: Double): LinearInequality {
     return this.neq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.neq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.neq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -342,15 +526,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.neq(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: Int): LinearInequality {
     return this.gr(Flt64(rhs))
 }
 
-infix fun LinearSymbol.gr(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: Double): LinearInequality {
     return this.gr(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.gr(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.gr(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -358,15 +542,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.gr(rhs: T): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: Int): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: Int): LinearInequality {
     return this.geq(Flt64(rhs))
 }
 
-infix fun LinearSymbol.geq(rhs: Double): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: Double): LinearInequality {
     return this.geq(Flt64(rhs))
 }
 
-infix fun <T : RealNumber<T>> LinearSymbol.geq(rhs: T): LinearInequality {
+infix fun <T : RealNumber<T>> LinearIntermediateSymbol.geq(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
@@ -374,15 +558,15 @@ infix fun <T : RealNumber<T>> LinearSymbol.geq(rhs: T): LinearInequality {
     )
 }
 
-infix fun Int.ls(rhs: LinearSymbol): LinearInequality {
+infix fun Int.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).ls(rhs)
 }
 
-infix fun Double.ls(rhs: LinearSymbol): LinearInequality {
+infix fun Double.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).ls(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.ls(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -390,15 +574,15 @@ infix fun <T : RealNumber<T>> T.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.leq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).leq(rhs)
 }
 
-infix fun Double.leq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).leq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.leq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -406,15 +590,15 @@ infix fun <T : RealNumber<T>> T.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.eq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).eq(rhs)
 }
 
-infix fun Double.eq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).eq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.eq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -422,15 +606,15 @@ infix fun <T : RealNumber<T>> T.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.neq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).neq(rhs)
 }
 
-infix fun Double.neq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).neq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.neq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -438,15 +622,15 @@ infix fun <T : RealNumber<T>> T.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.gr(rhs: LinearSymbol): LinearInequality {
+infix fun Int.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).gr(rhs)
 }
 
-infix fun Double.gr(rhs: LinearSymbol): LinearInequality {
+infix fun Double.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).gr(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.gr(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
@@ -454,20 +638,202 @@ infix fun <T : RealNumber<T>> T.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun Int.geq(rhs: LinearSymbol): LinearInequality {
+infix fun Int.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).geq(rhs)
 }
 
-infix fun Double.geq(rhs: LinearSymbol): LinearInequality {
+infix fun Double.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).geq(rhs)
 }
 
-infix fun <T : RealNumber<T>> T.geq(rhs: LinearSymbol): LinearInequality {
+infix fun <T : RealNumber<T>> T.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.toFlt64()),
         LinearPolynomial(rhs),
         Sign.GreaterEqual
     )
+}
+
+// quantity symbol and quantity
+
+@JvmName("quantitySymbolLsQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.ls(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolLeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.leq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolEqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.eq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolNeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.neq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolGrQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.gr(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantitySymbolGeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.geq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLsQuantitySymbol")
+infix fun <T : RealNumber<T>> Quantity<T>.ls(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLeqQuantitySymbol")
+infix fun <T : RealNumber<T>> Quantity<T>.leq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityEqQuantitySymbol")
+infix fun <T : RealNumber<T>> Quantity<T>.eq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityNeqQuantitySymbol")
+infix fun <T : RealNumber<T>> Quantity<T>.neq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGrQuantitySymbol")
+infix fun <T : RealNumber<T>> Quantity<T>.gr(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGeqQuantitySymbol")
+infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and constant
@@ -664,6 +1030,188 @@ infix fun <T : RealNumber<T>> T.geq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
+// quantity monomial and quantity
+
+@JvmName("quantityMonomialLsQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearMonomial>.ls(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialLeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearMonomial>.leq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialEqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearMonomial>.eq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialNeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearMonomial>.neq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialGrQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearMonomial>.gr(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityMonomialGeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<LinearMonomial>.geq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLsQuantityMonomial")
+infix fun <T : RealNumber<T>> Quantity<T>.ls(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLeqQuantityMonomial")
+infix fun <T : RealNumber<T>> Quantity<T>.leq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityEqQuantityMonomial")
+infix fun <T : RealNumber<T>> Quantity<T>.eq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityNeqQuantityMonomial")
+infix fun <T : RealNumber<T>> Quantity<T>.neq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGrQuantityMonomial")
+infix fun <T : RealNumber<T>> Quantity<T>.gr(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGeqQuantityMonomial")
+infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and constant
 
 infix fun AbstractLinearPolynomial<*>.ls(rhs: Int): LinearInequality {
@@ -858,6 +1406,188 @@ infix fun <T : RealNumber<T>> T.geq(rhs: AbstractLinearPolynomial<*>): LinearIne
     )
 }
 
+// quantity polynomial and quantity
+
+@JvmName("quantityPolynomialLsQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.ls(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialLeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.leq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialEqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.eq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialNeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.neq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialGrQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.gr(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityPolynomialGeqQuantity")
+infix fun <T : RealNumber<T>> Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<T>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.toFlt64().to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLsQuantityPolynomial")
+infix fun <T : RealNumber<T>> Quantity<T>.ls(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLeqQuantityPolynomial")
+infix fun <T : RealNumber<T>> Quantity<T>.leq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityEqQuantityPolynomial")
+infix fun <T : RealNumber<T>> Quantity<T>.eq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityNeqQuantityPolynomial")
+infix fun <T : RealNumber<T>> Quantity<T>.neq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGrQuantityPolynomial")
+infix fun <T : RealNumber<T>> Quantity<T>.gr(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityGeqQuantityPolynomial")
+infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.toFlt64().to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // variable and variable
 
 infix fun AbstractVariableItem<*, *>.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
@@ -908,9 +1638,101 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractVariableItem<*, *>): Linea
     )
 }
 
+// quantity variable and quantity variable
+
+@JvmName("quantityVariableLsQuantityVariable")
+infix fun Quantity<AbstractVariableItem<*, *>>.ls(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLeqQuantityVariable")
+infix fun Quantity<AbstractVariableItem<*, *>>.leq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableEqQuantityVariable")
+infix fun Quantity<AbstractVariableItem<*, *>>.eq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableNeqQuantityVariable")
+infix fun Quantity<AbstractVariableItem<*, *>>.neq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGrQuantityVariable")
+infix fun Quantity<AbstractVariableItem<*, *>>.gr(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGeqQuantityVariable")
+infix fun Quantity<AbstractVariableItem<*, *>>.geq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and variable
 
-infix fun LinearSymbol.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -918,7 +1740,7 @@ infix fun LinearSymbol.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -926,7 +1748,7 @@ infix fun LinearSymbol.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -934,7 +1756,7 @@ infix fun LinearSymbol.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -942,7 +1764,7 @@ infix fun LinearSymbol.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -950,7 +1772,7 @@ infix fun LinearSymbol.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -958,7 +1780,7 @@ infix fun LinearSymbol.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.ls(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -966,7 +1788,7 @@ infix fun AbstractVariableItem<*, *>.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.leq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -974,7 +1796,7 @@ infix fun AbstractVariableItem<*, *>.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.eq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -982,7 +1804,7 @@ infix fun AbstractVariableItem<*, *>.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.neq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -990,7 +1812,7 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.gr(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -998,12 +1820,194 @@ infix fun AbstractVariableItem<*, *>.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractVariableItem<*, *>.geq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractVariableItem<*, *>.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
         Sign.GreaterEqual
     )
+}
+
+// quantity symbol and quantity variable
+
+@JvmName("quantityLinearSymbolLsQuantityVariable")
+infix fun Quantity<LinearIntermediateSymbol>.ls(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolLeqQuantityVariable")
+infix fun Quantity<LinearIntermediateSymbol>.leq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolEqQuantityVariable")
+infix fun Quantity<LinearIntermediateSymbol>.eq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolNeqQuantityVariable")
+infix fun Quantity<LinearIntermediateSymbol>.neq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGrQuantityVariable")
+infix fun Quantity<LinearIntermediateSymbol>.gr(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGeqQuantityVariable")
+infix fun Quantity<LinearIntermediateSymbol>.geq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLsQuantityLinearSymbol")
+infix fun Quantity<AbstractVariableItem<*, *>>.ls(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLeqQuantityLinearSymbol")
+infix fun Quantity<AbstractVariableItem<*, *>>.leq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableEqQuantityLinearSymbol")
+infix fun Quantity<AbstractVariableItem<*, *>>.eq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableNeqQuantityLinearSymbol")
+infix fun Quantity<AbstractVariableItem<*, *>>.neq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGrQuantityLinearSymbol")
+infix fun Quantity<AbstractVariableItem<*, *>>.gr(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGeqQuantityLinearSymbol")
+infix fun Quantity<AbstractVariableItem<*, *>>.geq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and variable
@@ -1104,6 +2108,188 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: LinearMonomial): LinearInequality 
     )
 }
 
+// quantity monomial and quantity variable
+
+@JvmName("quantityLinearMonomialLsQuantityVariable")
+infix fun Quantity<LinearMonomial>.ls(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialLeqQuantityVariable")
+infix fun Quantity<LinearMonomial>.leq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("QuantityLinearMonomialEqQuantityVariable")
+infix fun Quantity<LinearMonomial>.eq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialNeqQuantityVariable")
+infix fun Quantity<LinearMonomial>.neq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGrQuantityVariable")
+infix fun Quantity<LinearMonomial>.gr(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGeqQuantityVariable")
+infix fun Quantity<LinearMonomial>.geq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLsQuantityLinearMonomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.ls(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLeqQuantityLinearMonomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.leq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableEqQuantityLinearMonomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.eq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableNeqQuantityLinearMonomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.neq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGrQuantityLinearMonomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.gr(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGeqQuantityLinearMonomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.geq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and variable
 
 infix fun AbstractLinearPolynomial<*>.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
@@ -1202,9 +2388,191 @@ infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractLinearPolynomial<*>): Line
     )
 }
 
+// quantity polynomial and quantity variable
+
+@JvmName("quantityLinearPolynomialLsQuantityVariable")
+infix fun Quantity<AbstractLinearPolynomial<*>>.ls(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialLeqQuantityVariable")
+infix fun Quantity<AbstractLinearPolynomial<*>>.leq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialEqQuantityVariable")
+infix fun Quantity<AbstractLinearPolynomial<*>>.eq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialNeqQuantityVariable")
+infix fun Quantity<AbstractLinearPolynomial<*>>.neq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGrQuantityVariable")
+infix fun Quantity<AbstractLinearPolynomial<*>>.gr(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGeqQuantityVariable")
+infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<AbstractVariableItem<*, *>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLsQuantityLinearPolynomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.ls(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value ls rhs.value
+        } else {
+            this.value ls rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableLeqQuantityLinearPolynomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.leq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value leq rhs.value
+        } else {
+            this.value leq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableEqQuantityLinearPolynomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.eq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value eq rhs.value
+        } else {
+            this.value eq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableNeqQuantityLinearPolynomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.neq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value neq rhs.value
+        } else {
+            this.value neq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGrQuantityLinearPolynomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.gr(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value gr rhs.value
+        } else {
+            this.value gr rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityVariableGeqQuantityLinearPolynomial")
+infix fun Quantity<AbstractVariableItem<*, *>>.geq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.to(this.unit)!!.value geq rhs.value
+        } else {
+            this.value geq rhs.to(this.unit)!!.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // symbol and symbol
 
-infix fun LinearSymbol.ls(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1212,7 +2580,7 @@ infix fun LinearSymbol.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1220,7 +2588,7 @@ infix fun LinearSymbol.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1228,7 +2596,7 @@ infix fun LinearSymbol.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1236,7 +2604,7 @@ infix fun LinearSymbol.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
@@ -1244,17 +2612,109 @@ infix fun LinearSymbol.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs),
         Sign.GreaterEqual
     )
+}
+
+// quantity symbol and quantity symbol
+
+@JvmName("quantityLinearSymbolLsQuantityLinearSymbol")
+infix fun Quantity<LinearIntermediateSymbol>.ls(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolLeqQuantityLinearSymbol")
+infix fun Quantity<LinearIntermediateSymbol>.leq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolEqQuantityLinearSymbol")
+infix fun Quantity<LinearIntermediateSymbol>.eq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolNeqQuantityLinearSymbol")
+infix fun Quantity<LinearIntermediateSymbol>.neq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGrQuantityLinearSymbol")
+infix fun Quantity<LinearIntermediateSymbol>.gr(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGeqQuantityLinearSymbol")
+infix fun Quantity<LinearIntermediateSymbol>.geq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and symbol
 
-infix fun LinearMonomial.ls(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1262,7 +2722,7 @@ infix fun LinearMonomial.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.leq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1270,7 +2730,7 @@ infix fun LinearMonomial.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.eq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1278,7 +2738,7 @@ infix fun LinearMonomial.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.neq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1286,7 +2746,7 @@ infix fun LinearMonomial.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.gr(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1294,7 +2754,7 @@ infix fun LinearMonomial.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearMonomial.geq(rhs: LinearSymbol): LinearInequality {
+infix fun LinearMonomial.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this.copy()),
         LinearPolynomial(rhs),
@@ -1302,7 +2762,7 @@ infix fun LinearMonomial.geq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.ls(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1310,7 +2770,7 @@ infix fun LinearSymbol.ls(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1318,7 +2778,7 @@ infix fun LinearSymbol.leq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1326,7 +2786,7 @@ infix fun LinearSymbol.eq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1334,7 +2794,7 @@ infix fun LinearSymbol.neq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
@@ -1342,17 +2802,199 @@ infix fun LinearSymbol.gr(rhs: LinearMonomial): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: LinearMonomial): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: LinearMonomial): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.copy()),
         Sign.GreaterEqual
     )
+}
+
+// quantity monomial and quantity symbol
+
+@JvmName("quantityLinearMonomialLsQuantityLinearSymbol")
+infix fun Quantity<LinearMonomial>.ls(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialLeqQuantityLinearSymbol")
+infix fun Quantity<LinearMonomial>.leq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialEqQuantityLinearSymbol")
+infix fun Quantity<LinearMonomial>.eq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialNeqQuantityLinearSymbol")
+infix fun Quantity<LinearMonomial>.neq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGrQuantityLinearSymbol")
+infix fun Quantity<LinearMonomial>.gr(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGeqQuantityLinearSymbol")
+infix fun Quantity<LinearMonomial>.geq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolLsQuantityLinearMonomial")
+infix fun Quantity<LinearIntermediateSymbol>.ls(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolLeqQuantityLinearMonomial")
+infix fun Quantity<LinearIntermediateSymbol>.leq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolEqQuantityLinearMonomial")
+infix fun Quantity<LinearIntermediateSymbol>.eq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolNeqQuantityLinearMonomial")
+infix fun Quantity<LinearIntermediateSymbol>.neq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGrQuantityLinearMonomial")
+infix fun Quantity<LinearIntermediateSymbol>.gr(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGeqQuantityLinearMonomial")
+infix fun Quantity<LinearIntermediateSymbol>.geq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // polynomial and symbol
 
-infix fun AbstractLinearPolynomial<*>.ls(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1360,7 +3002,7 @@ infix fun AbstractLinearPolynomial<*>.ls(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.leq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.leq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1368,7 +3010,7 @@ infix fun AbstractLinearPolynomial<*>.leq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.eq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1376,7 +3018,7 @@ infix fun AbstractLinearPolynomial<*>.eq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.neq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.neq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1384,7 +3026,7 @@ infix fun AbstractLinearPolynomial<*>.neq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.gr(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1392,7 +3034,7 @@ infix fun AbstractLinearPolynomial<*>.gr(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun AbstractLinearPolynomial<*>.geq(rhs: LinearSymbol): LinearInequality {
+infix fun AbstractLinearPolynomial<*>.geq(rhs: LinearIntermediateSymbol): LinearInequality {
     return LinearInequality(
         this.copy(),
         LinearPolynomial(rhs),
@@ -1400,7 +3042,7 @@ infix fun AbstractLinearPolynomial<*>.geq(rhs: LinearSymbol): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1408,7 +3050,7 @@ infix fun LinearSymbol.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1416,7 +3058,7 @@ infix fun LinearSymbol.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1424,7 +3066,7 @@ infix fun LinearSymbol.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1432,7 +3074,7 @@ infix fun LinearSymbol.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
@@ -1440,12 +3082,194 @@ infix fun LinearSymbol.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     )
 }
 
-infix fun LinearSymbol.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+infix fun LinearIntermediateSymbol.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         rhs.copy(),
         Sign.GreaterEqual
     )
+}
+
+// quantity polynomial and quantity symbol
+
+@JvmName("quantityLinearPolynomialLsQuantityLinearSymbol")
+infix fun Quantity<AbstractLinearPolynomial<*>>.ls(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialLeqQuantityLinearSymbol")
+infix fun Quantity<AbstractLinearPolynomial<*>>.leq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialEqQuantityLinearSymbol")
+infix fun Quantity<AbstractLinearPolynomial<*>>.eq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialNeqQuantityLinearSymbol")
+infix fun Quantity<AbstractLinearPolynomial<*>>.neq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGrQuantityLinearSymbol")
+infix fun Quantity<AbstractLinearPolynomial<*>>.gr(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGeqQuantityLinearSymbol")
+infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<LinearIntermediateSymbol>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolLsQuantityLinearPolynomial")
+infix fun Quantity<LinearIntermediateSymbol>.ls(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolLeqQuantityLinearPolynomial")
+infix fun Quantity<LinearIntermediateSymbol>.leq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolEqQuantityLinearPolynomial")
+infix fun Quantity<LinearIntermediateSymbol>.eq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolNeqQuantityLinearPolynomial")
+infix fun Quantity<LinearIntermediateSymbol>.neq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGrQuantityLinearPolynomial")
+infix fun Quantity<LinearIntermediateSymbol>.gr(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearSymbolGeqQuantityLinearPolynomial")
+infix fun Quantity<LinearIntermediateSymbol>.geq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // monomial and monomial
@@ -1496,6 +3320,98 @@ infix fun LinearMonomial.geq(rhs: LinearMonomial): LinearInequality {
         LinearPolynomial(rhs.copy()),
         Sign.GreaterEqual
     )
+}
+
+// quantity monomial and quantity monomial
+
+@JvmName("quantityLinearMonomialLsQuantityLinearMonomial")
+infix fun Quantity<LinearMonomial>.ls(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialLeqQuantityLinearMonomial")
+infix fun Quantity<LinearMonomial>.leq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialEqQuantityLinearMonomial")
+infix fun Quantity<LinearMonomial>.eq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialNeqQuantityLinearMonomial")
+infix fun Quantity<LinearMonomial>.neq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGrQuantityLinearMonomial")
+infix fun Quantity<LinearMonomial>.gr(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGeqQuantityLinearMonomial")
+infix fun Quantity<LinearMonomial>.geq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }
 
 // polynomial and monomial
@@ -1596,6 +3512,188 @@ infix fun LinearMonomial.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality
     )
 }
 
+// quantity polynomial and quantity monomial
+
+@JvmName("quantityLinearPolynomialLsQuantityLinearMonomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.ls(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialLeqQuantityLinearMonomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.leq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialEqQuantityLinearMonomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.eq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialNeqQuantityLinearMonomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.neq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGrQuantityLinearMonomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.gr(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGeqQuantityLinearMonomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<LinearMonomial>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialLsQuantityLinearPolynomial")
+infix fun Quantity<LinearMonomial>.ls(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialLeqQuantityLinearPolynomial")
+infix fun Quantity<LinearMonomial>.leq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialEqQuantityLinearPolynomial")
+infix fun Quantity<LinearMonomial>.eq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialNeqQuantityLinearPolynomial")
+infix fun Quantity<LinearMonomial>.neq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGrQuantityLinearPolynomial")
+infix fun Quantity<LinearMonomial>.gr(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearMonomialGeqQuantityLinearPolynomial")
+infix fun Quantity<LinearMonomial>.geq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
 // polynomial and polynomial
 
 infix fun AbstractLinearPolynomial<*>.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
@@ -1644,4 +3742,96 @@ infix fun AbstractLinearPolynomial<*>.geq(rhs: AbstractLinearPolynomial<*>): Lin
         rhs.copy(),
         Sign.GreaterEqual
     )
+}
+
+// quantity polynomial and quantity polynomial
+
+@JvmName("quantityLinearPolynomialLsQuantityLinearPolynomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.ls(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value ls rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value ls rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value ls rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialLeqQuantityLinearPolynomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.leq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value leq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value leq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value leq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialEqQuantityLinearPolynomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.eq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value eq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value eq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value eq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialNeqQuantityLinearPolynomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.neq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value neq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value neq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value neq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGrQuantityLinearPolynomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.gr(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value gr rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value gr rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value gr rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
+}
+
+@JvmName("quantityLinearPolynomialGeqQuantityLinearPolynomial")
+infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<AbstractLinearPolynomial<*>>): LinearInequality {
+    return if (this.unit == rhs.unit) {
+        this.value geq rhs.value
+    } else if (this.unit.quantity == rhs.unit.quantity) {
+        if (this.unit.scale.value leq rhs.unit.scale.value) {
+            this.value geq rhs.to(this.unit)!!.value
+        } else {
+            this.to(rhs.unit)!!.value geq rhs.value
+        }
+    } else {
+        TODO("not implemented yet")
+    }
 }

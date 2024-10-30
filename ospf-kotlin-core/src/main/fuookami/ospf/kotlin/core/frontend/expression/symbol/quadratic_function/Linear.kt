@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -26,7 +26,7 @@ class LinearFunction(
             polynomial.copy()
         } else {
             val polyY = QuadraticPolynomial(y)
-            polyY.range.set(polynomial.range.valueRange)
+            polyY.range.set(polynomial.range.valueRange!!)
             polyY
         }
     }
@@ -39,43 +39,35 @@ class LinearFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol> get() = polynomial.dependencies
+    override val dependencies: Set<IntermediateSymbol> get() = polynomial.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
 
     override fun flush(force: Boolean) {
         polynomial.flush(force)
         polyY.flush(force)
-        y.range.set(polynomial.range.valueRange)
-        polyY.range.set(polynomial.range.valueRange)
+        y.range.set(polynomial.range.valueRange!!)
+        polyY.range.set(polynomial.range.valueRange!!)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         polynomial.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             polynomial.value(tokenTable)?.let { yValue ->
-                if (polynomial.category == Linear) {
+                if (polynomial.category != Linear) {
                     logger.trace { "Setting LinearFunction ${name}.y initial solution: $yValue" }
                     tokenTable.find(y)?.let { token ->
                         token._result = yValue
                     }
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
-                }
+                tokenTable.cache(this, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (polynomial.category != Linear) {
             when (val result = tokenTable.add(y)) {
                 is Ok -> {}

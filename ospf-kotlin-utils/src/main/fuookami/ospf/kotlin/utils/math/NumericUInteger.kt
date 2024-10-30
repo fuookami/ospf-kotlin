@@ -29,6 +29,7 @@ abstract class NumericUIntegerConstants<Self, I>(
     override val one: Self get() = ctor(constants.one)
     override val two: Self get() = ctor(constants.two)
     override val three: Self get() = ctor(constants.three)
+    override val five: Self get() = ctor(constants.five)
     override val ten: Self get() = ctor(constants.ten)
     override val minimum: Self get() = ctor(constants.minimum)
     override val maximum: Self get() = ctor(constants.maximum)

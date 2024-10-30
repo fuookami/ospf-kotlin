@@ -29,7 +29,7 @@ data object StaticSelectionMode : SelectionMode {
         population: Population,
         model: CallBackModelInterface
     ): UInt64 {
-        return population.densityRange.lowerBound.unwrap()
+        return population.densityRange.lowerBound.value.unwrap()
     }
 }
 
@@ -39,16 +39,16 @@ data object AdaptiveDynamicSelectionMode : SelectionMode {
         model: CallBackModelInterface
     ): UInt64 {
         val fitnessParameter = calculateFitnessParameter(population, model)
-            ?: return population.densityRange.lowerBound.unwrap()
+            ?: return population.densityRange.lowerBound.value.unwrap()
         val densityParameter = calculateDensityParameter(population)
         val density = (Flt64(population.chromosomes.size) * fitnessParameter * densityParameter).ceil().toUInt64()
 
-        return if (density > population.densityRange.upperBound.unwrap()) {
-            population.densityRange.upperBound.unwrap()
-        } else if (density < population.densityRange.lowerBound.unwrap()) {
-            density * (population.densityRange.upperBound.unwrap() / density + UInt64.one)
+        return if (density > population.densityRange.upperBound.value.unwrap()) {
+            population.densityRange.upperBound.value.unwrap()
+        } else if (density < population.densityRange.lowerBound.value.unwrap()) {
+            density * (population.densityRange.upperBound.value.unwrap() / density + UInt64.one)
         } else {
-            density / (density / population.densityRange.lowerBound.unwrap() + UInt64.one)
+            density / (density / population.densityRange.lowerBound.value.unwrap() + UInt64.one)
         }
     }
 
@@ -75,8 +75,8 @@ data object AdaptiveDynamicSelectionMode : SelectionMode {
     }
 
     private fun calculateDensityParameter(population: Population): Flt64 {
-        val a = population.densityRange.upperBound.unwrap().toFlt64()
-        val b = population.densityRange.lowerBound.unwrap().toFlt64()
+        val a = population.densityRange.upperBound.value.unwrap().toFlt64()
+        val b = population.densityRange.lowerBound.value.unwrap().toFlt64()
         return if (UInt64(population.density) < ((b + Flt64.three * a) / Flt64(4)).ceil().toUInt64()) {
             Flt64.one
         } else if (UInt64(population.density) > ((Flt64.three * b + a) / Flt64(4)).ceil().toUInt64()) {

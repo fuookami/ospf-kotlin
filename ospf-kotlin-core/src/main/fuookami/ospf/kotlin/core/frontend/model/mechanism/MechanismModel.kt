@@ -39,16 +39,16 @@ interface SingleObjectMechanismModel : MechanismModel {
 }
 
 class LinearMechanismModel(
-    private val parent: LinearMetaModel,
+    internal val parent: LinearMetaModel,
     override var name: String,
     private val _constraints: MutableList<LinearConstraint>,
     override val objectFunction: SingleObject,
-    override val tokens: TokenTable
+    override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
     companion object {
         private val logger = logger()
 
-        suspend operator fun invoke(metaModel: LinearMetaModel): Ret<LinearMechanismModel> {
+        suspend operator fun invoke(metaModel: LinearMetaModel, concurrent: Boolean? = null): Ret<LinearMechanismModel> {
             logger.info { "Creating LinearMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
@@ -63,28 +63,47 @@ class LinearMechanismModel(
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
-            val model = coroutineScope {
-                val constraints = metaModel._constraints.map {
-                    async(Dispatchers.Default) {
-                        LinearConstraint(it, tokens)
+            val model = if (concurrent ?: metaModel.concurrent) {
+                coroutineScope {
+                    val constraints = metaModel._constraints.map {
+                        async(Dispatchers.Default) {
+                            LinearConstraint(it, tokens)
+                        }
                     }
+                    val subObjects = metaModel._subObjects.map {
+                        async(Dispatchers.Default) {
+                            LinearSubObject(
+                                it.category,
+                                it.polynomial,
+                                tokens,
+                                it.name
+                            )
+                        }
+                    }
+
+                    LinearMechanismModel(
+                        metaModel,
+                        metaModel.name,
+                        constraints.map { it.await() }.toMutableList(),
+                        SingleObject(metaModel.objectCategory, subObjects.map { it.await() }),
+                        tokens
+                    )
                 }
-                val subObjects = metaModel._subObjects.map {
-                    async(Dispatchers.Default) {
+            } else {
+                LinearMechanismModel(
+                    metaModel,
+                    metaModel.name,
+                    metaModel._constraints.map {
+                        LinearConstraint(it, tokens)
+                    }.toMutableList(),
+                    SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
                             it.category,
                             it.polynomial,
                             tokens,
                             it.name
                         )
-                    }
-                }
-
-                LinearMechanismModel(
-                    metaModel,
-                    metaModel.name,
-                    constraints.map { it.await() }.toMutableList(),
-                    SingleObject(metaModel.objectCategory, subObjects.map { it.await() }),
+                    }),
                     tokens
                 )
             }
@@ -96,23 +115,42 @@ class LinearMechanismModel(
             logger.trace { "Symbols registered for $metaModel" }
 
             logger.info { "LinearMechanismModel created for $metaModel" }
+            System.gc()
             return Ok(model)
         }
 
-        private suspend fun unfold(tokens: MutableTokenTable): Ret<TokenTable> {
-            val temp = tokens.copy()
-            return when (val result = tokens.symbols.register(temp)) {
-                is Ok -> {
-                    Ok(TokenTable(temp))
+        private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
+            return when (tokens) {
+                is MutableTokenTable -> {
+                   val temp = tokens.copy() as MutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(TokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
 
-                is Failed -> {
-                    Failed(result.error)
+                is ConcurrentMutableTokenTable -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(ConcurrentTokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
             }
         }
     }
 
+    internal val concurrent by parent::concurrent
     override val constraints by ::_constraints
 
     override fun addConstraint(
@@ -130,15 +168,20 @@ class LinearMechanismModel(
 }
 
 class QuadraticMechanismModel(
-    private val parent: QuadraticMetaModel,
+    internal val parent: QuadraticMetaModel,
     override var name: String,
     private val _constraints: MutableList<QuadraticConstraint>,
     override val objectFunction: SingleObject,
-    override val tokens: TokenTable
+    override val tokens: AbstractTokenTable
 ) : AbstractQuadraticMechanismModel, SingleObjectMechanismModel {
     companion object {
-        suspend operator fun invoke(metaMechanismModel: QuadraticMetaModel): Ret<QuadraticMechanismModel> {
-            val tokens = when (val result = unfold(metaMechanismModel.tokens)) {
+        private val logger = logger()
+
+        suspend operator fun invoke(metaModel: QuadraticMetaModel, concurrent: Boolean? = null): Ret<QuadraticMechanismModel> {
+            logger.info { "Creating QuadraticMechanismModel for $metaModel" }
+
+            logger.trace { "Unfolding tokens for $metaModel" }
+            val tokens = when (val result = unfold(metaModel.tokens)) {
                 is Ok -> {
                     result.value
                 }
@@ -147,55 +190,97 @@ class QuadraticMechanismModel(
                     return Failed(result.error)
                 }
             }
+            logger.trace { "Tokens unfolded for $metaModel" }
 
-            val model = coroutineScope {
-                val constraints = metaMechanismModel._constraints.map {
-                    async(Dispatchers.Default) {
-                        QuadraticConstraint(it, tokens)
+            val model = if (concurrent ?: metaModel.concurrent) {
+                coroutineScope {
+                    val constraints = metaModel._constraints.map {
+                        async(Dispatchers.Default) {
+                            QuadraticConstraint(it, tokens)
+                        }
                     }
+                    val subObjects = metaModel._subObjects.map {
+                        async(Dispatchers.Default) {
+                            QuadraticSubObject(
+                                it.category,
+                                it.polynomial,
+                                tokens,
+                                it.name
+                            )
+                        }
+                    }
+
+                    QuadraticMechanismModel(
+                        metaModel,
+                        metaModel.name,
+                        constraints.map { it.await() }.toMutableList(),
+                        SingleObject(metaModel.objectCategory, subObjects.map { it.await() }),
+                        tokens
+                    )
                 }
-                val subObjects = metaMechanismModel._subObjects.map {
-                    async(Dispatchers.Default) {
+            } else {
+                QuadraticMechanismModel(
+                    metaModel,
+                    metaModel.name,
+                    metaModel._constraints.map {
+                        QuadraticConstraint(it, tokens)
+                    }.toMutableList(),
+                    SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
                             it.category,
                             it.polynomial,
                             tokens,
                             it.name
                         )
-                    }
-                }
-
-                QuadraticMechanismModel(
-                    metaMechanismModel,
-                    metaMechanismModel.name,
-                    constraints.map { it.await() }.toMutableList(),
-                    SingleObject(metaMechanismModel.objectCategory, subObjects.map { it.await() }),
+                    }),
                     tokens
                 )
             }
 
+            logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
                 (symbol as? LinearFunctionSymbol)?.register(model)
                 (symbol as? QuadraticFunctionSymbol)?.register(model)
             }
+            logger.trace { "Symbols registered for $metaModel" }
 
+            logger.info { "QuadraticMechanismModel created for $metaModel" }
+            System.gc()
             return Ok(model)
         }
 
-        private suspend fun unfold(tokens: MutableTokenTable): Ret<TokenTable> {
-            val temp = tokens.copy()
-            return when (val result = tokens.symbols.register(temp)) {
-                is Ok -> {
-                    Ok(TokenTable(temp))
+        private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
+            return when (tokens) {
+                is MutableTokenTable -> {
+                    val temp = tokens.copy() as MutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(TokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
 
-                is Failed -> {
-                    Failed(result.error)
+                is ConcurrentMutableTokenTable -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                    when (val result = tokens.symbols.register(temp)) {
+                        is Ok -> {
+                            Ok(ConcurrentTokenTable(temp))
+                        }
+
+                        is Failed -> {
+                            Failed(result.error)
+                        }
+                    }
                 }
             }
         }
     }
 
+    internal val concurrent by parent::concurrent
     override val constraints by ::_constraints
 
     override fun addConstraint(

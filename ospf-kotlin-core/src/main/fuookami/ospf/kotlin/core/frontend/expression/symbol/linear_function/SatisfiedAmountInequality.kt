@@ -2,10 +2,11 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -57,9 +58,9 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (inequality in inequalities) {
                 dependencies.addAll(inequality.lhs.dependencies)
                 dependencies.addAll(inequality.rhs.dependencies)
@@ -73,9 +74,9 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         get() {
             // todo: impl by Inequality.judge()
             return if (amount != null) {
-                ValueRange(Flt64.zero, Flt64.one)
+                ValueRange(Flt64.zero, Flt64.one).value!!
             } else {
-                ValueRange(Flt64.zero, Flt64(inequalities.size))
+                ValueRange(Flt64.zero, Flt64(inequalities.size)).value!!
             }
         }
 
@@ -87,7 +88,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
@@ -117,19 +118,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 Flt64(count)
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-            }
+            tokenTable.cache(this, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 
@@ -165,7 +158,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         if (amount != null) {
             if (!constraint) {
                 when (val result = model.addConstraint(
-                    sum(u) geq amount!!.lowerBound.toFlt64() - UInt64(inequalities.size) * (Flt64.one - y),
+                    sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
                     "${name}_lb"
                 )) {
                     is Ok -> {}
@@ -176,7 +169,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    sum(u) leq amount!!.upperBound.toFlt64() + UInt64(inequalities.size) * (Flt64.one - y),
+                    sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
                     "${name}_ub"
                 )) {
                     is Ok -> {}
@@ -187,7 +180,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    sum(u) geq amount!!.lowerBound.toFlt64(),
+                    sum(u) geq amount!!.lowerBound.value.unwrap(),
                     "${name}_lb"
                 )) {
                     is Ok -> {}
@@ -198,7 +191,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    sum(u) leq amount!!.upperBound.toFlt64(),
+                    sum(u) leq amount!!.upperBound.value.unwrap(),
                     "${name}_ub"
                 )) {
                     is Ok -> {}
@@ -305,7 +298,7 @@ open class AnyFunction(
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(inequalities, name = name, displayName = displayName),
     LinearLogicFunctionSymbol {
-    override val amount: ValueRange<UInt64> = ValueRange(UInt64.one, UInt64(inequalities.size))
+    override val amount: ValueRange<UInt64> = ValueRange(UInt64.one, UInt64(inequalities.size)).value!!
 
     override fun toRawString(unfold: Boolean): String {
         return "any(${inequalities.joinToString(", ") { it.toRawString(unfold) }})"
@@ -325,7 +318,7 @@ class NotAllFunction(
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(inequalities, name = name, displayName = displayName),
     LinearLogicFunctionSymbol {
-    override val amount: ValueRange<UInt64> = ValueRange(UInt64.one, UInt64(inequalities.size - 1))
+    override val amount: ValueRange<UInt64> = ValueRange(UInt64.one, UInt64(inequalities.size - 1)).value!!
 
     override fun toRawString(unfold: Boolean): String {
         return "for_all(${inequalities.joinToString(", ") { it.toRawString(unfold) }})"
@@ -339,7 +332,7 @@ class AllFunction(
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(inequalities, name = name, displayName = displayName),
     LinearLogicFunctionSymbol {
-    override val amount: ValueRange<UInt64> = ValueRange(UInt64(inequalities.size), UInt64(inequalities.size))
+    override val amount: ValueRange<UInt64> = ValueRange(UInt64(inequalities.size), UInt64(inequalities.size)).value!!
 
     override fun toRawString(unfold: Boolean): String {
         return "for_all(${inequalities.joinToString(", ") { it.toRawString(unfold) }})"
@@ -364,7 +357,7 @@ class AtLeastInequalityFunction(
         assert(UInt64(inequalities.size) geq amount)
     }
 
-    override val amount: ValueRange<UInt64> = ValueRange(amount, UInt64(inequalities.size))
+    override val amount: ValueRange<UInt64> = ValueRange(amount, UInt64(inequalities.size)).value!!
 
     override fun toRawString(unfold: Boolean): String {
         return "at_least_${amount}(${inequalities.joinToString(", ") { it.toRawString(unfold) }})"

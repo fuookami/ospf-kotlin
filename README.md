@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-yellow.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-yellow.svg?logo=kotlin)](http://kotlinlang.org)
 
 ## Introduction
 
@@ -27,7 +27,7 @@ ospf-kotlin has been released to the maven central repository. Therefore, if you
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -37,7 +37,7 @@ If you need to use the bpp1d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -47,7 +47,7 @@ If you need to use the bpp2d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ If you need to use the bpp3d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -67,7 +67,7 @@ If you need to use the csp1d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -77,7 +77,7 @@ If you need to use the csp2d development package, add the dependency in the pom.
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -87,7 +87,7 @@ If you need to use the gantt scheduling development package, add the dependency 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 
@@ -97,7 +97,7 @@ If you need to use the network scheduling development package, add the dependenc
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
-    <version>1.0.12</version>
+    <version>1.0.28</version>
 </dependency>
 ```
 

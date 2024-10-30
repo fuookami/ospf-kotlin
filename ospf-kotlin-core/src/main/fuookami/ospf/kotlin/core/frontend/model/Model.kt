@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import kotlinx.coroutines.reactor.mono
 
 typealias Solution = List<Flt64>
 
@@ -114,7 +113,7 @@ interface LinearModel : Model {
 
     fun addObject(
         category: ObjectCategory,
-        symbol: LinearSymbol,
+        symbol: LinearIntermediateSymbol,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -145,7 +144,7 @@ interface LinearModel : Model {
     }
 
     fun minimize(
-        monomial: LinearSymbol,
+        monomial: LinearIntermediateSymbol,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -153,7 +152,7 @@ interface LinearModel : Model {
     }
 
     fun maximize(
-        symbol: LinearSymbol,
+        symbol: LinearIntermediateSymbol,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -221,7 +220,7 @@ interface QuadraticModel : LinearModel {
 
     override fun addObject(
         category: ObjectCategory,
-        symbol: LinearSymbol,
+        symbol: LinearIntermediateSymbol,
         name: String?,
         displayName: String?
     ): Try {
@@ -249,7 +248,7 @@ interface QuadraticModel : LinearModel {
 
     fun addObject(
         category: ObjectCategory,
-        symbol: QuadraticSymbol,
+        symbol: QuadraticIntermediateSymbol,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -280,7 +279,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun minimize(
-        symbol: QuadraticSymbol,
+        symbol: QuadraticIntermediateSymbol,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -288,7 +287,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun maximize(
-        symbol: QuadraticSymbol,
+        symbol: QuadraticIntermediateSymbol,
         name: String? = null,
         displayName: String? = null
     ): Try {

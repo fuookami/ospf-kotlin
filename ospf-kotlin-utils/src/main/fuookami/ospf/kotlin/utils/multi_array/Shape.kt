@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.concept.Indexed
+import kotlin.reflect.*
 import fuookami.ospf.kotlin.utils.math.*
-import kotlin.reflect.KClass
+import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.concept.*
 
 class DimensionMismatchingException(
     val dimension: Int,
@@ -61,7 +62,7 @@ interface Shape {
                 }
 
                 is IntRange -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last))))
+                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last)).value!!))
                 }
 
                 is IntegerRange<*> -> {
@@ -70,21 +71,21 @@ interface Shape {
                             ValueRange(
                                 (index.first as RealNumber<*>).toUInt64(),
                                 (index.last as RealNumber<*>).toUInt64() - UInt64.one
-                            )
+                            ).value!!
                         )
                     )
                 }
 
                 is Int -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index), UInt64(index))))
+                    vector.add(DummyIndex(ValueRange(UInt64(index), UInt64(index)).value!!))
                 }
 
                 is Indexed -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index.index), UInt64(index.index))))
+                    vector.add(DummyIndex(ValueRange(UInt64(index.index), UInt64(index.index)).value!!))
                 }
 
                 is Integer<*> -> {
-                    vector.add(DummyIndex(ValueRange(index.toUInt64(), index.toUInt64() + UInt64.one)))
+                    vector.add(DummyIndex(ValueRange(index.toUInt64(), index.toUInt64() + UInt64.one).value!!))
                 }
 
                 else -> {

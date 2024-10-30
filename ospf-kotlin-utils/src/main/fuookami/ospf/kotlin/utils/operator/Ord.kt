@@ -3,6 +3,8 @@ package fuookami.ospf.kotlin.utils.operator
 sealed interface Order {
     val value: Int
 
+    open fun ifEqual(f: () -> Order): Order = this
+
     data class Less(override val value: Int = -1) : Order {
         init {
             assert(value < 0)
@@ -11,6 +13,8 @@ sealed interface Order {
 
     data object Equal : Order {
         override val value = 0
+
+        override fun ifEqual(f: () -> Order) = f()
     }
 
     data class Greater(override val value: Int = 1) : Order {

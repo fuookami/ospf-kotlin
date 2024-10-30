@@ -87,9 +87,22 @@ inline fun <reified T : Any> writeJson(value: T, namingPolicy: JsonNamingPolicy?
     return stream.toString()
 }
 
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : Any> writeJson(value: List<T>, namingPolicy: JsonNamingPolicy? = null): String {
+    val stream = ByteArrayOutputStream()
+    writeJsonToStream(stream, ListSerializer(T::class.serializer()), value, namingPolicy)
+    return stream.toString()
+}
+
 fun <T> writeJson(serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
     writeJsonToStream(stream, serializer, value, namingPolicy)
+    return stream.toString()
+}
+
+fun <T> writeJson(serializer: KSerializer<T>, value: List<T>, namingPolicy: JsonNamingPolicy? = null): String {
+    val stream = ByteArrayOutputStream()
+    writeJsonToStream(stream, ListSerializer(serializer), value, namingPolicy)
     return stream.toString()
 }
 

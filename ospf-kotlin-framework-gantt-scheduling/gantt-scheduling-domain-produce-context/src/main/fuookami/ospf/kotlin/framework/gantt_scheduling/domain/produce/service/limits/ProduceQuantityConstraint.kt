@@ -30,7 +30,7 @@ class ProduceQuantityConstraint<
                 when (val overQuantity = produce.overQuantity[product]) {
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
-                            overQuantity.polyX leq demand.quantity.upperBound.toFlt64(),
+                            overQuantity.polyX leq demand.quantity.upperBound.value.unwrap(),
                             "${name}_ub_$product"
                         )) {
                             is Ok -> {}
@@ -43,7 +43,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] leq demand.quantity.upperBound.toFlt64(),
+                            produce.quantity[product] leq demand.quantity.upperBound.value.unwrap(),
                             "${name}_ub_$product"
                         )) {
                             is Ok -> {}
@@ -56,7 +56,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] leq demand.quantity.upperBound.toFlt64(),
+                    produce.quantity[product] leq demand.quantity.upperBound.value.unwrap(),
                     "${name}_ub_$product"
                 )) {
                     is Ok -> {}
@@ -71,7 +71,7 @@ class ProduceQuantityConstraint<
                 when (val lessQuantity = produce.lessQuantity[product]) {
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
-                            lessQuantity.polyX geq demand.quantity.lowerBound.toFlt64(),
+                            lessQuantity.polyX geq demand.quantity.lowerBound.value.unwrap(),
                             "${name}_lb_$product"
                         )) {
                             is Ok -> {}
@@ -84,7 +84,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] geq demand.quantity.lowerBound.toFlt64(),
+                            produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap(),
                             "${name}_lb_$product"
                         )) {
                             is Ok -> {}
@@ -97,7 +97,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] geq demand.quantity.lowerBound.toFlt64(),
+                    produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap(),
                     "${name}_lb_$product"
                 )) {
                     is Ok -> {}

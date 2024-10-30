@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -30,7 +32,7 @@ class ModFunction(
 
     private val y: AbstractLinearPolynomial<*> by lazy {
         val y = LinearPolynomial(r, "${name}_y")
-        y.range.set(ValueRange(Flt64.zero, possibleUpperBound))
+        y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
         y
     }
 
@@ -60,10 +62,10 @@ class ModFunction(
         y.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
-        if (tokenTable.cachedSolution) {
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.value(tokenTable)?.let { xValue ->
                 val qValue = (xValue / d).let {
                     if (it geq Flt64.zero) {
@@ -78,20 +80,12 @@ class ModFunction(
                 logger.trace { "Setting ModFunction ${name}.r initial solution: $rValue" }
                 tokenTable.find(r)?.let { token -> token._result = rValue }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = rValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = rValue
-                    }
-                }
+                tokenTable.cache(this, null, rValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(q)) {
             is Ok -> {}
 

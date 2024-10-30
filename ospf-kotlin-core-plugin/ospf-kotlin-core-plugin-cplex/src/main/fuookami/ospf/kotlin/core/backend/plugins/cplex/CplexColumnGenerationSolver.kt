@@ -20,11 +20,14 @@ class CplexColumnGenerationSolver(
     val config: SolverConfig = SolverConfig(),
     val callBack: CplexSolverCallBack = CplexSolverCallBack()
 ) : ColumnGenerationSolver {
+    override val name = "cplex"
+
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel,
-        toLogModel: Boolean
+        toLogModel: Boolean,
+        statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
@@ -49,7 +52,7 @@ class CplexColumnGenerationSolver(
             callBack = callBack.copy()
         )
 
-        return when (val result = solver(model)) {
+        return when (val result = solver(model, statusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.forEach { it.join() }
@@ -68,7 +71,8 @@ class CplexColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         amount: UInt64,
-        toLogModel: Boolean
+        toLogModel: Boolean,
+        statusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
@@ -93,10 +97,10 @@ class CplexColumnGenerationSolver(
             config = config,
             callBack = callBack.copy()
                 .configuration { cplex, _, _ ->
-                    if (amount != UInt64.one) {
+                    if (amount gr UInt64.one) {
                         cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
                         cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, min(UInt64.ten, amount).toInt())
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, amount.toInt())
                         cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
                         cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
                     }
@@ -121,7 +125,7 @@ class CplexColumnGenerationSolver(
                 }
         )
 
-        return when (val result = solver(model)) {
+        return when (val result = solver(model, statusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
@@ -140,15 +144,16 @@ class CplexColumnGenerationSolver(
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel,
-        toLogModel: Boolean
+        toLogModel: Boolean,
+        statusCallBack: SolvingStatusCallBack?
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearMechanismModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(metaModel, config.dumpMechanismModelConcurrent)) {
             is Ok -> {
-                LinearTriadModel(result.value)
+                LinearTriadModel(result.value, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
@@ -175,7 +180,7 @@ class CplexColumnGenerationSolver(
                 }
         )
 
-        return when (val result = solver(model)) {
+        return when (val result = solver(model, statusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.forEach { it.join() }

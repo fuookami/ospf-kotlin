@@ -2,10 +2,11 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -47,9 +48,9 @@ sealed class AbstractMinFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -60,9 +61,9 @@ sealed class AbstractMinFunction(
 
     private val possibleRange
         get() = ValueRange(
-            polynomials.minOf { it.lowerBound },
-            polynomials.maxOf { it.upperBound }
-        )
+            polynomials.minOf { it.lowerBound!!.value.unwrap() },
+            polynomials.maxOf { it.upperBound!!.value.unwrap() }
+        ).value!!
     private var m = possibleRange
 
     override fun flush(force: Boolean) {
@@ -77,7 +78,7 @@ sealed class AbstractMinFunction(
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -109,20 +110,12 @@ sealed class AbstractMinFunction(
                     }
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = min.value!!
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = min.value!!
-                    }
-                }
+                tokenTable.cache(this, null, min.value!!)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(maxmin)) {
             is Ok -> {}
 
@@ -161,7 +154,7 @@ sealed class AbstractMinFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
-                    maxmin geq (polynomial - m.upperBound.toFlt64() * (Flt64.one - u[i])),
+                    maxmin geq (polynomial - m.upperBound.value.unwrap() * (Flt64.one - u[i])),
                     "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
                 )) {
                     is Ok -> {}

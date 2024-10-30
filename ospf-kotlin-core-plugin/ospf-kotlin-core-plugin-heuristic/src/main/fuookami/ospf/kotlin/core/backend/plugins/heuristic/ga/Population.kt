@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.ga
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 
 data class Chromosome(
     val fitness: Flt64?,

@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 abstract class GurobiSolver {
     protected lateinit var env: GRBEnv
     protected lateinit var grbModel: GRBModel
-    protected lateinit var status: SolvingStatus
+    protected lateinit var status: SolverStatus
 
     protected fun finalize() {
         grbModel.dispose()
@@ -64,26 +64,26 @@ abstract class GurobiSolver {
         return try {
             status = when (grbModel.get(GRB.IntAttr.Status)) {
                 GRB.OPTIMAL -> {
-                    SolvingStatus.Optimal
+                    SolverStatus.Optimal
                 }
 
                 GRB.INFEASIBLE -> {
-                    SolvingStatus.NoSolution
+                    SolverStatus.NoSolution
                 }
 
                 GRB.UNBOUNDED -> {
-                    SolvingStatus.Unbounded
+                    SolverStatus.Unbounded
                 }
 
                 GRB.INF_OR_UNBD -> {
-                    SolvingStatus.NoSolution
+                    SolverStatus.NoSolution
                 }
 
                 else -> {
                     if (grbModel.get(GRB.IntAttr.SolCount) > 0) {
-                        SolvingStatus.Feasible
+                        SolverStatus.Feasible
                     } else {
-                        SolvingStatus.NoSolution
+                        SolverStatus.NoSolution
                     }
                 }
             }

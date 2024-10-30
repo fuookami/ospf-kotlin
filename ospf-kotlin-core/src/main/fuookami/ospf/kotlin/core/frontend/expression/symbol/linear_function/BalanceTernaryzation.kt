@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -32,21 +34,21 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
 
     protected val possibleRange
         get() = ValueRange(
-            if (x.lowerBound ls Flt64.zero) {
+            if (x.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 -Int8.one
-            } else if (x.lowerBound eq Flt64.zero) {
+            } else if (x.lowerBound!!.value.unwrap() eq Flt64.zero) {
                 Int8.zero
             } else {
                 Int8.one
             },
-            if (x.upperBound ls Flt64.zero) {
+            if (x.upperBound!!.value.unwrap() ls Flt64.zero) {
                 -Int8.one
-            } else if (x.upperBound eq Flt64.zero) {
+            } else if (x.upperBound!!.value.unwrap() eq Flt64.zero) {
                 Int8.zero
             } else {
                 Int8.one
             }
-        )
+        ).value!!
 
     override fun flush(force: Boolean) {
         x.flush(force)
@@ -117,7 +119,7 @@ class BalanceTernaryzationFunctionImpl(
         x.copy()
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -132,20 +134,12 @@ class BalanceTernaryzationFunctionImpl(
                     Flt64.zero
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         return ok
     }
 
@@ -165,12 +159,12 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         UnivariateLinearPiecewiseFunction(
             x,
             listOf(
-                Point2(x.lowerBound, -Flt64.one),
+                Point2(x.lowerBound!!.value.unwrap(), -Flt64.one),
                 Point2(-epsilon, -Flt64.one),
                 Point2(-epsilon + Flt32.decimalPrecision.toFlt64(), Flt64.zero),
                 Point2(epsilon - Flt32.decimalPrecision.toFlt64(), Flt64.zero),
                 Point2(epsilon, Flt64.one),
-                Point2(x.upperBound, Flt64.one)
+                Point2(x.upperBound!!.value.unwrap(), Flt64.one)
             ),
             "${name}_piecewise"
         )
@@ -187,26 +181,18 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         piecewiseFunction.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             piecewiseFunction.value(tokenTable)?.let { yValue ->
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = piecewiseFunction.register(tokenTable)) {
             is Ok -> {}
 
@@ -234,7 +220,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 class BalanceTernaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     parent: LinearFunctionSymbol,
-    val extract: Boolean = true,
+    private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
@@ -242,8 +228,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
     private val y: BinVariable1 by lazy {
         val y = BinVariable1("${name}_y", Shape1(2))
-        y[0].range.leq(x.lowerBound ls Flt64.zero)
-        y[1].range.leq(x.upperBound gr Flt64.zero)
+        y[0].range.leq(x.lowerBound!!.value.unwrap() ls Flt64.zero)
+        y[1].range.leq(x.upperBound!!.value.unwrap() gr Flt64.zero)
         y
     }
 
@@ -253,7 +239,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
@@ -284,20 +270,12 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 } else {
                     Flt64.zero
                 }
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -311,7 +289,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x.upperBound * y[1] geq x,
+            x.upperBound!!.value.unwrap() * y[1] geq x,
             "${name}_plb"
         )) {
             is Ok -> {}
@@ -322,7 +300,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            x.lowerBound * y[0] leq x,
+            x.lowerBound!!.value.unwrap() * y[0] leq x,
             "${name}_nlb"
         )) {
             is Ok -> {}
@@ -334,7 +312,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                x geq (x.lowerBound - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
+                x geq (x.lowerBound!!.value.unwrap() - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
                 "${name}_pub"
             )) {
                 is Ok -> {}
@@ -345,7 +323,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                x leq (x.upperBound + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
+                x leq (x.upperBound!!.value.unwrap() + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
                 "${name}_nlb"
             )) {
                 is Ok -> {}
@@ -386,8 +364,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
     private val y: BinVariable1 by lazy {
         val y = BinVariable1("${name}_y", Shape1(2))
-        y[0].range.leq(x.lowerBound ls Flt64.zero)
-        y[1].range.leq(x.upperBound gr Flt64.zero)
+        y[0].range.leq(x.lowerBound!!.value.unwrap() ls Flt64.zero)
+        y[1].range.leq(x.upperBound!!.value.unwrap() gr Flt64.zero)
         y
     }
 
@@ -397,20 +375,20 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.value(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val pocPct = if (pos) {
-                    xValue / x.upperBound
+                    xValue / x.upperBound!!.value.unwrap()
                 } else {
                     Flt64.zero
                 }
                 val neg = xValue ls Flt64.zero
                 val negPct = if (neg) {
-                    xValue / x.lowerBound
+                    xValue / x.lowerBound!!.value.unwrap()
                 } else {
                     Flt64.zero
                 }
@@ -445,20 +423,12 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                     }
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(b)) {
             is Ok -> {}
 
@@ -480,7 +450,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq x.lowerBound * b[0] + x.upperBound * b[1],
+            x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
             "${name}_xb"
         )) {
             is Ok -> {}
@@ -574,7 +544,7 @@ class BalanceTernaryzationFunction(
     }
 
     private val impl: AbstractBalanceTernaryzationFunctionImpl by lazy {
-        impl ?: if (x.discrete && x.range.range in ValueRange(-Flt64.one, Flt64.one)) {
+        impl ?: if (x.discrete && ValueRange(-Flt64.one, Flt64.one).value!! contains x.range.range!!) {
             BalanceTernaryzationFunctionImpl(x, this, name, displayName)
         } else if (x.discrete) {
             BalanceTernaryzationFunctionDiscreteImpl(x, this, extract, name, displayName)
@@ -593,7 +563,7 @@ class BalanceTernaryzationFunction(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol> get() = impl.dependencies
+    override val dependencies: Set<IntermediateSymbol> get() = impl.dependencies
     override val cells get() = impl.cells
     override val cached get() = impl.cached
 
@@ -601,11 +571,11 @@ class BalanceTernaryzationFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

@@ -2,12 +2,14 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
@@ -40,9 +42,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             dependencies.addAll(x.dependencies)
             flag?.let { dependencies.addAll(it.dependencies) }
             return dependencies
@@ -52,8 +54,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
     private val possibleRange
         get() = ValueRange(
-            (flag?.lowerBound ?: u.lowerBound) * x.lowerBound,
-            (flag?.upperBound ?: u.upperBound) * x.upperBound
+            (flag?.lowerBound ?: u.lowerBound)!! * x.lowerBound!!,
+            (flag?.upperBound ?: u.upperBound)!! * x.upperBound!!,
+            Flt64
         )
 
     override fun flush(force: Boolean) {
@@ -63,7 +66,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         flag?.cells
 
@@ -96,19 +99,11 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 token._result = yValue
             }
 
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-            }
+            tokenTable.cache(this, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -131,12 +126,12 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        if (x.lowerBound ls Flt64.zero) {
+        if (x.lowerBound!!.value.unwrap() ls Flt64.zero) {
             return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $x"))
         }
 
         if (flag != null) {
-            if (flag.lowerBound ls Flt64.zero || flag.upperBound gr Flt64.one) {
+            if (flag.lowerBound!!.value.unwrap() ls Flt64.zero || flag.upperBound!!.value.unwrap() gr Flt64.one) {
                 return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $flag"))
             }
         }
@@ -154,7 +149,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
         if (flag != null) {
             when (val result = model.addConstraint(
-                y geq (x - x.upperBound * (Flt64.one - flag)),
+                y geq (x - x.upperBound!!.value.unwrap() * (Flt64.one - flag)),
                 "${name}_xu"
             )) {
                 is Ok -> {}
@@ -164,7 +159,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y geq (x.lowerBound * flag),
+                y geq (x.lowerBound!!.value.unwrap() * flag),
                 "${name}_lb"
             )) {
                 is Ok -> {}
@@ -174,7 +169,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y leq (x.upperBound * flag),
+                y leq (x.upperBound!!.value.unwrap() * flag),
                 "${name}_ub"
             )) {
                 is Ok -> {}
@@ -185,7 +180,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
             }
         } else {
             when (val result = model.addConstraint(
-                y geq (x - x.upperBound * (Flt64.one - u)),
+                y geq (x - x.upperBound!!.value.unwrap() * (Flt64.one - u)),
                 "${name}_xu"
             )) {
                 is Ok -> {}
@@ -195,7 +190,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y geq (x.lowerBound * u),
+                y geq (x.lowerBound!!.value.unwrap() * u),
                 "${name}_lb"
             )) {
                 is Ok -> {}
@@ -205,7 +200,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y leq (x.upperBound * u),
+                y leq (x.upperBound!!.value.unwrap() * u),
                 "${name}_ub"
             )) {
                 is Ok -> {}

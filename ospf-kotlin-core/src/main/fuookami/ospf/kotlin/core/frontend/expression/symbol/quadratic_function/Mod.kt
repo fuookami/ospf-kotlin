@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -35,7 +37,7 @@ class ModFunction(
 
     private val y: AbstractQuadraticPolynomial<*> by lazy {
         val y = QuadraticPolynomial(r, "${name}_y")
-        y.range.set(ValueRange(Flt64.zero, possibleUpperBound))
+        y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
         y
     }
 
@@ -55,15 +57,15 @@ class ModFunction(
 
     private val possibleUpperBound
         get() = max(
-            if (d.upperBound geq Flt64.zero) {
-                d.upperBound.floor()
+            if (d.upperBound!!.value.unwrap() geq Flt64.zero) {
+                d.upperBound!!.value.unwrap().floor()
             } else {
-                d.upperBound.ceil().abs()
+                d.upperBound!!.value.unwrap().ceil().abs()
             },
-            if (d.lowerBound geq Flt64.zero) {
-                d.upperBound.floor()
+            if (d.lowerBound!!.value.unwrap() geq Flt64.zero) {
+                d.upperBound!!.value.unwrap().floor()
             } else {
-                d.lowerBound.ceil().abs()
+                d.lowerBound!!.value.unwrap().ceil().abs()
             }
         )
 
@@ -72,15 +74,15 @@ class ModFunction(
         d.flush(force)
         dLinear.flush(force)
         y.flush(force)
-        r.range.set(ValueRange(Flt64.zero, possibleUpperBound))
-        y.range.set(ValueRange(Flt64.zero, possibleUpperBound))
+        r.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
+        y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         d.cells
 
-        if (tokenTable.cachedSolution) {
+        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.value(tokenTable)?.let { xValue ->
                 d.value(tokenTable)?.let { dValue ->
                     val qValue = (xValue / dValue).let {
@@ -100,21 +102,13 @@ class ModFunction(
                         token._result = rValue
                     }
 
-                    when (tokenTable) {
-                        is TokenTable -> {
-                            tokenTable.cachedSymbolValue[this to null] = rValue
-                        }
-
-                        is MutableTokenTable -> {
-                            tokenTable.cachedSymbolValue[this to null] = rValue
-                        }
-                    }
+                    tokenTable.cache(this, null, rValue)
                 }
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(dLinear)) {
             is Ok -> {}
 

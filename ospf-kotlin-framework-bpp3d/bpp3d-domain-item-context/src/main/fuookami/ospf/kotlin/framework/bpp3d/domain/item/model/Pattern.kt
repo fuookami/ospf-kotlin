@@ -7,14 +7,13 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.parallel.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.*
-
 
 private data class PatternItemInfo(
     val item: Item,
@@ -137,7 +136,7 @@ sealed class Pattern {
     }
 
     companion object {
-        fun BuildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
+        fun buildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
             val config = ConfigBuilder()
             builder(config)
             return config
@@ -152,11 +151,11 @@ sealed class Pattern {
         val leftUpper: NextPointExtractor = { projection, placements ->
             val y = placements.filter { it.y eq Flt64.zero }.maxOf { it.maxY }
             val maxY = max(placements.maxOf { it.maxY }, y + projection.height)
-            val yRange = ValueRange(y, maxY)
+            val yRange = ValueRange(y, maxY).value!!
             var x = Flt64.zero
             for (placement in placements) {
-                val range = ValueRange(placement.y, placement.maxY, IntervalType.Closed, IntervalType.Open, Flt64)
-                if (!yRange.intersect(range).empty) {
+                val range = ValueRange(placement.y, placement.maxY, Interval.Closed, Interval.Open, Flt64).value!!
+                if (yRange.intersect(range) != null) {
                     x = max(x, placement.maxX)
                 }
             }

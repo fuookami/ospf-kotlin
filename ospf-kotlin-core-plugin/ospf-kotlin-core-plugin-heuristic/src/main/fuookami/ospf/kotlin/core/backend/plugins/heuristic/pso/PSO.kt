@@ -27,13 +27,13 @@ data class Particle<V>(
         newVelocity: List<Flt64>,
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V> {
-        val newPosition = (0 until size).map {
+        val newPosition = (0..<size).map {
             val newPosition = position[it] + velocity[it]
             val token = model.tokens[it]
-            if (newPosition gr token.upperBound) {
-                token.upperBound
-            } else if (newPosition ls token.lowerBound) {
-                token.lowerBound
+            if (newPosition gr token.upperBound!!.value.unwrap()) {
+                token.upperBound!!.value.unwrap()
+            } else if (newPosition ls token.lowerBound!!.value.unwrap()) {
+                token.lowerBound!!.value.unwrap()
             } else {
                 newPosition
             }

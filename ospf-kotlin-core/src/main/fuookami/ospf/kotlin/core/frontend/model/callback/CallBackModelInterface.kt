@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 interface AbstractCallBackModelInterface<Obj, V> : Model {
     val defaultObjective: V
 
-    val tokens: MutableTokenTable
+    val tokens: AbstractMutableTokenTable
     val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
 
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution>, String>>
@@ -51,7 +51,7 @@ interface AbstractCallBackModelInterface<Obj, V> : Model {
     fun constraintSatisfied(solution: Solution): Boolean? {
         for (token in tokens.tokens) {
             val index = tokens.tokenIndexMap[token] ?: continue
-            if (!token.range.contains(solution[index])) {
+            if (token.range?.contains(solution[index]) != true) {
                 return false
             }
         }

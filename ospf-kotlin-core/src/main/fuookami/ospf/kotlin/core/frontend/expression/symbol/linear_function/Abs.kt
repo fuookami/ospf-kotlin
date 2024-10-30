@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -53,7 +55,7 @@ class AbsFunction(
     override val cells get() = y.cells
     override val cached get() = y.cached
 
-    private val possibleUpperBound get() = max(abs(x.lowerBound), abs(x.upperBound))
+    private val possibleUpperBound get() = max(abs(x.lowerBound!!.value.unwrap()), abs(x.upperBound!!.value.unwrap()))
     private var m = possibleUpperBound
 
     override fun flush(force: Boolean) {
@@ -61,42 +63,48 @@ class AbsFunction(
         y.flush(force)
         val newM = possibleUpperBound
         if (m neq newM) {
-            y.range.set(ValueRange(-m, m))
+            y.range.set(ValueRange(-m, m).value!!)
             y.asMutable() *= m / newM
             m = newM
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.value(tokenTable)?.let { xValue ->
                 val pValue = xValue geq Flt64.zero
                 val yValue = abs(xValue)
-                val posValue = if (pValue) { yValue / m } else { Flt64.zero }
-                val negValue = if (!pValue) { yValue / m } else { Flt64.zero }
+                val posValue = if (pValue) {
+                    yValue / m
+                } else {
+                    Flt64.zero
+                }
+                val negValue = if (!pValue) {
+                    yValue / m
+                } else {
+                    Flt64.zero
+                }
                 logger.trace { "Setting AbsFunction ${name}.pos initial solution: $posValue" }
                 tokenTable.find(pos)?.let { token -> token._result = posValue }
                 logger.trace { "Setting AbsFunction ${name}.neg initial solution: $negValue" }
                 tokenTable.find(neg)?.let { token -> token._result = negValue }
                 logger.trace { "Setting AbsFunction ${name}.p initial solution: $pValue" }
-                tokenTable.find(p)?.let { token -> token._result = if (pValue) { Flt64.one } else { Flt64.zero } }
-
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
+                tokenTable.find(p)?.let { token ->
+                    token._result = if (pValue) {
+                        Flt64.one
+                    } else {
+                        Flt64.zero
                     }
                 }
+
+                tokenTable.cache(this, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(neg)) {
             is Ok -> {}
 
@@ -123,7 +131,7 @@ class AbsFunction(
             }
         }
 
-        y.range.set(ValueRange(Flt64.zero, m))
+        y.range.set(ValueRange(Flt64.zero, m).value!!)
 
         return ok
     }

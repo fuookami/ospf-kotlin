@@ -1,19 +1,20 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 
 data class Range<T, V>(
     val type: T,
-    private val constants: RealNumberConstants<V>
+    override val constants: RealNumberConstants<V>
 ) : ExpressionRange<V>(
     _range = ValueRange(
         type.minimum,
         type.maximum,
-        IntervalType.Closed,
-        IntervalType.Closed,
+        Interval.Closed,
+        Interval.Closed,
         constants
-    ),
+    ).value!!,
     constants = constants
 ) where T : VariableType<V>, V : RealNumber<V>, V : NumberField<V>
 

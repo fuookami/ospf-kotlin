@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.persistence
 
+import java.math.*
 import kotlinx.datetime.*
 import org.ktorm.schema.*
 import fuookami.ospf.kotlin.utils.math.*
@@ -30,6 +31,10 @@ fun BaseTable<*>.f64(name: String): Column<Flt64> {
 
 fun BaseTable<*>.fltx(name: String, scale: Int = 2): Column<FltX> {
     return decimal(name).transform({ FltX(it).withScale(scale) }, { it.toDecimal() })
+}
+
+fun BaseTable<*>.fltx(name: String, roundingMode: RoundingMode, scale: Int = 2): Column<FltX> {
+    return decimal(name).transform({ FltX(it).withScale(scale, roundingMode) }, { it.toDecimal() })
 }
 
 fun BaseTable<*>.kotlinDatetime(name: String): Column<LocalDateTime> {

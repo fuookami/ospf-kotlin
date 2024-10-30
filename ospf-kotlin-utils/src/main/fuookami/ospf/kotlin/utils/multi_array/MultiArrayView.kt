@@ -61,9 +61,7 @@ class MultiArrayView<out T : Any, S : Shape>(
 
                 else -> {
                     if (!range.fixed) {
-                        shape.add(
-                            (range.upperBound - range.lowerBound).unwrapOrNull()?.toInt() ?: origin.shape[dimension]
-                        )
+                        shape.add((range.upperBound - range.lowerBound).value.unwrapOrNull()?.toInt() ?: origin.shape[dimension])
                         dummyDimensions.add(dimension)
                     }
                 }
@@ -157,7 +155,7 @@ class MultiArrayView<out T : Any, S : Shape>(
                     }
 
                     else -> {
-                        (range.lowerBound.unwrapOrNull() ?: UInt64.zero).toInt() + v[j]
+                        (range.lowerBound.value.unwrapOrNull() ?: UInt64.zero).toInt() + v[j]
                     }
                 }
                 vector.add(thisIndex)

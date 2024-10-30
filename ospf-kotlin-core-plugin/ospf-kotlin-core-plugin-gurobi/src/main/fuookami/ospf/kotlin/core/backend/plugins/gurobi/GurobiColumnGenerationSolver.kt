@@ -17,11 +17,14 @@ class GurobiColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
 ) : ColumnGenerationSolver {
+    override val name = "gurobi"
+
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel,
-        toLogModel: Boolean
+        toLogModel: Boolean,
+        statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
@@ -46,7 +49,7 @@ class GurobiColumnGenerationSolver(
             callBack = callBack.copy()
         )
 
-        return when (val result = solver(model)) {
+        return when (val result = solver(model, statusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.forEach { it.join() }
@@ -65,7 +68,8 @@ class GurobiColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         amount: UInt64,
-        toLogModel: Boolean
+        toLogModel: Boolean,
+        statusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
@@ -90,10 +94,10 @@ class GurobiColumnGenerationSolver(
             config = config,
             callBack = callBack.copy()
                 .configuration { gurobi, _, _ ->
-                    if (amount != UInt64.zero) {
+                    if (amount gr UInt64.one) {
                         gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
                         gurobi.set(GRB.IntParam.PoolSearchMode, 2);
-                        gurobi.set(GRB.IntParam.PoolSolutions, min(UInt64.ten, amount).toInt())
+                        gurobi.set(GRB.IntParam.PoolSolutions, amount.toInt())
                     }
                     ok
                 }.analyzingSolution { gurobi, variables, _ ->
@@ -108,7 +112,7 @@ class GurobiColumnGenerationSolver(
                 }
         )
 
-        return when (val result = solver(model)) {
+        return when (val result = solver(model, statusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
@@ -127,15 +131,16 @@ class GurobiColumnGenerationSolver(
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel,
-        toLogModel: Boolean
+        toLogModel: Boolean,
+        statusCallBack: SolvingStatusCallBack?
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearMechanismModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(metaModel, config.dumpMechanismModelConcurrent)) {
             is Ok -> {
-                LinearTriadModel(result.value)
+                LinearTriadModel(result.value, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
@@ -158,7 +163,7 @@ class GurobiColumnGenerationSolver(
                 }
         )
 
-        return when (val result = solver(model)) {
+        return when (val result = solver(model, statusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.forEach { it.join() }

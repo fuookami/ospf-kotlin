@@ -2,7 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -31,17 +32,17 @@ abstract class AbstractBinaryzationFunctionImpl(
 
     protected val possibleRange
         get() = ValueRange(
-            if (x.lowerBound eq Flt64.zero) {
+            if (x.lowerBound!!.value.unwrap() eq Flt64.zero) {
                 UInt8.zero
             } else {
                 UInt8.one
             },
-            if (x.upperBound eq Flt64.zero) {
+            if (x.upperBound!!.value.unwrap() eq Flt64.zero) {
                 UInt8.zero
             } else {
                 UInt8.one
             }
-        )
+        ).value!!
 
     override fun flush(force: Boolean) {
         x.flush(force)
@@ -104,7 +105,7 @@ class BinaryzationFunctionImpl(
         x.copy()
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
@@ -115,20 +116,12 @@ class BinaryzationFunctionImpl(
                     Flt64.zero
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
-                }
+                tokenTable.cache(this, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         return ok
     }
 
@@ -165,7 +158,7 @@ class BinaryzationFunctionLinearImpl(
         linearX.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         linearX.prepare(tokenTable)
 
@@ -177,25 +170,33 @@ class BinaryzationFunctionLinearImpl(
                     Flt64.zero
                 }
 
-                logger.trace { "Setting BinaryzationFunction ${name}.y initial solution: value" }
+                logger.trace { "Setting BinaryzationFunction ${name}.y initial solution: $yValue" }
                 tokenTable.find(y)?.let { token ->
                     token._result = yValue
                 }
 
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[parent to null] = yValue
-                    }
-                }
+                tokenTable.cache(parent, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+        when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = linearX.register(tokenTable)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
         return ok
     }
 
@@ -208,7 +209,7 @@ class BinaryzationFunctionLinearImpl(
             }
         }
         model.addConstraint(
-            (Flt64.one - y) * linearX leq x.upperBound * y,
+            (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y,
             "${name}_ub"
         )
         model.addConstraint(
@@ -229,7 +230,7 @@ class BinaryzationFunction(
     private val logger = logger()
 
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
-        impl ?: if (x.discrete && x.range.range in ValueRange(Flt64.zero, Flt64.one)) {
+        impl ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
             BinaryzationFunctionImpl(x, this, name, displayName)
         } else {
             BinaryzationFunctionLinearImpl(x, this, epsilon, name, displayName)
@@ -244,7 +245,7 @@ class BinaryzationFunction(
 
     override val category get() = Linear
 
-    override val dependencies: Set<Symbol> get() = impl.dependencies
+    override val dependencies: Set<IntermediateSymbol> get() = impl.dependencies
     override val cells get() = impl.cells
     override val cached get() = impl.cached
 
@@ -252,11 +253,11 @@ class BinaryzationFunction(
         impl.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         impl.prepare(tokenTable)
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 

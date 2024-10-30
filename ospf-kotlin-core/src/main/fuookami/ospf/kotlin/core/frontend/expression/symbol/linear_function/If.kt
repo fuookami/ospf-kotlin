@@ -2,9 +2,10 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -16,7 +17,7 @@ class IfFunction(
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
     private val logger = logger()
-    
+
     private val inequality by lazy {
         inequality.normalize()
     }
@@ -39,9 +40,9 @@ class IfFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             dependencies.addAll(inequality.lhs.dependencies)
             dependencies.addAll(inequality.rhs.dependencies)
             return dependencies
@@ -52,7 +53,7 @@ class IfFunction(
     private val possibleRange: ValueRange<Flt64>
         get() {
             // todo: impl by Inequality.judge()
-            return ValueRange(Flt64.zero, Flt64.one)
+            return ValueRange(Flt64.zero, Flt64.one).value!!
         }
 
     override fun flush(force: Boolean) {
@@ -61,10 +62,10 @@ class IfFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         inequality.lhs.cells
         inequality.rhs.cells
-        
+
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             inequality.isTrue(tokenTable)?.let { bin ->
                 val yValue = if (bin) {
@@ -72,27 +73,18 @@ class IfFunction(
                 } else {
                     Flt64.zero
                 }
-                
+
                 logger.trace { "Setting IfFunction ${name}.y to $bin" }
                 tokenTable.find(y)?.let { token ->
                     token._result = yValue
                 }
-                
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
-                    
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = yValue
-                    }
 
-                }
+                tokenTable.cache(this, null, yValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 

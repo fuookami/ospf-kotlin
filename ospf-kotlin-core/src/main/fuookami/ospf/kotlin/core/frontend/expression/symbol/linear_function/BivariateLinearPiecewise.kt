@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
@@ -92,7 +94,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             ValueRange(
                 triangles.minOf { minOf(it.p1.z, it.p2.z, it.p3.z) },
                 triangles.maxOf { maxOf(it.p1.z, it.p2.z, it.p3.z) }
-            )
+            ).value!!
         )
         polyZ
     }
@@ -103,9 +105,9 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             dependencies.addAll(x.dependencies)
             dependencies.addAll(y.dependencies)
             return dependencies
@@ -119,7 +121,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         polyZ.flush(force)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         y.cells
 
@@ -166,20 +168,12 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             }
             if (zValue != null) {
-                when (tokenTable) {
-                    is TokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = zValue
-                    }
-
-                    is MutableTokenTable -> {
-                        tokenTable.cachedSymbolValue[this to null] = zValue
-                    }
-                }
+                tokenTable.cache(this, null, zValue)
             }
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 

@@ -8,7 +8,6 @@ import org.apache.logging.log4j.kotlin.*
 import ilog.concert.*
 import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -19,27 +18,37 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 class CplexLinearSolver(
-    private val config: SolverConfig = SolverConfig(),
+    override val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack? = null
 ) : LinearSolver {
-    override suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
-        val impl = CplexLinearSolverImpl(config, callBack)
+    override val name = "cplex"
+
+    override suspend operator fun invoke(
+        model: LinearTriadModelView,
+        statusCallBack: SolvingStatusCallBack?
+    ): Ret<SolverOutput> {
+        val impl = CplexLinearSolverImpl(config, callBack, statusCallBack)
         return impl(model)
     }
 
-    override suspend fun invoke(model: LinearTriadModelView, solutionAmount: UInt64): Ret<Pair<SolverOutput, List<Solution>>> {
+    override suspend fun invoke(
+        model: LinearTriadModelView,
+        solutionAmount: UInt64,
+        statusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
             val impl = CplexLinearSolverImpl(config, callBack.ifNull { CplexSolverCallBack() }.copy()
                 .configuration { cplex, _, _ ->
-                    cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
-                    cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
-                    cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, solutionAmount.toInt())
-                    cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
-                    cplex.setParam(IloCplex.Param.MIP.Limits.Populate, solutionAmount.cub().toInt())
-
+                    if (solutionAmount gr UInt64.one) {
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
+                        cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, solutionAmount.toInt())
+                        cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
+                        cplex.setParam(IloCplex.Param.MIP.Limits.Populate, solutionAmount.cub().toInt())
+                    }
                     ok
                 }.solving { cplex, _, _ ->
                     try {
@@ -57,7 +66,7 @@ class CplexLinearSolver(
                         }
                     }
                     ok
-                }
+                }, statusCallBack
             )
             impl(model).map { Pair(it, results) }
         }
@@ -66,13 +75,15 @@ class CplexLinearSolver(
 
 private class CplexLinearSolverImpl(
     private val config: SolverConfig,
-    private val callBack: CplexSolverCallBack? = null
+    private val callBack: CplexSolverCallBack? = null,
+    private val statusCallBack: SolvingStatusCallBack?
 ): CplexSolver() {
     lateinit var cplexVars: List<IloNumVar>
     lateinit var cplexConstraint: List<IloRange>
     lateinit var output: SolverOutput
 
-    private var bestObj = Flt64.infinity
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
     private val logger = logger()
@@ -181,19 +192,37 @@ private class CplexLinearSolverImpl(
         cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toDouble())
         cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
 
-        if (config.notImprovementTime != null || callBack?.nativeCallback != null) {
-            cplex.use(object : IloCplex.ControlCallback() {
+        if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
+            cplex.use(object : IloCplex.MIPInfoCallback() {
                 override fun main() {
                     callBack?.nativeCallback?.invoke(this)
 
+                    val currentObj = Flt64(incumbentObjValue)
+                    val currentBound = Flt64(bestObjValue)
+                    val currentTime = cplexTime.seconds
+
                     if (config.notImprovementTime != null) {
-                        val currentObj = Flt64(bestObjValue)
-                        val currentTime = cplexTime.seconds
-                        if (currentObj neq bestObj) {
+                        if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
                             bestObj = currentObj
+                            bestBound = currentBound
                             bestTime = currentTime
                         } else if (currentTime - bestTime >= config.notImprovementTime!!) {
                             abort()
+                        }
+                    }
+
+                    statusCallBack?.let {
+                        when (it(SolvingStatus(
+                            solver = "cplex",
+                            obj = currentObj,
+                            possibleBestObj = currentBound,
+                            gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                        ))) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                abort()
+                            }
                         }
                     }
                 }

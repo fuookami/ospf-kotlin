@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -17,7 +18,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     val monomials: List<M>
     val constant: Flt64
     override val discrete: Boolean get() = monomials.all { it.discrete } && constant.round() eq constant
-    val dependencies: Set<Symbol>
+    val dependencies: Set<IntermediateSymbol>
     val cells: List<Cell>
     val cached: Boolean
 
@@ -49,8 +50,24 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     operator fun minus(rhs: M): Self
     operator fun minus(rhs: Polynomial<*, M, Cell>): Self
 
+    operator fun times(rhs: Int): Self {
+        return this.times(Flt64(rhs))
+    }
+
+    operator fun times(rhs: Double): Self {
+        return this.times(Flt64(rhs))
+    }
+
     operator fun <T : RealNumber<T>> times(rhs: T): Self {
         return this.times(rhs.toFlt64())
+    }
+
+    operator fun div(rhs: Int): Self {
+        return this.div(Flt64(rhs))
+    }
+
+    operator fun div(rhs: Double): Self {
+        return this.div(Flt64(rhs))
     }
 
     operator fun <T : RealNumber<T>> div(rhs: T): Self {
@@ -188,18 +205,18 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : 
 internal fun possibleRange(
     monomials: List<Monomial<*, *>>,
     constant: Flt64
-): ValueRange<Flt64> {
+): ValueRange<Flt64>? {
     return if (monomials.isEmpty()) {
         ValueRange(
             constant,
             constant,
-            IntervalType.Closed,
-            IntervalType.Closed
-        )
+            Interval.Closed,
+            Interval.Closed
+        ).value
     } else {
-        var ret = monomials[0].range.range
-        for (i in 1 until monomials.size) {
-            ret += monomials[i].range.range
+        var ret = monomials[0].range.range ?: return null
+        for (i in 1..<monomials.size) {
+            ret += (monomials[i].range.range ?: return null)
         }
         ret += constant
         ret

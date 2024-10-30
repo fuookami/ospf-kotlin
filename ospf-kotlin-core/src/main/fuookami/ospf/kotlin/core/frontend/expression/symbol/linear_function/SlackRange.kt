@@ -2,13 +2,14 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
@@ -55,9 +56,9 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             dependencies.addAll(x.dependencies)
             dependencies.addAll(lb.dependencies)
             dependencies.addAll(ub.dependencies)
@@ -68,8 +69,15 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            val max = max(x.upperBound - ub.lowerBound, lb.upperBound - x.lowerBound)
-            return ValueRange(Flt64.zero, max)
+            val max = max(
+                x.upperBound!!.value.unwrap() - ub.lowerBound!!.value.unwrap(),
+                lb.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap()
+            )
+            return if (max leq Flt64.zero) {
+                ValueRange(Flt64.zero, Flt64.zero).value!!
+            } else {
+                ValueRange(Flt64.zero, max).value!!
+            }
         }
 
     override fun flush(force: Boolean) {
@@ -84,26 +92,26 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
         when (_neg) {
             is UIntVar -> {
-                (_neg as UIntVar).range.set(ValueRange(neg.lowerBound.toUInt64(), neg.upperBound.toUInt64()))
+                (_neg as UIntVar).range.set(ValueRange(neg.lowerBound!!.value.unwrap().toUInt64(), neg.upperBound!!.value.unwrap().toUInt64()).value!!)
             }
 
             is URealVar -> {
-                (_neg as URealVar).range.set(ValueRange(neg.lowerBound, neg.upperBound))
+                (_neg as URealVar).range.set(ValueRange(neg.lowerBound!!.value.unwrap(), neg.upperBound!!.value.unwrap()).value!!)
             }
         }
 
         when (_pos) {
             is UIntVar -> {
-                (_pos as UIntVar).range.set(ValueRange(pos.lowerBound.toUInt64(), pos.upperBound.toUInt64()))
+                (_pos as UIntVar).range.set(ValueRange(pos.lowerBound!!.value.unwrap().toUInt64(), pos.upperBound!!.value.unwrap().toUInt64()).value!!)
             }
 
             is URealVar -> {
-                (_pos as URealVar).range.set(ValueRange(pos.lowerBound, pos.upperBound))
+                (_pos as URealVar).range.set(ValueRange(pos.lowerBound!!.value.unwrap(), pos.upperBound!!.value.unwrap()).value!!)
             }
         }
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
         lb.cells
         ub.cells
@@ -134,19 +142,11 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             }
 
             val yValue = posValue + negValue
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = yValue
-                }
-            }
+            tokenTable.cache(this, null, yValue)
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(_neg)) {
             is Ok -> {}
 
@@ -167,7 +167,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        if (x.range.range.intersect(ValueRange(lb.lowerBound, ub.upperBound)).empty) {
+        if ((x.range.range!! intersect ValueRange(lb.lowerBound!!.value.unwrap(), ub.upperBound!!.value.unwrap()).value!!) == null) {
             return Failed(
                 Err(
                     ErrorCode.ApplicationFailed,

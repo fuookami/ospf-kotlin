@@ -2,11 +2,12 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -39,9 +40,9 @@ class FirstFunction(
 
     override val category: Category = Linear
 
-    override val dependencies: Set<Symbol>
+    override val dependencies: Set<IntermediateSymbol>
         get() {
-            val dependencies = HashSet<Symbol>()
+            val dependencies = HashSet<IntermediateSymbol>()
             for (polynomial in polynomials) {
                 dependencies.addAll(polynomial.dependencies)
             }
@@ -52,8 +53,8 @@ class FirstFunction(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            val firstIndex = polynomials.indexOfFirst { it.lowerBound.toFlt64() eq Flt64.one }
-            val lastIndex = polynomials.indexOfLast { it.upperBound.toFlt64() eq Flt64.one }
+            val firstIndex = polynomials.indexOfFirst { it.lowerBound!!.value.unwrap() eq Flt64.one }
+            val lastIndex = polynomials.indexOfLast { it.upperBound!!.value.unwrap() eq Flt64.one }
             return ValueRange(
                 if (firstIndex != -1) {
                     Flt64(firstIndex)
@@ -65,7 +66,7 @@ class FirstFunction(
                 } else {
                     Flt64(polynomials.size)
                 }
-            )
+            ).value!!
         }
 
     override fun flush(force: Boolean) {
@@ -79,7 +80,7 @@ class FirstFunction(
         polyY.range.set(possibleRange)
     }
 
-    override suspend fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable) {
         for (polynomial in polynomials) {
             polynomial.cells
         }
@@ -113,23 +114,15 @@ class FirstFunction(
                     }
                 }
             }
-            
-            when (tokenTable) {
-                is TokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = Flt64(first ?: polynomials.size)
-                }
-                
-                is MutableTokenTable -> {
-                    tokenTable.cachedSymbolValue[this to null] = Flt64(first ?: polynomials.size)
-                }
-            }
+
+            tokenTable.cache(this, null, Flt64(first ?: polynomials.size))
         }
     }
 
-    override fun register(tokenTable: MutableTokenTable): Try {
+    override fun register(tokenTable: AbstractMutableTokenTable): Try {
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
-            if (polynomial.lowerBound ls Flt64.zero) {
+            if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
             }
         }

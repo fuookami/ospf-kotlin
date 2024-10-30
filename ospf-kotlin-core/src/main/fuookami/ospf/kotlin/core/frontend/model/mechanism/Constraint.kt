@@ -38,7 +38,7 @@ class LinearConstraint(
     companion object {
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
-            tokens: TokenTable
+            tokens: AbstractTokenTable
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
             var rhs = Flt64.zero
@@ -71,7 +71,7 @@ class QuadraticConstraint(
         @JvmName("constructByLinearInequality")
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
-            tokens: TokenTable
+            tokens: AbstractTokenTable
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero
@@ -95,7 +95,7 @@ class QuadraticConstraint(
         @JvmName("constructByQuadraticInequality")
         operator fun invoke(
             inequality: Inequality<*, QuadraticMonomialCell>,
-            tokens: TokenTable
+            tokens: AbstractTokenTable
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero

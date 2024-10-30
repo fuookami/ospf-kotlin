@@ -2,12 +2,11 @@ package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
 import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 abstract class CplexSolver {
     lateinit var cplex: IloCplex
-    lateinit var status: SolvingStatus
+    lateinit var status: SolverStatus
 
     protected suspend fun init(name: String): Try {
         cplex = IloCplex()
@@ -18,27 +17,27 @@ abstract class CplexSolver {
     protected suspend fun analyzeStatus(): Try {
         status = when (cplex.status) {
             IloCplex.Status.Optimal -> {
-                SolvingStatus.Optimal
+                SolverStatus.Optimal
             }
 
             IloCplex.Status.Feasible -> {
-                SolvingStatus.Feasible
+                SolverStatus.Feasible
             }
 
             IloCplex.Status.Unbounded -> {
-                SolvingStatus.Unbounded
+                SolverStatus.Unbounded
             }
 
             IloCplex.Status.Infeasible -> {
-                SolvingStatus.NoSolution
+                SolverStatus.NoSolution
             }
 
             IloCplex.Status.InfeasibleOrUnbounded, IloCplex.Status.Error, IloCplex.Status.Unknown -> {
-                SolvingStatus.SolvingException
+                SolverStatus.SolvingException
             }
 
             else -> {
-                SolvingStatus.SolvingException
+                SolverStatus.SolvingException
             }
         }
         return ok
