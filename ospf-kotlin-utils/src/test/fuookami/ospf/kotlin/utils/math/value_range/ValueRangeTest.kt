@@ -65,9 +65,9 @@ class ValueRangeTest {
         val twiceRange = range * Flt64.two
         assert(twiceRange!!.lowerBound.value.unwrap() eq Flt64.two)
         assert(twiceRange.upperBound.value.unwrap() eq Flt64(4.0))
-        val negTwinRange = range * -Flt64.two
-        assert(negTwinRange!!.lowerBound.value.unwrap() eq Flt64(-4.0))
-        assert(negTwinRange.upperBound.value.unwrap() eq -Flt64.two)
+        val negTwiceRange = range * -Flt64.two
+        assert(negTwiceRange!!.lowerBound.value.unwrap() eq Flt64(-4.0))
+        assert(negTwiceRange.upperBound.value.unwrap() eq -Flt64.two)
         val squareRange = range * range
         assert(squareRange!!.lowerBound.value.unwrap() eq Flt64.one)
         assert(squareRange.upperBound.value.unwrap() eq Flt64(4.0))
@@ -140,7 +140,7 @@ class ValueRangeTest {
     }
 
     @Test
-    fun contains() {
+    fun testContains() {
         val range = ValueRange(Flt64.one, Flt64.three).value!!
         assert(range.contains(Flt64.one))
         assert(range.contains(Flt64.two))
