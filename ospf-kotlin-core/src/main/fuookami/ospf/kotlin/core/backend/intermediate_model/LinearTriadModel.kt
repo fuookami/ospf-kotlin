@@ -106,7 +106,7 @@ class BasicLinearTriadModel(
         }
     }
 
-    override fun exportLP(writer: FileWriter): Try {
+    override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
             writer.append(" ${constraints.names[i]}: ")

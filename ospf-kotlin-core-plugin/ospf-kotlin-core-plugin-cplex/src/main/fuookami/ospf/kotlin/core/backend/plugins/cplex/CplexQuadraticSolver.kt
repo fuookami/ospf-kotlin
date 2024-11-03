@@ -263,7 +263,7 @@ private class CplexQuadraticSolverImpl(
     }
 
     private suspend fun analyzeSolution(): Try {
-        return if (status.succeeded()) {
+        return if (status.succeeded) {
             output = SolverOutput(
                 Flt64(cplex.objValue),
                 cplexVars.map { Flt64(cplex.getValue(it)) },
@@ -287,7 +287,7 @@ private class CplexQuadraticSolverImpl(
             }
             ok
         } else {
-            Failed(Err(status.errCode()!!))
+            Failed(Err(status.errCode!!))
         }
     }
 }

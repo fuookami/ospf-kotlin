@@ -104,7 +104,7 @@ interface BasicModelView<ConCell>
             return variables.any { it.type.isNotBinaryIntegerType }
         }
 
-    fun exportLP(writer: FileWriter): Try
+    fun exportLP(writer: OutputStreamWriter): Try
 }
 
 interface ModelView<ConCell, ObjCell>

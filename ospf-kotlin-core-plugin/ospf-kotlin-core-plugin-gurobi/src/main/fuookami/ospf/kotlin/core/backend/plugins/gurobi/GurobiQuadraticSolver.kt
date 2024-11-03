@@ -251,7 +251,7 @@ private class GurobiQuadraticSolverImpl(
 
     private suspend fun analyzeSolution(): Try {
         return try {
-            if (status.succeeded()) {
+            if (status.succeeded) {
                 val results = ArrayList<Flt64>()
                 for (grbVar in grbVars) {
                     results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
@@ -290,7 +290,7 @@ private class GurobiQuadraticSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.errCode()!!))
+                Failed(Err(status.errCode!!))
             }
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
