@@ -106,7 +106,7 @@ class BasicLinearTriadModel(
         }
     }
 
-    override fun exportLP(writer: FileWriter): Try {
+    override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
             writer.append(" ${constraints.names[i]}: ")
@@ -297,44 +297,91 @@ data class LinearTriadModel(
 
         private suspend fun dumpConstraintsAsync(model: LinearMechanismModel): LinearConstraint {
             val tokenIndexes = model.tokens.tokenIndexMap
-
-            return coroutineScope {
-                val constraintPromises = model.constraints.withIndex().map { (index, constraint) ->
-                    async(Dispatchers.Default) {
-                        val lhs = ArrayList<LinearConstraintCell>()
-                        for (cell in constraint.lhs) {
-                            val temp = cell as LinearCell
-                            lhs.add(
-                                LinearConstraintCell(
-                                    index,
-                                    tokenIndexes[temp.token]!!,
-                                    temp.coefficient.let {
-                                        if (it.isInfinity()) {
-                                            Flt64.decimalPrecision.reciprocal()
-                                        } else if (it.isNegativeInfinity()) {
-                                            -Flt64.decimalPrecision.reciprocal()
-                                        } else {
-                                            it
-                                        }
-                                    }
-                                )
-                            )
+            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+            return if (factor > 1) {
+                val segment = pow(UInt64.ten, factor).toInt()
+                coroutineScope {
+                    val constraintPromises = (0..(model.constraints.size / segment)).map {
+                        async(Dispatchers.Default) {
+                            val constraints = ArrayList<List<LinearConstraintCell>>()
+                            for (i in (it * segment) until minOf(model.constraints.size, (it + 1) * segment)) {
+                                val constraint = model.constraints[i]
+                                val lhs = ArrayList<LinearConstraintCell>()
+                                for (cell in constraint.lhs) {
+                                    val temp = cell as LinearCell
+                                    lhs.add(
+                                        LinearConstraintCell(
+                                            rowIndex = i,
+                                            colIndex = tokenIndexes[temp.token]!!,
+                                            coefficient = temp.coefficient.let {
+                                                if (it.isInfinity()) {
+                                                    Flt64.decimalPrecision.reciprocal()
+                                                } else if (it.isNegativeInfinity()) {
+                                                    -Flt64.decimalPrecision.reciprocal()
+                                                } else {
+                                                    it
+                                                }
+                                            }
+                                        )
+                                    )
+                                }
+                                constraints.add(lhs)
+                            }
+                            constraints
                         }
-                        lhs
                     }
-                }
 
-                val lhs = ArrayList<List<LinearConstraintCell>>()
-                val signs = ArrayList<Sign>()
-                val rhs = ArrayList<Flt64>()
-                val names = ArrayList<String>()
-                for ((index, constraint) in model.constraints.withIndex()) {
-                    lhs.add(constraintPromises[index].await())
-                    signs.add(constraint.sign)
-                    rhs.add(constraint.rhs)
-                    names.add(constraint.name)
+                    val lhs = ArrayList<List<LinearConstraintCell>>()
+                    val signs = ArrayList<Sign>()
+                    val rhs = ArrayList<Flt64>()
+                    val names = ArrayList<String>()
+                    for ((index, constraint) in model.constraints.withIndex()) {
+                        lhs.add(constraintPromises[index / segment].await()[index % segment])
+                        signs.add(constraint.sign)
+                        rhs.add(constraint.rhs)
+                        names.add(constraint.name)
+                    }
+                    LinearConstraint(lhs, signs, rhs, names)
                 }
-                LinearConstraint(lhs, signs, rhs, names)
+            } else {
+                coroutineScope {
+                    val constraintPromises = model.constraints.withIndex().map { (index, constraint) ->
+                        async(Dispatchers.Default) {
+                            val lhs = ArrayList<LinearConstraintCell>()
+                            for (cell in constraint.lhs) {
+                                val temp = cell as LinearCell
+                                lhs.add(
+                                    LinearConstraintCell(
+                                        rowIndex = index,
+                                        colIndex = tokenIndexes[temp.token]!!,
+                                        coefficient = temp.coefficient.let {
+                                            if (it.isInfinity()) {
+                                                Flt64.decimalPrecision.reciprocal()
+                                            } else if (it.isNegativeInfinity()) {
+                                                -Flt64.decimalPrecision.reciprocal()
+                                            } else {
+                                                it
+                                            }
+                                        }
+                                    )
+                                )
+                            }
+                            lhs
+                        }
+                    }
+
+                    val lhs = ArrayList<List<LinearConstraintCell>>()
+                    val signs = ArrayList<Sign>()
+                    val rhs = ArrayList<Flt64>()
+                    val names = ArrayList<String>()
+                    for ((index, constraint) in model.constraints.withIndex()) {
+                        lhs.add(constraintPromises[index].await())
+                        signs.add(constraint.sign)
+                        rhs.add(constraint.rhs)
+                        names.add(constraint.name)
+                    }
+                    LinearConstraint(lhs, signs, rhs, names)
+                }
             }
         }
 

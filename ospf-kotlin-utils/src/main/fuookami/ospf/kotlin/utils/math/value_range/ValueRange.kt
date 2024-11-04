@@ -387,12 +387,20 @@ data class ValueRange<T>(
             is Order.Less -> lowerBound.value
             else -> rhs.lowerBound.value
         }
-        val newLbInterval = lowerBound.interval union rhs.lowerBound.interval
+        val newLbInterval = when (lowerBound.value ord rhs.lowerBound.value) {
+            is Order.Less -> lowerBound.interval
+            is Order.Greater -> rhs.lowerBound.interval
+            else -> lowerBound.interval union rhs.lowerBound.interval
+        }
         val newUb = when (upperBound.value ord rhs.upperBound.value) {
             is Order.Less -> rhs.upperBound.value
             else -> upperBound.value
         }
-        val newUbInterval = upperBound.interval union rhs.upperBound.interval
+        val newUbInterval = when (upperBound.value ord rhs.upperBound.value) {
+            is Order.Less -> rhs.upperBound.interval
+            is Order.Greater -> upperBound.interval
+            else -> upperBound.interval union rhs.upperBound.interval
+        }
         return when (val result = ValueRange(newLb, newUb, newLbInterval, newUbInterval, constants)) {
             is Ok -> {
                 result.value
@@ -414,7 +422,11 @@ data class ValueRange<T>(
         } else if (rhs.lowerBound.value.isInfinityOrNegativeInfinity) {
             lowerBound.interval
         } else {
-            lowerBound.interval intersect rhs.lowerBound.interval
+            when (lowerBound.value ord rhs.lowerBound.value) {
+                is Order.Less -> rhs.lowerBound.interval
+                is Order.Greater -> lowerBound.interval
+                else -> lowerBound.interval intersect rhs.lowerBound.interval
+            }
         }
         val newUb = when (upperBound.value ord rhs.upperBound.value) {
             is Order.Less -> upperBound.value
@@ -425,7 +437,11 @@ data class ValueRange<T>(
         } else if (rhs.upperBound.value.isInfinityOrNegativeInfinity) {
             upperBound.interval
         } else {
-            upperBound.interval intersect rhs.upperBound.interval
+            when (upperBound.value ord rhs.upperBound.value) {
+                is Order.Less -> upperBound.interval
+                is Order.Greater -> rhs.upperBound.interval
+                else -> upperBound.interval intersect rhs.upperBound.interval
+            }
         }
         return when (val result = ValueRange(newLb, newUb, newLbInterval, newUbInterval, constants)) {
             is Ok -> {

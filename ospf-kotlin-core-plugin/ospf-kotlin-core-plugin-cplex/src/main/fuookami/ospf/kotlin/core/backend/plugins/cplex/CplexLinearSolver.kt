@@ -260,7 +260,7 @@ private class CplexLinearSolverImpl(
     }
 
     private suspend fun analyzeSolution(): Try {
-        return if (status.succeeded()) {
+        return if (status.succeeded) {
             output = SolverOutput(
                 Flt64(cplex.objValue),
                 cplexVars.map { Flt64(cplex.getValue(it)) },
@@ -284,7 +284,7 @@ private class CplexLinearSolverImpl(
             }
             ok
         } else {
-            Failed(Err(status.errCode()!!))
+            Failed(Err(status.errCode!!))
         }
     }
 }

@@ -245,7 +245,7 @@ private class ScipLinearSolverImpl(
     }
 
     private suspend fun analyzeSolution(): Try {
-        return if (status.succeeded()) {
+        return if (status.succeeded) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()
             for (scipVar in scipVars) {
@@ -275,7 +275,7 @@ private class ScipLinearSolverImpl(
             }
             return ok
         } else {
-            Failed(Err(status.errCode()!!))
+            Failed(Err(status.errCode!!))
         }
     }
 }
