@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 class RepeatedSymbolError(
@@ -455,9 +454,22 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
                 }
             }
 
-            val jobs = readySymbols.map {
-                launch {
-                    it.prepare(tokenTable)
+            val factor = Flt64(readySymbols.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+            val jobs = if (factor > 1) {
+                val segment = pow(UInt64.ten, factor).toInt()
+                val readySymbolList = readySymbols.toList()
+                (0..(readySymbolList.size / segment)).map { i ->
+                    async(Dispatchers.Default) {
+                        readySymbolList.subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment)).map {
+                            it.prepare(tokenTable)
+                        }
+                    }
+                }
+            } else {
+                readySymbols.map {
+                    launch {
+                        it.prepare(tokenTable)
+                    }
                 }
             }
 

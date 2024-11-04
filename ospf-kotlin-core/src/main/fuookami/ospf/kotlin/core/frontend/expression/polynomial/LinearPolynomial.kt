@@ -2093,7 +2093,7 @@ fun <T> flatSum(
 // quantity sigma
 
 @JvmName("sumQuantityLinearMonomials")
-fun sum(monomials: Iterable<Quantity<LinearMonomial>>): Quantity<LinearPolynomial> {
+fun qtySum(monomials: Iterable<Quantity<LinearMonomial>>): Quantity<LinearPolynomial> {
     val quantityMonomials = monomials.toList()
     return if (quantityMonomials.isEmpty()) {
         Quantity(LinearPolynomial(), NoneUnit)
@@ -2106,7 +2106,7 @@ fun sum(monomials: Iterable<Quantity<LinearMonomial>>): Quantity<LinearPolynomia
 }
 
 @JvmName("sumQuantityLinearPolynomials")
-fun sum(polynomials: Iterable<Quantity<AbstractLinearPolynomial<*>>>): Quantity<LinearPolynomial> {
+fun qtySum(polynomials: Iterable<Quantity<AbstractLinearPolynomial<*>>>): Quantity<LinearPolynomial> {
     val quantityPolynomials = polynomials.toList()
     return if (quantityPolynomials.isEmpty()) {
         Quantity(LinearPolynomial(), NoneUnit)
@@ -2119,17 +2119,17 @@ fun sum(polynomials: Iterable<Quantity<AbstractLinearPolynomial<*>>>): Quantity<
 }
 
 @JvmName("sumMapQuantityMonomials")
-fun <T> sum(
+fun <T> qtySum(
     objs: Iterable<T>,
     extractor: (T) -> Quantity<LinearMonomial>?
 ): Quantity<LinearPolynomial> {
-    return sum(objs.mapNotNull(extractor))
+    return qtySum(objs.mapNotNull(extractor))
 }
 
 @JvmName("sumMapQuantityMonomialLists")
-fun <T> flatSum(
+fun <T> flatQtySum(
     objs: Iterable<T>,
     extractor: (T) -> Iterable<Quantity<LinearMonomial>?>
 ): Quantity<LinearPolynomial> {
-    return sum(objs.flatMap(extractor).filterNotNull())
+    return qtySum(objs.flatMap(extractor).filterNotNull())
 }

@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -65,27 +67,62 @@ class LinearMechanismModel(
 
             val model = if (concurrent ?: metaModel.concurrent) {
                 coroutineScope {
-                    val constraints = metaModel._constraints.map {
-                        async(Dispatchers.Default) {
-                            LinearConstraint(it, tokens)
+                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val constraints = if (factor1 > 1) {
+                        val segment = pow(UInt64.ten, factor1).toInt()
+                        (0..(metaModel._constraints.size / segment)).map { i ->
+                            async(Dispatchers.Default) {
+                                metaModel._constraints.subList((i * segment), minOf(metaModel._constraints.size, (i + 1) * segment)).map {
+                                    LinearConstraint(
+                                        inequality = it,
+                                        tokens = tokens
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        metaModel._constraints.map {
+                            async(Dispatchers.Default) {
+                                listOf(LinearConstraint(
+                                    inequality = it,
+                                    tokens = tokens
+                                ))
+                            }
                         }
                     }
-                    val subObjects = metaModel._subObjects.map {
-                        async(Dispatchers.Default) {
-                            LinearSubObject(
-                                it.category,
-                                it.polynomial,
-                                tokens,
-                                it.name
-                            )
+                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val subObjects = if (factor2 > 1) {
+                        val segment = pow(UInt64.ten, factor2).toInt()
+                        (0..(metaModel._subObjects.size / segment)).map { i ->
+                            async(Dispatchers.Default) {
+                                metaModel._subObjects.subList((i * segment), minOf(metaModel._subObjects.size, (i + 1) * segment)).map {
+                                    LinearSubObject(
+                                        category = it.category,
+                                        poly = it.polynomial,
+                                        tokens = tokens,
+                                        name = it.name
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        metaModel._subObjects.map {
+                            async(Dispatchers.Default) {
+                                listOf(LinearSubObject(
+                                    category = it.category,
+                                    poly = it.polynomial,
+                                    tokens = tokens,
+                                    name = it.name
+                                ))
+                            }
                         }
                     }
 
                     LinearMechanismModel(
                         metaModel,
                         metaModel.name,
-                        constraints.map { it.await() }.toMutableList(),
-                        SingleObject(metaModel.objectCategory, subObjects.map { it.await() }),
+                        constraints.flatMap { it.await() }.toMutableList(),
+                        SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
                         tokens
                     )
                 }
@@ -194,27 +231,62 @@ class QuadraticMechanismModel(
 
             val model = if (concurrent ?: metaModel.concurrent) {
                 coroutineScope {
-                    val constraints = metaModel._constraints.map {
-                        async(Dispatchers.Default) {
-                            QuadraticConstraint(it, tokens)
+                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val constraints = if (factor1 > 1) {
+                        val segment = pow(UInt64.ten, factor1).toInt()
+                        (0..(metaModel._constraints.size / segment)).map { i ->
+                            async(Dispatchers.Default) {
+                                metaModel._constraints.subList((i * segment), minOf(metaModel._constraints.size, (i + 1) * segment)).map {
+                                    QuadraticConstraint(
+                                        inequality = it,
+                                        tokens = tokens
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        metaModel._constraints.map {
+                            async(Dispatchers.Default) {
+                                listOf(QuadraticConstraint(
+                                    inequality = it,
+                                    tokens = tokens
+                                ))
+                            }
                         }
                     }
-                    val subObjects = metaModel._subObjects.map {
-                        async(Dispatchers.Default) {
-                            QuadraticSubObject(
-                                it.category,
-                                it.polynomial,
-                                tokens,
-                                it.name
-                            )
+                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val subObjects = if (factor2 > 1) {
+                        val segment = pow(UInt64.ten, factor2).toInt()
+                        (0..(metaModel._subObjects.size / segment)).map { i ->
+                            async(Dispatchers.Default) {
+                                metaModel._subObjects.subList((i * segment), minOf(metaModel._subObjects.size, (i + 1) * segment)).map {
+                                    QuadraticSubObject(
+                                        category = it.category,
+                                        poly = it.polynomial,
+                                        tokens = tokens,
+                                        name = it.name
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        metaModel._subObjects.map {
+                            async(Dispatchers.Default) {
+                                listOf(QuadraticSubObject(
+                                    category = it.category,
+                                    poly = it.polynomial,
+                                    tokens = tokens,
+                                    name = it.name
+                                ))
+                            }
                         }
                     }
 
                     QuadraticMechanismModel(
                         metaModel,
                         metaModel.name,
-                        constraints.map { it.await() }.toMutableList(),
-                        SingleObject(metaModel.objectCategory, subObjects.map { it.await() }),
+                        constraints.flatMap { it.await() }.toMutableList(),
+                        SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
                         tokens
                     )
                 }

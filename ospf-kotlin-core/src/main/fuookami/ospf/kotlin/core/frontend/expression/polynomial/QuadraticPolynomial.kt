@@ -3739,7 +3739,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<Abstra
 // sigma
 
 @JvmName("sumQuadraticSymbols")
-fun sum(
+fun qsum(
     symbols: Iterable<QuadraticIntermediateSymbol>,
     ctor: (QuadraticIntermediateSymbol) -> QuadraticMonomial = { QuadraticMonomial(it) }
 ): QuadraticPolynomial {
@@ -3751,12 +3751,12 @@ fun sum(
 }
 
 @JvmName("sumQuadraticMonomials")
-fun sum(monomials: Iterable<QuadraticMonomial>): QuadraticPolynomial {
+fun qsum(monomials: Iterable<QuadraticMonomial>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = monomials.toList())
 }
 
 @JvmName("sumQuadraticPolynomials")
-fun sum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolynomial {
+fun qsum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolynomial {
     val monomials = ArrayList<QuadraticMonomial>()
     var constant = Flt64.zero
     for (polynomial in polynomials) {
@@ -3766,32 +3766,32 @@ fun sum(polynomials: Iterable<AbstractQuadraticPolynomial<*>>): QuadraticPolynom
     return QuadraticPolynomial(monomials = monomials, constant = constant)
 }
 
-fun <T> sumSymbols(
+fun <T> qsumSymbols(
     objs: Iterable<T>,
     ctor: (T) -> QuadraticIntermediateSymbol?
 ): QuadraticPolynomial {
-    return sum(objs.mapNotNull(ctor))
+    return qsum(objs.mapNotNull(ctor))
 }
 
-fun <T> sum(
+fun <T> qsum(
     objs: Iterable<T>,
     ctor: (T) -> QuadraticMonomial?
 ): QuadraticPolynomial {
-    return sum(objs.mapNotNull(ctor))
+    return qsum(objs.mapNotNull(ctor))
 }
 
 @JvmName("sumMapQuadraticMonomials")
-fun <T> flatSum(
+fun <T> flatQSum(
     objs: Iterable<T>,
     ctor: (T) -> Iterable<QuadraticMonomial?>
 ): QuadraticPolynomial {
-    return sum(objs.flatMap(ctor).filterNotNull())
+    return qsum(objs.flatMap(ctor).filterNotNull())
 }
 
 // quantity sigma
 
 @JvmName("sumQuantityLinearMonomials")
-fun sum(monomials: Iterable<Quantity<QuadraticMonomial>>): Quantity<QuadraticPolynomial> {
+fun qtyQSum(monomials: Iterable<Quantity<QuadraticMonomial>>): Quantity<QuadraticPolynomial> {
     val quantityMonomials = monomials.toList()
     return if (quantityMonomials.isEmpty()) {
         Quantity(QuadraticPolynomial(), NoneUnit)
@@ -3804,7 +3804,7 @@ fun sum(monomials: Iterable<Quantity<QuadraticMonomial>>): Quantity<QuadraticPol
 }
 
 @JvmName("sumQuantityLinearPolynomials")
-fun sum(polynomials: Iterable<Quantity<AbstractQuadraticPolynomial<*>>>): Quantity<QuadraticPolynomial> {
+fun qtyQSum(polynomials: Iterable<Quantity<AbstractQuadraticPolynomial<*>>>): Quantity<QuadraticPolynomial> {
     val quantityPolynomials = polynomials.toList()
     return if (quantityPolynomials.isEmpty()) {
         Quantity(QuadraticPolynomial(), NoneUnit)
@@ -3817,17 +3817,17 @@ fun sum(polynomials: Iterable<Quantity<AbstractQuadraticPolynomial<*>>>): Quanti
 }
 
 @JvmName("sumMapQuantityMonomials")
-fun <T> sum(
+fun <T> qtyQSum(
     objs: Iterable<T>,
     extractor: (T) -> Quantity<QuadraticMonomial>?
 ): Quantity<QuadraticPolynomial> {
-    return sum(objs.mapNotNull(extractor))
+    return qtyQSum(objs.mapNotNull(extractor))
 }
 
 @JvmName("sumMapQuantityMonomialLists")
-fun <T> flatSum(
+fun <T> flatQtyQSum(
     objs: Iterable<T>,
     extractor: (T) -> Iterable<Quantity<QuadraticMonomial>?>
 ): Quantity<QuadraticPolynomial> {
-    return sum(objs.flatMap(extractor).filterNotNull())
+    return qtyQSum(objs.flatMap(extractor).filterNotNull())
 }
