@@ -9,516 +9,6 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
-interface WeightAttribute {
-    val maxLayer: UInt64
-}
-
-data class CommonWeightAttribute(
-    override val maxLayer: UInt64 = UInt64.maximum
-) : WeightAttribute {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as CommonWeightAttribute
-
-        return maxLayer == other.maxLayer
-    }
-
-    override fun hashCode(): Int {
-        return maxLayer.hashCode()
-    }
-}
-
-interface DeformationAttribute {
-    fun deformationQuantity(volume: Flt64): Vector3
-    fun deformationQuantity(unit: Cuboid<*>) = deformationQuantity(unit.volume)
-}
-
-data class LinearDeformationAttribute(
-    val deformationCoefficient: Flt64
-) : DeformationAttribute {
-    override fun deformationQuantity(volume: Flt64) = Vector3(volume * deformationCoefficient, volume * deformationCoefficient, volume * deformationCoefficient)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as LinearDeformationAttribute
-
-        return deformationCoefficient == other.deformationCoefficient
-    }
-
-    override fun hashCode(): Int {
-        return deformationCoefficient.hashCode()
-    }
-}
-
-interface HangingPolicy {
-    fun enabledStackingOn(
-        unit: Cuboid<*>,
-        bottomSupport: BottomSupport
-    ): Boolean
-}
-
-data class AbsoluteHangingPolicy(
-    private val maxDifference: Flt64,
-    private val withWeight: Boolean = true
-) : HangingPolicy {
-    override fun enabledStackingOn(
-        unit: Cuboid<*>,
-        bottomSupport: BottomSupport
-    ): Boolean {
-        if (withWeight && bottomSupport.weight ls unit.weight) {
-            return false
-        }
-
-        val length = Bottom.length(unit)
-        val width = Bottom.width(unit)
-        val maxHangingArea = maxDifference * min(length, width)
-        val hangingArea = length * width - bottomSupport.area
-        return hangingArea leq maxHangingArea
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as AbsoluteHangingPolicy
-
-        if (maxDifference != other.maxDifference) return false
-        if (withWeight != other.withWeight) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = maxDifference.hashCode()
-        result = 31 * result + withWeight.hashCode()
-        return result
-    }
-}
-
-data class RelativeHangingPolicy(
-    private val hangingPercentage: Flt64,
-    private val withWeight: Boolean = true
-) : HangingPolicy {
-    override fun enabledStackingOn(
-        unit: Cuboid<*>,
-        bottomSupport: BottomSupport
-    ): Boolean {
-        if (withWeight && bottomSupport.weight ls unit.weight) {
-            return false
-        }
-
-        val length = Bottom.length(unit)
-        val width = Bottom.width(unit)
-        val s = length * width
-        val maxHangingArea = s * hangingPercentage
-        val hangingArea = s - bottomSupport.area
-        return hangingArea leq maxHangingArea
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as RelativeHangingPolicy
-
-        if (hangingPercentage != other.hangingPercentage) return false
-        if (withWeight != other.withWeight) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = hangingPercentage.hashCode()
-        result = 31 * result + withWeight.hashCode()
-        return result
-    }
-}
-
-interface StackingOnPolicy {
-    fun enabledStackingOn(
-        item: ItemView,
-        bottomItem: ItemView,
-        layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero
-    ): Boolean
-}
-
-class BoxStackingOnPolicy(
-    val maxDifference: Flt64,
-    private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
-) : StackingOnPolicy {
-    override fun enabledStackingOn(
-        item: ItemView,
-        bottomItem: ItemView,
-        layer: UInt64,
-        height: Flt64
-    ): Boolean {
-        if (!bottomItem.overPackageTypes.contains(item.packageType)) {
-            return false
-        }
-        if (extraStackingOnRule?.invoke(item, bottomItem) == false) {
-            return false
-        }
-        if (bottomItem.packageCategory == PackageCategory.Pallet && item.packageCategory != PackageCategory.Filler) {
-            if (!bottomItem.topFlat) {
-                return false
-            }
-        }
-        if (bottomItem.packageCategory != PackageCategory.Filler && item.packageCategory != PackageCategory.Filler) {
-            val difference = abs(item.width - bottomItem.width) + abs(item.depth - bottomItem.depth)
-            if (difference gr maxDifference) {
-                return false
-            }
-        }
-        if ((item.weight - bottomItem.weight) gr Flt64(10.0)) {
-            return false
-        }
-        return layer < item.maxLayer && (height + item.height) leq item.maxHeight
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as BoxStackingOnPolicy
-
-        if (maxDifference != other.maxDifference) return false
-        if (extraStackingOnRule != other.extraStackingOnRule) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = maxDifference.hashCode()
-        result = 31 * result + (extraStackingOnRule?.hashCode() ?: 0)
-        return result
-    }
-}
-
-class CartonContainerStackingOnPolicy(
-    val maxDifference: Flt64
-) : StackingOnPolicy {
-    override fun enabledStackingOn(
-        item: ItemView,
-        bottomItem: ItemView,
-        layer: UInt64,
-        height: Flt64
-    ): Boolean {
-        if (!bottomItem.overPackageTypes.contains(item.packageType)) {
-            return false
-        }
-        if (bottomItem.packageCategory == PackageCategory.SoftBox && item.packageCategory == PackageCategory.SoftBox) {
-            val difference = item.unit.width + item.unit.depth - bottomItem.unit.width - bottomItem.unit.depth
-            if (difference gr maxDifference) {
-                return false
-            }
-        }
-        if ((item.weight - bottomItem.weight) gr Flt64(10.0)) {
-            return false
-        }
-        return layer < item.maxLayer && (height + item.height) leq item.maxHeight
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is CartonContainerStackingOnPolicy) return false
-
-        if (maxDifference != other.maxDifference) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return maxDifference.hashCode()
-    }
-}
-
-data object FilterStackingOnPolicy : StackingOnPolicy {
-    override fun enabledStackingOn(
-        item: ItemView,
-        bottomItem: ItemView,
-        layer: UInt64,
-        height: Flt64
-    ): Boolean {
-        if (!bottomItem.overPackageTypes.contains(item.packageType)) {
-            return false
-        }
-        if ((item.weight - bottomItem.weight) gr Flt64(10.0)) {
-            return false
-        }
-        return layer < item.maxLayer && (height + item.height) leq item.maxHeight
-    }
-}
-
-data class PackageAttribute(
-    val packageType: PackageType,
-    val packageMaxLayer: UInt64 = UInt64.maximum,
-    val maxHeight: Flt64 = Flt64.infinity,
-    val minDepth: Flt64 = Flt64.zero,
-    val maxDepth: Flt64 = Flt64.infinity,
-    val overPackageTypes: List<PackageType> = PackageType.entries.toList(),
-    val bottomOnly: Boolean = false,
-    val topFlat: Boolean = true,
-
-    val sideOnTopLayer: UInt64 = UInt64.zero,
-    val lieOnTopLayer: UInt64 = UInt64.zero,
-
-    val weightAttribute: WeightAttribute,
-    val deformationAttribute: DeformationAttribute,
-    val hangingPolicy: HangingPolicy,
-    val stackingOnPolicy: StackingOnPolicy,
-
-    val extraOrientationRule: ((Container3Shape, Orientation) -> Boolean)? = null,
-    val extraStackingOnRule: ((ItemPlacement3, List<ItemPlacement3>, List<ItemPlacement3>) -> Boolean)? = null
-) {
-    val packageCategory by packageType::category
-
-    val enabledSideOnTop: Boolean get() = sideOnTopLayer != UInt64.zero
-    val enabledLieOnTop: Boolean get() = lieOnTopLayer != UInt64.zero
-
-    val maxLayer = min(packageMaxLayer, weightAttribute.maxLayer)
-
-    companion object {
-        @Suppress("UNCHECKED_CAST")
-        private suspend fun layerLayer(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
-        ): UInt64 {
-            return coroutineScope {
-                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
-                val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
-
-                val promises = ArrayList<Deferred<UInt64>>()
-                for (bottomItem in directBottomItems) {
-                    if (bottomItem.type == item.type) {
-                        promises.add(async(Dispatchers.Default) {
-                            val thisBottomPlacement = Placement2(bottomItem, Bottom)
-                            val thisBottomPlacements = indirectBottomItems.filter { Placement2(it, Bottom).overlapped(thisBottomPlacement) }
-                            if (thisBottomPlacements.isNotEmpty()) {
-                                UInt64.one + layerLayer(bottomItem, thisBottomPlacements)
-                            } else {
-                                UInt64.one
-                            }
-                        })
-                    }
-                }
-                val maxLayer = promises.maxOfOrNull { it.await() } ?: UInt64.zero
-                maxLayer
-            }
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        private suspend fun layerHeight(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
-        ): Flt64 {
-            return coroutineScope {
-                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
-                val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
-
-                val promises = ArrayList<Deferred<Flt64>>()
-                for (bottomItem in directBottomItems) {
-                    if (bottomItem.type == item.type) {
-                        promises.add(async(Dispatchers.Default) {
-                            val thisBottomPlacement = Placement2(bottomItem, Bottom)
-                            val thisBottomPlacements = indirectBottomItems.filter { Placement2(it, Bottom).overlapped(thisBottomPlacement) }
-                            if (thisBottomPlacements.isNotEmpty()) {
-                                bottomItem.height + layerHeight(bottomItem, thisBottomPlacements)
-                            } else {
-                                bottomItem.height
-                            }
-                        })
-                    }
-                }
-                promises.maxOfOrNull { it.await() } ?: Flt64.zero
-            }
-        }
-
-        suspend fun layer(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
-        ): Pair<UInt64, Flt64> {
-            return coroutineScope {
-                val layer = async(Dispatchers.Default) {
-                    layerLayer(item, bottomItems)
-                }
-                val height = async(Dispatchers.Default) {
-                    layerHeight(item, bottomItems)
-                }
-                Pair(layer.await(), height.await())
-            }
-        }
-    }
-
-    fun enabledStackingOn(
-        unit: Cuboid<*>,
-        bottomSupport: BottomSupport
-    ): Boolean {
-        return hangingPolicy.enabledStackingOn(
-            unit = unit,
-            bottomSupport = bottomSupport
-        )
-    }
-
-    fun enabledStackingOn(
-        item: Item,
-        bottomItem: Item?,
-        layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
-        space: Container3Shape = CommonContainer3Shape()
-    ): Boolean {
-        return enabledStackingOn(
-            item = item.view(),
-            bottomItem = bottomItem?.view(),
-            layer = layer,
-            height = height,
-            space = space
-        )
-    }
-
-    fun enabledStackingOn(
-        item: ItemView,
-        bottomItem: ItemView? = null,
-        layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
-        space: Container3Shape = CommonContainer3Shape()
-    ): Boolean {
-        if (bottomItem != null) {
-            if (item.bottomOnly && !bottomItem.bottomOnly) {
-                return false
-            }
-
-            if ((!bottomItem.topFlat || !bottomItem.unit.enabledOrientations.contains(bottomItem.orientation)) && item.packageCategory != PackageCategory.Filler) {
-                return false
-            }
-        }
-
-        if (!item.unit.enabledOrientationsAt(space).contains(item.orientation)) {
-            return false
-        }
-
-        if (!item.unit.enabledOrientations.contains(item.orientation)) {
-            if (item.orientation.category == OrientationCategory.Side && layer >= item.unit.sideOnTopLayer) {
-                return false
-            }
-            if (item.orientation.category == OrientationCategory.Lie && layer >= item.unit.lieOnTopLayer) {
-                return false
-            }
-        }
-
-        return bottomItem == null || stackingOnPolicy.enabledStackingOn(
-            item = item,
-            bottomItem = bottomItem,
-            layer = layer,
-            height = height
-        )
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    suspend fun enabledStackingOn(
-        item: ItemPlacement3,
-        bottomItems: List<ItemPlacement3>,
-        space: Container3Shape = CommonContainer3Shape()
-    ): Boolean {
-        val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
-        val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
-
-        if (extraStackingOnRule?.invoke(item, directBottomItems, indirectBottomItems) == false) {
-            return false
-        }
-
-        // If the material is not at the bottom (y coordinate is not 0) and it is required to be at the bottom, there cannot be any non-bottom-required material below it.
-        if (item.bottomOnly && bottomItems.any { !it.bottomOnly }) {
-            return false
-        }
-
-        if (!item.unit.enabledOrientationsAt(space).contains(item.orientation)) {
-            return false
-        }
-
-        val (layer, height) = layer(item, bottomItems)
-
-        for (bottomItem in directBottomItems) {
-            if (!bottomItem.view.topFlat) {
-                if (!bottomItem.unit.enabledOrientations.contains(bottomItem.orientation) && !item.unit.enabledOrientations.contains(item.orientation)) {
-                    if (item.orientation.category == OrientationCategory.Side && layer >= item.unit.sideOnTopLayer) {
-                        return false
-                    }
-                    if (item.orientation.category == OrientationCategory.Lie && layer >= item.unit.lieOnTopLayer) {
-                        return false
-                    }
-                } else if (item.packageCategory != PackageCategory.Filler) {
-                    return false
-                }
-            }
-        }
-
-        for (bottomItem in directBottomItems) {
-            if (!stackingOnPolicy.enabledStackingOn(
-                    item = item.view as ItemView,
-                    bottomItem = bottomItem.view as ItemView,
-                    layer = layer,
-                    height = height
-                )
-            ) {
-                return false
-            }
-        }
-
-        return true
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as PackageAttribute
-
-        if (packageType != other.packageType) return false
-        if (packageMaxLayer != other.packageMaxLayer) return false
-        if (maxHeight != other.maxHeight) return false
-        if (minDepth != other.minDepth) return false
-        if (maxDepth != other.maxDepth) return false
-        if (overPackageTypes != other.overPackageTypes) return false
-        if (bottomOnly != other.bottomOnly) return false
-        if (topFlat != other.topFlat) return false
-        if (sideOnTopLayer != other.sideOnTopLayer) return false
-        if (lieOnTopLayer != other.lieOnTopLayer) return false
-        if (weightAttribute != other.weightAttribute) return false
-        if (deformationAttribute != other.deformationAttribute) return false
-        if (hangingPolicy != other.hangingPolicy) return false
-        if (stackingOnPolicy != other.stackingOnPolicy) return false
-        if (extraOrientationRule != other.extraOrientationRule) return false
-        if (extraStackingOnRule != other.extraStackingOnRule) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = packageType.hashCode()
-        result = 31 * result + packageMaxLayer.hashCode()
-        result = 31 * result + maxHeight.hashCode()
-        result = 31 * result + minDepth.hashCode()
-        result = 31 * result + maxDepth.hashCode()
-        result = 31 * result + overPackageTypes.hashCode()
-        result = 31 * result + bottomOnly.hashCode()
-        result = 31 * result + topFlat.hashCode()
-        result = 31 * result + sideOnTopLayer.hashCode()
-        result = 31 * result + lieOnTopLayer.hashCode()
-        result = 31 * result + weightAttribute.hashCode()
-        result = 31 * result + deformationAttribute.hashCode()
-        result = 31 * result + hangingPolicy.hashCode()
-        result = 31 * result + stackingOnPolicy.hashCode()
-        result = 31 * result + (extraOrientationRule?.hashCode() ?: 0)
-        result = 31 * result + (extraStackingOnRule?.hashCode() ?: 0)
-        return result
-    }
-}
-
 data class PriorityAttribute(
     val key: String,
     private val extractor: Extractor<String?, ActualItem>,
@@ -559,7 +49,7 @@ open class ItemType(
 open class ItemPattern(
     val shape: PackageShape,
     val enabledOrientations: List<Orientation>,
-    val batchNo: BatchNo,
+    val batchNo: BatchNo?,
     val priorities: Map<String, UInt64>,
     val warehouse: String?,
     val packageAttribute: PackageAttribute,
@@ -581,16 +71,16 @@ open class ItemPattern(
     override fun hashCode(): Int {
         var result = shape.hashCode()
         result = 31 * result + enabledOrientations.hashCode()
-        result = 31 * result + batchNo.hashCode()
-        result = 31 * result + priorities.hashCode()
+        result = 31 * result + (batchNo?.hashCode() ?: 0)
+        result = 31 * result + (priorities?.hashCode() ?: 0)
         result = 31 * result + (warehouse?.hashCode() ?: 0)
         result = 31 * result + packageAttribute.hashCode()
         return result
     }
 }
 
-interface Item : CuboidUnit<Item>, Indexed {
-    val batchNo: BatchNo
+interface Item : Cuboid<Item>, Indexed {
+    val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
     val warehouse: String?
     val packageAttribute: PackageAttribute
@@ -633,7 +123,7 @@ interface Item : CuboidUnit<Item>, Indexed {
         bottomItem: Item,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
-        space: Container3Shape = CommonContainer3Shape()
+        space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return packageAttribute.enabledStackingOn(
             item = this,
@@ -663,7 +153,7 @@ open class ActualItem(
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
-    override val batchNo: BatchNo,
+    override val batchNo: BatchNo? = null,
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
@@ -710,14 +200,17 @@ open class PatternedItem(
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
     override val priorities: Map<String, UInt64> = emptyMap(),
-    override val batchNo: BatchNo,
+    override val batchNo: BatchNo? = null,
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
     override val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / actualItems.sumOf { it.second.toFlt64() }
 
     companion object {
-        operator fun invoke(pattern: ItemPattern, actualItems: List<Triple<ActualItem, UInt64, UInt64>>): Triple<PatternedItem, UInt64, UInt64> {
+        operator fun invoke(
+            pattern: ItemPattern,
+            actualItems: List<Triple<ActualItem, UInt64, UInt64>>
+        ): Triple<PatternedItem, UInt64, UInt64> {
             val amount = actualItems.sumOf { it.second }
             val pendingAmount = actualItems.sumOf { it.third }
             val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
@@ -752,7 +245,7 @@ open class PatternedItem(
 
     // inherited from CuboidUnit<Item>
     override fun enabledOrientationsAt(
-        space: Container2Shape<*>,
+        space: AbstractContainer2Shape<*>,
         withRotation: Boolean
     ): List<Orientation> {
         val actualOrientations = super.enabledOrientationsAt(
@@ -787,7 +280,7 @@ open class PatternedItem(
     }
 
     override fun enabledOrientationsAt(
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         withRotation: Boolean
     ): List<Orientation> {
         val actualOrientations = super.enabledOrientationsAt(
@@ -877,7 +370,7 @@ open class ItemView(
         bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
-        space: Container3Shape = CommonContainer3Shape()
+        space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return unit.packageAttribute.enabledStackingOn(
             item = this,
@@ -893,11 +386,11 @@ open class ItemView(
             return super.rotation?.let { ItemView(it.unit, it.orientation) }
         }
 
-    override fun rotationAt(space: Container2Shape<*>): ItemView? {
+    override fun rotationAt(space: AbstractContainer2Shape<*>): ItemView? {
         return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
-    override fun rotationAt(space: Container3Shape): ItemView? {
+    override fun rotationAt(space: AbstractContainer3Shape): ItemView? {
         return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
@@ -909,7 +402,7 @@ open class ItemView(
     }
 }
 
-typealias ItemProjection<P> = Projection<*, Item, P>
+typealias ItemProjection<P> = Projection<Item, P>
 typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
 typealias ItemPlacement2<P> = Placement2<Item, P>
 typealias ItemPlacement3 = Placement3<Item>
@@ -933,7 +426,7 @@ val ItemPlacement3.type: ItemType
     }
 
 @get:JvmName("itemProjectionPackageType")
-val ItemProjection<*>.packageType: PackageType
+val ItemProjection<*,>.packageType: PackageType
     get() {
         return unit.packageType
     }
@@ -1008,7 +501,7 @@ val ItemPlacement3.topFlat: Boolean
 @JvmName("itemPlacement2SideEnabledStackingOn")
 suspend fun ItemPlacement2<Side>.enabledStackingOn(
     bottomItems: List<Placement2<*, Side>>,
-    space: Container2Shape<Side> = CommonContainer2Shape(plane = Side)
+    space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
     return try {
@@ -1042,7 +535,7 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                                 it.maxY leq this@enabledStackingOn.y && Placement2(placement3, Bottom).overlapped(bottomPlacement)
                             }
                         },
-                        space = CommonContainer3Shape(space)
+                        space = Container3Shape(space)
                     )
                 })
             }
@@ -1062,7 +555,7 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
 @JvmName("itemPlacement2FrontEnabledStackingOn")
 suspend fun ItemPlacement2<Front>.enabledStackingOn(
     bottomItems: List<Placement2<*, Front>>,
-    space: Container2Shape<Front> = CommonContainer2Shape(plane = Front)
+    space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
     return try {
@@ -1096,7 +589,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                         }.filter {
                             it.maxY leq this@enabledStackingOn.y && Placement2(it, Bottom).overlapped(bottomPlacement)
                         },
-                        space = CommonContainer3Shape(space)
+                        space = Container3Shape(space)
                     )
                 })
             }
@@ -1116,7 +609,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
 @JvmName("itemPlacement3EnabledStackingOn")
 suspend fun ItemPlacement3.enabledStackingOn(
     bottomItems: List<Placement3<*>>,
-    space: Container3Shape = CommonContainer3Shape()
+    space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val bottomPlacement = Placement2(this, Bottom)
     return if (absoluteY eq Flt64.zero) {
@@ -1225,186 +718,8 @@ fun List<Placement3<*>>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlac
     return items
 }
 
-sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S> {
-    val items: List<ItemPlacement3> get() = dump()
-
-    val packageType: PackageType
-        get() = units.minOfWithThreeWayComparator({ lhs, rhs -> lhs ord rhs }) {
-            when (val unit = it.unit) {
-                is Item -> unit.packageType
-                is ItemContainer<*> -> unit.packageType
-                else -> PackageType.CartonContainer
-            }
-        }
-    val packageCategory get() = packageType.category
-
-    val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }
-    val bottomOnlyHeight: Flt64
-        get() = items.maxOfOrNull { item ->
-            if (item.bottomOnly) {
-                item.maxY
-            } else {
-                Flt64.zero
-            }
-        } ?: Flt64.zero
-
-    val topFlat: Boolean get() = topPlacements(units).all { (it.view as ItemView).topFlat }
-
-    // inherit from CuboidUnit<Block>
-    override val enabledOrientations: List<Orientation> get() = listOf(Orientation.Upright)
-
-    fun dump(offset: Point3 = point3()) = units.dump(offset)
-    fun dumpAbsolutely(offset: Point3 = point3()) = units.dumpAbsolutely(offset)
-
-    override fun view(orientation: Orientation): CuboidView<S>? = CuboidView(copy(), orientation)
-}
-
-@get:JvmName("itemContainerPackageType")
-val <S : ItemContainer<S>> CuboidView<S>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("itemContainerPackageCategory")
-val <S : ItemContainer<S>> CuboidView<S>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("itemContainerBottomOnly")
-val <S : ItemContainer<S>> CuboidView<S>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("itemContainerTopFlat")
-val <S : ItemContainer<S>> CuboidView<S>.topFlat: Boolean
-    get() {
-        return unit.topFlat
-    }
-
-fun <S : ItemContainer<S>> CuboidView<S>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dump(offset)
-}
-
-fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dumpAbsolutely(offset)
-}
-
-@get:JvmName("itemContainerPlacementPackageType")
-val <S : ItemContainer<S>> Placement3<S>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("itemContainerPlacementPackageCategory")
-val <S : ItemContainer<S>> Placement3<S>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-fun <S : ItemContainer<S>> Placement3<S>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dump(position + offset)
-}
-
-fun <S : ItemContainer<S>> Placement3<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dump(absolutePosition + offset)
-}
-
-@Suppress("UNCHECKED_CAST")
-@JvmName("itemContainerPlacement2SideEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Side>>,
-    space: Container2Shape<Side> = CommonContainer2Shape(plane = Side)
-): Boolean {
-    val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
-    return try {
-        coroutineScope {
-            val promises = ArrayList<Deferred<Boolean>>()
-            for (item in bottomPlacements(toPlacement3().dump())) {
-                promises.add(async(Dispatchers.Default) {
-                    item as ItemPlacement3
-                    item.enabledStackingOn(
-                        bottomItems = bottomPlacements,
-                        space = CommonContainer3Shape(space).restSpace(item.position)
-                    )
-                })
-            }
-            for (promise in promises) {
-                if (!promise.await()) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        return false
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-@JvmName("itemContainerPlacement2FrontEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Front>>,
-    space: Container2Shape<Front> = CommonContainer2Shape(plane = Front)
-): Boolean {
-    val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
-    return try {
-        coroutineScope {
-            val promises = ArrayList<Deferred<Boolean>>()
-            for (item in bottomPlacements(toPlacement3().dump())) {
-                promises.add(async(Dispatchers.Default) {
-                    item as ItemPlacement3
-                    item.enabledStackingOn(
-                        bottomItems = bottomPlacements,
-                        space = CommonContainer3Shape(space).restSpace(item.position)
-                    )
-                })
-            }
-            for (promise in promises) {
-                if (!promise.await()) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        return false
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-@JvmName("itemContainerPlacement3EnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
-    bottomItems: List<Placement3<*>>,
-    space: Container3Shape = CommonContainer3Shape()
-): Boolean {
-    val thisBottomItems = bottomPlacements(this.dump()) as List<ItemPlacement3>
-    return try {
-        coroutineScope {
-            val promises = ArrayList<Deferred<Boolean>>()
-            for (item in thisBottomItems) {
-                promises.add(async(Dispatchers.Default) {
-                    item.enabledStackingOn(
-                        bottomItems = bottomItems,
-                        space = space
-                    )
-                })
-            }
-            for (promise in promises) {
-                if (!promise.await()) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        return false
-    }
-}
-
 @get:JvmName("cuboidUnitPackageType")
-val CuboidUnit<*>.packageType: PackageType
+val Cuboid<*>.packageType: PackageType
     get() {
         return when (this) {
             is Item -> packageType
@@ -1420,7 +735,7 @@ val CuboidView<*>.packageType: PackageType
     }
 
 @get:JvmName("cuboidProjectionPackageType")
-val Projection<*, *, *>.packageType: PackageType
+val Projection<*, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
@@ -1438,7 +753,7 @@ val Placement3<*>.packageType: PackageType
     }
 
 @get:JvmName("cuboidPackageCategory")
-val Cuboid<*>.packageCategory: PackageCategory
+val AbstractCuboid.packageCategory: PackageCategory
     get() {
         return when (this) {
             is Item -> packageCategory
@@ -1454,7 +769,7 @@ val CuboidView<*>.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidProjectionPackageCategory")
-val Projection<*, *, *>.packageCategory: PackageCategory
+val Projection<*, *>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
@@ -1472,7 +787,7 @@ val Placement3<*>.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidUnitBottomOnly")
-val CuboidUnit<*>.bottomOnly: Boolean
+val Cuboid<*>.bottomOnly: Boolean
     get() {
         return when (this) {
             is Item -> bottomOnly
@@ -1488,7 +803,7 @@ val CuboidView<*>.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidProjectionBottomOnly")
-val Projection<*, *, *>.bottomOnly: Boolean
+val Projection<*, *>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
@@ -1506,7 +821,7 @@ val Placement3<*>.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidUnitTopFlat")
-val CuboidUnit<*>.topFlat: Boolean
+val Cuboid<*>.topFlat: Boolean
     get() {
         return when (this) {
             is Item -> topFlat
@@ -1526,7 +841,7 @@ val CuboidView<*>.topFlat: Boolean
     }
 
 @get:JvmName("cuboidProjectionTopFlat")
-val Projection<*, *, *>.topFlat: Boolean
+val Projection<*, *>.topFlat: Boolean
     get() {
         return unit.topFlat
     }

@@ -69,7 +69,7 @@ data class Particle<V>(
     }
 }
 
-interface PSOPolicy<V> {
+interface AbstractPSOPolicy<V> {
     fun transformPartial(
         particle: Particle<V>,
         bestPartial: Particle<V>,
@@ -84,7 +84,7 @@ interface PSOPolicy<V> {
  * @param c1: local learning factor
  * @param c2: global learning factor
  */
-open class CommonPSOPolicy<V>(
+open class PSOPolicy<V>(
     val w: Flt64 = Flt64(0.4),
     val c1: Flt64 = Flt64.two,
     val c2: Flt64 = Flt64.two,
@@ -93,7 +93,7 @@ open class CommonPSOPolicy<V>(
     val notBetterIterationLimit: UInt64 = UInt64.maximum,
     val timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Flt64(Random.nextDouble()) }
-) : PSOPolicy<V> {
+) : AbstractPSOPolicy<V> {
     override fun transformPartial(
         particle: Particle<V>,
         bestPartial: Particle<V>,
@@ -127,7 +127,7 @@ open class CommonPSOPolicy<V>(
 class ParticleSwarmOptimizationAlgorithm<Obj, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: PSOPolicy<V> = CommonPSOPolicy()
+    val policy: AbstractPSOPolicy<V> = PSOPolicy()
 ) {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,

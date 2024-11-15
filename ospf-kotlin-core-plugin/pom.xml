@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.29</version>
+        <version>1.0.31</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -14,11 +14,15 @@
     <artifactId>ospf-kotlin-core-plugin</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>ospf-kotlin-core-plugin-scip</module>
+        <module>ospf-kotlin-core-plugin-copt</module>
+        <module>ospf-kotlin-core-plugin-cplex</module>
         <module>ospf-kotlin-core-plugin-gurobi</module>
         <module>ospf-kotlin-core-plugin-gurobi11</module>
-        <module>ospf-kotlin-core-plugin-cplex</module>
-        <module>ospf-kotlin-core-plugin-copt</module>
+        <module>ospf-kotlin-core-plugin-hexaly</module>
+        <module>ospf-kotlin-core-plugin-lingo</module>
+        <module>ospf-kotlin-core-plugin-mosek</module>
+        <module>ospf-kotlin-core-plugin-scip</module>
+        <module>ospf-kotlin-core-plugin-optverse</module>
         <module>ospf-kotlin-core-plugin-heuristic</module>
     </modules>
 

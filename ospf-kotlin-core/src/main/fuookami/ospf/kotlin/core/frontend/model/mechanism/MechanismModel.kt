@@ -83,10 +83,12 @@ class LinearMechanismModel(
                     } else {
                         metaModel._constraints.map {
                             async(Dispatchers.Default) {
-                                listOf(LinearConstraint(
-                                    inequality = it,
-                                    tokens = tokens
-                                ))
+                                listOf(
+                                    LinearConstraint(
+                                        inequality = it,
+                                        tokens = tokens
+                                    )
+                                )
                             }
                         }
                     }
@@ -108,12 +110,14 @@ class LinearMechanismModel(
                     } else {
                         metaModel._subObjects.map {
                             async(Dispatchers.Default) {
-                                listOf(LinearSubObject(
-                                    category = it.category,
-                                    poly = it.polynomial,
-                                    tokens = tokens,
-                                    name = it.name
-                                ))
+                                listOf(
+                                    LinearSubObject(
+                                        category = it.category,
+                                        poly = it.polynomial,
+                                        tokens = tokens,
+                                        name = it.name
+                                    )
+                                )
                             }
                         }
                     }
@@ -159,7 +163,7 @@ class LinearMechanismModel(
         private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
-                   val temp = tokens.copy() as MutableTokenTable
+                    val temp = tokens.copy() as MutableTokenTable
                     when (val result = tokens.symbols.register(temp)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
@@ -247,10 +251,12 @@ class QuadraticMechanismModel(
                     } else {
                         metaModel._constraints.map {
                             async(Dispatchers.Default) {
-                                listOf(QuadraticConstraint(
-                                    inequality = it,
-                                    tokens = tokens
-                                ))
+                                listOf(
+                                    QuadraticConstraint(
+                                        inequality = it,
+                                        tokens = tokens
+                                    )
+                                )
                             }
                         }
                     }
@@ -272,12 +278,14 @@ class QuadraticMechanismModel(
                     } else {
                         metaModel._subObjects.map {
                             async(Dispatchers.Default) {
-                                listOf(QuadraticSubObject(
-                                    category = it.category,
-                                    poly = it.polynomial,
-                                    tokens = tokens,
-                                    name = it.name
-                                ))
+                                listOf(
+                                    QuadraticSubObject(
+                                        category = it.category,
+                                        poly = it.polynomial,
+                                        tokens = tokens,
+                                        name = it.name
+                                    )
+                                )
                             }
                         }
                     }

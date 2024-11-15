@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Solution
 
 interface BunchCompilationContext<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     B : AbstractTaskBunch<T, E, A>,
     T : AbstractTask<E, A>,
     E : Executor,
@@ -164,7 +164,7 @@ interface BunchCompilationContext<
 }
 
 interface ExtractBunchCompilationContext<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     B : AbstractTaskBunch<T, E, A>,
     T : AbstractTask<E, A>,
     E : Executor,

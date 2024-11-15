@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 class ResourceLessQuantityMinimization<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>,
     S : ResourceTimeSlot<R, C>,
@@ -42,7 +42,7 @@ class ResourceLessQuantityMinimization<
                         UContinuous,
                         x = LinearPolynomial(quantity.lessQuantity[slot]),
                         threshold = LinearPolynomial(thresholdValue),
-                        name = "${quantity.name}_${slot}_${name}_${thresholdValue}_over_quantity_threshold"
+                        name = "${quantity.name}_${slot}_${name}_over_quantity_threshold"
                     )
                     when (val result = model.add(slack)) {
                         is Ok -> {}

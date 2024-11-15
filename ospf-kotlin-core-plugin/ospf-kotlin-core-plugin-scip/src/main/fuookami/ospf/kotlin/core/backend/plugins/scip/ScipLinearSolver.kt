@@ -5,8 +5,8 @@ import kotlinx.datetime.*
 import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -26,7 +26,9 @@ class ScipLinearSolver(
         statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val impl = ScipLinearSolverImpl(config, callBack, statusCallBack)
-        return impl(model)
+        val result = impl(model)
+        System.gc()
+        return result
     }
 
     override suspend fun invoke(
@@ -67,7 +69,9 @@ class ScipLinearSolver(
                     ok
                 }, statusCallBack
             )
-            impl(model).map { it to results }
+            val result = impl(model).map { it to results }
+            System.gc()
+            return result
         }
     }
 }
@@ -142,45 +146,81 @@ private class ScipLinearSolverImpl(
         }
 
         val constraints = coroutineScope {
-            val promises = model.constraints.indices.map { i ->
-                i to async(Dispatchers.Default) {
-                    var lb = Flt64.negativeInfinity
-                    var ub = Flt64.infinity
-                    when (model.constraints.signs[i]) {
-                        Sign.GreaterEqual -> {
-                            lb = model.constraints.rhs[i]
-                        }
+            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+            val promises = if (factor > 1) {
+                val segment = pow(UInt64.ten, factor).toInt()
+                (0..(model.constraints.size / segment)).map { i ->
+                    async(Dispatchers.Default) {
+                        ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            var lb = Flt64.negativeInfinity
+                            var ub = Flt64.infinity
+                            when (model.constraints.signs[ii]) {
+                                Sign.GreaterEqual -> {
+                                    lb = model.constraints.rhs[ii]
+                                }
 
-                        Sign.LessEqual -> {
-                            ub = model.constraints.rhs[i]
-                        }
+                                Sign.LessEqual -> {
+                                    ub = model.constraints.rhs[ii]
+                                }
 
-                        Sign.Equal -> {
-                            lb = model.constraints.rhs[i]
-                            ub = model.constraints.rhs[i]
+                                Sign.Equal -> {
+                                    lb = model.constraints.rhs[ii]
+                                    ub = model.constraints.rhs[ii]
+                                }
+                            }
+                            val vars = ArrayList<jscip.Variable>()
+                            val coefficients = ArrayList<Double>()
+                            for (cell in model.constraints.lhs[ii]) {
+                                vars.add(scipVars[cell.colIndex])
+                                coefficients.add(cell.coefficient.toDouble())
+                            }
+                            ii to Triple(lb, coefficients to vars, ub)
                         }
                     }
-                    val vars = ArrayList<jscip.Variable>()
-                    val coefficients = ArrayList<Double>()
-                    for (cell in model.constraints.lhs[i]) {
-                        vars.add(scipVars[cell.colIndex])
-                        coefficients.add(cell.coefficient.toDouble())
+                }
+            } else {
+                model.constraints.indices.map { i ->
+                    async(Dispatchers.Default) {
+                        var lb = Flt64.negativeInfinity
+                        var ub = Flt64.infinity
+                        when (model.constraints.signs[i]) {
+                            Sign.GreaterEqual -> {
+                                lb = model.constraints.rhs[i]
+                            }
+
+                            Sign.LessEqual -> {
+                                ub = model.constraints.rhs[i]
+                            }
+
+                            Sign.Equal -> {
+                                lb = model.constraints.rhs[i]
+                                ub = model.constraints.rhs[i]
+                            }
+                        }
+                        val vars = ArrayList<jscip.Variable>()
+                        val coefficients = ArrayList<Double>()
+                        for (cell in model.constraints.lhs[i]) {
+                            vars.add(scipVars[cell.colIndex])
+                            coefficients.add(cell.coefficient.toDouble())
+                        }
+                        listOf(i to Triple(lb, coefficients to vars, ub))
                     }
-                    Triple(lb, coefficients to vars, ub)
                 }
             }
-            promises.map {
-                val (lb, cells, ub) = it.second.await()
-                val (coefficients, vars) = cells
-                val constraint = scip.createConsLinear(
-                    model.constraints.names[it.first],
-                    vars.toTypedArray(),
-                    coefficients.toDoubleArray(),
-                    lb.toDouble(),
-                    ub.toDouble()
-                )
-                scip.addCons(constraint)
-                constraint
+            promises.flatMap { promise ->
+                promise.await().map {
+                    val (lb, cells, ub) = it.second
+                    val (coefficients, vars) = cells
+                    val constraint = scip.createConsLinear(
+                        model.constraints.names[it.first],
+                        vars.toTypedArray(),
+                        coefficients.toDoubleArray(),
+                        lb.toDouble(),
+                        ub.toDouble()
+                    )
+                    scip.addCons(constraint)
+                    constraint
+                }
             }
         }
         scipConstraints = constraints

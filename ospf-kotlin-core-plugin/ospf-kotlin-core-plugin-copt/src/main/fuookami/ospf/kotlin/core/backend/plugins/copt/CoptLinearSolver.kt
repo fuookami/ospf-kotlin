@@ -1,0 +1,314 @@
+package fuookami.ospf.kotlin.core.backend.plugins.copt
+
+import kotlin.math.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.*
+import copt.*
+import copt.Constraint
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.*
+import fuookami.ospf.kotlin.core.backend.solver.*
+import fuookami.ospf.kotlin.core.backend.solver.config.*
+import fuookami.ospf.kotlin.core.backend.solver.output.*
+
+class CoptLinearSolver(
+    override val config: SolverConfig = SolverConfig(),
+    private val callBack: CoptLinearSolverCallBack? = null
+) : LinearSolver {
+    override val name = "copt"
+
+    override suspend operator fun invoke(
+        model: LinearTriadModelView,
+        statusCallBack: SolvingStatusCallBack?
+    ): Ret<SolverOutput> {
+        val impl = CoptLinearSolverImpl(config, callBack, statusCallBack)
+        val result = impl(model)
+        System.gc()
+        return result
+    }
+
+    override suspend fun invoke(
+        model: LinearTriadModelView,
+        solutionAmount: UInt64,
+        statusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        return if (solutionAmount leq UInt64.one) {
+            this(model).map { it to emptyList() }
+        } else {
+            val results = ArrayList<Solution>()
+            val impl = CoptLinearSolverImpl(config, callBack.ifNull { CoptLinearSolverCallBack() }.copy()
+                .configuration { copt, _, _ ->
+                    if (solutionAmount gr UInt64.one) {
+                        // todo: set copt parameter to limit number of solutions
+                    }
+                    ok
+                }.analyzingSolution { copt, variables, _ ->
+                    for (i in 0 until min(solutionAmount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
+                        val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
+                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                            results.add(thisResults)
+                        }
+                    }
+                    ok
+                }, statusCallBack
+            )
+            val result = impl(model).map { it to results }
+            System.gc()
+            return result
+        }
+    }
+}
+
+private class CoptLinearSolverImpl(
+    private val config: SolverConfig,
+    private val callBack: CoptLinearSolverCallBack? = null,
+    private val statusCallBack: SolvingStatusCallBack? = null
+) : CoptSolver() {
+    lateinit var coptVars: List<Var>
+    lateinit var coptConstraints: List<Constraint>
+    lateinit var output: SolverOutput
+
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
+    private var bestTime: Duration = Duration.ZERO
+
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
+        val coptConfig = config.extraConfig as? CoptSolverConfig
+        val server = coptConfig?.server
+        val port = coptConfig?.port
+        val password = coptConfig?.password
+        val connectionTime = coptConfig?.connectionTime
+
+        val processes = arrayOf(
+            {
+                if (server != null && port != null && password != null && connectionTime != null) {
+                    it.init(server, port, password, connectionTime, model.name, callBack?.creatingEnvironmentFunction)
+                } else {
+                    it.init(model.name, callBack?.creatingEnvironmentFunction)
+                }
+            },
+            { it.dump(model) },
+            CoptLinearSolverImpl::configure,
+            CoptLinearSolverImpl::solve,
+            CoptLinearSolverImpl::analyzeStatus,
+            CoptLinearSolverImpl::analyzeSolution
+        )
+        for (process in processes) {
+            when (val result = process(this)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
+        }
+        return Ok(output)
+    }
+
+    private suspend fun dump(model: LinearTriadModelView): Try {
+        return try {
+            coptVars = model.variables.map {
+                coptModel.addVar(
+                    it.lowerBound.toDouble(),
+                    it.upperBound.toDouble(),
+                    0.0,
+                    CoptVariable(it.type).toCoptVar(),
+                    it.name
+                )
+            }
+
+            for ((col, variable) in model.variables.withIndex()) {
+                variable.initialResult?.let {
+                    coptModel.setMipStart(coptVars[col], it.toDouble())
+                }
+            }
+
+            val constraints = coroutineScope {
+                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                val promises = if (factor > 1) {
+                    val segment = pow(UInt64.ten, factor).toInt()
+                    (0..(model.constraints.size / segment)).map { i ->
+                        async(Dispatchers.Default) {
+                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                                val lhs = Expr()
+                                for (cell in model.constraints.lhs[ii]) {
+                                    lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                                }
+                                ii to lhs
+                            }
+                        }
+                    }
+                } else {
+                    model.constraints.indices.map { i ->
+                        async(Dispatchers.Default) {
+                            val lhs = Expr()
+                            for (cell in model.constraints.lhs[i]) {
+                                lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                            }
+                            listOf(i to lhs)
+                        }
+                    }
+                }
+                promises.flatMap { promise ->
+                    promise.await().map {
+                        coptModel.addConstr(
+                            it.second,
+                            CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
+                            model.constraints.rhs[it.first].toDouble(),
+                            model.constraints.names[it.first]
+                        )
+                    }
+                }
+            }
+            coptConstraints = constraints
+
+            val obj = Expr()
+            for (cell in model.objective.obj) {
+                obj.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+            }
+            coptModel.setObjective(
+                obj,
+                when (model.objective.category) {
+                    ObjectCategory.Minimum -> {
+                        COPT.MINIMIZE
+                    }
+
+                    ObjectCategory.Maximum -> {
+                        COPT.MAXIMIZE
+                    }
+                }
+            )
+
+            when (val result = callBack?.execIfContain(Point.AfterModeling, coptModel, coptVars, coptConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
+            ok
+        } catch (e: CoptException) {
+            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineModelingException))
+        }
+    }
+
+    private suspend fun configure(): Try {
+        return try {
+            coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
+            coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toDouble())
+            coptModel.set(COPT.IntParam.Threads, config.threadNum.toInt())
+
+            if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
+                coptModel.setCallback(object: CallbackBase() {
+                    override fun callback() {
+                        callBack?.nativeCallback?.invoke(this)
+
+                        val currentObj = Flt64(get(COPT.CallBackInfo.BestObj))
+                        val currentBound = Flt64(get(COPT.CallBackInfo.BestBound))
+                        val currentTime = coptModel.get(COPT.DoubleAttr.SolvingTime).seconds
+
+                        if (config.notImprovementTime != null) {
+                            if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
+                                bestObj = currentObj
+                                bestBound = currentBound
+                                bestTime = currentTime
+                            } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                                interrupt()
+                            }
+                        }
+
+                        statusCallBack?.let {
+                            when (it(SolvingStatus(
+                                solver = "copt",
+                                obj = currentObj,
+                                possibleBestObj = currentBound,
+                                gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                            ))) {
+                                is Ok -> {}
+
+                                is Failed -> {
+                                    interrupt()
+                                }
+                            }
+                        }
+                    }
+                }, COPT.CALL_BACK_CONTEXT_MIP_NODE)
+            }
+
+            when (val result = callBack?.execIfContain(Point.Configuration, coptModel, coptVars, coptConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
+            ok
+        } catch (e: CoptException) {
+            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineSolvingException))
+        }
+    }
+
+    private suspend fun analyzeSolution(): Try {
+        return try {
+            if (status.succeeded) {
+                val results = ArrayList<Flt64>()
+                for (coptVar in coptVars) {
+                    results.add(Flt64(coptVar.get(COPT.DoubleInfo.Value)))
+                }
+                output = SolverOutput(
+                    if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                        Flt64(coptModel.get(COPT.DoubleAttr.BestObj))
+                    } else {
+                        Flt64(coptModel.get(COPT.DoubleAttr.LpObjVal))
+                    },
+                    results,
+                    coptModel.get(COPT.DoubleAttr.SolvingTime).seconds,
+                    Flt64(if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                        coptModel.get(COPT.DoubleAttr.BestBound)
+                    } else {
+                        coptModel.get(COPT.DoubleAttr.BestObj)
+                    }),
+                    Flt64(
+                        if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                            coptModel.get(COPT.DoubleAttr.BestGap)
+                        } else {
+                            0.0
+                        }
+                    )
+                )
+                when (val result =
+                    callBack?.execIfContain(Point.AnalyzingSolution, coptModel, coptVars, coptConstraints)) {
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+
+                    else -> {}
+                }
+                ok
+            } else {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, coptModel, coptVars, coptConstraints)) {
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+
+                    else -> {}
+                }
+                Failed(Err(status.errCode!!))
+            }
+        } catch (e: CoptException) {
+            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineSolvingException))
+        }
+    }
+}

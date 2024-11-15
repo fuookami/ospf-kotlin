@@ -14,12 +14,13 @@ data class ProduceQuantityShadowPriceKey(
 ) : ShadowPriceKey(ProduceQuantityShadowPriceKey::class)
 
 class ProduceQuantityConstraint<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
     products: List<Pair<Product, ProductDemand?>>,
     private val produce: Produce,
+    private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "produce_quantity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val products = products.filterIsInstance<Pair<Product, ProductDemand>>()
@@ -113,12 +114,25 @@ class ProduceQuantityConstraint<
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
-            when (args) {
+            shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    when (val task = args.thisTask) {
-                        is ProductionTask -> {
-                            val products = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
-                            products.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                    when (val task = args.task) {
+                        is ProductionTask<*, *> -> {
+                            val materials = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
+                            materials.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        }
+
+                        else -> {
+                            Flt64.zero
+                        }
+                    }
+                }
+
+                is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
+                    when (val task = args.task) {
+                        is ProductionTask<*, *> -> {
+                            val materials = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
+                            materials.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {

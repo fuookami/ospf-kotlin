@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+        <artifactId>ospf-kotlin-core-plugin</artifactId>
+        <version>1.0.31</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ospf-kotlin-core-plugin-hexaly</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>hexaly</groupId>
+            <artifactId>hexaly</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${env.HX_HOME}/bin/hexaly.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>hexaly</groupId>
+            <artifactId>localsolver</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${env.HX_HOME}/bin/localsolver.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main</sourceDirectory>
+    </build>
+</project>

@@ -127,13 +127,13 @@ sealed class MutableTokenList(
     }
 }
 
-class AutoAddTokenTokenList private constructor(
+class AutoTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
     currentIndex: Int
 ) : MutableTokenList(list, currentIndex) {
     companion object {
         operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
-            return AutoAddTokenTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+            return AutoTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
         }
     }
 
@@ -143,7 +143,7 @@ class AutoAddTokenTokenList private constructor(
     )
 
     override fun copy(): MutableTokenList {
-        return AutoAddTokenTokenList(list.toMutableMap(), currentIndex)
+        return AutoTokenList(list.toMutableMap(), currentIndex)
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token {
@@ -151,13 +151,13 @@ class AutoAddTokenTokenList private constructor(
     }
 }
 
-class ManualAddTokenTokenList private constructor(
+class ManualTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
     currentIndex: Int
 ) : MutableTokenList(list, currentIndex) {
     companion object {
         operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
-            return ManualAddTokenTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+            return ManualTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
         }
     }
 
@@ -167,7 +167,7 @@ class ManualAddTokenTokenList private constructor(
     )
 
     override fun copy(): MutableTokenList {
-        return ManualAddTokenTokenList(list.toMutableMap(), currentIndex)
+        return ManualTokenList(list.toMutableMap(), currentIndex)
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token? {

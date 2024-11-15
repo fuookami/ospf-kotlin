@@ -45,9 +45,8 @@ class BasicLinearTriadModel(
     override fun clone() = copy()
 
     fun normalized(): Boolean {
-        return variables.any {
-            !(it.lowerBound.isNegativeInfinity() || (it.lowerBound eq Flt64.zero))
-                    || !(it.upperBound.isInfinity() || (it.upperBound eq Flt64.zero))
+        return variables.all {
+            (it.lowerBound.isNegativeInfinity() || it.lowerBound eq Flt64.zero) && (it.upperBound.isInfinity() || it.upperBound eq Flt64.zero)
         }
     }
 

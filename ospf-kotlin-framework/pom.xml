@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.29</version>
+        <version>1.0.31</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -78,6 +78,22 @@
                 <exclusion>
                     <groupId>org.jetbrains.kotlin</groupId>
                     <artifactId>kotlin-reflect</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.module</groupId>
+                    <artifactId>jackson-module-kotlin</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.datatype</groupId>
+                    <artifactId>jackson-datatype-jsr310</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

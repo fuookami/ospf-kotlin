@@ -41,18 +41,22 @@ data class TimeWindow(
     }
 
     val Duration.value: Flt64 get() = Flt64(this.toDouble(durationUnit))
+    val Duration.round: Duration get() = round(this.toDouble(durationUnit)).toDuration(durationUnit)
     val Duration.floor: Duration get() = floor(this.toDouble(durationUnit)).toDuration(durationUnit)
     val Duration.ceil: Duration get() = ceil(this.toDouble(durationUnit)).toDuration(durationUnit)
 
     fun valueOf(duration: Duration) = duration.value
+    fun round(duration: Duration) = duration.round
     fun floor(duration: Duration) = duration.floor
     fun ceil(duration: Duration) = duration.ceil
 
     val Instant.value: Flt64 get() = Flt64((this - window.start).toDouble(durationUnit))
+    val Instant.round: Instant get() = window.start + (this - window.start).round
     val Instant.floor: Instant get() = window.start + (this - window.start).floor
     val Instant.ceil: Instant get() = window.start + (this - window.start).ceil
 
     fun valueOf(instant: Instant) = instant.value
+    fun round(instant: Instant) = instant.round
     fun floor(instant: Instant) = instant.floor
     fun ceil(instant: Instant) = instant.ceil
 

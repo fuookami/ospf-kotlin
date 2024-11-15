@@ -13,12 +13,13 @@ data class ExecutorCompilationShadowPriceKey<E : Executor>(
 ) : ShadowPriceKey(ExecutorCompilationShadowPriceKey::class)
 
 class ExecutorCompilationConstraint<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
     private val executors: List<E>,
     private val compilation: Compilation,
+    private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "executor_compilation"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
@@ -38,20 +39,23 @@ class ExecutorCompilationConstraint<
         return ok
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args: Args ->
-            when (args) {
-                is ExecutorGanttSchedulingShadowPriceArguments<*, *> -> {
-                    (args.executor as? E)
-                        ?.let { map.map[ExecutorCompilationShadowPriceKey(it)]?.price ?: Flt64.zero }
-                        ?: Flt64.zero
+        return { map, args ->
+            shadowPriceExtractor?.invoke(args) ?: when (args) {
+                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
+                    if (args.task != null) {
+                        map.map[ExecutorCompilationShadowPriceKey(args.executor)]?.price ?: Flt64.zero
+                    } else {
+                        Flt64.zero
+                    }
                 }
 
-                is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    (args.thisTask?.executor as? E)
-                        ?.let { map.map[ExecutorCompilationShadowPriceKey(it)]?.price ?: Flt64.zero }
-                        ?: Flt64.zero
+                is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
+                    if (args.task != null && args.prevTask != null) {
+                        map.map[ExecutorCompilationShadowPriceKey(args.executor)]?.price ?: Flt64.zero
+                    } else {
+                        Flt64.zero
+                    }
                 }
 
                 else -> {

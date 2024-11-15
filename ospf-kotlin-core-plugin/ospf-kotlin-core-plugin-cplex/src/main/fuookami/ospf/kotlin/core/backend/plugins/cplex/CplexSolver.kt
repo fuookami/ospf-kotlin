@@ -29,7 +29,7 @@ abstract class CplexSolver {
             }
 
             IloCplex.Status.Infeasible -> {
-                SolverStatus.NoSolution
+                SolverStatus.Infeasible
             }
 
             IloCplex.Status.InfeasibleOrUnbounded, IloCplex.Status.Error, IloCplex.Status.Unknown -> {

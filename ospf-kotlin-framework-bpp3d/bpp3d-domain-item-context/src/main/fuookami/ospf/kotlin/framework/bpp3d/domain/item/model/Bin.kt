@@ -22,7 +22,7 @@ class BinType(
     val typeCode: String,
     val isMain: Boolean = false,
     val extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
-) : Container3Shape {
+) : AbstractContainer3Shape {
     fun new(
         width: Flt64? = null,
         height: Flt64? = null,
@@ -48,7 +48,7 @@ class BinType(
     }
 
     // inherited from Container3Shape
-    override fun enabled(unit: Cuboid<*>, orientation: Orientation): Boolean {
+    override fun enabled(unit: AbstractCuboid, orientation: Orientation): Boolean {
         return super.enabled(unit, orientation) && unit.weight leq capacity
     }
 
@@ -176,7 +176,7 @@ class BinType(
     override fun toString() = "$typeCode-$width*$height*$depth"
 }
 
-class Bin<T : CuboidUnit<T>>(
+class Bin<T : Cuboid<T>>(
     // inherited from Container3<Bin<T>>
     override val shape: BinType,
     override val units: List<Placement3<T>>,

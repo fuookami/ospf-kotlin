@@ -97,7 +97,7 @@ data object ItemMerger {
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<CuboidUnit<*>> {
+    ): List<Cuboid<*>> {
         return merge(
             items = items,
             space = binType,
@@ -111,13 +111,13 @@ data object ItemMerger {
 
     suspend fun merge(
         items: List<Item>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64,
         patterns: List<Pattern>,
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<CuboidUnit<*>> {
+    ): List<Cuboid<*>> {
         val withFillerMerging = config.mergeFillerWhenOnlyFiller && items.any { item -> fillerPredicate?.invoke(item) == false }
 
         var restItems = if (!withFillerMerging) {
@@ -125,7 +125,7 @@ data object ItemMerger {
         } else {
             items.filter { item -> predicate?.let { it(item) } != false }
         }
-        val mergedItems = ArrayList<CuboidUnit<*>>()
+        val mergedItems = ArrayList<Cuboid<*>>()
 
         if (config.mergeAsPatternBlock) {
             val (thisMergedItems, thisRestItems) = mergePatternBlocks(
@@ -179,7 +179,7 @@ data object ItemMerger {
 
     fun mergePiles(
         items: List<Item>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64 = Flt64.infinity
     ): Pair<List<Pile>, List<Item>> {
         val averagePileBottomArea = items.sumOf { Bottom.shape(it).area } / Flt64(items.size.toDouble())
@@ -250,7 +250,7 @@ data object ItemMerger {
 
     fun mergeBlocks(
         items: List<Item>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64 = Flt64.infinity,
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
@@ -346,7 +346,7 @@ data object ItemMerger {
 
     suspend fun mergePatternBlocks(
         items: List<Item>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         patterns: List<Pattern>,
         restWeight: Flt64 = Flt64.infinity,
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
@@ -412,7 +412,7 @@ data object ItemMerger {
 
     fun mergeHollowSquareBlocks(
         items: List<Item>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64 = Flt64.infinity,
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
@@ -427,7 +427,7 @@ data object ItemMerger {
 
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64 = Flt64.infinity,
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
@@ -447,7 +447,7 @@ data object ItemMerger {
                         return@find false
                     }
 
-                    val hollowSquareSpace = CommonContainer3Shape(
+                    val hollowSquareSpace = Container3Shape(
                         width = space.width,
                         height = space.height,
                         depth = depth * Flt64.two - (depth % width)
@@ -566,7 +566,7 @@ data object ItemMerger {
     }
 
     @JvmName("dumpItems")
-    fun dump(cuboids: List<CuboidUnit<*>>): List<Item> {
+    fun dump(cuboids: List<Cuboid<*>>): List<Item> {
         return cuboids.flatMap {
             when (it) {
                 is Item -> listOf(it)

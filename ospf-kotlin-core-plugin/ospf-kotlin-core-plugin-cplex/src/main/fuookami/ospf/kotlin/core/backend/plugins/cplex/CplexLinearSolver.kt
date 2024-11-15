@@ -9,6 +9,7 @@ import ilog.concert.*
 import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -28,7 +29,9 @@ class CplexLinearSolver(
         statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val impl = CplexLinearSolverImpl(config, callBack, statusCallBack)
-        return impl(model)
+        val result = impl(model)
+        System.gc()
+        return result
     }
 
     override suspend fun invoke(
@@ -40,7 +43,8 @@ class CplexLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = CplexLinearSolverImpl(config, callBack.ifNull { CplexSolverCallBack() }.copy()
+            val impl = CplexLinearSolverImpl(
+                config, callBack.ifNull { CplexSolverCallBack() }.copy()
                 .configuration { cplex, _, _ ->
                     if (solutionAmount gr UInt64.one) {
                         cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
@@ -68,7 +72,9 @@ class CplexLinearSolver(
                     ok
                 }, statusCallBack
             )
-            impl(model).map { Pair(it, results) }
+            val result = impl(model).map { Pair(it, results) }
+            System.gc()
+            return result
         }
     }
 }
@@ -77,7 +83,7 @@ private class CplexLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: CplexSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack?
-): CplexSolver() {
+) : CplexSolver() {
     lateinit var cplexVars: List<IloNumVar>
     lateinit var cplexConstraint: List<IloRange>
     lateinit var output: SolverOutput
@@ -127,36 +133,70 @@ private class CplexLinearSolverImpl(
         }
 
         val constraints = coroutineScope {
-            val promises = model.constraints.indices.map { i ->
-                i to async(Dispatchers.Default) {
-                    var lb = Flt64.negativeInfinity
-                    var ub = Flt64.infinity
-                    when (model.constraints.signs[i]) {
-                        Sign.GreaterEqual -> {
-                            lb = model.constraints.rhs[i]
-                        }
+            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+            val promises = if (factor > 1) {
+                val segment = pow(UInt64.ten, factor).toInt()
+                (0..(model.constraints.size / segment)).map { i ->
+                    async(Dispatchers.Default) {
+                        ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            var lb = Flt64.negativeInfinity
+                            var ub = Flt64.infinity
+                            when (model.constraints.signs[ii]) {
+                                Sign.GreaterEqual -> {
+                                    lb = model.constraints.rhs[ii]
+                                }
 
-                        Sign.LessEqual -> {
-                            ub = model.constraints.rhs[i]
-                        }
+                                Sign.LessEqual -> {
+                                    ub = model.constraints.rhs[ii]
+                                }
 
-                        Sign.Equal -> {
-                            lb = model.constraints.rhs[i]
-                            ub = model.constraints.rhs[i]
+                                Sign.Equal -> {
+                                    lb = model.constraints.rhs[ii]
+                                    ub = model.constraints.rhs[ii]
+                                }
+                            }
+                            val lhs = cplex.linearNumExpr()
+                            for (cell in model.constraints.lhs[ii]) {
+                                lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
+                            }
+                            ii to Triple(lb, lhs, ub)
                         }
                     }
-                    val lhs = cplex.linearNumExpr()
-                    for (cell in model.constraints.lhs[i]) {
-                        lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
+                }
+            } else {
+                model.constraints.indices.map { i ->
+                    async(Dispatchers.Default) {
+                        var lb = Flt64.negativeInfinity
+                        var ub = Flt64.infinity
+                        when (model.constraints.signs[i]) {
+                            Sign.GreaterEqual -> {
+                                lb = model.constraints.rhs[i]
+                            }
+
+                            Sign.LessEqual -> {
+                                ub = model.constraints.rhs[i]
+                            }
+
+                            Sign.Equal -> {
+                                lb = model.constraints.rhs[i]
+                                ub = model.constraints.rhs[i]
+                            }
+                        }
+                        val lhs = cplex.linearNumExpr()
+                        for (cell in model.constraints.lhs[i]) {
+                            lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
+                        }
+                        listOf(i to Triple(lb, lhs, ub))
                     }
-                    Triple(lb, lhs, ub)
                 }
             }
-            promises.map {
-                val (lb, lhs, ub) = it.second.await()
-                val constraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[it.first])
-                cplex.add(constraint)
-                constraint
+            promises.flatMap { promise ->
+                promise.await().map {
+                    val (lb, lhs, ub) = it.second
+                    val constraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[it.first])
+                    cplex.add(constraint)
+                    constraint
+                }
             }
         }
         cplexConstraint = constraints
@@ -212,12 +252,14 @@ private class CplexLinearSolverImpl(
                     }
 
                     statusCallBack?.let {
-                        when (it(SolvingStatus(
-                            solver = "cplex",
-                            obj = currentObj,
-                            possibleBestObj = currentBound,
-                            gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
-                        ))) {
+                        when (it(
+                            SolvingStatus(
+                                solver = "cplex",
+                                obj = currentObj,
+                                possibleBestObj = currentBound,
+                                gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                            )
+                        )) {
                             is Ok -> {}
 
                             is Failed -> {

@@ -10,17 +10,21 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 data class TaskOverMaxDelayShadowPriceKey<
-    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    val task: T
+    val task: AbstractTask<E, A>
 ) : ShadowPriceKey(TaskOverMaxDelayShadowPriceKey::class)
 
-class TaskOverMaxDelayTimeConstraint<Args : GanttSchedulingShadowPriceArguments<E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class TaskOverMaxDelayTimeConstraint<
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+    E : Executor,
+    A : AssignmentPolicy<E>
+>(
     private val timeWindow: TimeWindow,
-    tasks: List<T>,
+    tasks: List<AbstractTask<E, A>>,
     private val taskTime: TaskTime,
+    private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_over_max_delay_time"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (taskTime.overMaxDelayEnabled) {
@@ -46,14 +50,23 @@ class TaskOverMaxDelayTimeConstraint<Args : GanttSchedulingShadowPriceArguments<
         return ok
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args: Args ->
-            when (args) {
+        return { map, args ->
+            shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    (args.thisTask as? T?)
-                        ?.let { map.map[TaskOverMaxDelayShadowPriceKey(it)]?.price }
-                        ?: Flt64.zero
+                    if (args.task != null) {
+                        map.map[TaskOverMaxDelayShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
+                    } else {
+                        Flt64.zero
+                    }
+                }
+
+                is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
+                    if (args.task != null) {
+                        map.map[TaskOverMaxDelayShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
+                    } else {
+                        Flt64.zero
+                    }
                 }
 
                 else -> {

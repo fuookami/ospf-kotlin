@@ -19,6 +19,7 @@ open class MaterialKey(
 open class Material(
     val no: MaterialNo,
     val type: MaterialType,
+    val cargo: AbstractCargoAttribute,
     val name: String,
     val manufacturer: String? = null,
     val supplier: String? = null,

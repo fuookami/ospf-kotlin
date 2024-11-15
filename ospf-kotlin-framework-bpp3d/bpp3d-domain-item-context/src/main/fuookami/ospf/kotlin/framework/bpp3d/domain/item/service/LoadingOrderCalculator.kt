@@ -88,7 +88,7 @@ class LoadingOrderCalculator(
         }
     }
 
-    private fun isSameType(lhs: Cuboid<*>, rhs: Cuboid<*>): Boolean {
+    private fun isSameType(lhs: AbstractCuboid, rhs: AbstractCuboid): Boolean {
         return if (lhs is Item && rhs is Item) {
             return sameTypeJudger(lhs, rhs)
         } else if (lhs is ItemContainer<*> && rhs is ItemContainer<*>) {

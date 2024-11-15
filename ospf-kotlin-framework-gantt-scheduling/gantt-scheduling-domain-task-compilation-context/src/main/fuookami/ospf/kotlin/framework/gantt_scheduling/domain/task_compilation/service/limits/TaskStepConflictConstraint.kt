@@ -9,13 +9,14 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 class TaskStepConflictConstraint<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    tasks: List<AbstractTask<E, A>>,
+    tasks: List<T>,
     private val compilation: Compilation,
+    private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_step_conflict"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val conflictTaskGroup: List<List<T>> = TODO("not implement yet")

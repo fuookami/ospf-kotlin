@@ -83,12 +83,14 @@ sealed interface AbstractTokenTable {
 
 sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable {
     fun add(item: AbstractVariableItem<*, *>): Try
+
     @JvmName("addVariables")
     @Suppress("INAPPLICABLE_JVM_NAME")
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
 
     fun add(symbol: IntermediateSymbol): Try
+
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
     fun add(symbols: Iterable<IntermediateSymbol>): Try
@@ -291,16 +293,16 @@ data class ConcurrentTokenTable(
     }
 }
 
-class AutoAddTokenTable private constructor(
+class AutoTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): AutoAddTokenTable {
-            return AutoAddTokenTable(
+        operator fun invoke(tokenTable: AbstractTokenTable): AutoTokenTable {
+            return AutoTokenTable(
                 category = tokenTable.category,
-                tokenList = AutoAddTokenTokenList(tokenTable.tokenList),
+                tokenList = AutoTokenList(tokenTable.tokenList),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
@@ -308,25 +310,25 @@ class AutoAddTokenTable private constructor(
 
     constructor(category: Category) : this(
         category = category,
-        tokenList = AutoAddTokenTokenList(),
+        tokenList = AutoTokenList(),
         symbols = ArrayList()
     )
 
     override fun copy(): MutableTokenTable {
-        return AutoAddTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return AutoTokenTable(category, tokenList.copy(), _symbols.toMutableList())
     }
 }
 
-class ManualAddTokenTable private constructor(
+class ManualTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ManualAddTokenTable {
-            return ManualAddTokenTable(
+        operator fun invoke(tokenTable: AbstractTokenTable): ManualTokenTable {
+            return ManualTokenTable(
                 category = tokenTable.category,
-                tokenList = ManualAddTokenTokenList(tokenTable.tokenList),
+                tokenList = ManualTokenList(tokenTable.tokenList),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
@@ -334,12 +336,12 @@ class ManualAddTokenTable private constructor(
 
     constructor(category: Category) : this(
         category = category,
-        tokenList = ManualAddTokenTokenList(),
+        tokenList = ManualTokenList(),
         symbols = ArrayList()
     )
 
     override fun copy(): MutableTokenTable {
-        return ManualAddTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return ManualTokenTable(category, tokenList.copy(), _symbols.toMutableList())
     }
 }
 
@@ -493,16 +495,16 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
     }
 }
 
-class ConcurrentAutoAddTokenTable private constructor(
+class ConcurrentAutoTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
         operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
-            return ConcurrentAutoAddTokenTable(
+            return ConcurrentAutoTokenTable(
                 category = tokenTable.category,
-                tokenList = AutoAddTokenTokenList(tokenTable.tokenList),
+                tokenList = AutoTokenList(tokenTable.tokenList),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
@@ -510,12 +512,12 @@ class ConcurrentAutoAddTokenTable private constructor(
 
     constructor(category: Category) : this(
         category = category,
-        tokenList = AutoAddTokenTokenList(),
+        tokenList = AutoTokenList(),
         symbols = ArrayList()
     )
 
     override fun copy(): ConcurrentMutableTokenTable {
-        return ConcurrentAutoAddTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return ConcurrentAutoTokenTable(category, tokenList.copy(), _symbols.toMutableList())
     }
 }
 
@@ -528,7 +530,7 @@ class ConcurrentManualAddTokenTable private constructor(
         operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
             return ConcurrentManualAddTokenTable(
                 category = tokenTable.category,
-                tokenList = ManualAddTokenTokenList(tokenTable.tokenList),
+                tokenList = ManualTokenList(tokenTable.tokenList),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
@@ -536,7 +538,7 @@ class ConcurrentManualAddTokenTable private constructor(
 
     constructor(category: Category) : this(
         category = category,
-        tokenList = ManualAddTokenTokenList(),
+        tokenList = ManualTokenList(),
         symbols = ArrayList()
     )
 

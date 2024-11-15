@@ -24,7 +24,7 @@ private data class PatternItemInfo(
 
 private typealias NextPointExtractor = (projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> Point2
 
-sealed class Pattern {
+abstract class Pattern {
     data class Step(
         val lengthOrientation: ProjectivePlane,
         val nextPointExtractor: NextPointExtractor?
@@ -208,7 +208,7 @@ sealed class Pattern {
     @JvmName("patternPlaceSpaceWithOnePatternImpl")
     suspend operator fun invoke(
         originItems: Map<Item, UInt64>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64,
         pattern: List<Step>,
         predicate: ((Item) -> Boolean)? = null,
@@ -227,7 +227,7 @@ sealed class Pattern {
     @JvmName("patternPlaceSpaceWithMultiPatternImpl")
     suspend operator fun invoke(
         originItems: Map<Item, UInt64>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64,
         patterns: List<List<Step>> = emptyList(),
         predicate: ((Item) -> Boolean)? = null,
@@ -311,7 +311,7 @@ sealed class Pattern {
         itemsGroup: Map<Flt64, List<PatternItemInfo>>,
         twoSumHeight: List<Pair<Flt64, Flt64>>,
         threeSumHeight: List<Triple<Flt64, Flt64, Flt64>>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64,
         patterns: List<List<Step>>,
         config: Config,
@@ -350,7 +350,7 @@ sealed class Pattern {
         itemsGroup: Map<Flt64, List<PatternItemInfo>>,
         twoSumHeight: List<Pair<Flt64, Flt64>>,
         threeSumHeight: List<Triple<Flt64, Flt64, Flt64>>,
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         restWeight: Flt64,
         pattern: List<Step>,
         config: Config,

@@ -12,14 +12,15 @@ interface NumericInteger<Self, I>
     override fun inc() = this + constants.one
     override fun dec() = this - constants.one
 
-    override fun lg() = log(Flt64(10.0))
+    override fun lg() = log(Flt64.ten)
+    override fun lg2() = log(Flt64.two)
     override fun ln() = log(Flt64.e)
 
     override fun sqr() = pow(2)
     override fun cub() = pow(3)
 
-    override fun sqrt() = pow(Flt64(1.0 / 2.0))
-    override fun cbrt() = pow(Flt64(1.0 / 3.0))
+    override fun sqrt() = pow(Flt64.two.reciprocal())
+    override fun cbrt() = pow(Flt64.three.reciprocal())
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)

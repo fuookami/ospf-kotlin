@@ -5,8 +5,8 @@ import kotlinx.datetime.*
 import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -26,7 +26,9 @@ class ScipQuadraticSolver(
         statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val impl = ScipQuadraticSolverImpl(config, callBack, statusCallBack)
-        return impl(model)
+        val result = impl(model)
+        System.gc()
+        return result
     }
 
     override suspend fun invoke(
@@ -67,7 +69,9 @@ class ScipQuadraticSolver(
                     ok
                 }, statusCallBack
             )
-            impl(model).map { it to results }
+            val result = impl(model).map { it to results }
+            System.gc()
+            return result
         }
     }
 }
@@ -151,59 +155,104 @@ private class ScipQuadraticSolverImpl(
         }
 
         val constraints = coroutineScope {
-            val promises = model.constraints.indices.map { i ->
-                i to async(Dispatchers.Default) {
-                    var lb = Flt64.negativeInfinity
-                    var ub = Flt64.infinity
-                    when (model.constraints.signs[i]) {
-                        Sign.GreaterEqual -> {
-                            lb = model.constraints.rhs[i]
-                        }
+            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+            val promises = if (factor > 1) {
+                val segment = pow(UInt64.ten, factor).toInt()
+                (0..(model.constraints.size / segment)).map { i ->
+                    async(Dispatchers.Default) {
+                        ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            var lb = Flt64.negativeInfinity
+                            var ub = Flt64.infinity
+                            when (model.constraints.signs[ii]) {
+                                Sign.GreaterEqual -> {
+                                    lb = model.constraints.rhs[ii]
+                                }
 
-                        Sign.LessEqual -> {
-                            ub = model.constraints.rhs[i]
-                        }
+                                Sign.LessEqual -> {
+                                    ub = model.constraints.rhs[ii]
+                                }
 
-                        Sign.Equal -> {
-                            lb = model.constraints.rhs[i]
-                            ub = model.constraints.rhs[i]
+                                Sign.Equal -> {
+                                    lb = model.constraints.rhs[ii]
+                                    ub = model.constraints.rhs[ii]
+                                }
+                            }
+                            val linearVars = ArrayList<jscip.Variable>()
+                            val quadraticVars1 = ArrayList<jscip.Variable>()
+                            val quadraticVars2 = ArrayList<jscip.Variable>()
+                            val linerCoefficients = ArrayList<Double>()
+                            val quadraticCoefficients = ArrayList<Double>()
+                            for (cell in model.constraints.lhs[ii]) {
+                                if (cell.colIndex2 == null) {
+                                    linearVars.add(scipVars[cell.colIndex1])
+                                    linerCoefficients.add(cell.coefficient.toDouble())
+                                } else {
+                                    quadraticVars1.add(scipVars[cell.colIndex1])
+                                    quadraticVars2.add(scipVars[cell.colIndex2!!])
+                                    quadraticCoefficients.add(cell.coefficient.toDouble())
+                                }
+                            }
+                            ii to Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
                         }
                     }
-                    val linearVars = ArrayList<jscip.Variable>()
-                    val quadraticVars1 = ArrayList<jscip.Variable>()
-                    val quadraticVars2 = ArrayList<jscip.Variable>()
-                    val linerCoefficients = ArrayList<Double>()
-                    val quadraticCoefficients = ArrayList<Double>()
-                    for (cell in model.constraints.lhs[i]) {
-                        if (cell.colIndex2 == null) {
-                            linearVars.add(scipVars[cell.colIndex1])
-                            linerCoefficients.add(cell.coefficient.toDouble())
-                        } else {
-                            quadraticVars1.add(scipVars[cell.colIndex1])
-                            quadraticVars2.add(scipVars[cell.colIndex2!!])
-                            quadraticCoefficients.add(cell.coefficient.toDouble())
+                }
+            } else {
+                model.constraints.indices.map { i ->
+                    async(Dispatchers.Default) {
+                        var lb = Flt64.negativeInfinity
+                        var ub = Flt64.infinity
+                        when (model.constraints.signs[i]) {
+                            Sign.GreaterEqual -> {
+                                lb = model.constraints.rhs[i]
+                            }
+
+                            Sign.LessEqual -> {
+                                ub = model.constraints.rhs[i]
+                            }
+
+                            Sign.Equal -> {
+                                lb = model.constraints.rhs[i]
+                                ub = model.constraints.rhs[i]
+                            }
                         }
+                        val linearVars = ArrayList<jscip.Variable>()
+                        val quadraticVars1 = ArrayList<jscip.Variable>()
+                        val quadraticVars2 = ArrayList<jscip.Variable>()
+                        val linerCoefficients = ArrayList<Double>()
+                        val quadraticCoefficients = ArrayList<Double>()
+                        for (cell in model.constraints.lhs[i]) {
+                            if (cell.colIndex2 == null) {
+                                linearVars.add(scipVars[cell.colIndex1])
+                                linerCoefficients.add(cell.coefficient.toDouble())
+                            } else {
+                                quadraticVars1.add(scipVars[cell.colIndex1])
+                                quadraticVars2.add(scipVars[cell.colIndex2!!])
+                                quadraticCoefficients.add(cell.coefficient.toDouble())
+                            }
+                        }
+                        listOf(i to Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2)))
                     }
-                    Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
                 }
             }
-            promises.map {
-                val (range, linearCells, quadraticCells) = it.second.await()
-                val (lb, ub) = range
-                val (linerCoefficients, linearVars) = linearCells
-                val (quadraticCoefficients, quadraticVars1, quadraticVars2) = quadraticCells
-                val constraint = scip.createConsQuadratic(
-                    model.constraints.names[it.first],
-                    quadraticVars1.toTypedArray(),
-                    quadraticVars2.toTypedArray(),
-                    quadraticCoefficients.toDoubleArray(),
-                    linearVars.toTypedArray(),
-                    linerCoefficients.toDoubleArray(),
-                    lb.toDouble(),
-                    ub.toDouble()
-                )
-                scip.addCons(constraint)
-                constraint
+            promises.flatMap { promise ->
+                promise.await().map {
+                    val (range, linearCells, quadraticCells) = it.second
+                    val (lb, ub) = range
+                    val (linerCoefficients, linearVars) = linearCells
+                    val (quadraticCoefficients, quadraticVars1, quadraticVars2) = quadraticCells
+                    val constraint = scip.createConsQuadratic(
+                        model.constraints.names[it.first],
+                        quadraticVars1.toTypedArray(),
+                        quadraticVars2.toTypedArray(),
+                        quadraticCoefficients.toDoubleArray(),
+                        linearVars.toTypedArray(),
+                        linerCoefficients.toDoubleArray(),
+                        lb.toDouble(),
+                        ub.toDouble()
+                    )
+                    scip.addCons(constraint)
+                    constraint
+                }
             }
         }
         scipConstraints = constraints

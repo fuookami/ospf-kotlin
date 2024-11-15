@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-interface Cuboid<T : Cuboid<T>> {
+interface AbstractCuboid {
     val width: Flt64
     val height: Flt64
     val depth: Flt64
@@ -16,11 +16,11 @@ interface Cuboid<T : Cuboid<T>> {
     val linearDensity: Flt64 get() = weight / depth
 }
 
-interface CuboidUnit<T : CuboidUnit<T>> : Cuboid<T> {
+interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
     val enabledOrientations: List<Orientation>
 
     fun enabledOrientationsAt(
-        space: Container2Shape<*>,
+        space: AbstractContainer2Shape<*>,
         withRotation: Boolean = true
     ): List<Orientation> {
         return enabledOrientations.filter {
@@ -31,7 +31,7 @@ interface CuboidUnit<T : CuboidUnit<T>> : Cuboid<T> {
     }
 
     fun enabledOrientationsAt(
-        space: Container3Shape,
+        space: AbstractContainer3Shape,
         withRotation: Boolean = true
     ): List<Orientation> {
         return enabledOrientations.filter {
@@ -43,7 +43,9 @@ interface CuboidUnit<T : CuboidUnit<T>> : Cuboid<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun view(orientation: Orientation = Orientation.Upright): CuboidView<T>? = CuboidView(this as T, orientation)
+    fun view(orientation: Orientation = Orientation.Upright): CuboidView<T>? {
+        return CuboidView(this as T, orientation)
+    }
 }
 
 data class BottomSupport(
@@ -56,10 +58,10 @@ data class BottomSupport(
     )
 }
 
-open class CuboidView<T : CuboidUnit<T>>(
+open class CuboidView<T : Cuboid<T>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
-) : Cuboid<CuboidView<T>>, Copyable<CuboidView<T>> {
+) : AbstractCuboid, Copyable<CuboidView<T>> {
     // inherited from Cuboid<T>
     override val width = orientation.width(unit)
     override val height = orientation.height(unit)
@@ -77,7 +79,7 @@ open class CuboidView<T : CuboidUnit<T>>(
             }
         }
 
-    open fun rotationAt(space: Container2Shape<*>): CuboidView<T>? {
+    open fun rotationAt(space: AbstractContainer2Shape<*>): CuboidView<T>? {
         return if (unit.enabledOrientationsAt(space).contains(rotatedOrientation)) {
             unit.view(rotatedOrientation)
         } else {
@@ -85,7 +87,7 @@ open class CuboidView<T : CuboidUnit<T>>(
         }
     }
 
-    open fun rotationAt(space: Container3Shape): CuboidView<T>? {
+    open fun rotationAt(space: AbstractContainer3Shape): CuboidView<T>? {
         return if (unit.enabledOrientationsAt(space).contains(rotatedOrientation)) {
             unit.view(rotatedOrientation)
         } else {

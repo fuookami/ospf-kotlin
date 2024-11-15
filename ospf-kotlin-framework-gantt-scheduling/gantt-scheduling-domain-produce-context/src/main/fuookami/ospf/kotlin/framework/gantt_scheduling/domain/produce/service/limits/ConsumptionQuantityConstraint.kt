@@ -14,12 +14,13 @@ data class ConsumptionQuantityShadowPriceKey(
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
 
 class ConsumptionQuantityConstraint<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
     materials: List<Pair<Material, MaterialReserves?>>,
     private val consumption: Consumption,
+    private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "consumption_quantity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val materials = materials.filterIsInstance<Pair<Material, MaterialReserves>>()
@@ -114,9 +115,22 @@ class ConsumptionQuantityConstraint<
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
-            when (args)  {
+            shadowPriceArguments?.invoke(args) ?: when (args)  {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    when (val task = args.thisTask) {
+                    when (val task = args.task) {
+                        is ProductionTask<*, *> -> {
+                            val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
+                            materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        }
+
+                        else -> {
+                            Flt64.zero
+                        }
+                    }
+                }
+
+                is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
+                    when (val task = args.task) {
                         is ProductionTask<*, *> -> {
                             val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
                             materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }

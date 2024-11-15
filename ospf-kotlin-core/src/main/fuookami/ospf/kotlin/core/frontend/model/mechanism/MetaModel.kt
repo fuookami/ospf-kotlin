@@ -235,13 +235,13 @@ abstract class AbstractMetaModel(
         if (manualTokenAddition) {
             ConcurrentManualAddTokenTable(category)
         } else {
-            ConcurrentAutoAddTokenTable(category)
+            ConcurrentAutoTokenTable(category)
         }
     } else {
         if (manualTokenAddition) {
-             ManualAddTokenTable(category)
+            ManualTokenTable(category)
         } else {
-             AutoAddTokenTable(category)
+            AutoTokenTable(category)
         }
     }
 

@@ -6,8 +6,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import com.gurobi.gurobi.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -27,7 +27,9 @@ class GurobiQuadraticSolver(
         statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val impl = GurobiQuadraticSolverImpl(config, callBack, statusCallBack)
-        return impl(model)
+        val result = impl(model)
+        System.gc()
+        return result
     }
 
     override suspend fun invoke(
@@ -58,7 +60,9 @@ class GurobiQuadraticSolver(
                     ok
                 }, statusCallBack
             )
-            impl(model).map { it to results }
+            val result = impl(model).map { it to results }
+            System.gc()
+            return result
         }
     }
 }
@@ -77,11 +81,7 @@ private class GurobiQuadraticSolverImpl(
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
-        val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
-            config.extraConfig as GurobiSolverConfig
-        } else {
-            null
-        }
+        val gurobiConfig = config.extraConfig as? GurobiSolverConfig
         val server = gurobiConfig?.server
         val password = gurobiConfig?.password
         val connectionTime = gurobiConfig?.connectionTime
@@ -131,26 +131,48 @@ private class GurobiQuadraticSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val promises = model.constraints.indices.map { i ->
-                    i to async(Dispatchers.Default) {
-                        val lhs = GRBQuadExpr()
-                        for (cell in model.constraints.lhs[i]) {
-                            if (cell.colIndex2 == null) {
-                                lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1])
-                            } else {
-                                lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1], grbVars[cell.colIndex2!!])
+                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                val promises = if (factor > 1) {
+                    val segment = pow(UInt64.ten, factor).toInt()
+                    (0..(model.constraints.size / segment)).map { i ->
+                        async(Dispatchers.Default) {
+                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                                val lhs = GRBQuadExpr()
+                                for (cell in model.constraints.lhs[ii]) {
+                                    if (cell.colIndex2 == null) {
+                                        lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1])
+                                    } else {
+                                        lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1], grbVars[cell.colIndex2!!])
+                                    }
+                                }
+                                ii to lhs
                             }
                         }
-                        lhs
+                    }
+                } else {
+                    model.constraints.indices.map { i ->
+                        async(Dispatchers.Default) {
+                            val lhs = GRBQuadExpr()
+                            for (cell in model.constraints.lhs[i]) {
+                                if (cell.colIndex2 == null) {
+                                    lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1])
+                                } else {
+                                    lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1], grbVars[cell.colIndex2!!])
+                                }
+                            }
+                            listOf(i to lhs)
+                        }
                     }
                 }
-                promises.map {
-                    grbModel.addQConstr(
-                        it.second.await(),
-                        GurobiConstraintSign(model.constraints.signs[it.first]).toGurobiConstraintSign(),
-                        model.constraints.rhs[it.first].toDouble(),
-                        model.constraints.names[it.first]
-                    )
+                promises.flatMap { promise ->
+                    promise.await().map {
+                        grbModel.addQConstr(
+                            it.second,
+                            GurobiConstraintSign(model.constraints.signs[it.first]).toGurobiConstraintSign(),
+                            model.constraints.rhs[it.first].toDouble(),
+                            model.constraints.names[it.first]
+                        )
+                    }
                 }
             }
             grbConstraints = constraints

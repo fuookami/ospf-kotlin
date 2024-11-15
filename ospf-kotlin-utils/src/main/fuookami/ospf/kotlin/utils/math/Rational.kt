@@ -76,6 +76,7 @@ abstract class Rational<Self, I> protected constructor(
 
     override fun log(base: FloatingNumber<*>) = toFltX().log(base)
     override fun lg() = log(FltX.ten)
+    override fun lg2() = log(FltX.two)
     override fun ln() = log(FltX.e)
 
     override fun pow(index: FloatingNumber<*>) = toFltX().pow(index)
@@ -83,8 +84,8 @@ abstract class Rational<Self, I> protected constructor(
     override fun sqr() = pow(2)
     override fun cub() = pow(3)
 
-    override fun sqrt() = pow(FltX.one / FltX.two)
-    override fun cbrt() = pow(FltX.one / FltX.three)
+    override fun sqrt() = pow(FltX.two.reciprocal())
+    override fun cbrt() = pow(FltX.three.reciprocal())
 
     override fun exp() = toFltX().exp()
 

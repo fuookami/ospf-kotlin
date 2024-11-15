@@ -58,6 +58,7 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override fun cbrt(): Self = pow(constants.one / constants.three) as Self
 
     override fun lg(): Self? = log(constants.ten) as Self?
+    override fun lg2(): Self? = log(constants.two) as Self?
     override fun ln(): Self? = log(constants.e) as Self?
 
     override fun toRtn8() = floatingToRational(value(), { Int8(it.toByte()) }, { Int8(it.toByte()) }, Rtn8::invoke)
