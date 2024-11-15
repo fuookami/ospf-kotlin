@@ -18,8 +18,8 @@ enum class Orientation {
     },
 
     UprightRotated {
-        override fun depth(unit: Cuboid<*>) = unit.width
-        override fun width(unit: Cuboid<*>) = unit.depth
+        override fun depth(unit: Cuboid) = unit.width
+        override fun width(unit: Cuboid) = unit.depth
         override val rotation = Upright
         override val rotated = true
         override val category = OrientationCategory.Upright
@@ -27,39 +27,39 @@ enum class Orientation {
 
     Side {
         override val rotation get() = SideRotated
-        override fun height(unit: Cuboid<*>) = unit.width
-        override fun width(unit: Cuboid<*>) = unit.height
+        override fun height(unit: Cuboid) = unit.width
+        override fun width(unit: Cuboid) = unit.height
         override val category = OrientationCategory.Side
     },
 
     SideRotated {
-        override fun depth(unit: Cuboid<*>) = unit.height
-        override fun height(unit: Cuboid<*>) = unit.width
-        override fun width(unit: Cuboid<*>) = unit.depth
+        override fun depth(unit: Cuboid) = unit.height
+        override fun height(unit: Cuboid) = unit.width
+        override fun width(unit: Cuboid) = unit.depth
         override val rotation = Side
         override val rotated = true
         override val category = OrientationCategory.Side
     },
 
     Lie {
-        override fun depth(unit: Cuboid<*>) = unit.height
-        override fun height(unit: Cuboid<*>) = unit.depth
+        override fun depth(unit: Cuboid) = unit.height
+        override fun height(unit: Cuboid) = unit.depth
         override val rotation get() = LieRotated
         override val category = OrientationCategory.Lie
     },
 
     LieRotated {
-        override fun depth(unit: Cuboid<*>) = unit.width
-        override fun height(unit: Cuboid<*>) = unit.depth
-        override fun width(unit: Cuboid<*>) = unit.height
+        override fun depth(unit: Cuboid) = unit.width
+        override fun height(unit: Cuboid) = unit.depth
+        override fun width(unit: Cuboid) = unit.height
         override val rotation = Lie
         override val rotated = true
         override val category = OrientationCategory.Lie
     };
 
-    open fun depth(unit: Cuboid<*>): Flt64 = unit.depth
-    open fun width(unit: Cuboid<*>): Flt64 = unit.width
-    open fun height(unit: Cuboid<*>): Flt64 = unit.height
+    open fun depth(unit: Cuboid): Flt64 = unit.depth
+    open fun width(unit: Cuboid): Flt64 = unit.width
+    open fun height(unit: Cuboid): Flt64 = unit.height
 
     abstract val rotation: Orientation
     open val rotated: Boolean = false
@@ -72,7 +72,7 @@ enum class Orientation {
             return entries.find { it.name == str }
         }
 
-        fun merge(unit: Cuboid<*>, orientations: List<Orientation>): List<Orientation> {
+        fun merge(unit: Cuboid, orientations: List<Orientation>): List<Orientation> {
             return if (orientations.isEmpty()) {
                 merge(unit, Orientation.entries.toList())
             } else if (orientations.size == 1) {

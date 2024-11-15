@@ -254,7 +254,7 @@ data object FilterStackingOnPolicy : StackingOnPolicy {
     }
 }
 
-data class PackageAttribute(
+data class PackageAttribute<C>(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
     val maxHeight: Flt64 = Flt64.infinity,
@@ -267,6 +267,7 @@ data class PackageAttribute(
     val sideOnTopLayer: UInt64 = UInt64.zero,
     val lieOnTopLayer: UInt64 = UInt64.zero,
 
+    val cargoAttribute: C? = null,
     val weightAttribute: WeightAttribute,
     val deformationAttribute: DeformationAttribute,
     val hangingPolicy: HangingPolicy,
@@ -284,12 +285,12 @@ data class PackageAttribute(
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        private suspend fun layerLayer(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
+        private suspend fun <C> layerLayer(
+            item: ItemPlacement3<C>,
+            bottomItems: List<ItemPlacement3<C>>,
         ): UInt64 {
             return coroutineScope {
-                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
+                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3<C>>
                 val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
                 val promises = ArrayList<Deferred<UInt64>>()
@@ -312,12 +313,12 @@ data class PackageAttribute(
         }
 
         @Suppress("UNCHECKED_CAST")
-        private suspend fun layerHeight(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
+        private suspend fun <C> layerHeight(
+            item: ItemPlacement3<C>,
+            bottomItems: List<ItemPlacement3<C>>,
         ): Flt64 {
             return coroutineScope {
-                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
+                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3<C>>
                 val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
                 val promises = ArrayList<Deferred<Flt64>>()
@@ -338,9 +339,9 @@ data class PackageAttribute(
             }
         }
 
-        suspend fun layer(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
+        suspend fun <C> layer(
+            item: ItemPlacement3<C>,
+            bottomItems: List<ItemPlacement3<C>>,
         ): Pair<UInt64, Flt64> {
             return coroutineScope {
                 val layer = async(Dispatchers.Default) {
@@ -365,8 +366,8 @@ data class PackageAttribute(
     }
 
     fun enabledStackingOn(
-        item: Item,
-        bottomItem: Item?,
+        item: Item<C>,
+        bottomItem: Item<C>?,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
         space: Container3Shape = CommonContainer3Shape()
@@ -419,12 +420,12 @@ data class PackageAttribute(
     }
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun enabledStackingOn(
-        item: ItemPlacement3,
-        bottomItems: List<ItemPlacement3>,
+    suspend fun <C> enabledStackingOn(
+        item: ItemPlacement3<C>,
+        bottomItems: List<ItemPlacement3<C>>,
         space: Container3Shape = CommonContainer3Shape()
     ): Boolean {
-        val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
+        val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3<C>>
         val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
         if (extraStackingOnRule?.invoke(item, directBottomItems, indirectBottomItems) == false) {
@@ -476,7 +477,7 @@ data class PackageAttribute(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as PackageAttribute
+        other as PackageAttribute<*>
 
         if (packageType != other.packageType) return false
         if (packageMaxLayer != other.packageMaxLayer) return false
@@ -488,6 +489,7 @@ data class PackageAttribute(
         if (topFlat != other.topFlat) return false
         if (sideOnTopLayer != other.sideOnTopLayer) return false
         if (lieOnTopLayer != other.lieOnTopLayer) return false
+        if (cargoAttribute != other.cargoAttribute) return false
         if (weightAttribute != other.weightAttribute) return false
         if (deformationAttribute != other.deformationAttribute) return false
         if (hangingPolicy != other.hangingPolicy) return false
@@ -509,6 +511,7 @@ data class PackageAttribute(
         result = 31 * result + topFlat.hashCode()
         result = 31 * result + sideOnTopLayer.hashCode()
         result = 31 * result + lieOnTopLayer.hashCode()
+        result = 31 * result + (cargoAttribute?.hashCode() ?: 0)
         result = 31 * result + weightAttribute.hashCode()
         result = 31 * result + deformationAttribute.hashCode()
         result = 31 * result + hangingPolicy.hashCode()
@@ -519,14 +522,14 @@ data class PackageAttribute(
     }
 }
 
-data class PriorityAttribute(
+data class PriorityAttribute<C>(
     val key: String,
-    private val extractor: Extractor<String?, ActualItem>,
+    private val extractor: Extractor<String?, ActualItem<C>>,
     val value: UInt64
 ) {
-    private fun attribute(item: ActualItem) = extractor(item)
+    private fun attribute(item: ActualItem<C>) = extractor(item)
 
-    operator fun invoke(item: ActualItem): UInt64? {
+    operator fun invoke(item: ActualItem<C>): UInt64? {
         return if (attribute(item) == key) {
             value
         } else {
@@ -556,17 +559,17 @@ open class ItemType(
     }
 }
 
-open class ItemPattern(
+open class ItemPattern<C>(
     val shape: PackageShape,
     val enabledOrientations: List<Orientation>,
     val batchNo: BatchNo,
     val priorities: Map<String, UInt64>,
     val warehouse: String?,
-    val packageAttribute: PackageAttribute,
+    val packageAttribute: PackageAttribute<C>,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ItemPattern) return false
+        if (other !is ItemPattern<*>) return false
 
         if (shape != other.shape) return false
         if (!(enabledOrientations.toTypedArray() contentEquals other.enabledOrientations.toTypedArray())) return false
@@ -589,11 +592,11 @@ open class ItemPattern(
     }
 }
 
-interface Item : CuboidUnit<Item>, Indexed {
+interface Item<C> : CuboidUnit<Item<C>>, Indexed {
     val batchNo: BatchNo
     val priorities: Map<String, UInt64>
     val warehouse: String?
-    val packageAttribute: PackageAttribute
+    val packageAttribute: PackageAttribute<C>
 
     val packageType get() = packageAttribute.packageType
     val packageBottomShape get() = packageShape.bottomShape
@@ -612,7 +615,7 @@ interface Item : CuboidUnit<Item>, Indexed {
     val enabledSideOnTop get() = packageAttribute.enabledSideOnTop
     val enabledLieOnTop get() = packageAttribute.enabledLieOnTop
 
-    val pattern: ItemPattern
+    val pattern: ItemPattern<C>
         get() = ItemPattern(
             shape = packageShape,
             enabledOrientations = enabledOrientations,
@@ -630,7 +633,7 @@ interface Item : CuboidUnit<Item>, Indexed {
     }
 
     fun enabledStackingOn(
-        bottomItem: Item,
+        bottomItem: Item<C>,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
         space: Container3Shape = CommonContainer3Shape()
@@ -644,40 +647,40 @@ interface Item : CuboidUnit<Item>, Indexed {
         )
     }
 
-    override fun view(orientation: Orientation): ItemView {
+    override fun view(orientation: Orientation): ItemView<C> {
         return ItemView(this, orientation)
     }
 }
 
-open class ActualItem(
+open class ActualItem<C>(
     val id: String,
     val name: String,
     val packageCode: PackageCode? = null,
     val pack: Package? = null,
-    val priorityAttribute: List<PriorityAttribute> = emptyList(),
-    // inherited from Cuboid<Item>
+    val priorityAttribute: List<PriorityAttribute<C>> = emptyList(),
+    // inherited from Cuboid<Item<C>>
     override val width: Flt64,
     override val height: Flt64,
     override val depth: Flt64,
     override val weight: Flt64,
-    // inherited from CuboidItem<Item>
+    // inherited from CuboidItem<Item<C>>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
     override val batchNo: BatchNo,
     override val warehouse: String? = null,
-    override val packageAttribute: PackageAttribute
-) : Item, ManualIndexed() {
+    override val packageAttribute: PackageAttribute<C>
+) : Item<C>, ManualIndexed() {
     override val priorities = priorityAttribute.mapNotNull { it(this)?.let { value -> Pair(it.key, value) } }.toMap()
 
     constructor(
         id: String,
         name: String,
         pack: Package,
-        priorityAttribute: List<PriorityAttribute> = emptyList(),
+        priorityAttribute: List<PriorityAttribute<C>> = emptyList(),
         enabledOrientations: List<Orientation>,
         batchNo: BatchNo,
         warehouse: String? = null,
-        packageAttribute: PackageAttribute,
+        packageAttribute: PackageAttribute<C>,
     ) : this(
         id = id,
         name = name,
@@ -699,25 +702,25 @@ open class ActualItem(
     }
 }
 
-open class PatternedItem(
-    private val actualItems: List<Triple<ActualItem, UInt64, UInt64>>,
-    // inherited from Cuboid<Item>
+open class PatternedItem<C>(
+    private val actualItems: List<Triple<ActualItem<C>, UInt64, UInt64>>,
+    // inherited from Cuboid<Item<C>>
     override val width: Flt64,
     override val height: Flt64,
     override val depth: Flt64,
     override val weight: Flt64,
-    // inherited from CuboidItem<Item>
+    // inherited from CuboidItem<Item<C>>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
     override val priorities: Map<String, UInt64> = emptyMap(),
     override val batchNo: BatchNo,
     override val warehouse: String? = null,
-    override val packageAttribute: PackageAttribute
-) : Item, ManualIndexed() {
+    override val packageAttribute: PackageAttribute<C>
+) : Item<C>, ManualIndexed() {
     override val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / actualItems.sumOf { it.second.toFlt64() }
 
     companion object {
-        operator fun invoke(pattern: ItemPattern, actualItems: List<Triple<ActualItem, UInt64, UInt64>>): Triple<PatternedItem, UInt64, UInt64> {
+        operator fun <C> invoke(pattern: ItemPattern<C>, actualItems: List<Triple<ActualItem<C>, UInt64, UInt64>>): Triple<PatternedItem<C>, UInt64, UInt64> {
             val amount = actualItems.sumOf { it.second }
             val pendingAmount = actualItems.sumOf { it.third }
             val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
@@ -737,7 +740,7 @@ open class PatternedItem(
         }
     }
 
-    operator fun get(index: Int): ActualItem {
+    operator fun get(index: Int): ActualItem<C> {
         assert(index >= 0)
         var i = index
         for (item in actualItems) {
@@ -750,7 +753,7 @@ open class PatternedItem(
         return actualItems.last().first
     }
 
-    // inherited from CuboidUnit<Item>
+    // inherited from CuboidUnit<Item<C>>
     override fun enabledOrientationsAt(
         space: Container2Shape<*>,
         withRotation: Boolean
@@ -831,10 +834,10 @@ open class PatternedItem(
     }
 }
 
-open class ItemView(
-    unit: Item,
+open class ItemView<C>(
+    unit: Item<C>,
     orientation: Orientation = Orientation.Upright
-) : CuboidView<Item>(unit, orientation) {
+) : CuboidView<Item<C>>(unit, orientation) {
     open val type get() = ItemType(unit.packageType, orientation.category)
     val packageType by unit::packageType
     val packageCategory by unit::packageCategory
@@ -874,7 +877,7 @@ open class ItemView(
     }
 
     fun enabledStackingOn(
-        bottomItem: ItemView?,
+        bottomItem: ItemView<C>?,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
         space: Container3Shape = CommonContainer3Shape()
@@ -888,64 +891,64 @@ open class ItemView(
         )
     }
 
-    override val rotation: ItemView?
+    override val rotation: ItemView<C>?
         get() {
-            return super.rotation?.let { ItemView(it.unit, it.orientation) }
+            return super.rotation?.let { ItemView(it.unit, it.orientation) } as ItemView<C>?
         }
 
-    override fun rotationAt(space: Container2Shape<*>): ItemView? {
-        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
+    override fun rotationAt(space: Container2Shape<*>): ItemView<C>? {
+        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) } as ItemView<C>?
     }
 
-    override fun rotationAt(space: Container3Shape): ItemView? {
-        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
+    override fun rotationAt(space: Container3Shape): ItemView<C>? {
+        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) } as ItemView<C>?
     }
 
-    override fun copy(): ItemView {
+    override fun copy(): ItemView<C> {
         return ItemView(
             unit,
             orientation
-        )
+        ) as ItemView<C>
     }
 }
 
-typealias ItemProjection<P> = Projection<*, Item, P>
-typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
-typealias ItemPlacement2<P> = Placement2<Item, P>
-typealias ItemPlacement3 = Placement3<Item>
+typealias ItemProjection<P, C> = Projection<*, Item<C>, P>
+typealias MultipleItemProjection<P, C> = MultiPileProjection<Item<C>, P>
+typealias ItemPlacement2<P, C> = Placement2<Item<C>, P>
+typealias ItemPlacement3<C> = Placement3<Item<C>>
 
 @get:JvmName("itemProjectionType")
-val ItemProjection<*>.type: ItemType
+val ItemProjection<*, *>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement2Type")
-val ItemPlacement2<*>.type: ItemType
+val ItemPlacement2<*, *>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement3Type")
-val ItemPlacement3.type: ItemType
+val ItemPlacement3<*>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemProjectionPackageType")
-val ItemProjection<*>.packageType: PackageType
+val ItemProjection<*, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement2PackageType")
-val ItemPlacement2<*>.packageType: PackageType
+val ItemPlacement2<*, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement3PackageType")
-val ItemPlacement3.packageType: PackageType
+val ItemPlacement3<*>.packageType: PackageType
     get() {
         return unit.packageType
     }
@@ -1157,7 +1160,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
     }
 }
 
-fun Map<Item, UInt64>.flatten(): List<Item> {
+fun Map<Item<C> UInt64>.flatten(): List<Item<C>> {
     return this.flatMap { (item, amount) ->
         if (amount == UInt64.zero) {
             emptyList()
@@ -1167,7 +1170,7 @@ fun Map<Item, UInt64>.flatten(): List<Item> {
     }
 }
 
-fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
+fun Iterable<Pair<Item<C> UInt64>>.flatten(): List<Item<C>> {
     return this.flatMap { (item, amount) ->
         if (amount == UInt64.zero) {
             emptyList()
@@ -1177,15 +1180,15 @@ fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
     }
 }
 
-fun Map<Item, UInt64>.totalCount(): UInt64 {
+fun Map<Item<C> UInt64>.totalCount(): UInt64 {
     return this.values.sumOf { it }
 }
 
-fun Iterable<Pair<Item, UInt64>>.totalCount(): UInt64 {
+fun Iterable<Pair<Item<C> UInt64>>.totalCount(): UInt64 {
     return this.sumOf { it.second }
 }
 
-fun List<Item>.group(): Map<Item, UInt64> {
+fun List<Item<C>>.group(): Map<Item<C> UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 

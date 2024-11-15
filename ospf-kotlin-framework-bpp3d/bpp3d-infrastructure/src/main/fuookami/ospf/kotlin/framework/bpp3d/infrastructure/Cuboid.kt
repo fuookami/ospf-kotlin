@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-interface Cuboid<T : Cuboid<T>> {
+interface Cuboid {
     val width: Flt64
     val height: Flt64
     val depth: Flt64
@@ -16,7 +16,7 @@ interface Cuboid<T : Cuboid<T>> {
     val linearDensity: Flt64 get() = weight / depth
 }
 
-interface CuboidUnit<T : CuboidUnit<T>> : Cuboid<T> {
+interface CuboidUnit<T : CuboidUnit<T>> : Cuboid {
     val enabledOrientations: List<Orientation>
 
     fun enabledOrientationsAt(
@@ -59,7 +59,7 @@ data class BottomSupport(
 open class CuboidView<T : CuboidUnit<T>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
-) : Cuboid<CuboidView<T>>, Copyable<CuboidView<T>> {
+) : Cuboid, Copyable<CuboidView<T>> {
     // inherited from Cuboid<T>
     override val width = orientation.width(unit)
     override val height = orientation.height(unit)

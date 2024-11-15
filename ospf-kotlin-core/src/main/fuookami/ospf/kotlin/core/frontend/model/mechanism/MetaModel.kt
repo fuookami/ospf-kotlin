@@ -239,9 +239,9 @@ abstract class AbstractMetaModel(
         }
     } else {
         if (manualTokenAddition) {
-             ManualAddTokenTable(category)
+            ManualAddTokenTable(category)
         } else {
-             AutoAddTokenTable(category)
+            AutoAddTokenTable(category)
         }
     }
 

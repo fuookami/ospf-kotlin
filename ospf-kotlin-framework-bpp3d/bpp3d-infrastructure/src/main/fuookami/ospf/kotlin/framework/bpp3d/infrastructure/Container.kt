@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 private fun merge(
-    counter: MutableMap<Cuboid<*>, UInt64>,
-    unit: Cuboid<*>
+    counter: MutableMap<Cuboid, UInt64>,
+    unit: Cuboid
 ) {
     when (unit) {
         is Container2<*, *> -> {
@@ -65,19 +65,19 @@ class CommonContainer2Shape<P : ProjectivePlane>(
 }
 
 interface Container2<
-        S : Container2<S, P>,
-        P : ProjectivePlane
-        > : Copyable<S> {
+    S : Container2<S, P>,
+    P : ProjectivePlane
+> : Copyable<S> {
     val shape: Container2Shape<P>
     val units: List<Placement2<*, P>>
-    val amounts: Map<Cuboid<*>, UInt64> get() = count(units)
+    val amounts: Map<Cuboid, UInt64> get() = count(units)
 
     val length: Flt64 get() = shape.length
     val width: Flt64 get() = shape.width
 
     companion object {
-        fun <P : ProjectivePlane> count(units: List<Placement2<*, P>>): Map<Cuboid<*>, UInt64> {
-            val counter = HashMap<Cuboid<*>, UInt64>()
+        fun <P : ProjectivePlane> count(units: List<Placement2<*, P>>): Map<Cuboid, UInt64> {
+            val counter = HashMap<Cuboid, UInt64>()
             for (placement in units) {
                 merge(counter, placement.unit)
             }
@@ -85,10 +85,10 @@ interface Container2<
         }
     }
 
-    fun amount(unit: Cuboid<*>) = amounts[unit] ?: UInt64.zero
-    fun amount(predicate: Predicate<Cuboid<*>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
-    fun contains(unit: Cuboid<*>) = amounts[unit]?.let { it != UInt64.zero } ?: false
-    fun contains(predicate: Predicate<Cuboid<*>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
+    fun amount(unit: Cuboid) = amounts[unit] ?: UInt64.zero
+    fun amount(predicate: Predicate<Cuboid>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
+    fun contains(unit: Cuboid) = amounts[unit]?.let { it != UInt64.zero } ?: false
+    fun contains(predicate: Predicate<Cuboid>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
 interface Container3Shape {
@@ -98,7 +98,7 @@ interface Container3Shape {
     val volume: Flt64 get() = width * height * depth
 
     fun enabled(
-        unit: Cuboid<*>,
+        unit: Cuboid,
         orientation: Orientation = Orientation.Upright
     ): Boolean {
         return width geq orientation.width(unit)
@@ -133,7 +133,7 @@ interface Container3Shape {
     }
 
     fun maxAmount(
-        unit: Cuboid<*>,
+        unit: Cuboid,
         orientation: Orientation = Orientation.Upright,
         maxXAmount: UInt64 = UInt64.maximum,
         maxYAmount: UInt64 = UInt64.maximum,
@@ -195,10 +195,10 @@ data class CommonContainer3Shape(
     }
 }
 
-interface Container3<S : Container3<S>> : Cuboid<S>, Copyable<S> {
+interface Container3<S : Container3<S>> : Cuboid, Copyable<S> {
     val shape: Container3Shape get() = CommonContainer3Shape()
     val units: List<Placement3<*>>
-    val amounts: Map<Cuboid<*>, UInt64> get() = count(units)
+    val amounts: Map<Cuboid, UInt64> get() = count(units)
 
     override val width: Flt64 get() = shape.width
     override val height: Flt64 get() = shape.height
@@ -210,8 +210,8 @@ interface Container3<S : Container3<S>> : Cuboid<S>, Copyable<S> {
     val loadingRate: Flt64 get() = actualVolume / (volume + Flt64.epsilon)
 
     companion object {
-        fun count(units: List<Placement3<*>>): Map<Cuboid<*>, UInt64> {
-            val counter = HashMap<Cuboid<*>, UInt64>()
+        fun count(units: List<Placement3<*>>): Map<Cuboid, UInt64> {
+            val counter = HashMap<Cuboid, UInt64>()
             for (placement in units) {
                 merge(counter, placement.unit)
             }
@@ -219,11 +219,11 @@ interface Container3<S : Container3<S>> : Cuboid<S>, Copyable<S> {
         }
     }
 
-    fun enabled(unit: Cuboid<*>, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
-    fun amount(unit: Cuboid<*>) = amounts[unit] ?: UInt64.zero
-    fun amount(predicate: Predicate<Cuboid<*>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
-    fun contains(unit: Cuboid<*>) = amounts[unit]?.let { it != UInt64.zero } ?: false
-    fun contains(predicate: Predicate<Cuboid<*>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
+    fun enabled(unit: Cuboid, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
+    fun amount(unit: Cuboid) = amounts[unit] ?: UInt64.zero
+    fun amount(predicate: Predicate<Cuboid>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
+    fun contains(unit: Cuboid) = amounts[unit]?.let { it != UInt64.zero } ?: false
+    fun contains(predicate: Predicate<Cuboid>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
 interface Container3CuboidUnit<S> : Container3<S>, CuboidUnit<S> where S : Container3<S>, S : CuboidUnit<S>

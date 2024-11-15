@@ -12,7 +12,7 @@ data class Placement2<
     T : CuboidUnit<T>,
     P : ProjectivePlane
 >(
-    val projection: Projection<*, T, P>,
+    val projection: Projection<T, P>,
     val position: Point2
 ) : Copyable<Placement2<T, P>> {
     constructor(placement3: Placement3<T>, plane: P) : this(
@@ -109,8 +109,7 @@ data class Placement2<
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun copy() = Placement2(projection.copy() as Projection<*, T, P>, position)
+    override fun copy() = Placement2(projection.copy(), position)
 }
 
 data class Placement3<T : CuboidUnit<T>>(

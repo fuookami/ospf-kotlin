@@ -83,12 +83,14 @@ sealed interface AbstractTokenTable {
 
 sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable {
     fun add(item: AbstractVariableItem<*, *>): Try
+
     @JvmName("addVariables")
     @Suppress("INAPPLICABLE_JVM_NAME")
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
 
     fun add(symbol: IntermediateSymbol): Try
+
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
     fun add(symbols: Iterable<IntermediateSymbol>): Try

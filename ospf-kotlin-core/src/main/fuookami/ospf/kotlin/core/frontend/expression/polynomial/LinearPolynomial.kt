@@ -1099,7 +1099,7 @@ operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<LinearMonomial>)
         Quantity(this.value + rhs.value, this.unit)
     } else if (this.unit.quantity == rhs.unit.quantity) {
         if (this.unit.scale.value leq rhs.unit.scale.value) {
-             Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
+            Quantity(this.value + rhs.to(this.unit)!!.value, this.unit)
         } else {
             Quantity(this.toFlt64().unit.to(rhs.unit)!!.value + rhs.value, rhs.unit)
         }

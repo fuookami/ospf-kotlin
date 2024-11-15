@@ -36,15 +36,15 @@ data class ProjectionShape(
 }
 
 sealed class ProjectivePlane {
-    abstract fun length(unit: Cuboid<*>, orientation: Orientation = Orientation.Upright): Flt64
-    abstract fun width(unit: Cuboid<*>, orientation: Orientation = Orientation.Upright): Flt64
-    abstract fun height(unit: Cuboid<*>, orientation: Orientation = Orientation.Upright): Flt64
+    abstract fun length(unit: Cuboid, orientation: Orientation = Orientation.Upright): Flt64
+    abstract fun width(unit: Cuboid, orientation: Orientation = Orientation.Upright): Flt64
+    abstract fun height(unit: Cuboid, orientation: Orientation = Orientation.Upright): Flt64
 
     abstract fun length(space: Container3Shape): Flt64
     abstract fun width(space: Container3Shape): Flt64
     abstract fun height(space: Container3Shape): Flt64
 
-    fun shape(unit: Cuboid<*>, orientation: Orientation = Orientation.Upright) = ProjectionShape.invoke(
+    fun shape(unit: Cuboid, orientation: Orientation = Orientation.Upright) = ProjectionShape.invoke(
         length = this.length(unit, orientation),
         width = this.width(unit, orientation)
     )
@@ -66,9 +66,9 @@ typealias Direction = ProjectivePlane
  * ZOX
  */
 object Bottom : ProjectivePlane() {
-    override fun length(unit: Cuboid<*>, orientation: Orientation) = orientation.depth(unit)
-    override fun width(unit: Cuboid<*>, orientation: Orientation) = orientation.width(unit)
-    override fun height(unit: Cuboid<*>, orientation: Orientation) = orientation.height(unit)
+    override fun length(unit: Cuboid, orientation: Orientation) = orientation.depth(unit)
+    override fun width(unit: Cuboid, orientation: Orientation) = orientation.width(unit)
+    override fun height(unit: Cuboid, orientation: Orientation) = orientation.height(unit)
 
     override fun length(space: Container3Shape) = space.depth
     override fun width(space: Container3Shape) = space.width
@@ -90,9 +90,9 @@ typealias ZOX = Bottom
  * XOY
  */
 object Side : ProjectivePlane() {
-    override fun length(unit: Cuboid<*>, orientation: Orientation) = orientation.width(unit)
-    override fun width(unit: Cuboid<*>, orientation: Orientation) = orientation.height(unit)
-    override fun height(unit: Cuboid<*>, orientation: Orientation) = orientation.depth(unit)
+    override fun length(unit: Cuboid, orientation: Orientation) = orientation.width(unit)
+    override fun width(unit: Cuboid, orientation: Orientation) = orientation.height(unit)
+    override fun height(unit: Cuboid, orientation: Orientation) = orientation.depth(unit)
 
     override fun length(space: Container3Shape) = space.width
     override fun width(space: Container3Shape) = space.height
@@ -114,9 +114,9 @@ typealias XOY = Side
  * ZOY
  */
 object Front : ProjectivePlane() {
-    override fun length(unit: Cuboid<*>, orientation: Orientation) = orientation.depth(unit)
-    override fun width(unit: Cuboid<*>, orientation: Orientation) = orientation.height(unit)
-    override fun height(unit: Cuboid<*>, orientation: Orientation) = orientation.width(unit)
+    override fun length(unit: Cuboid, orientation: Orientation) = orientation.depth(unit)
+    override fun width(unit: Cuboid, orientation: Orientation) = orientation.height(unit)
+    override fun height(unit: Cuboid, orientation: Orientation) = orientation.width(unit)
 
     override fun length(space: Container3Shape) = space.depth
     override fun width(space: Container3Shape) = space.height
@@ -135,10 +135,9 @@ object Front : ProjectivePlane() {
 typealias ZOY = Front
 
 sealed interface Projection<
-        Proj : Projection<Proj, T, P>,
-        T : CuboidUnit<T>,
-        P : ProjectivePlane
-        > : Copyable<Proj> {
+    T : CuboidUnit<T>,
+    P : ProjectivePlane
+>: Copyable<Projection<T, P>> {
     val view: CuboidView<T>
     val plane: P
     val unit: T get() = view.unit
@@ -149,17 +148,17 @@ sealed interface Projection<
     val area: Flt64 get() = length * width
     val weight: Flt64 get() = unit.weight
 
-    fun amount(unit: Cuboid<*>): UInt64
+    fun amount(unit: Cuboid): UInt64
 }
 
 data class PlaneProjection<
-        T : CuboidUnit<T>,
-        P : ProjectivePlane
-        >(
+    T : CuboidUnit<T>,
+    P : ProjectivePlane
+>(
     override val view: CuboidView<T>,
     override val plane: P
-) : Projection<PlaneProjection<T, P>, T, P> {
-    override fun amount(unit: Cuboid<*>): UInt64 {
+) : Projection<T, P> {
+    override fun amount(unit: Cuboid): UInt64 {
         return if (unit == this.unit) {
             UInt64.one
         } else {
@@ -171,19 +170,19 @@ data class PlaneProjection<
 }
 
 data class PileProjection<
-        T : CuboidUnit<T>,
-        P : ProjectivePlane
-        >(
+    T : CuboidUnit<T>,
+    P : ProjectivePlane
+>(
     override val view: CuboidView<T>,
     override val plane: P,
     val layer: UInt64,
-) : Projection<PileProjection<T, P>, T, P> {
+) : Projection<T, P> {
     override val height = plane.height(view) * layer.toFlt64()
     override val weight = unit.weight * layer.toFlt64()
 
     constructor(plane: PlaneProjection<T, P>, layer: UInt64 = UInt64.one) : this(plane.view, plane.plane, layer)
 
-    override fun amount(unit: Cuboid<*>): UInt64 {
+    override fun amount(unit: Cuboid): UInt64 {
         return if (unit == this.unit) {
             layer
         } else {
@@ -195,12 +194,12 @@ data class PileProjection<
 }
 
 data class MultiPileProjection<
-        T : CuboidUnit<T>,
-        P : ProjectivePlane
-        >(
+    T : CuboidUnit<T>,
+    P : ProjectivePlane
+>(
     val views: List<CuboidView<T>>,
     override val plane: P,
-) : Projection<MultiPileProjection<T, P>, T, P> {
+) : Projection<T, P> {
     override val view = views.first()
 
     override val length = views.maxOf { plane.length(it) }
@@ -208,7 +207,7 @@ data class MultiPileProjection<
     override val height = views.sumOf { plane.height(it) }
     override val weight = views.sumOf { it.weight }
 
-    override fun amount(unit: Cuboid<*>) = UInt64(views.count { it.unit == unit })
+    override fun amount(unit: Cuboid) = UInt64(views.count { it.unit == unit })
 
     override fun copy() = MultiPileProjection(views.map { it.copy() }, plane)
 }
