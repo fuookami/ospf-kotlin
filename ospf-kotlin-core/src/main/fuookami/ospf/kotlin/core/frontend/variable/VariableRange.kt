@@ -38,11 +38,11 @@ infix fun Range<Binary, UInt8>.eq(value: Boolean): Boolean {
     return this.eq(UInt8(value))
 }
 
-infix fun Range<Binary, UInt8>.isTrue(value: Boolean): Boolean {
+fun Range<Binary, UInt8>.setTrue(): Boolean {
     return this.geq(UInt8.one)
 }
 
-infix fun Range<Binary, UInt8>.isFalse(value: Boolean): Boolean {
+fun Range<Binary, UInt8>.setFalse(): Boolean {
     return this.leq(UInt8.zero)
 }
 
@@ -66,15 +66,35 @@ infix fun Range<Ternary, UInt8>.eq(value: Trivalent): Boolean {
     return this.eq((value.value * URtn8.two).toUInt8())
 }
 
-infix fun Range<Ternary, UInt8>.isFalse(value: Trivalent): Boolean {
-    return this.leq(UInt8.zero)
+infix fun Range<Ternary, UInt8>.ls(value: Boolean): Boolean {
+    return this.ls(Trivalent(value))
 }
 
-infix fun Range<Ternary, UInt8>.isTrue(value: Trivalent): Boolean {
+infix fun Range<Ternary, UInt8>.leq(value: Boolean): Boolean {
+    return this.leq(Trivalent(value))
+}
+
+infix fun Range<Ternary, UInt8>.gr(value: Boolean): Boolean {
+    return this.gr(Trivalent(value))
+}
+
+infix fun Range<Ternary, UInt8>.geq(value: Boolean): Boolean {
+    return this.geq(Trivalent(value))
+}
+
+infix fun Range<Ternary, UInt8>.eq(value: Boolean): Boolean {
+    return this.eq(Trivalent(value))
+}
+
+fun Range<Ternary, UInt8>.setTrue(): Boolean {
     return this.geq(UInt8.two)
 }
 
-infix fun Range<Ternary, UInt8>.isUnknown(value: Trivalent): Boolean {
+fun Range<Ternary, UInt8>.setFalse(): Boolean {
+    return this.leq(UInt8.zero)
+}
+
+fun Range<Ternary, UInt8>.setUnknown(): Boolean {
     return this.eq(UInt8.one)
 }
 
@@ -98,14 +118,34 @@ infix fun Range<BalancedTernary, Int8>.eq(value: BalancedTrivalent): Boolean {
     return this.eq(value.value)
 }
 
-infix fun Range<BalancedTernary, Int8>.isFalse(value: BalancedTrivalent): Boolean {
-    return this.leq(-Int8.one)
+infix fun Range<BalancedTernary, Int8>.ls(value: Boolean): Boolean {
+    return this.ls(BalancedTrivalent(value))
 }
 
-infix fun Range<BalancedTernary, Int8>.isTrue(value: BalancedTrivalent): Boolean {
+infix fun Range<BalancedTernary, Int8>.leq(value: Boolean): Boolean {
+    return this.leq(BalancedTrivalent(value))
+}
+
+infix fun Range<BalancedTernary, Int8>.gr(value: Boolean): Boolean {
+    return this.gr(BalancedTrivalent(value))
+}
+
+infix fun Range<BalancedTernary, Int8>.geq(value: Boolean): Boolean {
+    return this.geq(BalancedTrivalent(value))
+}
+
+infix fun Range<BalancedTernary, Int8>.eq(value: Boolean): Boolean {
+    return this.eq(BalancedTrivalent(value))
+}
+
+fun Range<BalancedTernary, Int8>.setTrue(): Boolean {
     return this.geq(Int8.one)
 }
 
-infix fun Range<BalancedTernary, Int8>.isUnknown(value: BalancedTrivalent): Boolean {
+fun Range<BalancedTernary, Int8>.setFalse(): Boolean {
+    return this.leq(-Int8.one)
+}
+
+fun Range<BalancedTernary, Int8>.setUnknown(): Boolean {
     return this.eq(Int8.zero)
 }

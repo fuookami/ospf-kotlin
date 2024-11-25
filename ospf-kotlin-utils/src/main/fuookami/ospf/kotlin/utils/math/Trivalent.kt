@@ -13,6 +13,14 @@ enum class Trivalent(val value: URtn8) {
             }
         }
 
+        operator fun invoke(value: Boolean?): Trivalent {
+            return when (value) {
+                true -> True
+                false -> False
+                null -> Unknown
+            }
+        }
+
         operator fun invoke(value: BalancedTrivalent): Trivalent {
             return when (value) {
                 BalancedTrivalent.True -> True
@@ -39,6 +47,14 @@ enum class BalancedTrivalent(val value: Int8) {
             return when (value) {
                 true -> True
                 false -> False
+            }
+        }
+
+        operator fun invoke(value: Boolean?): BalancedTrivalent {
+            return when (value) {
+                true -> True
+                false -> False
+                null -> Unknown
             }
         }
 
