@@ -12,17 +12,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>
-    override val shape: Container2Shape<P>,
+    override val shape: AbstractContainer2Shape<P>,
     override val units: List<ItemPlacement2<P>>
 ) : Container2<PlaneLayer<P>, P> {
     companion object {
         operator fun <P : ProjectivePlane> invoke(
-            space: Container3Shape,
+            space: AbstractContainer3Shape,
             units: List<ItemPlacement2<P>>,
             plane: P
         ): PlaneLayer<P> {
             return PlaneLayer(
-                shape = CommonContainer2Shape(
+                shape = Container2Shape(
                     space = space,
                     plane = plane
                 ),
@@ -53,7 +53,7 @@ class BinLayer(
     val iteration: Int,
     val from: KClass<*>,
     // inherited from Container3<BinLayer>
-    override val shape: Container3Shape,
+    override val shape: AbstractContainer3Shape,
     override val units: List<Placement3<*>>,
 ) : ItemContainer<BinLayer>, ManualIndexed() {
     companion object {
@@ -64,7 +64,7 @@ class BinLayer(
             return BinLayer(
                 iteration = iteration,
                 from = PlaneLayer::class,
-                shape = CommonContainer3Shape(layer),
+                shape = Container3Shape(layer),
                 units = layer
                     .units
                     .flatMap { it.toPlacement3() }
@@ -81,7 +81,7 @@ class BinLayer(
             return BinLayer(
                 iteration = iteration,
                 from = from,
-                shape = CommonContainer3Shape(CommonContainer2Shape(bin, Side)),
+                shape = Container3Shape(Container2Shape(bin, Side)),
                 units = units.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }
             )
         }
@@ -118,7 +118,7 @@ class PalletLayer(
     val iteration: Int,
     val from: KClass<*>,
     // inherited from Container3<PalletLayer>
-    override val shape: Container3Shape,
+    override val shape: AbstractContainer3Shape,
     override val units: List<Placement3<*>>,
 ) : ItemContainer<PalletLayer>, ManualIndexed() {
     companion object {
@@ -129,7 +129,7 @@ class PalletLayer(
             return BinLayer(
                 iteration = iteration,
                 from = PlaneLayer::class,
-                shape = CommonContainer3Shape(layer),
+                shape = Container3Shape(layer),
                 units = layer
                     .units
                     .flatMap { it.toPlacement3() }
@@ -146,7 +146,7 @@ class PalletLayer(
             return BinLayer(
                 iteration = iteration,
                 from = from,
-                shape = CommonContainer3Shape(CommonContainer2Shape(bin, Bottom)),
+                shape = Container3Shape(Container2Shape(bin, Bottom)),
                 units = units.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }
             )
         }

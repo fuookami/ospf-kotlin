@@ -8,31 +8,18 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 interface GanttSchedulingShadowPriceArguments<
     out E : Executor,
     out A : AssignmentPolicy<E>
->
-
-open class ExecutorGanttSchedulingShadowPriceArguments<
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+> {
     val executor: E
-) : GanttSchedulingShadowPriceArguments<E, A>
+    val task: AbstractTask<E, A>?
+}
 
 open class TaskGanttSchedulingShadowPriceArguments<
     out E : Executor,
     out A : AssignmentPolicy<E>
 >(
-    open val prevTask: AbstractTask<E, A>?,
-    open val thisTask: AbstractTask<E, A>?
-) : GanttSchedulingShadowPriceArguments<E, A>
-
-open class ResourceGanttSchedulingShadowPriceArguments<
-    out R : Resource<C>,
-    out C : ResourceCapacity,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
-    val resource: R,
-    val time: TimeRange
+    override val executor: E,
+    override val task: AbstractTask<E, A>? = null,
+    open val prevTask: AbstractTask<E, A>? = null
 ) : GanttSchedulingShadowPriceArguments<E, A>
 
 open class AbstractGanttSchedulingShadowPriceMap<
@@ -47,43 +34,6 @@ typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPri
     GanttSchedulingShadowPriceArguments<E, A>, E, A
 >
 
-operator fun <
-    E : Executor,
-    A : AssignmentPolicy<E>
-> AbstractGanttSchedulingShadowPriceMap<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
->.invoke(
-    executor: E
-): Flt64 {
-    return invoke(ExecutorGanttSchedulingShadowPriceArguments(executor))
-}
-
-operator fun <
-    E : Executor,
-    A : AssignmentPolicy<E>
-> AbstractGanttSchedulingShadowPriceMap<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
->.invoke(
-    prevTask: AbstractTask<E, A>?,
-    thisTask: AbstractTask<E, A>?
-): Flt64 {
-    return invoke(TaskGanttSchedulingShadowPriceArguments(prevTask, thisTask))
-}
-
-operator fun <
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    R : Resource<C>,
-    C : ResourceCapacity
-> AbstractGanttSchedulingShadowPriceMap<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
->.invoke(
-    resource: R,
-    time: TimeRange = TimeRange()
-): Flt64 {
-    return invoke(ResourceGanttSchedulingShadowPriceArguments(resource, time))
-}
-
 fun <
     T : AbstractTask<E, A>,
     E : Executor,
@@ -95,17 +45,17 @@ fun <
 ): Flt64 {
     var ret = bunch.cost.sum!!
     if (bunch.executor.indexed) {
-        ret -= this(ExecutorGanttSchedulingShadowPriceArguments(bunch.executor))
+        ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.executor))
         for ((index, task) in bunch.tasks.withIndex()) {
             val prevTask = if (index != 0) {
                 bunch.tasks[index - 1]
             } else {
                 bunch.lastTask
             }
-            ret -= this(TaskGanttSchedulingShadowPriceArguments(prevTask, task))
+            ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.executor, prevTask, task))
         }
         if (bunch.tasks.isNotEmpty()) {
-            ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.tasks.last(), null))
+            ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.executor, bunch.tasks.last(), null))
         }
     }
     return ret

@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
  *
  * @property markovLength               the length of the markov chain
  */
-interface SAAPolicy<V> {
+interface AbstractSAAPolicy<V> {
     val markovLength: UInt64
 
     fun transformSolution(
@@ -51,7 +51,7 @@ interface SAAPolicy<V> {
  * @property timeLimit
  * @property randomGenerator
  */
-open class CommonSAAPolicy<V>(
+open class SAAPolicy<V>(
     val initialTemperature: Flt64 = Flt64(100.0),
     val finalTemperature: Flt64 = Flt64(1.0),
     val temperatureGradiant: Flt64 = Flt64(0.98),
@@ -63,7 +63,7 @@ open class CommonSAAPolicy<V>(
     val notBetterIterationLimit: UInt64 = UInt64.maximum,
     val timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Flt64(Random.nextDouble()) }
-) : SAAPolicy<V> {
+) : AbstractSAAPolicy<V> {
     private var _step: Flt64 = step
     val step: Flt64 by ::_step
 
@@ -119,7 +119,7 @@ open class CommonSAAPolicy<V>(
 
 class SimulatedAnnealingAlgorithm<Obj, V>(
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: SAAPolicy<V>
+    val policy: AbstractSAAPolicy<V>
 ) {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>

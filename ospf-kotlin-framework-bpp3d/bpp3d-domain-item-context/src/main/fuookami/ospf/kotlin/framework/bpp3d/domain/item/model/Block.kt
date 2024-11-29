@@ -15,7 +15,7 @@ sealed class Block(
     final override val units: List<ItemPlacement3>,
 ) : ItemContainer<Block> {
     // inherited from Container3<Block>
-    final override val shape = CommonContainer3Shape(
+    final override val shape = Container3Shape(
         width = units.maxOf { it.maxX } - units.minOf { it.x },
         height = units.maxOf { it.maxY } - units.minOf { it.y },
         depth = units.maxOf { it.maxZ } - units.minOf { it.z }
@@ -73,7 +73,7 @@ class HollowSquareBlock(
     companion object {
         operator fun invoke(
             item: Item,
-            space: Container3Shape,
+            space: AbstractContainer3Shape,
             amount: UInt64 = UInt64.maximum
         ): HollowSquareBlock? {
             val units = ItemMerger.mergeHollowSquareBlocks(

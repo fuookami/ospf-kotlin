@@ -6,10 +6,9 @@ import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 data class Placement2<
-    T : CuboidUnit<T>,
+    T : Cuboid<T>,
     P : ProjectivePlane
 >(
     val projection: Projection<T, P>,
@@ -112,7 +111,7 @@ data class Placement2<
     override fun copy() = Placement2(projection.copy(), position)
 }
 
-data class Placement3<T : CuboidUnit<T>>(
+data class Placement3<T : Cuboid<T>>(
     val view: CuboidView<T>,
     val position: Point3
 ) : Copyable<Placement3<T>>, Ord<Placement3<T>> {
