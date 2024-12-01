@@ -9,15 +9,14 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
-
-data class PriorityAttribute<C>(
+data class PriorityAttribute(
     val key: String,
-    private val extractor: Extractor<String?, ActualItem<C>>,
+    private val extractor: Extractor<String?, ActualItem>,
     val value: UInt64
 ) {
-    private fun attribute(item: ActualItem<C>) = extractor(item)
+    private fun attribute(item: ActualItem) = extractor(item)
 
-    operator fun invoke(item: ActualItem<C>): UInt64? {
+    operator fun invoke(item: ActualItem): UInt64? {
         return if (attribute(item) == key) {
             value
         } else {
@@ -47,17 +46,17 @@ open class ItemType(
     }
 }
 
-open class ItemPattern<C>(
+open class ItemPattern(
     val shape: PackageShape,
     val enabledOrientations: List<Orientation>,
-    val batchNo: BatchNo,
+    val batchNo: BatchNo?,
     val priorities: Map<String, UInt64>,
     val warehouse: String?,
-    val packageAttribute: PackageAttribute<C>,
+    val packageAttribute: PackageAttribute,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ItemPattern<*>) return false
+        if (other !is ItemPattern) return false
 
         if (shape != other.shape) return false
         if (!(enabledOrientations.toTypedArray() contentEquals other.enabledOrientations.toTypedArray())) return false
@@ -72,19 +71,19 @@ open class ItemPattern<C>(
     override fun hashCode(): Int {
         var result = shape.hashCode()
         result = 31 * result + enabledOrientations.hashCode()
-        result = 31 * result + batchNo.hashCode()
-        result = 31 * result + priorities.hashCode()
+        result = 31 * result + (batchNo?.hashCode() ?: 0)
+        result = 31 * result + (priorities?.hashCode() ?: 0)
         result = 31 * result + (warehouse?.hashCode() ?: 0)
         result = 31 * result + packageAttribute.hashCode()
         return result
     }
 }
 
-interface Item<C> : Cuboid<Item<C>>, Indexed {
-    val batchNo: BatchNo
+interface Item : Cuboid<Item>, Indexed {
+    val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
     val warehouse: String?
-    val packageAttribute: PackageAttribute<C>
+    val packageAttribute: PackageAttribute
 
     val packageType get() = packageAttribute.packageType
     val packageBottomShape get() = packageShape.bottomShape
@@ -103,7 +102,7 @@ interface Item<C> : Cuboid<Item<C>>, Indexed {
     val enabledSideOnTop get() = packageAttribute.enabledSideOnTop
     val enabledLieOnTop get() = packageAttribute.enabledLieOnTop
 
-    val pattern: ItemPattern<C>
+    val pattern: ItemPattern
         get() = ItemPattern(
             shape = packageShape,
             enabledOrientations = enabledOrientations,
@@ -121,7 +120,7 @@ interface Item<C> : Cuboid<Item<C>>, Indexed {
     }
 
     fun enabledStackingOn(
-        bottomItem: Item<C>,
+        bottomItem: Item,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
         space: AbstractContainer3Shape = Container3Shape()
@@ -135,40 +134,40 @@ interface Item<C> : Cuboid<Item<C>>, Indexed {
         )
     }
 
-    override fun view(orientation: Orientation): ItemView<C> {
+    override fun view(orientation: Orientation): ItemView {
         return ItemView(this, orientation)
     }
 }
 
-open class ActualItem<C>(
+open class ActualItem(
     val id: String,
     val name: String,
     val packageCode: PackageCode? = null,
     val pack: Package? = null,
-    val priorityAttribute: List<PriorityAttribute<C>> = emptyList(),
-    // inherited from Cuboid<Item<C>>
+    val priorityAttribute: List<PriorityAttribute> = emptyList(),
+    // inherited from Cuboid<Item>
     override val width: Flt64,
     override val height: Flt64,
     override val depth: Flt64,
     override val weight: Flt64,
-    // inherited from CuboidItem<Item<C>>
+    // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
-    override val batchNo: BatchNo,
+    override val batchNo: BatchNo? = null,
     override val warehouse: String? = null,
-    override val packageAttribute: PackageAttribute<C>
-) : Item<C>, ManualIndexed() {
+    override val packageAttribute: PackageAttribute
+) : Item, ManualIndexed() {
     override val priorities = priorityAttribute.mapNotNull { it(this)?.let { value -> Pair(it.key, value) } }.toMap()
 
     constructor(
         id: String,
         name: String,
         pack: Package,
-        priorityAttribute: List<PriorityAttribute<C>> = emptyList(),
+        priorityAttribute: List<PriorityAttribute> = emptyList(),
         enabledOrientations: List<Orientation>,
         batchNo: BatchNo,
         warehouse: String? = null,
-        packageAttribute: PackageAttribute<C>,
+        packageAttribute: PackageAttribute,
     ) : this(
         id = id,
         name = name,
@@ -190,25 +189,28 @@ open class ActualItem<C>(
     }
 }
 
-open class PatternedItem<C>(
-    private val actualItems: List<Triple<ActualItem<C>, UInt64, UInt64>>,
-    // inherited from Cuboid<Item<C>>
+open class PatternedItem(
+    private val actualItems: List<Triple<ActualItem, UInt64, UInt64>>,
+    // inherited from Cuboid<Item>
     override val width: Flt64,
     override val height: Flt64,
     override val depth: Flt64,
     override val weight: Flt64,
-    // inherited from CuboidItem<Item<C>>
+    // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
     override val priorities: Map<String, UInt64> = emptyMap(),
-    override val batchNo: BatchNo,
+    override val batchNo: BatchNo? = null,
     override val warehouse: String? = null,
-    override val packageAttribute: PackageAttribute<C>
-) : Item<C>, ManualIndexed() {
+    override val packageAttribute: PackageAttribute
+) : Item, ManualIndexed() {
     override val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / actualItems.sumOf { it.second.toFlt64() }
 
     companion object {
-        operator fun <C> invoke(pattern: ItemPattern<C>, actualItems: List<Triple<ActualItem<C>, UInt64, UInt64>>): Triple<PatternedItem<C>, UInt64, UInt64> {
+        operator fun invoke(
+            pattern: ItemPattern,
+            actualItems: List<Triple<ActualItem, UInt64, UInt64>>
+        ): Triple<PatternedItem, UInt64, UInt64> {
             val amount = actualItems.sumOf { it.second }
             val pendingAmount = actualItems.sumOf { it.third }
             val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
@@ -228,7 +230,7 @@ open class PatternedItem<C>(
         }
     }
 
-    operator fun get(index: Int): ActualItem<C> {
+    operator fun get(index: Int): ActualItem {
         assert(index >= 0)
         var i = index
         for (item in actualItems) {
@@ -241,7 +243,7 @@ open class PatternedItem<C>(
         return actualItems.last().first
     }
 
-    // inherited from CuboidUnit<Item<C>>
+    // inherited from CuboidUnit<Item>
     override fun enabledOrientationsAt(
         space: AbstractContainer2Shape<*>,
         withRotation: Boolean
@@ -322,10 +324,10 @@ open class PatternedItem<C>(
     }
 }
 
-open class ItemView<C>(
-    unit: Item<C>,
+open class ItemView(
+    unit: Item,
     orientation: Orientation = Orientation.Upright
-) : CuboidView<Item<C>>(unit, orientation) {
+) : CuboidView<Item>(unit, orientation) {
     open val type get() = ItemType(unit.packageType, orientation.category)
     val packageType by unit::packageType
     val packageCategory by unit::packageCategory
@@ -365,7 +367,7 @@ open class ItemView<C>(
     }
 
     fun enabledStackingOn(
-        bottomItem: ItemView<C>?,
+        bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
         space: AbstractContainer3Shape = Container3Shape()
@@ -379,64 +381,64 @@ open class ItemView<C>(
         )
     }
 
-    override val rotation: ItemView<C>?
+    override val rotation: ItemView?
         get() {
-            return super.rotation?.let { ItemView(it.unit, it.orientation) } as ItemView<C>?
+            return super.rotation?.let { ItemView(it.unit, it.orientation) }
         }
 
-    override fun rotationAt(space: AbstractContainer2Shape<*>): ItemView<C>? {
-        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) } as ItemView<C>?
+    override fun rotationAt(space: AbstractContainer2Shape<*>): ItemView? {
+        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
-    override fun rotationAt(space: AbstractContainer3Shape): ItemView<C>? {
-        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) } as ItemView<C>?
+    override fun rotationAt(space: AbstractContainer3Shape): ItemView? {
+        return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
-    override fun copy(): ItemView<C> {
+    override fun copy(): ItemView {
         return ItemView(
             unit,
             orientation
-        ) as ItemView<C>
+        )
     }
 }
 
-typealias ItemProjection<P, C> = Projection<*, Item<C>, P>
-typealias MultipleItemProjection<P, C> = MultiPileProjection<Item<C>, P>
-typealias ItemPlacement2<P, C> = Placement2<Item<C>, P>
-typealias ItemPlacement3<C> = Placement3<Item<C>>
+typealias ItemProjection<P> = Projection<Item, P>
+typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
+typealias ItemPlacement2<P> = Placement2<Item, P>
+typealias ItemPlacement3 = Placement3<Item>
 
 @get:JvmName("itemProjectionType")
-val ItemProjection<*, *>.type: ItemType
+val ItemProjection<*>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement2Type")
-val ItemPlacement2<*, *>.type: ItemType
+val ItemPlacement2<*>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement3Type")
-val ItemPlacement3<*>.type: ItemType
+val ItemPlacement3.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemProjectionPackageType")
-val ItemProjection<*, *>.packageType: PackageType
+val ItemProjection<*,>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement2PackageType")
-val ItemPlacement2<*, *>.packageType: PackageType
+val ItemPlacement2<*>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement3PackageType")
-val ItemPlacement3<*>.packageType: PackageType
+val ItemPlacement3.packageType: PackageType
     get() {
         return unit.packageType
     }
@@ -533,7 +535,7 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                                 it.maxY leq this@enabledStackingOn.y && Placement2(placement3, Bottom).overlapped(bottomPlacement)
                             }
                         },
-                        space = CommonContainer3Shape(space)
+                        space = Container3Shape(space)
                     )
                 })
             }
@@ -587,7 +589,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                         }.filter {
                             it.maxY leq this@enabledStackingOn.y && Placement2(it, Bottom).overlapped(bottomPlacement)
                         },
-                        space = CommonContainer3Shape(space)
+                        space = Container3Shape(space)
                     )
                 })
             }
@@ -607,7 +609,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
 @JvmName("itemPlacement3EnabledStackingOn")
 suspend fun ItemPlacement3.enabledStackingOn(
     bottomItems: List<Placement3<*>>,
-    space: AbstractContainer3Shape = CommonContainer3Shape()
+    space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val bottomPlacement = Placement2(this, Bottom)
     return if (absoluteY eq Flt64.zero) {
@@ -648,7 +650,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
     }
 }
 
-fun Map<Item<C> UInt64>.flatten(): List<Item<C>> {
+fun Map<Item, UInt64>.flatten(): List<Item> {
     return this.flatMap { (item, amount) ->
         if (amount == UInt64.zero) {
             emptyList()
@@ -658,7 +660,7 @@ fun Map<Item<C> UInt64>.flatten(): List<Item<C>> {
     }
 }
 
-fun Iterable<Pair<Item<C> UInt64>>.flatten(): List<Item<C>> {
+fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
     return this.flatMap { (item, amount) ->
         if (amount == UInt64.zero) {
             emptyList()
@@ -668,15 +670,15 @@ fun Iterable<Pair<Item<C> UInt64>>.flatten(): List<Item<C>> {
     }
 }
 
-fun Map<Item<C> UInt64>.totalCount(): UInt64 {
+fun Map<Item, UInt64>.totalCount(): UInt64 {
     return this.values.sumOf { it }
 }
 
-fun Iterable<Pair<Item<C> UInt64>>.totalCount(): UInt64 {
+fun Iterable<Pair<Item, UInt64>>.totalCount(): UInt64 {
     return this.sumOf { it.second }
 }
 
-fun List<Item<C>>.group(): Map<Item<C> UInt64> {
+fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
@@ -716,184 +718,6 @@ fun List<Placement3<*>>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlac
     return items
 }
 
-sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S> {
-    val items: List<ItemPlacement3> get() = dump()
-
-    val packageType: PackageType
-        get() = units.minOfWithThreeWayComparator({ lhs, rhs -> lhs ord rhs }) {
-            when (val unit = it.unit) {
-                is Item -> unit.packageType
-                is ItemContainer<*> -> unit.packageType
-                else -> PackageType.CartonContainer
-            }
-        }
-    val packageCategory get() = packageType.category
-
-    val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }
-    val bottomOnlyHeight: Flt64
-        get() = items.maxOfOrNull { item ->
-            if (item.bottomOnly) {
-                item.maxY
-            } else {
-                Flt64.zero
-            }
-        } ?: Flt64.zero
-
-    val topFlat: Boolean get() = topPlacements(units).all { (it.view as ItemView).topFlat }
-
-    // inherit from CuboidUnit<Block>
-    override val enabledOrientations: List<Orientation> get() = listOf(Orientation.Upright)
-
-    fun dump(offset: Point3 = point3()) = units.dump(offset)
-    fun dumpAbsolutely(offset: Point3 = point3()) = units.dumpAbsolutely(offset)
-
-    override fun view(orientation: Orientation): CuboidView<S>? = CuboidView(copy(), orientation)
-}
-
-@get:JvmName("itemContainerPackageType")
-val <S : ItemContainer<S>> CuboidView<S>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("itemContainerPackageCategory")
-val <S : ItemContainer<S>> CuboidView<S>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("itemContainerBottomOnly")
-val <S : ItemContainer<S>> CuboidView<S>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("itemContainerTopFlat")
-val <S : ItemContainer<S>> CuboidView<S>.topFlat: Boolean
-    get() {
-        return unit.topFlat
-    }
-
-fun <S : ItemContainer<S>> CuboidView<S>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dump(offset)
-}
-
-fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dumpAbsolutely(offset)
-}
-
-@get:JvmName("itemContainerPlacementPackageType")
-val <S : ItemContainer<S>> Placement3<S>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("itemContainerPlacementPackageCategory")
-val <S : ItemContainer<S>> Placement3<S>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-fun <S : ItemContainer<S>> Placement3<S>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dump(position + offset)
-}
-
-fun <S : ItemContainer<S>> Placement3<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
-    return unit.dump(absolutePosition + offset)
-}
-
-@Suppress("UNCHECKED_CAST")
-@JvmName("itemContainerPlacement2SideEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Side>>,
-    space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
-): Boolean {
-    val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
-    return try {
-        coroutineScope {
-            val promises = ArrayList<Deferred<Boolean>>()
-            for (item in bottomPlacements(toPlacement3().dump())) {
-                promises.add(async(Dispatchers.Default) {
-                    item as ItemPlacement3
-                    item.enabledStackingOn(
-                        bottomItems = bottomPlacements,
-                        space = Container3Shape(space).restSpace(item.position)
-                    )
-                })
-            }
-            for (promise in promises) {
-                if (!promise.await()) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        return false
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-@JvmName("itemContainerPlacement2FrontEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Front>>,
-    space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
-): Boolean {
-    val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
-    return try {
-        coroutineScope {
-            val promises = ArrayList<Deferred<Boolean>>()
-            for (item in bottomPlacements(toPlacement3().dump())) {
-                promises.add(async(Dispatchers.Default) {
-                    item as ItemPlacement3
-                    item.enabledStackingOn(
-                        bottomItems = bottomPlacements,
-                        space = Container3Shape(space).restSpace(item.position)
-                    )
-                })
-            }
-            for (promise in promises) {
-                if (!promise.await()) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        return false
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-@JvmName("itemContainerPlacement3EnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
-    bottomItems: List<Placement3<*>>,
-    space: AbstractContainer3Shape = Container3Shape()
-): Boolean {
-    val thisBottomItems = bottomPlacements(this.dump()) as List<ItemPlacement3>
-    return try {
-        coroutineScope {
-            val promises = ArrayList<Deferred<Boolean>>()
-            for (item in thisBottomItems) {
-                promises.add(async(Dispatchers.Default) {
-                    item.enabledStackingOn(
-                        bottomItems = bottomItems,
-                        space = space
-                    )
-                })
-            }
-            for (promise in promises) {
-                if (!promise.await()) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        return false
-    }
-}
-
 @get:JvmName("cuboidUnitPackageType")
 val Cuboid<*>.packageType: PackageType
     get() {
@@ -911,7 +735,7 @@ val CuboidView<*>.packageType: PackageType
     }
 
 @get:JvmName("cuboidProjectionPackageType")
-val Projection<*, *, *>.packageType: PackageType
+val Projection<*, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
@@ -929,7 +753,7 @@ val Placement3<*>.packageType: PackageType
     }
 
 @get:JvmName("cuboidPackageCategory")
-val AbstractCuboid<*>.packageCategory: PackageCategory
+val AbstractCuboid.packageCategory: PackageCategory
     get() {
         return when (this) {
             is Item -> packageCategory
@@ -945,7 +769,7 @@ val CuboidView<*>.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidProjectionPackageCategory")
-val Projection<*, *, *>.packageCategory: PackageCategory
+val Projection<*, *>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
@@ -979,7 +803,7 @@ val CuboidView<*>.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidProjectionBottomOnly")
-val Projection<*, *, *>.bottomOnly: Boolean
+val Projection<*, *>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
@@ -1017,7 +841,7 @@ val CuboidView<*>.topFlat: Boolean
     }
 
 @get:JvmName("cuboidProjectionTopFlat")
-val Projection<*, *, *>.topFlat: Boolean
+val Projection<*, *>.topFlat: Boolean
     get() {
         return unit.topFlat
     }

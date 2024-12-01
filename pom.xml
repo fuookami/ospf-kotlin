@@ -21,6 +21,7 @@
         <module>ospf-kotlin-framework-gantt-scheduling</module>
         <module>ospf-kotlin-framework-network-scheduling</module>
         <module>ospf-kotlin-starters</module>
+        <module>ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-optverse</module>
     </modules>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <version>1.0.30</version>

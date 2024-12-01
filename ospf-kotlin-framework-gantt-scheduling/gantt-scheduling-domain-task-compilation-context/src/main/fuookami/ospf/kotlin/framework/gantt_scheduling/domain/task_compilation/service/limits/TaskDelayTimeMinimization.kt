@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 class TaskDelayTimeMinimization<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>

@@ -3,9 +3,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
-interface GanttSchedulingShadowPriceArguments<
+interface AbstractGanttSchedulingShadowPriceArguments<
     out E : Executor,
     out A : AssignmentPolicy<E>
 > {
@@ -19,11 +18,19 @@ open class TaskGanttSchedulingShadowPriceArguments<
 >(
     override val executor: E,
     override val task: AbstractTask<E, A>? = null,
+) : AbstractGanttSchedulingShadowPriceArguments<E, A>
+
+open class BunchGanttSchedulingShadowPriceArguments<
+    out E : Executor,
+    out A : AssignmentPolicy<E>
+>(
+    override val executor: E,
+    override val task: AbstractTask<E, A>? = null,
     open val prevTask: AbstractTask<E, A>? = null
-) : GanttSchedulingShadowPriceArguments<E, A>
+) : AbstractGanttSchedulingShadowPriceArguments<E, A>
 
 open class AbstractGanttSchedulingShadowPriceMap<
-    out Args : GanttSchedulingShadowPriceArguments<E, A>,
+    out Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     out E : Executor,
     out A : AssignmentPolicy<E>
 > : AbstractShadowPriceMap<
@@ -31,7 +38,7 @@ open class AbstractGanttSchedulingShadowPriceMap<
 >()
 
 typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPriceMap<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
+    AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
 >
 
 fun <
@@ -39,23 +46,23 @@ fun <
     E : Executor,
     A : AssignmentPolicy<E>
 > AbstractGanttSchedulingShadowPriceMap<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
+    AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
 >.reducedCost(
     bunch: AbstractTaskBunch<T, E, A>
 ): Flt64 {
     var ret = bunch.cost.sum!!
     if (bunch.executor.indexed) {
-        ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.executor))
+        ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
         for ((index, task) in bunch.tasks.withIndex()) {
             val prevTask = if (index != 0) {
                 bunch.tasks[index - 1]
             } else {
                 bunch.lastTask
             }
-            ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.executor, prevTask, task))
+            ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor, prevTask, task))
         }
         if (bunch.tasks.isNotEmpty()) {
-            ret -= this(TaskGanttSchedulingShadowPriceArguments(bunch.executor, bunch.tasks.last(), null))
+            ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor, bunch.tasks.last(), null))
         }
     }
     return ret
@@ -65,19 +72,19 @@ typealias AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> = ShadowPriceE
     Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>
 >
 typealias GanttSchedulingShadowPriceExtractor<E, A> = AbstractGanttSchedulingShadowPriceExtractor<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
+    AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
 >
 
 typealias AbstractGanttSchedulingCGPipeline<Args, E, A> = CGPipeline<
     Args, AbstractLinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>
 >
 typealias GanttSchedulingCGPipeline<E, A> = AbstractGanttSchedulingCGPipeline<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
+    AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
 >
 
 typealias AbstractGanttSchedulingCGPipelineList<Args, E, A> = List<
     CGPipeline<Args, AbstractLinearMetaModel, AbstractGanttSchedulingShadowPriceMap<Args, E, A>>
 >
 typealias GanttSchedulingCGPipelineList<E, A> = AbstractGanttSchedulingCGPipelineList<
-    GanttSchedulingShadowPriceArguments<E, A>, E, A
+    AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
 >

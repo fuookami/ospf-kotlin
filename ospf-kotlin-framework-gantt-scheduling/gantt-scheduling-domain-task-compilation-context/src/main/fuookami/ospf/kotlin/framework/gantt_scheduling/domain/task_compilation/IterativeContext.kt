@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.*
 
 interface IterativeTaskCompilationContext<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     IT : IterativeAbstractTask<E, A>,
     T : AbstractTask<E, A>,
     E : Executor,
@@ -155,7 +155,7 @@ interface IterativeTaskCompilationContext<
 }
 
 interface ExtractIterativeTaskCompilationContext<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     IT : IterativeAbstractTask<E, A>,
     T : AbstractTask<E, A>,
     E : Executor,

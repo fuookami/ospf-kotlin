@@ -9,21 +9,20 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 data class TaskCompilationShadowPriceKey<
-    T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    val task: T
+    val task: AbstractTask<E, A>
 ) : ShadowPriceKey(TaskCompilationShadowPriceKey::class)
 
 class TaskCompilationConstraint<
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    private val tasks: List<T>,
+    private val tasks: List<AbstractTask<E, A>>,
     private val compilation: Compilation,
+    private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_compilation"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override operator fun invoke(model: AbstractLinearMetaModel): Try {
@@ -43,14 +42,23 @@ class TaskCompilationConstraint<
         return ok
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        return { map, args: Args ->
-            when (args) {
+        return { map, args ->
+            shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    (args.thisTask as? T?)
-                        ?.let { map.map[TaskCompilationShadowPriceKey(it)]?.price }
-                        ?: Flt64.zero
+                    if (args.task != null) {
+                        map.map[TaskCompilationShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
+                    } else {
+                        Flt64.zero
+                    }
+                }
+
+                is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
+                    if (args.task != null) {
+                        map.map[TaskCompilationShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
+                    } else {
+                        Flt64.zero
+                    }
                 }
 
                 else -> {

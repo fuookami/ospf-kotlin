@@ -17,7 +17,7 @@ data class MaterialAttributeValue(
 
 open class MaterialAttributeKey(
     val packageType: PackageType? = null,
-    val cargoAttribute: CargoAttribute? = null,
+    val cargoAttribute: AbstractCargoAttribute? = null,
 ) {
     val base: Boolean = packageType == null
 

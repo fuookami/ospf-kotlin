@@ -54,7 +54,7 @@ data class LinearDeformationAttribute(
     }
 }
 
-interface HangingPolicy {
+interface AbstractHangingPolicy {
     fun enabledStackingOn(
         unit: AbstractCuboid,
         bottomSupport: BottomSupport
@@ -64,7 +64,7 @@ interface HangingPolicy {
 data class AbsoluteHangingPolicy(
     private val maxDifference: Flt64,
     private val withWeight: Boolean = true
-) : HangingPolicy {
+) : AbstractHangingPolicy {
     override fun enabledStackingOn(
         unit: AbstractCuboid,
         bottomSupport: BottomSupport
@@ -102,7 +102,7 @@ data class AbsoluteHangingPolicy(
 data class RelativeHangingPolicy(
     private val hangingPercentage: Flt64,
     private val withWeight: Boolean = true
-) : HangingPolicy {
+) : AbstractHangingPolicy {
     override fun enabledStackingOn(
         unit: AbstractCuboid,
         bottomSupport: BottomSupport
@@ -138,23 +138,23 @@ data class RelativeHangingPolicy(
     }
 }
 
-interface AbstractStackingOnPolicy<C: CargoAttribute> {
+interface AbstractStackingOnPolicy {
     fun enabledStackingOn(
-        item: ItemView<C>,
-        bottomItem: ItemView<C>,
+        item: ItemView,
+        bottomItem: ItemView,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero
     ): Boolean
 }
 
-class BoxStackingOnPolicy<C: CargoAttribute>(
+data class BoxStackingOnPolicy(
     val maxDifference: Flt64,
     private val maxOverWeight: Flt64 = Flt64(10.0),
-    private val extraStackingOnRule: ((ItemView<C>, ItemView<C>) -> Boolean)? = null
-) : AbstractStackingOnPolicy<C> {
+    private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
+) : AbstractStackingOnPolicy {
     override fun enabledStackingOn(
-        item: ItemView<C>,
-        bottomItem: ItemView<C>,
+        item: ItemView,
+        bottomItem: ItemView,
         layer: UInt64,
         height: Flt64
     ): Boolean {
@@ -186,7 +186,7 @@ class BoxStackingOnPolicy<C: CargoAttribute>(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as BoxStackingOnPolicy<C>
+        other as BoxStackingOnPolicy
 
         if (maxDifference != other.maxDifference) return false
         if (extraStackingOnRule != other.extraStackingOnRule) return false
@@ -201,14 +201,14 @@ class BoxStackingOnPolicy<C: CargoAttribute>(
     }
 }
 
-class CartonContainerStackingOnPolicy<C: CargoAttribute>(
+data class CartonContainerStackingOnPolicy(
     val maxDifference: Flt64,
     private val maxOverWeight: Flt64 = Flt64(10.0),
-    private val extraStackingOnRule: ((ItemView<C>, ItemView<C>) -> Boolean)? = null
-) : AbstractStackingOnPolicy<C> {
+    private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
+) : AbstractStackingOnPolicy {
     override fun enabledStackingOn(
-        item: ItemView<C>,
-        bottomItem: ItemView<C>,
+        item: ItemView,
+        bottomItem: ItemView,
         layer: UInt64,
         height: Flt64
     ): Boolean {
@@ -230,13 +230,14 @@ class CartonContainerStackingOnPolicy<C: CargoAttribute>(
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is CartonContainerStackingOnPolicy) return false
+        if (javaClass != other?.javaClass) return false
 
-        if (maxDifference != other.maxDifference) return false
+        other as CartonContainerStackingOnPolicy
 
-        return true
+        return maxDifference == other.maxDifference
     }
 
     override fun hashCode(): Int {
@@ -244,13 +245,13 @@ class CartonContainerStackingOnPolicy<C: CargoAttribute>(
     }
 }
 
-data object FilterStackingOnPolicy<C: CargoAttribute>(
+data class FilterStackingOnPolicy(
     private val maxOverWeight: Flt64 = Flt64(10.0),
-    private val extraStackingOnRule: ((ItemView<C>, ItemView<C>) -> Boolean)? = null
-) : AbstractStackingOnPolicy<C> {
+    private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
+) : AbstractStackingOnPolicy {
     override fun enabledStackingOn(
-        item: ItemView<C>,
-        bottomItem: ItemView<C>,
+        item: ItemView,
+        bottomItem: ItemView,
         layer: UInt64,
         height: Flt64
     ): Boolean {
@@ -265,11 +266,25 @@ data object FilterStackingOnPolicy<C: CargoAttribute>(
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
     }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FilterStackingOnPolicy
+
+        return maxOverWeight == other.maxOverWeight
+    }
+
+    override fun hashCode(): Int {
+        return maxOverWeight.hashCode()
+    }
 }
 
-interface CargoAttribute
+interface AbstractCargoAttribute
 
-data class PackageAttribute<C>(
+data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
     val maxHeight: Flt64 = Flt64.infinity,
@@ -282,10 +297,10 @@ data class PackageAttribute<C>(
     val sideOnTopLayer: UInt64 = UInt64.zero,
     val lieOnTopLayer: UInt64 = UInt64.zero,
 
-    val cargoAttribute: C? = null,
+    val cargoAttribute: AbstractCargoAttribute? = null,
     val weightAttribute: AbstractWeightAttribute,
     val deformationAttribute: AbstractDeformationAttribute,
-    val hangingPolicy: HangingPolicy,
+    val hangingPolicy: AbstractHangingPolicy,
     val stackingOnPolicy: AbstractStackingOnPolicy,
 
     val extraOrientationRule: ((AbstractContainer3Shape, Orientation) -> Boolean)? = null,
@@ -300,12 +315,12 @@ data class PackageAttribute<C>(
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        private suspend fun <C> layerLayer(
-            item: ItemPlacement3<C>,
-            bottomItems: List<ItemPlacement3<C>>,
+        private suspend fun  layerLayer(
+            item: ItemPlacement3,
+            bottomItems: List<ItemPlacement3>,
         ): UInt64 {
             return coroutineScope {
-                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3<C>>
+                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
                 val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
                 val promises = ArrayList<Deferred<UInt64>>()
@@ -328,12 +343,12 @@ data class PackageAttribute<C>(
         }
 
         @Suppress("UNCHECKED_CAST")
-        private suspend fun <C> layerHeight(
-            item: ItemPlacement3<C>,
-            bottomItems: List<ItemPlacement3<C>>,
+        private suspend fun  layerHeight(
+            item: ItemPlacement3,
+            bottomItems: List<ItemPlacement3>,
         ): Flt64 {
             return coroutineScope {
-                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3<C>>
+                val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
                 val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
                 val promises = ArrayList<Deferred<Flt64>>()
@@ -354,9 +369,9 @@ data class PackageAttribute<C>(
             }
         }
 
-        suspend fun <C> layer(
-            item: ItemPlacement3<C>,
-            bottomItems: List<ItemPlacement3<C>>,
+        suspend fun  layer(
+            item: ItemPlacement3,
+            bottomItems: List<ItemPlacement3>,
         ): Pair<UInt64, Flt64> {
             return coroutineScope {
                 val layer = async(Dispatchers.Default) {
@@ -371,7 +386,7 @@ data class PackageAttribute<C>(
     }
 
     fun enabledStackingOn(
-        unit: AbstractCuboid<*>,
+        unit: AbstractCuboid,
         bottomSupport: BottomSupport
     ): Boolean {
         return hangingPolicy.enabledStackingOn(
@@ -381,8 +396,8 @@ data class PackageAttribute<C>(
     }
 
     fun enabledStackingOn(
-        item: Item<C>,
-        bottomItem: Item<C>?,
+        item: Item,
+        bottomItem: Item?,
         layer: UInt64 = UInt64.zero,
         height: Flt64 = Flt64.zero,
         space: AbstractContainer3Shape = Container3Shape()
@@ -435,12 +450,12 @@ data class PackageAttribute<C>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun <C> enabledStackingOn(
-        item: ItemPlacement3<C>,
-        bottomItems: List<ItemPlacement3<C>>,
+    suspend fun enabledStackingOn(
+        item: ItemPlacement3,
+        bottomItems: List<ItemPlacement3>,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
-        val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3<C>>
+        val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
         val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
         if (extraStackingOnRule?.invoke(item, directBottomItems, indirectBottomItems) == false) {
@@ -492,7 +507,7 @@ data class PackageAttribute<C>(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as PackageAttribute<*>
+        other as PackageAttribute
 
         if (packageType != other.packageType) return false
         if (packageMaxLayer != other.packageMaxLayer) return false

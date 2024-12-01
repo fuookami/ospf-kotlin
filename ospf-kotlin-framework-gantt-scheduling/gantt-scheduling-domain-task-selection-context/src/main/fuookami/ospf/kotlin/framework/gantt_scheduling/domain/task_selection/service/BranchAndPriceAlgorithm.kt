@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_selection.mod
 
 class BranchAndPriceAlgorithm<
     Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-    Args : GanttSchedulingShadowPriceArguments<E, A>,
+    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     IT : IterativeAbstractTask<E, A>,
     T : AbstractTask<E, A>,
     E : Executor,
@@ -31,7 +31,7 @@ class BranchAndPriceAlgorithm<
 ) {
     data class Policy<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        Args : GanttSchedulingShadowPriceArguments<E, A>,
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,

@@ -48,7 +48,7 @@ class BinType(
     }
 
     // inherited from Container3Shape
-    override fun enabled(unit: AbstractCuboid<*>, orientation: Orientation): Boolean {
+    override fun enabled(unit: AbstractCuboid, orientation: Orientation): Boolean {
         return super.enabled(unit, orientation) && unit.weight leq capacity
     }
 
