@@ -88,9 +88,9 @@ private class GurobiQuadraticSolverImpl(
         val processes = arrayOf(
             {
                 if (server != null && password != null && connectionTime != null) {
-                    it.init(server, password, connectionTime, model.name)
+                    it.init(server, password, connectionTime, model.name, callBack?.creatingEnvironmentFunction)
                 } else {
-                    it.init(model.name)
+                    it.init(model.name, callBack?.creatingEnvironmentFunction)
                 }
             },
             { it.dump(model) },

@@ -14,11 +14,13 @@
     <artifactId>ospf-kotlin-core-plugin</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>ospf-kotlin-core-plugin-scip</module>
+        <module>ospf-kotlin-core-plugin-copt</module>
+        <module>ospf-kotlin-core-plugin-cplex</module>
         <module>ospf-kotlin-core-plugin-gurobi</module>
         <module>ospf-kotlin-core-plugin-gurobi11</module>
-        <module>ospf-kotlin-core-plugin-cplex</module>
-        <module>ospf-kotlin-core-plugin-copt</module>
+        <module>ospf-kotlin-core-plugin-hexaly</module>
+        <module>ospf-kotlin-core-plugin-scip</module>
+        <module>ospf-kotlin-core-plugin-optverse</module>
         <module>ospf-kotlin-core-plugin-heuristic</module>
     </modules>
 

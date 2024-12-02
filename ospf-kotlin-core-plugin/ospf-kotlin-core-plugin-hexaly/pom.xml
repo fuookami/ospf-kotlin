@@ -9,15 +9,22 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ospf-kotlin-core-plugin-copt</artifactId>
+    <artifactId>ospf-kotlin-core-plugin-hexaly</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>copt</groupId>
-            <artifactId>copt</artifactId>
+            <groupId>hexaly</groupId>
+            <artifactId>hexaly</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
-            <systemPath>${env.COPT_HOME}/lib/copt.jar</systemPath>
+            <systemPath>${env.HX_HOME}/bin/hexaly.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>hexaly</groupId>
+            <artifactId>hexaly</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${env.HX_HOME}/bin/localsolver.jar</systemPath>
         </dependency>
     </dependencies>
 
