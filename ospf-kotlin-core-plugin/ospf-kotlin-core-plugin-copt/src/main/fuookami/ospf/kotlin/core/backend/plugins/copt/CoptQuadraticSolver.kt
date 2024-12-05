@@ -5,7 +5,6 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import copt.*
-import copt.Constraint
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -16,22 +15,22 @@ import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-class CoptLinearSolver(
+class CoptQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
-    private val callBack: CoptLinearSolverCallBack? = null
-) : LinearSolver {
+    private val callBack: CoptQuadraticSolverCallBack? = null
+) : QuadraticSolver {
     override val name = "copt"
 
-    override suspend operator fun invoke(
-        model: LinearTriadModelView,
+    override suspend fun invoke(
+        model: QuadraticTetradModelView,
         statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = CoptLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = CoptQuadraticSolverImpl(config, callBack, statusCallBack)
         return impl(model)
     }
 
     override suspend fun invoke(
-        model: LinearTriadModelView,
+        model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         statusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
@@ -39,7 +38,7 @@ class CoptLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = CoptLinearSolverImpl(config, callBack.ifNull { CoptLinearSolverCallBack() }.copy()
+            val impl = CoptQuadraticSolverImpl(config, callBack.ifNull { CoptQuadraticSolverCallBack() }.copy()
                 .configuration { copt, _, _ ->
                     if (solutionAmount gr UInt64.one) {
                         // todo: set copt parameter to limit number of solutions
@@ -60,20 +59,20 @@ class CoptLinearSolver(
     }
 }
 
-private class CoptLinearSolverImpl(
+private class CoptQuadraticSolverImpl(
     private val config: SolverConfig,
-    private val callBack: CoptLinearSolverCallBack? = null,
+    private val callBack: CoptQuadraticSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : CoptSolver() {
     lateinit var coptVars: List<Var>
-    lateinit var coptConstraints: List<Constraint>
+    lateinit var coptConstraints: List<QConstraint>
     lateinit var output: SolverOutput
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
         val coptConfig = config.extraConfig as? CoptSolverConfig
         val server = coptConfig?.server
         val port = coptConfig?.port
@@ -89,10 +88,10 @@ private class CoptLinearSolverImpl(
                 }
             },
             { it.dump(model) },
-            CoptLinearSolverImpl::configure,
-            CoptLinearSolverImpl::solve,
-            CoptLinearSolverImpl::analyzeStatus,
-            CoptLinearSolverImpl::analyzeSolution
+            CoptQuadraticSolverImpl::configure,
+            CoptQuadraticSolverImpl::solve,
+            CoptQuadraticSolverImpl::analyzeStatus,
+            CoptQuadraticSolverImpl::analyzeSolution
         )
         for (process in processes) {
             when (val result = process(this)) {
@@ -106,7 +105,7 @@ private class CoptLinearSolverImpl(
         return Ok(output)
     }
 
-    private suspend fun dump(model: LinearTriadModelView): Try {
+    private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
             coptVars = model.variables.map {
                 coptModel.addVar(
@@ -127,15 +126,19 @@ private class CoptLinearSolverImpl(
             val constraints = coroutineScope {
                 val promises = model.constraints.indices.map { i ->
                     i to async(Dispatchers.Default) {
-                        val lhs = Expr()
+                        val lhs = QuadExpr()
                         for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                            if (cell.colIndex2 != null) {
+                                lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toDouble())
+                            } else {
+                                lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toDouble())
+                            }
                         }
                         lhs
                     }
                 }
                 promises.map {
-                    coptModel.addConstr(
+                    coptModel.addQConstr(
                         it.second.await(),
                         CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
                         model.constraints.rhs[it.first].toDouble(),
@@ -145,11 +148,15 @@ private class CoptLinearSolverImpl(
             }
             coptConstraints = constraints
 
-            val obj = Expr()
+            val obj = QuadExpr()
             for (cell in model.objective.obj) {
-                obj.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                if (cell.colIndex2 != null) {
+                    obj.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toDouble())
+                } else {
+                    obj.addTerm(coptVars[cell.colIndex1], cell.coefficient.toDouble())
+                }
             }
-            coptModel.setObjective(
+            coptModel.setQuadObjective(
                 obj,
                 when (model.objective.category) {
                     ObjectCategory.Minimum -> {

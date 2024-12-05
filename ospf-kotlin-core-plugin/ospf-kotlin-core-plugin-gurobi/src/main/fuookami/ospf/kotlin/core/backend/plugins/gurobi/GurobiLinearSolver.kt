@@ -77,11 +77,7 @@ private class GurobiLinearSolverImpl(
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
-        val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
-            config.extraConfig as GurobiSolverConfig
-        } else {
-            null
-        }
+        val gurobiConfig = config.extraConfig as? GurobiSolverConfig
         val server = gurobiConfig?.server
         val password = gurobiConfig?.password
         val connectionTime = gurobiConfig?.connectionTime
@@ -156,7 +152,8 @@ private class GurobiLinearSolverImpl(
                 obj.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
             }
             grbModel.setObjective(
-                obj, when (model.objective.category) {
+                obj,
+                when (model.objective.category) {
                     ObjectCategory.Minimum -> {
                         GRB.MINIMIZE
                     }

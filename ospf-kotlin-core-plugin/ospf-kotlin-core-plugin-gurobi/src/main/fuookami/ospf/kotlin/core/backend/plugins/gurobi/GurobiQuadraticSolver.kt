@@ -76,11 +76,7 @@ private class GurobiQuadraticSolverImpl(
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
-        val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
-            config.extraConfig as GurobiSolverConfig
-        } else {
-            null
-        }
+        val gurobiConfig = config.extraConfig as? GurobiSolverConfig
         val server = gurobiConfig?.server
         val password = gurobiConfig?.password
         val connectionTime = gurobiConfig?.connectionTime

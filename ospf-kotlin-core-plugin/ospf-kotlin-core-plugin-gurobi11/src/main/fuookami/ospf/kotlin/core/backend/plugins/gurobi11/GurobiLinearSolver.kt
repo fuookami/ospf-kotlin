@@ -6,7 +6,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import com.gurobi.gurobi.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -42,8 +41,8 @@ class GurobiLinearSolver(
             val impl = GurobiLinearSolverImpl(config, callBack.ifNull { GurobiLinearSolverCallBack() }.copy()
                 .configuration { gurobi, _, _ ->
                     if (solutionAmount gr UInt64.one) {
-                        gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
-                        gurobi.set(GRB.IntParam.PoolSearchMode, 2);
+                        gurobi.set(GRB.DoubleParam.PoolGap, 1.0)
+                        gurobi.set(GRB.IntParam.PoolSearchMode, 2)
                         gurobi.set(GRB.IntParam.PoolSolutions, solutionAmount.toInt())
                     }
                     ok
@@ -77,11 +76,7 @@ private class GurobiLinearSolverImpl(
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
-        val gurobiConfig = if (config.extraConfig is GurobiSolverConfig) {
-            config.extraConfig as GurobiSolverConfig
-        } else {
-            null
-        }
+        val gurobiConfig = config.extraConfig as? GurobiSolverConfig
         val server = gurobiConfig?.server
         val password = gurobiConfig?.password
         val connectionTime = gurobiConfig?.connectionTime

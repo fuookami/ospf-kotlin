@@ -32,7 +32,7 @@ abstract class ScipSolver {
             }
 
             SCIP_Status.SCIP_STATUS_INFEASIBLE -> {
-                SolverStatus.NoSolution
+                SolverStatus.Infeasible
             }
 
             SCIP_Status.SCIP_STATUS_UNBOUNDED -> {

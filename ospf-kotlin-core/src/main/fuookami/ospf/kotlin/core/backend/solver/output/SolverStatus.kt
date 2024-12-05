@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.utils.error.*
 enum class SolverStatus {
     Optimal,
     Feasible,
-    NoSolution {
+    Infeasible {
         override val errCode = ErrorCode.ORModelNoSolution
     },
     Unbounded {

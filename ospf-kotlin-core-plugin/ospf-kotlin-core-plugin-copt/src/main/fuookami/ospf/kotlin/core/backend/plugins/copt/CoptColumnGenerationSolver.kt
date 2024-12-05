@@ -1,8 +1,9 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+package fuookami.ospf.kotlin.core.backend.plugins.copt
 
 import java.util.*
+import kotlin.math.*
 import kotlinx.coroutines.*
-import com.gurobi.gurobi.*
+import copt.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
@@ -12,11 +13,11 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
 
-class GurobiColumnGenerationSolver(
+class CoptColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
-    private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
+    private val callBack: CoptLinearSolverCallBack = CoptLinearSolverCallBack()
 ) : ColumnGenerationSolver {
-    override val name = "gurobi"
+    override val name = "copt"
 
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
@@ -43,7 +44,7 @@ class GurobiColumnGenerationSolver(
             jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
         }
 
-        val solver = GurobiLinearSolver(
+        val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
         )
@@ -89,20 +90,17 @@ class GurobiColumnGenerationSolver(
         }
 
         val results = ArrayList<Solution>()
-        val solver = GurobiLinearSolver(
+        val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { gurobi, _, _ ->
+                .configuration { copt, _, _ ->
                     if (amount gr UInt64.one) {
-                        gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
-                        gurobi.set(GRB.IntParam.PoolSearchMode, 2);
-                        gurobi.set(GRB.IntParam.PoolSolutions, amount.toInt())
+                        // todo: set copt parameter to limit number of solutions
                     }
                     ok
-                }.analyzingSolution { gurobi, variables, _ ->
-                    for (i in 0 until gurobi.get(GRB.IntAttr.SolCount)) {
-                        gurobi.set(GRB.IntParam.SolutionNumber, i)
-                        val thisResults = variables.map { Flt64(it.get(GRB.DoubleAttr.Xn)) }
+                }.analyzingSolution { copt, variables, _ ->
+                    for (i in 0 until min(amount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
+                        val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
                         if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
                             results.add(thisResults)
                         }
@@ -153,11 +151,11 @@ class GurobiColumnGenerationSolver(
         }
 
         lateinit var dualSolution: Solution
-        val solver = GurobiLinearSolver(
+        val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
                 .analyzingSolution { _, _, constraints ->
-                    dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
+                    dualSolution = constraints.map { Flt64(it.get(COPT.DoubleInfo.Dual)) }
                     ok
                 }
         )

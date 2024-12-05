@@ -7,42 +7,6 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-data object COPT {
-    enum class Client(val key: String) {
-        CaFile("CaFile"),
-        CertFile("CertFile"),
-        CertKeyFile("CertKeyFile"),
-        Cluster("Cluster"),
-        Floating("Floating"),
-        Password("Password"),
-        Port("Port"),
-        Priority("Priority"),
-        WaitTime("WaitTime"),
-        WebServer("WebServer"),
-        WebLicenseId("WebLicenseId"),
-        WebAccessKey("WebAccessKey"),
-        WebTokenDuration("WebTokenDuration"),
-    }
-
-    enum class Status(val value: Int) {
-        Unstarted(0),
-        Optimal(1),
-        Infeasible(2),
-        Unbounded(3),
-        InfeasibleOrUnbounded(4),
-        Numerical(5),
-        NodeLimit(6),
-        Imprecise(7),
-        TimeOut(8),
-        Unfinished(9),
-        Interrupted(10),
-    }
-}
-
-fun EnvrConfig.set(key: COPT.Client, value: String) {
-    this.set(key.key, value)
-}
-
 abstract class CoptSolver {
     protected lateinit var env: Envr
     protected lateinit var coptModel: Model
@@ -99,6 +63,60 @@ abstract class CoptSolver {
             }
             env = Envr(config)
             coptModel = env.createModel(name)
+            ok
+        } catch (e: CoptException) {
+            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+        }
+    }
+
+    protected suspend fun solve(): Try {
+        return try {
+            if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                coptModel.solve()
+            } else {
+                coptModel.solveLp()
+            }
+            ok
+        } catch (e: CoptException) {
+            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+        } catch (e: Exception) {
+            Failed(Err(ErrorCode.OREngineTerminated))
+        }
+    }
+
+    protected suspend fun analyzeStatus(): Try {
+        return try {
+            status = when (if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                coptModel.get(COPT.IntAttr.MipStatus)
+            } else {
+                coptModel.get(COPT.IntAttr.LpStatus)
+            }) {
+                COPT.Status.Optimal.value -> {
+                    SolverStatus.Optimal
+                }
+
+                COPT.Status.Infeasible.value -> {
+                    SolverStatus.Infeasible
+                }
+
+                COPT.Status.Unbounded.value -> {
+                    SolverStatus.Unbounded
+                }
+
+                COPT.Status.InfeasibleOrUnbounded.value -> {
+                    SolverStatus.Infeasible
+                }
+
+                else -> {
+                    if (coptModel.get(COPT.IntAttr.PoolSols) > 0) {
+                        SolverStatus.Feasible
+                    } else {
+                        SolverStatus.Infeasible
+                    }
+                }
+            }
             ok
         } catch (e: CoptException) {
             Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))

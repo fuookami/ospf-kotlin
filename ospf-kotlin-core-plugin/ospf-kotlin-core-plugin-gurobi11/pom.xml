@@ -11,11 +11,15 @@
 
     <artifactId>ospf-kotlin-core-plugin-gurobi11</artifactId>
 
+    <properties>
+        <gurobi.version>11.0.0</gurobi.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.gurobi</groupId>
             <artifactId>gurobi</artifactId>
-            <version>11.0.0</version>
+            <version>${gurobi.version}</version>
         </dependency>
     </dependencies>
 

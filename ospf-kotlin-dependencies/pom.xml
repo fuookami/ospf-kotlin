@@ -244,6 +244,16 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-hexaly</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-optverse</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
                 <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
                 <version>${project.version}</version>
             </dependency>
