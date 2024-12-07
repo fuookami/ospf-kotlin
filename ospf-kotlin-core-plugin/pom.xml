@@ -22,6 +22,8 @@
         <module>ospf-kotlin-core-plugin-scip</module>
         <module>ospf-kotlin-core-plugin-optverse</module>
         <module>ospf-kotlin-core-plugin-heuristic</module>
+        <module>ospf-kotlin-core-plugin-lingo</module>
+        <module>ospf-kotlin-core-plugin-mosek</module>
     </modules>
 
     <dependencies>
