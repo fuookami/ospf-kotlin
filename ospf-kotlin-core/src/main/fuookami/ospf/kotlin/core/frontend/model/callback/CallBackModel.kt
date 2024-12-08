@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
@@ -81,7 +80,7 @@ class FunctionalCallBackModelPolicy<V>(
 class CallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: AbstractMutableTokenTable = ManualAddTokenTable(category),
+    override val tokens: AbstractMutableTokenTable = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<Flt64>
@@ -149,7 +148,7 @@ class CallBackModel internal constructor(
             val tokens = if (concurrent) {
                 ConcurrentManualAddTokenTable(model.tokens)
             } else {
-                ManualAddTokenTable(model.tokens)
+                ManualTokenTable(model.tokens)
             }
             val constraints = model.constraints.map { constraint ->
                 Pair<Extractor<Boolean?, Solution>, String>(
