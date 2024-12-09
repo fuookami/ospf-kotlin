@@ -8,6 +8,7 @@ import copt.*
 import copt.Constraint
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -27,7 +28,9 @@ class CoptLinearSolver(
         statusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val impl = CoptLinearSolverImpl(config, callBack, statusCallBack)
-        return impl(model)
+        val result = impl(model)
+        System.gc()
+        return result
     }
 
     override suspend fun invoke(
@@ -55,7 +58,9 @@ class CoptLinearSolver(
                     ok
                 }, statusCallBack
             )
-            impl(model).map { it to results }
+            val result = impl(model).map { it to results }
+            System.gc()
+            return result
         }
     }
 }
@@ -125,22 +130,40 @@ private class CoptLinearSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val promises = model.constraints.indices.map { i ->
-                    i to async(Dispatchers.Default) {
-                        val lhs = Expr()
-                        for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.ceil().toUInt64().toInt()
+                val promises = if (factor > 1) {
+                    val segment = pow(UInt64.ten, factor).toInt()
+                    (0..(model.constraints.size / segment)).map { i ->
+                        async(Dispatchers.Default) {
+                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                                val lhs = Expr()
+                                for (cell in model.constraints.lhs[ii]) {
+                                    lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                                }
+                                ii to lhs
+                            }
                         }
-                        lhs
+                    }
+                } else {
+                    model.constraints.indices.map { i ->
+                        async(Dispatchers.Default) {
+                            val lhs = Expr()
+                            for (cell in model.constraints.lhs[i]) {
+                                lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                            }
+                            listOf(i to lhs)
+                        }
                     }
                 }
-                promises.map {
-                    coptModel.addConstr(
-                        it.second.await(),
-                        CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
-                        model.constraints.rhs[it.first].toDouble(),
-                        model.constraints.names[it.first]
-                    )
+                promises.flatMap { promise ->
+                    promise.await().map {
+                        coptModel.addConstr(
+                            it.second,
+                            CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
+                            model.constraints.rhs[it.first].toDouble(),
+                            model.constraints.names[it.first]
+                        )
+                    }
                 }
             }
             coptConstraints = constraints
