@@ -128,7 +128,7 @@ private class CplexQuadraticSolverImpl(
         }
 
         val constraints = coroutineScope {
-            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.ceil().toUInt64().toInt()
+            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
             val promises = if (factor > 1) {
                 val segment = pow(UInt64.ten, factor).toInt()
                 (0..(model.constraints.size / segment)).map { i ->

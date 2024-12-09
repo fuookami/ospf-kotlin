@@ -67,7 +67,7 @@ class LinearMechanismModel(
 
             val model = if (concurrent ?: metaModel.concurrent) {
                 coroutineScope {
-                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.ceil().toUInt64().toInt()
+                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
                     val constraints = if (factor1 > 1) {
                         val segment = pow(UInt64.ten, factor1).toInt()
                         (0..(metaModel._constraints.size / segment)).map { i ->
@@ -92,7 +92,7 @@ class LinearMechanismModel(
                             }
                         }
                     }
-                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.ceil().toUInt64().toInt()
+                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
                     val subObjects = if (factor2 > 1) {
                         val segment = pow(UInt64.ten, factor2).toInt()
                         (0..(metaModel._subObjects.size / segment)).map { i ->
@@ -235,7 +235,7 @@ class QuadraticMechanismModel(
 
             val model = if (concurrent ?: metaModel.concurrent) {
                 coroutineScope {
-                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.ceil().toUInt64().toInt()
+                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
                     val constraints = if (factor1 > 1) {
                         val segment = pow(UInt64.ten, factor1).toInt()
                         (0..(metaModel._constraints.size / segment)).map { i ->
@@ -260,7 +260,7 @@ class QuadraticMechanismModel(
                             }
                         }
                     }
-                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.ceil().toUInt64().toInt()
+                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
                     val subObjects = if (factor2 > 1) {
                         val segment = pow(UInt64.ten, factor2).toInt()
                         (0..(metaModel._subObjects.size / segment)).map { i ->
