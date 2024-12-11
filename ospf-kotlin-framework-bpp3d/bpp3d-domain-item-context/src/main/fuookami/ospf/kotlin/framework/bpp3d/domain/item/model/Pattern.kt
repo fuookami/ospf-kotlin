@@ -24,7 +24,7 @@ private data class PatternItemInfo(
 
 private typealias NextPointExtractor = (projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> Point2
 
-sealed class Pattern {
+abstract class Pattern {
     data class Step(
         val lengthOrientation: ProjectivePlane,
         val nextPointExtractor: NextPointExtractor?

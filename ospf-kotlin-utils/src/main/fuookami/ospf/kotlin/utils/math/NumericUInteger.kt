@@ -11,14 +11,15 @@ interface NumericUInteger<Self, I>
     : NumericUIntegerNumber<Self, I> where Self : NumericUInteger<Self, I>, I : UIntegerNumber<I>, I : NumberField<I> {
     override fun inc() = this + constants.one
 
-    override fun lg() = log(Flt64(10.0))
+    override fun lg() = log(Flt64.ten)
+    override fun lg2() = log(Flt64.two)
     override fun ln() = log(Flt64.e)
 
     override fun sqr() = pow(2)
     override fun cub() = pow(3)
 
-    override fun sqrt() = pow(Flt64(1.0 / 2.0))
-    override fun cbrt() = pow(Flt64(1.0 / 3.0))
+    override fun sqrt() = pow(Flt64.two.reciprocal())
+    override fun cbrt() = pow(Flt64.three.reciprocal())
 }
 
 abstract class NumericUIntegerConstants<Self, I>(
