@@ -131,7 +131,7 @@ private class CoptLinearSolverImpl(
 
             val constraints = coroutineScope {
                 val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                val promises = if (factor > 1) {
+                val promises = if (factor >= 1) {
                     val segment = pow(UInt64.ten, factor).toInt()
                     (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
@@ -156,7 +156,7 @@ private class CoptLinearSolverImpl(
                     }
                 }
                 promises.flatMap { promise ->
-                    promise.await().map {
+                    val result = promise.await().map {
                         coptModel.addConstr(
                             it.second,
                             CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
@@ -164,6 +164,8 @@ private class CoptLinearSolverImpl(
                             model.constraints.names[it.first]
                         )
                     }
+                    System.gc()
+                    result
                 }
             }
             coptConstraints = constraints

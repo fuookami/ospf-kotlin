@@ -457,7 +457,7 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
             }
 
             val factor = Flt64(readySymbols.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-            val jobs = if (factor > 1) {
+            val jobs = if (factor >= 1) {
                 val segment = pow(UInt64.ten, factor).toInt()
                 val readySymbolList = readySymbols.toList()
                 (0..(readySymbolList.size / segment)).map { i ->

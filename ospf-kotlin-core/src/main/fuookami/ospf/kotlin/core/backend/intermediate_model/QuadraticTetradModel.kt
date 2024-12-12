@@ -307,7 +307,7 @@ data class QuadraticTetradModel(
         private suspend fun dumpConstraintsAsync(model: QuadraticMechanismModel): QuadraticConstraint {
             val tokenIndexes = model.tokens.tokenIndexMap
             val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-            return if (factor > 1) {
+            return if (factor >= 1) {
                 val segment = pow(UInt64.ten, factor).toInt()
                 coroutineScope {
                     val constraintPromises = (0..(model.constraints.size / segment)).map {
@@ -337,6 +337,7 @@ data class QuadraticTetradModel(
                                 }
                                 constraints.add(lhs)
                             }
+                            System.gc()
                             constraints
                         }
                     }
@@ -377,6 +378,7 @@ data class QuadraticTetradModel(
                                     )
                                 )
                             }
+                            System.gc()
                             lhs
                         }
                     }

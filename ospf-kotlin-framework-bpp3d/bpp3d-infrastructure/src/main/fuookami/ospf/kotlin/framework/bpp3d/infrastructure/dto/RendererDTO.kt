@@ -2,10 +2,9 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
 import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 @Serializable
-data class RendererItemDTO(
+data class RenderLoadingPlanItemDTO(
     val name: String,
     val packageType: String?,
     val width: Flt64,
@@ -20,21 +19,21 @@ data class RendererItemDTO(
 )
 
 @Serializable
-data class RendererBinDTO(
+data class RenderLoadingPlanDTO(
     val group: List<String>,
-    val type: String,
+    val typeCode: String,
     val width: Flt64,
     val height: Flt64,
     val depth: Flt64,
     val loadingRate: Flt64,
     val weight: Flt64,
     val volume: Flt64,
-    val items: List<RendererItemDTO>,
+    val items: List<RenderLoadingPlanItemDTO>,
     val info: Map<String, String> = emptyMap()
 )
 
 @Serializable
-data class RendererDTO(
+data class SchemaDTO(
     val kpi: Map<String, String>,
-    val bins: List<RendererBinDTO>,
+    val loadingPlans: List<RenderLoadingPlanDTO>,
 )

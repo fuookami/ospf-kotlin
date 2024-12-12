@@ -134,7 +134,7 @@ private class CplexLinearSolverImpl(
 
         val constraints = coroutineScope {
             val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-            val promises = if (factor > 1) {
+            val promises = if (factor >= 1) {
                 val segment = pow(UInt64.ten, factor).toInt()
                 (0..(model.constraints.size / segment)).map { i ->
                     async(Dispatchers.Default) {
@@ -191,12 +191,14 @@ private class CplexLinearSolverImpl(
                 }
             }
             promises.flatMap { promise ->
-                promise.await().map {
+                val result = promise.await().map {
                     val (lb, lhs, ub) = it.second
                     val constraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[it.first])
                     cplex.add(constraint)
                     constraint
                 }
+                System.gc()
+                result
             }
         }
         cplexConstraint = constraints

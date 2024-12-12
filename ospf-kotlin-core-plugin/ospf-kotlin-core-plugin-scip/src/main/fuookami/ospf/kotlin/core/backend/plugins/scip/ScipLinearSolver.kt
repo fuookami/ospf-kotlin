@@ -147,7 +147,7 @@ private class ScipLinearSolverImpl(
 
         val constraints = coroutineScope {
             val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-            val promises = if (factor > 1) {
+            val promises = if (factor >= 1) {
                 val segment = pow(UInt64.ten, factor).toInt()
                 (0..(model.constraints.size / segment)).map { i ->
                     async(Dispatchers.Default) {
@@ -208,7 +208,7 @@ private class ScipLinearSolverImpl(
                 }
             }
             promises.flatMap { promise ->
-                promise.await().map {
+                val result = promise.await().map {
                     val (lb, cells, ub) = it.second
                     val (coefficients, vars) = cells
                     val constraint = scip.createConsLinear(
@@ -221,6 +221,8 @@ private class ScipLinearSolverImpl(
                     scip.addCons(constraint)
                     constraint
                 }
+                System.gc()
+                result
             }
         }
         scipConstraints = constraints

@@ -32,6 +32,7 @@ data class Space(
                 spaces.add(space)
                 stack.addAll(space.links.map { it.second })
             }
+            System.gc()
             return if (spaces.size == absoluteBlocks.size) {
                 spaces
             } else {

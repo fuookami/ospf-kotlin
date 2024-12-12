@@ -68,36 +68,40 @@ class LinearMechanismModel(
             val model = if (concurrent ?: metaModel.concurrent) {
                 coroutineScope {
                     val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                    val constraints = if (factor1 > 1) {
+                    val constraints = if (factor1 >= 1) {
                         val segment = pow(UInt64.ten, factor1).toInt()
                         (0..(metaModel._constraints.size / segment)).map { i ->
                             async(Dispatchers.Default) {
-                                metaModel._constraints.subList((i * segment), minOf(metaModel._constraints.size, (i + 1) * segment)).map {
+                                val result = metaModel._constraints.subList((i * segment), minOf(metaModel._constraints.size, (i + 1) * segment)).map {
                                     LinearConstraint(
                                         inequality = it,
                                         tokens = tokens
                                     )
                                 }
+                                System.gc()
+                                result
                             }
                         }
                     } else {
                         metaModel._constraints.map {
                             async(Dispatchers.Default) {
-                                listOf(
+                                val result = listOf(
                                     LinearConstraint(
                                         inequality = it,
                                         tokens = tokens
                                     )
                                 )
+                                System.gc()
+                                result
                             }
                         }
                     }
                     val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                    val subObjects = if (factor2 > 1) {
+                    val subObjects = if (factor2 >= 1) {
                         val segment = pow(UInt64.ten, factor2).toInt()
                         (0..(metaModel._subObjects.size / segment)).map { i ->
                             async(Dispatchers.Default) {
-                                metaModel._subObjects.subList((i * segment), minOf(metaModel._subObjects.size, (i + 1) * segment)).map {
+                                val result = metaModel._subObjects.subList((i * segment), minOf(metaModel._subObjects.size, (i + 1) * segment)).map {
                                     LinearSubObject(
                                         category = it.category,
                                         poly = it.polynomial,
@@ -105,12 +109,14 @@ class LinearMechanismModel(
                                         name = it.name
                                     )
                                 }
+                                System.gc()
+                                result
                             }
                         }
                     } else {
                         metaModel._subObjects.map {
                             async(Dispatchers.Default) {
-                                listOf(
+                                val result = listOf(
                                     LinearSubObject(
                                         category = it.category,
                                         poly = it.polynomial,
@@ -118,6 +124,8 @@ class LinearMechanismModel(
                                         name = it.name
                                     )
                                 )
+                                System.gc()
+                                result
                             }
                         }
                     }
@@ -236,36 +244,40 @@ class QuadraticMechanismModel(
             val model = if (concurrent ?: metaModel.concurrent) {
                 coroutineScope {
                     val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                    val constraints = if (factor1 > 1) {
+                    val constraints = if (factor1 >= 1) {
                         val segment = pow(UInt64.ten, factor1).toInt()
                         (0..(metaModel._constraints.size / segment)).map { i ->
                             async(Dispatchers.Default) {
-                                metaModel._constraints.subList((i * segment), minOf(metaModel._constraints.size, (i + 1) * segment)).map {
+                                val result = metaModel._constraints.subList((i * segment), minOf(metaModel._constraints.size, (i + 1) * segment)).map {
                                     QuadraticConstraint(
                                         inequality = it,
                                         tokens = tokens
                                     )
                                 }
+                                System.gc()
+                                result
                             }
                         }
                     } else {
                         metaModel._constraints.map {
                             async(Dispatchers.Default) {
-                                listOf(
+                                val result = listOf(
                                     QuadraticConstraint(
                                         inequality = it,
                                         tokens = tokens
                                     )
                                 )
+                                System.gc()
+                                result
                             }
                         }
                     }
                     val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                    val subObjects = if (factor2 > 1) {
+                    val subObjects = if (factor2 >= 1) {
                         val segment = pow(UInt64.ten, factor2).toInt()
                         (0..(metaModel._subObjects.size / segment)).map { i ->
                             async(Dispatchers.Default) {
-                                metaModel._subObjects.subList((i * segment), minOf(metaModel._subObjects.size, (i + 1) * segment)).map {
+                                val result = metaModel._subObjects.subList((i * segment), minOf(metaModel._subObjects.size, (i + 1) * segment)).map {
                                     QuadraticSubObject(
                                         category = it.category,
                                         poly = it.polynomial,
@@ -273,12 +285,14 @@ class QuadraticMechanismModel(
                                         name = it.name
                                     )
                                 }
+                                System.gc()
+                                result
                             }
                         }
                     } else {
                         metaModel._subObjects.map {
                             async(Dispatchers.Default) {
-                                listOf(
+                                val result = listOf(
                                     QuadraticSubObject(
                                         category = it.category,
                                         poly = it.polynomial,
@@ -286,6 +300,8 @@ class QuadraticMechanismModel(
                                         name = it.name
                                     )
                                 )
+                                System.gc()
+                                result
                             }
                         }
                     }
