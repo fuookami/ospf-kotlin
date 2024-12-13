@@ -16,12 +16,39 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 class BunchSchedulingExecutionResourceUsage<
     out R : ExecutionResource<C>,
     out C : ResourceCapacity
->(
+>private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
+    times: List<TimeRange>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, interval) {
+) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, times, interval) {
+    constructor(
+        timeWindow: TimeWindow,
+        resources: List<R>,
+        times: List<TimeRange>,
+        name: String
+    ): this(
+        timeWindow,
+        resources,
+        times,
+        timeWindow.interval,
+        name
+    )
+
+    constructor(
+        timeWindow: TimeWindow,
+        resources: List<R>,
+        interval: Duration = timeWindow.interval,
+        name : String
+    ): this(
+        timeWindow,
+        resources,
+        emptyList(),
+        interval,
+        name
+    )
+
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -96,12 +123,39 @@ class BunchSchedulingExecutionResourceUsage<
 class BunchSchedulingConnectionResourceUsage<
     out R : ConnectionResource<C>,
     out C : ResourceCapacity
->(
+> private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
+    times: List<TimeRange>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, interval) {
+) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, times, interval) {
+    constructor(
+        timeWindow: TimeWindow,
+        resources: List<R>,
+        times: List<TimeRange>,
+        name: String
+    ): this(
+        timeWindow,
+        resources,
+        times,
+        timeWindow.interval,
+        name
+    )
+
+    constructor(
+        timeWindow: TimeWindow,
+        resources: List<R>,
+        interval: Duration = timeWindow.interval,
+        name : String
+    ): this(
+        timeWindow,
+        resources,
+        emptyList(),
+        interval,
+        name
+    )
+
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -181,9 +235,40 @@ class BunchSchedulingStorageResourceUsage<
     timeWindow: TimeWindow,
     executors: List<E>,
     resources: List<R>,
+    times: List<TimeRange>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractStorageResourceUsage<E, R, C>(timeWindow, executors, resources, interval) {
+) : AbstractStorageResourceUsage<E, R, C>(timeWindow, executors, resources, times, interval) {
+    constructor(
+        timeWindow: TimeWindow,
+        executors: List<E>,
+        resources: List<R>,
+        times: List<TimeRange>,
+        name: String
+    ): this(
+        timeWindow,
+        executors,
+        resources,
+        times,
+        timeWindow.interval,
+        name
+    )
+
+    constructor(
+        timeWindow: TimeWindow,
+        executors: List<E>,
+        resources: List<R>,
+        interval: Duration = timeWindow.interval,
+        name : String
+    ): this(
+        timeWindow,
+        executors,
+        resources,
+        emptyList(),
+        interval,
+        name
+    )
+
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 

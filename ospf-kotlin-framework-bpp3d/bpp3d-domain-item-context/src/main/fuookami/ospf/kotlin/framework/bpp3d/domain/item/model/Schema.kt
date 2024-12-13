@@ -1,14 +1,15 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 
 class Scheme(
-    val actualItems: List<Triple<ActualItem, UInt64, UInt64>> = emptyList(),
+    val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>> = emptyList(),
 ) {
-    val patternedItems: List<Triple<PatternedItem, UInt64, UInt64>>
+    val patternedItems: List<Triple<PatternedItem, UInt64, ValueRange<UInt64>>>
 
     init {
-        val patternedItems = ArrayList<Pair<ItemPattern, MutableList<Triple<ActualItem, UInt64, UInt64>>>>()
+        val patternedItems = ArrayList<Pair<ItemPattern, MutableList<Triple<ActualItem, UInt64, ValueRange<UInt64>>>>>()
         for (item in actualItems.sortedBy { it.first.weight }) {
             val thisPattern = item.first.pattern
 
