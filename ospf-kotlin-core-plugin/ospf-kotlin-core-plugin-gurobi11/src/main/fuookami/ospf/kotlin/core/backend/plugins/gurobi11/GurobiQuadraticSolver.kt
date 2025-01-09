@@ -137,10 +137,14 @@ private class GurobiQuadraticSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                val promises = if (factor >= 1) {
-                    val segment = pow(UInt64.ten, factor).toInt()
-                    (0..(model.constraints.size / segment)).map { i ->
+                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+                    val segment = if (factor >= 1) {
+                        pow(UInt64.ten, factor).toInt()
+                    } else {
+                        10
+                    }
+                    val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
                             ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = GRBQuadExpr()
@@ -155,34 +159,37 @@ private class GurobiQuadraticSolverImpl(
                             }
                         }
                     }
+                    promises.flatMap { promise ->
+                        val result = promise.await().map {
+                            grbModel.addQConstr(
+                                it.second,
+                                GurobiConstraintSign(model.constraints.signs[it.first]).toGurobiConstraintSign(),
+                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.names[it.first]
+                            )
+                        }
+                        result
+                    }
                 } else {
                     model.constraints.indices.map { i ->
-                        async(Dispatchers.Default) {
-                            val lhs = GRBQuadExpr()
-                            for (cell in model.constraints.lhs[i]) {
-                                if (cell.colIndex2 == null) {
-                                    lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1])
-                                } else {
-                                    lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1], grbVars[cell.colIndex2!!])
-                                }
+                        val lhs = GRBQuadExpr()
+                        for (cell in model.constraints.lhs[i]) {
+                            if (cell.colIndex2 == null) {
+                                lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1])
+                            } else {
+                                lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1], grbVars[cell.colIndex2!!])
                             }
-                            listOf(i to lhs)
                         }
-                    }
-                }
-                promises.flatMap { promise ->
-                    val result = promise.await().map {
                         grbModel.addQConstr(
-                            it.second,
-                            GurobiConstraintSign(model.constraints.signs[it.first]).toGurobiConstraintSign(),
-                            model.constraints.rhs[it.first].toDouble(),
-                            model.constraints.names[it.first]
+                            lhs,
+                            GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
+                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.names[i]
                         )
                     }
-                    System.gc()
-                    result
                 }
             }
+            System.gc()
             grbConstraints = constraints
 
             val obj = GRBQuadExpr()

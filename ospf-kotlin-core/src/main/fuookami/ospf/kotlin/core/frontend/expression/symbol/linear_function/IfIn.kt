@@ -139,10 +139,10 @@ class IfInFunction(
         return "if_in(${x.toRawString(unfold)}, [${lb.toRawString(unfold)}, ${ub.toRawString(unfold)}])"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(tokenList, zeroIfNone) ?: return null
-        val lbValue = lb.value(tokenList, zeroIfNone) ?: return null
-        val ubValue = ub.value(tokenList, zeroIfNone) ?: return null
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.evaluate(tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.evaluate(tokenList, zeroIfNone) ?: return null
         return if (lbValue leq xValue && xValue leq ubValue) {
             Flt64.one
         } else {
@@ -150,10 +150,10 @@ class IfInFunction(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(results, tokenList, zeroIfNone) ?: return null
-        val lbValue = lb.value(results, tokenList, zeroIfNone) ?: return null
-        val ubValue = ub.value(results, tokenList, zeroIfNone) ?: return null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.evaluate(results, tokenList, zeroIfNone) ?: return null
         return if (lbValue leq xValue && xValue leq ubValue) {
             Flt64.one
         } else {
@@ -162,9 +162,9 @@ class IfInFunction(
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(tokenTable, zeroIfNone) ?: return null
-        val lbValue = lb.value(tokenTable, zeroIfNone) ?: return null
-        val ubValue = ub.value(tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(tokenTable, zeroIfNone) ?: return null
+        val ubValue = ub.evaluate(tokenTable, zeroIfNone) ?: return null
         return if (lbValue leq xValue && xValue leq ubValue) {
             Flt64.one
         } else {
@@ -173,9 +173,9 @@ class IfInFunction(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(results, tokenTable, zeroIfNone) ?: return null
-        val lbValue = lb.value(results, tokenTable, zeroIfNone) ?: return null
-        val ubValue = ub.value(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val ubValue = ub.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return if (lbValue leq xValue && xValue leq ubValue) {
             Flt64.one
         } else {

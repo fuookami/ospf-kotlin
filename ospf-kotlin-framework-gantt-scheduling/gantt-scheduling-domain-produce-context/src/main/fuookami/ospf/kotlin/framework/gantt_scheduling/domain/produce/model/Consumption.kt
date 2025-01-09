@@ -14,9 +14,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 interface Consumption {
-    val quantity: LinearSymbols1
-    val overQuantity: LinearSymbols1
-    val lessQuantity: LinearSymbols1
+    val quantity: LinearIntermediateSymbols1
+    val overQuantity: LinearIntermediateSymbols1
+    val lessQuantity: LinearIntermediateSymbols1
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
@@ -31,13 +31,13 @@ abstract class AbstractConsumption<
 >(
     val materials: List<Pair<Material, MaterialReserves?>>
 ) : Consumption {
-    override lateinit var lessQuantity: LinearSymbols1
-    override lateinit var overQuantity: LinearSymbols1
+    override lateinit var lessQuantity: LinearIntermediateSymbols1
+    override lateinit var overQuantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
-                overQuantity = LinearSymbols1(
+                overQuantity = LinearIntermediateSymbols1(
                     "consumption_over_quantity",
                     Shape1(materials.size)
                 ) { i, _ ->
@@ -70,7 +70,7 @@ abstract class AbstractConsumption<
 
         if (lessEnabled) {
             if (!::lessQuantity.isInitialized) {
-                lessQuantity = LinearSymbols1(
+                lessQuantity = LinearIntermediateSymbols1(
                     "consumption_less_quantity",
                     Shape1(materials.size)
                 ) { i, _ ->
@@ -115,7 +115,7 @@ class TaskSchedulingConsumption<
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
 ) : AbstractConsumption<T, E, A>(materials.sortedBy { it.first.index }) {
-    override lateinit var quantity: LinearSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")

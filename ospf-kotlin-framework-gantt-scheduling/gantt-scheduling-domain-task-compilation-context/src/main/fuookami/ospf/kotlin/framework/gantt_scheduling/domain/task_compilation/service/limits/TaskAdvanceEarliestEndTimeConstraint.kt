@@ -26,7 +26,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
     private val taskTime: TaskTime,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_advance_earliest_end_time"
-)  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val tasks = if (taskTime.advanceEarliestEndTimeEnabled) {
         tasks.filter { !it.advanceEnabled && it.earliestEndTime != null }
     } else {

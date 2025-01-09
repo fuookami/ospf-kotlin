@@ -158,31 +158,65 @@ data class TimeWindow(
     }
 
     val timeSlots: List<TimeRange> by lazy {
+        timeSlotsOf(interval)
+    }
+
+    fun timeSlotsOf(interval: Duration): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
-        var current = this.start
+        var current = start
         while (current != end) {
             val duration = min(end - current, interval)
-            timeSlots.add(TimeRange(
-                start = current,
-                end = current + duration
-            ))
+            timeSlots.add(
+                TimeRange(
+                    start = current,
+                    end = current + duration
+                )
+            )
             current += duration
         }
-        timeSlots
+        return timeSlots
     }
 
     val roundTimeSlots: List<TimeRange> by lazy {
+        roundTimeSlotsOf(upper.interval)
+    }
+
+    fun roundTimeSlotsOf(interval: Duration): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
-        var current = start.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant()
-        while (current != end) {
-            val duration = min(end - current, upper.interval)
-            timeSlots.add(TimeRange(
-                start = max(start, current),
-                end = current + duration
-            ))
+        var current = start
+        val end1 = start.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant() + upper.interval
+        while (current != end1) {
+            val duration = min(end1 - current, interval)
+            timeSlots.add(
+                TimeRange(
+                    start = max(start, current),
+                    end = current + duration
+                )
+            )
             current += duration
         }
-        timeSlots
+        val end2 = end.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant()
+        while (current != end2) {
+            val duration = min(end2 - current, interval)
+            timeSlots.add(
+                TimeRange(
+                    start = current,
+                    end = current + duration
+                )
+            )
+            current += duration
+        }
+        while (current != end) {
+            val duration = min(end - current, interval)
+            timeSlots.add(
+                TimeRange(
+                    start = current,
+                    end = current + duration
+                )
+            )
+            current += duration
+        }
+        return timeSlots
     }
 
     fun withIntersection(ano: TimeRange): Boolean {

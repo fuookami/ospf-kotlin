@@ -65,9 +65,9 @@ class LinearMechanismModel(
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
-            val model = if (concurrent ?: metaModel.concurrent) {
+            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.concurrent) {
                 coroutineScope {
-                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val factor1 = Flt64(metaModel._constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val constraints = if (factor1 >= 1) {
                         val segment = pow(UInt64.ten, factor1).toInt()
                         (0..(metaModel._constraints.size / segment)).map { i ->
@@ -78,7 +78,6 @@ class LinearMechanismModel(
                                         tokens = tokens
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -91,12 +90,11 @@ class LinearMechanismModel(
                                         tokens = tokens
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
                     }
-                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val factor2 = Flt64(metaModel._subObjects.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val subObjects = if (factor2 >= 1) {
                         val segment = pow(UInt64.ten, factor2).toInt()
                         (0..(metaModel._subObjects.size / segment)).map { i ->
@@ -109,7 +107,6 @@ class LinearMechanismModel(
                                         name = it.name
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -124,7 +121,6 @@ class LinearMechanismModel(
                                         name = it.name
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
@@ -156,6 +152,7 @@ class LinearMechanismModel(
                     tokens
                 )
             }
+            System.gc()
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
@@ -241,9 +238,9 @@ class QuadraticMechanismModel(
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
-            val model = if (concurrent ?: metaModel.concurrent) {
+            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.concurrent) {
                 coroutineScope {
-                    val factor1 = Flt64(metaModel._constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val factor1 = Flt64(metaModel._constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val constraints = if (factor1 >= 1) {
                         val segment = pow(UInt64.ten, factor1).toInt()
                         (0..(metaModel._constraints.size / segment)).map { i ->
@@ -254,7 +251,6 @@ class QuadraticMechanismModel(
                                         tokens = tokens
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -267,12 +263,11 @@ class QuadraticMechanismModel(
                                         tokens = tokens
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
                     }
-                    val factor2 = Flt64(metaModel._subObjects.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
+                    val factor2 = Flt64(metaModel._subObjects.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val subObjects = if (factor2 >= 1) {
                         val segment = pow(UInt64.ten, factor2).toInt()
                         (0..(metaModel._subObjects.size / segment)).map { i ->
@@ -285,7 +280,6 @@ class QuadraticMechanismModel(
                                         name = it.name
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -300,7 +294,6 @@ class QuadraticMechanismModel(
                                         name = it.name
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
@@ -332,6 +325,7 @@ class QuadraticMechanismModel(
                     tokens
                 )
             }
+            System.gc()
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {

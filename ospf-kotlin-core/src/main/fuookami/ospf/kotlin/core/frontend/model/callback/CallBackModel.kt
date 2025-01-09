@@ -252,9 +252,9 @@ class CallBackModel internal constructor(
             Pair(
                 { solution: Solution ->
                     if (category == objectCategory) {
-                        expression.value(solution, tokens)
+                        expression.evaluate(solution, tokens)
                     } else {
-                        expression.value(solution, tokens)?.let { -it }
+                        expression.evaluate(solution, tokens)?.let { -it }
                     }
                 },
                 name ?: String()
@@ -272,9 +272,9 @@ class CallBackModel internal constructor(
             Pair(
                 { solution: Solution ->
                     if (category == objectCategory) {
-                        polynomial.value(solution, tokens)
+                        polynomial.evaluate(solution, tokens)
                     } else {
-                        polynomial.value(solution, tokens)?.let { -it }
+                        polynomial.evaluate(solution, tokens)?.let { -it }
                     }
                 },
                 name ?: String()

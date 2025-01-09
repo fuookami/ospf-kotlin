@@ -67,6 +67,8 @@ val Point2.x get() = this[0]
 @get:JvmName("Point2Y")
 val Point2.y get() = this[1]
 
+val Point2.pair get() = Pair(x, y)
+
 val originPoint2 = point2()
 
 fun point2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Point2 {
@@ -83,6 +85,8 @@ val Point3.y get() = this[1]
 
 @get:JvmName("Point3Z")
 val Point3.z get() = this[2]
+
+val Point3.triple get() = Triple(x, y, z)
 
 val originPoint3 = point3()
 

@@ -90,7 +90,7 @@ class Sigmoid(
         impl.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            impl.value(tokenTable)?.let { yValue ->
+            impl.evaluate(tokenTable)?.let { yValue ->
                 tokenTable.cache(this, null, yValue)
             }
         }
@@ -128,26 +128,26 @@ class Sigmoid(
         return "Sigmoid(${x.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val value = x.evaluate(tokenList, zeroIfNone)
             ?: return null
         return sigmoid(value)
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val value = x.evaluate(results, tokenList, zeroIfNone)
             ?: return null
         return sigmoid(value)
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(tokenTable, zeroIfNone)
+        val value = x.evaluate(tokenTable, zeroIfNone)
             ?: return null
         return sigmoid(value)
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(results, tokenTable, zeroIfNone)
+        val value = x.evaluate(results, tokenTable, zeroIfNone)
             ?: return null
         return sigmoid(value)
     }

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -22,16 +23,19 @@ class ResourceCapacityConstraint<
     C : ResourceCapacity
 >(
     private val usage: ResourceUsage<S, R, C>,
+    private val quantity: Extractor<ValueRange<Flt64>, S> = { it.resourceCapacity.quantity },
+    private val withSlack: Boolean = true,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "${usage.name}_resource_capacity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         for (slot in usage.timeSlots) {
-            if (usage.overEnabled && slot.resourceCapacity.overEnabled) {
+            val thisQuantity = quantity(slot)
+            if (withSlack && usage.overEnabled && slot.resourceCapacity.overEnabled) {
                 when (val overQuantity = usage.overQuantity[slot]) {
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
-                            overQuantity.polyX leq slot.resourceCapacity.quantity.upperBound.value.unwrap(),
+                            overQuantity.polyX leq thisQuantity.upperBound.value.unwrap(),
                             "${name}_ub_$slot"
                         )) {
                             is Ok -> {}
@@ -44,7 +48,7 @@ class ResourceCapacityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            usage.quantity[slot] leq slot.resourceCapacity.quantity.upperBound.value.unwrap(),
+                            usage.quantity[slot] leq thisQuantity.upperBound.value.unwrap(),
                             "${name}_ub_$slot"
                         )) {
                             is Ok -> {}
@@ -57,7 +61,7 @@ class ResourceCapacityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    usage.quantity[slot] leq slot.resourceCapacity.quantity.upperBound.value.unwrap(),
+                    usage.quantity[slot] leq thisQuantity.upperBound.value.unwrap(),
                     "${usage.name}_${name}_ub_$slot"
                 )) {
                     is Ok -> {}
@@ -68,11 +72,11 @@ class ResourceCapacityConstraint<
                 }
             }
 
-            if (usage.lessEnabled && slot.resourceCapacity.lessEnabled) {
+            if (withSlack && usage.lessEnabled && slot.resourceCapacity.lessEnabled) {
                 when (val lessQuantity = usage.lessQuantity[slot]) {
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
-                            lessQuantity.polyX geq slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
+                            lessQuantity.polyX geq thisQuantity.lowerBound.value.unwrap(),
                             "${name}_lb_$slot"
                         )) {
                             is Ok -> {}
@@ -85,7 +89,7 @@ class ResourceCapacityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            usage.quantity[slot] geq slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
+                            usage.quantity[slot] geq thisQuantity.lowerBound.value.unwrap(),
                             "${name}_lb_$slot"
                         )) {
                             is Ok -> {}
@@ -98,7 +102,7 @@ class ResourceCapacityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    usage.quantity[slot] geq slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
+                    usage.quantity[slot] geq thisQuantity.lowerBound.value.unwrap(),
                     "${name}_lb_$slot"
                 )) {
                     is Ok -> {}
@@ -117,18 +121,16 @@ class ResourceCapacityConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    val slots = usage.timeSlots.filter {
-                        it.relatedTo(null, args.task)
+                    usage.timeSlots.sumOf {
+                        it.relationTo(null, args.task) * (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                     }
-                    slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     if (args.task != null) {
-                        val slots = usage.timeSlots.filter {
-                            it.relatedTo(args.prevTask, args.task)
+                        usage.timeSlots.sumOf {
+                            it.relationTo(null, args.task) * (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                         }
-                        slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
                     } else {
                         Flt64.zero
                     }

@@ -126,8 +126,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         y.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.value(tokenTable) ?: return
-            val yValue = y.value(tokenTable) ?: return
+            val xValue = x.evaluate(tokenTable) ?: return
+            val yValue = y.evaluate(tokenTable) ?: return
 
             var zValue: Flt64? = null
             for (i in indices) {
@@ -386,27 +386,27 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         return "${name}(${x.toRawString(unfold)}, ${y.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val thisX = x.value(tokenList, zeroIfNone) ?: return null
-        val thisY = y.value(tokenList, zeroIfNone) ?: return null
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val thisX = x.evaluate(tokenList, zeroIfNone) ?: return null
+        val thisY = y.evaluate(tokenList, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val thisX = x.value(results, tokenList, zeroIfNone) ?: return null
-        val thisY = y.value(results, tokenList, zeroIfNone) ?: return null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val thisX = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val thisY = y.evaluate(results, tokenList, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val thisX = x.value(tokenTable, zeroIfNone) ?: return null
-        val thisY = y.value(tokenTable, zeroIfNone) ?: return null
+        val thisX = x.evaluate(tokenTable, zeroIfNone) ?: return null
+        val thisY = y.evaluate(tokenTable, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val thisX = x.value(results, tokenTable, zeroIfNone) ?: return null
-        val thisY = y.value(results, tokenTable, zeroIfNone) ?: return null
+        val thisX = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val thisY = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 }

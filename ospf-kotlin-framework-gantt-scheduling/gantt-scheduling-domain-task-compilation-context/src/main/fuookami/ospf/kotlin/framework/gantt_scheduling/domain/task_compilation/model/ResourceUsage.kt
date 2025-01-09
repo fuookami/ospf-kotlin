@@ -29,7 +29,14 @@ interface ResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
-        return false
+        return relationTo(prevTask, task) neq Flt64.zero
+    }
+
+    fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
+        prevTask: AbstractTask<E, A>?,
+        task: AbstractTask<E, A>?
+    ): Flt64 {
+        return Flt64.zero
     }
 
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
@@ -47,9 +54,9 @@ interface ResourceUsage<
     val name: String
 
     val timeSlots: List<S>
-    val quantity: LinearSymbols1
-    val overQuantity: LinearSymbols1
-    val lessQuantity: LinearSymbols1
+    val quantity: LinearIntermediateSymbols1
+    val overQuantity: LinearIntermediateSymbols1
+    val lessQuantity: LinearIntermediateSymbols1
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
@@ -62,14 +69,14 @@ abstract class AbstractResourceUsage<
     out R : Resource<C>,
     out C : ResourceCapacity
 > : ResourceUsage<S, R, C> {
-    override lateinit var overQuantity: LinearSymbols1
-    override lateinit var lessQuantity: LinearSymbols1
+    override lateinit var overQuantity: LinearIntermediateSymbols1
+    override lateinit var lessQuantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (timeSlots.isNotEmpty()) {
             if (overEnabled) {
                 if (!::overQuantity.isInitialized) {
-                    overQuantity = LinearSymbols1(
+                    overQuantity = LinearIntermediateSymbols1(
                         "${name}_over_quantity",
                         Shape1(timeSlots.size)
                     ) { i, _ ->
@@ -102,7 +109,7 @@ abstract class AbstractResourceUsage<
 
             if (lessEnabled) {
                 if (!::lessQuantity.isInitialized) {
-                    lessQuantity = LinearSymbols1(
+                    lessQuantity = LinearIntermediateSymbols1(
                         "${name}_less_quantity",
                         Shape1(timeSlots.size)
                     ) { i, _ ->
@@ -157,11 +164,11 @@ data class ConnectionResourceTimeSlot<
         return resource.usedBy(prevTask, task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return usedBy(prevTask, task) neq Flt64.zero
+    ): Flt64 {
+        return usedBy(prevTask, task)
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"
@@ -260,7 +267,7 @@ class TaskSchedulingConnectionResourceUsage<
         lessEnabled
     )
 
-    override lateinit var quantity: LinearSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")
@@ -278,15 +285,21 @@ data class ExecutionResourceTimeSlot<
     override val time: TimeRange,
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C>, AutoIndexed(ExecutionResourceTimeSlot::class) {
-    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): Flt64 {
-        return resource.usedBy(task)
+    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
+        task: AbstractTask<E, A>
+    ): Flt64 {
+        return resource.usedBy(task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return task != null && usedBy(task) neq Flt64.zero
+    ): Flt64 {
+        return if (task != null) {
+            usedBy(task)
+        } else {
+            Flt64.zero
+        }
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"
@@ -385,7 +398,7 @@ class TaskSchedulingExecutionResourceUsage<
         lessEnabled
     )
 
-    override lateinit var quantity: LinearSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")
@@ -412,14 +425,25 @@ data class StorageResourceTimeSlot<
         return resource.supplyBy(task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return task != null
-                && (resource.costBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
-                    || resource.supplyBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
+    ): Flt64 {
+        return if (task != null) {
+            val timeRange = TimeRange(
+                min(
+                    task.time!!.start,
+                    time.start
+                ),
+                min(
+                    task.time!!.end,
+                    time.end
                 )
+            )
+            resource.supplyBy(task, timeRange) - resource.costBy(task, timeRange)
+        } else {
+            Flt64.zero
+        }
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"
@@ -438,11 +462,11 @@ abstract class AbstractStorageResourceUsage<
     times: List<TimeRange>,
     interval: Duration = timeWindow.interval
 ) : AbstractResourceUsage<StorageResourceTimeSlot<R, C>, R, C>() {
-    abstract val executorSupply: LinearSymbols3
-    lateinit var supply: LinearSymbols2
-    abstract val cost: LinearSymbols2
+    abstract val executorSupply: LinearIntermediateSymbols3
+    lateinit var supply: LinearIntermediateSymbols2
+    abstract val cost: LinearIntermediateSymbols2
 
-    override lateinit var quantity: LinearSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1
 
     final override val timeSlots: List<StorageResourceTimeSlot<R, C>>
 
@@ -589,8 +613,8 @@ class TaskSchedulingStorageResourceUsage<
         lessEnabled
     )
 
-    override lateinit var executorSupply: LinearSymbols3
-    override lateinit var cost: LinearSymbols2
+    override lateinit var executorSupply: LinearIntermediateSymbols3
+    override lateinit var cost: LinearIntermediateSymbols2
 
     override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")

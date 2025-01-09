@@ -191,7 +191,7 @@ class SameAsFunction(
         return "sane_as(${inequalities.joinToString(", ") { it.toRawString(unfold) }})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
             val value = inequality.isTrue(tokenList, zeroIfNone) ?: return null
@@ -204,7 +204,7 @@ class SameAsFunction(
         return Flt64.one
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
             val value = inequality.isTrue(results, tokenList, zeroIfNone) ?: return null

@@ -66,7 +66,7 @@ class ModFunction(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val qValue = (xValue / d).let {
                     if (it geq Flt64.zero) {
                         it.floor()
@@ -128,19 +128,19 @@ class ModFunction(
         return "${x.toRawString(unfold)} mod $d"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenList, zeroIfNone)?.let { it % d }
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(tokenList, zeroIfNone)?.let { it % d }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenList, zeroIfNone)?.let { it % d }
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(results, tokenList, zeroIfNone)?.let { it % d }
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenTable, zeroIfNone)?.let { it % d }
+        return x.evaluate(tokenTable, zeroIfNone)?.let { it % d }
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenTable, zeroIfNone)?.let { it % d }
+        return x.evaluate(results, tokenTable, zeroIfNone)?.let { it % d }
     }
 }

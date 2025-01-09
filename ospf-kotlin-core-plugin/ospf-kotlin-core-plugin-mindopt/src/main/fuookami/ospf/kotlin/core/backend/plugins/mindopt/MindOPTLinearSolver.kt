@@ -128,10 +128,14 @@ private class MindOPTLinearSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                val promises = if (factor >= 1) {
-                    val segment = pow(UInt64.ten, factor).toInt()
-                    (0..(model.constraints.size / segment)).map { i ->
+                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+                    val segment = if (factor >= 1) {
+                        pow(UInt64.ten, factor).toInt()
+                    } else {
+                        10
+                    }
+                    val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
                             ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = MDOLinExpr()
@@ -142,30 +146,33 @@ private class MindOPTLinearSolverImpl(
                             }
                         }
                     }
+                    promises.flatMap { promise ->
+                        val result = promise.await().map {
+                            mindoptModel.addConstr(
+                                it.second,
+                                MindOPTConstraintSign(model.constraints.signs[it.first]).toMindOPTConstraintSign(),
+                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.names[it.first]
+                            )
+                        }
+                        result
+                    }
                 } else {
                     model.constraints.indices.map { i ->
-                        async(Dispatchers.Default) {
-                            val lhs = MDOLinExpr()
-                            for (cell in model.constraints.lhs[i]) {
-                                lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex])
-                            }
-                            listOf(i to lhs)
+                        val lhs = MDOLinExpr()
+                        for (cell in model.constraints.lhs[i]) {
+                            lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex])
                         }
-                    }
-                }
-                promises.flatMap { promise ->
-                    val result = promise.await().map {
                         mindoptModel.addConstr(
-                            it.second,
-                            MindOPTConstraintSign(model.constraints.signs[it.first]).toMindOPTConstraintSign(),
-                            model.constraints.rhs[it.first].toDouble(),
-                            model.constraints.names[it.first]
+                            lhs,
+                            MindOPTConstraintSign(model.constraints.signs[i]).toMindOPTConstraintSign(),
+                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.names[i]
                         )
                     }
-                    System.gc()
-                    result
                 }
             }
+            System.gc()
             mindoptConstraints = constraints
 
             val obj = MDOLinExpr()

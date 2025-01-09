@@ -127,10 +127,10 @@ private class MindOPTQuadraticSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                val promises = if (factor >= 1) {
+                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val segment = pow(UInt64.ten, factor).toInt()
-                    (0..(model.constraints.size / segment)).map { i ->
+                    val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
                             ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = MDOQuadExpr()
@@ -145,34 +145,37 @@ private class MindOPTQuadraticSolverImpl(
                             }
                         }
                     }
+                    promises.flatMap { promise ->
+                        val result = promise.await().map {
+                            mindoptModel.addQConstr(
+                                it.second,
+                                MindOPTConstraintSign(model.constraints.signs[it.first]).toMindOPTConstraintSign(),
+                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.names[it.first]
+                            )
+                        }
+                        result
+                    }
                 } else {
                     model.constraints.indices.map { i ->
-                        async(Dispatchers.Default) {
-                            val lhs = MDOQuadExpr()
-                            for (cell in model.constraints.lhs[i]) {
-                                if (cell.colIndex2 != null) {
-                                    lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
-                                } else {
-                                    lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1])
-                                }
+                        val lhs = MDOQuadExpr()
+                        for (cell in model.constraints.lhs[i]) {
+                            if (cell.colIndex2 != null) {
+                                lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
+                            } else {
+                                lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1])
                             }
-                            listOf(i to lhs)
                         }
-                    }
-                }
-                promises.flatMap { promise ->
-                    val result = promise.await().map {
                         mindoptModel.addQConstr(
-                            it.second,
-                            MindOPTConstraintSign(model.constraints.signs[it.first]).toMindOPTConstraintSign(),
-                            model.constraints.rhs[it.first].toDouble(),
-                            model.constraints.names[it.first]
+                            lhs,
+                            MindOPTConstraintSign(model.constraints.signs[i]).toMindOPTConstraintSign(),
+                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.names[i]
                         )
                     }
-                    System.gc()
-                    result
                 }
             }
+            System.gc()
             mindoptConstraints = constraints
 
             val obj = MDOQuadExpr()

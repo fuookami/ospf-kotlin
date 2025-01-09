@@ -9,11 +9,12 @@ data class SolverConfig(
     val time: Duration = 30.seconds,
     val threadNum: UInt64 = if (Runtime.getRuntime().availableProcessors() <= 16) {
         UInt64(Runtime.getRuntime().availableProcessors())
+    } else if (Runtime.getRuntime().availableProcessors() < 24) {
+        UInt64(16)
+    } else if (Runtime.getRuntime().availableProcessors() < 32) {
+        UInt64(24)
     } else {
-        max(
-            UInt64.two.pow(UInt64(Runtime.getRuntime().availableProcessors()).lg2()!!.toFlt64().ceil().toUInt64().toInt()),
-            UInt64(32)
-        )
+        UInt64(32)
     },
     val gap: Flt64 = Flt64.zero,
     val notImprovementTime: Duration? = null,

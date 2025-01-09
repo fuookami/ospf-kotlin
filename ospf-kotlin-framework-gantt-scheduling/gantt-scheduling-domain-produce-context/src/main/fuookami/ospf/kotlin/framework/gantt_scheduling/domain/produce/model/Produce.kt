@@ -14,9 +14,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 interface Produce {
-    val quantity: LinearSymbols1
-    val overQuantity: LinearSymbols1
-    val lessQuantity: LinearSymbols1
+    val quantity: LinearIntermediateSymbols1
+    val overQuantity: LinearIntermediateSymbols1
+    val lessQuantity: LinearIntermediateSymbols1
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
@@ -31,13 +31,13 @@ abstract class AbstractProduce<
 >(
     val products: List<Pair<Product, ProductDemand?>>
 ) : Produce {
-    override lateinit var lessQuantity: LinearSymbols1
-    override lateinit var overQuantity: LinearSymbols1
+    override lateinit var lessQuantity: LinearIntermediateSymbols1
+    override lateinit var overQuantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
-                overQuantity = LinearSymbols1(
+                overQuantity = LinearIntermediateSymbols1(
                     "produce_over_quantity",
                     Shape1(products.size)
                 ) { i, _ ->
@@ -70,7 +70,7 @@ abstract class AbstractProduce<
 
         if (lessEnabled) {
             if (!::lessQuantity.isInitialized) {
-                lessQuantity = LinearSymbols1(
+                lessQuantity = LinearIntermediateSymbols1(
                     "produce_less_quantity",
                     Shape1(products.size)
                 ) { i, _ ->
@@ -115,7 +115,7 @@ class TaskSchedulingProduce<
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
 ) : AbstractProduce<T, E, A>(products.sortedBy { it.first.index }) {
-    override lateinit var quantity: LinearSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         TODO("NOT IMPLEMENT YET")

@@ -115,7 +115,7 @@ class ConsumptionQuantityConstraint<
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
-            shadowPriceArguments?.invoke(args) ?: when (args)  {
+            shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
                         is ProductionTask<*, *> -> {

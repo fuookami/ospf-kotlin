@@ -11,6 +11,7 @@ data class Token(
     val key by variable::key
     internal var _result: Flt64? = null
     val result by ::_result
+    val doubleResult get() = _result?.toDouble()
 
     val name by variable::name
     val type by variable::type

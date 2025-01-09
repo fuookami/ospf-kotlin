@@ -78,9 +78,9 @@ class InStepRangeFunction(
         q.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            lb.value(tokenTable)?.let { lbValue ->
-                step.value(tokenTable)?.let { stepValue ->
-                    q.value(tokenTable)?.let { qValue ->
+            lb.evaluate(tokenTable)?.let { lbValue ->
+                step.evaluate(tokenTable)?.let { stepValue ->
+                    q.evaluate(tokenTable)?.let { qValue ->
                         val yValue = lbValue + qValue * stepValue
 
                         tokenTable.cache(this, null, yValue)
@@ -138,20 +138,20 @@ class InStepRangeFunction(
         return "inStepRange(${lb.toRawString(unfold)}, ${ub.toRawString(unfold)}, $${step.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return lb.value(tokenList, zeroIfNone)?.let { lbValue ->
-            step.value(tokenList, zeroIfNone)?.let { stepValue ->
-                q.value(tokenList, zeroIfNone)?.let { qValue ->
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return lb.evaluate(tokenList, zeroIfNone)?.let { lbValue ->
+            step.evaluate(tokenList, zeroIfNone)?.let { stepValue ->
+                q.evaluate(tokenList, zeroIfNone)?.let { qValue ->
                     lbValue + qValue * stepValue
                 }
             }
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return lb.value(results, tokenList, zeroIfNone)?.let { lbValue ->
-            step.value(results, tokenList, zeroIfNone)?.let { stepValue ->
-                q.value(results, tokenList, zeroIfNone)?.let { qValue ->
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return lb.evaluate(results, tokenList, zeroIfNone)?.let { lbValue ->
+            step.evaluate(results, tokenList, zeroIfNone)?.let { stepValue ->
+                q.evaluate(results, tokenList, zeroIfNone)?.let { qValue ->
                     lbValue + qValue * stepValue
                 }
             }
@@ -159,9 +159,9 @@ class InStepRangeFunction(
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return lb.value(tokenTable, zeroIfNone)?.let { lbValue ->
-            step.value(tokenTable, zeroIfNone)?.let { stepValue ->
-                q.value(tokenTable, zeroIfNone)?.let { qValue ->
+        return lb.evaluate(tokenTable, zeroIfNone)?.let { lbValue ->
+            step.evaluate(tokenTable, zeroIfNone)?.let { stepValue ->
+                q.evaluate(tokenTable, zeroIfNone)?.let { qValue ->
                     lbValue + qValue * stepValue
                 }
             }
@@ -169,9 +169,9 @@ class InStepRangeFunction(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return lb.value(results, tokenTable, zeroIfNone)?.let { lbValue ->
-            step.value(tokenTable, zeroIfNone)?.let { stepValue ->
-                q.value(results, tokenTable, zeroIfNone)?.let { qValue ->
+        return lb.evaluate(results, tokenTable, zeroIfNone)?.let { lbValue ->
+            step.evaluate(tokenTable, zeroIfNone)?.let { stepValue ->
+                q.evaluate(results, tokenTable, zeroIfNone)?.let { qValue ->
                     lbValue + qValue * stepValue
                 }
             }

@@ -223,7 +223,7 @@ data class LinearMonomialCell internal constructor(
         }
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 val token = tokenList.find(cell.value.variable)
@@ -259,7 +259,7 @@ data class LinearMonomialCell internal constructor(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 val index = tokenList.indexOf(cell.value.variable)
@@ -464,7 +464,7 @@ data class LinearMonomialSymbol(
         }
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is Either.Left -> {
                 val token = tokenList.find(symbol.value)
@@ -491,12 +491,12 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                symbol.value.value(tokenList, zeroIfNone)
+                symbol.value.evaluate(tokenList, zeroIfNone)
             }
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is Either.Left -> {
                 val index = tokenList.indexOf(symbol.value)
@@ -513,31 +513,31 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                symbol.value.value(results, tokenList, zeroIfNone)
+                symbol.value.evaluate(results, tokenList, zeroIfNone)
             }
         }
     }
 
-    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is Either.Left -> {
-                value(tokenTable.tokenList, zeroIfNone)
+                evaluate(tokenTable.tokenList, zeroIfNone)
             }
 
             is Either.Right -> {
-                symbol.value.value(tokenTable, zeroIfNone)
+                symbol.value.evaluate(tokenTable, zeroIfNone)
             }
         }
     }
 
-    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is Either.Left -> {
-                value(results, tokenTable.tokenList, zeroIfNone)
+                evaluate(results, tokenTable.tokenList, zeroIfNone)
             }
 
             is Either.Right -> {
-                symbol.value.value(results, tokenTable, zeroIfNone)
+                symbol.value.evaluate(results, tokenTable, zeroIfNone)
             }
         }
     }

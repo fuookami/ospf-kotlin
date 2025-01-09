@@ -89,6 +89,34 @@ abstract class Rational<Self, I> protected constructor(
 
     override fun exp() = toFltX().exp()
 
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+    override fun sec() = toFltX().sec()
+    override fun csc() = toFltX().csc()
+    override fun tan() = toFltX().tan()
+    override fun cot() = toFltX().cot()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun asec() = toFltX().asec()
+    override fun acsc() = toFltX().acsc()
+    override fun atan() = toFltX().atan()
+    override fun acot() = toFltX().acot()
+
+    override fun sinh() = toFltX().sinh()
+    override fun cosh() = toFltX().cosh()
+    override fun sech() = toFltX().sech()
+    override fun csch() = toFltX().csch()
+    override fun tanh() = toFltX().tanh()
+    override fun coth() = toFltX().coth()
+
+    override fun asinh() = toFltX().asinh()
+    override fun acosh() = toFltX().acosh()
+    override fun asech() = toFltX().asech()
+    override fun acsch() = toFltX().acsch()
+    override fun atanh() = toFltX().atanh()
+    override fun acoth() = toFltX().acoth()
+
     override fun toInt8() = (num / den).toInt8()
     override fun toInt16() = (num / den).toInt16()
     override fun toInt32() = (num / den).toInt32()

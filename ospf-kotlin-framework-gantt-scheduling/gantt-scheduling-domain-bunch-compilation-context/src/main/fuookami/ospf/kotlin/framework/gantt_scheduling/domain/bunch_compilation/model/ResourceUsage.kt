@@ -28,7 +28,7 @@ class BunchSchedulingExecutionResourceUsage<
         resources: List<R>,
         times: List<TimeRange>,
         name: String
-    ): this(
+    ) : this(
         timeWindow,
         resources,
         times,
@@ -40,8 +40,8 @@ class BunchSchedulingExecutionResourceUsage<
         timeWindow: TimeWindow,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
-        name : String
-    ): this(
+        name: String
+    ) : this(
         timeWindow,
         resources,
         emptyList(),
@@ -121,9 +121,9 @@ class BunchSchedulingExecutionResourceUsage<
 }
 
 class BunchSchedulingConnectionResourceUsage<
-    out R : ConnectionResource<C>,
-    out C : ResourceCapacity
-> private constructor(
+        out R : ConnectionResource<C>,
+        out C : ResourceCapacity
+        > private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
     times: List<TimeRange>,
@@ -135,7 +135,7 @@ class BunchSchedulingConnectionResourceUsage<
         resources: List<R>,
         times: List<TimeRange>,
         name: String
-    ): this(
+    ) : this(
         timeWindow,
         resources,
         times,
@@ -147,8 +147,8 @@ class BunchSchedulingConnectionResourceUsage<
         timeWindow: TimeWindow,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
-        name : String
-    ): this(
+        name: String
+    ) : this(
         timeWindow,
         resources,
         emptyList(),
@@ -173,10 +173,8 @@ class BunchSchedulingConnectionResourceUsage<
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity
-                                ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity
-                                ?: Flt64.zero)
+                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity ?: Flt64.zero)
                         ).value!!
                     )
                 }
@@ -245,7 +243,7 @@ class BunchSchedulingStorageResourceUsage<
         resources: List<R>,
         times: List<TimeRange>,
         name: String
-    ): this(
+    ) : this(
         timeWindow,
         executors,
         resources,
@@ -259,8 +257,8 @@ class BunchSchedulingStorageResourceUsage<
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
-        name : String
-    ): this(
+        name: String
+    ) : this(
         timeWindow,
         executors,
         resources,

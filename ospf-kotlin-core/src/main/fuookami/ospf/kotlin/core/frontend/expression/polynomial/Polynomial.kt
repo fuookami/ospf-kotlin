@@ -94,40 +94,40 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
         }
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.value(tokenList, zeroIfNone)
+            val thisValue = monomial.evaluate(tokenList, zeroIfNone)
                 ?: return null
             ret += thisValue
         }
         return ret
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.value(results, tokenList, zeroIfNone)
+            val thisValue = monomial.evaluate(results, tokenList, zeroIfNone)
                 ?: return null
             ret += thisValue
         }
         return ret
     }
 
-    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.value(tokenTable, zeroIfNone)
+            val thisValue = monomial.evaluate(tokenTable, zeroIfNone)
                 ?: return null
             ret += thisValue
         }
         return ret
     }
 
-    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.value(results, tokenTable, zeroIfNone)
+            val thisValue = monomial.evaluate(results, tokenTable, zeroIfNone)
                 ?: return null
             ret += thisValue
         }

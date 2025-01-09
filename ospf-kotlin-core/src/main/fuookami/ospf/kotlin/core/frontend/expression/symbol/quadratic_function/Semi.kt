@@ -71,10 +71,10 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         flag?.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.value(tokenTable) ?: return
+            val xValue = x.evaluate(tokenTable) ?: return
 
             val bin = if (flag != null) {
-                (flag.value(tokenTable) ?: return) gr Flt64.zero
+                (flag.evaluate(tokenTable) ?: return) gr Flt64.zero
             } else {
                 val bin = xValue gr Flt64.zero
                 logger.trace { "Setting SemiFunction ${name}.u to $bin" }
@@ -222,11 +222,11 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         return "semi(${x.toRawString(unfold)}})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return if (flag != null) {
-            val flagValue = flag.value(tokenList, zeroIfNone) ?: return null
+            val flagValue = flag.evaluate(tokenList, zeroIfNone) ?: return null
             if (flagValue neq Flt64.zero) {
-                x.value(tokenList, zeroIfNone)
+                x.evaluate(tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -238,18 +238,18 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return null
                 }
             if (flagValue neq Flt64.zero) {
-                x.value(tokenList, zeroIfNone)
+                x.evaluate(tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return if (flag != null) {
-            val flagValue = flag.value(results, tokenList, zeroIfNone) ?: return null
+            val flagValue = flag.evaluate(results, tokenList, zeroIfNone) ?: return null
             if (flagValue neq Flt64.zero) {
-                x.value(results, tokenList, zeroIfNone)
+                x.evaluate(results, tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -261,7 +261,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return null
                 }
             if (flagValue neq Flt64.zero) {
-                x.value(results, tokenList, zeroIfNone)
+                x.evaluate(results, tokenList, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -270,9 +270,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (flag != null) {
-            val flagValue = flag.value(tokenTable, zeroIfNone) ?: return null
+            val flagValue = flag.evaluate(tokenTable, zeroIfNone) ?: return null
             if (flagValue neq Flt64.zero) {
-                x.value(tokenTable, zeroIfNone)
+                x.evaluate(tokenTable, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -284,7 +284,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return null
                 }
             if (flagValue neq Flt64.zero) {
-                x.value(tokenTable, zeroIfNone)
+                x.evaluate(tokenTable, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -293,9 +293,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (flag != null) {
-            val flagValue = flag.value(results, tokenTable, zeroIfNone) ?: return null
+            val flagValue = flag.evaluate(results, tokenTable, zeroIfNone) ?: return null
             if (flagValue neq Flt64.zero) {
-                x.value(results, tokenTable, zeroIfNone)
+                x.evaluate(results, tokenTable, zeroIfNone)
             } else {
                 Flt64.zero
             }
@@ -307,7 +307,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                     return null
                 }
             if (flagValue neq Flt64.zero) {
-                x.value(results, tokenTable, zeroIfNone)
+                x.evaluate(results, tokenTable, zeroIfNone)
             } else {
                 Flt64.zero
             }

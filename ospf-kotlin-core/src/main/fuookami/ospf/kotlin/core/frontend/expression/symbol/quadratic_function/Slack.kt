@@ -166,8 +166,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         y.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.value(tokenTable) ?: return
-            val yValue = y.value(tokenTable) ?: return
+            val xValue = x.evaluate(tokenTable) ?: return
+            val yValue = y.evaluate(tokenTable) ?: return
             val negValue = max(Flt64.zero, yValue - xValue)
             val posValue = max(Flt64.zero, xValue - yValue)
 
@@ -264,9 +264,9 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         return "slack(${x.toRawString(unfold)}, ${y.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(tokenList, zeroIfNone) ?: return null
-        val yValue = y.value(tokenList, zeroIfNone) ?: return null
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.evaluate(tokenList, zeroIfNone) ?: return null
+        val yValue = y.evaluate(tokenList, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {
@@ -278,9 +278,9 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(results, tokenList, zeroIfNone) ?: return null
-        val yValue = y.value(results, tokenList, zeroIfNone) ?: return null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val yValue = y.evaluate(results, tokenList, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {
@@ -293,8 +293,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(tokenTable, zeroIfNone) ?: return null
-        val yValue = y.value(tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(tokenTable, zeroIfNone) ?: return null
+        val yValue = y.evaluate(tokenTable, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {
@@ -307,8 +307,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val xValue = x.value(results, tokenTable, zeroIfNone) ?: return null
-        val yValue = y.value(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val yValue = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {

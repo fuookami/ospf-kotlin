@@ -60,6 +60,7 @@ class BranchAndPriceAlgorithm<
 
     private val fixedBunches = HashSet<B>()
     private val keptBunches = HashSet<B>()
+    private var lastKeptBunches: kotlin.collections.Map<B, Flt64> = emptyMap()
     private val hiddenExecutors = HashSet<E>()
 
     private var mainProblemSolvingTimes: UInt64 = UInt64.zero
@@ -617,16 +618,27 @@ class BranchAndPriceAlgorithm<
         iteration: UInt64,
         model: AbstractLinearMetaModel
     ): Try {
-        return when (val result = context.extractKeptBunches(iteration, model)) {
+        when (val result = context.extractKeptBunches(iteration, model)) {
             is Ok -> {
                 keptBunches.addAll(result.value)
-                ok
             }
 
             is Failed -> {
-                Failed(result.error)
+                return Failed(result.error)
             }
         }
+
+        when (val result = context.extractKeptBunchesWithRatio(iteration, model)) {
+            is Ok -> {
+                lastKeptBunches = result.value
+            }
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
     }
 
     private fun hideExecutors(model: AbstractLinearMetaModel): Try {

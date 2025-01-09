@@ -43,7 +43,7 @@ class ExecutorCompilationConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
+                    if (args.task == null) {
                         map.map[ExecutorCompilationShadowPriceKey(args.executor)]?.price ?: Flt64.zero
                     } else {
                         Flt64.zero
@@ -51,7 +51,7 @@ class ExecutorCompilationConstraint<
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null && args.prevTask != null) {
+                    if (args.task == null && args.prevTask == null) {
                         map.map[ExecutorCompilationShadowPriceKey(args.executor)]?.price ?: Flt64.zero
                     } else {
                         Flt64.zero

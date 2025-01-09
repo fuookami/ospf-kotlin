@@ -54,7 +54,7 @@ class LinearFunction(
         polynomial.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            polynomial.value(tokenTable)?.let { yValue ->
+            polynomial.evaluate(tokenTable)?.let { yValue ->
                 if (polynomial.category != Linear) {
                     logger.trace { "Setting LinearFunction ${name}.y initial solution: $yValue" }
                     tokenTable.find(y)?.let { token ->
@@ -106,19 +106,19 @@ class LinearFunction(
         return "linear(${polynomial.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomial.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomial.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomial.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomial.evaluate(results, tokenList, zeroIfNone)
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomial.value(tokenTable, zeroIfNone)
+        return polynomial.evaluate(tokenTable, zeroIfNone)
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomial.value(results, tokenTable, zeroIfNone)
+        return polynomial.evaluate(results, tokenTable, zeroIfNone)
     }
 }

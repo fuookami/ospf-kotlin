@@ -22,9 +22,9 @@ interface Compilation {
     val y: BinVariable1
     val z: BinVariable1
 
-    val taskAssignment: LinearSymbols2
-    val taskCompilation: LinearSymbols1
-    val executorCompilation: LinearSymbols1
+    val taskAssignment: LinearIntermediateSymbols2
+    val taskCompilation: LinearIntermediateSymbols1
+    val executorCompilation: LinearIntermediateSymbols1
 
     fun register(model: MetaModel): Try
 }
@@ -44,9 +44,9 @@ class TaskCompilation<
     override lateinit var y: BinVariable1
     override lateinit var z: BinVariable1
 
-    override lateinit var taskAssignment: LinearSymbols2
-    override lateinit var taskCompilation: LinearSymbols1
-    override lateinit var executorCompilation: LinearSymbols1
+    override lateinit var taskAssignment: LinearIntermediateSymbols2
+    override lateinit var taskCompilation: LinearIntermediateSymbols1
+    override lateinit var executorCompilation: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (!::x.isInitialized) {
@@ -168,7 +168,7 @@ class TaskCompilation<
 
         if (!::executorCompilation.isInitialized) {
             try {
-                executorCompilation = LinearSymbols1(
+                executorCompilation = LinearIntermediateSymbols1(
                     "executor_compilation",
                     Shape1(executors.size)
                 ) { i, _ ->

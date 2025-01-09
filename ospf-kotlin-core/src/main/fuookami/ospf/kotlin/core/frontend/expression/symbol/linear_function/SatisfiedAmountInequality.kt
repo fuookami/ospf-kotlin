@@ -218,7 +218,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
             if (inequality.isTrue(tokenList, zeroIfNone) ?: return null) {
@@ -236,7 +236,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
             if (inequality.isTrue(results, tokenList, zeroIfNone) ?: return null) {
