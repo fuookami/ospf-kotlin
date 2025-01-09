@@ -10,8 +10,14 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : ResourceCapacity>(
-    val slot: ResourceTimeSlot<R, C>
-) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class)
+    val slot: ResourceTimeSlot<R, C>,
+    val bound: Bound? = null
+) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class) {
+    enum class Bound {
+        Lower,
+        Upper
+    }
+}
 
 class ResourceCapacityConstraint<
     Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -117,18 +123,26 @@ class ResourceCapacityConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    val slots = usage.timeSlots.filter {
-                        it.relatedTo(null, args.task)
+                    val lowerBoundSlots = usage.timeSlots.filter {
+                        it.relatedToLowerBound(null, args.task)
                     }
-                    slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                    val upperBoundSlots = usage.timeSlots.filter {
+                        it.relatedToUpperBound(null, args.task)
+                    }
+                    lowerBoundSlots.sumOf { map[ResourceCapacityShadowPriceKey(it, ResourceCapacityShadowPriceKey.Bound.Lower)]?.price ?: Flt64.zero } +
+                            upperBoundSlots.sumOf { map[ResourceCapacityShadowPriceKey(it, ResourceCapacityShadowPriceKey.Bound.Upper)]?.price ?: Flt64.zero }
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     if (args.task != null) {
-                        val slots = usage.timeSlots.filter {
-                            it.relatedTo(args.prevTask, args.task)
+                        val lowerBoundSlots = usage.timeSlots.filter {
+                            it.relatedToLowerBound(null, args.task)
                         }
-                        slots.sumOf { map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        val upperBoundSlots = usage.timeSlots.filter {
+                            it.relatedToUpperBound(null, args.task)
+                        }
+                        lowerBoundSlots.sumOf { map[ResourceCapacityShadowPriceKey(it, ResourceCapacityShadowPriceKey.Bound.Lower)]?.price ?: Flt64.zero } +
+                                upperBoundSlots.sumOf { map[ResourceCapacityShadowPriceKey(it, ResourceCapacityShadowPriceKey.Bound.Upper)]?.price ?: Flt64.zero }
                     } else {
                         Flt64.zero
                     }
@@ -146,7 +160,7 @@ class ResourceCapacityConstraint<
         model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
-        val thisShadowPrices = HashMap<ResourceTimeSlot<R, C>, Flt64>()
+        val thisShadowPrices = HashMap<Pair<ResourceTimeSlot<R, C>, ResourceCapacityShadowPriceKey.Bound>, Flt64>()
         val indices = model.indicesOfConstraintGroup(name)
             ?: model.constraints.indices
         val iteratorLb = usage.timeSlots.iterator()
@@ -154,12 +168,14 @@ class ResourceCapacityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val slot = iteratorLb.next()
-                thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + shadowPrices[j]
+                thisShadowPrices[slot to ResourceCapacityShadowPriceKey.Bound.Lower] =
+                    (thisShadowPrices[slot to ResourceCapacityShadowPriceKey.Bound.Lower] ?: Flt64.zero) + shadowPrices[j]
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val slot = iteratorUb.next()
-                thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + shadowPrices[j]
+                thisShadowPrices[slot to ResourceCapacityShadowPriceKey.Bound.Upper] =
+                    (thisShadowPrices[slot to ResourceCapacityShadowPriceKey.Bound.Upper] ?: Flt64.zero) + shadowPrices[j]
             }
 
             if (!iteratorLb.hasNext() && !iteratorUb.hasNext()) {
@@ -167,7 +183,7 @@ class ResourceCapacityConstraint<
             }
         }
         for ((slot, value) in thisShadowPrices) {
-            map.put(ShadowPrice(ResourceCapacityShadowPriceKey(slot), value))
+            map.put(ShadowPrice(ResourceCapacityShadowPriceKey(slot.first, slot.second), value))
         }
 
         return ok
