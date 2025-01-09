@@ -1,7 +1,14 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 interface Load {
     val load: LinearSymbols1
@@ -10,4 +17,76 @@ interface Load {
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
+}
+
+abstract class AbstractLoad : Load {
+    override lateinit var overLoad: LinearSymbols1
+    override lateinit var lessLoad: LinearSymbols1
+
+    open fun register(model: MetaModel): Try {
+        TODO("not implemented yet")
+    }
+}
+
+class ImpreciseLoad(
+    private val items: Map<Item, UInt64>,
+    private val assignment: ImpreciseAssignment,
+    override val overEnabled: Boolean = true,
+    override val lessEnabled: Boolean = true
+) : AbstractLoad() {
+    override lateinit var load: LinearExpressionSymbols1
+
+    override fun register(model: MetaModel): Try {
+        if (!::load.isInitialized) {
+            load = LinearExpressionSymbols1("load", Shape1(items.size)) { i, _ ->
+                LinearExpressionSymbol(LinearPolynomial(), "load_$i")
+            }
+        }
+        when (val result = model.add(load)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return super.register(model)
+    }
+
+    suspend fun addColumns(
+        iteration: UInt64,
+        newLayers: List<BinLayer>,
+        model: AbstractLinearMetaModel
+    ): Ret<List<BinLayer>> {
+        TODO("not implemented yet")
+    }
+}
+
+class PreciseLoad(
+    private val items: List<Pair<Item, UInt64>>,
+    private val assignment: PreciseAssignment,
+    override val overEnabled: Boolean = false,
+    override val lessEnabled: Boolean = true
+) : AbstractLoad() {
+    override lateinit var load: LinearSymbols1
+
+    override fun register(model: MetaModel): Try {
+        if (!::load.isInitialized) {
+            load = LinearExpressionSymbols1("load", Shape1(items.size)) { i, _ ->
+                LinearExpressionSymbol(
+                    sum(assignment.layers.map { it.amount(items[i].first) * assignment.x[it] }),
+                    "load_$i"
+                )
+            }
+        }
+        when (val result = model.add(load)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return super.register(model)
+    }
 }
