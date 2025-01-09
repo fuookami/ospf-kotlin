@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.32</version>
+        <version>1.0.35</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -160,6 +160,11 @@
                         <artifactId>kotlin-stdlib</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlinx</groupId>
+                <artifactId>kotlinx-coroutines-jdk8</artifactId>
+                <version>${kotlinx-coroutines.version}</version>
             </dependency>
             <!-- annotations -->
             <dependency>

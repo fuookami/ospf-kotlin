@@ -29,6 +29,20 @@ interface ResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
+        return relatedToLowerBound(prevTask, task) || relatedToUpperBound(prevTask, task)
+    }
+
+    fun <E : Executor, A : AssignmentPolicy<E>> relatedToLowerBound(
+        prevTask: AbstractTask<E, A>?,
+        task: AbstractTask<E, A>?
+    ): Boolean {
+        return false
+    }
+
+    fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
+        prevTask: AbstractTask<E, A>?,
+        task: AbstractTask<E, A>?
+    ): Boolean {
         return false
     }
 
@@ -157,7 +171,7 @@ data class ConnectionResourceTimeSlot<
         return resource.usedBy(prevTask, task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
@@ -282,7 +296,7 @@ data class ExecutionResourceTimeSlot<
         return resource.usedBy(task)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
@@ -412,14 +426,18 @@ data class StorageResourceTimeSlot<
         return resource.supplyBy(task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
-        return task != null
-                && (resource.costBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
-                    || resource.supplyBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
-                )
+        return task != null && resource.supplyBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
+    }
+
+    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToLowerBound(
+        prevTask: AbstractTask<E, A>?,
+        task: AbstractTask<E, A>?
+    ): Boolean {
+        return task != null && resource.costBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"
