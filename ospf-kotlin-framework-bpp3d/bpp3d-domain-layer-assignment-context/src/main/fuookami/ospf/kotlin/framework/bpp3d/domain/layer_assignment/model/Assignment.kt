@@ -5,6 +5,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 class ImpreciseAssignment(
@@ -17,7 +20,20 @@ class ImpreciseAssignment(
     private val _x = ArrayList<UIntVariable1>()
     val x: List<UIntVariable1> by ::_x
 
+    lateinit var volume: LinearExpressionSymbol
+
     fun register(model: MetaModel): Try {
+        if (!::volume.isInitialized) {
+            volume = LinearExpressionSymbol(LinearPolynomial(), "volume")
+        }
+        when (val result = model.add(volume)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
         return ok
     }
 
@@ -50,13 +66,50 @@ class ImpreciseAssignment(
             }
         }
 
+        if (unduplicatedLayers.isEmpty()) {
+            return Ok(emptyList())
+        }
+
+        volume.flush()
+        volume.asMutable() += sum(unduplicatedLayers.map { it.volume * xi[it] })
+
         return Ok(unduplicatedLayers)
     }
 }
 
 class PreciseAssignment(
-    private val items: Map<Item, UInt64>,
-    val layers: List<BinLayer>
+    private val bins: List<Bin<BinLayer>>,
+    private val layers: List<BinLayer>
 ) {
-    lateinit var x: UIntVariable1
+    lateinit var x: UIntVariable2
+
+    fun register(model: MetaModel): Try {
+        if (!::x.isInitialized) {
+            x = UIntVariable2("x", Shape2(bins.size, layers.size))
+            for ((i, bin) in bins.withIndex()) {
+                for ((j, layer) in layers.withIndex()) {
+                    if (layer.bin != bin.shape || !bin.enabled(layer)) {
+                        x[i, j].range.eq(UInt64.zero)
+                    } else {
+                        x[i, j].range.leq((bin.depth / layer.depth).ceil().toUInt64())
+                    }
+                }
+            }
+        }
+        for ((i, bin) in bins.withIndex()) {
+            for ((j, layer) in layers.withIndex()) {
+                if (layer.bin == bin.shape && bin.enabled(layer)) {
+                    when (val result = model.add(x[i, j])) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                }
+            }
+        }
+
+        return ok
+    }
 }

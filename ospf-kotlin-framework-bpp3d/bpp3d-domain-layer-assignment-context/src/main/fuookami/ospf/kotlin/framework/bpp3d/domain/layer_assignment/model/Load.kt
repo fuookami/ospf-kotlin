@@ -29,7 +29,7 @@ abstract class AbstractLoad : Load {
 }
 
 class ImpreciseLoad(
-    private val items: Map<Item, UInt64>,
+    private val items: List<Pair<Item, UInt64>>,
     private val assignment: ImpreciseAssignment,
     override val overEnabled: Boolean = true,
     override val lessEnabled: Boolean = true
@@ -58,12 +58,26 @@ class ImpreciseLoad(
         newLayers: List<BinLayer>,
         model: AbstractLinearMetaModel
     ): Ret<List<BinLayer>> {
-        TODO("not implemented yet")
+        assert(newLayers.isNotEmpty())
+
+        val xi = assignment.x[iteration.toInt()]
+
+        for ((i, item) in items.withIndex()) {
+            val thisLayers = newLayers.filter { it.amount(item.first) != UInt64.zero }
+            if (thisLayers.isNotEmpty()) {
+                val thisLoad = load[i]
+                thisLoad.flush()
+                thisLoad.asMutable() += sum(thisLayers.map { it.amount(item.first) * xi[it] })
+            }
+        }
+
+        return Ok(newLayers)
     }
 }
 
 class PreciseLoad(
     private val items: List<Pair<Item, UInt64>>,
+    private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = true
@@ -74,7 +88,7 @@ class PreciseLoad(
         if (!::load.isInitialized) {
             load = LinearExpressionSymbols1("load", Shape1(items.size)) { i, _ ->
                 LinearExpressionSymbol(
-                    sum(assignment.layers.map { it.amount(items[i].first) * assignment.x[it] }),
+                    sum(layers.map { it.amount(items[i].first) * assignment.x[it] }),
                     "load_$i"
                 )
             }
