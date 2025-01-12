@@ -30,20 +30,5 @@
             <artifactId>ospf-kotlin-framework</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>
