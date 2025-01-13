@@ -9,6 +9,10 @@ data class SolverConfig(
     val time: Duration = 30.seconds,
     val threadNum: UInt64 = if (Runtime.getRuntime().availableProcessors() <= 16) {
         UInt64(Runtime.getRuntime().availableProcessors())
+    } else if (Runtime.getRuntime().availableProcessors() < 24) {
+        UInt64(16)
+    } else if (Runtime.getRuntime().availableProcessors() < 32) {
+        UInt64(24)
     } else {
         UInt64(32)
     },
