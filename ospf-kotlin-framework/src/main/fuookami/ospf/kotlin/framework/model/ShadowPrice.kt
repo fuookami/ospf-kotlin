@@ -41,6 +41,10 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
     fun remove(key: ShadowPriceKey) {
         _map.remove(key)
     }
+
+    fun shrink() {
+        _map.entries.removeIf { it.value.price eq Flt64.zero }
+    }
 }
 
 fun <Args : Any, Model : MetaModel, Map : AbstractShadowPriceMap<Args, Map>> extractShadowPrice(
