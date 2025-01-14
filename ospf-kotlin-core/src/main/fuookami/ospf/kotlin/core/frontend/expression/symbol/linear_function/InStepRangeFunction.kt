@@ -20,8 +20,8 @@ class InStepRangeFunction(
     private val lb = lowerBound
     private val ub = upperBound
 
-    private val q: FloorFunction by lazy {
-        FloorFunction(
+    private val q: Floor by lazy {
+        Floor(
             upperBound - lowerBound,
             step,
             name = "${name}_intDiv_$step"

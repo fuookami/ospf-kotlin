@@ -29,21 +29,14 @@ interface ResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
-        return relatedToLowerBound(prevTask, task) || relatedToUpperBound(prevTask, task)
+        return relationTo(prevTask, task) neq Flt64.zero
     }
 
-    fun <E : Executor, A : AssignmentPolicy<E>> relatedToLowerBound(
+    fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return false
-    }
-
-    fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
-        prevTask: AbstractTask<E, A>?,
-        task: AbstractTask<E, A>?
-    ): Boolean {
-        return false
+    ): Flt64 {
+        return Flt64.zero
     }
 
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
@@ -171,11 +164,11 @@ data class ConnectionResourceTimeSlot<
         return resource.usedBy(prevTask, task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return usedBy(prevTask, task) neq Flt64.zero
+    ): Flt64 {
+        return usedBy(prevTask, task)
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"
@@ -292,15 +285,21 @@ data class ExecutionResourceTimeSlot<
     override val time: TimeRange,
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C>, AutoIndexed(ExecutionResourceTimeSlot::class) {
-    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): Flt64 {
-        return resource.usedBy(task)
+    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
+        task: AbstractTask<E, A>
+    ): Flt64 {
+        return resource.usedBy(task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return task != null && usedBy(task) neq Flt64.zero
+    ): Flt64 {
+        return if (task != null) {
+            usedBy(task)
+        } else {
+            Flt64.zero
+        }
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"
@@ -426,18 +425,25 @@ data class StorageResourceTimeSlot<
         return resource.supplyBy(task, time)
     }
 
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToUpperBound(
+    override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Boolean {
-        return task != null && resource.supplyBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
-    }
-
-    override fun <E : Executor, A : AssignmentPolicy<E>> relatedToLowerBound(
-        prevTask: AbstractTask<E, A>?,
-        task: AbstractTask<E, A>?
-    ): Boolean {
-        return task != null && resource.costBy(task, TimeRange(task.time!!.start, timeWindow.end)) neq Flt64.zero
+    ): Flt64 {
+        return if (task != null) {
+            val timeRange = TimeRange(
+                min(
+                    task.time!!.start,
+                    time.start
+                ),
+                min(
+                    task.time!!.end,
+                    time.end
+                )
+            )
+            resource.supplyBy(task, timeRange) + resource.costBy(task, timeRange)
+        } else {
+            Flt64.zero
+        }
     }
 
     override fun toString() = "${resource}_${resourceCapacity}_${indexInRule}"

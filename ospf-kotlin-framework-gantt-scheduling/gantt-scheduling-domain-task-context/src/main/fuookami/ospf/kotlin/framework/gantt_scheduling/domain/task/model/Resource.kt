@@ -39,7 +39,8 @@ abstract class ExecutionResource<out C : ResourceCapacity>(
     override val initialQuantity: Flt64 = Flt64.zero
 ) : Resource<C>() {
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
-        task: T
+        task: T,
+        time: TimeRange
     ): Flt64
 
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
@@ -48,7 +49,7 @@ abstract class ExecutionResource<out C : ResourceCapacity>(
     ): Flt64 {
         var counter = Flt64.zero
         for (i in bunch.tasks.indices) {
-            counter += usedBy(bunch[i])
+            counter += usedBy(bunch[i], time)
         }
         return counter
     }

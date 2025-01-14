@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class CeilingFunction(
+class Ceiling(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
     override var name: String = "ceil_${x}_${d}",
