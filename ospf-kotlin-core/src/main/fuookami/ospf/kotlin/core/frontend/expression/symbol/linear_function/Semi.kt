@@ -394,7 +394,7 @@ class SemiURealFunction(
 
     constructor(
         polynomial: AbstractLinearPolynomial<*>,
-        flag: BinVar,
+        flag: AbstractVariableItem<*, Binary>,
         name: String,
         displayName: String? = null
     ) : this(polynomial, LinearPolynomial(flag), name, displayName)

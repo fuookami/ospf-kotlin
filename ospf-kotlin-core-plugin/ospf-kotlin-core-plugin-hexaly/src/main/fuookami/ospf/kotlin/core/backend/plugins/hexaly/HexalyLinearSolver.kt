@@ -145,7 +145,6 @@ private class HexalyLinearSolverImpl(
                             hexalyModel.constraint(constraint)
                             constraint
                         }
-                        System.gc()
                         result
                     }
                 } else {
@@ -174,6 +173,7 @@ private class HexalyLinearSolverImpl(
                     }
                 }
             }
+            System.gc()
             hexalyConstraints = constraints
 
             val obj = hexalyModel.sum()

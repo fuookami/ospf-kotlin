@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -11,17 +10,17 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 interface Load {
-    val load: LinearSymbols1
-    val overLoad: LinearSymbols1
-    val lessLoad: LinearSymbols1
+    val load: LinearIntermediateSymbols1
+    val overLoad: LinearIntermediateSymbols1
+    val lessLoad: LinearIntermediateSymbols1
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
 }
 
 abstract class AbstractLoad : Load {
-    override lateinit var overLoad: LinearSymbols1
-    override lateinit var lessLoad: LinearSymbols1
+    override lateinit var overLoad: LinearIntermediateSymbols1
+    override lateinit var lessLoad: LinearIntermediateSymbols1
 
     open fun register(model: MetaModel): Try {
         TODO("not implemented yet")
@@ -82,7 +81,7 @@ class PreciseLoad(
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = true
 ) : AbstractLoad() {
-    override lateinit var load: LinearSymbols1
+    override lateinit var load: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (!::load.isInitialized) {

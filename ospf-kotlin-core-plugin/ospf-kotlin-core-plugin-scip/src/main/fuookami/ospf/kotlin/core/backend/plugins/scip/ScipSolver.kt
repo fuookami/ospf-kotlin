@@ -25,6 +25,7 @@ abstract class ScipSolver {
         }
 
         private val winLibraries = listOf("tbb", "libscip", "jscip")
+        private val unixLibraries = listOf("libgcg", "libgmp", "libpthread", "libgfortran", "libquadmath", "libopenblas", "libtbb", "libsplexshared", "libscip", "libjscip")
 
         fun loadLibraryInJar() {
             val systemType = System.getProperty("os.name")
@@ -37,8 +38,10 @@ abstract class ScipSolver {
             }
             val libs = if (systemType.lowercase(Locale.getDefault()).indexOf("win") != -1) {
                 winLibraries
-            } else {
+            } else if (systemType.lowercase(Locale.getDefault()).indexOf("mac") != -1) {
                 emptyList()
+            } else {
+                unixLibraries
             }
 
             for (lib in libs) {

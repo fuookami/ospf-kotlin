@@ -166,7 +166,6 @@ private class CoptQuadraticSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        System.gc()
                         result
                     }
                 } else {
@@ -188,6 +187,7 @@ private class CoptQuadraticSolverImpl(
                     }
                 }
             }
+            System.gc()
             coptConstraints = constraints
 
             val obj = QuadExpr()

@@ -10,30 +10,30 @@ class SymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
     ctor: (Int, IntArray) -> Sym
 ) : MultiArray<Sym, S>(shape, ctor)
 
-typealias Symbols = MultiArray<IntermediateSymbol, *>
-typealias Symbols1 = MultiArray<IntermediateSymbol, Shape1>
-typealias Symbols2 = MultiArray<IntermediateSymbol, Shape2>
-typealias Symbols3 = MultiArray<IntermediateSymbol, Shape3>
-typealias Symbols4 = MultiArray<IntermediateSymbol, Shape4>
-typealias DynSymbols = MultiArray<IntermediateSymbol, DynShape>
-typealias SymbolView = MultiArrayView<IntermediateSymbol, *>
-typealias SymbolView1 = MultiArrayView<IntermediateSymbol, Shape1>
-typealias SymbolView2 = MultiArrayView<IntermediateSymbol, Shape2>
-typealias SymbolView3 = MultiArrayView<IntermediateSymbol, Shape3>
-typealias SymbolView4 = MultiArrayView<IntermediateSymbol, Shape4>
-typealias DynSymbolView = MultiArrayView<IntermediateSymbol, DynShape>
+typealias IntermediateSymbols = MultiArray<IntermediateSymbol, *>
+typealias IntermediateSymbols1 = MultiArray<IntermediateSymbol, Shape1>
+typealias IntermediateSymbols2 = MultiArray<IntermediateSymbol, Shape2>
+typealias IntermediateSymbols3 = MultiArray<IntermediateSymbol, Shape3>
+typealias IntermediateSymbols4 = MultiArray<IntermediateSymbol, Shape4>
+typealias DynIntermediateSymbols = MultiArray<IntermediateSymbol, DynShape>
+typealias IntermediateSymbolView = MultiArrayView<IntermediateSymbol, *>
+typealias IntermediateSymbolView1 = MultiArrayView<IntermediateSymbol, Shape1>
+typealias IntermediateSymbolView2 = MultiArrayView<IntermediateSymbol, Shape2>
+typealias IntermediateSymbolView3 = MultiArrayView<IntermediateSymbol, Shape3>
+typealias IntermediateSymbolView4 = MultiArrayView<IntermediateSymbol, Shape4>
+typealias DynIntermediateSymbolView = MultiArrayView<IntermediateSymbol, DynShape>
 
-typealias LinearSymbols1 = SymbolCombination<LinearIntermediateSymbol, Shape1>
-typealias LinearSymbols2 = SymbolCombination<LinearIntermediateSymbol, Shape2>
-typealias LinearSymbols3 = SymbolCombination<LinearIntermediateSymbol, Shape3>
-typealias LinearSymbols4 = SymbolCombination<LinearIntermediateSymbol, Shape4>
-typealias DynLinearSymbols = SymbolCombination<LinearIntermediateSymbol, DynShape>
+typealias LinearIntermediateSymbols1 = SymbolCombination<LinearIntermediateSymbol, Shape1>
+typealias LinearIntermediateSymbols2 = SymbolCombination<LinearIntermediateSymbol, Shape2>
+typealias LinearIntermediateSymbols3 = SymbolCombination<LinearIntermediateSymbol, Shape3>
+typealias LinearIntermediateSymbols4 = SymbolCombination<LinearIntermediateSymbol, Shape4>
+typealias DynLinearIntermediateSymbols = SymbolCombination<LinearIntermediateSymbol, DynShape>
 
-typealias QuadraticSymbols1 = SymbolCombination<QuadraticIntermediateSymbol, Shape1>
-typealias QuadraticSymbols2 = SymbolCombination<QuadraticIntermediateSymbol, Shape2>
-typealias QuadraticSymbols3 = SymbolCombination<QuadraticIntermediateSymbol, Shape3>
-typealias QuadraticSymbols4 = SymbolCombination<QuadraticIntermediateSymbol, Shape4>
-typealias DynQuadraticSymbols = SymbolCombination<QuadraticIntermediateSymbol, DynShape>
+typealias QuadraticIntermediateSymbols1 = SymbolCombination<QuadraticIntermediateSymbol, Shape1>
+typealias QuadraticIntermediateSymbols2 = SymbolCombination<QuadraticIntermediateSymbol, Shape2>
+typealias QuadraticIntermediateSymbols3 = SymbolCombination<QuadraticIntermediateSymbol, Shape3>
+typealias QuadraticIntermediateSymbols4 = SymbolCombination<QuadraticIntermediateSymbol, Shape4>
+typealias DynQuadraticIntermediateSymbols = SymbolCombination<QuadraticIntermediateSymbol, DynShape>
 
 typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbol, Shape1>
 typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbol, Shape2>
@@ -59,19 +59,19 @@ typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticFunctionSymbol,
 typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticFunctionSymbol, Shape4>
 typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticFunctionSymbol, DynShape>
 
-typealias LinearSymbolView1 = MultiArrayView<LinearIntermediateSymbol, Shape1>
-typealias LinearSymbolView2 = MultiArrayView<LinearIntermediateSymbol, Shape2>
-typealias LinearSymbolView3 = MultiArrayView<LinearIntermediateSymbol, Shape3>
-typealias LinearSymbolView4 = MultiArrayView<LinearIntermediateSymbol, Shape4>
-typealias DynLinearSymbolView = MultiArrayView<LinearIntermediateSymbol, DynShape>
+typealias LinearIntermediateSymbolView1 = MultiArrayView<LinearIntermediateSymbol, Shape1>
+typealias LinearIntermediateSymbolView2 = MultiArrayView<LinearIntermediateSymbol, Shape2>
+typealias LinearIntermediateSymbolView3 = MultiArrayView<LinearIntermediateSymbol, Shape3>
+typealias LinearIntermediateSymbolView4 = MultiArrayView<LinearIntermediateSymbol, Shape4>
+typealias DynLinearIntermediateSymbolView = MultiArrayView<LinearIntermediateSymbol, DynShape>
 
-typealias QuadraticSymbolView1 = MultiArrayView<QuadraticIntermediateSymbol, Shape1>
-typealias QuadraticSymbolView2 = MultiArrayView<QuadraticIntermediateSymbol, Shape2>
-typealias QuadraticSymbolView3 = MultiArrayView<QuadraticIntermediateSymbol, Shape3>
-typealias QuadraticSymbolView4 = MultiArrayView<QuadraticIntermediateSymbol, Shape4>
-typealias DynQuadraticSymbolView = MultiArrayView<QuadraticIntermediateSymbol, DynShape>
+typealias QuadraticIntermediateSymbolView1 = MultiArrayView<QuadraticIntermediateSymbol, Shape1>
+typealias QuadraticIntermediateSymbolView2 = MultiArrayView<QuadraticIntermediateSymbol, Shape2>
+typealias QuadraticIntermediateSymbolView3 = MultiArrayView<QuadraticIntermediateSymbol, Shape3>
+typealias QuadraticIntermediateSymbolView4 = MultiArrayView<QuadraticIntermediateSymbol, Shape4>
+typealias DynQuadraticIntermediateSymbolView = MultiArrayView<QuadraticIntermediateSymbol, DynShape>
 
-data object LinearSymbols {
+data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape1
@@ -146,6 +146,88 @@ data object LinearSymbols {
             ctor = { _, v ->
                 LinearExpressionSymbol(
                     MutableLinearPolynomial(),
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
+                )
+            }
+        )
+    }
+}
+
+data object QuadraticIntermediateSymbols {
+    operator fun invoke(
+        name: String,
+        shape: Shape1
+    ): QuadraticExpressionSymbols1 {
+        return SymbolCombination(
+            name = name,
+            shape = shape,
+            ctor = { _, v ->
+                QuadraticExpressionSymbol(
+                    MutableQuadraticPolynomial(),
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
+                )
+            }
+        )
+    }
+
+    operator fun invoke(
+        name: String,
+        shape: Shape2
+    ): QuadraticExpressionSymbols2 {
+        return SymbolCombination(
+            name = name,
+            shape = shape,
+            ctor = { _, v ->
+                QuadraticExpressionSymbol(
+                    MutableQuadraticPolynomial(),
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
+                )
+            }
+        )
+    }
+
+    operator fun invoke(
+        name: String,
+        shape: Shape3
+    ): QuadraticExpressionSymbols3 {
+        return SymbolCombination(
+            name = name,
+            shape = shape,
+            ctor = { _, v ->
+                QuadraticExpressionSymbol(
+                    MutableQuadraticPolynomial(),
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
+                )
+            }
+        )
+    }
+
+    operator fun invoke(
+        name: String,
+        shape: Shape4
+    ): QuadraticExpressionSymbols4 {
+        return SymbolCombination(
+            name = name,
+            shape = shape,
+            ctor = { _, v ->
+                QuadraticExpressionSymbol(
+                    MutableQuadraticPolynomial(),
+                    name = "${name}_${v.joinToString("_") { "$it" }}"
+                )
+            }
+        )
+    }
+
+    operator fun invoke(
+        name: String,
+        shape: DynShape
+    ): DynQuadraticExpressionSymbols {
+        return SymbolCombination(
+            name = name,
+            shape = shape,
+            ctor = { _, v ->
+                QuadraticExpressionSymbol(
+                    MutableQuadraticPolynomial(),
                     name = "${name}_${v.joinToString("_") { "$it" }}"
                 )
             }

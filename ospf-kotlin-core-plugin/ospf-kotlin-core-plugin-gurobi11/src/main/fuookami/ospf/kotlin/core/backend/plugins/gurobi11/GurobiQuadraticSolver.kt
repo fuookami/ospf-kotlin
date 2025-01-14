@@ -168,7 +168,6 @@ private class GurobiQuadraticSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        System.gc()
                         result
                     }
                 } else {
@@ -190,6 +189,7 @@ private class GurobiQuadraticSolverImpl(
                     }
                 }
             }
+            System.gc()
             grbConstraints = constraints
 
             val obj = GRBQuadExpr()

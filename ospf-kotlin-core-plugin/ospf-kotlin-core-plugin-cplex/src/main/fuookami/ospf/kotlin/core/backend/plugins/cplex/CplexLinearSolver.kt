@@ -146,7 +146,7 @@ private class CplexLinearSolverImpl(
                 }
                 val promises = (0..(model.constraints.size / segment)).map { i ->
                     async(Dispatchers.Default) {
-                        ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                        val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                             var lb = Flt64.negativeInfinity
                             var ub = Flt64.infinity
                             when (model.constraints.signs[ii]) {
@@ -169,6 +169,7 @@ private class CplexLinearSolverImpl(
                             }
                             ii to Triple(lb, lhs, ub)
                         }
+                        constraints
                     }
                 }
                 promises.flatMap { promise ->
@@ -178,7 +179,6 @@ private class CplexLinearSolverImpl(
                         cplex.add(constraint)
                         constraint
                     }
-                    System.gc()
                     result
                 }
             } else {

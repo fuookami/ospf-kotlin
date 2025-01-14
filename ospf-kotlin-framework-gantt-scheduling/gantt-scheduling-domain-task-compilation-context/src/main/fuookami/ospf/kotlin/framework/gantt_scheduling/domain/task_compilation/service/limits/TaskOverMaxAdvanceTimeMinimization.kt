@@ -13,11 +13,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 class TaskOverMaxAdvanceTimeMinimization<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val timeWindow: TimeWindow,
     tasks: List<T>,
     private val taskTime: TaskTime,

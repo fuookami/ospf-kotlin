@@ -154,7 +154,6 @@ private class MindOPTQuadraticSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        System.gc()
                         result
                     }
                 } else {
