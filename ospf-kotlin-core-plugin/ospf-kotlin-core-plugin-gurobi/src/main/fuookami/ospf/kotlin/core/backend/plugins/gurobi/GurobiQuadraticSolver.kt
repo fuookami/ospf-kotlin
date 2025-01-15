@@ -167,7 +167,6 @@ private class GurobiQuadraticSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        System.gc()
                         result
                     }
                 } else {

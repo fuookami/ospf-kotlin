@@ -207,7 +207,6 @@ private class ScipLinearSolverImpl(
                         scip.addCons(constraint)
                         constraint
                     }
-                    System.gc()
                     result
                 }
             } else {

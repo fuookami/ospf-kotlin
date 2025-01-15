@@ -330,7 +330,6 @@ data class LinearTriadModel(
                                 }
                                 constraints.add(lhs)
                             }
-                            System.gc()
                             constraints
                         }
                     }

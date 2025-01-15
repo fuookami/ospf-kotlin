@@ -37,7 +37,7 @@ open class BunchSchedulingTaskTime<
     private val withRedundancy get() = redundancyRange != null
 
     private lateinit var estRedundancy: Variable1<*>
-    override lateinit var estSlack: LinearSymbols1
+    override lateinit var estSlack: LinearIntermediateSymbols1
 
     override lateinit var estimateStartTime: LinearExpressionSymbols1
     override lateinit var estimateEndTime: LinearExpressionSymbols1
@@ -139,7 +139,7 @@ open class BunchSchedulingTaskTime<
         }
 
         if (!::estSlack.isInitialized) {
-            estSlack = LinearSymbols1(
+            estSlack = LinearIntermediateSymbols1(
                 "est_slack",
                 Shape1(tasks.size)
             ) { i, _ ->

@@ -162,10 +162,12 @@ data class TimeWindow(
         var current = this.start
         while (current != end) {
             val duration = min(end - current, interval)
-            timeSlots.add(TimeRange(
-                start = current,
-                end = current + duration
-            ))
+            timeSlots.add(
+                TimeRange(
+                    start = current,
+                    end = current + duration
+                )
+            )
             current += duration
         }
         timeSlots
@@ -176,10 +178,12 @@ data class TimeWindow(
         var current = start.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant()
         while (current != end) {
             val duration = min(end - current, upper.interval)
-            timeSlots.add(TimeRange(
-                start = max(start, current),
-                end = current + duration
-            ))
+            timeSlots.add(
+                TimeRange(
+                    start = max(start, current),
+                    end = current + duration
+                )
+            )
             current += duration
         }
         timeSlots

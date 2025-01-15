@@ -25,18 +25,18 @@ interface TaskTime {
     val delayLastEndTimeEnabled: Boolean
     val advanceEarliestEndTimeEnabled: Boolean
 
-    val estimateStartTime: LinearSymbols1
-    val estimateEndTime: LinearSymbols1
+    val estimateStartTime: LinearIntermediateSymbols1
+    val estimateEndTime: LinearIntermediateSymbols1
 
-    val delayTime: LinearSymbols1
-    val advanceTime: LinearSymbols1
-    val overMaxDelayTime: LinearSymbols1
-    val overMaxAdvanceTime: LinearSymbols1
-    val delayLastEndTime: LinearSymbols1
-    val advanceEarliestEndTime: LinearSymbols1
+    val delayTime: LinearIntermediateSymbols1
+    val advanceTime: LinearIntermediateSymbols1
+    val overMaxDelayTime: LinearIntermediateSymbols1
+    val overMaxAdvanceTime: LinearIntermediateSymbols1
+    val delayLastEndTime: LinearIntermediateSymbols1
+    val advanceEarliestEndTime: LinearIntermediateSymbols1
 
-    val onTime: LinearSymbols1
-    val notOnTime: LinearSymbols1
+    val onTime: LinearIntermediateSymbols1
+    val notOnTime: LinearIntermediateSymbols1
 
     fun register(model: MetaModel): Try
 }
@@ -50,28 +50,28 @@ abstract class TaskTimeImpl<
     protected val tasks: List<T>
 ) : TaskTime {
     abstract val compilation: Compilation
-    protected abstract var estSlack: LinearSymbols1
+    protected abstract var estSlack: LinearIntermediateSymbols1
 
-    override lateinit var delayTime: LinearSymbols1
-    override lateinit var advanceTime: LinearSymbols1
+    override lateinit var delayTime: LinearIntermediateSymbols1
+    override lateinit var advanceTime: LinearIntermediateSymbols1
 
-    override lateinit var overMaxDelayTime: LinearSymbols1
-    override lateinit var overMaxAdvanceTime: LinearSymbols1
-    override lateinit var delayLastEndTime: LinearSymbols1
-    override lateinit var advanceEarliestEndTime: LinearSymbols1
+    override lateinit var overMaxDelayTime: LinearIntermediateSymbols1
+    override lateinit var overMaxAdvanceTime: LinearIntermediateSymbols1
+    override lateinit var delayLastEndTime: LinearIntermediateSymbols1
+    override lateinit var advanceEarliestEndTime: LinearIntermediateSymbols1
 
-    private lateinit var onLastEndTime: LinearSymbols1
-    private lateinit var onEarliestEndTime: LinearSymbols1
-    override lateinit var onTime: LinearSymbols1
+    private lateinit var onLastEndTime: LinearIntermediateSymbols1
+    private lateinit var onEarliestEndTime: LinearIntermediateSymbols1
+    override lateinit var onTime: LinearIntermediateSymbols1
 
-    private lateinit var notOnLastEndTime: LinearSymbols1
-    private lateinit var notOnEarliestEndTime: LinearSymbols1
-    override lateinit var notOnTime: LinearSymbols1
+    private lateinit var notOnLastEndTime: LinearIntermediateSymbols1
+    private lateinit var notOnEarliestEndTime: LinearIntermediateSymbols1
+    override lateinit var notOnTime: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (delayEnabled) {
             if (!::delayTime.isInitialized) {
-                delayTime = LinearSymbols1(
+                delayTime = LinearIntermediateSymbols1(
                     "delay_time",
                     Shape1(tasks.size)
                 ) { i, _ ->
@@ -129,7 +129,7 @@ abstract class TaskTimeImpl<
 
         if (advanceEnabled) {
             if (!::advanceTime.isInitialized) {
-                advanceTime = LinearSymbols1(
+                advanceTime = LinearIntermediateSymbols1(
                     "advance_time",
                     Shape1(tasks.size),
                 ) { i, _ ->
@@ -188,7 +188,7 @@ abstract class TaskTimeImpl<
         if (overMaxDelayEnabled) {
             if (!::overMaxDelayTime.isInitialized) {
                 try {
-                    overMaxDelayTime = LinearSymbols1(
+                    overMaxDelayTime = LinearIntermediateSymbols1(
                         "over_max_delay_time",
                         Shape1(tasks.size)
                     ) { i, _ ->
@@ -269,7 +269,7 @@ abstract class TaskTimeImpl<
         if (overMaxAdvanceEnabled) {
             if (!::overMaxAdvanceTime.isInitialized) {
                 try {
-                    overMaxAdvanceTime = LinearSymbols1(
+                    overMaxAdvanceTime = LinearIntermediateSymbols1(
                         "over_max_advance_time",
                         Shape1(tasks.size)
                     ) { i, _ ->
@@ -350,7 +350,7 @@ abstract class TaskTimeImpl<
         if (delayLastEndTimeEnabled) {
             if (!::delayLastEndTime.isInitialized) {
                 try {
-                    delayLastEndTime = LinearSymbols1(
+                    delayLastEndTime = LinearIntermediateSymbols1(
                         "delay_last_end_time",
                         Shape1(tasks.size)
                     ) { i, _ ->
@@ -431,7 +431,7 @@ abstract class TaskTimeImpl<
         if (advanceEarliestEndTimeEnabled) {
             if (!::advanceEarliestEndTime.isInitialized) {
                 try {
-                    advanceEarliestEndTime = LinearSymbols1(
+                    advanceEarliestEndTime = LinearIntermediateSymbols1(
                         "advance_earliest_end_time",
                         Shape1(tasks.size)
                     ) { i, _ ->
@@ -511,7 +511,7 @@ abstract class TaskTimeImpl<
 
         if (delayLastEndTimeEnabled) {
             if (!::onLastEndTime.isInitialized) {
-                onLastEndTime = LinearSymbols1(
+                onLastEndTime = LinearIntermediateSymbols1(
                     "on_last_end_time",
                     Shape1(tasks.size)
                 ) { i, _ ->
@@ -545,7 +545,7 @@ abstract class TaskTimeImpl<
 
         if (advanceEarliestEndTimeEnabled) {
             if (!::onEarliestEndTime.isInitialized) {
-                onEarliestEndTime = LinearSymbols1(
+                onEarliestEndTime = LinearIntermediateSymbols1(
                     "on_earliest_end_time",
                     Shape1(tasks.size)
                 ) { i, _ ->
@@ -607,7 +607,7 @@ abstract class TaskTimeImpl<
 
         if (delayLastEndTimeEnabled) {
             if (!::notOnLastEndTime.isInitialized) {
-                notOnLastEndTime = LinearSymbols1(
+                notOnLastEndTime = LinearIntermediateSymbols1(
                     "not_on_last_end_time",
                     Shape1(tasks.size)
                 ) { i, _ ->
@@ -641,7 +641,7 @@ abstract class TaskTimeImpl<
 
         if (advanceEarliestEndTimeEnabled) {
             if (!::notOnEarliestEndTime.isInitialized) {
-                notOnEarliestEndTime = LinearSymbols1(
+                notOnEarliestEndTime = LinearIntermediateSymbols1(
                     "on_earliest_end_time",
                     Shape1(tasks.size)
                 ) { i, _ ->
@@ -722,10 +722,10 @@ class TaskSchedulingTaskTime<
     override val advanceEarliestEndTimeEnabled: Boolean = false
 ) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
     lateinit var est: Variable1<*>
-    override lateinit var estSlack: LinearSymbols1
+    override lateinit var estSlack: LinearIntermediateSymbols1
 
-    override lateinit var estimateStartTime: LinearSymbols1
-    override lateinit var estimateEndTime: LinearSymbols1
+    override lateinit var estimateStartTime: LinearIntermediateSymbols1
+    override lateinit var estimateEndTime: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
         if (!::est.isInitialized) {
@@ -783,7 +783,7 @@ class TaskSchedulingTaskTime<
 
         if (delayEnabled || advanceEnabled) {
             if (!::estSlack.isInitialized) {
-                estSlack = LinearSymbols1(
+                estSlack = LinearIntermediateSymbols1(
                     "est_slack",
                     Shape1(tasks.size)
                 ) { i, _ ->
@@ -924,7 +924,7 @@ open class IterativeTaskSchedulingTaskTime<
     private val withRedundancy get() = redundancyRange != null
 
     private lateinit var estRedundancy: Variable1<*>
-    override lateinit var estSlack: LinearSymbols1
+    override lateinit var estSlack: LinearIntermediateSymbols1
 
     override lateinit var estimateStartTime: LinearExpressionSymbols1
     override lateinit var estimateEndTime: LinearExpressionSymbols1
@@ -979,7 +979,7 @@ open class IterativeTaskSchedulingTaskTime<
         }
 
         if (!::estSlack.isInitialized) {
-            estSlack = LinearSymbols1(
+            estSlack = LinearIntermediateSymbols1(
                 "est_slack",
                 Shape1(tasks.size)
             ) { i, _ ->

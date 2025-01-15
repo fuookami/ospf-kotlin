@@ -230,7 +230,6 @@ private class ScipQuadraticSolverImpl(
                         scip.addCons(constraint)
                         constraint
                     }
-                    System.gc()
                     result
                 }
             } else {
@@ -281,6 +280,7 @@ private class ScipQuadraticSolverImpl(
                 }
             }
         }
+        System.gc()
         scipConstraints = constraints
 
         val qovars = ArrayList<jscip.Variable>()

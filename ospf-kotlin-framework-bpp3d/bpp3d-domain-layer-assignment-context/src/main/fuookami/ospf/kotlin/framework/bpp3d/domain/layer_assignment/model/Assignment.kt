@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 class ImpreciseAssignment(
@@ -83,6 +84,10 @@ class PreciseAssignment(
 ) {
     lateinit var x: UIntVariable2
 
+    lateinit var u: LinearIntermediateSymbols2
+    lateinit var v: LinearIntermediateSymbols1
+    lateinit var tail: BinVariable1
+
     fun register(model: MetaModel): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2("x", Shape2(bins.size, layers.size))
@@ -107,6 +112,49 @@ class PreciseAssignment(
                         }
                     }
                 }
+            }
+        }
+
+        if (!::u.isInitialized) {
+            u = LinearIntermediateSymbols2("u", Shape2(bins.size, layers.size)) { _, v ->
+                BinaryzationFunction(
+                    x = LinearPolynomial(x[v[0], v[1]]),
+                    name = "u_$v",
+                )
+            }
+        }
+        when (val result = model.add(u)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::v.isInitialized) {
+            v = LinearIntermediateSymbols1("v", Shape1(bins.size)) { i, _ ->
+                BinaryzationFunction(
+                    x = sum(x[i, _a]),
+                    name = "v_$i",
+                )
+            }
+        }
+        when (val result = model.add(v)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (!::tail.isInitialized) {
+            tail = BinVariable1("tail", Shape1(bins.size))
+        }
+        when (val result = model.add(tail)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
             }
         }
 

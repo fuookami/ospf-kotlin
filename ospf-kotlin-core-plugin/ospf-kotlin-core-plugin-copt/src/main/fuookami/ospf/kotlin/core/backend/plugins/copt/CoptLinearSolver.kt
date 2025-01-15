@@ -163,7 +163,6 @@ private class CoptLinearSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        System.gc()
                         result
                     }
                 } else {

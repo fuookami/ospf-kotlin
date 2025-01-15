@@ -341,7 +341,6 @@ data class QuadraticTetradModel(
                                 }
                                 constraints.add(lhs)
                             }
-                            System.gc()
                             constraints
                         }
                     }

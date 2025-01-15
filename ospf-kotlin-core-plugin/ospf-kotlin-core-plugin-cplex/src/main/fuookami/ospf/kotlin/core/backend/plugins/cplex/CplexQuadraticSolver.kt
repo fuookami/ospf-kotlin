@@ -177,7 +177,6 @@ private class CplexQuadraticSolverImpl(
                         cplex.add(cplexConstraint)
                         cplexConstraint
                     }
-                    System.gc()
                     result
                 }
             } else {

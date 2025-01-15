@@ -78,7 +78,6 @@ class LinearMechanismModel(
                                         tokens = tokens
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -91,7 +90,6 @@ class LinearMechanismModel(
                                         tokens = tokens
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
@@ -109,7 +107,6 @@ class LinearMechanismModel(
                                         name = it.name
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -124,7 +121,6 @@ class LinearMechanismModel(
                                         name = it.name
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
@@ -156,6 +152,7 @@ class LinearMechanismModel(
                     tokens
                 )
             }
+            System.gc()
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
@@ -254,7 +251,6 @@ class QuadraticMechanismModel(
                                         tokens = tokens
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -267,7 +263,6 @@ class QuadraticMechanismModel(
                                         tokens = tokens
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
@@ -285,7 +280,6 @@ class QuadraticMechanismModel(
                                         name = it.name
                                     )
                                 }
-                                System.gc()
                                 result
                             }
                         }
@@ -300,7 +294,6 @@ class QuadraticMechanismModel(
                                         name = it.name
                                     )
                                 )
-                                System.gc()
                                 result
                             }
                         }
@@ -332,6 +325,7 @@ class QuadraticMechanismModel(
                     tokens
                 )
             }
+            System.gc()
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {

@@ -24,7 +24,7 @@ class SwitchTimeMinimization<
     private val threshold: Extractor<Duration?, Pair<T, T>> = { Duration.ZERO },
     private val coefficient: Extractor<Flt64?, Pair<T, T>> = { Flt64.one },
     override val name: String = "switch_time_minimization"
-)  : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         val cost = MutableLinearPolynomial()
         for (task1 in tasks) {
@@ -49,7 +49,7 @@ class SwitchTimeMinimization<
                         is Ok -> {}
 
                         is Failed -> {
-                             return Failed(result.error)
+                            return Failed(result.error)
                         }
                     }
                     cost += thisCoefficient * slack
