@@ -1,9 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 

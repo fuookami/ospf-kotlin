@@ -13,6 +13,11 @@
     <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
     <artifactId>ospf-kotlin-framework-csp1d</artifactId>
     <packaging>pom</packaging>
+    <modules>
+        <module>csp1d-infrastructure</module>
+        <module>csp1d-domain-material-context</module>
+        <module>csp1d-produce-context</module>
+    </modules>
 
     <dependencies>
         <dependency>
