@@ -6,8 +6,8 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
@@ -178,6 +178,33 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     override fun exp() = Flt32(exp(value))
 
+    override fun sin() = Flt32(sin(value))
+    override fun cos() = Flt32(cos(value))
+    override fun tan(): Flt32? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.sin() / temp
+        }
+    }
+
+    override fun asin(): Flt32? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt32(asin(value))
+        }
+    }
+    override fun acos(): Flt32? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt32(acos(value))
+        }
+    }
+    override fun atan() = Flt32(atan(value))
+
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -300,6 +327,33 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
     }
 
     override fun exp() = Flt64(exp(value))
+
+    override fun sin() = Flt64(sin(value))
+    override fun cos() = Flt64(cos(value))
+    override fun tan(): Flt64? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.sin() / temp
+        }
+    }
+
+    override fun asin(): Flt64? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt64(asin(value))
+        }
+    }
+    override fun acos(): Flt64? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt64(acos(value))
+        }
+    }
+    override fun atan() = Flt64(atan(value))
 
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
@@ -443,6 +497,33 @@ value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<F
     }
 
     override fun exp() = FltX(exp(value.toDouble()))
+
+    override fun sin() = FltX(sin(value.toDouble()))
+    override fun cos() = FltX(cos(value.toDouble()))
+    override fun tan(): FltX? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.sin() / temp
+        }
+    }
+
+    override fun asin(): FltX? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            FltX(asin(value.toDouble()))
+        }
+    }
+    override fun acos(): FltX? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            FltX(acos(value.toDouble()))
+        }
+    }
+    override fun atan() = FltX(atan(value.toDouble()))
 
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())

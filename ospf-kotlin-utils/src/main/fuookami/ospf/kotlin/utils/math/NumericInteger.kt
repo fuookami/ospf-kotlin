@@ -22,6 +22,36 @@ interface NumericInteger<Self, I>
     override fun sqrt() = pow(Flt64.two.reciprocal())
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
+    override fun tan(): FloatingNumber<*>? {
+        return when (val temp = this.cos()) {
+            is Flt32 -> {
+                if (temp eq Flt32.zero) {
+                    null
+                } else {
+                    this.sin() as Flt32 / temp
+                }
+            }
+
+            is Flt64 -> {
+                if (temp eq Flt64.zero) {
+                    null
+                } else {
+                    this.sin() as Flt64 / temp
+                }
+            }
+
+            is FltX -> {
+                if (temp eq FltX.zero) {
+                    null
+                } else {
+                    this.sin() as FltX / temp
+                }
+            }
+
+            else -> throw IllegalArgumentException("Unknown argument type to NumericInteger.tan: ${temp.javaClass}")
+        }
+    }
+
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
@@ -108,6 +138,13 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
+
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
     override fun toInt32() = value.toInt32()
@@ -192,6 +229,13 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -278,6 +322,13 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
+
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
     override fun toInt32() = value.toInt32()
@@ -362,6 +413,13 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -452,7 +510,14 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun sqrt() = pow(FltX(1.0 / 2.0))
     override fun cbrt() = pow(FltX(1.0 / 3.0))
 
-    override fun exp() = toFlt64().exp()
+    override fun exp() = toFltX().exp()
+
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun atan() = toFltX().atan()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()

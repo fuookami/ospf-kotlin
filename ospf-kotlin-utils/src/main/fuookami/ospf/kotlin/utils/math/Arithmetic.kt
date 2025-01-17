@@ -43,7 +43,7 @@ interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
 interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, Ord<Self>, Eq<Self>,
     Log<FloatingNumber<*>, FloatingNumber<*>>,
     PowF<FloatingNumber<*>, FloatingNumber<*>>,
-    Exp<FloatingNumber<*>> {
+    Exp<FloatingNumber<*>>, Trigonometry<FloatingNumber<*>> {
     override val constants: RealNumberConstants<Self>
 
     fun isInfinity(): Boolean = this == constants.infinity

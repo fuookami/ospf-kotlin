@@ -20,6 +20,36 @@ interface NumericUInteger<Self, I>
 
     override fun sqrt() = pow(Flt64.two.reciprocal())
     override fun cbrt() = pow(Flt64.three.reciprocal())
+
+    override fun tan(): FloatingNumber<*>? {
+        return when (val temp = this.cos()) {
+            is Flt32 -> {
+                if (temp eq Flt32.zero) {
+                    null
+                } else {
+                    this.sin() as Flt32 / temp
+                }
+            }
+
+            is Flt64 -> {
+                if (temp eq Flt64.zero) {
+                    null
+                } else {
+                    this.sin() as Flt64 / temp
+                }
+            }
+
+            is FltX -> {
+                if (temp eq FltX.zero) {
+                    null
+                } else {
+                    this.sin() as FltX / temp
+                }
+            }
+
+            else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.tan: ${temp.javaClass}")
+        }
+    }
 }
 
 abstract class NumericUIntegerConstants<Self, I>(
@@ -105,6 +135,13 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
 
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(copy(), rhs, one, UInt8, UInt8::toNUInt8, NUInt8::toUInt8)
     override infix fun until(rhs: NUInt8) = if (rhs == NUInt8.zero) {
@@ -199,6 +236,13 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
 
     override fun rangeTo(rhs: NUInt16) =
         NumericUIntegerRange(copy(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
@@ -296,6 +340,13 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
+
     override fun rangeTo(rhs: NUInt32) =
         NumericUIntegerRange(copy(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
 
@@ -391,6 +442,13 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun atan() = toFlt64().atan()
 
     override fun rangeTo(rhs: NUInt64) =
         NumericUIntegerRange(copy(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
@@ -496,6 +554,13 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun cbrt() = pow(FltX(1.0 / 3.0))
 
     override fun exp() = toFltX().exp()
+
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun atan() = toFltX().atan()
 
     override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(copy(), rhs, one, UIntX, UIntX::toNUIntX, NUIntX::toUIntX)
     override infix fun until(rhs: NUIntX) = if (rhs == NUIntX.zero) {

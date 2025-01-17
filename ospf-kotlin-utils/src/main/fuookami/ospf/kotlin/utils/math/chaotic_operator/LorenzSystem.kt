@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
+import kotlin.random.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -24,7 +25,11 @@ data class LorenzSystem(
 
 data class LorenzSystemGenerator(
     val lorenzSystem: LorenzSystem = LorenzSystem(),
-    private var _x: Point3 = point3()
+    private var _x: Point3 = point3(
+        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+    )
 ): Generator<Point3> {
     companion object {
         operator fun invoke(
@@ -32,7 +37,11 @@ data class LorenzSystemGenerator(
             b: Flt64,
             c: Flt64,
             h: Flt64,
-            x: Point3 = point3()
+            x: Point3 = point3(
+                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+            )
         ): LorenzSystemGenerator {
             return LorenzSystemGenerator(LorenzSystem(a, b, c, h), x)
         }

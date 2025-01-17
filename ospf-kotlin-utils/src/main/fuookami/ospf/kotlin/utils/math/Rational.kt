@@ -89,6 +89,14 @@ abstract class Rational<Self, I> protected constructor(
 
     override fun exp() = toFltX().exp()
 
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+    override fun tan() = toFltX().tan()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun atan() = toFltX().atan()
+
     override fun toInt8() = (num / den).toInt8()
     override fun toInt16() = (num / den).toInt16()
     override fun toInt32() = (num / den).toInt32()
