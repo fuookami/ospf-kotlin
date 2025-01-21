@@ -144,7 +144,8 @@ abstract class AbstractBunchCompilationAggregation<
         iteration: UInt64,
         bar: Flt64,
         fixedBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel,
+        withFixNot: Boolean = false
     ): Ret<Set<B>> {
         var flag = true
         val ret = HashSet<B>()
@@ -176,12 +177,19 @@ abstract class AbstractBunchCompilationAggregation<
                             bestIteration = i
                             bestIndex = token.variable.index
                         }
-                        if ((token.result != null)
-                            && (token.result!! geq bar)
-                            && !fixedBunches.contains(bunch)
-                        ) {
-                            ret.add(bunch)
-                            xi[token.variable.index].range.eq(true)
+                        if (token.result != null) {
+                            if ((token.result!! geq bar)
+                                && !fixedBunches.contains(bunch)
+                            ) {
+                                ret.add(bunch)
+                                xi[token.variable.index].range.eq(true)
+                            }
+                            if (withFixNot
+                                && token.result!! leq (Flt64.one - bar)
+                                && !fixedBunches.contains(bunch)
+                            ) {
+                                xi[token.variable.index].range.eq(false)
+                            }
                         }
                     }
                 }
@@ -189,8 +197,8 @@ abstract class AbstractBunchCompilationAggregation<
         }
 
         // if not fix any one bunch or cancel any task
-        // fix the best if the value greater than 1e-3
-        if (flag && ret.isEmpty() && (bestValue geq Flt64(1e-3))) {
+        // fix the best if the value greater than 1 - bar
+        if (flag && ret.isEmpty() && (bestValue geq (Flt64.one - bar))) {
             val xi = compilation.x[bestIteration.toInt()][bestIndex]
             ret.add(bunchesIteration[bestIteration.toInt()][bestIndex])
             xi.range.eq(true)

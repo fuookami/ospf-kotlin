@@ -13,8 +13,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>lingo</groupId>
-            <artifactId>lingo</artifactId>
+            <groupId>mosek</groupId>
+            <artifactId>mosek</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
             <systemPath>${env.MOSEK_HOME}/bin/mosek.jar</systemPath>

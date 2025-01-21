@@ -28,36 +28,6 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
     override fun sqrt() = pow(Flt64.two.reciprocal())
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
-    override fun tan(): FloatingNumber<*>? {
-        return when (val temp = this.cos()) {
-            is Flt32 -> {
-                if (temp eq Flt32.zero) {
-                    null
-                } else {
-                    this.sin() as Flt32 / temp
-                }
-            }
-
-            is Flt64 -> {
-                if (temp eq Flt64.zero) {
-                    null
-                } else {
-                    this.sin() as Flt64 / temp
-                }
-            }
-
-            is FltX -> {
-                if (temp eq FltX.zero) {
-                    null
-                } else {
-                    this.sin() as FltX / temp
-                }
-            }
-
-            else -> throw IllegalArgumentException("Unknown argument type to IntegerNumber.tan: ${temp.javaClass}")
-        }
-    }
-
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
@@ -127,10 +97,31 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
 
     override fun sin() = toFlt64().sin()
     override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
 
     override fun asin() = toFlt64().asin()
     override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
     override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     override fun toInt8() = copy()
     override fun toInt16() = Int16(value.toShort())
@@ -214,10 +205,31 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
 
     override fun sin() = toFlt64().sin()
     override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
 
     override fun asin() = toFlt64().asin()
     override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
     override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = copy()
@@ -301,10 +313,31 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
 
     override fun sin() = toFlt64().sin()
     override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
 
     override fun asin() = toFlt64().asin()
     override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
     override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     fun toInt() = value
     fun toLong() = value.toLong()
@@ -391,10 +424,31 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
 
     override fun sin() = toFlt64().sin()
     override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
 
     override fun asin() = toFlt64().asin()
     override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
     override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     fun toInt() = value.toInt()
     fun toLong() = value
@@ -490,10 +544,31 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
 
     override fun sin() = toFltX().sin()
     override fun cos() = toFltX().cos()
+    override fun sec() = toFltX().sec()
+    override fun csc() = toFltX().csc()
+    override fun tan() = toFltX().tan()
+    override fun cot() = toFltX().cot()
 
     override fun asin() = toFltX().asin()
     override fun acos() = toFltX().acos()
+    override fun asec() = toFltX().asec()
+    override fun acsc() = toFltX().acsc()
     override fun atan() = toFltX().atan()
+    override fun acot() = toFltX().acot()
+
+    override fun sinh() = toFltX().sinh()
+    override fun cosh() = toFltX().cosh()
+    override fun sech() = toFltX().sech()
+    override fun csch() = toFltX().csch()
+    override fun tanh() = toFltX().tanh()
+    override fun coth() = toFltX().coth()
+
+    override fun asinh() = toFltX().asinh()
+    override fun acosh() = toFltX().acosh()
+    override fun asech() = toFltX().asech()
+    override fun acsch() = toFltX().acsch()
+    override fun atanh() = toFltX().atanh()
+    override fun acoth() = toFltX().acoth()
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())

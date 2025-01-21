@@ -57,8 +57,12 @@ abstract class HexalySolver {
         return try {
             hexalySolution = optimizer.solution
             status = when (hexalySolution.status) {
-                HxSolutionStatus.Optimal, HxSolutionStatus.Feasible -> {
+                HxSolutionStatus.Optimal -> {
                     SolverStatus.Optimal
+                }
+
+                HxSolutionStatus.Feasible -> {
+                    SolverStatus.Feasible
                 }
 
                 HxSolutionStatus.Infeasible -> {

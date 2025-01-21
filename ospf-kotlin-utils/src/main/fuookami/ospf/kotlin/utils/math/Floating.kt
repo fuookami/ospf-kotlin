@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.math.Flt32.Companion
 import fuookami.ospf.kotlin.utils.operator.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
@@ -180,12 +181,36 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     override fun sin() = Flt32(sin(value))
     override fun cos() = Flt32(cos(value))
+    override fun sec(): Flt32? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
+    override fun csc(): Flt32? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
     override fun tan(): Flt32? {
         val temp = this.cos()
         return if (temp eq zero) {
             null
         } else {
             this.sin() / temp
+        }
+    }
+    override fun cot(): Flt32? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.cos() / temp
         }
     }
 
@@ -203,7 +228,84 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             Flt32(acos(value))
         }
     }
+    override fun asec(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acos()
+        }
+    }
+    override fun acsc(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asin()
+        }
+    }
     override fun atan() = Flt32(atan(value))
+    override fun acot(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atan()
+        }
+    }
+
+    override fun sinh() = Flt32(sinh(value))
+    override fun cosh() = Flt32(cosh(value))
+    override fun sech() = this.cosh().reciprocal()
+    override fun csch(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.sinh().reciprocal()
+        }
+    }
+    override fun tanh() = Flt32(tanh(value))
+    override fun coth(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.tanh().reciprocal()
+        }
+    }
+
+    override fun asinh() = Flt32(asinh(value))
+    override fun acosh(): Flt32? {
+        return if (this ls one) {
+            null
+        } else {
+            Flt32(acosh(value))
+        }
+    }
+    override fun asech(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acosh()
+        }
+    }
+    override fun acsch(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asinh()
+        }
+    }
+    override fun atanh(): Flt32? {
+        return if (this leq -one || this geq one) {
+            null
+        } else {
+            Flt32(atanh(value))
+        }
+    }
+    override fun acoth(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atanh()
+        }
+    }
 
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
@@ -330,12 +432,36 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     override fun sin() = Flt64(sin(value))
     override fun cos() = Flt64(cos(value))
+    override fun sec(): Flt64? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
+    override fun csc(): Flt64? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
     override fun tan(): Flt64? {
         val temp = this.cos()
         return if (temp eq zero) {
             null
         } else {
             this.sin() / temp
+        }
+    }
+    override fun cot(): Flt64? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.cos() / temp
         }
     }
 
@@ -353,7 +479,84 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             Flt64(acos(value))
         }
     }
+    override fun asec(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acos()
+        }
+    }
+    override fun acsc(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asin()
+        }
+    }
     override fun atan() = Flt64(atan(value))
+    override fun acot(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atan()
+        }
+    }
+
+    override fun sinh() = Flt64(sinh(value))
+    override fun cosh() = Flt64(cosh(value))
+    override fun sech() = this.cosh().reciprocal()
+    override fun csch(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.sinh().reciprocal()
+        }
+    }
+    override fun tanh() = Flt64(tanh(value))
+    override fun coth(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.tanh().reciprocal()
+        }
+    }
+
+    override fun asinh() = Flt64(asinh(value))
+    override fun acosh(): Flt64? {
+        return if (this ls one) {
+            null
+        } else {
+            Flt64(acosh(value))
+        }
+    }
+    override fun asech(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acosh()
+        }
+    }
+    override fun acsch(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asinh()
+        }
+    }
+    override fun atanh(): Flt64? {
+        return if (this leq -one || this geq one) {
+            null
+        } else {
+            Flt64(atanh(value))
+        }
+    }
+    override fun acoth(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atanh()
+        }
+    }
 
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
@@ -498,32 +701,33 @@ value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<F
 
     override fun exp() = FltX(exp(value.toDouble()))
 
-    override fun sin() = FltX(sin(value.toDouble()))
-    override fun cos() = FltX(cos(value.toDouble()))
-    override fun tan(): FltX? {
-        val temp = this.cos()
-        return if (temp eq zero) {
-            null
-        } else {
-            this.sin() / temp
-        }
-    }
+    override fun sin() = toFlt64().sin().toFltX()
+    override fun cos() = toFlt64().cos().toFltX()
+    override fun sec() = toFlt64().sec()?.toFltX()
+    override fun csc() = toFlt64().csc()?.toFltX()
+    override fun tan() = toFlt64().tan()?.toFltX()
+    override fun cot() = toFlt64().cot()?.toFltX()
 
-    override fun asin(): FltX? {
-        return if (this ls -one || this gr one) {
-            null
-        } else {
-            FltX(asin(value.toDouble()))
-        }
-    }
-    override fun acos(): FltX? {
-        return if (this ls -one || this gr one) {
-            null
-        } else {
-            FltX(acos(value.toDouble()))
-        }
-    }
-    override fun atan() = FltX(atan(value.toDouble()))
+    override fun asin() = toFlt64().asin()?.toFltX()
+    override fun acos() = toFlt64().acos()?.toFltX()
+    override fun asec() = toFlt64().asec()?.toFltX()
+    override fun acsc() = toFlt64().acsc()?.toFltX()
+    override fun atan() = toFlt64().atan().toFltX()
+    override fun acot() = toFlt64().acot()?.toFltX()
+
+    override fun sinh() = toFlt64().sinh().toFltX()
+    override fun cosh() = toFlt64().cosh().toFltX()
+    override fun sech() = toFlt64().sech().toFltX()
+    override fun csch() = toFlt64().csch()?.toFltX()
+    override fun tanh() = toFlt64().tanh().toFltX()
+    override fun coth() = toFlt64().coth()?.toFltX()
+
+    override fun asinh() = toFlt64().asinh().toFltX()
+    override fun acosh() = toFlt64().acosh()?.toFltX()
+    override fun asech() = toFlt64().asech()?.toFltX()
+    override fun acsch() = toFlt64().acsch()?.toFltX()
+    override fun atanh() = toFlt64().atanh()?.toFltX()
+    override fun acoth() = toFlt64().acoth()?.toFltX()
 
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())

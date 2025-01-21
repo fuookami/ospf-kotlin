@@ -2,13 +2,12 @@ package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
 import kotlin.random.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-class GaussMap(
+data class GaussMap(
     val mu: Flt64 = Flt64(Random.nextDouble(1.0, 10.0))
-) {
-    operator fun invoke(x: Flt64) : Flt64 {
+) : Extractor<Flt64, Flt64> {
+    override operator fun invoke(x: Flt64): Flt64 {
         return if (x eq Flt64.zero) {
             Flt64.zero
         } else {
@@ -20,13 +19,16 @@ class GaussMap(
 data class GaussMapGenerator(
     val gaussMap: GaussMap = GaussMap(),
     private var _x: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
-): Generator<Flt64> {
+) : Generator<Flt64> {
     companion object {
         operator fun invoke(
             mu: Flt64,
             x: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
         ): GaussMapGenerator {
-            return GaussMapGenerator(GaussMap(mu), x)
+            return GaussMapGenerator(
+                GaussMap(mu),
+                x
+            )
         }
     }
 

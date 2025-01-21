@@ -5,16 +5,20 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-data class LorenzSystem(
-    val a: Flt64 = Flt64(10.0),
-    val b: Flt64 = Flt64(28.0),
-    val c: Flt64 = Flt64(8.0 / 3.0),
+data class AnishchenkoAstakhovAttractor(
+    val mu: Flt64 = Flt64(1.2),
+    val eta: Flt64 = Flt64(0.5),
     val h: Flt64 = Flt64(0.01)
 ) : Extractor<Point3, Point3> {
     override operator fun invoke(x: Point3): Point3 {
-        val dx = a * (x[1] - x[0])
-        val dy = c * x[0] - x[0] * x[2] - x[1]
-        val dz = x[0] * x[1] - b * x[2]
+        val i = if (x[0] geq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+        val dx = mu * x[0] + x[1] - x[0] * x[2]
+        val dy = -x[0]
+        val dz = -eta * x[2] + eta * i * x[0].sqr()
         return point3(
             x[0] + h * dx,
             x[1] + h * dy,
@@ -23,8 +27,8 @@ data class LorenzSystem(
     }
 }
 
-data class LorenzSystemGenerator(
-    val lorenzSystem: LorenzSystem = LorenzSystem(),
+data class AnishchenkoAstakhovAttractorGenerator(
+    val anishchenkoAstakhovAttractor: AnishchenkoAstakhovAttractor = AnishchenkoAstakhovAttractor(),
     private var _x: Point3 = point3(
         Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
         Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
@@ -33,18 +37,17 @@ data class LorenzSystemGenerator(
 ) : Generator<Point3> {
     companion object {
         operator fun invoke(
-            a: Flt64,
-            b: Flt64,
-            c: Flt64,
-            h: Flt64,
+            mu: Flt64 = Flt64(1.2),
+            eta: Flt64 = Flt64(0.5),
+            h: Flt64 = Flt64(0.01),
             x: Point3 = point3(
                 Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
                 Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
                 Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
             )
-        ): LorenzSystemGenerator {
-            return LorenzSystemGenerator(
-                LorenzSystem(a, b, c, h),
+        ): AnishchenkoAstakhovAttractorGenerator {
+            return AnishchenkoAstakhovAttractorGenerator(
+                AnishchenkoAstakhovAttractor(mu, eta, h),
                 x
             )
         }
@@ -54,7 +57,7 @@ data class LorenzSystemGenerator(
 
     override operator fun invoke(): Point3 {
         val x = _x.copy()
-        _x = lorenzSystem(_x)
+        _x = anishchenkoAstakhovAttractor(x)
         return x
     }
 }
