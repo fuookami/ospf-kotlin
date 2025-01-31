@@ -28,7 +28,7 @@
     <description>operation research algorithm software framework</description>
     <url>https://github.com/fuookami/ospf-kotlin</url>
 
-    <name>ospf-kotlin</name>
+    <name>ospf-kotlin-jdk8</name>
 
     <licenses>
         <license>
