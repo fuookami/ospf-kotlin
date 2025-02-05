@@ -10,7 +10,7 @@ data class BoualiAttractor(
     val zeta: Flt64 = Flt64.one,
     val h: Flt64 = Flt64(0.01)
 ) : Extractor<Point3, Point3> {
-    override fun invoke(x: Point3): Point3 {
+    override operator fun invoke(x: Point3): Point3 {
         val dx = x[0] * (Flt64(4) - x[1]) + alpha * x[2]
         val dy = -x[1] * (Flt64.one - x[0].sqr())
         val dz = -x[0] * (Flt64(1.5) - zeta * x[2]) - Flt64(0.05) * x[2]
@@ -50,7 +50,7 @@ data class BoualiAttractorGenerator(
 
     val x by ::_x
 
-    override fun invoke(): Point3 {
+    override operator fun invoke(): Point3 {
         val x = _x.copy()
         _x = boualiAttractor(x)
         return x

@@ -106,12 +106,21 @@ abstract class AbstractBunchCompilationAggregation<
         model: AbstractLinearMetaModel
     ): Ret<Set<B>> {
         return extractBunches(iteration, model) { it eq Flt64.one }
+            .map { it.keys }
     }
 
     open fun extractKeptBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel
     ): Ret<Set<B>> {
+        return extractBunches(iteration, model) { it gr Flt64.zero }
+            .map { it.keys }
+    }
+
+    open fun extractKeptBunchesWithRatio(
+        iteration: UInt64,
+        model: AbstractLinearMetaModel
+    ): Ret<Map<B, Flt64>> {
         return extractBunches(iteration, model) { it gr Flt64.zero }
     }
 
@@ -281,8 +290,8 @@ abstract class AbstractBunchCompilationAggregation<
         iteration: UInt64,
         model: AbstractLinearMetaModel,
         predicate: (Flt64) -> Boolean
-    ): Ret<Set<B>> {
-        val ret = HashSet<B>()
+    ): Ret<Map<B, Flt64>> {
+        val ret = HashMap<B, Flt64>()
         for (token in model.tokens.tokens) {
             if (!predicate(token.result!!)) {
                 continue
@@ -294,7 +303,7 @@ abstract class AbstractBunchCompilationAggregation<
                 if (token.belongsTo(xi)) {
                     val bunch = bunchesIteration[i][token.variable.index]
                     assert(!removedBunches.contains(bunch))
-                    ret.add(bunch)
+                    ret[bunch] = token.result!!
                 }
             }
         }

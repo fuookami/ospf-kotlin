@@ -51,7 +51,7 @@ data class ArneodoAttractorGenerator(
 
     val x by ::_x
 
-    override fun invoke(): Point3 {
+    override operator fun invoke(): Point3 {
         val x = _x
         _x = arneodoAttractor(x)
         return x

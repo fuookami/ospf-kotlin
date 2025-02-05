@@ -11,7 +11,10 @@ abstract class MosekSolver {
     protected lateinit var mosekModel: Task
     protected lateinit var status: SolverStatus
 
-    protected suspend fun init(): Try {
+    protected suspend fun init(
+        name: String,
+        callBack: CreatingEnvironmentFunction? = null
+    ): Try {
         TODO("not implemented yet")
     }
 

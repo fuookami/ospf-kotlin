@@ -21,7 +21,7 @@ class MosekLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MosekSolverCallBack? = null
 ) : LinearSolver {
-    override val name = "hexaly"
+    override val name = "mosek"
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
@@ -65,8 +65,31 @@ class MosekLinearSolverImpl(
     private val callBack: MosekSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : MosekSolver() {
+    private lateinit var output: SolverOutput
+
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
+    private var bestTime: Duration = Duration.ZERO
+
     suspend operator fun invoke(model: LinearTriadModelView): Ret<SolverOutput> {
-        TODO("not implemented yet")
+        val processes = arrayOf(
+            { it.init(model.name, callBack?.creatingEnvironmentFunction) },
+            { it.dump(model) },
+            MosekLinearSolverImpl::configure,
+            MosekLinearSolverImpl::solve,
+            MosekLinearSolverImpl::analyzeStatus,
+            MosekLinearSolverImpl::analyzeSolution
+        )
+        for (process in processes) {
+            when (val result = process(this)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
+        }
+        return Ok(output)
     }
 
     private suspend fun dump(model: LinearTriadModelView): Try {
@@ -217,5 +240,13 @@ class MosekLinearSolverImpl(
         } catch (e: java.lang.Exception) {
             Failed(Err(ErrorCode.OREngineModelingException))
         }
+    }
+
+    private suspend fun configure(): Try {
+        TODO("not implemented yet")
+    }
+
+    private suspend fun analyzeSolution(): Try {
+        TODO("not implemented yet")
     }
 }

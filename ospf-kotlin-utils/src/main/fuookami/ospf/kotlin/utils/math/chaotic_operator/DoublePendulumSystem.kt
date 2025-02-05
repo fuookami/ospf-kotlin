@@ -71,7 +71,7 @@ data class DoublePendulumSystemGenerator(
     val x by ::_x
     val y by ::_y
 
-    override fun invoke(): Pair<Point2, Point2> {
+    override operator fun invoke(): Pair<Point2, Point2> {
         val x = _x.copy()
         val y = _y.copy()
         val (x1, y1) = doublePendulumSystem(x, y)

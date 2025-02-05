@@ -10,7 +10,7 @@ data class BogdanovMap(
     val kappa: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
     val mu: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
 ) : Extractor<Point2, Point2> {
-    override fun invoke(x: Point2): Point2 {
+    override operator fun invoke(x: Point2): Point2 {
         val temp = x[1] + epsilon * x[1] + kappa * x[0] * (Flt64.one - x[0]) + mu * x[0] * x[1]
         return point2(
             x[0] + temp,
@@ -45,7 +45,7 @@ data class BogdanovMapGenerator(
 
     val x by ::_x
 
-    override fun invoke(): Point2 {
+    override operator fun invoke(): Point2 {
         val x = _x.copy()
         _x = bogdanovMap(x)
         return x

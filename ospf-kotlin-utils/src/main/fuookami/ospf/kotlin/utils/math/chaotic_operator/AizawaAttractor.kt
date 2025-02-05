@@ -58,7 +58,7 @@ data class AizawaAttractorGenerator(
 
     val x by ::_x
 
-    override fun invoke(): Point3 {
+    override operator fun invoke(): Point3 {
         val x = _x.copy()
         _x = aizawaAttractor(x)
         return x

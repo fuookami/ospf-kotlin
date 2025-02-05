@@ -10,7 +10,7 @@ data class Brusselator(
     val b: Flt64 = Flt64.three,
     val h: Flt64 = Flt64(0.01)
 ) : Extractor<Point2, Point2> {
-    override fun invoke(x: Point2): Point2 {
+    override operator fun invoke(x: Point2): Point2 {
         val temp1 = a * x[0].sqr() * x[1]
         val temp2 = b * x[0]
         val dx = temp1 - temp2 - x[0] + Flt64.one
@@ -48,7 +48,7 @@ data class BrusselatorGenerator(
 
     val x by ::_x
 
-    override fun invoke(): Point2 {
+    override operator fun invoke(): Point2 {
         val x = _x.copy()
         _x = brusselator(x)
         return x
