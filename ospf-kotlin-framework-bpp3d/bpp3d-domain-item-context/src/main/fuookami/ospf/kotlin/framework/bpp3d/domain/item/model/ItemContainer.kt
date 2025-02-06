@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
-sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S> {
+sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, Eq<ItemContainer<S>> {
     val items: List<ItemPlacement3> get() = dump()
 
     val packageType: PackageType
@@ -39,6 +39,24 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S> {
     fun dumpAbsolutely(offset: Point3 = point3()) = units.dumpAbsolutely(offset)
 
     override fun view(orientation: Orientation): CuboidView<S>? = CuboidView(copy(), orientation)
+
+    override fun partialEq(rhs: ItemContainer<S>): Boolean {
+        if (shape neq rhs.shape) {
+            return false
+        }
+
+        if (units.size != rhs.units.size) {
+            return false
+        }
+
+        for (i in units.indices) {
+            if (units[i].unit != rhs.units[i].unit || units[i].position neq rhs.units[i].position) {
+                return false
+            }
+        }
+
+        return true
+    }
 }
 
 @get:JvmName("itemContainerPackageType")

@@ -5,8 +5,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 abstract class CplexSolver {
-    lateinit var cplex: IloCplex
-    lateinit var status: SolverStatus
+    protected lateinit var cplex: IloCplex
+    protected lateinit var status: SolverStatus
 
     protected suspend fun init(name: String): Try {
         cplex = IloCplex()

@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 data class Point<D : Dimension>(
     val position: List<Flt64>,
     val dim: D
-) : Plus<Point<D>, Point<D>>, Minus<Point<D>, Point<D>> {
+) : Plus<Point<D>, Point<D>>, Minus<Point<D>, Point<D>>, Eq<Point<D>> {
     companion object {
         operator fun invoke(x: Flt64, y: Flt64): Point2 {
             return Point(listOf(x, y), Dim2)
@@ -41,6 +41,20 @@ data class Point<D : Dimension>(
 
     operator fun plus(rhs: Vector<D>) = Point(indices.map { this[it] + rhs[it] }, dim)
     operator fun minus(rhs: Vector<D>) = Point(indices.map { this[it] - rhs[it] }, dim)
+
+    override fun partialEq(rhs: Point<D>): Boolean {
+        if (dim != rhs.dim) {
+            return false
+        }
+
+        for (i in indices) {
+            if (this[i] neq rhs[i]) {
+                return false
+            }
+        }
+
+        return true
+    }
 
     override fun toString() = position.joinToString(",", "[", "]")
 }

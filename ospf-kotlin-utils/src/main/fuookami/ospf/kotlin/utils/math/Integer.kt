@@ -17,7 +17,7 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
 
     override fun intDiv(rhs: Self) = this / rhs
 
-    override fun lg() = log(Flt64.two)
+    override fun lg() = log(Flt64.ten)
     override fun lg2() = log(Flt64.two)
     override fun ln() = log(Flt64.e)
 

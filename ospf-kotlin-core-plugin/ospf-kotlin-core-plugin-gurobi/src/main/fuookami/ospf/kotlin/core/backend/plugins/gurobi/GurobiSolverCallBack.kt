@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 typealias CreatingEnvironmentFunction = (GRBEnv) -> Try
-typealias NativeCallback = GRBCallback.() -> Unit
+typealias NativeCallBack = GRBCallback.() -> Unit
 typealias LinearFunction = (GRBModel, List<GRBVar>, List<GRBConstr>) -> Try
 typealias QuadraticFunction = (GRBModel, List<GRBVar>, List<GRBQConstr>) -> Try
 
@@ -18,12 +18,12 @@ enum class Point {
 }
 
 class GurobiLinearSolverCallBack(
-    internal var nativeCallback: NativeCallback? = null,
+    internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, LinearFunction> = EnumMap(Point::class.java)
 ) : Copyable<GurobiLinearSolverCallBack> {
     @JvmName("setNativeCallback")
-    fun set(function: NativeCallback) {
+    fun set(function: NativeCallBack) {
         nativeCallback = function
     }
 
@@ -60,12 +60,12 @@ class GurobiLinearSolverCallBack(
 }
 
 class GurobiQuadraticSolverCallBack(
-    internal var nativeCallback: NativeCallback? = null,
+    internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, QuadraticFunction> = EnumMap(Point::class.java)
 ) : Copyable<GurobiQuadraticSolverCallBack> {
     @JvmName("setNativeCallback")
-    fun set(function: NativeCallback) {
+    fun set(function: NativeCallBack) {
         nativeCallback = function
     }
 

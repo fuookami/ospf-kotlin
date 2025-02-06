@@ -9,6 +9,7 @@ import ilog.concert.*
 import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -44,33 +45,36 @@ class CplexLinearSolver(
         } else {
             val results = ArrayList<Solution>()
             val impl = CplexLinearSolverImpl(
-                config, callBack.ifNull { CplexSolverCallBack() }.copy()
-                .configuration { cplex, _, _ ->
-                    if (solutionAmount gr UInt64.one) {
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
-                        cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, solutionAmount.toInt())
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
-                        cplex.setParam(IloCplex.Param.MIP.Limits.Populate, solutionAmount.cub().toInt())
-                    }
-                    ok
-                }.solving { cplex, _, _ ->
-                    try {
-                        cplex.populate()
+                config = config,
+                callBack = callBack
+                    .copyIfNotNullOr { CplexSolverCallBack() }
+                    .configuration { cplex, _, _ ->
+                        if (solutionAmount gr UInt64.one) {
+                            cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
+                            cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
+                            cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, solutionAmount.toInt())
+                            cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
+                            cplex.setParam(IloCplex.Param.MIP.Limits.Populate, solutionAmount.cub().toInt())
+                        }
                         ok
-                    } catch (e: IloException) {
-                        Failed(Err(ErrorCode.OREngineSolvingException, e.message))
-                    }
-                }
-                .analyzingSolution { cplex, variables, _ ->
-                    for (i in 0 until min(solutionAmount.toInt(), cplex.solnPoolNsolns)) {
-                        val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
-                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                            results.add(thisResults)
+                    }.solving { cplex, _, _ ->
+                        try {
+                            cplex.populate()
+                            ok
+                        } catch (e: IloException) {
+                            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                         }
                     }
-                    ok
-                }, statusCallBack
+                    .analyzingSolution { cplex, variables, _ ->
+                        for (i in 0 until min(solutionAmount.toInt(), cplex.solnPoolNsolns)) {
+                            val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ok
+                    },
+                statusCallBack = statusCallBack
             )
             val result = impl(model).map { Pair(it, results) }
             System.gc()
@@ -84,9 +88,9 @@ private class CplexLinearSolverImpl(
     private val callBack: CplexSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack?
 ) : CplexSolver() {
-    lateinit var cplexVars: List<IloNumVar>
-    lateinit var cplexConstraint: List<IloRange>
-    lateinit var output: SolverOutput
+    private lateinit var cplexVars: List<IloNumVar>
+    private lateinit var cplexConstraint: List<IloRange>
+    private lateinit var output: SolverOutput
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
@@ -306,11 +310,11 @@ private class CplexLinearSolverImpl(
     private suspend fun analyzeSolution(): Try {
         return if (status.succeeded) {
             output = SolverOutput(
-                Flt64(cplex.objValue),
-                cplexVars.map { Flt64(cplex.getValue(it)) },
-                cplex.cplexTime.seconds,
-                Flt64(cplex.bestObjValue),
-                Flt64(
+                obj = Flt64(cplex.objValue),
+                solution = cplexVars.map { Flt64(cplex.getValue(it)) },
+                time = cplex.cplexTime.seconds,
+                possibleBestObj = Flt64(cplex.bestObjValue),
+                gap = Flt64(
                     if (cplex.isMIP) {
                         cplex.mipRelativeGap
                     } else {

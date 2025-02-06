@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import gurobi.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -41,24 +42,29 @@ class GurobiLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = GurobiLinearSolverImpl(config, callBack.ifNull { GurobiLinearSolverCallBack() }.copy()
-                .configuration { gurobi, _, _ ->
-                    if (solutionAmount gr UInt64.one) {
-                        gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
-                        gurobi.set(GRB.IntParam.PoolSearchMode, 2);
-                        gurobi.set(GRB.IntParam.PoolSolutions, solutionAmount.toInt())
-                    }
-                    ok
-                }.analyzingSolution { gurobi, variables, _ ->
-                    for (i in 0 until min(solutionAmount.toInt(), gurobi.get(GRB.IntAttr.SolCount))) {
-                        gurobi.set(GRB.IntParam.SolutionNumber, i)
-                        val thisResults = variables.map { Flt64(it.get(GRB.DoubleAttr.Xn)) }
-                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                            results.add(thisResults)
+            val impl = GurobiLinearSolverImpl(
+                config = config,
+                callBack = callBack
+                    .copyIfNotNullOr { GurobiLinearSolverCallBack() }
+                    .configuration { gurobi, _, _ ->
+                        if (solutionAmount gr UInt64.one) {
+                            gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
+                            gurobi.set(GRB.IntParam.PoolSearchMode, 2);
+                            gurobi.set(GRB.IntParam.PoolSolutions, solutionAmount.toInt())
                         }
+                        ok
                     }
-                    ok
-                }, statusCallBack
+                    .analyzingSolution { gurobi, variables, _ ->
+                        for (i in 0 until min(solutionAmount.toInt(), gurobi.get(GRB.IntAttr.SolCount))) {
+                            gurobi.set(GRB.IntParam.SolutionNumber, i)
+                            val thisResults = variables.map { Flt64(it.get(GRB.DoubleAttr.Xn)) }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ok
+                    },
+                statusCallBack = statusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -72,9 +78,9 @@ private class GurobiLinearSolverImpl(
     private val callBack: GurobiLinearSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : GurobiSolver() {
-    lateinit var grbVars: List<GRBVar>
-    lateinit var grbConstraints: List<GRBConstr>
-    lateinit var output: SolverOutput
+    private lateinit var grbVars: List<GRBVar>
+    private lateinit var grbConstraints: List<GRBConstr>
+    private lateinit var output: SolverOutput
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
@@ -114,15 +120,15 @@ private class GurobiLinearSolverImpl(
 
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
-            grbVars = grbModel.addVars(
-                model.variables.map { it.lowerBound.toDouble() }.toDoubleArray(),
-                model.variables.map { it.upperBound.toDouble() }.toDoubleArray(),
-                null,
-                model.variables.map { GurobiVariable(it.type).toGurobiVar() }.toCharArray(),
-                model.variables.map { it.name }.toTypedArray(),
-                0,
-                model.variables.size
-            ).toList()
+            grbVars = model.variables.map {
+                grbModel.addVar(
+                    it.lowerBound.toDouble(),
+                    it.upperBound.toDouble(),
+                    0.0,
+                    GurobiVariable(it.type).toGurobiVar(),
+                    it.name
+                )
+            }
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
@@ -210,7 +216,7 @@ private class GurobiLinearSolverImpl(
             grbModel.set(GRB.IntParam.Threads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
-                grbModel.setCallback(object: GRBCallback() {
+                grbModel.setCallback(object : GRBCallback() {
                     override fun callback() {
                         callBack?.nativeCallback?.invoke(this)
 
@@ -230,12 +236,14 @@ private class GurobiLinearSolverImpl(
                             }
 
                             statusCallBack?.let {
-                                when (it(SolvingStatus(
-                                    solver = "gurobi",
-                                    obj = currentObj,
-                                    possibleBestObj = currentBound,
-                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
-                                ))) {
+                                when (it(
+                                    SolvingStatus(
+                                        solver = "gurobi",
+                                        obj = currentObj,
+                                        possibleBestObj = currentBound,
+                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                    )
+                                )) {
                                     is Ok -> {}
 
                                     is Failed -> {
@@ -271,15 +279,17 @@ private class GurobiLinearSolverImpl(
                     results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
                 }
                 output = SolverOutput(
-                    Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
-                    results,
-                    grbModel.get(GRB.DoubleAttr.Runtime).seconds,
-                    Flt64(if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
-                        grbModel.get(GRB.DoubleAttr.ObjBound)
-                    } else {
-                        grbModel.get(GRB.DoubleAttr.ObjVal)
-                    }),
-                    Flt64(
+                    obj = Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
+                    solution = results,
+                    time = grbModel.get(GRB.DoubleAttr.Runtime).seconds,
+                    possibleBestObj = Flt64(
+                        if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
+                            grbModel.get(GRB.DoubleAttr.ObjBound)
+                        } else {
+                            grbModel.get(GRB.DoubleAttr.ObjVal)
+                        }
+                    ),
+                    gap = Flt64(
                         if (grbModel.get(GRB.IntAttr.IsMIP) != 0) {
                             grbModel.get(GRB.DoubleAttr.MIPGap)
                         } else {
@@ -287,8 +297,7 @@ private class GurobiLinearSolverImpl(
                         }
                     )
                 )
-                when (val result =
-                    callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

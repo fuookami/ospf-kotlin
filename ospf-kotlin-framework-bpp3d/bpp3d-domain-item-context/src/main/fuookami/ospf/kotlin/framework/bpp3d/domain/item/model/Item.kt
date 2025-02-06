@@ -2,10 +2,9 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
@@ -190,7 +189,7 @@ open class ActualItem(
 }
 
 open class PatternedItem(
-    private val actualItems: List<Triple<ActualItem, UInt64, UInt64>>,
+    private val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>,
     // inherited from Cuboid<Item>
     override val width: Flt64,
     override val height: Flt64,
@@ -209,10 +208,10 @@ open class PatternedItem(
     companion object {
         operator fun invoke(
             pattern: ItemPattern,
-            actualItems: List<Triple<ActualItem, UInt64, UInt64>>
-        ): Triple<PatternedItem, UInt64, UInt64> {
+            actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>
+        ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
             val amount = actualItems.sumOf { it.second }
-            val pendingAmount = actualItems.sumOf { it.third }
+            val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
             val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
             val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume)
             return Triple(PatternedItem(
@@ -226,7 +225,7 @@ open class PatternedItem(
                 priorities = pattern.priorities,
                 warehouse = pattern.warehouse,
                 packageAttribute = pattern.packageAttribute
-            ), amount, pendingAmount)
+            ), amount, amountRange)
         }
     }
 

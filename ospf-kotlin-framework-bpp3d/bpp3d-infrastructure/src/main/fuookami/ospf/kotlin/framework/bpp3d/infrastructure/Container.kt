@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 private fun merge(
@@ -91,7 +92,7 @@ interface Container2<
     fun contains(predicate: Predicate<AbstractCuboid>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
-interface AbstractContainer3Shape {
+interface AbstractContainer3Shape: Eq<AbstractContainer3Shape> {
     val width: Flt64
     val height: Flt64
     val depth: Flt64
@@ -165,6 +166,10 @@ interface AbstractContainer3Shape {
         height = height - offset.y,
         depth = depth - offset.z
     )
+
+    override fun partialEq(rhs: AbstractContainer3Shape): Boolean? {
+        return width eq rhs.width && height eq rhs.height && depth eq rhs.depth
+    }
 }
 
 data class Container3Shape(

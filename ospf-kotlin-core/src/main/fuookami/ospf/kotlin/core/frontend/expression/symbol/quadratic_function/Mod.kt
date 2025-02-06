@@ -49,7 +49,7 @@ class ModFunction(
     override val lowerBound get() = y.lowerBound
     override val upperBound get() = y.upperBound
 
-    override val category: Category = Linear
+    override val category = Linear
 
     override val dependencies get() = x.dependencies + d.dependencies
     override val cells get() = y.cells

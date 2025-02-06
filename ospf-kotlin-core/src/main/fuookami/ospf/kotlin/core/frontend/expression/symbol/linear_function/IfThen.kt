@@ -55,7 +55,7 @@ class IfThenFunction(
     override val lowerBound get() = polyY.lowerBound
     override val upperBound get() = polyY.upperBound
 
-    override val category: Category = Linear
+    override val category = Linear
 
     override val dependencies: Set<IntermediateSymbol>
         get() {

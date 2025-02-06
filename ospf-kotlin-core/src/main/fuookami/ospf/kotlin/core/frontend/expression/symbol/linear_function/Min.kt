@@ -44,7 +44,7 @@ sealed class AbstractMinFunction(
     override val lowerBound get() = y.lowerBound
     override val upperBound get() = y.upperBound
 
-    override val category: Category = Linear
+    override val category = Linear
 
     override val dependencies: Set<IntermediateSymbol>
         get() {

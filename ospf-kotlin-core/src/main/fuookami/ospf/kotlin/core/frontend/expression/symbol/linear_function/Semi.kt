@@ -40,7 +40,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     override val lowerBound get() = polyY.lowerBound
     override val upperBound get() = polyY.upperBound
 
-    override val category: Category = Linear
+    override val category = Linear
 
     override val dependencies: Set<IntermediateSymbol>
         get() {
@@ -399,3 +399,9 @@ class SemiURealFunction(
         displayName: String? = null
     ) : this(polynomial, LinearPolynomial(flag), name, displayName)
 }
+
+class ReluFunction(
+    x: AbstractLinearPolynomial<*>,
+    name: String = "${x}_relu",
+    displayName: String? = "Relu(${x})"
+) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) })

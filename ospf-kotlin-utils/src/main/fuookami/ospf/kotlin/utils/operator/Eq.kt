@@ -15,6 +15,25 @@ interface Eq<in Self> : PartialEq<Self> {
     }
 }
 
+@JvmName("notNullPartialEqNullable")
+infix fun <T : PartialEq<T>> T.partialEq(rhs: T?): Boolean? {
+    return if (rhs == null) {
+        false
+    } else {
+        this.partialEq(rhs)
+    }
+}
+
+@JvmName("nullablePartialEqNotNull")
+infix fun <T : PartialEq<T>> T?.partialEq(rhs: T): Boolean? {
+    return if (this == null) {
+        false
+    } else {
+        this.partialEq(rhs)
+    }
+}
+
+@JvmName("nullablePartialEqNullable")
 infix fun <T : PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
     return if (this == null && rhs == null) {
         true
@@ -25,6 +44,25 @@ infix fun <T : PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
     }
 }
 
+@JvmName("notNullEqNullable")
+infix fun <T : Eq<T>> T.eq(rhs: T?): Boolean {
+    return if (rhs == null) {
+        false
+    } else {
+        this.eq(rhs)
+    }
+}
+
+@JvmName("nullableEqNotNull")
+infix fun <T: Eq<T>> T?.eq(rhs: T): Boolean {
+    return if (this == null) {
+        false
+    } else {
+        this.eq(rhs)
+    }
+}
+
+@JvmName("nullableEqNullable")
 infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
     return if (this == null && rhs == null) {
         true
@@ -35,6 +73,25 @@ infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
     }
 }
 
+@JvmName("nullableNeqNotNull")
+infix fun <T : Eq<T>> T?.neq(rhs: T): Boolean {
+    return if (this == null) {
+        true
+    } else {
+        this.neq(rhs)
+    }
+}
+
+@JvmName("notNullNeqNullable")
+infix fun <T : Eq<T>> T.neq(rhs: T?): Boolean {
+    return if (rhs == null) {
+        true
+    } else {
+        this.neq(rhs)
+    }
+}
+
+@JvmName("nullableNeqNullable")
 infix fun <T : Eq<T>> T?.neq(rhs: T?): Boolean {
     return if (this == null && rhs == null) {
         false

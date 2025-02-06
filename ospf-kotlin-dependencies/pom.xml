@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.31</version>
+        <version>1.0.32</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -245,6 +245,21 @@
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
                 <artifactId>ospf-kotlin-core-plugin-hexaly</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-lingo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-mindopt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+                <artifactId>ospf-kotlin-core-plugin-mosek</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

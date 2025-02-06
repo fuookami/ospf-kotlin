@@ -1,8 +1,11 @@
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import jscip.*
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.datetime.Clock
 
 abstract class ScipSolver {
     companion object {
@@ -11,8 +14,9 @@ abstract class ScipSolver {
         }
     }
 
-    lateinit var scip: Scip
-    lateinit var status: SolverStatus
+    protected lateinit var scip: Scip
+    protected lateinit var status: SolverStatus
+    protected var solvingTime: Duration? = null
 
     protected open fun finalize() {
         scip.free()
@@ -21,6 +25,22 @@ abstract class ScipSolver {
     protected suspend fun init(name: String): Try {
         scip = Scip()
         scip.create(name)
+        return ok
+    }
+
+    protected suspend fun solve(threadNum: UInt64): Try {
+        val begin = Clock.System.now()
+        if (threadNum gr UInt64.one) {
+            scip.solveConcurrent()
+            val stage = scip.stage
+            if (stage.swigValue() < SCIP_Stage.SCIP_STAGE_INITPRESOLVE.swigValue()) {
+                scip.solve()
+            }
+        } else {
+            scip.solve()
+        }
+        solvingTime = Clock.System.now() - begin
+
         return ok
     }
 

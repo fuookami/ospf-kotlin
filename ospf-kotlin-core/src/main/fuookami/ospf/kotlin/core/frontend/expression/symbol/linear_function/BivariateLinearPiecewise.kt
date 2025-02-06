@@ -103,7 +103,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     override val lowerBound get() = polyZ.lowerBound
     override val upperBound get() = polyZ.upperBound
 
-    override val category: Category = Linear
+    override val category = Linear
 
     override val dependencies: Set<IntermediateSymbol>
         get() {

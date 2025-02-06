@@ -50,12 +50,6 @@ class SimpleBlockGenerator(
         var withRemainder: Boolean? = null
     ) {
         companion object {
-            /**
-             * 通过上下文函数构造配置构造器
-             *
-             * @param func  上下文函数
-             * @return      配置构造器实例
-             */
             operator fun invoke(func: ConfigBuilder.() -> Unit): ConfigBuilder {
                 val builder = ConfigBuilder()
                 func(builder)

@@ -50,8 +50,8 @@ class CoptLinearSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, gurobi: Model, variables: List<Var>, constraints: List<Constraint>): Try? {
-        return map[point]?.invoke(gurobi, variables, constraints)
+    fun execIfContain(point: Point, copt: Model, variables: List<Var>, constraints: List<Constraint>): Try? {
+        return map[point]?.invoke(copt, variables, constraints)
     }
 
     override fun copy(): CoptLinearSolverCallBack {
@@ -92,8 +92,8 @@ class CoptQuadraticSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, gurobi: Model, variables: List<Var>, constraints: List<QConstraint>): Try? {
-        return map[point]?.invoke(gurobi, variables, constraints)
+    fun execIfContain(point: Point, copt: Model, variables: List<Var>, constraints: List<QConstraint>): Try? {
+        return map[point]?.invoke(copt, variables, constraints)
     }
 
     override fun copy(): CoptQuadraticSolverCallBack {

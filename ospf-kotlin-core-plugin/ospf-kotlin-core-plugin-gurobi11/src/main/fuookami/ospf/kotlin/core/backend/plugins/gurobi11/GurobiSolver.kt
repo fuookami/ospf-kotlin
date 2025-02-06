@@ -16,13 +16,26 @@ abstract class GurobiSolver {
         env.dispose()
     }
 
-    protected suspend fun init(server: String, password: String, connectionTime: Duration, name: String): Try {
+    protected suspend fun init(
+        server: String,
+        password: String,
+        connectionTime: Duration,
+        name: String,
+        callBack: CreatingEnvironmentFunction? = null
+    ): Try {
         return try {
             env = GRBEnv(true)
             env.set(GRB.IntParam.ServerTimeout, connectionTime.toInt(DurationUnit.SECONDS))
             env.set(GRB.DoubleParam.CSQueueTimeout, connectionTime.toDouble(DurationUnit.SECONDS))
             env.set(GRB.StringParam.ComputeServer, server)
             env.set(GRB.StringParam.ServerPassword, password)
+            when (val result = callBack?.invoke(env)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             env.start()
 
             grbModel = GRBModel(env)
@@ -35,9 +48,19 @@ abstract class GurobiSolver {
         }
     }
 
-    protected suspend fun init(name: String): Try {
+    protected suspend fun init(
+        name: String,
+        callBack: CreatingEnvironmentFunction? = null
+    ): Try {
         return try {
             env = GRBEnv()
+            when (val result = callBack?.invoke(env)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             grbModel = GRBModel(env)
             grbModel.set(GRB.StringAttr.ModelName, name)
             ok

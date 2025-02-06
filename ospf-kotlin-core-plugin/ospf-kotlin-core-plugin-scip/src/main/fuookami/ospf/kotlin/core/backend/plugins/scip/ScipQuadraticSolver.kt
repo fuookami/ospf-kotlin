@@ -6,6 +6,7 @@ import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -40,34 +41,38 @@ class ScipQuadraticSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = ScipQuadraticSolverImpl(config, callBack.ifNull { ScipSolverCallBack() }.copy()
-                .configuration { scip, _, _ ->
-                    if (solutionAmount gr UInt64.one) {
-                        scip.setIntParam("heuristics/dins/solnum", solutionAmount.toInt())
+            val impl = ScipQuadraticSolverImpl(
+                config = config,
+                callBack
+                    .copyIfNotNullOr { ScipSolverCallBack() }
+                    .configuration { scip, _, _ ->
+                        if (solutionAmount gr UInt64.one) {
+                            scip.setIntParam("heuristics/dins/solnum", solutionAmount.toInt())
+                        }
+                        ok
                     }
-                    ok
-                }
-                .analyzingSolution { scip, variables, _ ->
-                    val bestSol = scip.bestSol
-                    val sols = scip.sols
-                    var i = UInt64.zero
-                    for (sol in sols) {
-                        if (sol != bestSol) {
-                            val thisResults = ArrayList<Flt64>()
-                            for (scipVar in variables) {
-                                thisResults.add(Flt64(scip.getSolVal(sol, scipVar)))
+                    .analyzingSolution { scip, variables, _ ->
+                        val bestSol = scip.bestSol
+                        val sols = scip.sols
+                        var i = UInt64.zero
+                        for (sol in sols) {
+                            if (sol != bestSol) {
+                                val thisResults = ArrayList<Flt64>()
+                                for (scipVar in variables) {
+                                    thisResults.add(Flt64(scip.getSolVal(sol, scipVar)))
+                                }
+                                if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                    results.add(thisResults)
+                                }
                             }
-                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                                results.add(thisResults)
+                            ++i
+                            if (i >= solutionAmount) {
+                                break
                             }
                         }
-                        ++i
-                        if (i >= solutionAmount) {
-                            break
-                        }
-                    }
-                    ok
-                }, statusCallBack
+                        ok
+                    },
+                statusCallBack = statusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -81,14 +86,13 @@ private class ScipQuadraticSolverImpl(
     private val callBack: ScipSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : ScipSolver() {
-    var mip: Boolean = false
+    private var mip: Boolean = false
 
-    lateinit var scipVars: List<jscip.Variable>
-    lateinit var scipConstraints: List<jscip.Constraint>
-    lateinit var scipQuadraticObjectiveVars: List<jscip.Variable>
-    lateinit var scipQuadraticObjectiveTransformers: List<jscip.Constraint>
-    var solvingTime: Duration? = null
-    lateinit var output: SolverOutput
+    private lateinit var scipVars: List<jscip.Variable>
+    private lateinit var scipConstraints: List<jscip.Constraint>
+    private lateinit var scipQuadraticObjectiveVars: List<jscip.Variable>
+    private lateinit var scipQuadraticObjectiveTransformers: List<jscip.Constraint>
+    private lateinit var output: SolverOutput
 
     override fun finalize() {
         for (constraint in scipConstraints) {
@@ -112,7 +116,7 @@ private class ScipQuadraticSolverImpl(
             { it.init(model.name) },
             { it.dump(model) },
             ScipQuadraticSolverImpl::configure,
-            ScipQuadraticSolverImpl::solve,
+            { it.solve(config.threadNum) },
             ScipQuadraticSolverImpl::analyzeStatus,
             ScipQuadraticSolverImpl::analyzeSolution
         )
@@ -362,11 +366,11 @@ private class ScipQuadraticSolverImpl(
                 Flt64.zero
             }
             output = SolverOutput(
-                obj,
-                results,
-                solvingTime!!,
-                possibleBestObj,
-                gap
+                obj = obj,
+                solution = results,
+                time = solvingTime!!,
+                possibleBestObj = possibleBestObj,
+                gap = gap
             )
 
             when (val result = callBack?.execIfContain(Point.AnalyzingSolution, scip, scipVars, scipConstraints)) {

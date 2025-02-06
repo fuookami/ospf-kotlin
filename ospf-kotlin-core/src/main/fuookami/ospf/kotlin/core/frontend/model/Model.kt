@@ -84,6 +84,14 @@ interface LinearModel : Model {
         displayName: String? = null
     ): Try
 
+    fun partition(
+        polynomial: AbstractLinearPolynomial<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(polynomial eq Flt64.one, name, displayName)
+    }
+
     override fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -186,10 +194,26 @@ interface QuadraticModel : LinearModel {
     }
 
     fun addConstraint(
+        constraint: QuadraticFunctionSymbol,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(constraint eq Flt64.one, name, displayName)
+    }
+
+    fun addConstraint(
         constraint: QuadraticInequality,
         name: String? = null,
         displayName: String? = null
     ): Try
+
+    fun partition(
+        polynomial: AbstractQuadraticPolynomial<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(polynomial eq Flt64.one, name, displayName)
+    }
 
     override fun addObject(
         category: ObjectCategory,

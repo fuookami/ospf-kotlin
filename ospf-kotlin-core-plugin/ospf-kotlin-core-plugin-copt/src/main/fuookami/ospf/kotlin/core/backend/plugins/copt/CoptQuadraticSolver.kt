@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import copt.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -41,21 +42,26 @@ class CoptQuadraticSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = CoptQuadraticSolverImpl(config, callBack.ifNull { CoptQuadraticSolverCallBack() }.copy()
-                .configuration { copt, _, _ ->
-                    if (solutionAmount gr UInt64.one) {
-                        // todo: set copt parameter to limit number of solutions
-                    }
-                    ok
-                }.analyzingSolution { copt, variables, _ ->
-                    for (i in 0 until min(solutionAmount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
-                        val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
-                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                            results.add(thisResults)
+            val impl = CoptQuadraticSolverImpl(
+                config = config,
+                callBack = callBack
+                    .copyIfNotNullOr { CoptQuadraticSolverCallBack() }
+                    .configuration { copt, _, _ ->
+                        if (solutionAmount gr UInt64.one) {
+                            // todo: set copt parameter to limit number of solutions
                         }
+                        ok
                     }
-                    ok
-                }, statusCallBack
+                    .analyzingSolution { copt, variables, _ ->
+                        for (i in 0 until min(solutionAmount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
+                            val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ok
+                    },
+                statusCallBack = statusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -69,9 +75,9 @@ private class CoptQuadraticSolverImpl(
     private val callBack: CoptQuadraticSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : CoptSolver() {
-    lateinit var coptVars: List<Var>
-    lateinit var coptConstraints: List<QConstraint>
-    lateinit var output: SolverOutput
+    private lateinit var coptVars: List<Var>
+    private lateinit var coptConstraints: List<QConstraint>
+    private lateinit var output: SolverOutput
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
@@ -221,7 +227,7 @@ private class CoptQuadraticSolverImpl(
             coptModel.set(COPT.IntParam.Threads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
-                coptModel.setCallback(object: CallbackBase() {
+                coptModel.setCallback(object : CallbackBase() {
                     override fun callback() {
                         callBack?.nativeCallback?.invoke(this)
 
@@ -240,12 +246,14 @@ private class CoptQuadraticSolverImpl(
                         }
 
                         statusCallBack?.let {
-                            when (it(SolvingStatus(
-                                solver = "copt",
-                                obj = currentObj,
-                                possibleBestObj = currentBound,
-                                gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
-                            ))) {
+                            when (it(
+                                SolvingStatus(
+                                    solver = "copt",
+                                    obj = currentObj,
+                                    possibleBestObj = currentBound,
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                )
+                            )) {
                                 is Ok -> {}
 
                                 is Failed -> {
@@ -280,19 +288,21 @@ private class CoptQuadraticSolverImpl(
                     results.add(Flt64(coptVar.get(COPT.DoubleInfo.Value)))
                 }
                 output = SolverOutput(
-                    if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                    obj = if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
                         Flt64(coptModel.get(COPT.DoubleAttr.BestObj))
                     } else {
                         Flt64(coptModel.get(COPT.DoubleAttr.LpObjVal))
                     },
-                    results,
-                    coptModel.get(COPT.DoubleAttr.SolvingTime).seconds,
-                    Flt64(if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
-                        coptModel.get(COPT.DoubleAttr.BestBound)
-                    } else {
-                        coptModel.get(COPT.DoubleAttr.BestObj)
-                    }),
-                    Flt64(
+                    solution = results,
+                    time = coptModel.get(COPT.DoubleAttr.SolvingTime).seconds,
+                    possibleBestObj = Flt64(
+                        if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
+                            coptModel.get(COPT.DoubleAttr.BestBound)
+                        } else {
+                            coptModel.get(COPT.DoubleAttr.BestObj)
+                        }
+                    ),
+                    gap = Flt64(
                         if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
                             coptModel.get(COPT.DoubleAttr.BestGap)
                         } else {
@@ -300,8 +310,7 @@ private class CoptQuadraticSolverImpl(
                         }
                     )
                 )
-                when (val result =
-                    callBack?.execIfContain(Point.AnalyzingSolution, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, coptModel, coptVars, coptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
