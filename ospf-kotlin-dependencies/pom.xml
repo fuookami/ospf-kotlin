@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin</artifactId>
+        <artifactId>ospf-kotlin-jdk8</artifactId>
         <version>1.0.37</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>ospf-kotlin-dependencies</artifactId>
+    <artifactId>ospf-kotlin-dependencies-jdk8</artifactId>
     <packaging>pom</packaging>
 
     <dependencyManagement>
@@ -213,228 +213,228 @@
             <!-- ospf -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-utils</artifactId>
+                <artifactId>ospf-kotlin-utils-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-core</artifactId>
+                <artifactId>ospf-kotlin-core-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-framework</artifactId>
+                <artifactId>ospf-kotlin-framework-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-core-plugins -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-copt</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-copt-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-cplex-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-gurobi-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-gurobi11</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-gurobi11-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-hexaly</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-hexaly-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-lingo</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-lingo-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-mindopt</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-mindopt-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-mosek</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-mosek-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-optverse</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-optverse-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-scip-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-heuristic-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-framework-plugins -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-message-kafka</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-message-kafka-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-mongodb</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-mongodb-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-mysql</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-mysql-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-sqlite</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-sqlite-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-redis</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-redis-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-bpp3d -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-infrastructure</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-infrastructure-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-packing-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-packing-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-bla-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-bla-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-block-loading-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-block-loading-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-generation-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-generation-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-assignment-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-assignment-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-application</artifactId>
+                <artifactId>ospf-kotlin-framework-bpp3d-application-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-csp1d -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-                <artifactId>ospf-kotlin-framework-csp1d-infrastructure</artifactId>
+                <artifactId>ospf-kotlin-framework-csp1d-infrastructure-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-                <artifactId>ospf-kotlin-framework-csp1d-domain-material-context</artifactId>
+                <artifactId>ospf-kotlin-framework-csp1d-domain-material-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-                <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context</artifactId>
+                <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-gantt-scheduling -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-infrastructure</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-infrastructure-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-generation-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-generation-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-selection-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-selection-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-generation-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-generation-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-selection-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-selection-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-produce-context</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-produce-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-application</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-application-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-starter -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-starter</artifactId>
+                <artifactId>ospf-kotlin-starter-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
+                <artifactId>ospf-kotlin-starter-bpp3d-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
+                <artifactId>ospf-kotlin-starter-gantt-scheduling-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

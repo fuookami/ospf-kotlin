@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-        <artifactId>ospf-kotlin-core-plugin</artifactId>
+        <artifactId>ospf-kotlin-core-plugin-jdk8</artifactId>
         <version>1.0.37</version>
     </parent>
 
-    <artifactId>ospf-kotlin-core-plugin-mindopt</artifactId>
+    <artifactId>ospf-kotlin-core-plugin-mindopt-jdk8</artifactId>
 
     <dependencies>
         <dependency>

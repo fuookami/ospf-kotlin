@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-        <artifactId>ospf-kotlin-core-plugin</artifactId>
+        <artifactId>ospf-kotlin-core-plugin-jdk8</artifactId>
         <version>1.0.37</version>
     </parent>
 
-    <artifactId>ospf-kotlin-core-plugin-optverse</artifactId>
+    <artifactId>ospf-kotlin-core-plugin-optverse-jdk8</artifactId>
 
     <properties>
         <optverse.version>3.1.124</optverse.version>
