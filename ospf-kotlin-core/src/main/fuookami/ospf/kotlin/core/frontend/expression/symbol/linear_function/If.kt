@@ -116,7 +116,7 @@ class IfFunction(
         return "if(${inequality.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (inequality.isTrue(tokenList, zeroIfNone)) {
             true -> {
                 Flt64.one
@@ -132,7 +132,7 @@ class IfFunction(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (inequality.isTrue(results, tokenList, zeroIfNone)) {
             true -> {
                 Flt64.one

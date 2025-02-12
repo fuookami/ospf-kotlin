@@ -55,8 +55,8 @@ abstract class AbstractNotFunctionImpl(
         return "not(${x.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val value = x.evaluate(tokenList, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
@@ -65,8 +65,8 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val value = x.evaluate(results, tokenList, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
@@ -76,7 +76,7 @@ abstract class AbstractNotFunctionImpl(
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(tokenTable, zeroIfNone)
+        val value = x.evaluate(tokenTable, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
@@ -86,7 +86,7 @@ abstract class AbstractNotFunctionImpl(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(results, tokenTable, zeroIfNone)
+        val value = x.evaluate(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
@@ -110,7 +110,7 @@ class NotFunctionImpl(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val yValue = if (xValue eq Flt64.zero) {
                     Flt64.one
                 } else {
@@ -167,7 +167,7 @@ class NotFunctionPiecewiseImpl(
         piecewiseFunction.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            piecewiseFunction.value(tokenTable)?.let { yValue ->
+            piecewiseFunction.evaluate(tokenTable)?.let { yValue ->
                 tokenTable.cache(parent, null, yValue)
             }
         }
@@ -223,7 +223,7 @@ class NotFunctionDiscreteImpl(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val bin = xValue eq Flt64.zero
                 val yValue = if (bin) {
                     Flt64.one
@@ -311,7 +311,7 @@ class NotFunctionExtractAndNotDiscreteImpl(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val pct = xValue / x.upperBound!!.value.unwrap()
                 val bin = xValue eq Flt64.zero
                 val yValue = if (bin) {
@@ -469,12 +469,12 @@ class NotFunction(
         return "not(${x.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return impl.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return impl.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {

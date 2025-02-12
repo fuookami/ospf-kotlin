@@ -30,11 +30,11 @@ sealed interface MetaModel : Model {
         }
 
         fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-            return polynomial.value(tokenTable, zeroIfNone)
+            return polynomial.evaluate(tokenTable, zeroIfNone)
         }
 
         fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-            return polynomial.value(results, tokenTable, zeroIfNone)
+            return polynomial.evaluate(results, tokenTable, zeroIfNone)
         }
     }
 

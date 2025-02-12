@@ -6,8 +6,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.math.Flt32.Companion
 import fuookami.ospf.kotlin.utils.operator.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
@@ -62,26 +63,25 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override fun ln(): Self? = log(constants.e) as Self?
 
     override fun toRtn8() = floatingToRational(value(), { Int8(it.toByte()) }, { Int8(it.toByte()) }, Rtn8::invoke)
-    override fun toRtn16() =
-        floatingToRational(value(), { Int16(it.toShort()) }, { Int16(it.toShort()) }, Rtn16::invoke)
-
+    override fun toRtn16() = floatingToRational(value(), { Int16(it.toShort()) }, { Int16(it.toShort()) }, Rtn16::invoke)
     override fun toRtn32() = floatingToRational(value(), { Int32(it.toInt()) }, { Int32(it.toInt()) }, Rtn32::invoke)
     override fun toRtn64() = floatingToRational(value(), { Int64(it.toLong()) }, { Int64(it) }, Rtn64::invoke)
     override fun toRtnX() = floatingToRational(value(), { IntX(it) }, { IntX(it) }, RtnX::invoke)
 
-    override fun toURtn8() =
-        floatingToRational(value(), { UInt8(it.toUByte()) }, { UInt8(it.toUByte()) }, URtn8::invoke)
-
-    override fun toURtn16() =
-        floatingToRational(value(), { UInt16(it.toUShort()) }, { UInt16(it.toUShort()) }, URtn16::invoke)
-
-    override fun toURtn32() =
-        floatingToRational(value(), { UInt32(it.toUInt()) }, { UInt32(it.toUInt()) }, URtn32::invoke)
-
-    override fun toURtn64() =
-        floatingToRational(value(), { UInt64(it.toULong()) }, { UInt64(it.toULong()) }, URtn64::invoke)
+    override fun toURtn8() = floatingToRational(value(), { UInt8(it.toUByte()) }, { UInt8(it.toUByte()) }, URtn8::invoke)
+    override fun toURtn16() = floatingToRational(value(), { UInt16(it.toUShort()) }, { UInt16(it.toUShort()) }, URtn16::invoke)
+    override fun toURtn32() = floatingToRational(value(), { UInt32(it.toUInt()) }, { UInt32(it.toUInt()) }, URtn32::invoke)
+    override fun toURtn64() = floatingToRational(value(), { UInt64(it.toULong()) }, { UInt64(it.toULong()) }, URtn64::invoke)
 
     override fun toURtnX() = floatingToRational(value(), { UIntX(it) }, { UIntX(it) }, URtnX::invoke)
+
+    fun floor(): Self
+    fun ceil(): Self
+    fun round(): Self
+
+    fun floorTo(precision: Int = this.constants.decimalDigits!!): Self
+    fun ceilTo(precision: Int = this.constants.decimalDigits!!): Self
+    fun roundTo(precision: Int = this.constants.decimalDigits!!): Self
 }
 
 data object Flt32Serializer : KSerializer<Flt32> {
@@ -96,26 +96,46 @@ data object Flt32Serializer : KSerializer<Flt32> {
     }
 }
 
+interface Flt32Interface {
+    fun toFloat(): Float
+}
+
 @JvmInline
 @Serializable(with = Flt32Serializer::class)
-value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt32> {
+value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt32>, Copyable<Flt32> {
     companion object : FloatingNumberConstants<Flt32> {
+        @JvmStatic
         override val zero: Flt32 get() = Flt32(0.0F)
+        @JvmStatic
         override val one: Flt32 get() = Flt32(1.0F)
+        @JvmStatic
         override val two: Flt32 get() = Flt32(2.0F)
+        @JvmStatic
         override val three: Flt32 get() = Flt32(3.0F)
+        @JvmStatic
         override val five: Flt32 get() = Flt32(5.0F)
+        @JvmStatic
         override val ten: Flt32 get() = Flt32(10.0F)
+        @JvmStatic
         override val minimum: Flt32 get() = Flt32(-Float.MAX_VALUE)
+        @JvmStatic
         override val maximum: Flt32 get() = Flt32(Float.MAX_VALUE)
+        @JvmStatic
         override val decimalDigits: Int get() = 6
+        @JvmStatic
         override val decimalPrecision: Flt32 get() = Flt32(1.19209e-07F)
+        @JvmStatic
         override val epsilon: Flt32 get() = Flt32(Float.MIN_VALUE)
+        @JvmStatic
         override val nan: Flt32 get() = Flt32(Float.NaN)
+        @JvmStatic
         override val infinity: Flt32 get() = Flt32(Float.POSITIVE_INFINITY)
+        @JvmStatic
         override val negativeInfinity: Flt32 get() = Flt32(Float.NEGATIVE_INFINITY)
 
+        @JvmStatic
         override val pi: Flt32 get() = Flt32(PI.toFloat())
+        @JvmStatic
         override val e: Flt32 get() = Flt32(E.toFloat())
     }
 
@@ -159,6 +179,134 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
 
     override fun exp() = Flt32(exp(value))
 
+    override fun sin() = Flt32(sin(value))
+    override fun cos() = Flt32(cos(value))
+    override fun sec(): Flt32? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
+    override fun csc(): Flt32? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
+    override fun tan(): Flt32? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.sin() / temp
+        }
+    }
+    override fun cot(): Flt32? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.cos() / temp
+        }
+    }
+
+    override fun asin(): Flt32? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt32(asin(value))
+        }
+    }
+    override fun acos(): Flt32? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt32(acos(value))
+        }
+    }
+    override fun asec(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acos()
+        }
+    }
+    override fun acsc(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asin()
+        }
+    }
+    override fun atan() = Flt32(atan(value))
+    override fun acot(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atan()
+        }
+    }
+
+    override fun sinh() = Flt32(sinh(value))
+    override fun cosh() = Flt32(cosh(value))
+    override fun sech() = this.cosh().reciprocal()
+    override fun csch(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.sinh().reciprocal()
+        }
+    }
+    override fun tanh() = Flt32(tanh(value))
+    override fun coth(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.tanh().reciprocal()
+        }
+    }
+
+    override fun asinh() = Flt32(asinh(value))
+    override fun acosh(): Flt32? {
+        return if (this ls one) {
+            null
+        } else {
+            Flt32(acosh(value))
+        }
+    }
+    override fun asech(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acosh()
+        }
+    }
+    override fun acsch(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asinh()
+        }
+    }
+    override fun atanh(): Flt32? {
+        return if (this leq -one || this geq one) {
+            null
+        } else {
+            Flt32(atanh(value))
+        }
+    }
+    override fun acoth(): Flt32? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atanh()
+        }
+    }
+
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -175,14 +323,14 @@ value class Flt32(internal val value: Float) : FloatingImpl<Flt32>, Copyable<Flt
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = FltX(value.toDouble())
 
-    fun toFloat() = value
-    fun floor() = Flt32(floor(value))
-    fun ceil() = Flt32(ceil(value))
-    fun round() = Flt32(round(value))
+    override fun toFloat() = value
+    override fun floor() = Flt32(floor(value))
+    override fun ceil() = Flt32(ceil(value))
+    override fun round() = Flt32(round(value))
 
-    fun floorTo(precision: Int = decimalDigits) = Flt32(floor(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
-    fun ceilTo(precision: Int = decimalDigits) = Flt32(ceil(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
-    fun roundTo(precision: Int = decimalDigits) = Flt32(round(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    override fun floorTo(precision: Int) = Flt32(floor(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    override fun ceilTo(precision: Int) = Flt32(ceil(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    override fun roundTo(precision: Int) = Flt32(round(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
 }
 
 data object Flt64Serializer : KSerializer<Flt64> {
@@ -197,28 +345,48 @@ data object Flt64Serializer : KSerializer<Flt64> {
     }
 }
 
+interface Flt64Interface {
+    fun toDouble(): Double
+}
+
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
-value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Flt64> {
+value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt64>, Copyable<Flt64> {
     constructor(value: Int) : this(value.toDouble())
 
     companion object : FloatingNumberConstants<Flt64> {
+        @JvmStatic
         override val zero: Flt64 get() = Flt64(0.0)
+        @JvmStatic
         override val one: Flt64 get() = Flt64(1.0)
+        @JvmStatic
         override val two: Flt64 get() = Flt64(2.0)
+        @JvmStatic
         override val three: Flt64 get() = Flt64(3.0)
+        @JvmStatic
         override val five: Flt64 get() = Flt64(5.0)
+        @JvmStatic
         override val ten: Flt64 get() = Flt64(10.0)
+        @JvmStatic
         override val minimum: Flt64 get() = Flt64(-Double.MAX_VALUE)
+        @JvmStatic
         override val maximum: Flt64 get() = Flt64(Double.MAX_VALUE)
+        @JvmStatic
         override val decimalDigits: Int get() = 15
+        @JvmStatic
         override val decimalPrecision: Flt64 get() = Flt64(2.22045e-16)
+        @JvmStatic
         override val nan: Flt64 get() = Flt64(Double.NaN)
+        @JvmStatic
         override val epsilon: Flt64 get() = Flt64(Double.MIN_VALUE)
+        @JvmStatic
         override val infinity: Flt64 get() = Flt64(Double.POSITIVE_INFINITY)
+        @JvmStatic
         override val negativeInfinity: Flt64 get() = Flt64(Double.NEGATIVE_INFINITY)
 
+        @JvmStatic
         override val pi: Flt64 get() = Flt64(PI)
+        @JvmStatic
         override val e: Flt64 get() = Flt64(E)
     }
 
@@ -262,6 +430,134 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
 
     override fun exp() = Flt64(exp(value))
 
+    override fun sin() = Flt64(sin(value))
+    override fun cos() = Flt64(cos(value))
+    override fun sec(): Flt64? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
+    override fun csc(): Flt64? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            temp.reciprocal()
+        }
+    }
+    override fun tan(): Flt64? {
+        val temp = this.cos()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.sin() / temp
+        }
+    }
+    override fun cot(): Flt64? {
+        val temp = this.sin()
+        return if (temp eq zero) {
+            null
+        } else {
+            this.cos() / temp
+        }
+    }
+
+    override fun asin(): Flt64? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt64(asin(value))
+        }
+    }
+    override fun acos(): Flt64? {
+        return if (this ls -one || this gr one) {
+            null
+        } else {
+            Flt64(acos(value))
+        }
+    }
+    override fun asec(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acos()
+        }
+    }
+    override fun acsc(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asin()
+        }
+    }
+    override fun atan() = Flt64(atan(value))
+    override fun acot(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atan()
+        }
+    }
+
+    override fun sinh() = Flt64(sinh(value))
+    override fun cosh() = Flt64(cosh(value))
+    override fun sech() = this.cosh().reciprocal()
+    override fun csch(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.sinh().reciprocal()
+        }
+    }
+    override fun tanh() = Flt64(tanh(value))
+    override fun coth(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.tanh().reciprocal()
+        }
+    }
+
+    override fun asinh() = Flt64(asinh(value))
+    override fun acosh(): Flt64? {
+        return if (this ls one) {
+            null
+        } else {
+            Flt64(acosh(value))
+        }
+    }
+    override fun asech(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().acosh()
+        }
+    }
+    override fun acsch(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().asinh()
+        }
+    }
+    override fun atanh(): Flt64? {
+        return if (this leq -one || this geq one) {
+            null
+        } else {
+            Flt64(atanh(value))
+        }
+    }
+    override fun acoth(): Flt64? {
+        return if (this eq zero) {
+            null
+        } else {
+            this.reciprocal().atanh()
+        }
+    }
+
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -278,14 +574,14 @@ value class Flt64(internal val value: Double) : FloatingImpl<Flt64>, Copyable<Fl
     override fun toFlt64() = copy()
     override fun toFltX() = FltX(value)
 
-    fun toDouble() = value
-    fun floor() = Flt64(floor(value))
-    fun ceil() = Flt64(ceil(value))
-    fun round() = Flt64(round(value))
+    override fun toDouble() = value
+    override fun floor() = Flt64(floor(value))
+    override fun ceil() = Flt64(ceil(value))
+    override fun round() = Flt64(round(value))
 
-    fun floorTo(precision: Int = decimalDigits) = Flt64(floor(value * 10.0.pow(precision)) / 10.0.pow(precision))
-    fun ceilTo(precision: Int = decimalDigits) = Flt64(ceil(value * 10.0.pow(precision)) / 10.0.pow(precision))
-    fun roundTo(precision: Int = decimalDigits) = Flt64(round(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    override fun floorTo(precision: Int) = Flt64(floor(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    override fun ceilTo(precision: Int) = Flt64(ceil(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    override fun roundTo(precision: Int) = Flt64(round(value * 10.0.pow(precision)) / 10.0.pow(precision))
 }
 
 data object FltXSerializer : KSerializer<FltX> {
@@ -319,23 +615,40 @@ data object FltXJsonSerializer : KSerializer<FltX> {
     }
 }
 
+interface FltXInterface {
+    fun toDecimal(): BigDecimal
+}
+
 @JvmInline
 @Serializable(with = FltXSerializer::class)
-value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<FltX> {
+value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<FltX>, Copyable<FltX> {
     companion object : FloatingNumberConstants<FltX> {
+        @JvmStatic
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
+        @JvmStatic
         override val one: FltX get() = FltX(BigDecimal.ONE)
+        @JvmStatic
         override val two: FltX get() = FltX(2L)
+        @JvmStatic
         override val three: FltX get() = FltX(3L)
+        @JvmStatic
         override val five: FltX get() = FltX(5L)
+        @JvmStatic
         override val ten: FltX get() = FltX(10L)
+        @JvmStatic
         override val minimum: FltX get() = FltX(-Double.MAX_VALUE)
+        @JvmStatic
         override val maximum: FltX get() = FltX(Double.MAX_VALUE)
+        @JvmStatic
         override val decimalDigits: Int get() = 18
+        @JvmStatic
         override val decimalPrecision: FltX get() = FltX(1e-18)
+        @JvmStatic
         override val epsilon: FltX get() = decimalPrecision
 
+        @JvmStatic
         override val pi: FltX get() = FltX(PI.toBigDecimal())
+        @JvmStatic
         override val e: FltX get() = FltX(E.toBigDecimal())
     }
 
@@ -388,6 +701,34 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
 
     override fun exp() = FltX(exp(value.toDouble()))
 
+    override fun sin() = toFlt64().sin().toFltX()
+    override fun cos() = toFlt64().cos().toFltX()
+    override fun sec() = toFlt64().sec()?.toFltX()
+    override fun csc() = toFlt64().csc()?.toFltX()
+    override fun tan() = toFlt64().tan()?.toFltX()
+    override fun cot() = toFlt64().cot()?.toFltX()
+
+    override fun asin() = toFlt64().asin()?.toFltX()
+    override fun acos() = toFlt64().acos()?.toFltX()
+    override fun asec() = toFlt64().asec()?.toFltX()
+    override fun acsc() = toFlt64().acsc()?.toFltX()
+    override fun atan() = toFlt64().atan().toFltX()
+    override fun acot() = toFlt64().acot()?.toFltX()
+
+    override fun sinh() = toFlt64().sinh().toFltX()
+    override fun cosh() = toFlt64().cosh().toFltX()
+    override fun sech() = toFlt64().sech().toFltX()
+    override fun csch() = toFlt64().csch()?.toFltX()
+    override fun tanh() = toFlt64().tanh().toFltX()
+    override fun coth() = toFlt64().coth()?.toFltX()
+
+    override fun asinh() = toFlt64().asinh().toFltX()
+    override fun acosh() = toFlt64().acosh()?.toFltX()
+    override fun asech() = toFlt64().asech()?.toFltX()
+    override fun acsch() = toFlt64().acsch()?.toFltX()
+    override fun atanh() = toFlt64().atanh()?.toFltX()
+    override fun acoth() = toFlt64().acoth()?.toFltX()
+
     override fun toInt8() = Int8(value.toInt().toByte())
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -404,34 +745,34 @@ value class FltX(internal val value: BigDecimal) : FloatingImpl<FltX>, Copyable<
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = copy()
 
-    fun toDecimal() = value
+    override fun toDecimal() = value
 
-    fun floor(): FltX {
+    override fun floor(): FltX {
         val scale = value.scale()
         return FltX(value.setScale(0, RoundingMode.FLOOR).setScale(scale))
     }
 
-    fun ceil(): FltX {
+    override fun ceil(): FltX {
         val scale = value.scale()
         return FltX(value.setScale(0, RoundingMode.CEILING).setScale(scale))
     }
 
-    fun round(): FltX {
+    override fun round(): FltX {
         val scale = value.scale()
         return FltX(value.setScale(0, RoundingMode.HALF_UP).setScale(scale))
     }
 
-    fun floorTo(precision: Int = decimalDigits): FltX {
+    override fun floorTo(precision: Int): FltX {
         val scale = value.scale()
         return FltX(value.setScale(precision, RoundingMode.FLOOR).setScale(scale))
     }
 
-    fun ceilTo(precision: Int = decimalDigits): FltX {
+    override fun ceilTo(precision: Int): FltX {
         val scale = value.scale()
         return FltX(value.setScale(precision, RoundingMode.CEILING).setScale(scale))
     }
 
-    fun roundTo(precision: Int = decimalDigits): FltX {
+    override fun roundTo(precision: Int): FltX {
         val scale = value.scale()
         return FltX(value.setScale(precision, RoundingMode.HALF_UP).setScale(scale))
     }

@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-starters</artifactId>
-        <version>1.0.32</version>
+        <version>1.0.37</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,6 +15,21 @@
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-material-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

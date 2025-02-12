@@ -61,36 +61,36 @@ abstract class ExpressionSymbol(
         return "(${polynomial.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomial.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomial.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomial.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomial.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution && tokenTable.cached(dependency, null) == false) {
-                    dependency.value(tokenTable, zeroIfNone)
+                    dependency.evaluate(tokenTable, zeroIfNone)
                 }
             }
-            val value = polynomial.value(tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(tokenTable, zeroIfNone) ?: return null
             tokenTable.cache(this, null, value)
         } else {
             tokenTable.cachedValue(this, null)
         }
     }
 
-    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cached(this, results) == false) {
             for (dependency in dependencies) {
                 if (tokenTable.cached(dependency, results) == false) {
-                    dependency.value(tokenTable, zeroIfNone)
+                    dependency.evaluate(tokenTable, zeroIfNone)
                 }
             }
-            val value = polynomial.value(results, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(results, tokenTable, zeroIfNone) ?: return null
             tokenTable.cache(this, results, value)
         } else {
             tokenTable.cachedValue(this, results)
@@ -360,11 +360,11 @@ class QuadraticExpressionSymbol(
 interface FunctionSymbol : IntermediateSymbol {
     fun register(tokenTable: AbstractMutableTokenTable): Try
 
-    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {
             for (dependency in dependencies) {
                 if (tokenTable.cached(dependency, null) == false) {
-                    dependency.value(tokenTable, zeroIfNone)
+                    dependency.evaluate(tokenTable, zeroIfNone)
                 }
             }
             val value = calculateValue(tokenTable, zeroIfNone) ?: return null
@@ -374,11 +374,11 @@ interface FunctionSymbol : IntermediateSymbol {
         }
     }
 
-    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cached(this, results) == false) {
             for (dependency in dependencies) {
                 if (tokenTable.cached(dependency, results) == false) {
-                    dependency.value(tokenTable, zeroIfNone)
+                    dependency.evaluate(tokenTable, zeroIfNone)
                 }
             }
             val value = calculateValue(results, tokenTable, zeroIfNone) ?: return null
@@ -394,11 +394,11 @@ interface FunctionSymbol : IntermediateSymbol {
 
 interface LogicFunctionSymbol : FunctionSymbol {
     fun isTrue(tokenList: AbstractTokenList, zeroIfNone: Boolean): Boolean? {
-        return this.value(tokenList, zeroIfNone)?.let { it eq Flt64.one }
+        return this.evaluate(tokenList, zeroIfNone)?.let { it eq Flt64.one }
     }
 
     fun isTrue(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Boolean? {
-        return this.value(results, tokenList, zeroIfNone)?.let { it eq Flt64.one }
+        return this.evaluate(results, tokenList, zeroIfNone)?.let { it eq Flt64.one }
     }
 }
 

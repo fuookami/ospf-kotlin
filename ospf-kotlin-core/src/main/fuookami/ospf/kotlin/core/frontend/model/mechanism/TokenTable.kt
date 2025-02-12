@@ -456,39 +456,61 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
                 }
             }
 
-            val factor = Flt64(readySymbols.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-            val jobs = if (factor >= 1) {
-                val segment = pow(UInt64.ten, factor).toInt()
-                val readySymbolList = readySymbols.toList()
-                (0..(readySymbolList.size / segment)).map { i ->
-                    async(Dispatchers.Default) {
-                        readySymbolList.subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment)).map {
-                            it.prepare(tokenTable)
+            if (Runtime.getRuntime().availableProcessors() > 1) {
+                val jobs = if (Runtime.getRuntime().availableProcessors() > 2) {
+                    val factor = Flt64(readySymbols.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+                    val segment = if (factor >= 1) {
+                        pow(UInt64.ten, factor).toInt()
+                    } else {
+                        10
+                    }
+                    val readySymbolList = readySymbols.toList()
+                    (0..(readySymbolList.size / segment)).map { i ->
+                        async(Dispatchers.Default) {
+                            readySymbolList.subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment)).map {
+                                it.prepare(tokenTable)
+                            }
                         }
                     }
-                }
-            } else {
-                readySymbols.map {
-                    launch {
-                        it.prepare(tokenTable)
-                    }
-                }
-            }
-
-            completedSymbols.addAll(readySymbols)
-            val newReadySymbols = dependencies.filter {
-                !completedSymbols.contains(it.key) && it.value.all { dependency ->
-                    completedSymbols.contains(
-                        dependency
+                } else {
+                    listOf(
+                        launch {
+                            readySymbols.forEach { it.prepare(tokenTable) }
+                        }
                     )
                 }
-            }.keys.toSet()
-            dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
-            for ((_, dependency) in dependencies) {
-                dependency.removeAll(readySymbols)
+
+                completedSymbols.addAll(readySymbols)
+                val newReadySymbols = dependencies.filter {
+                    !completedSymbols.contains(it.key) && it.value.all { dependency ->
+                        completedSymbols.contains(
+                            dependency
+                        )
+                    }
+                }.keys.toSet()
+                dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
+                for ((_, dependency) in dependencies) {
+                    dependency.removeAll(readySymbols)
+                }
+                readySymbols = newReadySymbols
+                jobs.joinAll()
+            } else {
+                readySymbols.forEach { it.prepare(tokenTable) }
+
+                completedSymbols.addAll(readySymbols)
+                val newReadySymbols = dependencies.filter {
+                    !completedSymbols.contains(it.key) && it.value.all { dependency ->
+                        completedSymbols.contains(
+                            dependency
+                        )
+                    }
+                }.keys.toSet()
+                dependencies = dependencies.filter { !newReadySymbols.contains(it.key) }
+                for ((_, dependency) in dependencies) {
+                    dependency.removeAll(readySymbols)
+                }
+                readySymbols = newReadySymbols
             }
-            readySymbols = newReadySymbols
-            jobs.joinAll()
         }
 
         ok

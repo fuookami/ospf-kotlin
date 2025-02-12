@@ -87,7 +87,7 @@ data object SolutionAnalyzer {
         }
 
         val assignedECT = tasks.associateWith { task ->
-            taskTime.estimateEndTime[task].value(results, model.tokens)?.let { with(timeWindow) { it.instant } }
+            taskTime.estimateEndTime[task].evaluate(results, model.tokens)?.let { with(timeWindow) { it.instant } }
                 ?: Instant.DISTANT_FUTURE
         }
 
@@ -103,16 +103,16 @@ data object SolutionAnalyzer {
         val canceledTasks = ArrayList<T>()
         for (task in tasks) {
             val assignedTask = assignedPolicyGenerator(assignedTime[task], assignedExecutor[task])?.let {
-                    when (val result = task.assign(it)) {
-                        is Ok -> {
-                            result.value
-                        }
+                when (val result = task.assign(it)) {
+                    is Ok -> {
+                        result.value
+                    }
 
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
+                    is Failed -> {
+                        return Failed(result.error)
                     }
                 }
+            }
             if (assignedTask != null) {
                 assignedTasks.add(assignedTask as T)
             } else {
@@ -139,7 +139,7 @@ data object SolutionAnalyzer {
         val assignedTasks = ArrayList<T>()
         val canceledTasks = ArrayList<T>()
         for (token in model.tokens.tokens) {
-            for ((i , xi) in compilation.x.withIndex()) {
+            for ((i, xi) in compilation.x.withIndex()) {
                 if (UInt64(i.toULong()) > iteration) {
                     break
                 }

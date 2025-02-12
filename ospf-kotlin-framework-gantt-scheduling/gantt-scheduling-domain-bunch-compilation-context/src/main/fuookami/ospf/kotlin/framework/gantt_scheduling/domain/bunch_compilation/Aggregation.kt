@@ -106,12 +106,21 @@ abstract class AbstractBunchCompilationAggregation<
         model: AbstractLinearMetaModel
     ): Ret<Set<B>> {
         return extractBunches(iteration, model) { it eq Flt64.one }
+            .map { it.keys }
     }
 
     open fun extractKeptBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel
     ): Ret<Set<B>> {
+        return extractBunches(iteration, model) { it gr Flt64.zero }
+            .map { it.keys }
+    }
+
+    open fun extractKeptBunchesWithRatio(
+        iteration: UInt64,
+        model: AbstractLinearMetaModel
+    ): Ret<Map<B, Flt64>> {
         return extractBunches(iteration, model) { it gr Flt64.zero }
     }
 
@@ -144,7 +153,8 @@ abstract class AbstractBunchCompilationAggregation<
         iteration: UInt64,
         bar: Flt64,
         fixedBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel,
+        withFixNot: Boolean = false
     ): Ret<Set<B>> {
         var flag = true
         val ret = HashSet<B>()
@@ -176,12 +186,19 @@ abstract class AbstractBunchCompilationAggregation<
                             bestIteration = i
                             bestIndex = token.variable.index
                         }
-                        if ((token.result != null)
-                            && (token.result!! geq bar)
-                            && !fixedBunches.contains(bunch)
-                        ) {
-                            ret.add(bunch)
-                            xi[token.variable.index].range.eq(true)
+                        if (token.result != null) {
+                            if ((token.result!! geq bar)
+                                && !fixedBunches.contains(bunch)
+                            ) {
+                                ret.add(bunch)
+                                xi[token.variable.index].range.eq(true)
+                            }
+                            if (withFixNot
+                                && token.result!! leq (Flt64.one - bar)
+                                && !fixedBunches.contains(bunch)
+                            ) {
+                                xi[token.variable.index].range.eq(false)
+                            }
                         }
                     }
                 }
@@ -189,8 +206,8 @@ abstract class AbstractBunchCompilationAggregation<
         }
 
         // if not fix any one bunch or cancel any task
-        // fix the best if the value greater than 1e-3
-        if (flag && ret.isEmpty() && (bestValue geq Flt64(1e-3))) {
+        // fix the best if the value greater than 1 - bar
+        if (flag && ret.isEmpty() && (bestValue geq (Flt64.one - bar))) {
             val xi = compilation.x[bestIteration.toInt()][bestIndex]
             ret.add(bunchesIteration[bestIteration.toInt()][bestIndex])
             xi.range.eq(true)
@@ -273,8 +290,8 @@ abstract class AbstractBunchCompilationAggregation<
         iteration: UInt64,
         model: AbstractLinearMetaModel,
         predicate: (Flt64) -> Boolean
-    ): Ret<Set<B>> {
-        val ret = HashSet<B>()
+    ): Ret<Map<B, Flt64>> {
+        val ret = HashMap<B, Flt64>()
         for (token in model.tokens.tokens) {
             if (!predicate(token.result!!)) {
                 continue
@@ -286,7 +303,7 @@ abstract class AbstractBunchCompilationAggregation<
                 if (token.belongsTo(xi)) {
                     val bunch = bunchesIteration[i][token.variable.index]
                     assert(!removedBunches.contains(bunch))
-                    ret.add(bunch)
+                    ret[bunch] = token.result!!
                 }
             }
         }

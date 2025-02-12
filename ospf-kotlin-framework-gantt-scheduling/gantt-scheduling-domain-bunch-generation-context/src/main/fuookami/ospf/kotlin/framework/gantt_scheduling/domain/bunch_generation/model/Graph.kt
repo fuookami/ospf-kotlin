@@ -26,7 +26,7 @@ object EndNode : Node(end) {
 }
 
 class TaskNode<E : Executor, Arg>(
-    val task: Task<E>,
+    val task: AbstractTaskPlan<E>,
     val arg: Arg,
     override val time: Instant,
     index: UInt64

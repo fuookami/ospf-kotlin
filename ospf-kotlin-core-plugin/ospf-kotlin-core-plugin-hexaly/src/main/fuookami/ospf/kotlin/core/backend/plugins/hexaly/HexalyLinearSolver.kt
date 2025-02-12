@@ -107,10 +107,14 @@ private class HexalyLinearSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                val promises = if (factor >= 1) {
-                    val segment = pow(UInt64.ten, factor).toInt()
-                    (0..(model.constraints.size / segment)).map { i ->
+                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+                    val segment = if (factor >= 1) {
+                        pow(UInt64.ten, factor).toInt()
+                    } else {
+                        10
+                    }
+                    val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
                             ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = hexalyModel.sum()
@@ -123,41 +127,53 @@ private class HexalyLinearSolverImpl(
                             }
                         }
                     }
+                    promises.flatMap { promise ->
+                        val result = promise.await().map {
+                            val constraint = when (model.constraints.signs[it.first]) {
+                                Sign.LessEqual -> {
+                                    hexalyModel.leq(it.second, model.constraints.rhs[it.first].toDouble())
+                                }
+
+                                Sign.Equal -> {
+                                    hexalyModel.eq(it.second, model.constraints.rhs[it.first].toDouble())
+                                }
+
+                                Sign.GreaterEqual -> {
+                                    hexalyModel.geq(it.second, model.constraints.rhs[it.first].toDouble())
+                                }
+                            }
+                            hexalyModel.constraint(constraint)
+                            constraint
+                        }
+                        result
+                    }
                 } else {
                     model.constraints.indices.map { i ->
-                        async(Dispatchers.Default) {
-                            val lhs = hexalyModel.sum()
-                            for (cell in model.constraints.lhs[i]) {
-                                lhs.addOperands(
-                                    hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex])
-                                )
-                            }
-                            listOf(i to lhs)
+                        val lhs = hexalyModel.sum()
+                        for (cell in model.constraints.lhs[i]) {
+                            lhs.addOperands(
+                                hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex])
+                            )
                         }
-                    }
-                }
-                promises.flatMap { promise ->
-                    val result = promise.await().map {
-                        val constraint = when (model.constraints.signs[it.first]) {
+                        val constraint = when (model.constraints.signs[i]) {
                             Sign.LessEqual -> {
-                                hexalyModel.leq(it.second, model.constraints.rhs[it.first].toDouble())
+                                hexalyModel.leq(lhs, model.constraints.rhs[i].toDouble())
                             }
 
                             Sign.Equal -> {
-                                hexalyModel.eq(it.second, model.constraints.rhs[it.first].toDouble())
+                                hexalyModel.eq(lhs, model.constraints.rhs[i].toDouble())
                             }
 
                             Sign.GreaterEqual -> {
-                                hexalyModel.geq(it.second, model.constraints.rhs[it.first].toDouble())
+                                hexalyModel.geq(lhs, model.constraints.rhs[i].toDouble())
                             }
                         }
                         hexalyModel.constraint(constraint)
                         constraint
                     }
-                    System.gc()
-                    result
                 }
             }
+            System.gc()
             hexalyConstraints = constraints
 
             val obj = hexalyModel.sum()

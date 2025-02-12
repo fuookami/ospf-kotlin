@@ -82,7 +82,7 @@ class RoundingFunction(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val qValue = (xValue / d).round()
                 logger.trace { "Setting FloorFunction ${name}.q initial solution: $qValue" }
                 tokenTable.find(q)?.let { token -> token._result = qValue }
@@ -138,19 +138,19 @@ class RoundingFunction(
         return "⌊${x.toRawString(unfold)} / $d⌉"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenList, zeroIfNone)?.let { (it / d).round() }
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(tokenList, zeroIfNone)?.let { (it / d).round() }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenList, zeroIfNone)?.let { (it / d).round() }
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(results, tokenList, zeroIfNone)?.let { (it / d).round() }
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenTable, zeroIfNone)?.let { (it / d).round() }
+        return x.evaluate(tokenTable, zeroIfNone)?.let { (it / d).round() }
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenTable, zeroIfNone)?.let { (it / d).round() }
+        return x.evaluate(results, tokenTable, zeroIfNone)?.let { (it / d).round() }
     }
 }

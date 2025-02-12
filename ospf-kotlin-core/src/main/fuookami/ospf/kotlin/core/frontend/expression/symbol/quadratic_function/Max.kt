@@ -84,7 +84,7 @@ sealed class AbstractMaxFunction(
         }
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val values = polynomials.map { it.value(tokenTable) }
+            val values = polynomials.map { it.evaluate(tokenTable) }
 
             if (values.all { it != null }) {
                 val max = values.withIndex().maxByOrNull { it.value!! } ?: return
@@ -184,20 +184,20 @@ sealed class AbstractMaxFunction(
         return displayName ?: name
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.value(tokenList, zeroIfNone) ?: return null }
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomials.maxOf { it.evaluate(tokenList, zeroIfNone) ?: return null }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.value(results, tokenList, zeroIfNone) ?: return null }
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomials.maxOf { it.evaluate(results, tokenList, zeroIfNone) ?: return null }
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.value(tokenTable, zeroIfNone) ?: return null }
+        return polynomials.maxOf { it.evaluate(tokenTable, zeroIfNone) ?: return null }
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.value(results, tokenTable, zeroIfNone) ?: return null }
+        return polynomials.maxOf { it.evaluate(results, tokenTable, zeroIfNone) ?: return null }
     }
 }
 

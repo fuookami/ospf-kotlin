@@ -77,7 +77,7 @@ open class TaskCompilationAggregationWithTime<
     delayLastEndTimeEnabled: Boolean = false,
     advanceEarliestEndTimeEnabled: Boolean = false,
     makespanExtra: Boolean = false
-): AbstractTaskSchedulingAggregation<T, E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure) {
+) : AbstractTaskSchedulingAggregation<T, E, A>(timeWindow, tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure) {
     val taskTime: TaskSchedulingTaskTime<T, E, A> =
         TaskSchedulingTaskTime(
             timeWindow,

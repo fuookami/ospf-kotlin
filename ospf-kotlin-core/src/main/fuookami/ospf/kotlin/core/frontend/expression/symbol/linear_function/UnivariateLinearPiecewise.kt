@@ -101,7 +101,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.value(tokenTable) ?: return
+            val xValue = x.evaluate(tokenTable) ?: return
             var yValue: Flt64? = null
             for (i in indices) {
                 if (i == (size - 1)) {
@@ -229,20 +229,20 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         return "$name(${x.toRawString(unfold)}})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenList, zeroIfNone)?.let { y(it) }
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(tokenList, zeroIfNone)?.let { y(it) }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenList, zeroIfNone)?.let { y(it) }
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(results, tokenList, zeroIfNone)?.let { y(it) }
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenTable, zeroIfNone)?.let { y(it) }
+        return x.evaluate(tokenTable, zeroIfNone)?.let { y(it) }
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenTable, zeroIfNone)?.let { y(it) }
+        return x.evaluate(results, tokenTable, zeroIfNone)?.let { y(it) }
     }
 }
 

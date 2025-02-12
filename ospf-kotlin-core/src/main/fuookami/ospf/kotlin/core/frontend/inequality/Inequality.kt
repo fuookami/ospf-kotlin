@@ -34,17 +34,17 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
     }
 
     fun isTrue(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Boolean? {
-        val lhsValue = lhs.value(tokenList, zeroIfNone)
+        val lhsValue = lhs.evaluate(tokenList, zeroIfNone)
             ?: return null
-        val rhsValue = rhs.value(tokenList, zeroIfNone)
+        val rhsValue = rhs.evaluate(tokenList, zeroIfNone)
             ?: return null
         return sign(lhsValue, rhsValue)
     }
 
     fun isTrue(result: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Boolean? {
-        val lhsValue = lhs.value(result, tokenList, zeroIfNone)
+        val lhsValue = lhs.evaluate(result, tokenList, zeroIfNone)
             ?: return null
-        val rhsValue = rhs.value(result, tokenList, zeroIfNone)
+        val rhsValue = rhs.evaluate(result, tokenList, zeroIfNone)
             ?: return null
         return sign(lhsValue, rhsValue)
     }

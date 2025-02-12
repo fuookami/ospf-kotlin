@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.32</version>
+        <version>1.0.37</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -28,21 +28,6 @@
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-framework</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-cplex</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -48,6 +48,7 @@ class PlaneLayer<P : ProjectivePlane>(
 class BinLayer(
     val iteration: Int,
     val from: KClass<*>,
+    val bin: BinType? = null,
     // inherited from Container3<BinLayer>
     override val shape: AbstractContainer3Shape,
     override val units: List<Placement3<*>>,
@@ -55,11 +56,13 @@ class BinLayer(
     companion object {
         operator fun invoke(
             iteration: Int,
+            bin: BinType,
             layer: PlaneLayer<Side>
         ): BinLayer {
             return BinLayer(
                 iteration = iteration,
                 from = PlaneLayer::class,
+                bin = bin,
                 shape = Container3Shape(layer),
                 units = layer
                     .units
@@ -77,6 +80,7 @@ class BinLayer(
             return BinLayer(
                 iteration = iteration,
                 from = from,
+                bin = bin,
                 shape = Container3Shape(Container2Shape(bin, Side)),
                 units = units.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }
             )

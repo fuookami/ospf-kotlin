@@ -12,11 +12,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class CeilingFunction(
+class Floor(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
-    override var name: String = "ceil_${x}_${d}",
-    override var displayName: String? = "⌈$x/$d⌉"
+    override var name: String = "floor_${x}_${d}",
+    override var displayName: String? = "⌊$x/$d⌋"
 ) : LinearFunctionSymbol {
     private val logger = logger()
 
@@ -59,8 +59,8 @@ class CeilingFunction(
 
     private val possibleRange
         get() = ValueRange(
-            (x.lowerBound!!.value.unwrap() / d).ceil(),
-            (x.upperBound!!.value.unwrap() / d).ceil()
+            (x.lowerBound!!.value.unwrap() / d).floor(),
+            (x.upperBound!!.value.unwrap() / d).floor()
         ).value!!
 
     private val possibleModUpperBound
@@ -82,18 +82,18 @@ class CeilingFunction(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val qValue = (xValue / d).let {
                     if (it geq Flt64.zero) {
-                        it.ceil()
-                    } else {
                         it.floor()
+                    } else {
+                        it.ceil()
                     }
                 }
-                logger.trace { "Setting CeilingFunction ${name}.q initial solution: $qValue" }
+                logger.trace { "Setting FloorFunction ${name}.q initial solution: $qValue" }
                 tokenTable.find(q)?.let { token -> token._result = qValue }
-                val rValue = qValue * d - xValue
-                logger.trace { "Setting CeilingFunction ${name}.r initial solution: $rValue" }
+                val rValue = xValue - qValue * d
+                logger.trace { "Setting FloorFunction ${name}.r initial solution: $rValue" }
                 tokenTable.find(r)?.let { token -> token._result = rValue }
 
                 tokenTable.cache(this, null, qValue)
@@ -123,7 +123,7 @@ class CeilingFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq (d * q - r),
+            x eq (d * q + r),
             name = name
         )) {
             is Ok -> {}
@@ -141,22 +141,22 @@ class CeilingFunction(
     }
 
     override fun toRawString(unfold: Boolean): String {
-        return "⌈${x.toRawString(unfold)} / $d⌉"
+        return "⌊${x.toRawString(unfold)} / $d⌋"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenList, zeroIfNone)?.let { (it / d).ceil() }
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(tokenList, zeroIfNone)?.let { (it / d).floor() }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenList, zeroIfNone)?.let { (it / d).ceil() }
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return x.evaluate(results, tokenList, zeroIfNone)?.let { (it / d).floor() }
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(tokenTable, zeroIfNone)?.let { (it / d).floor() }
+        return x.evaluate(tokenTable, zeroIfNone)?.let { (it / d).floor() }
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.value(results, tokenTable, zeroIfNone)?.let { (it / d).ceil() }
+        return x.evaluate(results, tokenTable, zeroIfNone)?.let { (it / d).floor() }
     }
 }

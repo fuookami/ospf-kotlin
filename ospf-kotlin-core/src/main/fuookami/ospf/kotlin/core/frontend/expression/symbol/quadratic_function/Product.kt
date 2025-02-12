@@ -81,7 +81,7 @@ class ProductFunction(
         }
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val values = polynomials.map { it.value(tokenTable) ?: return }
+            val values = polynomials.map { it.evaluate(tokenTable) ?: return }
 
             var yValue = values[0]
             for (i in y.indices) {
@@ -151,17 +151,17 @@ class ProductFunction(
         return "product(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.value(tokenList, zeroIfNone)
+            val thisValue = rhs.evaluate(tokenList, zeroIfNone)
                 ?: return null
             lhs * thisValue
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.value(results, tokenList, zeroIfNone)
+            val thisValue = rhs.evaluate(results, tokenList, zeroIfNone)
                 ?: return null
             lhs * thisValue
         }
@@ -169,7 +169,7 @@ class ProductFunction(
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.value(tokenTable, zeroIfNone)
+            val thisValue = rhs.evaluate(tokenTable, zeroIfNone)
                 ?: return null
             lhs * thisValue
         }
@@ -177,7 +177,7 @@ class ProductFunction(
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.value(results, tokenTable, zeroIfNone)
+            val thisValue = rhs.evaluate(results, tokenTable, zeroIfNone)
                 ?: return null
             lhs * thisValue
         }

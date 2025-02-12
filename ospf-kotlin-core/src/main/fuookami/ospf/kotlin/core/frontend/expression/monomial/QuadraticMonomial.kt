@@ -332,7 +332,7 @@ data class QuadraticMonomialCell internal constructor(
         }
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
@@ -412,7 +412,7 @@ data class QuadraticMonomialCell internal constructor(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
@@ -747,11 +747,11 @@ data class QuadraticMonomialSymbol(
                 }
 
                 is Variant3.V2 -> {
-                    this.value.value(tokenList, zeroIfNone)
+                    this.value.evaluate(tokenList, zeroIfNone)
                 }
 
                 is Variant3.V3 -> {
-                    this.value.value(tokenList, zeroIfNone)
+                    this.value.evaluate(tokenList, zeroIfNone)
                 }
             }
         }
@@ -773,11 +773,11 @@ data class QuadraticMonomialSymbol(
                 }
 
                 is Variant3.V2 -> {
-                    this.value.value(results, tokenList, zeroIfNone)
+                    this.value.evaluate(results, tokenList, zeroIfNone)
                 }
 
                 is Variant3.V3 -> {
-                    this.value.value(results, tokenList, zeroIfNone)
+                    this.value.evaluate(results, tokenList, zeroIfNone)
                 }
             }
         }
@@ -789,11 +789,11 @@ data class QuadraticMonomialSymbol(
                 }
 
                 is Variant3.V2 -> {
-                    this.value.value(tokenTable, zeroIfNone)
+                    this.value.evaluate(tokenTable, zeroIfNone)
                 }
 
                 is Variant3.V3 -> {
-                    this.value.value(tokenTable, zeroIfNone)
+                    this.value.evaluate(tokenTable, zeroIfNone)
                 }
             }
         }
@@ -805,11 +805,11 @@ data class QuadraticMonomialSymbol(
                 }
 
                 is Variant3.V2 -> {
-                    this.value.value(results, tokenTable, zeroIfNone)
+                    this.value.evaluate(results, tokenTable, zeroIfNone)
                 }
 
                 is Variant3.V3 -> {
-                    this.value.value(results, tokenTable, zeroIfNone)
+                    this.value.evaluate(results, tokenTable, zeroIfNone)
                 }
             }
         }
@@ -918,7 +918,7 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(tokenList, zeroIfNone)
         } else {
@@ -930,7 +930,7 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(results, tokenList, zeroIfNone)
         } else {
@@ -942,7 +942,7 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(tokenTable, zeroIfNone)
         } else {
@@ -954,7 +954,7 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(results, tokenTable, zeroIfNone)
         } else {

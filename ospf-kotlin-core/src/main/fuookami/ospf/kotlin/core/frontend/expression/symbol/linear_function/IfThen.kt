@@ -221,7 +221,7 @@ class IfThenFunction(
         return "if_then(${p.toRawString(unfold)}, ${q.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val pv = p.isTrue(tokenList, zeroIfNone) ?: return null
         val qv = q.isTrue(tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
@@ -231,7 +231,7 @@ class IfThenFunction(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         val pv = p.isTrue(results, tokenList, zeroIfNone) ?: return null
         val qv = q.isTrue(results, tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {

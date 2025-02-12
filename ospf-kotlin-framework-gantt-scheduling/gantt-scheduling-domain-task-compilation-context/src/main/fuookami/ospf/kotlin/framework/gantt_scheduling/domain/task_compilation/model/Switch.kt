@@ -13,32 +13,32 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 interface Switch {
-    val switch: LinearSymbols3
-    val switchTime: LinearSymbols2
+    val switch: LinearIntermediateSymbols3
+    val switchTime: LinearIntermediateSymbols2
 
     fun register(model: MetaModel): Try
 }
 
 class TaskSchedulingSwitch<
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val timeWindow: TimeWindow,
     private val tasks: List<T>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
     private val taskTime: TaskTime? = null
 ) : Switch {
-    private lateinit var frontOf: LinearSymbols2
-    private lateinit var betweenIn: LinearSymbols3
-    override lateinit var switch: LinearSymbols3
-    override lateinit var switchTime: LinearSymbols2
+    private lateinit var frontOf: LinearIntermediateSymbols2
+    private lateinit var betweenIn: LinearIntermediateSymbols3
+    override lateinit var switch: LinearIntermediateSymbols3
+    override lateinit var switchTime: LinearIntermediateSymbols2
 
     override fun register(model: MetaModel): Try {
         if (taskTime != null) {
             if (!::frontOf.isInitialized) {
-                frontOf = LinearSymbols2(
+                frontOf = LinearIntermediateSymbols2(
                     "front_of",
                     Shape2(tasks.size, tasks.size)
                 ) { _, v ->
@@ -65,7 +65,7 @@ class TaskSchedulingSwitch<
 
         if (taskTime != null) {
             if (!::betweenIn.isInitialized) {
-                betweenIn = LinearSymbols3(
+                betweenIn = LinearIntermediateSymbols3(
                     "between_in",
                     Shape3(tasks.size, tasks.size, tasks.size)
                 ) { _, v ->
@@ -94,7 +94,7 @@ class TaskSchedulingSwitch<
         }
 
         if (!::switch.isInitialized) {
-            switch = LinearSymbols3(
+            switch = LinearIntermediateSymbols3(
                 "switch",
                 Shape3(executors.size, tasks.size, tasks.size)
             ) { _, v ->
@@ -134,7 +134,7 @@ class TaskSchedulingSwitch<
         }
 
         if (!::switchTime.isInitialized) {
-            switchTime = LinearSymbols2(
+            switchTime = LinearIntermediateSymbols2(
                 "switch_time",
                 Shape2(tasks.size, tasks.size)
             ) { _, v ->

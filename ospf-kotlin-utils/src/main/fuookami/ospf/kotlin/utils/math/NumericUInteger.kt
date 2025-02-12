@@ -106,6 +106,34 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
+
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(copy(), rhs, one, UInt8, UInt8::toNUInt8, NUInt8::toUInt8)
     override infix fun until(rhs: NUInt8) = if (rhs == NUInt8.zero) {
         rangeTo(NUInt8.zero)
@@ -199,6 +227,34 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt16) =
         NumericUIntegerRange(copy(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
@@ -295,6 +351,33 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     }
 
     override fun exp() = toFlt64().exp()
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt32) =
         NumericUIntegerRange(copy(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
@@ -391,6 +474,34 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     }
 
     override fun exp() = toFlt64().exp()
+
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt64) =
         NumericUIntegerRange(copy(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
@@ -496,6 +607,34 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun cbrt() = pow(FltX(1.0 / 3.0))
 
     override fun exp() = toFltX().exp()
+
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+    override fun sec() = toFltX().sec()
+    override fun csc() = toFltX().csc()
+    override fun tan() = toFltX().tan()
+    override fun cot() = toFltX().cot()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun asec() = toFltX().asec()
+    override fun acsc() = toFltX().acsc()
+    override fun atan() = toFltX().atan()
+    override fun acot() = toFltX().acot()
+
+    override fun sinh() = toFltX().sinh()
+    override fun cosh() = toFltX().cosh()
+    override fun sech() = toFltX().sech()
+    override fun csch() = toFltX().csch()
+    override fun tanh() = toFltX().tanh()
+    override fun coth() = toFltX().coth()
+
+    override fun asinh() = toFltX().asinh()
+    override fun acosh() = toFltX().acosh()
+    override fun asech() = toFltX().asech()
+    override fun acsch() = toFltX().acsch()
+    override fun atanh() = toFltX().atanh()
+    override fun acoth() = toFltX().acoth()
 
     override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(copy(), rhs, one, UIntX, UIntX::toNUIntX, NUIntX::toUIntX)
     override infix fun until(rhs: NUIntX) = if (rhs == NUIntX.zero) {

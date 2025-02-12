@@ -211,15 +211,16 @@ class BranchAndPriceAlgorithm<
 
                     val badReducedAmount = UInt64(fixedTasks.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
                     if (columnAmount > configuration.maximumColumnAmount) {
-                        maximumReducedCost1 = when (val result = removeColumns(maximumReducedCost1, configuration.maximumColumnAmount, shadowPriceMap, fixedTasks, keptTasks, model)) {
-                            is Ok -> {
-                                result.value
-                            }
+                        maximumReducedCost1 =
+                            when (val result = removeColumns(maximumReducedCost1, configuration.maximumColumnAmount, shadowPriceMap, fixedTasks, keptTasks, model)) {
+                                is Ok -> {
+                                    result.value
+                                }
 
-                            is Failed -> {
-                                return Ok(bestSolution)
+                                is Failed -> {
+                                    return Ok(bestSolution)
+                                }
                             }
-                        }
                     }
                     if (badReducedAmount >= configuration.maxBadReducedAmount
                         || newTaskAmount <= minimumColumnAmount(fixedTasks, configuration)
@@ -312,11 +313,11 @@ class BranchAndPriceAlgorithm<
                         && newTaskAmount > minimumColumnAmount(fixedTasks, configuration)
                     ) {
                         maximumReducedCost2 = when (val result = removeColumns(
-                            maximumReducedCost2, 
-                            configuration.maximumColumnAmount, 
-                            shadowPriceMap, 
-                            fixedTasks, 
-                            keptTasks, 
+                            maximumReducedCost2,
+                            configuration.maximumColumnAmount,
+                            shadowPriceMap,
+                            fixedTasks,
+                            keptTasks,
                             model
                         )) {
                             is Ok -> {
@@ -401,7 +402,7 @@ class BranchAndPriceAlgorithm<
                 }
             }
         }
-        
+
         when (val result = context.addColumns(UInt64.zero, initialTasks, model)) {
             is Ok -> {}
 

@@ -296,9 +296,13 @@ data class LinearTriadModel(
 
         private suspend fun dumpConstraintsAsync(model: LinearMechanismModel): LinearConstraint {
             val tokenIndexes = model.tokens.tokenIndexMap
-            val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-            return if (factor >= 1) {
-                val segment = pow(UInt64.ten, factor).toInt()
+            return if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+                val segment = if (factor >= 1) {
+                    pow(UInt64.ten, factor).toInt()
+                } else {
+                    10
+                }
                 coroutineScope {
                     val constraintPromises = (0..(model.constraints.size / segment)).map {
                         async(Dispatchers.Default) {
@@ -326,7 +330,6 @@ data class LinearTriadModel(
                                 }
                                 constraints.add(lhs)
                             }
-                            System.gc()
                             constraints
                         }
                     }
@@ -341,48 +344,41 @@ data class LinearTriadModel(
                         rhs.add(constraint.rhs)
                         names.add(constraint.name)
                     }
+                    System.gc()
                     LinearConstraint(lhs, signs, rhs, names)
                 }
             } else {
-                coroutineScope {
-                    val constraintPromises = model.constraints.withIndex().map { (index, constraint) ->
-                        async(Dispatchers.Default) {
-                            val lhs = ArrayList<LinearConstraintCell>()
-                            for (cell in constraint.lhs) {
-                                val temp = cell as LinearCell
-                                lhs.add(
-                                    LinearConstraintCell(
-                                        rowIndex = index,
-                                        colIndex = tokenIndexes[temp.token]!!,
-                                        coefficient = temp.coefficient.let {
-                                            if (it.isInfinity()) {
-                                                Flt64.decimalPrecision.reciprocal()
-                                            } else if (it.isNegativeInfinity()) {
-                                                -Flt64.decimalPrecision.reciprocal()
-                                            } else {
-                                                it
-                                            }
-                                        }
-                                    )
-                                )
-                            }
-                            System.gc()
-                            lhs
-                        }
+                val lhs = ArrayList<List<LinearConstraintCell>>()
+                val signs = ArrayList<Sign>()
+                val rhs = ArrayList<Flt64>()
+                val names = ArrayList<String>()
+                for ((index, constraint) in model.constraints.withIndex()) {
+                    val thisLhs = ArrayList<LinearConstraintCell>()
+                    for (cell in constraint.lhs) {
+                        val temp = cell as LinearCell
+                        thisLhs.add(
+                            LinearConstraintCell(
+                                rowIndex = index,
+                                colIndex = tokenIndexes[temp.token]!!,
+                                coefficient = temp.coefficient.let {
+                                    if (it.isInfinity()) {
+                                        Flt64.decimalPrecision.reciprocal()
+                                    } else if (it.isNegativeInfinity()) {
+                                        -Flt64.decimalPrecision.reciprocal()
+                                    } else {
+                                        it
+                                    }
+                                }
+                            )
+                        )
                     }
-
-                    val lhs = ArrayList<List<LinearConstraintCell>>()
-                    val signs = ArrayList<Sign>()
-                    val rhs = ArrayList<Flt64>()
-                    val names = ArrayList<String>()
-                    for ((index, constraint) in model.constraints.withIndex()) {
-                        lhs.add(constraintPromises[index].await())
-                        signs.add(constraint.sign)
-                        rhs.add(constraint.rhs)
-                        names.add(constraint.name)
-                    }
-                    LinearConstraint(lhs, signs, rhs, names)
+                    lhs.add(thisLhs)
+                    signs.add(constraint.sign)
+                    rhs.add(constraint.rhs)
+                    names.add(constraint.name)
                 }
+                System.gc()
+                LinearConstraint(lhs, signs, rhs, names)
             }
         }
 

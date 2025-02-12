@@ -99,12 +99,25 @@ interface BunchCompilationContext<
         return ok
     }
 
-    fun extractFixedBunches(iteration: UInt64, model: AbstractLinearMetaModel): Ret<Set<B>> {
+    fun extractFixedBunches(
+        iteration: UInt64,
+        model: AbstractLinearMetaModel
+    ): Ret<Set<B>> {
         return aggregation.extractFixedBunches(iteration, model)
     }
 
-    fun extractKeptBunches(iteration: UInt64, model: AbstractLinearMetaModel): Ret<Set<B>> {
+    fun extractKeptBunches(
+        iteration: UInt64,
+        model: AbstractLinearMetaModel
+    ): Ret<Set<B>> {
         return aggregation.extractKeptBunches(iteration, model)
+    }
+
+    fun extractKeptBunchesWithRatio(
+        iteration: UInt64,
+        model: AbstractLinearMetaModel
+    ): Ret<Map<B, Flt64>> {
+        return aggregation.extractKeptBunchesWithRatio(iteration, model)
     }
 
     fun extractHiddenExecutors(

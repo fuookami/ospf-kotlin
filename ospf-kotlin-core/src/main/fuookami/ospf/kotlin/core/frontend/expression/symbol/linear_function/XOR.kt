@@ -118,7 +118,7 @@ class XorFunction(
             var zero = false
             var one = false
             for (polynomial in polynomials) {
-                val result = polynomial.value(tokenTable) ?: return
+                val result = polynomial.evaluate(tokenTable) ?: return
                 if (result eq Flt64.zero) {
                     zero = true
                 }
@@ -267,11 +267,11 @@ class XorFunction(
         return "xor(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.value(tokenList, zeroIfNone)
+            val result = polynomial.evaluate(tokenList, zeroIfNone)
                 ?: return null
             if (result eq Flt64.zero) {
                 zero = true
@@ -286,11 +286,11 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.value(results, tokenList, zeroIfNone)
+            val result = polynomial.evaluate(results, tokenList, zeroIfNone)
                 ?: return null
             if (result eq Flt64.zero) {
                 zero = true
@@ -309,7 +309,7 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.value(tokenTable, zeroIfNone)
+            val result = polynomial.evaluate(tokenTable, zeroIfNone)
                 ?: return null
             if (result eq Flt64.zero) {
                 zero = true
@@ -328,7 +328,7 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.value(results, tokenTable, zeroIfNone)
+            val result = polynomial.evaluate(results, tokenTable, zeroIfNone)
                 ?: return null
             if (result eq Flt64.zero) {
                 zero = true

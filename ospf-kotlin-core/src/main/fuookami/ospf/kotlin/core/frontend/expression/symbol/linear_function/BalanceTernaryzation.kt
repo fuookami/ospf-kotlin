@@ -60,8 +60,8 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         return "bter(${x.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val value = x.evaluate(tokenList, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -72,8 +72,8 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        val value = x.evaluate(results, tokenList, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -85,7 +85,7 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(tokenTable, zeroIfNone)
+        val value = x.evaluate(tokenTable, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -97,7 +97,7 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.value(results, tokenTable, zeroIfNone)
+        val value = x.evaluate(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -123,7 +123,7 @@ class BalanceTernaryzationFunctionImpl(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val neg = xValue ls Flt64.zero
                 val yValue = if (pos) {
@@ -186,7 +186,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         piecewiseFunction.prepare(tokenTable)
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            piecewiseFunction.value(tokenTable)?.let { yValue ->
+            piecewiseFunction.evaluate(tokenTable)?.let { yValue ->
                 tokenTable.cache(parent, null, yValue)
             }
         }
@@ -243,7 +243,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val neg = xValue ls Flt64.zero
 
@@ -379,7 +379,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         x.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.value(tokenTable)?.let { xValue ->
+            x.evaluate(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val pocPct = if (pos) {
                     xValue / x.upperBound!!.value.unwrap()
@@ -607,12 +607,12 @@ class BalanceTernaryzationFunction(
         return "bter(${x.toRawString(unfold)})"
     }
 
-    override fun value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return impl.value(tokenList, zeroIfNone)
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return impl.value(results, tokenList, zeroIfNone)
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {

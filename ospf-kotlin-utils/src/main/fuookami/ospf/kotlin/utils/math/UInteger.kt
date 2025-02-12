@@ -61,13 +61,21 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     )
 
     companion object : RealNumberConstants<UInt8> {
+        @JvmStatic
         override val zero: UInt8 get() = UInt8(0U)
+        @JvmStatic
         override val one: UInt8 get() = UInt8(1U)
+        @JvmStatic
         override val two: UInt8 get() = UInt8(2U)
+        @JvmStatic
         override val three: UInt8 get() = UInt8(3U)
+        @JvmStatic
         override val five: UInt8 get() = UInt8(5U)
+        @JvmStatic
         override val ten: UInt8 get() = UInt8(10U)
+        @JvmStatic
         override val minimum: UInt8 get() = UInt8(UByte.MIN_VALUE)
+        @JvmStatic
         override val maximum: UInt8 get() = UInt8(UByte.MAX_VALUE)
     }
 
@@ -107,6 +115,34 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
+
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -140,13 +176,21 @@ data object UInt16Serializer : KSerializer<UInt16> {
 @Serializable(with = UInt16Serializer::class)
 value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Copyable<UInt16> {
     companion object : RealNumberConstants<UInt16> {
+        @JvmStatic
         override val zero: UInt16 get() = UInt16(0U)
+        @JvmStatic
         override val one: UInt16 get() = UInt16(1U)
+        @JvmStatic
         override val two: UInt16 get() = UInt16(2U)
+        @JvmStatic
         override val three: UInt16 get() = UInt16(3U)
+        @JvmStatic
         override val five: UInt16 get() = UInt16(5U)
+        @JvmStatic
         override val ten: UInt16 get() = UInt16(10U)
+        @JvmStatic
         override val minimum: UInt16 get() = UInt16(UShort.MIN_VALUE)
+        @JvmStatic
         override val maximum: UInt16 get() = UInt16(UShort.MAX_VALUE)
     }
 
@@ -186,6 +230,34 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
+
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
     override fun toInt32() = Int32(value.toInt())
@@ -219,13 +291,21 @@ data object UInt32Serializer : KSerializer<UInt32> {
 @Serializable(with = UInt32Serializer::class)
 value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copyable<UInt32> {
     companion object : RealNumberConstants<UInt32> {
+        @JvmStatic
         override val zero: UInt32 get() = UInt32(0U)
+        @JvmStatic
         override val one: UInt32 get() = UInt32(1U)
+        @JvmStatic
         override val two: UInt32 get() = UInt32(2U)
+        @JvmStatic
         override val three: UInt32 get() = UInt32(3U)
+        @JvmStatic
         override val five: UInt32 get() = UInt32(5U)
+        @JvmStatic
         override val ten: UInt32 get() = UInt32(10U)
+        @JvmStatic
         override val minimum: UInt32 get() = UInt32(UInt.MIN_VALUE)
+        @JvmStatic
         override val maximum: UInt32 get() = UInt32(UInt.MAX_VALUE)
     }
 
@@ -265,6 +345,34 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
+
     fun toInt() = value.toInt()
     fun toLong() = value.toLong()
 
@@ -303,13 +411,21 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     constructor(value: Int) : this(value.toULong())
 
     companion object : RealNumberConstants<UInt64> {
+        @JvmStatic
         override val zero: UInt64 get() = UInt64(0UL)
+        @JvmStatic
         override val one: UInt64 get() = UInt64(1UL)
+        @JvmStatic
         override val two: UInt64 get() = UInt64(2UL)
+        @JvmStatic
         override val three: UInt64 get() = UInt64(3UL)
+        @JvmStatic
         override val five: UInt64 get() = UInt64(5UL)
+        @JvmStatic
         override val ten: UInt64 get() = UInt64(10UL)
+        @JvmStatic
         override val minimum: UInt64 get() = UInt64(ULong.MIN_VALUE)
+        @JvmStatic
         override val maximum: UInt64 get() = UInt64(ULong.MAX_VALUE)
     }
 
@@ -349,6 +465,34 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
 
     override fun exp() = toFlt64().exp()
 
+    override fun sin() = toFlt64().sin()
+    override fun cos() = toFlt64().cos()
+    override fun sec() = toFlt64().sec()
+    override fun csc() = toFlt64().csc()
+    override fun tan() = toFlt64().tan()
+    override fun cot() = toFlt64().cot()
+
+    override fun asin() = toFlt64().asin()
+    override fun acos() = toFlt64().acos()
+    override fun asec() = toFlt64().asec()
+    override fun acsc() = toFlt64().acsc()
+    override fun atan() = toFlt64().atan()
+    override fun acot() = toFlt64().acot()
+
+    override fun sinh() = toFlt64().sinh()
+    override fun cosh() = toFlt64().cosh()
+    override fun sech() = toFlt64().sech()
+    override fun csch() = toFlt64().csch()
+    override fun tanh() = toFlt64().tanh()
+    override fun coth() = toFlt64().coth()
+
+    override fun asinh() = toFlt64().asinh()
+    override fun acosh() = toFlt64().acosh()
+    override fun asech() = toFlt64().asech()
+    override fun acsch() = toFlt64().acsch()
+    override fun atanh() = toFlt64().atanh()
+    override fun acoth() = toFlt64().acoth()
+
     fun toInt() = value.toInt()
     fun toLong() = value.toLong()
 
@@ -385,13 +529,21 @@ data object UIntXSerializer : KSerializer<UIntX> {
 @Serializable(with = UIntXSerializer::class)
 value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {
     companion object : RealNumberConstants<UIntX> {
+        @JvmStatic
         override val zero: UIntX get() = UIntX(0L)
+        @JvmStatic
         override val one: UIntX get() = UIntX(1L)
+        @JvmStatic
         override val two: UIntX get() = UIntX(2L)
+        @JvmStatic
         override val three: UIntX get() = UIntX(3L)
+        @JvmStatic
         override val five: UIntX get() = UIntX(5L)
+        @JvmStatic
         override val ten: UIntX get() = UIntX(10L)
+        @JvmStatic
         override val minimum: UIntX get() = UIntX(0L)
+        @JvmStatic
         override val maximum: UIntX get() = UIntX(Double.MAX_VALUE.toString())
     }
 
@@ -444,6 +596,34 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun sqrt() = pow(FltX(1.0 / 2.0)) as FltX
     override fun cbrt() = pow(FltX(1.0 / 3.0)) as FltX
     override fun exp() = toFltX().exp()
+
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+    override fun sec() = toFltX().sec()
+    override fun csc() = toFltX().csc()
+    override fun tan() = toFltX().tan()
+    override fun cot() = toFltX().cot()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun asec() = toFltX().asec()
+    override fun acsc() = toFltX().acsc()
+    override fun atan() = toFltX().atan()
+    override fun acot() = toFltX().acot()
+
+    override fun sinh() = toFltX().sinh()
+    override fun cosh() = toFltX().cosh()
+    override fun sech() = toFltX().sech()
+    override fun csch() = toFltX().csch()
+    override fun tanh() = toFltX().tanh()
+    override fun coth() = toFltX().coth()
+
+    override fun asinh() = toFltX().asinh()
+    override fun acosh() = toFltX().acosh()
+    override fun asech() = toFltX().asech()
+    override fun acsch() = toFltX().acsch()
+    override fun atanh() = toFltX().atanh()
+    override fun acoth() = toFltX().acoth()
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())

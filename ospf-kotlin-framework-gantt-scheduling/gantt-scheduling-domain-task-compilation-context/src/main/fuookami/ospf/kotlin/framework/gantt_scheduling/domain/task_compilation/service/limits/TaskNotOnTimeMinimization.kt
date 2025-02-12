@@ -51,7 +51,8 @@ class TaskNotOnTimeMinimization<
             }
             when (val result = model.minimize(
                 coefficient * slack,
-                "task not on time")
+                "task not on time"
+            )
             ) {
                 is Ok -> {}
 

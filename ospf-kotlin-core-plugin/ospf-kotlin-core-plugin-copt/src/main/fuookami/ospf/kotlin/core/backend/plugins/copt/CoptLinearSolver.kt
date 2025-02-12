@@ -136,10 +136,14 @@ private class CoptLinearSolverImpl(
             }
 
             val constraints = coroutineScope {
-                val factor = Flt64(model.constraints.size / Runtime.getRuntime().availableProcessors()).lg()!!.floor().toUInt64().toInt()
-                val promises = if (factor >= 1) {
-                    val segment = pow(UInt64.ten, factor).toInt()
-                    (0..(model.constraints.size / segment)).map { i ->
+                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+                    val segment = if (factor >= 1) {
+                        pow(UInt64.ten, factor).toInt()
+                    } else {
+                        10
+                    }
+                    val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
                             ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = Expr()
@@ -150,30 +154,33 @@ private class CoptLinearSolverImpl(
                             }
                         }
                     }
+                    promises.flatMap { promise ->
+                        val result = promise.await().map {
+                            coptModel.addConstr(
+                                it.second,
+                                CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
+                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.names[it.first]
+                            )
+                        }
+                        result
+                    }
                 } else {
                     model.constraints.indices.map { i ->
-                        async(Dispatchers.Default) {
-                            val lhs = Expr()
-                            for (cell in model.constraints.lhs[i]) {
-                                lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
-                            }
-                            listOf(i to lhs)
+                        val lhs = Expr()
+                        for (cell in model.constraints.lhs[i]) {
+                            lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
                         }
-                    }
-                }
-                promises.flatMap { promise ->
-                    val result = promise.await().map {
                         coptModel.addConstr(
-                            it.second,
-                            CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
-                            model.constraints.rhs[it.first].toDouble(),
-                            model.constraints.names[it.first]
+                            lhs,
+                            CoptConstraintSign(model.constraints.signs[i]).toCoptConstraintSign(),
+                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.names[i]
                         )
                     }
-                    System.gc()
-                    result
                 }
             }
+            System.gc()
             coptConstraints = constraints
 
             val obj = Expr()
