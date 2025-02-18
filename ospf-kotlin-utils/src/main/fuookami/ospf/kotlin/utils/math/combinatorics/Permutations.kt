@@ -7,12 +7,20 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.parallel.*
 
 // A Counting QuickPerm Algorithm
-fun <T> permute(input: List<T>): List<List<T>> {
+fun <T> permute(
+    input: List<T>,
+    callBack: ((List<T>) -> Unit)? = null,
+    stopped: ((List<T>) -> Boolean)? = null
+): List<List<T>> {
     val a = input.toList()
     val p = input.indices.map { 0 }.toMutableList()
 
     val perms = ArrayList<List<T>>()
     perms.add(a.toList())
+    callBack?.invoke(a.toList())
+    if (stopped?.invoke(a.toList()) == true) {
+        return perms
+    }
 
     var i = 1;
     while (i < input.size) {
@@ -20,6 +28,10 @@ fun <T> permute(input: List<T>): List<List<T>> {
             val j = i % 2 * p[i]
             swap(a, i, j)
             perms.add(a.toList())
+            callBack?.invoke(a.toList())
+            if (stopped?.invoke(a) == true) {
+                return perms
+            }
             p[i] += 1;
             i = 1
         } else {
@@ -30,42 +42,11 @@ fun <T> permute(input: List<T>): List<List<T>> {
     return perms
 }
 
-fun <T> permuteCallBack(
-    input: List<T>,
-    callBack: (List<T>) -> Unit,
-    stopped: ((List<T>) -> Boolean)? = null
-) {
-    var value: List<T>
-
-    val a = input.toList()
-    val p = input.indices.map { 0 }.toMutableList()
-    value = a.toList()
-    callBack(value)
-    if (stopped?.invoke(value) == true) {
-        return
-    }
-
-    var i = 1;
-    while (i < input.size) {
-        if (p[i] < i) {
-            val j = i % 2 * p[i]
-            swap(a, i, j)
-            value = a.toList()
-            callBack(value)
-            if (stopped?.invoke(value) == true) {
-                return
-            }
-            p[i] += 1;
-            i = 1
-        } else {
-            p[i] = 0;
-            ++i;
-        }
-    }
-}
-
 @OptIn(DelicateCoroutinesApi::class)
-fun <T> permuteAsync(input: List<T>, scope: CoroutineScope = GlobalScope): ChannelGuard<List<T>> {
+fun <T> permuteAsync(
+    input: List<T>,
+    scope: CoroutineScope = GlobalScope
+): ChannelGuard<List<T>> {
     val logger = logger("Permutations")
 
     val promise = Channel<List<T>>(Channel.UNLIMITED)

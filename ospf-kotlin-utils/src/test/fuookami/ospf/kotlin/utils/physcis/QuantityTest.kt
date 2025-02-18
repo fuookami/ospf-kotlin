@@ -23,7 +23,10 @@ class QuantityTest {
 
     @Test
     fun convert() {
-        val value = Flt64.one * Meter
-        assert(value.to(Kilometer)!! eq (Flt64(0.001) * Kilometer))
+        val value1 = Flt64.one * Meter
+        assert(value1.to(Kilometer)!! eq (Flt64(0.001) * Kilometer))
+
+        val value2 = Flt64.one * Inch
+        assert(value2.to(Centimeter)!! eq (Flt64(2.54) * Centimeter))
     }
 }

@@ -35,7 +35,7 @@ data class ChebyshevMapGenerator(
     val x by ::_x
 
     override operator fun invoke(): Flt64 {
-        val x = _x
+        val x = _x.copy()
         _x = chebyshevMap(x)
         return x
     }

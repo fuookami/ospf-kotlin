@@ -1895,7 +1895,7 @@ operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<LinearMonomial>): Quant
     }
 }
 
-@JvmName("quantityMonomialMinusQuantityMnomial")
+@JvmName("quantityMonomialMinusQuantityMonomial")
 operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<LinearMonomial>): Quantity<LinearPolynomial> {
     return if (this.unit == rhs.unit) {
         Quantity(this.value - rhs.value, this.unit)

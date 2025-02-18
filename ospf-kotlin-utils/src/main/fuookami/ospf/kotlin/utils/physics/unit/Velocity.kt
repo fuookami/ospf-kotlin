@@ -23,3 +23,14 @@ object KilometerPerHour : PhysicalUnit() {
     override val system by Unit::system
     override val scale by Unit::scale
 }
+
+object MilePerHour : PhysicalUnit() {
+    private val Unit = Mile / Hour
+
+    override val name: String = "mile per hour"
+    override val symbol: String = "mph"
+
+    override val quantity = Velocity
+    override val system by Unit::system
+    override val scale by Unit::scale
+}
