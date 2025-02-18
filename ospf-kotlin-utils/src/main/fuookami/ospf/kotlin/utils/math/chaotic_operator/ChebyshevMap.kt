@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 data class ChebyshevMap(
-    val a: Flt64 = Flt64(Random.nextDouble(2.0, 10.0)),
+    val a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten),
 ) : Extractor<Flt64, Flt64> {
     override operator fun invoke(x: Flt64): Flt64 {
         return if (x geq -Flt64.one && x leq Flt64.one) {
@@ -18,12 +18,12 @@ data class ChebyshevMap(
 
 data class ChebyshevMapGenerator(
     val chebyshevMap: ChebyshevMap = ChebyshevMap(),
-    private var _x: Flt64 = Flt64(Random.nextDouble(-1.0, 1.0))
+    private var _x: Flt64 = Random.nextFlt64(-Flt64.one, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
         operator fun invoke(
-            a: Flt64 = Flt64(Random.nextDouble(2.0, 10.0)),
-            x: Flt64 = Flt64(Random.nextDouble(-1.0, 1.0))
+            a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten),
+            x: Flt64 = Random.nextFlt64(-Flt64.one, Flt64.one)
         ): ChebyshevMapGenerator {
             return ChebyshevMapGenerator(
                 ChebyshevMap(a),
@@ -35,7 +35,7 @@ data class ChebyshevMapGenerator(
     val x by ::_x
 
     override operator fun invoke(): Flt64 {
-        val x = _x
+        val x = _x.copy()
         _x = chebyshevMap(x)
         return x
     }

@@ -37,12 +37,12 @@ data class DoublePendulumSystem(
 data class DoublePendulumSystemGenerator(
     val doublePendulumSystem: DoublePendulumSystem = DoublePendulumSystem(),
     private var _x: Point2 = point2(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble())),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble()))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
     ),
     private var _y: Point2 = point2(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble())),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble()))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
     )
 ) : Generator<Pair<Point2, Point2>> {
     companion object {
@@ -52,12 +52,12 @@ data class DoublePendulumSystemGenerator(
             g: Flt64,
             h: Flt64,
             x: Point2 = point2(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble())),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble()))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
             ),
             y: Point2 = point2(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble())),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), (Flt64.pi / Flt64.two).toDouble()))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
             )
         ): DoublePendulumSystemGenerator {
             return DoublePendulumSystemGenerator(

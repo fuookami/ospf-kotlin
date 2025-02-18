@@ -92,7 +92,7 @@ open class PSOPolicy<V>(
     val iterationLimit: UInt64 = UInt64.maximum,
     val notBetterIterationLimit: UInt64 = UInt64.maximum,
     val timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Flt64(Random.nextDouble()) }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
 ) : AbstractPSOPolicy<V> {
     override fun transformPartial(
         particle: Particle<V>,
@@ -131,7 +131,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 ) {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        initialVelocityGenerator: Extractor<Flt64, UInt64> = { Flt64(Random.nextDouble(2.0) - 1.0) }
+        initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one }
     ): List<Pair<Solution, V?>> {
         val iteration = Iteration()
         val initialSolutions = model.initialSolutions(particleAmount)

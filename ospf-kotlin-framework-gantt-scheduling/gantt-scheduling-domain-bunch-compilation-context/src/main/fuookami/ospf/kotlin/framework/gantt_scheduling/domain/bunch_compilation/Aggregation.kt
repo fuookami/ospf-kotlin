@@ -262,8 +262,8 @@ abstract class AbstractBunchCompilationAggregation<
         val y = compilation.y
         for (task in tasks) {
             if (task.cancelEnabled && when (task) {
-                    is AbstractPlannedTask<*, *> -> {
-                        !lockCancelTasks.any { (it as AbstractPlannedTask<*, *>).plan == task.plan }
+                    is AbstractPlannedTask<*, *, *> -> {
+                        !lockCancelTasks.any { (it as AbstractPlannedTask<*, *, *>).plan == task.plan }
                     }
 
                     else -> {

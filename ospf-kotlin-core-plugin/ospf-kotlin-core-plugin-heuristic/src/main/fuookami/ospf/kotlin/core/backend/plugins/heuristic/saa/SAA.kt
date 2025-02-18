@@ -62,7 +62,7 @@ open class SAAPolicy<V>(
     val iterationLimit: UInt64 = UInt64.maximum,
     val notBetterIterationLimit: UInt64 = UInt64.maximum,
     val timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Flt64(Random.nextDouble()) }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
 ) : AbstractSAAPolicy<V> {
     private var _step: Flt64 = step
     val step: Flt64 by ::_step
