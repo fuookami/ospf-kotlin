@@ -17,15 +17,15 @@ data object BakersMap : Extractor<Point2, Point2> {
 data class BakersMapGenerator(
     val bakersMap: BakersMap = BakersMap,
     private var _x: Point2 = point2(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point2> {
     companion object {
         operator fun invoke(
             x: Point2 = point2(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): BakersMapGenerator {
             return BakersMapGenerator(BakersMap, x)

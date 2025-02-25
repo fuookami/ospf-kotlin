@@ -6,11 +6,11 @@ import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 data class CapacitanceEquation(
-    val a: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-    val b: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-    val c: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-    val d: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-    val e: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+    val a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+    val b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+    val c: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+    val d: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+    val e: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     val h: Flt64 = Flt64(0.01)
 ) : Extractor<Point3, Point3> {
     override operator fun invoke(x: Point3): Point3 {
@@ -35,23 +35,23 @@ data class CapacitanceEquation(
 data class CapacitanceEquationGenerator(
     val capacitanceEquation: CapacitanceEquation = CapacitanceEquation(),
     private var _x: Point3 = point3(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point3> {
     companion object {
         operator fun invoke(
-            a: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-            b: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-            c: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-            d: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-            e: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+            a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            c: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            d: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            e: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             h: Flt64 = Flt64(0.01),
             x: Point3 = point3(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ) : CapacitanceEquationGenerator {
             return CapacitanceEquationGenerator(

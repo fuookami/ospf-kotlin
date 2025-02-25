@@ -28,9 +28,9 @@ data class ChuaCircuit(
 data class ChuaCircuitGenerator(
     val chuaCircuit: ChuaCircuit = ChuaCircuit(),
     private var _x: Point3 = point3(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     )
 ) : Generator<Point3> {
     companion object {
@@ -41,9 +41,9 @@ data class ChuaCircuitGenerator(
             d: Flt64 = Flt64(-1.14),
             h: Flt64 = Flt64(0.01),
             x: Point3 = point3(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             )
         ): ChuaCircuitGenerator {
             return ChuaCircuitGenerator(

@@ -26,9 +26,9 @@ data class ArneodoAttractor(
 data class ArneodoAttractorGenerator(
     val arneodoAttractor: ArneodoAttractor = ArneodoAttractor(),
     private var _x: Point3 = point3(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point3> {
     companion object {
@@ -37,9 +37,9 @@ data class ArneodoAttractorGenerator(
             beta: Flt64 = Flt64(3.5),
             delta: Flt64 = Flt64(-1.0),
             x: Point3 = point3(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): ArneodoAttractorGenerator {
             return ArneodoAttractorGenerator(

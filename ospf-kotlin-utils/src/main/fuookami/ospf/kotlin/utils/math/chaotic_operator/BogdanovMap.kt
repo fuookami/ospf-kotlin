@@ -6,9 +6,9 @@ import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 data class BogdanovMap(
-    val epsilon: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-    val kappa: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-    val mu: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+    val epsilon: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+    val kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+    val mu: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
 ) : Extractor<Point2, Point2> {
     override operator fun invoke(x: Point2): Point2 {
         val temp = x[1] + epsilon * x[1] + kappa * x[0] * (Flt64.one - x[0]) + mu * x[0] * x[1]
@@ -22,18 +22,18 @@ data class BogdanovMap(
 data class BogdanovMapGenerator(
     val bogdanovMap: BogdanovMap = BogdanovMap(),
     private var _x: Point2 = point2(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point2> {
     companion object {
         operator fun invoke(
-            epsilon: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-            kappa: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-            mu: Flt64 = Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+            epsilon: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            mu: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             x: Point2 = point2(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): BogdanovMapGenerator {
             return BogdanovMapGenerator(

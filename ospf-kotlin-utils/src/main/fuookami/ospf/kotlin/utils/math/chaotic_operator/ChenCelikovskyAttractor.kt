@@ -26,9 +26,9 @@ data class ChenCelikovskyAttractor(
 data class ChenCelikovskyAttractorGenerator(
     val chenCelikovskyAttractor: ChenCelikovskyAttractor = ChenCelikovskyAttractor(),
     private var _x: Point3 = point3(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     )
 ) : Generator<Point3> {
     companion object {
@@ -38,9 +38,9 @@ data class ChenCelikovskyAttractorGenerator(
             delta: Flt64 = Flt64(20.0),
             h: Flt64 = Flt64(0.01),
             x: Point3 = point3(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             )
         ): ChenCelikovskyAttractorGenerator {
             return ChenCelikovskyAttractorGenerator(

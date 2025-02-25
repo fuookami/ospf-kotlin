@@ -25,8 +25,8 @@ data class Brusselator(
 data class BrusselatorGenerator(
     val brusselator: Brusselator = Brusselator(),
     private var _x: Point2 = point2(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point2> {
     companion object {
@@ -35,8 +35,8 @@ data class BrusselatorGenerator(
             b: Flt64 = Flt64.three,
             h: Flt64 = Flt64(0.01),
             x: Point2 = point2(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): BrusselatorGenerator {
             return BrusselatorGenerator(
