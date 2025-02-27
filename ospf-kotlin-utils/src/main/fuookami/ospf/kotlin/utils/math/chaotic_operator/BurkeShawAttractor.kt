@@ -25,9 +25,9 @@ data class BurkeShawAttractor(
 data class BurkeShawAttractorGenerator(
     val burkeShawAttractor: BurkeShawAttractor = BurkeShawAttractor(),
     private var _x: Point3 = point3(
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-        Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point3> {
     companion object {
@@ -36,9 +36,9 @@ data class BurkeShawAttractorGenerator(
             nu: Flt64 = Flt64(4.272),
             h: Flt64 = Flt64(0.01),
             x: Point3 = point3(
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0)),
-                Flt64(Random.nextDouble(Flt64.decimalPrecision.toDouble(), 1.0))
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): BurkeShawAttractorGenerator {
             return BurkeShawAttractorGenerator(

@@ -280,16 +280,16 @@ open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     }
 }
 
-open class AbstractPlannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
-    open val plan: AbstractTaskPlan<E>,
+open class AbstractPlannedTask<out P: AbstractTaskPlan<E>, out E : Executor, out A : AssignmentPolicy<E>>(
+    open val plan: P,
     override val assignmentPolicy: A?,
 ) : AbstractTask<E, A>, ManualIndexed() {
-    constructor(plan: AbstractTaskPlan<E>) : this(
+    constructor(plan: P) : this(
         plan = plan,
         assignmentPolicy = null
     )
 
-    constructor(origin: AbstractPlannedTask<E, A>, assignmentPolicy: A? = null) : this(
+    constructor(origin: AbstractPlannedTask<P, E, A>, assignmentPolicy: A? = null) : this(
         plan = origin.plan,
         assignmentPolicy = assignmentPolicy
     )
@@ -404,11 +404,12 @@ open class AbstractPlannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
             }
         }
 
+    @Suppress("UNCHECKED_CAST")
     override fun partialEq(rhs: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 
-        rhs as AbstractPlannedTask<E, A>
+        rhs as AbstractPlannedTask<P, E, A>
 
         if (this.plan != rhs.plan) return false
 
@@ -419,7 +420,7 @@ open class AbstractPlannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as AbstractPlannedTask<*, *>
+        other as AbstractPlannedTask<*, *, *>
 
         return key == other.key
     }
@@ -433,7 +434,7 @@ open class AbstractPlannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     }
 }
 
-typealias Task<E> = AbstractPlannedTask<E, AssignmentPolicy<E>>
+typealias Task<P, E> = AbstractPlannedTask<P, E, AssignmentPolicy<E>>
 
 interface IterativeAbstractTask<
     out E : Executor,

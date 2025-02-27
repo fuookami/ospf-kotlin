@@ -23,7 +23,7 @@ class BetterLayerMaximization(
                     coefficient(layer, bin) * assignment.x[i, j]
                 }
             }),
-            "bin amount"
+            "better layer"
         )) {
             is Ok -> {}
 
