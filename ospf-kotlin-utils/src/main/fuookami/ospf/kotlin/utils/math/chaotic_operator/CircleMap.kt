@@ -37,7 +37,7 @@ data class CircleMapGenerator(
     val x by ::_x
 
     override fun invoke(): Flt64 {
-        val x = _x
+        val x = _x.copy()
         _x = circleMap(x)
         return x
     }

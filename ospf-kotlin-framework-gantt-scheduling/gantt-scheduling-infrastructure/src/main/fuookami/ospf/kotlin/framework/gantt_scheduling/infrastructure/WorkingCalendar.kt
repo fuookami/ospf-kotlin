@@ -26,73 +26,119 @@ open class WorkingCalendar(
     val timeWindow: TimeWindow,
     unavailableTimes: List<TimeRange> = emptyList()
 ) {
+    companion object {
+        @JvmStatic
+        @JvmName("staticActualTime")
+        protected fun actualTime(
+            time: Instant,
+            unavailableTimes: List<TimeRange> = emptyList(),
+            connectionTime: Duration = Duration.ZERO
+        ): Instant {
+            var currentTime = time
+            for (unavailableTime in unavailableTimes) {
+                if (currentTime < unavailableTime.start) {
+                    break
+                }
+                if (unavailableTime.contains(currentTime)) {
+                    currentTime = unavailableTime.end + connectionTime
+                }
+            }
+            return currentTime
+        }
+
+        @JvmStatic
+        @JvmName("staticActualTime")
+        protected fun actualTime(
+            time: TimeRange,
+            unavailableTimes: List<TimeRange> = emptyList(),
+            connectionTime: Duration = Duration.ZERO
+        ): TimeRange {
+            var currentTime = time
+            for (unavailableTime in unavailableTimes) {
+                val intersection = currentTime.intersectionWith(unavailableTime)
+                if (intersection == null && unavailableTime.start >= currentTime.start) {
+                    break
+                }
+                if (intersection != null && !intersection.empty) {
+                    currentTime = TimeRange(
+                        start = currentTime.start,
+                        end = max(currentTime.end, unavailableTime.end) + intersection.duration + connectionTime
+                    )
+                }
+            }
+            return currentTime
+        }
+
+        @JvmStatic
+        @JvmName("staticValidTime")
+        protected fun validTime(
+            time: TimeRange,
+            unavailableTimes: List<TimeRange> = emptyList(),
+            connectionTime: Duration = Duration.ZERO
+        ): Duration {
+            var currentTime = time.duration
+            for (unavailableTime in unavailableTimes) {
+                val intersectionTime = time.intersectionWith(unavailableTime)?.duration ?: Duration.ZERO
+                if (intersectionTime != Duration.ZERO) {
+                    currentTime -= min(
+                        currentTime,
+                        intersectionTime + connectionTime
+                    )
+                }
+            }
+            return currentTime
+        }
+
+        @JvmStatic
+        @JvmName("staticVaslidTime")
+        protected fun validTimes(
+            time: TimeRange,
+            unavailableTimes: List<TimeRange> = emptyList(),
+            connectionTime: Duration = Duration.ZERO,
+        ): List<TimeRange> {
+            var currentTime = mutableListOf(time)
+            for (unavailableTime in unavailableTimes) {
+                currentTime = currentTime.flatMap { thisRestTime ->
+                    val diff = thisRestTime - unavailableTime
+                    diff.filter { thisRestTime.duration > connectionTime }
+                }.toMutableList()
+            }
+            return currentTime
+        }
+    }
+
     open val unavailableTimes = unavailableTimes.sortedBy { it.start }
 
     fun actualTime(
         time: Instant,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Instant {
-        var currentTime = time
-        for (unavailableTime in unavailableTimes) {
-            if (currentTime < unavailableTime.start) {
-                break
-            }
-            if (unavailableTime.contains(currentTime)) {
-                currentTime = unavailableTime.end + connectionTime
-            }
-        }
-        return currentTime
+        return WorkingCalendar.actualTime(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
     }
 
     fun actualTime(
         time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
-        var currentTime = time
-        for (unavailableTime in unavailableTimes) {
-            val intersection = currentTime.intersectionWith(unavailableTime)
-            if (intersection == null && unavailableTime.start >= currentTime.start) {
-                break
-            }
-            if (intersection != null && !intersection.empty) {
-                currentTime = TimeRange(
-                    start = currentTime.start,
-                    end = max(currentTime.end, unavailableTime.end) + intersection.duration + connectionTime
-                )
-            }
-        }
-        return currentTime
+        return WorkingCalendar.actualTime(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
     }
 
     fun validTime(
         time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Duration {
-        var currentTime = time.duration
-        for (unavailableTime in unavailableTimes) {
-            val intersectionTime = time.intersectionWith(unavailableTime)?.duration ?: Duration.ZERO
-            if (intersectionTime != Duration.ZERO) {
-                currentTime -= min(
-                    currentTime,
-                    intersectionTime + connectionTime
-                )
-            }
-        }
-        return currentTime
+        return WorkingCalendar.validTime(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
     }
 
     fun validTimes(
         time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO,
     ): List<TimeRange> {
-        var currentTime = mutableListOf(time)
-        for (unavailableTime in unavailableTimes) {
-            currentTime = currentTime.flatMap { thisRestTime ->
-                val diff = thisRestTime - unavailableTime
-                diff.filter { thisRestTime.duration > connectionTime }
-            }.toMutableList()
-        }
-        return currentTime
+        return WorkingCalendar.validTimes(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
     }
 }
 
@@ -184,6 +230,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         startTime: Instant,
         quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
@@ -192,6 +239,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             startTime,
             productivityCalendar,
             quantity,
+            unavailableTimes,
             connectionTime
         )
     }
@@ -200,6 +248,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         startTime: Instant,
         quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
@@ -208,6 +257,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             startTime,
             productivityCalendar,
             quantity,
+            unavailableTimes,
             connectionTime
         )
     }
@@ -216,6 +266,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         endTime: Instant,
         quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
@@ -224,6 +275,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             endTime,
             productivityCalendar,
             quantity,
+            unavailableTimes,
             connectionTime
         )
     }
@@ -232,6 +284,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         endTime: Instant,
         quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
@@ -240,6 +293,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             endTime,
             productivityCalendar,
             quantity,
+            unavailableTimes,
             connectionTime
         )
     }
@@ -247,6 +301,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     fun actualQuantity(
         material: T,
         time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Q {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
@@ -254,6 +309,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             material,
             time,
             productivityCalendar,
+            unavailableTimes,
             connectionTime
         )
     }
@@ -261,6 +317,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     suspend fun actualQuantityParallelly(
         material: T,
         time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Q {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
@@ -268,6 +325,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             material,
             time,
             productivityCalendar,
+            unavailableTimes,
             connectionTime
         )
     }
@@ -277,6 +335,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         var currentTime = max(startTime, productivityCalendar.first().timeWindow.start)
@@ -290,9 +349,15 @@ sealed class ProductivityCalendar<Q, P, T>(
             val currentProductivity = calendar.capacityOf(material)
                 ?.let { Flt64.one / with(timeWindow) { it.value } }
                 ?: Flt64.zero
-            val maxProduceTime = with(timeWindow) { (calendar.timeWindow.end - currentTime).value }
+            val maxProduceTime = with(timeWindow) {
+                WorkingCalendar.validTime(
+                    TimeRange(currentTime, calendar.timeWindow.end),
+                    unavailableTimes,
+                    connectionTime
+                ).value
+            }
             val maxProduceQuantity = floor(maxProduceTime * currentProductivity)
-            if (maxProduceQuantity >= restQuantity) {
+            if (maxProduceQuantity geq restQuantity) {
                 val thisProduceTime = with(timeWindow) { (restQuantity.toFlt64() / currentProductivity).duration }
                 currentTime += thisProduceTime
                 restQuantity = constants.zero
@@ -301,7 +366,7 @@ sealed class ProductivityCalendar<Q, P, T>(
                 restQuantity -= maxProduceQuantity
             }
         }
-        return if (restQuantity == constants.zero) {
+        return if (restQuantity eq constants.zero) {
             TimeRange(
                 start = startTime,
                 end = currentTime
@@ -318,6 +383,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
         var currentTime = min(endTime, productivityCalendar.first().timeWindow.end)
@@ -331,7 +397,13 @@ sealed class ProductivityCalendar<Q, P, T>(
             val currentProductivity = calendar.capacityOf(material)
                 ?.let { Flt64.one / with(timeWindow) { it.value } }
                 ?: Flt64.zero
-            val maxProduceTime = with(timeWindow) { (currentTime - calendar.timeWindow.start - connectionTime).value }
+            val maxProduceTime = with(timeWindow) {
+                WorkingCalendar.validTime(
+                    TimeRange(calendar.timeWindow.end, currentTime + connectionTime),
+                    unavailableTimes,
+                    connectionTime
+                ).value
+            }
             val maxProduceAmount = floor(maxProduceTime * currentProductivity)
             if (maxProduceAmount >= restAmount) {
                 val thisProduceTime = with(timeWindow) { (restAmount.toFlt64() / currentProductivity).duration }
@@ -358,6 +430,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         productivityCalendar: List<Productivity<T>>,
+        unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Q {
         var quantity = constants.zero
@@ -365,11 +438,15 @@ sealed class ProductivityCalendar<Q, P, T>(
             // todo: calculate with dayOfWeek and dayOfMonth appointment
             val intersection = time.intersectionWith(calendar.timeWindow) ?: continue
             val produceTime = with(timeWindow) {
-                if (intersection.start == calendar.timeWindow.start) {
-                    intersection.duration - connectionTime
-                } else {
-                    intersection.duration
-                }.value
+                WorkingCalendar.validTime(
+                    if (intersection.start == calendar.timeWindow.start) {
+                        TimeRange(intersection.start + connectionTime, intersection.end)
+                    } else {
+                        intersection
+                    },
+                    unavailableTimes,
+                    connectionTime
+                ).value
             }
             val currentProductivity = calendar.capacityOf(material)
                 ?.let { Flt64.one / with(timeWindow) { it.value } }

@@ -56,7 +56,7 @@ data class ChuaCircuitGenerator(
     val x by ::_x
 
     override operator fun invoke(): Point3 {
-        val x = _x
+        val x = _x.copy()
         _x = chuaCircuit(x)
         return x
     }

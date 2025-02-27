@@ -28,7 +28,7 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
     val tasks = ArrayList<T>()
     while (labels.isNotEmpty()) {
         currlabel = labels.last()
-        labels.removeLast()
+        labels.removeAt(labels.size - 1)
 
         tasks.add(currlabel.task!!)
     }
@@ -60,7 +60,7 @@ private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executo
     val tasks = ArrayList<T>()
     while (labels.isNotEmpty()) {
         currlabel = labels.last()
-        labels.removeLast()
+        labels.removeAt(labels.size - 1)
 
         tasks.add(currlabel.task!!)
     }
@@ -87,7 +87,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     val isBetterBunch get() = reducedCost ls Flt64.zero
     val plan
         get() = when (task) {
-            is AbstractPlannedTask<*, *> -> {
+            is AbstractPlannedTask<*, *, *> -> {
                 task.plan
             }
 
@@ -100,7 +100,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         assert(
             when (node) {
                 is TaskNode<*, *> -> {
-                    task != null && task is AbstractPlannedTask<*, *>
+                    task != null && task is AbstractPlannedTask<*, *, *>
                 }
 
                 is RootNode -> {

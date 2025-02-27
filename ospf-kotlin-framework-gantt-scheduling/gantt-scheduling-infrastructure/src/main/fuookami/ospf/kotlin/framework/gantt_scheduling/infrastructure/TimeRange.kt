@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.math.min
 import kotlin.time.*
 import kotlin.reflect.*
 import kotlinx.datetime.*
@@ -171,6 +170,7 @@ fun List<TimeRange>.merge(): List<TimeRange> {
             currentTime = times[i]
         }
     }
+    mergedTimes.add(currentTime)
     return mergedTimes
 }
 

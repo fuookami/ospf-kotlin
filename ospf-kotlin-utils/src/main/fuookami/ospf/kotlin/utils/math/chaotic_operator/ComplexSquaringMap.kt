@@ -41,7 +41,7 @@ data class ComplexSquaringMapGenerator(
     val x by ::_x
 
     override operator fun invoke(): Point2 {
-        val x = _x
+        val x = _x.copy()
         _x = ComplexSquaringMap(x)
         return x
     }

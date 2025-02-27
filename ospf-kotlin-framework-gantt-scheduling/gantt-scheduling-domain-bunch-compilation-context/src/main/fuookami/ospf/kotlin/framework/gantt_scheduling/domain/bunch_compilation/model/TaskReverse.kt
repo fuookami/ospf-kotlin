@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 open class TaskReverseBuilder<
     out B : AbstractTaskBunch<T, E, A>,
-    out T : AbstractPlannedTask<E, A>,
+    out T : AbstractPlannedTask<*, E, A>,
     out E : Executor,
     out A : AssignmentPolicy<E>
 > {
@@ -85,14 +85,9 @@ open class TaskReverseBuilder<
         }
         val prevDuration = prevTask.duration
         val succDuration = succTask.duration
-        if (prevTimeWindow != null && succTimeWindow != null
-            && prevDuration != null && succDuration != null
-            && (prevTimeWindow.end - prevDuration) <= (succTimeWindow.end - succDuration)
-        ) {
-            return true
-        }
-
-        return false
+        return (prevTimeWindow != null && succTimeWindow != null
+                && prevDuration != null && succDuration != null
+                && (prevTimeWindow.end - prevDuration) <= (succTimeWindow.end - succDuration))
     }
 
     open fun symmetrical(
@@ -118,7 +113,7 @@ open class TaskReverseBuilder<
 }
 
 class TaskReverse<
-    out T : AbstractPlannedTask<E, A>,
+    out T : AbstractPlannedTask<*, E, A>,
     out E : Executor,
     out A : AssignmentPolicy<E>
 > internal constructor(
