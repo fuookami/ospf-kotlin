@@ -176,6 +176,10 @@
             <groupId>io.michaelrocks.bimap</groupId>
             <artifactId>bimap</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.kotlinmath</groupId>
+            <artifactId>complex-numbers</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

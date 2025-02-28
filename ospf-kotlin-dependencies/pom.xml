@@ -210,6 +210,11 @@
                 <artifactId>bimap</artifactId>
                 <version>${bimap.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.kotlinmath</groupId>
+                <artifactId>complex-numbers</artifactId>
+                <version>${complex-numbers.version}</version>
+            </dependency>
             <!-- ospf -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
