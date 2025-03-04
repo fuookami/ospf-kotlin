@@ -90,7 +90,7 @@ open class WorkingCalendar(
         }
 
         @JvmStatic
-        @JvmName("staticVaslidTime")
+        @JvmName("staticValidTime")
         protected fun validTimes(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),

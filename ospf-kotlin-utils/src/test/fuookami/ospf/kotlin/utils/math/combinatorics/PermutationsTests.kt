@@ -7,11 +7,12 @@ class PermutationsTests {
     @Test
     fun test() {
         val input = listOf(0, 1, 2)
-        val promise = permuteAsync(input)
-        runBlocking {
-            for (perm in promise) {
-                println(perm.joinToString(", "))
-            }
-        }
+        assert(permute(input).size == 6)
+//        val promise = permuteAsync(input)
+//        runBlocking {
+//            for (perm in promise) {
+//                println(perm.joinToString(", "))
+//            }
+//        }
     }
 }

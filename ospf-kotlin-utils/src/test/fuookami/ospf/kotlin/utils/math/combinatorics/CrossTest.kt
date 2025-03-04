@@ -3,12 +3,12 @@ package fuookami.ospf.kotlin.utils.math.combinatorics
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
 
-class CombinationsTests {
+class CrossTest {
     @Test
     fun test() {
-        val input = listOf(0, 1, 2)
-        assert(combine(input).size == 7)
-//        val promise = combineAsync(input)
+        val input = listOf(listOf(0, 1), listOf(2, 3))
+        assert(cross(input).size == 4)
+//        val promise = crossAsync(input)
 //        runBlocking {
 //            for (perm in promise) {
 //                println(perm.joinToString(", "))

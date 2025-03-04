@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.utils.math.combinatorics
 
-import java.util.Collections.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.apache.logging.log4j.kotlin.*
