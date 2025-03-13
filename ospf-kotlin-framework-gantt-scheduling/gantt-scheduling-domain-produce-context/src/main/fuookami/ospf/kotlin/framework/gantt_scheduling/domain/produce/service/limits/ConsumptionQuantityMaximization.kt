@@ -15,10 +15,10 @@ class ConsumptionQuantityMaximization<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    private val materials: List<Material>,
+    private val materials: List<RawMaterial>,
     private val consumption: Consumption,
-    private val threshold: (Material) -> Flt64 = { Flt64.zero },
-    private val coefficient: (Material) -> Flt64 = { Flt64.one },
+    private val threshold: (RawMaterial) -> Flt64 = { Flt64.zero },
+    private val coefficient: (RawMaterial) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_quantity_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {

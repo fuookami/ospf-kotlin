@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 interface Product : Indexed
-interface Material : Indexed
+interface RawMaterial : Indexed
 
 data class ProductDemand(
     val quantity: ValueRange<Flt64>,
@@ -18,7 +18,7 @@ data class ProductDemand(
     val overEnabled: Boolean get() = overQuantity != null
 }
 
-open class MaterialReserves(
+open class RawMaterialReserves(
     val quantity: ValueRange<Flt64>,
     val lessQuantity: Flt64? = null,
     val overQuantity: Flt64? = null,
@@ -32,7 +32,7 @@ interface ProductionTask<
     out A : AssignmentPolicy<E>
 > : AbstractTask<E, A> {
     val produce: Map<Product, Flt64>
-    val consumption: Map<Material, Flt64>
+    val consumption: Map<RawMaterial, Flt64>
 }
 
 fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTaskBunch<T, E, A>.produce(product: Product): Flt64 {
@@ -49,7 +49,7 @@ fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTask
     }.sumOf { it }
 }
 
-fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTaskBunch<T, E, A>.consumption(material: Material): Flt64 {
+fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTaskBunch<T, E, A>.consumption(material: RawMaterial): Flt64 {
     return tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *> -> {

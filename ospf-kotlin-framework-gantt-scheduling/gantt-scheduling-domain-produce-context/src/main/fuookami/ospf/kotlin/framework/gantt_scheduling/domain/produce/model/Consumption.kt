@@ -29,7 +29,7 @@ abstract class AbstractConsumption<
     out E : Executor,
     out A : AssignmentPolicy<E>
 >(
-    val materials: List<Pair<Material, MaterialReserves?>>
+    val materials: List<Pair<RawMaterial, RawMaterialReserves?>>
 ) : Consumption {
     override lateinit var lessQuantity: LinearIntermediateSymbols1
     override lateinit var overQuantity: LinearIntermediateSymbols1
@@ -111,7 +111,7 @@ class TaskSchedulingConsumption<
     out E : Executor,
     out A : AssignmentPolicy<E>
 >(
-    materials: List<Pair<Material, MaterialReserves?>>,
+    materials: List<Pair<RawMaterial, RawMaterialReserves?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
 ) : AbstractConsumption<T, E, A>(materials.sortedBy { it.first.index }) {
@@ -127,7 +127,7 @@ class BunchSchedulingConsumption<
     out E : Executor,
     out A : AssignmentPolicy<E>
 >(
-    materials: List<Pair<Material, MaterialReserves?>>,
+    materials: List<Pair<RawMaterial, RawMaterialReserves?>>,
 ) : AbstractConsumption<T, E, A>(materials.sortedBy { it.first.index }) {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
