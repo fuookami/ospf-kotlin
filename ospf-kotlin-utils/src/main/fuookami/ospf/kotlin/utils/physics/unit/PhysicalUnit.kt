@@ -93,6 +93,15 @@ data object NoneUnit : PhysicalUnit() {
     override val symbol: String? = null
 }
 
+data class QuantityUnit(
+    override val system: UnitSystem = SI,
+    override val name: String? = null,
+    override val symbol: String? = null
+) : PhysicalUnit() {
+    override val quantity = DerivedQuantity(emptyList())
+    override val scale = Scale()
+}
+
 operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
     return if (this.system != other.system) {
         TODO("not implemented yet")
