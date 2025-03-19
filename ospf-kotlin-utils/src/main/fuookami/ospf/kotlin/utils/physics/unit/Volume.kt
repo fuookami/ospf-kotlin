@@ -34,3 +34,25 @@ object CubicMeter : PhysicalUnit() {
     override val system by unit::system
     override val scale by unit::scale
 }
+
+object CubicInch : PhysicalUnit() {
+    private val unit = Inch * Inch * Inch
+
+    override val name = "cubic inch"
+    override val symbol = "in3"
+
+    override val quantity = Volume
+    override val system by unit::system
+    override val scale by unit::scale
+}
+
+object CubicFoot : PhysicalUnit() {
+    private val unit = Foot * Foot * Foot
+
+    override val name = "cubic foot"
+    override val symbol = "ft3"
+
+    override val quantity = Volume
+    override val system by unit::system
+    override val scale by unit::scale
+}
