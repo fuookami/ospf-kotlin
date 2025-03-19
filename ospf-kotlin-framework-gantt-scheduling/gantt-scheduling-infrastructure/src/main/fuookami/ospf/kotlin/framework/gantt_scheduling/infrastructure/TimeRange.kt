@@ -149,6 +149,18 @@ data class TimeRange(
         return timeRanges
     }
 
+    fun continuousBefore(time: TimeRange): Boolean {
+        return end == time.start
+    }
+
+    fun continuousAfter(time: TimeRange): Boolean {
+        return start == time.end
+    }
+
+    fun continuousWith(time: TimeRange): Boolean {
+        return continuousBefore(time) || continuousAfter(time)
+    }
+
     operator fun plus(rhs: Duration): TimeRange {
         return TimeRange(start + rhs, end + rhs)
     }
@@ -159,6 +171,10 @@ data class TimeRange(
 }
 
 fun List<TimeRange>.merge(): List<TimeRange> {
+    if (this.isEmpty()) {
+        return emptyList()
+    }
+
     val times = this.sortedBy { it.start }
     val mergedTimes = ArrayList<TimeRange>()
     var currentTime = times.first()

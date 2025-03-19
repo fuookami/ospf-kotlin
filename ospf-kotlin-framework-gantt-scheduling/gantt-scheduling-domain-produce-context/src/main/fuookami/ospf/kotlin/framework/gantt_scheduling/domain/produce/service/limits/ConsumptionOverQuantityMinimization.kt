@@ -15,10 +15,10 @@ class ConsumptionOverQuantityMinimization<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    products: List<Pair<Material, MaterialReserves?>>,
+    products: List<Pair<RawMaterial, RawMaterialReserves?>>,
     private val consumption: Consumption,
-    private val threshold: (Material) -> Flt64 = { Flt64.zero },
-    private val coefficient: (Material) -> Flt64 = { Flt64.one },
+    private val threshold: (RawMaterial) -> Flt64 = { Flt64.zero },
+    private val coefficient: (RawMaterial) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_less_quantity_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val materials = if (consumption.overEnabled) {
