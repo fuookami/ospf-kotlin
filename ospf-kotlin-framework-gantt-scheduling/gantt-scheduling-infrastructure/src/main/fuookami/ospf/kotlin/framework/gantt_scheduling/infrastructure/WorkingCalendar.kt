@@ -90,7 +90,7 @@ open class WorkingCalendar(
         }
 
         @JvmStatic
-        @JvmName("staticVaslidTime")
+        @JvmName("staticValidTime")
         protected fun validTimes(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
@@ -142,27 +142,33 @@ open class WorkingCalendar(
     }
 }
 
+typealias ProductivityCondition<T> = (T) -> Boolean
+
 open class Productivity<T>(
     val timeWindow: TimeRange,
     val weekDays: Set<DayOfWeek> = emptySet(),
     val monthDays: Set<Int> = emptySet(),
-    val capacities: Map<T, Duration>
+    val capacities: Map<T, Duration>,
+    val conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList()
 ) {
     open fun capacityOf(material: T): Duration? {
         return capacities[material]
+            ?: conditionCapacities.find { it.first(material) }?.second
     }
 
     open fun new(
         timeWindow: TimeRange? = null,
         weekDays: Set<DayOfWeek>? = null,
         monthDays: Set<Int>? = null,
-        capacities: Map<T, Duration>? = null
+        capacities: Map<T, Duration>? = null,
+        conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>>? = null
     ): Productivity<T> {
         return Productivity(
             timeWindow = timeWindow ?: this.timeWindow,
             weekDays = weekDays ?: this.weekDays,
             monthDays = monthDays ?: this.monthDays,
-            capacities = capacities ?: this.capacities
+            capacities = capacities ?: this.capacities,
+            conditionCapacities = conditionCapacities ?: this.conditionCapacities
         )
     }
 }

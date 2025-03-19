@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.quantity
 
-import java.math.BigDecimal
-import java.math.BigInteger
+import java.math.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
@@ -10,6 +9,42 @@ data class Quantity<out V>(
     val value: V,
     val unit: PhysicalUnit
 )
+
+fun <V> PhysicalUnit.withValue(value: V): Quantity<V> {
+    return Quantity(value, this)
+}
+
+fun <V> PhysicalUnit.zero(constants: ArithmeticConstants<V>): Quantity<V> {
+    return Quantity(constants.zero, this)
+}
+
+fun <V> PhysicalUnit.one(constants: ArithmeticConstants<V>): Quantity<V> {
+    return Quantity(constants.one, this)
+}
+
+fun <V: RealNumber<V>> PhysicalUnit.two(constants: RealNumberConstants<V>): Quantity<V> {
+    return Quantity(constants.two, this)
+}
+
+fun <V: RealNumber<V>> PhysicalUnit.three(constants: RealNumberConstants<V>): Quantity<V> {
+    return Quantity(constants.three, this)
+}
+
+fun <V: RealNumber<V>> PhysicalUnit.five(constants: RealNumberConstants<V>): Quantity<V> {
+    return Quantity(constants.five, this)
+}
+
+fun <V: RealNumber<V>> PhysicalUnit.ten(constants: RealNumberConstants<V>): Quantity<V> {
+    return Quantity(constants.ten, this)
+}
+
+fun <V: FloatingNumber<V>> PhysicalUnit.pi(constants: FloatingNumberConstants<V>): Quantity<V> {
+    return Quantity(constants.pi, this)
+}
+
+fun <V: FloatingNumber<V>> PhysicalUnit.e(constants: FloatingNumberConstants<V>): Quantity<V> {
+    return Quantity(constants.e, this)
+}
 
 infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Arithmetic<V>, V : Eq<V> {
     return if (this.unit == other.unit) {
@@ -21,9 +56,59 @@ infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Arithmetic<V
     }
 }
 
+infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Arithmetic<V>, V : Eq<V> {
+    return if (this.unit == other.unit) {
+        this.value neq other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        false
+    }
+}
+
 infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Arithmetic<V>, V : PartialOrd<V> {
     return if (this.unit == other.unit) {
         this.value partialOrd other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        null
+    }
+}
+
+infix fun <V> Quantity<V>.ls(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+    return if (this.unit == other.unit) {
+        this.value ls other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        null
+    }
+}
+
+infix fun <V> Quantity<V>.leq(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+    return if (this.unit == other.unit) {
+        this.value leq other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        null
+    }
+}
+
+infix fun <V> Quantity<V>.gr(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+    return if (this.unit == other.unit) {
+        this.value gr other.value
+    } else if (this.unit.quantity == other.unit.quantity) {
+        TODO("not implemented yet")
+    } else {
+        null
+    }
+}
+
+infix fun <V> Quantity<V>.geq(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+    return if (this.unit == other.unit) {
+        this.value geq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
         TODO("not implemented yet")
     } else {
@@ -287,12 +372,28 @@ operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V> where V : Ar
     }
 }
 
+operator fun <V> Quantity<V>.times(other: V): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
+    return Quantity(this.value * other, this.unit)
+}
+
+operator fun <V> V.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
+    return Quantity(this * other.value, other.unit)
+}
+
 operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
     return if (this.unit.quantity == other.unit.quantity) {
         Quantity(this.value / other.value, this.unit / other.unit)
     } else {
         TODO("not implemented yet")
     }
+}
+
+operator fun <V> Quantity<V>.div(other: V): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
+    return Quantity(this.value / other, this.unit)
+}
+
+operator fun <V> V.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
+    return Quantity(this / other.value, other.unit.reciprocal())
 }
 
 operator fun <V> Quantity<V>.unaryMinus(): Quantity<V> where V : Arithmetic<V>, V : Neg<V> {

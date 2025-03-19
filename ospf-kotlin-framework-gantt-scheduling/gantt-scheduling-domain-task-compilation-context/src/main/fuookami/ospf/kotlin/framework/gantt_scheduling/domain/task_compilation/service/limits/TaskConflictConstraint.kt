@@ -17,7 +17,7 @@ class TaskConflictConstraint<
     private val tasks: List<T>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
-    private val conflict: (T, T) -> Boolean,
+    private val conflict: (E, T, T) -> Boolean,
     override val name: String = "task_conflict"
 ) : Pipeline<AbstractLinearMetaModel> {
     override operator fun invoke(model: AbstractLinearMetaModel): Try {
@@ -26,7 +26,7 @@ class TaskConflictConstraint<
         for (executor in executors) {
             for (i in 0 until (tasks.size - 1)) {
                 for (j in (i + 1) until tasks.size) {
-                    if (conflict(tasks[i], tasks[j])) {
+                    if (conflict(executor, tasks[i], tasks[j])) {
                         when (val result = model.addConstraint(
                             (x[tasks[i], executor] + x[tasks[j], executor]) leq Flt64.one,
                             "${name}_${tasks[i]}_${tasks[j]}"
