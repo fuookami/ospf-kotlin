@@ -62,10 +62,20 @@ sealed interface MetaModel : Model {
         return tokens.add(symbol)
     }
 
+    fun add(symbol: QuantityIntermediateSymbol): Try {
+        return tokens.add(symbol.value)
+    }
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
     fun add(symbols: Iterable<IntermediateSymbol>): Try {
         return tokens.add(symbols)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuantitySymbols")
+    fun add(symbols: Iterable<QuantityIntermediateSymbol>): Try {
+        return tokens.add(symbols.map { it.value })
     }
 
     fun remove(symbol: IntermediateSymbol) {

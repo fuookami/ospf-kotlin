@@ -219,7 +219,11 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     override fun toRawString(unfold: Boolean): String {
-        return "semi(${x.toRawString(unfold)}})"
+        return if (flag != null) {
+            "semi(${x.toRawString(unfold)}, ${flag.toRawString(unfold)})"
+        } else {
+            "semi(${x.toRawString(unfold)})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {

@@ -429,3 +429,13 @@ operator fun QuadraticIntermediateSymbol.times(rhs: PhysicalUnit): Quantity<Quad
 operator fun QuadraticIntermediateSymbol.div(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol> {
     return Quantity(this, rhs.reciprocal())
 }
+
+typealias QuantityIntermediateSymbol = Quantity<IntermediateSymbol>
+typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol>
+typealias QuantityQuadraticIntermediateSymbol = Quantity<QuadraticIntermediateSymbol>
+typealias QuantityExpressionSymbol = Quantity<ExpressionSymbol>
+typealias QuantityLinearExpressionSymbol = Quantity<LinearExpressionSymbol>
+typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol>
+typealias QuantityFunctionSymbol = Quantity<FunctionSymbol>
+typealias QuantityLinearFunctionSymbol = Quantity<LinearFunctionSymbol>
+typealias QuantityQuadraticFunctionSymbol = Quantity<QuadraticFunctionSymbol>
