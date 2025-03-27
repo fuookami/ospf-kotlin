@@ -444,7 +444,7 @@ data class LinearMonomialSymbol(
         }
     }
 
-    override fun toRawString(unfold: Boolean): String {
+    override fun toRawString(unfold: UInt64): String {
         return when (symbol) {
             is Either.Left -> {
                 symbol.value.name
@@ -453,7 +453,7 @@ data class LinearMonomialSymbol(
             is Either.Right -> {
                 when (val exprSymbol = symbol.value) {
                     is ExpressionSymbol -> {
-                        "(${exprSymbol.toRawString(unfold)})"
+                        exprSymbol.toRawString(unfold)
                     }
 
                     else -> {

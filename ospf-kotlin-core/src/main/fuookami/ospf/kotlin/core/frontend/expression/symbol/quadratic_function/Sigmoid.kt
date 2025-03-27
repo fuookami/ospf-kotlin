@@ -124,8 +124,12 @@ class Sigmoid(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "Sigmoid(${x.toRawString(unfold)})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "sigmoid(${x.toTidyRawString(unfold - UInt64.one)})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {

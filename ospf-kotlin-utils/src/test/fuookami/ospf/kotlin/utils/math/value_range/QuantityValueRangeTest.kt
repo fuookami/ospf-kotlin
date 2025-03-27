@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
-class ValueRangeTest {
+class QuantityValueRangeTest {
     @Test
     fun testConstructor() {
         val range = ValueRange(Flt64.one, Flt64.two)

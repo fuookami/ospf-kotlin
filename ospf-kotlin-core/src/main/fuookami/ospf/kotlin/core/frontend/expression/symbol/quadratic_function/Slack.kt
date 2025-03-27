@@ -260,8 +260,12 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "slack(${x.toRawString(unfold)}, ${y.toRawString(unfold)})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "slack(${x.toTidyRawString(unfold - UInt64.one)}, ${y.toTidyRawString(unfold - UInt64.one)})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {

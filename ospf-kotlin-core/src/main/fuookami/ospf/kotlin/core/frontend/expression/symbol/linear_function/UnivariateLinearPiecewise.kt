@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed class AbstractUnivariateLinearPiecewiseFunction(
     private val x: AbstractLinearPolynomial<*>,
-    protected val points: List<Point2>,
+    val points: List<Point2>,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -225,8 +225,12 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "$name(${x.toRawString(unfold)}})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "$name(${x.toTidyRawString(unfold - UInt64.one)}})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {

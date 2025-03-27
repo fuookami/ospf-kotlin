@@ -121,7 +121,15 @@ sealed interface MetaModel : Model {
         return export(Path(".").resolve(name))
     }
 
-    suspend fun export(path: Path, unfold: Boolean = false): Try {
+    suspend fun export(path: String, unfold: Boolean): Try {
+        return export(Path(".").resolve(name), if (unfold) { UInt64.zero } else { UInt64.maximum })
+    }
+
+    suspend fun export(path: String, unfold: UInt64): Try {
+        return export(Path(".").resolve(name), unfold)
+    }
+
+    suspend fun export(path: Path, unfold: UInt64 = UInt64.zero): Try {
         val file = if (path.isDirectory()) {
             path.resolve("$name.opm").toFile()
         } else {
@@ -151,7 +159,7 @@ sealed interface MetaModel : Model {
         return result
     }
 
-    private suspend fun exportOpm(writer: FileWriter, unfold: Boolean): Try {
+    private suspend fun exportOpm(writer: FileWriter, unfold: UInt64): Try {
         when (val result = when (tokens) {
             is MutableTokenTable -> {
                 val temp = tokens.copy() as MutableTokenTable
@@ -207,7 +215,7 @@ sealed interface MetaModel : Model {
             writer.append("Symbols:\n")
             for (symbol in tokens.symbols.toList().sortedBy { it.name }) {
                 val range = symbol.range
-                writer.append("$symbol = ${symbol.toRawString(unfold)}, ")
+                writer.append("$symbol = ${symbol.toRawString(UInt64.one)}, ")
                 if (range.empty) {
                     writer.append("empty")
                 } else {

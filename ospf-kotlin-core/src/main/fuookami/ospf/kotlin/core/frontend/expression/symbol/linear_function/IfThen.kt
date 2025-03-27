@@ -217,8 +217,12 @@ class IfThenFunction(
         return ok
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "if_then(${p.toRawString(unfold)}, ${q.toRawString(unfold)})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "if_then(${p.toRawString(unfold - UInt64.one)}, ${q.toRawString(unfold - UInt64.one)})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {

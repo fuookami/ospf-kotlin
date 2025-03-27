@@ -51,8 +51,12 @@ abstract class AbstractBinaryzationFunctionImpl(
         polyY.range.set(possibleRange.toFlt64())
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "bin(${x.toRawString(unfold)})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "bin(${x.toTidyRawString(unfold - UInt64.one)})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
@@ -465,7 +469,7 @@ class BinaryzationFunction(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
+    override fun toRawString(unfold: UInt64): String {
         return "bin(${x.toRawString(unfold)})"
     }
 

@@ -70,11 +70,15 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         }
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return if (amount != null) {
-            "satisfied_amount_${amount}(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
         } else {
-            "satisfied_amount(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+            if (amount != null) {
+                "satisfied_amount_${amount}(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+            } else {
+                "satisfied_amount(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+            }
         }
     }
 
@@ -490,11 +494,15 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return if (amount != null) {
-            "satisfied_amount_${amount}(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
         } else {
-            "satisfied_amount(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+            if (amount != null) {
+                "satisfied_amount_${amount}(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+            } else {
+                "satisfied_amount(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+            }
         }
     }
 
@@ -535,8 +543,12 @@ class AtLeastPolynomialFunction(
         assert(UInt64(polynomials.size) geq amount)
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "at_least_${amount}(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "at_least_${amount}(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+        }
     }
 }
 

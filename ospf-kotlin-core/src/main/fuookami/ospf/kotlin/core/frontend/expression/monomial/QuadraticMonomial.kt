@@ -688,7 +688,7 @@ data class QuadraticMonomialSymbol(
             }
         }
 
-        fun QuadraticMonomialSymbolUnit.toRawString(unfold: Boolean): String {
+        fun QuadraticMonomialSymbolUnit.toRawString(unfold: UInt64): String {
             return when (this) {
                 is Variant3.V1 -> {
                     this.value.name
@@ -697,7 +697,7 @@ data class QuadraticMonomialSymbol(
                 is Variant3.V2 -> {
                     when (val exprSymbol = this.value) {
                         is ExpressionSymbol -> {
-                            "(${exprSymbol.toRawString(unfold)})"
+                            exprSymbol.toRawString(unfold)
                         }
 
                         else -> {
@@ -709,7 +709,7 @@ data class QuadraticMonomialSymbol(
                 is Variant3.V3 -> {
                     when (val exprSymbol = this.value) {
                         is ExpressionSymbol -> {
-                            "(${exprSymbol.toRawString(unfold)})"
+                            exprSymbol.toRawString(unfold)
                         }
 
                         else -> {
@@ -910,7 +910,7 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun toRawString(unfold: Boolean): String {
+    override fun toRawString(unfold: UInt64): String {
         return if (symbol2 == null) {
             symbol1.toRawString(unfold)
         } else {

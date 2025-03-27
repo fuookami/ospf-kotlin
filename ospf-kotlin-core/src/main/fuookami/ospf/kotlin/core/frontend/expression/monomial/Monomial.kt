@@ -59,7 +59,7 @@ sealed interface MonomialSymbol {
     fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
 
-    fun toRawString(unfold: Boolean = false): String
+    fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
 sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>>
@@ -97,7 +97,7 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
 
     fun flush(force: Boolean = false)
 
-    fun toRawString(unfold: Boolean = false): String {
+    fun toRawString(unfold: UInt64 = UInt64.zero): String {
         return if (coefficient eq Flt64.one) {
             symbol.toRawString(unfold)
         } else {

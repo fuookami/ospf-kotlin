@@ -148,7 +148,7 @@ class TaskSchedulingSwitch<
                     } else {
                         UInteger
                     },
-                    polynomial = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
+                    x = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
                         ?: LinearPolynomial(with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }),
                     flag = thisSwitch,
                     name = "switch_time_${task1}_$task2"

@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed class AbstractSemiFunction<V : Variable<*>>(
-    private val x: AbstractQuadraticPolynomial<*>,
-    private val flag: AbstractQuadraticPolynomial<*>?,
+    protected val x: AbstractQuadraticPolynomial<*>,
+    protected val flag: AbstractQuadraticPolynomial<*>?,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
@@ -218,8 +218,12 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "semi(${x.toRawString(unfold)}})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "semi(${x.toTidyRawString(unfold - UInt64.one)}})"
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
@@ -318,90 +322,102 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 object SemiFunction {
     operator fun invoke(
         type: VariableType<*> = UInteger,
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         flag: AbstractQuadraticPolynomial<*>?,
         name: String,
         displayName: String? = null
     ): AbstractSemiFunction<*> {
         return if (type.isIntegerType) {
-            SemiUIntegerFunction(polynomial, flag, name, displayName)
+            SemiUIntegerFunction(x, flag, name, displayName)
         } else {
-            SemiURealFunction(polynomial, flag, name, displayName)
+            SemiURealFunction(x, flag, name, displayName)
         }
     }
 
     operator fun invoke(
         type: VariableType<*> = UInteger,
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         flag: BinVar,
         name: String,
         displayName: String? = null
     ): AbstractSemiFunction<*> {
         return if (type.isIntegerType) {
-            SemiUIntegerFunction(polynomial, flag, name, displayName)
+            SemiUIntegerFunction(x, flag, name, displayName)
         } else {
-            SemiURealFunction(polynomial, flag, name, displayName)
+            SemiURealFunction(x, flag, name, displayName)
         }
     }
 
     operator fun invoke(
         type: VariableType<*> = UInteger,
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         name: String,
         displayName: String? = null
     ): AbstractSemiFunction<*> {
         return if (type.isIntegerType) {
-            SemiUIntegerFunction(polynomial, name, displayName)
+            SemiUIntegerFunction(x, name, displayName)
         } else {
-            SemiURealFunction(polynomial, name, displayName)
+            SemiURealFunction(x, name, displayName)
         }
     }
 }
 
 class SemiUIntegerFunction(
-    polynomial: AbstractQuadraticPolynomial<*>,
+    x: AbstractQuadraticPolynomial<*>,
     flag: AbstractQuadraticPolynomial<*>?,
     name: String,
     displayName: String? = null
-) : AbstractSemiFunction<UIntVar>(polynomial, flag, name, displayName, { UIntVar(it) }) {
+) : AbstractSemiFunction<UIntVar>(x, flag, name, displayName, { UIntVar(it) }) {
     constructor(
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, null, name, displayName)
+    ) : this(x, null, name, displayName)
 
     constructor(
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         flag: BinVar,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, QuadraticPolynomial(flag), name, displayName)
+    ) : this(x, QuadraticPolynomial(flag), name, displayName)
 
     override val discrete = true
 }
 
 class SemiURealFunction(
-    polynomial: AbstractQuadraticPolynomial<*>,
+    x: AbstractQuadraticPolynomial<*>,
     flag: AbstractQuadraticPolynomial<*>?,
     name: String,
     displayName: String? = null
-) : AbstractSemiFunction<URealVar>(polynomial, flag, name, displayName, { URealVar(it) }) {
+) : AbstractSemiFunction<URealVar>(x, flag, name, displayName, { URealVar(it) }) {
     constructor(
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, null, name, displayName)
+    ) : this(x, null, name, displayName)
 
     constructor(
-        polynomial: AbstractQuadraticPolynomial<*>,
+        x: AbstractQuadraticPolynomial<*>,
         flag: BinVar,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, QuadraticPolynomial(flag), name, displayName)
+    ) : this(x, QuadraticPolynomial(flag), name, displayName)
 }
 
 class ReluFunction(
     x: AbstractQuadraticPolynomial<*>,
     name: String = "${x}_relu",
     displayName: String? = "Relu(${x})"
-) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) })
+) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) }) {
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            if (flag != null) {
+                "relu(${x.toTidyRawString(unfold - UInt64.one)}, ${flag.toTidyRawString(unfold - UInt64.one)})"
+            } else {
+                "relu(${x.toTidyRawString(unfold - UInt64.one)})"
+            }
+        }
+    }
+}

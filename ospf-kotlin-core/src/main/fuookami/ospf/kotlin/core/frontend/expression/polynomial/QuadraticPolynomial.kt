@@ -285,6 +285,45 @@ class QuadraticPolynomial(
             )
         }
 
+        operator fun invoke(
+            constant: Boolean,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticPolynomial {
+            return QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = if (constant) Flt64.one else Flt64.zero,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Trivalent,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticPolynomial {
+            return QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = constant.value.toFlt64(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: BalancedTrivalent,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticPolynomial {
+            return QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = constant.value.toFlt64(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
         operator fun <T : RealNumber<T>> invoke(
             constant: T,
             name: String = "",
@@ -766,6 +805,45 @@ class MutableQuadraticPolynomial(
             return MutableQuadraticPolynomial(
                 monomials = mutableListOf(),
                 constant = Flt64(constant),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Boolean,
+            name: String = "",
+            displayName: String? = null
+        ): MutableQuadraticPolynomial {
+            return MutableQuadraticPolynomial(
+                monomials = mutableListOf(),
+                constant = if (constant) Flt64.one else Flt64.zero,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Trivalent,
+            name: String = "",
+            displayName: String? = null
+        ): MutableQuadraticPolynomial {
+            return MutableQuadraticPolynomial(
+                monomials = mutableListOf(),
+                constant = constant.value.toFlt64(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: BalancedTrivalent,
+            name: String = "",
+            displayName: String? = null
+        ): MutableQuadraticPolynomial {
+            return MutableQuadraticPolynomial(
+                monomials = mutableListOf(),
+                constant = constant.value.toFlt64(),
                 name = name,
                 displayName = displayName
             )

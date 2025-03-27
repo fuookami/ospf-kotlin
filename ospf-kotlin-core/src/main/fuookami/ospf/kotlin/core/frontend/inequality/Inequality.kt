@@ -64,7 +64,7 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
         return displayName ?: name
     }
 
-    fun toRawString(unfold: Boolean = false): String {
+    fun toRawString(unfold: UInt64 = UInt64.zero): String {
         return "${lhs.toRawString(unfold)} $sign ${rhs.toRawString(unfold)}"
     }
 }

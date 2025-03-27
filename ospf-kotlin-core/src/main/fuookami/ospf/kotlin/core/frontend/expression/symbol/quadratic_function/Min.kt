@@ -206,8 +206,12 @@ class MaxMinFunction(
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(polynomials, true, name, displayName) {
-    override fun toRawString(unfold: Boolean): String {
-        return "min(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "maxmin(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+        }
     }
 }
 
@@ -216,7 +220,11 @@ class MinFunction(
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(polynomials, false, name, displayName) {
-    override fun toRawString(unfold: Boolean): String {
-        return "maxmin(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "min(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+        }
     }
 }

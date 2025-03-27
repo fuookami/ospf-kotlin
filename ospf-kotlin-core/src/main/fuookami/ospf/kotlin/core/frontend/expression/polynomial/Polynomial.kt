@@ -82,13 +82,11 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     fun copy(name: String, displayName: String?): Self
     fun flush(force: Boolean = false)
 
-    fun toRawString(unfold: Boolean = false): String {
+    fun toRawString(unfold: UInt64 = UInt64.zero): String {
         return if (monomials.isEmpty()) {
             "$constant"
         } else if (constant neq Flt64.zero) {
-            "${
-                monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }
-            } + $constant"
+            "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }} + $constant"
         } else {
             monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toRawString(unfold) }
         }
