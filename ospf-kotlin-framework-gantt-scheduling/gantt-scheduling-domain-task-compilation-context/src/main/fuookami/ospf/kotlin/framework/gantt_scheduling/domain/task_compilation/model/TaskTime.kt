@@ -92,7 +92,7 @@ abstract class TaskTimeImpl<
                             } else {
                                 UInteger
                             },
-                            polynomial = polynomial,
+                            x = polynomial,
                             flag = LinearPolynomial(compilation.taskCompilation[task]),
                             name = "delay_time_$task"
                         )
@@ -150,7 +150,7 @@ abstract class TaskTimeImpl<
                             } else {
                                 UInteger
                             },
-                            polynomial = polynomial,
+                            x = polynomial,
                             flag = LinearPolynomial(compilation.taskCompilation[task]),
                             name = "advance_time_$task"
                         )
@@ -228,7 +228,7 @@ abstract class TaskTimeImpl<
                                             } else {
                                                 UInteger
                                             },
-                                            polynomial = LinearPolynomial(slack),
+                                            x = LinearPolynomial(slack),
                                             flag = LinearPolynomial(compilation.taskCompilation[task]),
                                             name = "over_max_delay_time_$task"
                                         )
@@ -309,7 +309,7 @@ abstract class TaskTimeImpl<
                                             } else {
                                                 UInteger
                                             },
-                                            polynomial = LinearPolynomial(slack),
+                                            x = LinearPolynomial(slack),
                                             flag = LinearPolynomial(compilation.taskCompilation[task]),
                                             name = "over_max_advance_time_$task"
                                         )
@@ -390,7 +390,7 @@ abstract class TaskTimeImpl<
                                             } else {
                                                 UInteger
                                             },
-                                            polynomial = LinearPolynomial(slack),
+                                            x = LinearPolynomial(slack),
                                             flag = LinearPolynomial(compilation.taskCompilation[task]),
                                             name = "delay_last_end_time_$task"
                                         )
@@ -471,7 +471,7 @@ abstract class TaskTimeImpl<
                                             } else {
                                                 UInteger
                                             },
-                                            polynomial = LinearPolynomial(slack),
+                                            x = LinearPolynomial(slack),
                                             flag = LinearPolynomial(compilation.taskCompilation[task]),
                                             name = "advance_earliest_end_time_$task"
                                         )

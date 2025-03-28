@@ -101,8 +101,8 @@ class PreciseLoadCapacity(
 
         if (!::tailLoadingRate.isInitialized) {
             tailLoadingRate = LinearIntermediateSymbols1("tail_loading_rate", Shape1(bins.size)) { i, _ ->
-                SemiURealFunction(
-                    polynomial = LinearPolynomial(loadingRate[i]),
+                SemiRealFunction(
+                    x = LinearPolynomial(loadingRate[i]),
                     flag = assignment.tail[i],
                     name = "tail_loading_rate_${i}"
                 )

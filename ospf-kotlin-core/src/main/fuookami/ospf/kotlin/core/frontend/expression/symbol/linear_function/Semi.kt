@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -14,13 +15,19 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed class AbstractSemiFunction<V : Variable<*>>(
-    private val x: AbstractLinearPolynomial<*>,
-    private val flag: AbstractLinearPolynomial<*>?,
+    protected val x: AbstractLinearPolynomial<*>,
+    protected val flag: AbstractLinearPolynomial<*>?,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
 ) : LinearFunctionSymbol {
     private val logger = logger()
+
+    private val offset = if (x.lowerBound!!.value.unwrap() ls Flt64.zero) {
+        abs(x.lowerBound!!.value.unwrap())
+    } else {
+        Flt64.zero
+    }
 
     private val y: V by lazy {
         ctor("${name}_y")
@@ -31,7 +38,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     private val polyY: LinearPolynomial by lazy {
-        val polyY = LinearPolynomial(y, "${name}_y")
+        val polyY = LinearPolynomial(y - offset, "${name}_y")
         polyY.range.set(possibleRange)
         polyY
     }
@@ -96,7 +103,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
             logger.trace { "Setting SemiFunction ${name}.y to $yValue" }
             tokenTable.find(y)?.let { token ->
-                token._result = yValue
+                token._result = yValue + offset
             }
 
             tokenTable.cache(this, null, yValue)
@@ -137,7 +144,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         }
 
         when (val result = model.addConstraint(
-            y leq x,
+            (y - offset) leq x,
             "${name}_x"
         )) {
             is Ok -> {}
@@ -149,7 +156,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
         if (flag != null) {
             when (val result = model.addConstraint(
-                y geq (x - x.upperBound!!.value.unwrap() * (Flt64.one - flag)),
+                (y - offset) geq (x - x.upperBound!!.value.unwrap() * (Flt64.one - flag)),
                 "${name}_xu"
             )) {
                 is Ok -> {}
@@ -159,7 +166,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y geq (x.lowerBound!!.value.unwrap() * flag),
+                (y - offset) geq (x.lowerBound!!.value.unwrap() * flag),
                 "${name}_lb"
             )) {
                 is Ok -> {}
@@ -169,7 +176,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y leq (x.upperBound!!.value.unwrap() * flag),
+                (y - offset) leq (x.upperBound!!.value.unwrap() * flag),
                 "${name}_ub"
             )) {
                 is Ok -> {}
@@ -180,7 +187,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
             }
         } else {
             when (val result = model.addConstraint(
-                y geq (x - x.upperBound!!.value.unwrap() * (Flt64.one - u)),
+                (y - offset) geq (x - x.upperBound!!.value.unwrap() * (Flt64.one - u)),
                 "${name}_xu"
             )) {
                 is Ok -> {}
@@ -190,7 +197,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y geq (x.lowerBound!!.value.unwrap() * u),
+                (y - offset) geq (x.lowerBound!!.value.unwrap() * u),
                 "${name}_lb"
             )) {
                 is Ok -> {}
@@ -200,7 +207,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 }
             }
             when (val result = model.addConstraint(
-                y leq (x.upperBound!!.value.unwrap() * u),
+                (y - offset) leq (x.upperBound!!.value.unwrap() * u),
                 "${name}_ub"
             )) {
                 is Ok -> {}
@@ -218,8 +225,16 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         return displayName ?: name
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "semi(${x.toRawString(unfold)}})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            if (flag != null) {
+                "semi(${x.toTidyRawString(unfold - UInt64.one)}, ${flag.toTidyRawString(unfold - UInt64.one)})"
+            } else {
+                "semi(${x.toTidyRawString(unfold - UInt64.one)})"
+            }
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
@@ -318,90 +333,102 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 object SemiFunction {
     operator fun invoke(
         type: VariableType<*> = UInteger,
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         flag: AbstractLinearPolynomial<*>?,
         name: String,
         displayName: String? = null
     ): AbstractSemiFunction<*> {
         return if (type.isIntegerType) {
-            SemiUIntegerFunction(polynomial, flag, name, displayName)
+            SemiIntegerFunction(x, flag, name, displayName)
         } else {
-            SemiURealFunction(polynomial, flag, name, displayName)
+            SemiRealFunction(x, flag, name, displayName)
         }
     }
 
     operator fun invoke(
         type: VariableType<*> = UInteger,
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         flag: BinVar,
         name: String,
         displayName: String? = null
     ): AbstractSemiFunction<*> {
         return if (type.isIntegerType) {
-            SemiUIntegerFunction(polynomial, flag, name, displayName)
+            SemiIntegerFunction(x, flag, name, displayName)
         } else {
-            SemiURealFunction(polynomial, flag, name, displayName)
+            SemiRealFunction(x, flag, name, displayName)
         }
     }
 
     operator fun invoke(
         type: VariableType<*> = UInteger,
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         name: String,
         displayName: String? = null
     ): AbstractSemiFunction<*> {
         return if (type.isIntegerType) {
-            SemiUIntegerFunction(polynomial, name, displayName)
+            SemiIntegerFunction(x, name, displayName)
         } else {
-            SemiURealFunction(polynomial, name, displayName)
+            SemiRealFunction(x, name, displayName)
         }
     }
 }
 
-class SemiUIntegerFunction(
-    polynomial: AbstractLinearPolynomial<*>,
+class SemiIntegerFunction(
+    x: AbstractLinearPolynomial<*>,
     flag: AbstractLinearPolynomial<*>?,
     name: String,
     displayName: String? = null
-) : AbstractSemiFunction<UIntVar>(polynomial, flag, name, displayName, { UIntVar(it) }) {
+) : AbstractSemiFunction<UIntVar>(x, flag, name, displayName, { UIntVar(it) }) {
     constructor(
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, null, name, displayName)
+    ) : this(x, null, name, displayName)
 
     constructor(
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         flag: BinVar,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, LinearPolynomial(flag), name, displayName)
+    ) : this(x, LinearPolynomial(flag), name, displayName)
 
     override val discrete = true
 }
 
-class SemiURealFunction(
-    polynomial: AbstractLinearPolynomial<*>,
+class SemiRealFunction(
+    x: AbstractLinearPolynomial<*>,
     flag: AbstractLinearPolynomial<*>?,
     name: String,
     displayName: String? = null
-) : AbstractSemiFunction<URealVar>(polynomial, flag, name, displayName, { URealVar(it) }) {
+) : AbstractSemiFunction<URealVar>(x, flag, name, displayName, { URealVar(it) }) {
     constructor(
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, null, name, displayName)
+    ) : this(x, null, name, displayName)
 
     constructor(
-        polynomial: AbstractLinearPolynomial<*>,
+        x: AbstractLinearPolynomial<*>,
         flag: AbstractVariableItem<*, Binary>,
         name: String,
         displayName: String? = null
-    ) : this(polynomial, LinearPolynomial(flag), name, displayName)
+    ) : this(x, LinearPolynomial(flag), name, displayName)
 }
 
 class ReluFunction(
     x: AbstractLinearPolynomial<*>,
     name: String = "${x}_relu",
     displayName: String? = "Relu(${x})"
-) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) })
+) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) }) {
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            if (flag != null) {
+                "relu(${x.toTidyRawString(unfold - UInt64.one)}, ${flag.toTidyRawString(unfold - UInt64.one)})"
+            } else {
+                "relu(${x.toTidyRawString(unfold - UInt64.one)})"
+            }
+        }
+    }
+}

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
@@ -17,6 +18,22 @@ interface Model {
     fun add(item: AbstractVariableItem<*, *>): Try
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuantityVariable")
+    fun add(item: Quantity<AbstractVariableItem<*, *>>): Try {
+        return add(item.value)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuantityVariables")
+    fun add(items: Iterable<Quantity<AbstractVariableItem<*, *>>>): Try {
+        return add(items.map { it.value })
+    }
+
+    fun remove(item: Quantity<AbstractVariableItem<*, *>>) {
+        return remove(item.value)
+    }
 
     fun addObject(
         category: ObjectCategory,
