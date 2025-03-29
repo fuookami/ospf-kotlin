@@ -11,6 +11,25 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+internal fun Polynomial<*, *, *>.toTidyRawString(unfold: UInt64): String {
+    return if (monomials.isEmpty()) {
+        "$constant"
+    } else if (monomials.size == 1 && constant eq Flt64.zero) {
+        monomials.first().toRawString(unfold - UInt64.one)
+    } else {
+        toRawString(unfold - UInt64.one)
+            .replace("+ 0.0 ", "")
+            .removeSuffix(" + 0.0")
+            .let {
+                if (it.contains(" + ")) {
+                    "($it)"
+                } else {
+                    it
+                }
+            }
+    }
+}
+
 interface IntermediateSymbol : Expression {
     val category: Category
     val operationCategory: Category get() = category
@@ -21,7 +40,7 @@ interface IntermediateSymbol : Expression {
     fun flush(force: Boolean = false)
     fun prepare(tokenTable: AbstractTokenTable)
 
-    fun toRawString(unfold: Boolean = false): String
+    fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
 interface LinearIntermediateSymbol : IntermediateSymbol {
@@ -57,8 +76,12 @@ abstract class ExpressionSymbol(
         polynomial.flush(force)
     }
 
-    override fun toRawString(unfold: Boolean): String {
-        return "(${polynomial.toRawString(unfold)})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold neq UInt64.zero) {
+            polynomial.toRawString(unfold)
+        } else {
+            this.displayName ?: this.name
+        }
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
@@ -174,6 +197,86 @@ class LinearExpressionSymbol(
             )
         }
 
+        operator fun invoke(
+            constant: Int,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                MutableLinearPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Double,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                MutableLinearPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Boolean,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                MutableLinearPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Trivalent,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                MutableLinearPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: BalancedTrivalent,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                MutableLinearPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
         operator fun <T : RealNumber<T>> invoke(
             constant: T,
             name: String = "",
@@ -181,8 +284,7 @@ class LinearExpressionSymbol(
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
                 MutableLinearPolynomial(
-                    monomials = mutableListOf(),
-                    constant = constant.toFlt64(),
+                    constant = constant,
                     name = name,
                     displayName = displayName
                 ),
@@ -326,6 +428,86 @@ class QuadraticExpressionSymbol(
             )
         }
 
+        operator fun invoke(
+            constant: Int,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol {
+            return QuadraticExpressionSymbol(
+                MutableQuadraticPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Double,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol {
+            return QuadraticExpressionSymbol(
+                MutableQuadraticPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Boolean,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol {
+            return QuadraticExpressionSymbol(
+                MutableQuadraticPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Trivalent,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol {
+            return QuadraticExpressionSymbol(
+                MutableQuadraticPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: BalancedTrivalent,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol {
+            return QuadraticExpressionSymbol(
+                MutableQuadraticPolynomial(
+                    constant = constant,
+                    name = name,
+                    displayName = displayName
+                ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
         operator fun <T : RealNumber<T>> invoke(
             constant: T,
             name: String = "",
@@ -333,8 +515,7 @@ class QuadraticExpressionSymbol(
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
                 MutableQuadraticPolynomial(
-                    monomials = mutableListOf(),
-                    constant = constant.toFlt64(),
+                    constant = constant,
                     name = name,
                     displayName = displayName
                 ),
@@ -429,3 +610,13 @@ operator fun QuadraticIntermediateSymbol.times(rhs: PhysicalUnit): Quantity<Quad
 operator fun QuadraticIntermediateSymbol.div(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol> {
     return Quantity(this, rhs.reciprocal())
 }
+
+typealias QuantityIntermediateSymbol = Quantity<IntermediateSymbol>
+typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol>
+typealias QuantityQuadraticIntermediateSymbol = Quantity<QuadraticIntermediateSymbol>
+typealias QuantityExpressionSymbol = Quantity<ExpressionSymbol>
+typealias QuantityLinearExpressionSymbol = Quantity<LinearExpressionSymbol>
+typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol>
+typealias QuantityFunctionSymbol = Quantity<FunctionSymbol>
+typealias QuantityLinearFunctionSymbol = Quantity<LinearFunctionSymbol>
+typealias QuantityQuadraticFunctionSymbol = Quantity<QuadraticFunctionSymbol>

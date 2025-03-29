@@ -204,8 +204,12 @@ class MinMaxFunction(
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(polynomials, true, name, displayName) {
-    override fun toRawString(unfold: Boolean): String {
-        return "max(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "minmax(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+        }
     }
 }
 
@@ -214,7 +218,11 @@ class MaxFunction(
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(polynomials, false, name, displayName) {
-    override fun toRawString(unfold: Boolean): String {
-        return "minmax(${polynomials.joinToString(", ") { it.toRawString(unfold) }})"
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold eq UInt64.zero) {
+            displayName ?: name
+        } else {
+            "max(${polynomials.joinToString(", ") { it.toTidyRawString(unfold - UInt64.one) }})"
+        }
     }
 }

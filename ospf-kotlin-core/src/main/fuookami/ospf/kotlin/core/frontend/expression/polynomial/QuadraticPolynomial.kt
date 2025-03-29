@@ -285,6 +285,45 @@ class QuadraticPolynomial(
             )
         }
 
+        operator fun invoke(
+            constant: Boolean,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticPolynomial {
+            return QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = if (constant) Flt64.one else Flt64.zero,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Trivalent,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticPolynomial {
+            return QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = constant.value.toFlt64(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: BalancedTrivalent,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticPolynomial {
+            return QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = constant.value.toFlt64(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
         operator fun <T : RealNumber<T>> invoke(
             constant: T,
             name: String = "",
@@ -766,6 +805,45 @@ class MutableQuadraticPolynomial(
             return MutableQuadraticPolynomial(
                 monomials = mutableListOf(),
                 constant = Flt64(constant),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Boolean,
+            name: String = "",
+            displayName: String? = null
+        ): MutableQuadraticPolynomial {
+            return MutableQuadraticPolynomial(
+                monomials = mutableListOf(),
+                constant = if (constant) Flt64.one else Flt64.zero,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: Trivalent,
+            name: String = "",
+            displayName: String? = null
+        ): MutableQuadraticPolynomial {
+            return MutableQuadraticPolynomial(
+                monomials = mutableListOf(),
+                constant = constant.value.toFlt64(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            constant: BalancedTrivalent,
+            name: String = "",
+            displayName: String? = null
+        ): MutableQuadraticPolynomial {
+            return MutableQuadraticPolynomial(
+                monomials = mutableListOf(),
+                constant = constant.value.toFlt64(),
                 name = name,
                 displayName = displayName
             )
@@ -1374,10 +1452,100 @@ fun Quantity<AbstractQuadraticPolynomial<*>>.to(targetUnit: PhysicalUnit): Quant
     }
 }
 
-// unary minus polynomial
+// unary minus quantity polynomial
 
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.unaryMinus(): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(-this.value), this.unit)
+}
+
+// quantity polynomial plus/minus/times/div assign
+
+@JvmName("quantityPolynomialPlusAssignQuantityVariable")
+fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<AbstractVariableItem<*, *>>) {
+    value.plusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialPlusAssignQuantityVariables")
+fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Iterable<Quantity<AbstractVariableItem<*, *>>>) {
+    for (item in rhs) {
+        value.plusAssign(item.to(this.unit)!!.value)
+    }
+}
+
+@JvmName("quantityPolynomialPlusAssignQuantitySymbol")
+fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<LinearIntermediateSymbol>) {
+    value.plusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialPlusAssignQuantitySymbols")
+fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Iterable<Quantity<LinearIntermediateSymbol>>) {
+    for (item in rhs) {
+        value.plusAssign(item.to(this.unit)!!.value)
+    }
+}
+
+@JvmName("quantityPolynomialPlusAssignQuantityMonomial")
+fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<LinearMonomial>) {
+    value.plusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialPlusAssignQuantityPolynomial")
+fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<AbstractLinearPolynomial<*>>) {
+    value.plusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialPlusAssignQuantity")
+fun<V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<V>) {
+    value.plusAssign(rhs.toFlt64().to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantityVariable")
+fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<AbstractVariableItem<*, *>>) {
+    value.minusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantityVariables")
+fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Iterable<Quantity<AbstractVariableItem<*, *>>>) {
+    for (item in rhs) {
+        value.minusAssign(item.to(this.unit)!!.value)
+    }
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantitySymbol")
+fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<LinearIntermediateSymbol>) {
+    value.minusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantitySymbols")
+fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Iterable<Quantity<LinearIntermediateSymbol>>) {
+    for (item in rhs) {
+        value.minusAssign(item.to(this.unit)!!.value)
+    }
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantityMonomial")
+fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<LinearMonomial>) {
+    value.minusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantityPolynomial")
+fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<AbstractLinearPolynomial<*>>) {
+    value.minusAssign(rhs.to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialMinusAssignQuantity")
+fun<V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<V>) {
+    value.minusAssign(rhs.toFlt64().to(this.unit)!!.value)
+}
+
+@JvmName("quantityPolynomialTimesAssign")
+fun<V: RealNumber<V>> Quantity<MutableQuadraticPolynomial>.timesAssign(rhs: V) {
+    value.timesAssign(rhs.toFlt64())
+}
+
+@JvmName("quantityPolynomialDivAssign")
+fun<V: RealNumber<V>> Quantity<MutableQuadraticPolynomial>.divAssign(rhs: V) {
+    value.divAssign(rhs.toFlt64())
 }
 
 // symbol and constant

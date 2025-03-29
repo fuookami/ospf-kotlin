@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.time.*
+import kotlin.time.Duration.Companion.days
 import kotlin.reflect.*
 import kotlinx.datetime.*
 import kotlinx.coroutines.*
@@ -27,6 +28,25 @@ data class TimeRange(
     val start: Instant = Instant.DISTANT_PAST,
     val end: Instant = Instant.DISTANT_FUTURE
 ) {
+    companion object {
+        operator fun invoke(date: LocalDate): TimeRange {
+            val start = date.atStartOfDayIn(TimeZone.currentSystemDefault())
+            return TimeRange(
+                start = start,
+                end = start + 1.days
+            )
+        }
+
+        operator fun invoke(fromDate: LocalDate, toDate: LocalDate): TimeRange {
+            val start = fromDate.atStartOfDayIn(TimeZone.currentSystemDefault())
+            val end = toDate.atStartOfDayIn(TimeZone.currentSystemDefault()) + 1.days
+            return TimeRange(
+                start = start,
+                end = end
+            )
+        }
+    }
+
     val empty: Boolean get() = start >= end
     val duration: Duration get() = end - start
 

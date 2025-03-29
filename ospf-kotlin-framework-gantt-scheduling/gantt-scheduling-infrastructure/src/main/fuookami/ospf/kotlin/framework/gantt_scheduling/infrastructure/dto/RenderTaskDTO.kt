@@ -7,7 +7,8 @@ import fuookami.ospf.kotlin.utils.serialization.*
 enum class RenderTaskCategory {
     Normal,
     Testing,
-    Unavailable
+    Unavailable,
+    Unknown
 }
 
 @Serializable
