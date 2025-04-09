@@ -10,6 +10,8 @@ data class Quantity<out V>(
     val unit: PhysicalUnit
 )
 
+typealias QuantityFlt64 = Quantity<Flt64>
+
 fun <V> PhysicalUnit.withValue(value: V): Quantity<V> {
     return Quantity(value, this)
 }
@@ -46,7 +48,7 @@ fun <V: FloatingNumber<V>> PhysicalUnit.e(constants: FloatingNumberConstants<V>)
     return Quantity(constants.e, this)
 }
 
-infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Arithmetic<V>, V : Eq<V> {
+infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Eq<V> {
     return if (this.unit == other.unit) {
         this.value eq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -56,7 +58,7 @@ infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Arithmetic<V
     }
 }
 
-infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Arithmetic<V>, V : Eq<V> {
+infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Eq<V> {
     return if (this.unit == other.unit) {
         this.value neq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -66,7 +68,7 @@ infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Arithmetic<
     }
 }
 
-infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Arithmetic<V>, V : PartialOrd<V> {
+infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : PartialOrd<V> {
     return if (this.unit == other.unit) {
         this.value partialOrd other.value
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -76,7 +78,7 @@ infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Arith
     }
 }
 
-infix fun <V> Quantity<V>.ls(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+infix fun <V> Quantity<V>.ls(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value ls other.value
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -86,7 +88,7 @@ infix fun <V> Quantity<V>.ls(other: Quantity<V>): Boolean? where V : Arithmetic<
     }
 }
 
-infix fun <V> Quantity<V>.leq(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+infix fun <V> Quantity<V>.leq(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value leq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -96,7 +98,7 @@ infix fun <V> Quantity<V>.leq(other: Quantity<V>): Boolean? where V : Arithmetic
     }
 }
 
-infix fun <V> Quantity<V>.gr(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+infix fun <V> Quantity<V>.gr(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value gr other.value
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -106,7 +108,7 @@ infix fun <V> Quantity<V>.gr(other: Quantity<V>): Boolean? where V : Arithmetic<
     }
 }
 
-infix fun <V> Quantity<V>.geq(other: Quantity<V>): Boolean? where V : Arithmetic<V>, V : Ord<V> {
+infix fun <V> Quantity<V>.geq(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value geq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
