@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed interface MetaModel : Model {
@@ -310,6 +311,30 @@ class LinearMetaModel(
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
         _constraints.add(constraint)
+        
+        if (constraint.lhs.monomials.size == 1
+            && !constraint.lhs.monomials.first().pure
+            && constraint.rhs.monomials.isEmpty()
+        ) {
+            val symbol = constraint.lhs.monomials.first().symbol.exprSymbol!!
+            val constant = constraint.rhs.constant - constraint.lhs.constant
+            when (constraint.sign) {
+                Sign.Less, Sign.LessEqual -> {
+                    symbol.range.leq(constant)
+                }
+
+                Sign.Greater, Sign.GreaterEqual -> {
+                    symbol.range.geq(constant)
+                }
+
+                Sign.Equal -> {
+                    symbol.range.eq(constant)
+                }
+
+                Sign.Unequal -> {}
+            }
+        }
+
         return ok
     }
 
@@ -350,6 +375,32 @@ class QuadraticMetaModel(
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
         _constraints.add(constraint)
+
+        if (constraint.lhs.monomials.size == 1
+            && !constraint.lhs.monomials.first().pure
+            && constraint.lhs.monomials.first().symbol.symbol2 == null
+            && constraint.rhs.monomials.isEmpty()
+        ) {
+            val symbol = constraint.lhs.monomials.first().symbol.symbol1.v2
+                ?: constraint.lhs.monomials.first().symbol.symbol1.v3!!
+            val constant = constraint.rhs.constant - constraint.lhs.constant
+            when (constraint.sign) {
+                Sign.Less, Sign.LessEqual -> {
+                    symbol.range.leq(constant)
+                }
+
+                Sign.Greater, Sign.GreaterEqual -> {
+                    symbol.range.geq(constant)
+                }
+
+                Sign.Equal -> {
+                    symbol.range.eq(constant)
+                }
+
+                Sign.Unequal -> {}
+            }
+        }
+
         return ok
     }
 

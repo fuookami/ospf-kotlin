@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.inequality
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.unit.*
 import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -99,6 +98,22 @@ class QuadraticInequality(
 
 // symbol and constant
 
+infix fun QuadraticIntermediateSymbol.ls(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun QuadraticIntermediateSymbol.ls(rhs: Trivalent): QuadraticInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun QuadraticIntermediateSymbol.ls(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun QuadraticIntermediateSymbol.ls(rhs: Int): QuadraticInequality {
     return this.ls(Flt64(rhs))
 }
@@ -113,6 +128,22 @@ infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.ls(rhs: T): QuadraticI
         QuadraticPolynomial(rhs.toFlt64()),
         Sign.Less
     )
+}
+
+infix fun QuadraticIntermediateSymbol.leq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun QuadraticIntermediateSymbol.leq(rhs: Trivalent): QuadraticInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun QuadraticIntermediateSymbol.leq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun QuadraticIntermediateSymbol.leq(rhs: Int): QuadraticInequality {
@@ -131,6 +162,22 @@ infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.leq(rhs: T): Quadratic
     )
 }
 
+infix fun QuadraticIntermediateSymbol.eq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun QuadraticIntermediateSymbol.eq(rhs: Trivalent): QuadraticInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun QuadraticIntermediateSymbol.eq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun QuadraticIntermediateSymbol.eq(rhs: Int): QuadraticInequality {
     return this.eq(Flt64(rhs))
 }
@@ -145,6 +192,22 @@ infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.eq(rhs: T): QuadraticI
         QuadraticPolynomial(rhs.toFlt64()),
         Sign.Equal
     )
+}
+
+infix fun QuadraticIntermediateSymbol.neq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun QuadraticIntermediateSymbol.neq(rhs: Trivalent): QuadraticInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun QuadraticIntermediateSymbol.neq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun QuadraticIntermediateSymbol.neq(rhs: Int): QuadraticInequality {
@@ -163,6 +226,22 @@ infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.neq(rhs: T): Quadratic
     )
 }
 
+infix fun QuadraticIntermediateSymbol.gr(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun QuadraticIntermediateSymbol.gr(rhs: Trivalent): QuadraticInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun QuadraticIntermediateSymbol.gr(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun QuadraticIntermediateSymbol.gr(rhs: Int): QuadraticInequality {
     return this.gr(Flt64(rhs))
 }
@@ -177,6 +256,22 @@ infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.gr(rhs: T): QuadraticI
         QuadraticPolynomial(rhs.toFlt64()),
         Sign.Greater
     )
+}
+
+infix fun QuadraticIntermediateSymbol.geq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.geq(1)
+    } else {
+        this.geq(0)
+    }
+}
+
+infix fun QuadraticIntermediateSymbol.geq(rhs: Trivalent): QuadraticInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun QuadraticIntermediateSymbol.geq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.geq(rhs.value)
 }
 
 infix fun QuadraticIntermediateSymbol.geq(rhs: Int): QuadraticInequality {
@@ -195,6 +290,22 @@ infix fun <T : RealNumber<T>> QuadraticIntermediateSymbol.geq(rhs: T): Quadratic
     )
 }
 
+infix fun Boolean.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.ls(rhs)
+}
+
 infix fun Int.ls(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).ls(rhs)
 }
@@ -209,6 +320,22 @@ infix fun <T : RealNumber<T>> T.ls(rhs: QuadraticIntermediateSymbol): QuadraticI
         QuadraticPolynomial(rhs),
         Sign.Less
     )
+}
+
+infix fun Boolean.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return if (this) {
+        1.leq(rhs)
+    } else {
+        0.leq(rhs)
+    }
+}
+
+infix fun Trivalent.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.leq(rhs)
+}
+
+infix fun BalancedTrivalent.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.leq(rhs)
 }
 
 infix fun Int.leq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
@@ -227,6 +354,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: QuadraticIntermediateSymbol): Quadratic
     )
 }
 
+infix fun Boolean.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).eq(rhs)
 }
@@ -241,6 +384,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: QuadraticIntermediateSymbol): QuadraticI
         QuadraticPolynomial(rhs),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
@@ -259,6 +418,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: QuadraticIntermediateSymbol): Quadratic
     )
 }
 
+infix fun Boolean.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
     return Flt64(this).gr(rhs)
 }
@@ -273,6 +448,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: QuadraticIntermediateSymbol): QuadraticI
         QuadraticPolynomial(rhs),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return if (this) {
+        1.geq(rhs)
+    } else {
+        0.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: QuadraticIntermediateSymbol): QuadraticInequality {
@@ -475,6 +666,22 @@ infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<QuadraticIntermediat
 
 // monomial and constant
 
+infix fun QuadraticMonomial.ls(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun QuadraticMonomial.ls(rhs: Trivalent): QuadraticInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun QuadraticMonomial.ls(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun QuadraticMonomial.ls(rhs: Int): QuadraticInequality {
     return this.ls(Flt64(rhs))
 }
@@ -489,6 +696,22 @@ infix fun <T : RealNumber<T>> QuadraticMonomial.ls(rhs: T): QuadraticInequality 
         QuadraticPolynomial(rhs.toFlt64()),
         Sign.Less
     )
+}
+
+infix fun QuadraticMonomial.leq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun QuadraticMonomial.leq(rhs: Trivalent): QuadraticInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun QuadraticMonomial.leq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun QuadraticMonomial.leq(rhs: Int): QuadraticInequality {
@@ -507,6 +730,22 @@ infix fun <T : RealNumber<T>> QuadraticMonomial.leq(rhs: T): QuadraticInequality
     )
 }
 
+infix fun QuadraticMonomial.eq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun QuadraticMonomial.eq(rhs: Trivalent): QuadraticInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun QuadraticMonomial.eq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun QuadraticMonomial.eq(rhs: Int): QuadraticInequality {
     return this.eq(Flt64(rhs))
 }
@@ -521,6 +760,22 @@ infix fun <T : RealNumber<T>> QuadraticMonomial.eq(rhs: T): QuadraticInequality 
         QuadraticPolynomial(rhs.toFlt64()),
         Sign.Equal
     )
+}
+
+infix fun QuadraticMonomial.neq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun QuadraticMonomial.neq(rhs: Trivalent): QuadraticInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun QuadraticMonomial.neq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun QuadraticMonomial.neq(rhs: Int): QuadraticInequality {
@@ -539,6 +794,22 @@ infix fun <T : RealNumber<T>> QuadraticMonomial.neq(rhs: T): QuadraticInequality
     )
 }
 
+infix fun QuadraticMonomial.gr(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun QuadraticMonomial.gr(rhs: Trivalent): QuadraticInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun QuadraticMonomial.gr(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun QuadraticMonomial.gr(rhs: Int): QuadraticInequality {
     return this.gr(Flt64(rhs))
 }
@@ -553,6 +824,22 @@ infix fun <T : RealNumber<T>> QuadraticMonomial.gr(rhs: T): QuadraticInequality 
         QuadraticPolynomial(rhs.toFlt64()),
         Sign.Greater
     )
+}
+
+infix fun QuadraticMonomial.geq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.geq(1)
+    } else {
+        this.geq(0)
+    }
+}
+
+infix fun QuadraticMonomial.geq(rhs: Trivalent): QuadraticInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun QuadraticMonomial.geq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.geq(rhs.value)
 }
 
 infix fun QuadraticMonomial.geq(rhs: Int): QuadraticInequality {
@@ -571,6 +858,22 @@ infix fun <T : RealNumber<T>> QuadraticMonomial.geq(rhs: T): QuadraticInequality
     )
 }
 
+infix fun Boolean.ls(rhs: QuadraticMonomial): QuadraticInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.ls(rhs)
+}
+
 infix fun Int.ls(rhs: QuadraticMonomial): QuadraticInequality {
     return Flt64(this).ls(rhs)
 }
@@ -585,6 +888,22 @@ infix fun <T : RealNumber<T>> T.ls(rhs: QuadraticMonomial): QuadraticInequality 
         QuadraticPolynomial(rhs.copy()),
         Sign.Less
     )
+}
+
+infix fun Boolean.leq(rhs: QuadraticMonomial): QuadraticInequality {
+    return if (this) {
+        1.leq(rhs)
+    } else {
+        0.leq(rhs)
+    }
+}
+
+infix fun Trivalent.leq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.leq(rhs)
+}
+
+infix fun BalancedTrivalent.leq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.leq(rhs)
 }
 
 infix fun Int.leq(rhs: QuadraticMonomial): QuadraticInequality {
@@ -603,6 +922,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: QuadraticMonomial): QuadraticInequality
     )
 }
 
+infix fun Boolean.eq(rhs: QuadraticMonomial): QuadraticInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: QuadraticMonomial): QuadraticInequality {
     return Flt64(this).eq(rhs)
 }
@@ -617,6 +952,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: QuadraticMonomial): QuadraticInequality 
         QuadraticPolynomial(rhs.copy()),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: QuadraticMonomial): QuadraticInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: QuadraticMonomial): QuadraticInequality {
@@ -635,6 +986,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: QuadraticMonomial): QuadraticInequality
     )
 }
 
+infix fun Boolean.gr(rhs: QuadraticMonomial): QuadraticInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: QuadraticMonomial): QuadraticInequality {
     return Flt64(this).gr(rhs)
 }
@@ -649,6 +1016,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: QuadraticMonomial): QuadraticInequality 
         QuadraticPolynomial(rhs.copy()),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: QuadraticMonomial): QuadraticInequality {
+    return if (this) {
+        1.geq(rhs)
+    } else {
+        0.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: QuadraticMonomial): QuadraticInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: QuadraticMonomial): QuadraticInequality {
@@ -851,6 +1234,22 @@ infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<QuadraticMonomial>):
 
 // polynomial and constant
 
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: Trivalent): QuadraticInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun AbstractQuadraticPolynomial<*>.ls(rhs: Int): QuadraticInequality {
     return this.ls(Flt64(rhs))
 }
@@ -865,6 +1264,22 @@ infix fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.ls(rhs: T): Quadrat
         QuadraticPolynomial(rhs),
         Sign.Less
     )
+}
+
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: Trivalent): QuadraticInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun AbstractQuadraticPolynomial<*>.leq(rhs: Int): QuadraticInequality {
@@ -883,6 +1298,22 @@ infix fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.leq(rhs: T): Quadra
     )
 }
 
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: Trivalent): QuadraticInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun AbstractQuadraticPolynomial<*>.eq(rhs: Int): QuadraticInequality {
     return this.eq(Flt64(rhs))
 }
@@ -897,6 +1328,22 @@ infix fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.eq(rhs: T): Quadrat
         QuadraticPolynomial(rhs),
         Sign.Equal
     )
+}
+
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: Trivalent): QuadraticInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun AbstractQuadraticPolynomial<*>.neq(rhs: Int): QuadraticInequality {
@@ -915,6 +1362,22 @@ infix fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.neq(rhs: T): Quadra
     )
 }
 
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: Trivalent): QuadraticInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun AbstractQuadraticPolynomial<*>.gr(rhs: Int): QuadraticInequality {
     return this.gr(Flt64(rhs))
 }
@@ -931,6 +1394,22 @@ infix fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.gr(rhs: T): Quadrat
     )
 }
 
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: Boolean): QuadraticInequality {
+    return if (rhs) {
+        this.geq(1)
+    } else {
+        this.geq(0)
+    }
+}
+
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: Trivalent): QuadraticInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: BalancedTrivalent): QuadraticInequality {
+    return this.geq(rhs.value)
+}
+
 infix fun AbstractQuadraticPolynomial<*>.geq(rhs: Int): QuadraticInequality {
     return this.geq(Flt64(rhs))
 }
@@ -945,6 +1424,22 @@ infix fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.geq(rhs: T): Quadra
         QuadraticPolynomial(rhs),
         Sign.GreaterEqual
     )
+}
+
+infix fun Boolean.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.ls(rhs)
 }
 
 infix fun Int.ls(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
@@ -979,6 +1474,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: AbstractQuadraticPolynomial<*>): Quadra
     )
 }
 
+infix fun Boolean.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return Flt64(this).eq(rhs)
 }
@@ -993,6 +1504,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: AbstractQuadraticPolynomial<*>): Quadrat
         rhs.copy(),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
@@ -1011,6 +1538,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: AbstractQuadraticPolynomial<*>): Quadra
     )
 }
 
+infix fun Boolean.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
     return Flt64(this).gr(rhs)
 }
@@ -1025,6 +1568,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: AbstractQuadraticPolynomial<*>): Quadrat
         rhs.copy(),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return if (this) {
+        1.geq(rhs)
+    } else {
+        0.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: AbstractQuadraticPolynomial<*>): QuadraticInequality {
