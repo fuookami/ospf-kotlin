@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.Linear
 
 class LinearInequality(
     override val lhs: AbstractLinearPolynomial<*>,
@@ -85,6 +84,22 @@ class LinearInequality(
 
 // variable and constant
 
+infix fun AbstractVariableItem<*, *>.ls(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun AbstractVariableItem<*, *>.ls(rhs: Trivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun AbstractVariableItem<*, *>.ls(rhs: BalancedTrivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun AbstractVariableItem<*, *>.ls(rhs: Int): LinearInequality {
     return this.ls(Flt64(rhs))
 }
@@ -99,6 +114,22 @@ infix fun <T : RealNumber<T>> AbstractVariableItem<*, *>.ls(rhs: T): LinearInequ
         LinearPolynomial(rhs.toFlt64()),
         Sign.Less
     )
+}
+
+infix fun AbstractVariableItem<*, *>.leq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun AbstractVariableItem<*, *>.leq(rhs: Trivalent): LinearInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun AbstractVariableItem<*, *>.leq(rhs: BalancedTrivalent): LinearInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun AbstractVariableItem<*, *>.leq(rhs: Int): LinearInequality {
@@ -117,6 +148,22 @@ infix fun <T : RealNumber<T>> AbstractVariableItem<*, *>.leq(rhs: T): LinearIneq
     )
 }
 
+infix fun AbstractVariableItem<*, *>.eq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun AbstractVariableItem<*, *>.eq(rhs: Trivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun AbstractVariableItem<*, *>.eq(rhs: BalancedTrivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun AbstractVariableItem<*, *>.eq(rhs: Int): LinearInequality {
     return this.eq(Flt64(rhs))
 }
@@ -131,6 +178,22 @@ infix fun <T : RealNumber<T>> AbstractVariableItem<*, *>.eq(rhs: T): LinearInequ
         LinearPolynomial(rhs.toFlt64()),
         Sign.Equal
     )
+}
+
+infix fun AbstractVariableItem<*, *>.neq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun AbstractVariableItem<*, *>.neq(rhs: Trivalent): LinearInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun AbstractVariableItem<*, *>.neq(rhs: BalancedTrivalent): LinearInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun AbstractVariableItem<*, *>.neq(rhs: Int): LinearInequality {
@@ -149,6 +212,22 @@ infix fun <T : RealNumber<T>> AbstractVariableItem<*, *>.neq(rhs: T): LinearIneq
     )
 }
 
+infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun AbstractVariableItem<*, *>.gr(rhs: Trivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun AbstractVariableItem<*, *>.gr(rhs: BalancedTrivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun AbstractVariableItem<*, *>.gr(rhs: Int): LinearInequality {
     return this.gr(Flt64(rhs))
 }
@@ -157,13 +236,28 @@ infix fun AbstractVariableItem<*, *>.gr(rhs: Double): LinearInequality {
     return this.gr(Flt64(rhs))
 }
 
-
 infix fun <T : RealNumber<T>> AbstractVariableItem<*, *>.gr(rhs: T): LinearInequality {
     return LinearInequality(
         LinearPolynomial(this),
         LinearPolynomial(rhs.toFlt64()),
         Sign.Greater
     )
+}
+
+infix fun AbstractVariableItem<*, *>.geq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.geq(0)
+    } else {
+        this.geq(1)
+    }
+}
+
+infix fun AbstractVariableItem<*, *>.geq(rhs: Trivalent): LinearInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun AbstractVariableItem<*, *>.geq(rhs: BalancedTrivalent): LinearInequality {
+    return this.geq(rhs.value)
 }
 
 infix fun AbstractVariableItem<*, *>.geq(rhs: Int): LinearInequality {
@@ -182,6 +276,22 @@ infix fun <T : RealNumber<T>> AbstractVariableItem<*, *>.geq(rhs: T): LinearIneq
     )
 }
 
+infix fun Boolean.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.ls(rhs)
+}
+
 infix fun Int.ls(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return Flt64(this).ls(rhs)
 }
@@ -196,6 +306,22 @@ infix fun <T : RealNumber<T>> T.ls(rhs: AbstractVariableItem<*, *>): LinearInequ
         LinearPolynomial(rhs),
         Sign.Less
     )
+}
+
+infix fun Boolean.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return if (this) {
+        1.leq(rhs)
+    } else {
+        0.leq(rhs)
+    }
+}
+
+infix fun Trivalent.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.leq(rhs)
+}
+
+infix fun BalancedTrivalent.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.leq(rhs)
 }
 
 infix fun Int.leq(rhs: AbstractVariableItem<*, *>): LinearInequality {
@@ -214,6 +340,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: AbstractVariableItem<*, *>): LinearIneq
     )
 }
 
+infix fun Boolean.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return Flt64(this).eq(rhs)
 }
@@ -228,6 +370,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: AbstractVariableItem<*, *>): LinearInequ
         LinearPolynomial(rhs),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: AbstractVariableItem<*, *>): LinearInequality {
@@ -246,6 +404,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: AbstractVariableItem<*, *>): LinearIneq
     )
 }
 
+infix fun Boolean.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: AbstractVariableItem<*, *>): LinearInequality {
     return Flt64(this).gr(rhs)
 }
@@ -260,6 +434,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: AbstractVariableItem<*, *>): LinearInequ
         LinearPolynomial(rhs),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return if (this) {
+        0.geq(rhs)
+    } else {
+        1.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: AbstractVariableItem<*, *>): LinearInequality {
@@ -462,6 +652,22 @@ infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<AbstractVariableItem
 
 // symbol and constant
 
+infix fun LinearIntermediateSymbol.ls(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun LinearIntermediateSymbol.ls(rhs: Trivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun LinearIntermediateSymbol.ls(rhs: BalancedTrivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun LinearIntermediateSymbol.ls(rhs: Int): LinearInequality {
     return this.ls(Flt64(rhs))
 }
@@ -476,6 +682,22 @@ infix fun <T : RealNumber<T>> LinearIntermediateSymbol.ls(rhs: T): LinearInequal
         LinearPolynomial(rhs.toFlt64()),
         Sign.Less
     )
+}
+
+infix fun LinearIntermediateSymbol.leq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun LinearIntermediateSymbol.leq(rhs: Trivalent): LinearInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun LinearIntermediateSymbol.leq(rhs: BalancedTrivalent): LinearInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun LinearIntermediateSymbol.leq(rhs: Int): LinearInequality {
@@ -494,6 +716,22 @@ infix fun <T : RealNumber<T>> LinearIntermediateSymbol.leq(rhs: T): LinearInequa
     )
 }
 
+infix fun LinearIntermediateSymbol.eq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun LinearIntermediateSymbol.eq(rhs: Trivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun LinearIntermediateSymbol.eq(rhs: BalancedTrivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun LinearIntermediateSymbol.eq(rhs: Int): LinearInequality {
     return this.eq(Flt64(rhs))
 }
@@ -508,6 +746,22 @@ infix fun <T : RealNumber<T>> LinearIntermediateSymbol.eq(rhs: T): LinearInequal
         LinearPolynomial(rhs.toFlt64()),
         Sign.Equal
     )
+}
+
+infix fun LinearIntermediateSymbol.neq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun LinearIntermediateSymbol.neq(rhs: Trivalent): LinearInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun LinearIntermediateSymbol.neq(rhs: BalancedTrivalent): LinearInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun LinearIntermediateSymbol.neq(rhs: Int): LinearInequality {
@@ -526,6 +780,22 @@ infix fun <T : RealNumber<T>> LinearIntermediateSymbol.neq(rhs: T): LinearInequa
     )
 }
 
+infix fun LinearIntermediateSymbol.gr(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun LinearIntermediateSymbol.gr(rhs: Trivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun LinearIntermediateSymbol.gr(rhs: BalancedTrivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun LinearIntermediateSymbol.gr(rhs: Int): LinearInequality {
     return this.gr(Flt64(rhs))
 }
@@ -540,6 +810,22 @@ infix fun <T : RealNumber<T>> LinearIntermediateSymbol.gr(rhs: T): LinearInequal
         LinearPolynomial(rhs.toFlt64()),
         Sign.Greater
     )
+}
+
+infix fun LinearIntermediateSymbol.geq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.geq(1)
+    } else {
+        this.geq(0)
+    }
+}
+
+infix fun LinearIntermediateSymbol.geq(rhs: Trivalent): LinearInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun LinearIntermediateSymbol.geq(rhs: BalancedTrivalent): LinearInequality {
+    return this.geq(rhs.value)
 }
 
 infix fun LinearIntermediateSymbol.geq(rhs: Int): LinearInequality {
@@ -558,6 +844,22 @@ infix fun <T : RealNumber<T>> LinearIntermediateSymbol.geq(rhs: T): LinearInequa
     )
 }
 
+infix fun Boolean.ls(rhs: LinearIntermediateSymbol): LinearInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.ls(rhs)
+}
+
 infix fun Int.ls(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).ls(rhs)
 }
@@ -572,6 +874,22 @@ infix fun <T : RealNumber<T>> T.ls(rhs: LinearIntermediateSymbol): LinearInequal
         LinearPolynomial(rhs),
         Sign.Less
     )
+}
+
+infix fun Boolean.leq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return if (this) {
+        1.leq(rhs)
+    } else {
+        0.leq(rhs)
+    }
+}
+
+infix fun Trivalent.leq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.leq(rhs)
+}
+
+infix fun BalancedTrivalent.leq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.leq(rhs)
 }
 
 infix fun Int.leq(rhs: LinearIntermediateSymbol): LinearInequality {
@@ -590,6 +908,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: LinearIntermediateSymbol): LinearInequa
     )
 }
 
+infix fun Boolean.eq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).eq(rhs)
 }
@@ -604,6 +938,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: LinearIntermediateSymbol): LinearInequal
         LinearPolynomial(rhs),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: LinearIntermediateSymbol): LinearInequality {
@@ -622,6 +972,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: LinearIntermediateSymbol): LinearInequa
     )
 }
 
+infix fun Boolean.gr(rhs: LinearIntermediateSymbol): LinearInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: LinearIntermediateSymbol): LinearInequality {
     return Flt64(this).gr(rhs)
 }
@@ -636,6 +1002,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: LinearIntermediateSymbol): LinearInequal
         LinearPolynomial(rhs),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return if (this) {
+        1.geq(rhs)
+    } else {
+        0.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: LinearIntermediateSymbol): LinearInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: LinearIntermediateSymbol): LinearInequality {
@@ -838,6 +1220,22 @@ infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<LinearIntermediateSy
 
 // monomial and constant
 
+infix fun LinearMonomial.ls(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun LinearMonomial.ls(rhs: Trivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun LinearMonomial.ls(rhs: BalancedTrivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun LinearMonomial.ls(rhs: Int): LinearInequality {
     return this.ls(Flt64(rhs))
 }
@@ -852,6 +1250,22 @@ infix fun <T : RealNumber<T>> LinearMonomial.ls(rhs: T): LinearInequality {
         LinearPolynomial(rhs.toFlt64()),
         Sign.Less
     )
+}
+
+infix fun LinearMonomial.leq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun LinearMonomial.leq(rhs: Trivalent): LinearInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun LinearMonomial.leq(rhs: BalancedTrivalent): LinearInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun LinearMonomial.leq(rhs: Int): LinearInequality {
@@ -870,6 +1284,22 @@ infix fun <T : RealNumber<T>> LinearMonomial.leq(rhs: T): LinearInequality {
     )
 }
 
+infix fun LinearMonomial.eq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun LinearMonomial.eq(rhs: Trivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun LinearMonomial.eq(rhs: BalancedTrivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun LinearMonomial.eq(rhs: Int): LinearInequality {
     return this.eq(Flt64(rhs))
 }
@@ -884,6 +1314,22 @@ infix fun <T : RealNumber<T>> LinearMonomial.eq(rhs: T): LinearInequality {
         LinearPolynomial(rhs.toFlt64()),
         Sign.Equal
     )
+}
+
+infix fun LinearMonomial.neq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun LinearMonomial.neq(rhs: Trivalent): LinearInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun LinearMonomial.neq(rhs: BalancedTrivalent): LinearInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun LinearMonomial.neq(rhs: Int): LinearInequality {
@@ -902,6 +1348,22 @@ infix fun <T : RealNumber<T>> LinearMonomial.neq(rhs: T): LinearInequality {
     )
 }
 
+infix fun LinearMonomial.gr(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun LinearMonomial.gr(rhs: Trivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun LinearMonomial.gr(rhs: BalancedTrivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun LinearMonomial.gr(rhs: Int): LinearInequality {
     return this.gr(Flt64(rhs))
 }
@@ -916,6 +1378,22 @@ infix fun <T : RealNumber<T>> LinearMonomial.gr(rhs: T): LinearInequality {
         LinearPolynomial(rhs.toFlt64()),
         Sign.Greater
     )
+}
+
+infix fun LinearMonomial.geq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.geq(1)
+    } else {
+        this.geq(0)
+    }
+}
+
+infix fun LinearMonomial.geq(rhs: Trivalent): LinearInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun LinearMonomial.geq(rhs: BalancedTrivalent): LinearInequality {
+    return this.geq(rhs.value)
 }
 
 infix fun LinearMonomial.geq(rhs: Int): LinearInequality {
@@ -934,6 +1412,22 @@ infix fun <T : RealNumber<T>> LinearMonomial.geq(rhs: T): LinearInequality {
     )
 }
 
+infix fun Boolean.ls(rhs: LinearMonomial): LinearInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: LinearMonomial): LinearInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: LinearMonomial): LinearInequality {
+    return this.value.ls(rhs)
+}
+
 infix fun Int.ls(rhs: LinearMonomial): LinearInequality {
     return Flt64(this).ls(rhs)
 }
@@ -948,6 +1442,22 @@ infix fun <T : RealNumber<T>> T.ls(rhs: LinearMonomial): LinearInequality {
         LinearPolynomial(rhs.copy()),
         Sign.Less
     )
+}
+
+infix fun Boolean.leq(rhs: LinearMonomial): LinearInequality {
+    return if (this) {
+        1.leq(rhs)
+    } else {
+        0.leq(rhs)
+    }
+}
+
+infix fun Trivalent.leq(rhs: LinearMonomial): LinearInequality {
+    return this.value.leq(rhs)
+}
+
+infix fun BalancedTrivalent.leq(rhs: LinearMonomial): LinearInequality {
+    return this.value.leq(rhs)
 }
 
 infix fun Int.leq(rhs: LinearMonomial): LinearInequality {
@@ -966,6 +1476,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
+infix fun Boolean.eq(rhs: LinearMonomial): LinearInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: LinearMonomial): LinearInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: LinearMonomial): LinearInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: LinearMonomial): LinearInequality {
     return Flt64(this).eq(rhs)
 }
@@ -980,6 +1506,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: LinearMonomial): LinearInequality {
         LinearPolynomial(rhs.copy()),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: LinearMonomial): LinearInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: LinearMonomial): LinearInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: LinearMonomial): LinearInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: LinearMonomial): LinearInequality {
@@ -998,6 +1540,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: LinearMonomial): LinearInequality {
     )
 }
 
+infix fun Boolean.gr(rhs: LinearMonomial): LinearInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: LinearMonomial): LinearInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: LinearMonomial): LinearInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: LinearMonomial): LinearInequality {
     return Flt64(this).gr(rhs)
 }
@@ -1012,6 +1570,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: LinearMonomial): LinearInequality {
         LinearPolynomial(rhs.copy()),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: LinearMonomial): LinearInequality {
+    return if (this) {
+        1.geq(rhs)
+    } else {
+        0.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: LinearMonomial): LinearInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: LinearMonomial): LinearInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: LinearMonomial): LinearInequality {
@@ -1214,6 +1788,22 @@ infix fun <T : RealNumber<T>> Quantity<T>.geq(rhs: Quantity<LinearMonomial>): Li
 
 // polynomial and constant
 
+infix fun AbstractLinearPolynomial<*>.ls(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.ls(1)
+    } else {
+        this.ls(0)
+    }
+}
+
+infix fun AbstractLinearPolynomial<*>.ls(rhs: Trivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
+infix fun AbstractLinearPolynomial<*>.ls(rhs: BalancedTrivalent): LinearInequality {
+    return this.ls(rhs.value)
+}
+
 infix fun AbstractLinearPolynomial<*>.ls(rhs: Int): LinearInequality {
     return this.ls(Flt64(rhs))
 }
@@ -1228,6 +1818,22 @@ infix fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.ls(rhs: T): LinearIneq
         LinearPolynomial(rhs),
         Sign.Less
     )
+}
+
+infix fun AbstractLinearPolynomial<*>.leq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.leq(1)
+    } else {
+        this.leq(0)
+    }
+}
+
+infix fun AbstractLinearPolynomial<*>.leq(rhs: Trivalent): LinearInequality {
+    return this.leq(rhs.value)
+}
+
+infix fun AbstractLinearPolynomial<*>.leq(rhs: BalancedTrivalent): LinearInequality {
+    return this.leq(rhs.value)
 }
 
 infix fun AbstractLinearPolynomial<*>.leq(rhs: Int): LinearInequality {
@@ -1246,6 +1852,22 @@ infix fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.leq(rhs: T): LinearIne
     )
 }
 
+infix fun AbstractLinearPolynomial<*>.eq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.eq(1)
+    } else {
+        this.eq(0)
+    }
+}
+
+infix fun AbstractLinearPolynomial<*>.eq(rhs: Trivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
+infix fun AbstractLinearPolynomial<*>.eq(rhs: BalancedTrivalent): LinearInequality {
+    return this.eq(rhs.value)
+}
+
 infix fun AbstractLinearPolynomial<*>.eq(rhs: Int): LinearInequality {
     return this.eq(Flt64(rhs))
 }
@@ -1260,6 +1882,22 @@ infix fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.eq(rhs: T): LinearIneq
         LinearPolynomial(rhs),
         Sign.Equal
     )
+}
+
+infix fun AbstractLinearPolynomial<*>.neq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.neq(1)
+    } else {
+        this.neq(0)
+    }
+}
+
+infix fun AbstractLinearPolynomial<*>.neq(rhs: Trivalent): LinearInequality {
+    return this.neq(rhs.value)
+}
+
+infix fun AbstractLinearPolynomial<*>.neq(rhs: BalancedTrivalent): LinearInequality {
+    return this.neq(rhs.value)
 }
 
 infix fun AbstractLinearPolynomial<*>.neq(rhs: Int): LinearInequality {
@@ -1278,6 +1916,22 @@ infix fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.neq(rhs: T): LinearIne
     )
 }
 
+infix fun AbstractLinearPolynomial<*>.gr(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.gr(1)
+    } else {
+        this.gr(0)
+    }
+}
+
+infix fun AbstractLinearPolynomial<*>.gr(rhs: Trivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
+infix fun AbstractLinearPolynomial<*>.gr(rhs: BalancedTrivalent): LinearInequality {
+    return this.gr(rhs.value)
+}
+
 infix fun AbstractLinearPolynomial<*>.gr(rhs: Int): LinearInequality {
     return this.gr(Flt64(rhs))
 }
@@ -1292,6 +1946,22 @@ infix fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.gr(rhs: T): LinearIneq
         LinearPolynomial(rhs),
         Sign.Greater
     )
+}
+
+infix fun AbstractLinearPolynomial<*>.geq(rhs: Boolean): LinearInequality {
+    return if (rhs) {
+        this.geq(1)
+    } else {
+        this.geq(0)
+    }
+}
+
+infix fun AbstractLinearPolynomial<*>.geq(rhs: Trivalent): LinearInequality {
+    return this.geq(rhs.value)
+}
+
+infix fun AbstractLinearPolynomial<*>.geq(rhs: BalancedTrivalent): LinearInequality {
+    return this.geq(rhs.value)
 }
 
 infix fun AbstractLinearPolynomial<*>.geq(rhs: Int): LinearInequality {
@@ -1310,6 +1980,22 @@ infix fun <T : RealNumber<T>> AbstractLinearPolynomial<*>.geq(rhs: T): LinearIne
     )
 }
 
+infix fun Boolean.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return if (this) {
+        1.ls(rhs)
+    } else {
+        0.ls(rhs)
+    }
+}
+
+infix fun Trivalent.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.ls(rhs)
+}
+
+infix fun BalancedTrivalent.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.ls(rhs)
+}
+
 infix fun Int.ls(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return Flt64(this).ls(rhs)
 }
@@ -1324,6 +2010,22 @@ infix fun <T : RealNumber<T>> T.ls(rhs: AbstractLinearPolynomial<*>): LinearIneq
         rhs.copy(),
         Sign.Less
     )
+}
+
+infix fun Boolean.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return if (this) {
+        1.leq(rhs)
+    } else {
+        0.leq(rhs)
+    }
+}
+
+infix fun Trivalent.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.leq(rhs)
+}
+
+infix fun BalancedTrivalent.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.leq(rhs)
 }
 
 infix fun Int.leq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
@@ -1342,6 +2044,22 @@ infix fun <T : RealNumber<T>> T.leq(rhs: AbstractLinearPolynomial<*>): LinearIne
     )
 }
 
+infix fun Boolean.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return if (this) {
+        1.eq(rhs)
+    } else {
+        0.eq(rhs)
+    }
+}
+
+infix fun Trivalent.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.eq(rhs)
+}
+
+infix fun BalancedTrivalent.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.eq(rhs)
+}
+
 infix fun Int.eq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return Flt64(this).eq(rhs)
 }
@@ -1356,6 +2074,22 @@ infix fun <T : RealNumber<T>> T.eq(rhs: AbstractLinearPolynomial<*>): LinearIneq
         rhs.copy(),
         Sign.Equal
     )
+}
+
+infix fun Boolean.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return if (this) {
+        1.neq(rhs)
+    } else {
+        0.neq(rhs)
+    }
+}
+
+infix fun Trivalent.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.neq(rhs)
+}
+
+infix fun BalancedTrivalent.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.neq(rhs)
 }
 
 infix fun Int.neq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
@@ -1374,6 +2108,22 @@ infix fun <T : RealNumber<T>> T.neq(rhs: AbstractLinearPolynomial<*>): LinearIne
     )
 }
 
+infix fun Boolean.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return if (this) {
+        1.gr(rhs)
+    } else {
+        0.gr(rhs)
+    }
+}
+
+infix fun Trivalent.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.gr(rhs)
+}
+
+infix fun BalancedTrivalent.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.gr(rhs)
+}
+
 infix fun Int.gr(rhs: AbstractLinearPolynomial<*>): LinearInequality {
     return Flt64(this).gr(rhs)
 }
@@ -1388,6 +2138,22 @@ infix fun <T : RealNumber<T>> T.gr(rhs: AbstractLinearPolynomial<*>): LinearIneq
         rhs.copy(),
         Sign.Greater
     )
+}
+
+infix fun Boolean.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return if (this) {
+        1.geq(rhs)
+    } else {
+        0.geq(rhs)
+    }
+}
+
+infix fun Trivalent.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.geq(rhs)
+}
+
+infix fun BalancedTrivalent.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {
+    return this.value.geq(rhs)
 }
 
 infix fun Int.geq(rhs: AbstractLinearPolynomial<*>): LinearInequality {

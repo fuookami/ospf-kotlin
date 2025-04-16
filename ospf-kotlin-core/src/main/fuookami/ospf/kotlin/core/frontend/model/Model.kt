@@ -88,11 +88,35 @@ interface Model {
 
 interface LinearModel : Model {
     fun addConstraint(
-        constraint: LinearLogicFunctionSymbol,
+        constraint: AbstractVariableItem<*, *>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return addConstraint(constraint eq Flt64.one, name, displayName)
+        return addConstraint(constraint eq true, name, displayName)
+    }
+
+    fun addConstraint(
+        constraint: LinearMonomial,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(constraint eq true, name, displayName)
+    }
+
+    fun addConstraint(
+        constraint: AbstractLinearPolynomial<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(constraint eq true, name, displayName)
+    }
+
+    fun addConstraint(
+        constraint: LinearIntermediateSymbol,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(constraint eq true, name, displayName)
     }
 
     fun addConstraint(
@@ -101,12 +125,42 @@ interface LinearModel : Model {
         displayName: String? = null
     ): Try
 
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionVariables")
+    fun partition(
+        variables: Iterable<AbstractVariableItem<*, *>>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(sum(variables), name, displayName)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearSymbols")
+    fun partition(
+        symbols: Iterable<LinearIntermediateSymbol>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(sum(symbols), name, displayName)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearMonomials")
+    fun partition(
+        monomials: Iterable<LinearMonomial>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(sum(monomials), name, displayName)
+    }
+
     fun partition(
         polynomial: AbstractLinearPolynomial<*>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return addConstraint(polynomial eq Flt64.one, name, displayName)
+        return addConstraint(polynomial eq true, name, displayName)
     }
 
     override fun addObject(
@@ -202,6 +256,14 @@ interface LinearModel : Model {
 }
 
 interface QuadraticModel : LinearModel {
+    fun addConstraint(
+        constraint: QuadraticMonomial,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(constraint eq true, name, displayName)
+    }
+
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
@@ -211,11 +273,19 @@ interface QuadraticModel : LinearModel {
     }
 
     fun addConstraint(
-        constraint: QuadraticFunctionSymbol,
+        constraint: AbstractQuadraticPolynomial<*>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return addConstraint(constraint eq Flt64.one, name, displayName)
+        return addConstraint(constraint eq true, name, displayName)
+    }
+
+    fun addConstraint(
+        constraint: QuadraticIntermediateSymbol,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addConstraint(constraint eq true, name, displayName)
     }
 
     fun addConstraint(
@@ -223,6 +293,26 @@ interface QuadraticModel : LinearModel {
         name: String? = null,
         displayName: String? = null
     ): Try
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticMonomials")
+    fun partition(
+        monomials: Iterable<QuadraticMonomial>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(qsum(monomials), name, displayName)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticSymbols")
+    fun partition(
+        symbols: Iterable<QuadraticIntermediateSymbol>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(qsum(symbols), name, displayName)
+    }
 
     fun partition(
         polynomial: AbstractQuadraticPolynomial<*>,
