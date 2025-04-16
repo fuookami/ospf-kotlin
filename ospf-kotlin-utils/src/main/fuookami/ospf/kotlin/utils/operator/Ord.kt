@@ -1,13 +1,17 @@
 package fuookami.ospf.kotlin.utils.operator
 
-sealed interface Order {
+sealed interface Order: Neg<Order> {
     val value: Int
 
-    open fun ifEqual(f: () -> Order): Order = this
+    fun ifEqual(f: () -> Order): Order = this
 
     data class Less(override val value: Int = -1) : Order {
         init {
             assert(value < 0)
+        }
+
+        override fun unaryMinus(): Order {
+            return Greater(-value)
         }
     }
 
@@ -15,11 +19,18 @@ sealed interface Order {
         override val value = 0
 
         override fun ifEqual(f: () -> Order) = f()
+        override fun unaryMinus(): Order {
+            return Equal
+        }
     }
 
     data class Greater(override val value: Int = 1) : Order {
         init {
             assert(value > 0)
+        }
+
+        override fun unaryMinus(): Order {
+            return Less(-value)
         }
     }
 }

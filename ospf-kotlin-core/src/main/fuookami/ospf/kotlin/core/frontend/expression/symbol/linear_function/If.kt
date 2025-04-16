@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class IfFunction(
@@ -52,12 +53,57 @@ class IfFunction(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            // todo: impl by Inequality.judge()
-            return ValueRange(Flt64.zero, Flt64.one).value!!
+            // inequality is normalized, so rhs is constant
+            val rhs = inequality.rhs.range.fixedValue!!
+            return when (inequality.sign) {
+                Sign.Less, Sign.LessEqual -> {
+                    if (inequality.lhs.range.upperBound?.value?.unwrap()?.let { it leq rhs } == true) {
+                        ValueRange(Flt64.one, Flt64.one).value!!
+                    } else if (inequality.lhs.range.lowerBound?.value?.unwrap()?.let { it gr rhs } == true) {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    } else {
+                        ValueRange(Flt64.zero, Flt64.one).value!!
+                    }
+                }
+
+                Sign.Greater, Sign.GreaterEqual -> {
+                    if (inequality.lhs.range.lowerBound?.value?.unwrap()?.let { it geq rhs } == true) {
+                        ValueRange(Flt64.one, Flt64.one).value!!
+                    } else if (inequality.lhs.range.upperBound?.value?.unwrap()?.let { it ls rhs } == true) {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    } else {
+                        ValueRange(Flt64.zero, Flt64.one).value!!
+                    }
+                }
+
+                Sign.Equal -> {
+                    if (inequality.lhs.range.fixedValue?.let { it eq rhs } == true) {
+                        ValueRange(Flt64.one, Flt64.one).value!!
+                    } else {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    }
+                }
+
+                Sign.Unequal -> {
+                    if (inequality.lhs.range.fixedValue?.let { it neq rhs } == true) {
+                        ValueRange(Flt64.one, Flt64.one).value!!
+                    } else {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    }
+                }
+            }
         }
 
     override fun flush(force: Boolean) {
         inequality.flush(force)
+        val range = possibleRange
+        if (range.fixedValue?.let { it eq Flt64.zero } == true) {
+            y.range.eq(false)
+        } else if (range.fixedValue?.let { it eq Flt64.one } == true) {
+            y.range.eq(true)
+        } else {
+            y.range.set(ValueRange(UInt8.zero, UInt8.one).value!!)
+        }
         polyY.flush(force)
         polyY.range.set(possibleRange)
     }
