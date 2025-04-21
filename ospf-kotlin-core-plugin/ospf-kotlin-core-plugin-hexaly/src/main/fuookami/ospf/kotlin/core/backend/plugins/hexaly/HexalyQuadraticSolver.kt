@@ -5,6 +5,7 @@ import kotlin.time.*
 import kotlinx.datetime.*
 import kotlinx.coroutines.*
 import com.hexaly.optimizer.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -117,7 +118,7 @@ private class HexalyQuadraticSolverImpl(
                     }
                     val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
-                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = hexalyModel.sum()
                                 for (cell in model.constraints.lhs[ii]) {
                                     if (cell.colIndex2 != null) {
@@ -135,6 +136,10 @@ private class HexalyQuadraticSolverImpl(
                                 }
                                 ii to lhs
                             }
+                            if (memoryUseOver()) {
+                                System.gc()
+                            }
+                            constraints
                         }
                     }
                     promises.flatMap { promise ->
@@ -154,6 +159,9 @@ private class HexalyQuadraticSolverImpl(
                             }
                             hexalyModel.constraint(constraint)
                             constraint
+                        }
+                        if (memoryUseOver()) {
+                            System.gc()
                         }
                         result
                     }

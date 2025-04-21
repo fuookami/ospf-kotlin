@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
@@ -23,14 +24,20 @@ class IfInFunction(
     private val lb = lowerBound
     private val ub = upperBound
 
-    private val inequalities: List<LinearInequality>
+    private val lowerBoundInequality = (x geq lb).normalize()
+    private val upperBoundInequality = (x leq ub).normalize()
 
     init {
-        val lowerBoundInequality = (x geq lb).normalize()
         lowerBoundInequality.name = "${name}_lb"
-        val upperBoundInequality = (x leq ub).normalize()
         upperBoundInequality.name = "${name}_ub"
-        inequalities = listOf(lowerBoundInequality, upperBoundInequality)
+    }
+
+    private val lbk: PctVariable1 by lazy {
+        PctVariable1("${name}_lbk", Shape1(3))
+    }
+
+    private val ubk: PctVariable1 by lazy {
+        PctVariable1("${name}_ubk", Shape1(3))
     }
 
     private val y: BinVar by lazy {
@@ -55,10 +62,8 @@ class IfInFunction(
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
             dependencies.addAll(x.dependencies)
-            for (inequality in inequalities) {
-                dependencies.addAll(inequality.lhs.dependencies)
-                dependencies.addAll(inequality.rhs.dependencies)
-            }
+            dependencies.addAll(lb.dependencies)
+            dependencies.addAll(ub.dependencies)
             return dependencies
         }
     override val cells get() = polyY.cells
@@ -71,22 +76,27 @@ class IfInFunction(
         }
 
     override fun flush(force: Boolean) {
-        for (inequality in inequalities) {
-            inequality.flush(force)
-        }
+        x.flush(force)
+        lb.flush(force)
+        ub.flush(force)
+        lowerBoundInequality.flush(force)
+        upperBoundInequality.flush(force)
         polyY.flush(force)
         polyY.range.set(possibleRange)
     }
 
     override fun prepare(tokenTable: AbstractTokenTable) {
         x.cells
-        for (inequality in inequalities) {
-            inequality.lhs.cells
-            inequality.rhs.cells
-        }
+        lb.cells
+        ub.cells
+        lowerBoundInequality.cells
+        upperBoundInequality.cells
 
         if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val bins = inequalities.map { it.isTrue(tokenTable) }
+            val bins = listOf(
+                lowerBoundInequality.isTrue(tokenTable),
+                upperBoundInequality.isTrue(tokenTable)
+            )
             if (bins.all { it != null }) {
                 val bin = bins.all { it == true }
                 val yValue = if (bin) {
@@ -118,13 +128,19 @@ class IfInFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        for (inequality in inequalities) {
-            when (val result = inequality.register(name, y, model)) {
-                is Ok -> {}
+        when (val result = lowerBoundInequality.register(name, lbk, y, model)) {
+            is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = upperBoundInequality.register(name, ubk, y, model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
             }
         }
 

@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 import kotlin.collections.*
 import kotlinx.coroutines.*
 import io.michaelrocks.bimap.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -232,6 +233,9 @@ fun Collection<IntermediateSymbol>.register(tokenTable: MutableTokenTable): Try 
                 }
             }
         }
+        if (memoryUseOver()) {
+            System.gc()
+        }
 
         completedSymbols.addAll(readySymbols)
         val newReadySymbols = dependencies.filter {
@@ -246,6 +250,9 @@ fun Collection<IntermediateSymbol>.register(tokenTable: MutableTokenTable): Try 
             dependency.removeAll(readySymbols)
         }
         readySymbols = newReadySymbols
+        if (memoryUseOver()) {
+            System.gc()
+        }
     }
 
     return ok
@@ -455,6 +462,9 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
                     }
                 }
             }
+            if (memoryUseOver()) {
+                System.gc()
+            }
 
             if (Runtime.getRuntime().availableProcessors() > 1) {
                 val jobs = if (Runtime.getRuntime().availableProcessors() > 2) {
@@ -469,6 +479,9 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
                         async(Dispatchers.Default) {
                             readySymbolList.subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment)).map {
                                 it.prepare(tokenTable)
+                            }
+                            if (memoryUseOver()) {
+                                System.gc()
                             }
                         }
                     }
@@ -510,6 +523,9 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
                     dependency.removeAll(readySymbols)
                 }
                 readySymbols = newReadySymbols
+            }
+            if (memoryUseOver()) {
+                System.gc()
             }
         }
 

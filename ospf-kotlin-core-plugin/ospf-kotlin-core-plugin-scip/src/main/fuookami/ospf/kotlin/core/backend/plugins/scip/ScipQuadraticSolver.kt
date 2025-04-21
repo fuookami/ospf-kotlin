@@ -4,6 +4,7 @@ import kotlin.time.*
 import kotlinx.datetime.*
 import kotlinx.coroutines.*
 import jscip.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -175,7 +176,7 @@ private class ScipQuadraticSolverImpl(
                 }
                 val promises = (0..(model.constraints.size / segment)).map { i ->
                     async(Dispatchers.Default) {
-                        ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                        val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                             var lb = Flt64.negativeInfinity
                             var ub = Flt64.infinity
                             when (model.constraints.signs[ii]) {
@@ -209,6 +210,10 @@ private class ScipQuadraticSolverImpl(
                             }
                             ii to Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
                         }
+                        if (memoryUseOver()) {
+                            System.gc()
+                        }
+                        constraints
                     }
                 }
                 promises.flatMap { promise ->
@@ -229,6 +234,9 @@ private class ScipQuadraticSolverImpl(
                         )
                         scip.addCons(constraint)
                         constraint
+                    }
+                    if (memoryUseOver()) {
+                        System.gc()
                     }
                     result
                 }

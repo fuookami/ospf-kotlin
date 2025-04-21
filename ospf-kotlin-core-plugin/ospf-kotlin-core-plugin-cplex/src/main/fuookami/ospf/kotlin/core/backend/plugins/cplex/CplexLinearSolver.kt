@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
 import ilog.concert.*
 import ilog.cplex.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -169,6 +170,9 @@ private class CplexLinearSolverImpl(
                             }
                             ii to Triple(lb, lhs, ub)
                         }
+                        if (memoryUseOver()) {
+                            System.gc()
+                        }
                         constraints
                     }
                 }
@@ -178,6 +182,9 @@ private class CplexLinearSolverImpl(
                         val constraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[it.first])
                         cplex.add(constraint)
                         constraint
+                    }
+                    if (memoryUseOver()) {
+                        System.gc()
                     }
                     result
                 }

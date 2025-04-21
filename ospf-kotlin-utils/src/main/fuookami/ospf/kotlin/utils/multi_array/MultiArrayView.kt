@@ -7,6 +7,10 @@ class MultiArrayView<out T : Any, S : Shape>(
     private val origin: AbstractMultiArray<T, S>,
     private val vector: DummyVector
 ) : Collection<T> {
+    constructor(origin: AbstractMultiArray<T, S>): this(
+        origin, (0..<origin.dimension).map { _a }
+    )
+
     private data class ElementIterator<out T : Any, S : Shape>(
         private val view: MultiArrayView<T, S>,
         private var current: IntArray? = null

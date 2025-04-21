@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.backend.plugins.heuristic.saa
 import kotlin.time.*
 import kotlin.random.*
 import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -165,7 +166,11 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
                 }
             }
 
+            model.flush()
             iteration.next(globalBetter)
+            if (memoryUseOver()) {
+                System.gc()
+            }
         }
 
         return listOf(bestSolution)

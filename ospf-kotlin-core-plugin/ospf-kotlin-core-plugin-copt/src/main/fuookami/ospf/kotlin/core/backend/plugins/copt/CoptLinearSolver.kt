@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import copt.*
 import copt.Constraint
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -145,13 +146,17 @@ private class CoptLinearSolverImpl(
                     }
                     val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
-                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = Expr()
                                 for (cell in model.constraints.lhs[ii]) {
                                     lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
                                 }
                                 ii to lhs
                             }
+                            if (memoryUseOver()) {
+                                System.gc()
+                            }
+                            constraints
                         }
                     }
                     promises.flatMap { promise ->
@@ -162,6 +167,9 @@ private class CoptLinearSolverImpl(
                                 model.constraints.rhs[it.first].toDouble(),
                                 model.constraints.names[it.first]
                             )
+                        }
+                        if (memoryUseOver()) {
+                            System.gc()
                         }
                         result
                     }

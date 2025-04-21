@@ -4,6 +4,7 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import gurobi.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -145,7 +146,7 @@ private class GurobiQuadraticSolverImpl(
                     }
                     val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
-                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = GRBQuadExpr()
                                 for (cell in model.constraints.lhs[ii]) {
                                     if (cell.colIndex2 == null) {
@@ -156,6 +157,10 @@ private class GurobiQuadraticSolverImpl(
                                 }
                                 ii to lhs
                             }
+                            if (memoryUseOver()) {
+                                System.gc()
+                            }
+                            constraints
                         }
                     }
                     promises.flatMap { promise ->
@@ -166,6 +171,9 @@ private class GurobiQuadraticSolverImpl(
                                 model.constraints.rhs[it.first].toDouble(),
                                 model.constraints.names[it.first]
                             )
+                        }
+                        if (memoryUseOver()) {
+                            System.gc()
                         }
                         result
                     }

@@ -248,7 +248,8 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel
 abstract class AbstractMetaModel(
     val category: Category,
     manualTokenAddition: Boolean = true,
-    internal val concurrent: Boolean = true
+    internal val concurrent: Boolean = true,
+    internal val dumpBlocking: Boolean = false
 ) : MetaModel {
     override val tokens: AbstractMutableTokenTable = if (concurrent) {
         if (manualTokenAddition) {
@@ -296,8 +297,9 @@ class LinearMetaModel(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     manualTokenAddition: Boolean = true,
-    concurrent: Boolean = true
-) : AbstractMetaModel(Linear, manualTokenAddition, concurrent), AbstractLinearMetaModel {
+    concurrent: Boolean = true,
+    dumpBlocking: Boolean = false
+) : AbstractMetaModel(Linear, manualTokenAddition, concurrent, dumpBlocking), AbstractLinearMetaModel {
     internal val _constraints: MutableList<LinearInequality> = ArrayList()
     override val constraints: List<Inequality<*, *>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
@@ -360,8 +362,9 @@ class QuadraticMetaModel(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     manualTokenAddition: Boolean = true,
-    concurrent: Boolean = true
-) : AbstractMetaModel(Quadratic, manualTokenAddition, concurrent), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
+    concurrent: Boolean = true,
+    dumpBlocking: Boolean = false
+) : AbstractMetaModel(Quadratic, manualTokenAddition, concurrent, dumpBlocking), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
     internal val _constraints: MutableList<QuadraticInequality> = ArrayList()
     override val constraints: List<Inequality<*, *>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()

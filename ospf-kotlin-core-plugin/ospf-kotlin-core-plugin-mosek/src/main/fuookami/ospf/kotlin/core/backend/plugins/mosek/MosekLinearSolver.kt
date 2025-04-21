@@ -5,6 +5,7 @@ import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import mosek.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -127,7 +128,7 @@ class MosekLinearSolverImpl(
                     }
                     val promises = (0..(model.constraints.size / segment)).map { i ->
                         async(Dispatchers.Default) {
-                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val cols = ArrayList<Int>()
                                 val coefficients = ArrayList<Double>()
                                 for (cell in model.constraints.lhs[ii]) {
@@ -136,6 +137,10 @@ class MosekLinearSolverImpl(
                                 }
                                 Triple(ii, cols, coefficients)
                             }
+                            if (memoryUseOver()) {
+                                System.gc()
+                            }
+                            constraints
                         }
                     }
                     for (promise in promises) {
@@ -173,6 +178,9 @@ class MosekLinearSolverImpl(
                                 cols.toIntArray(),
                                 coefficients.toDoubleArray()
                             )
+                        }
+                        if (memoryUseOver()) {
+                            System.gc()
                         }
                     }
                 } else {

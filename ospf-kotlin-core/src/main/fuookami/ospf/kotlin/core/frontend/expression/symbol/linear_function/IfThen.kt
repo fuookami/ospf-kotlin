@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -22,8 +23,30 @@ class IfThenFunction(
     private val p by lazy { p.normalize() }
     private val q by lazy { q.normalize() }
 
+    private val pk: PctVariable1 by lazy {
+        PctVariable1(
+            if (p.name.isEmpty()) {
+                "${name}_pk"
+            } else {
+                "${p.name}_k"
+            },
+            Shape1(3)
+        )
+    }
+
     private val pu: BinVar by lazy {
         BinVar(p.name.ifEmpty { "${name}_pu" })
+    }
+
+    private val qk: PctVariable1 by lazy {
+        PctVariable1(
+            if (q.name.isEmpty()) {
+                "${name}_qk"
+            } else {
+                "${q.name}_k"
+            },
+            Shape1(3)
+        )
     }
 
     private val qu: BinVar by lazy {
@@ -136,7 +159,23 @@ class IfThenFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
+        when (val result = tokenTable.add(pk)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
         when (val result = tokenTable.add(pu)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = tokenTable.add(qk)) {
             is Ok -> {}
 
             is Failed -> {
@@ -174,7 +213,7 @@ class IfThenFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = p.register(name, pu, model)) {
+        when (val result = p.register(name, pk, pu, model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -182,7 +221,7 @@ class IfThenFunction(
             }
         }
 
-        when (val result = q.register(name, qu, model)) {
+        when (val result = q.register(name, qk, qu, model)) {
             is Ok -> {}
 
             is Failed -> {
