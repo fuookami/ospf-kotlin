@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.backend.intermediate_model
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -316,19 +317,22 @@ data class LinearTriadModel(
                                         LinearConstraintCell(
                                             rowIndex = i,
                                             colIndex = tokenIndexes[temp.token]!!,
-                                            coefficient = temp.coefficient.let {
-                                                if (it.isInfinity()) {
+                                            coefficient = temp.coefficient.let { coefficient ->
+                                                if (coefficient.isInfinity()) {
                                                     Flt64.decimalPrecision.reciprocal()
-                                                } else if (it.isNegativeInfinity()) {
+                                                } else if (coefficient.isNegativeInfinity()) {
                                                     -Flt64.decimalPrecision.reciprocal()
                                                 } else {
-                                                    it
+                                                    coefficient
                                                 }
                                             }
                                         )
                                     )
                                 }
                                 constraints.add(lhs)
+                            }
+                            if (memoryUseOver()) {
+                                System.gc()
                             }
                             constraints
                         }
@@ -344,7 +348,6 @@ data class LinearTriadModel(
                         rhs.add(constraint.rhs)
                         names.add(constraint.name)
                     }
-                    System.gc()
                     LinearConstraint(lhs, signs, rhs, names)
                 }
             } else {

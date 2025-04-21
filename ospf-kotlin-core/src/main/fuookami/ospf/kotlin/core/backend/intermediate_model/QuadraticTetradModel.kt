@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.backend.intermediate_model
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -326,20 +327,23 @@ data class QuadraticTetradModel(
                                         QuadraticConstraintCell(
                                             rowIndex = i,
                                             colIndex1 = tokenIndexes[temp.token1]!!,
-                                            colIndex2 = temp.token2?.let { tokenIndexes[it]!! },
-                                            coefficient = temp.coefficient.let {
-                                                if (it.isInfinity()) {
+                                            colIndex2 = temp.token2?.let { token2 -> tokenIndexes[token2]!! },
+                                            coefficient = temp.coefficient.let { coefficient ->
+                                                if (coefficient.isInfinity()) {
                                                     Flt64.decimalPrecision.reciprocal()
-                                                } else if (it.isNegativeInfinity()) {
+                                                } else if (coefficient.isNegativeInfinity()) {
                                                     -Flt64.decimalPrecision.reciprocal()
                                                 } else {
-                                                    it
+                                                    coefficient
                                                 }
                                             }
                                         )
                                     )
                                 }
                                 constraints.add(lhs)
+                            }
+                            if (memoryUseOver()) {
+                                System.gc()
                             }
                             constraints
                         }

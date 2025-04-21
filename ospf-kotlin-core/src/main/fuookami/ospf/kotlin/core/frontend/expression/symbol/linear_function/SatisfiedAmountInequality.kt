@@ -26,6 +26,10 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         inequalities.map { it.normalize() }
     }
 
+    private val k: PctVariable2 by lazy {
+        PctVariable2("${name}_k", Shape2(inequalities.size, 3))
+    }
+
     private val u: BinVariable1 by lazy {
         BinVariable1("${name}_u", Shape1(inequalities.size))
     }
@@ -123,6 +127,14 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
+        when (val result = tokenTable.add(k)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 
@@ -146,7 +158,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register(name, u[i], model)) {
+            when (val result = inequality.register(name, k[i, _a], u[i], model)) {
                 is Ok -> {}
 
                 is Failed -> {

@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import ilog.concert.*
 import ilog.cplex.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -141,7 +142,7 @@ private class CplexQuadraticSolverImpl(
                 }
                 val promises = (0..(model.constraints.size / segment)).map { i ->
                     async(Dispatchers.Default) {
-                        ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                        val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                             var lb = Flt64.negativeInfinity
                             var ub = Flt64.infinity
                             when (model.constraints.signs[ii]) {
@@ -168,6 +169,10 @@ private class CplexQuadraticSolverImpl(
                             }
                             ii to Triple(lb, lhs, ub)
                         }
+                        if (memoryUseOver()) {
+                            System.gc()
+                        }
+                        constraints
                     }
                 }
                 promises.flatMap { promise ->
@@ -176,6 +181,9 @@ private class CplexQuadraticSolverImpl(
                         val cplexConstraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[it.first])
                         cplex.add(cplexConstraint)
                         cplexConstraint
+                    }
+                    if (memoryUseOver()) {
+                        System.gc()
                     }
                     result
                 }

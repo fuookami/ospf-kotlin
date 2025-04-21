@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
 import kotlin.time.*
 import kotlin.random.*
 import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -149,6 +150,8 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
         val goodParticles = particles.subList(0, min(UInt64(particles.size), solutionAmount).toInt()).toMutableList()
 
         while (!policy.finished(iteration)) {
+            var globalBetter = false
+
             val newParticles = particles
                 .map { policy.transformPartial(it, bestParticles, model) }
                 .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
@@ -156,9 +159,15 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
             particles = newParticles
             if (model.compareObjective(newBestParticle.fitness, bestParticles.fitness) is Order.Less) {
                 bestParticles = newBestParticle
+                globalBetter = true
             }
             refreshGoodParticles(goodParticles, newParticles, model)
+
             model.flush()
+            iteration.next(globalBetter)
+            if (memoryUseOver()) {
+                System.gc()
+            }
         }
 
         return goodParticles.map { Pair(it.position, it.fitness) }

@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
@@ -21,6 +22,10 @@ class IfFunction(
 
     private val inequality by lazy {
         inequality.normalize()
+    }
+
+    private val k: PctVariable1 by lazy {
+        PctVariable1("${name}_k", Shape1(3))
     }
 
     private val y: BinVar by lazy {
@@ -131,6 +136,14 @@ class IfFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
+        when (val result = tokenTable.add(k)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -143,7 +156,7 @@ class IfFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = inequality.register(name, y, model)) {
+        when (val result = inequality.register(name, k, y, model)) {
             is Ok -> {}
 
             is Failed -> {

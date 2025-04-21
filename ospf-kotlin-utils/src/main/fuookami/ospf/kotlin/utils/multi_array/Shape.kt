@@ -105,7 +105,7 @@ data class Shape1(private val d1: Int) : Shape {
     override operator fun get(index: Int): Int {
         return when (index) {
             0 -> d1
-            else -> throw ArrayIndexOutOfBoundsException("Total size is $d1, but it get $index")
+            else -> throw ArrayIndexOutOfBoundsException("")
         }
     }
 
