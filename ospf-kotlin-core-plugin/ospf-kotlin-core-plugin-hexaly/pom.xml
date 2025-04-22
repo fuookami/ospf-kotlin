@@ -16,15 +16,13 @@
             <groupId>hexaly</groupId>
             <artifactId>hexaly</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.HX_HOME}/bin/hexaly.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>hexaly</groupId>
             <artifactId>localsolver</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.HX_HOME}/bin/localsolver.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

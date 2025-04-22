@@ -16,8 +16,7 @@
             <groupId>gurobi</groupId>
             <artifactId>gurobi</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.GUROBI_HOME}/lib/gurobi.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

@@ -16,8 +16,7 @@
             <groupId>scip</groupId>
             <artifactId>jscip</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.JSCIP_HOME}/scip.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

@@ -16,8 +16,7 @@
             <groupId>ilog</groupId>
             <artifactId>cplex</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.CPLEX_HOME}/lib/cplex.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

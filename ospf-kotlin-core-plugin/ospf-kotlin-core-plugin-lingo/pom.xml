@@ -16,8 +16,7 @@
             <groupId>lingo</groupId>
             <artifactId>lingo</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.LINGO_HOME}/lingo.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
