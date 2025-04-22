@@ -16,8 +16,7 @@
             <groupId>copt</groupId>
             <artifactId>copt</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.COPT_HOME}/lib/copt.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

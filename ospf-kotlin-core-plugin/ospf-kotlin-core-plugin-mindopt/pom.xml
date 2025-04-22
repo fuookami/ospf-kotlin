@@ -16,8 +16,7 @@
             <groupId>mindopt</groupId>
             <artifactId>mindopt</artifactId>
             <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>${env.MINDOPT_HOME}/lib/mindoptj.jar</systemPath>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
