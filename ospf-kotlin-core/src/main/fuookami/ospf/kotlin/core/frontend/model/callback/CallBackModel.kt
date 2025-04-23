@@ -160,9 +160,9 @@ class CallBackModel internal constructor(
                 Pair<Extractor<Flt64?, Solution>, String>(
                     { solution: Solution ->
                         if (objective.category == model.objectFunction.category) {
-                            objective.value(solution)
+                            objective.evaluate(solution)
                         } else {
-                            -objective.value(solution)
+                            -objective.evaluate(solution)
                         }
                     },
                     objective.name

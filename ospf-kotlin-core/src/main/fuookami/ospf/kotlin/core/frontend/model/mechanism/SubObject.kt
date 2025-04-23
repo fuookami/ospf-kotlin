@@ -12,18 +12,18 @@ sealed class SubObject(
     abstract val cells: List<Cell>
     abstract val constant: Flt64
 
-    fun value(): Flt64? {
+    fun evaluate(): Flt64? {
         var ret = constant
         for (cell in cells) {
-            ret += cell.value() ?: return null
+            ret += cell.evaluate() ?: return null
         }
         return ret
     }
 
-    fun value(results: Solution): Flt64 {
+    fun evaluate(results: Solution): Flt64 {
         var ret = constant
         for (cell in cells) {
-            ret += cell.value(results)
+            ret += cell.evaluate(results)
         }
         return ret
     }

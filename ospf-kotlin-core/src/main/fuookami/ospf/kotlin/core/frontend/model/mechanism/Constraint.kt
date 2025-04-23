@@ -15,7 +15,7 @@ sealed class Constraint(
     fun isTrue(): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.value() ?: return null
+            lhsValue += cell.evaluate() ?: return null
         }
         return sign(lhsValue, rhs)
     }
@@ -23,7 +23,7 @@ sealed class Constraint(
     fun isTrue(results: Solution): Boolean {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.value(results)
+            lhsValue += cell.evaluate(results)
         }
         return sign(lhsValue, rhs)
     }

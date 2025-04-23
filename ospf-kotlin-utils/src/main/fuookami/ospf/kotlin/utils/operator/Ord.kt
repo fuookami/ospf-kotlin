@@ -124,3 +124,13 @@ infix fun <T : Ord<T>> T?.ord(rhs: T?): Order {
         Order.Equal
     }
 }
+
+fun <T : Ord<T>> T.coerceIn(lb: T?, ub: T?): T {
+    return if (lb != null && this ord lb is Order.Less) {
+        lb
+    } else if (ub != null && this ord ub is Order.Greater) {
+        ub
+    } else {
+        this
+    }
+}
