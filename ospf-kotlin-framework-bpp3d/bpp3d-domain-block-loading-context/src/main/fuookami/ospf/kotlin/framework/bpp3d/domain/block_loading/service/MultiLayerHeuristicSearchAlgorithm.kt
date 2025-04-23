@@ -172,7 +172,7 @@ class MultiLayerHeuristicSearchAlgorithm(
         for (layer in (UInt64.zero until config.layer)) {
             heap = heap
                 .sortedWithThreeWayComparator { lhs, rhs -> config.binComparator(shape, lhs.map { it.block!! }, rhs.map { it.block!! }) }
-                .subList(0, min(UInt64(heap.size), config.branch).toInt())
+                .take(config.branch.toInt())
                 .toMutableList()
 
             if (layer == UInt64.zero) {
@@ -196,7 +196,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                                 promises.add(async(Dispatchers.Default) {
                                     val dfsPromise = dfs(
                                         items = items,
-                                        blocks = blocks.subList(0, min(UInt64(blocks.size), config.depth).toInt()),
+                                        blocks = blocks.take(config.depth.toInt()),
                                         shape = shape,
                                         fixedSpaces = fixedSpaces,
                                         scope = this@coroutineScope
@@ -274,7 +274,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                                     promises.add(async(Dispatchers.Default) {
                                         val dfsPromise = dfs(
                                             items = thisRestItems,
-                                            blocks = blocks.subList(0, min(UInt64(blocks.size), config.depth).toInt()),
+                                            blocks = blocks.take(config.depth.toInt()),
                                             shape = shape,
                                             fixedSpaces = spaces,
                                             scope = this@coroutineScope

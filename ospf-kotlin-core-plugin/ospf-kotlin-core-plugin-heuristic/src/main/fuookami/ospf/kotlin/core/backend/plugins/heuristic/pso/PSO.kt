@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 
 data class Particle<V>(
-    val fitness: V?,
+    val fitness: V,
     val position: List<Flt64>,
     val velocity: List<Flt64>,
     val currentBest: Particle<V>? = null
@@ -31,19 +31,9 @@ data class Particle<V>(
         val newPosition = (0..<size).map {
             val newPosition = position[it] + velocity[it]
             val token = model.tokens[it]
-            if (newPosition gr token.upperBound!!.value.unwrap()) {
-                token.upperBound!!.value.unwrap()
-            } else if (newPosition ls token.lowerBound!!.value.unwrap()) {
-                token.lowerBound!!.value.unwrap()
-            } else {
-                newPosition
-            }
+            newPosition.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
         }
-        val newFitness = if (model.constraintSatisfied(newPosition) == true) {
-            model.objective(newPosition)
-        } else {
-            null
-        }
+        val newFitness = model.objective(newPosition).ifNull { model.defaultObjective }
         return if (currentBest != null) {
             Particle(
                 fitness = newFitness,
@@ -70,31 +60,29 @@ data class Particle<V>(
     }
 }
 
-interface AbstractPSOPolicy<V> {
+interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy {
     fun transformPartial(
         particle: Particle<V>,
         bestPartial: Particle<V>,
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V>
-
-    fun finished(iteration: Iteration): Boolean
 }
 
 /**
  *
- * @param c1: local learning factor
- * @param c2: global learning factor
+ * @property c1         local learning factor
+ * @property c2         global learning factor
  */
 open class PSOPolicy<V>(
     val w: Flt64 = Flt64(0.4),
     val c1: Flt64 = Flt64.two,
     val c2: Flt64 = Flt64.two,
     val maxVelocity: Flt64 = Flt64(10000.0),
-    val iterationLimit: UInt64 = UInt64.maximum,
-    val notBetterIterationLimit: UInt64 = UInt64.maximum,
-    val timeLimit: Duration = 30.minutes,
+    iterationLimit: UInt64 = UInt64.maximum,
+    notBetterIterationLimit: UInt64 = UInt64.maximum,
+    timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : AbstractPSOPolicy<V> {
+) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractPSOPolicy<V> {
     override fun transformPartial(
         particle: Particle<V>,
         bestPartial: Particle<V>,
@@ -117,12 +105,6 @@ open class PSOPolicy<V>(
             model
         )
     }
-
-    override fun finished(iteration: Iteration): Boolean {
-        return iteration.iteration > iterationLimit
-                || iteration.notBetterIteration > notBetterIterationLimit
-                || iteration.time > timeLimit
-    }
 }
 
 class ParticleSwarmOptimizationAlgorithm<Obj, V>(
@@ -132,33 +114,33 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 ) {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one }
+        initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
+        runningCallBack: ((Iteration, Particle<V>, List<Particle<V>>) -> Try)? = null
     ): List<Pair<Solution, V?>> {
         val iteration = Iteration()
         val initialSolutions = model.initialSolutions(particleAmount)
         var particles = initialSolutions
             .map {
                 Particle(
-                    if (model.constraintSatisfied(it) != true) {
-                        model.objective(it)
-                    } else {
-                        null
-                    }, it, it.indices.map { index -> initialVelocityGenerator(UInt64(index)) })
+                    fitness = model.objective(it).ifNull { model.defaultObjective },
+                    position = it,
+                    velocity = it.indices.map { index -> initialVelocityGenerator(UInt64(index)) }
+                )
             }
             .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
-        var bestParticles = particles.first()
-        val goodParticles = particles.subList(0, min(UInt64(particles.size), solutionAmount).toInt()).toMutableList()
+        var bestParticle = particles.first()
+        val goodParticles = particles.take(solutionAmount.toInt()).toMutableList()
 
         while (!policy.finished(iteration)) {
             var globalBetter = false
 
             val newParticles = particles
-                .map { policy.transformPartial(it, bestParticles, model) }
+                .map { policy.transformPartial(it, bestParticle, model) }
                 .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
             val newBestParticle = newParticles.first()
             particles = newParticles
-            if (model.compareObjective(newBestParticle.fitness, bestParticles.fitness) is Order.Less) {
-                bestParticles = newBestParticle
+            if (model.compareObjective(newBestParticle.fitness, bestParticle.fitness) is Order.Less) {
+                bestParticle = newBestParticle
                 globalBetter = true
             }
             refreshGoodParticles(goodParticles, newParticles, model)
@@ -168,9 +150,15 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
             if (memoryUseOver()) {
                 System.gc()
             }
+
+            if (runningCallBack?.invoke(iteration, bestParticle, goodParticles) is Failed) {
+                break
+            }
         }
 
-        return goodParticles.map { Pair(it.position, it.fitness) }
+        return goodParticles
+            .take(solutionAmount.toInt())
+            .map { it.position to it.fitness }
     }
 
     private fun refreshGoodParticles(
@@ -196,11 +184,6 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
                     minOf(newParticles.size, maxOf(j, solutionAmount.toInt() - goodParticles.size))
                 )
             )
-        }
-        if (UInt64(goodParticles.size) > solutionAmount) {
-            (UInt64.zero until UInt64(goodParticles.size) - solutionAmount).forEach { _ ->
-                goodParticles.removeLast()
-            }
         }
     }
 }

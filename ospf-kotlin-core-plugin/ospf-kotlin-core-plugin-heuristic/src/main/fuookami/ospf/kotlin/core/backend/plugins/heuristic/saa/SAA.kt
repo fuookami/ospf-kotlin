@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.saa
 
+import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.Particle
 import kotlin.time.*
 import kotlin.random.*
 import kotlin.time.Duration.Companion.minutes
@@ -46,10 +47,7 @@ interface AbstractSAAPolicy<V> {
  * @property temperatureGradiant        temperature gradiant, T(k) = gradiant * T(k - 1)
  * @property step                       the step size for searching
  * @property disturbanceAmount          the amount of disturbance
- * @property distance                   the distance function between two objectives
- * @property iterationLimit
- * @property notBetterIterationLimit
- * @property timeLimit
+ * @property distance                   the distance rate function between two objectives
  * @property randomGenerator
  */
 open class SAAPolicy<V>(
@@ -60,17 +58,49 @@ open class SAAPolicy<V>(
     step: Flt64 = Flt64(0.5),
     val disturbanceAmount: UInt64 = UInt64(1),
     val distance: (V, V) -> Flt64,
-    val iterationLimit: UInt64 = UInt64.maximum,
-    val notBetterIterationLimit: UInt64 = UInt64.maximum,
-    val timeLimit: Duration = 30.minutes,
+    iterationLimit: UInt64 = UInt64.maximum,
+    notBetterIterationLimit: UInt64 = UInt64.maximum,
+    timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : AbstractSAAPolicy<V> {
+) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractSAAPolicy<V> {
+    companion object {
+        operator fun invoke(
+            initialTemperature: Flt64 = Flt64(100.0),
+            finalTemperature: Flt64 = Flt64(1.0),
+            temperatureGradiant: Flt64 = Flt64(0.98),
+            markovLength: UInt64 = UInt64(100),
+            step: Flt64 = Flt64(0.5),
+            disturbanceAmount: UInt64 = UInt64(1),
+            iterationLimit: UInt64 = UInt64.maximum,
+            notBetterIterationLimit: UInt64 = UInt64.maximum,
+            timeLimit: Duration = 30.minutes,
+            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+        ): SAAPolicy<Flt64> {
+            return SAAPolicy(
+                initialTemperature = initialTemperature,
+                finalTemperature = finalTemperature,
+                temperatureGradiant = temperatureGradiant,
+                markovLength = markovLength,
+                step = step,
+                disturbanceAmount = disturbanceAmount,
+                distance = { lhs, rhs -> (lhs - rhs).abs() },
+                iterationLimit = iterationLimit,
+                notBetterIterationLimit = notBetterIterationLimit,
+                timeLimit = timeLimit,
+                randomGenerator = randomGenerator
+            )
+        }
+    }
+
     private var _step: Flt64 = step
     val step: Flt64 by ::_step
 
     private val temperatureCache: MutableList<Flt64> = arrayListOf()
 
-    override fun transformSolution(solution: Solution, model: AbstractCallBackModelInterface<*, V>): Solution {
+    override fun transformSolution(
+        solution: Solution,
+        model: AbstractCallBackModelInterface<*, V>
+    ): Solution {
         val newSolution = solution.toMutableList()
         val disturbancePoints: MutableSet<Int> = HashSet()
         while (disturbancePoints.size < disturbanceAmount.toInt()) {
@@ -80,13 +110,7 @@ open class SAAPolicy<V>(
         for (point in disturbancePoints) {
             val token = model.tokens[point]
             val newValue = newSolution[point] + step * (token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()) * randomGenerator()!!
-            newSolution[point] = if (newValue gr token.upperBound!!.value.unwrap()) {
-                token.upperBound!!.value.unwrap()
-            } else if (newValue ls token.lowerBound!!.value.unwrap()) {
-                token.lowerBound!!.value.unwrap()
-            } else {
-                newValue
-            }
+            newSolution[point] = newValue.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
         }
         return newSolution
     }
@@ -102,10 +126,7 @@ open class SAAPolicy<V>(
     }
 
     override fun finished(iteration: Iteration): Boolean {
-        return iteration.iteration > iterationLimit
-                || iteration.notBetterIteration > notBetterIterationLimit
-                || iteration.time > timeLimit
-                || currentTemperature(iteration) leq finalTemperature
+        return super.finished(iteration) || currentTemperature(iteration) leq finalTemperature
     }
 
     private fun currentTemperature(iteration: Iteration): Flt64 {
@@ -119,11 +140,17 @@ open class SAAPolicy<V>(
 }
 
 class SimulatedAnnealingAlgorithm<Obj, V>(
-    val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractSAAPolicy<V>
 ) {
+    companion object {
+        operator fun invoke(): SimulatedAnnealingAlgorithm<Flt64, Flt64> {
+            return SimulatedAnnealingAlgorithm(SAAPolicy())
+        }
+    }
+
     operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>
+        model: AbstractCallBackModelInterface<Obj, V>,
+        runningCallBack: ((Iteration, Pair<Solution, V>) -> Try)? = null
     ): List<Pair<Solution, V?>> {
         val iteration = Iteration()
         val initialSolution = model.initialSolutions()
@@ -171,8 +198,15 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
             if (memoryUseOver()) {
                 System.gc()
             }
+
+            if (runningCallBack?.invoke(iteration, bestSolution) is Failed) {
+                break
+            }
         }
 
         return listOf(bestSolution)
     }
 }
+
+typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64>
+typealias MulObjSAA = SimulatedAnnealingAlgorithm<MulObj, List<Flt64>>

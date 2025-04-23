@@ -95,7 +95,9 @@ interface CallBackModelInterface : AbstractCallBackModelInterface<Flt64, Flt64> 
 }
 
 interface MultiObjectiveModelInterface : AbstractCallBackModelInterface<MulObj, List<Flt64>> {
-    val objectiveSize: Int
+    val objectiveLocation: List<MultiObjectLocation>
+    val objectiveSize get() = objectiveLocation.size
+
     override val defaultObjective: List<Flt64>
         get() = if (objectCategory == ObjectCategory.Minimum) {
             (0 until objectiveSize).map { Flt64.negativeInfinity }
