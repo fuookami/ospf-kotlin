@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.saa
 
-import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.Particle
 import kotlin.time.*
 import kotlin.random.*
 import kotlin.time.Duration.Companion.minutes
@@ -23,6 +22,7 @@ interface AbstractSAAPolicy<V> {
     val markovLength: UInt64
 
     fun transformSolution(
+        iteration: Iteration,
         solution: Solution,
         model: AbstractCallBackModelInterface<*, V>
     ): Solution
@@ -98,6 +98,7 @@ open class SAAPolicy<V>(
     private val temperatureCache: MutableList<Flt64> = arrayListOf()
 
     override fun transformSolution(
+        iteration: Iteration,
         solution: Solution,
         model: AbstractCallBackModelInterface<*, V>
     ): Solution {
@@ -150,12 +151,17 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
 
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Pair<Solution, V>) -> Try)? = null
-    ): List<Pair<Solution, V?>> {
+        runningCallBack: ((Iteration, SolutionWithFitness<V>) -> Try)? = null
+    ): List<Individual<V>> {
         val iteration = Iteration()
         val initialSolution = model.initialSolutions()
-            .map { it to model.objective(it).ifNull { model.defaultObjective } }
-            .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.second, rhs.second) }
+            .map {
+                SolutionWithFitness(
+                    solution = it,
+                    fitness = model.objective(it).ifNull { model.defaultObjective }
+                )
+            }
+            .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
             .first()
         var bestSolution = initialSolution
         var currentSolution = initialSolution
@@ -167,14 +173,18 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
             var badRefuseTimes = UInt64.zero
 
             for (t in 0 until policy.markovLength.toInt()) {
-                val newSolution = policy.transformSolution(currentSolution.first, model)
+                val newSolution = policy.transformSolution(
+                    iteration = iteration,
+                    solution = currentSolution.solution,
+                    model = model
+                )
                 val newObj = model.objective(newSolution).ifNull { model.defaultObjective }
 
-                val accept = if (model.compareObjective(newObj, currentSolution.second) is Order.Less) {
+                val accept = if (model.compareObjective(newObj, currentSolution.fitness) is Order.Less) {
                     betterTimes += UInt64.one
                     true
                 } else {
-                    if (policy.accept(iteration, currentSolution.second, newObj)) {
+                    if (policy.accept(iteration, currentSolution.fitness, newObj)) {
                         badAcceptTimes += UInt64.one
                         true
                     } else {
@@ -184,8 +194,11 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
                 }
 
                 if (accept) {
-                    currentSolution = newSolution to newObj
-                    if (model.compareObjective(currentSolution.second, bestSolution.second) is Order.Less) {
+                    currentSolution = SolutionWithFitness(
+                        solution = newSolution,
+                        fitness = newObj
+                    )
+                    if (model.compareObjective(currentSolution.fitness, bestSolution.fitness) is Order.Less) {
                         bestSolution = currentSolution
                         globalBetter = true
                         policy.improve()

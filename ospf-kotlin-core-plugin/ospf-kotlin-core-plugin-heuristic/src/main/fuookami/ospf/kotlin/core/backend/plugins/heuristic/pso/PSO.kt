@@ -5,65 +5,17 @@ import kotlin.random.*
 import kotlin.time.Duration.Companion.minutes
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 
-data class Particle<V>(
-    val fitness: V,
-    val position: List<Flt64>,
-    val velocity: List<Flt64>,
-    val currentBest: Particle<V>? = null
-) {
-    init {
-        assert(position.size == velocity.size)
-    }
-
-    val size by position::size
-
-    fun new(
-        newVelocity: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Particle<V> {
-        val newPosition = (0..<size).map {
-            val newPosition = position[it] + velocity[it]
-            val token = model.tokens[it]
-            newPosition.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
-        }
-        val newFitness = model.objective(newPosition).ifNull { model.defaultObjective }
-        return if (currentBest != null) {
-            Particle(
-                fitness = newFitness,
-                position = newPosition,
-                velocity = newVelocity,
-                currentBest = if (model.compareObjective(newFitness, currentBest.fitness) is Order.Less) {
-                    null
-                } else {
-                    currentBest
-                }
-            )
-        } else {
-            Particle(
-                fitness = newFitness,
-                position = newPosition,
-                velocity = newVelocity,
-                currentBest = if (model.compareObjective(newFitness, fitness) is Order.Less) {
-                    null
-                } else {
-                    this
-                }
-            )
-        }
-    }
-}
-
 interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy {
-    fun transformPartial(
+    fun transformParticle(
+        iteration: Iteration,
         particle: Particle<V>,
-        bestPartial: Particle<V>,
+        bestParticle: Particle<V>,
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V>
 }
@@ -83,9 +35,10 @@ open class PSOPolicy<V>(
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
 ) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractPSOPolicy<V> {
-    override fun transformPartial(
+    override fun transformParticle(
+        iteration: Iteration,
         particle: Particle<V>,
-        bestPartial: Particle<V>,
+        bestParticle: Particle<V>,
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V> {
         return particle.new(
@@ -93,7 +46,7 @@ open class PSOPolicy<V>(
                 val newVelocity = w * particle.velocity[it] +
                         c1 * randomGenerator()!! * (particle.currentBest?.position?.get(it)
                     ?.let { pos -> pos - particle.position[it] } ?: Flt64.zero) +
-                        c2 * randomGenerator()!! * (bestPartial.position[it] - particle.position[it])
+                        c2 * randomGenerator()!! * (bestParticle.position[it] - particle.position[it])
                 if (newVelocity gr maxVelocity) {
                     maxVelocity
                 } else if (newVelocity ls -maxVelocity) {
@@ -116,7 +69,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
         model: AbstractCallBackModelInterface<Obj, V>,
         initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
         runningCallBack: ((Iteration, Particle<V>, List<Particle<V>>) -> Try)? = null
-    ): List<Pair<Solution, V?>> {
+    ): List<Individual<V>> {
         val iteration = Iteration()
         val initialSolutions = model.initialSolutions(particleAmount)
         var particles = initialSolutions
@@ -135,7 +88,14 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
             var globalBetter = false
 
             val newParticles = particles
-                .map { policy.transformPartial(it, bestParticle, model) }
+                .map {
+                    policy.transformParticle(
+                        iteration =  iteration,
+                        particle = it,
+                        bestParticle = bestParticle,
+                        model = model
+                    )
+                }
                 .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
             val newBestParticle = newParticles.first()
             particles = newParticles
@@ -158,7 +118,12 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 
         return goodParticles
             .take(solutionAmount.toInt())
-            .map { it.position to it.fitness }
+            .map {
+                SolutionWithFitness(
+                    solution = it.position,
+                    fitness = it.fitness
+                )
+            }
     }
 
     private fun refreshGoodParticles(

@@ -30,8 +30,9 @@ interface AbstractMVOPolicy<V> {
     ): List<Flt64>
 
     fun transformSolutions(
+        iteration: Iteration,
         bestSolution: Solution,
-        solutions: List<Pair<Solution, V>>,
+        solutions: List<SolutionWithFitness<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         wep: Flt64,
         tdr: Flt64
@@ -68,8 +69,8 @@ open class MVOPolicy<V>(
             return MVOPolicy(
                 minWEP = minWEP,
                 maxWEP = maxWEP,
-                whiteHoleRateCalculator = ObjectiveNormalization.SumNormalization,
-                whiteHoleSelector = Selection.RouletteSelection(randomGenerator),
+                whiteHoleRateCalculator = SumNormalization,
+                whiteHoleSelector = RouletteSelection(randomGenerator),
                 iterationLimit = iterationLimit,
                 notBetterIterationLimit = notBetterIterationLimit,
                 timeLimit = timeLimit,
@@ -100,20 +101,21 @@ open class MVOPolicy<V>(
     }
 
     override fun transformSolutions(
+        iteration: Iteration,
         bestSolution: Solution,
-        solutions: List<Pair<Solution, V>>,
+        solutions: List<SolutionWithFitness<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         wep: Flt64,
         tdr: Flt64
     ): List<Solution> {
         val newSolutions = ArrayList<Solution>()
-        val whiteHoleRates = whiteHoleRates(model, solutions.map { it.second })
+        val whiteHoleRates = whiteHoleRates(model, solutions.map { it.fitness })
         for ((i, solution) in solutions.withIndex()) {
-            val newSolution = solution.first.toMutableList()
-            for ((dimension, value) in solution.first.withIndex()) {
+            val newSolution = solution.solution.toMutableList()
+            for ((dimension, value) in solution.solution.withIndex()) {
                 val token = model.tokens[dimension]
                 var newValue = if (randomGenerator()!! ls whiteHoleRates[i]) {
-                    solutions[whiteHoleSelector(whiteHoleRates)].first[dimension]
+                    solutions[whiteHoleSelector(iteration, whiteHoleRates)].solution[dimension]
                 } else {
                     value
                 }
@@ -155,12 +157,19 @@ class MultiVerseOptimizer<Obj, V>(
 ) {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Pair<Solution, V>, List<Pair<Solution, V>>) -> Try)? = null
-    ): List<Pair<Solution, V?>> {
+        runningCallBack: ((Iteration, SolutionWithFitness<V>, List<SolutionWithFitness<V>>) -> Try)? = null
+    ): List<Individual<V>> {
         val iteration = Iteration()
         var universes = model.initialSolutions(universeAmount)
-            .map { it to model.objective(it).ifNull { model.defaultObjective } }
-            .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.second, rhs.second) }
+            .map {
+                SolutionWithFitness(
+                    solution = it,
+                    fitness = model.objective(it).ifNull { model.defaultObjective }
+                )
+            }
+            .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                model.compareObjective(lhs.fitness, rhs.fitness)
+            }
         var bestUniverse = universes.first()
         val gooUniverses = universes.take(solutionAmount.toInt()).toMutableList()
 
@@ -171,17 +180,25 @@ class MultiVerseOptimizer<Obj, V>(
 
             val newUniverses = policy
                 .transformSolutions(
-                    bestSolution = bestUniverse.first,
+                    iteration = iteration,
+                    bestSolution = bestUniverse.solution,
                     solutions = universes,
                     model = model,
                     wep = wep,
                     tdr = tdr
                 )
-                .map { it to model.objective(it).ifNull { model.defaultObjective } }
-                .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.second, rhs.second) }
+                .map {
+                    SolutionWithFitness(
+                        solution = it,
+                        fitness = model.objective(it).ifNull { model.defaultObjective }
+                    )
+                }
+                .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                    model.compareObjective(lhs.fitness, rhs.fitness)
+                }
             val newBestUniverse = newUniverses.first()
             universes = newUniverses
-            if (model.compareObjective(newBestUniverse.second, bestUniverse.second) is Order.Less) {
+            if (model.compareObjective(newBestUniverse.fitness, bestUniverse.fitness) is Order.Less) {
                 bestUniverse = newBestUniverse
                 globalBetter = true
             }
@@ -202,14 +219,14 @@ class MultiVerseOptimizer<Obj, V>(
     }
 
     private fun refreshGoodUniverses(
-        goodUniverses: MutableList<Pair<Solution, V>>,
-        newUniverses: List<Pair<Solution, V>>,
+        goodUniverses: MutableList<SolutionWithFitness<V>>,
+        newUniverses: List<SolutionWithFitness<V>>,
         model: AbstractCallBackModelInterface<Obj, V>
     ) {
         var i = 0
         var j = 0
         while (i != goodUniverses.size && j != newUniverses.size) {
-            if (model.compareObjective(newUniverses[j].second, goodUniverses[i].second) is Order.Less) {
+            if (model.compareObjective(newUniverses[j].fitness, goodUniverses[i].fitness) is Order.Less) {
                 goodUniverses.add(i, newUniverses[j])
                 ++i
                 ++j
