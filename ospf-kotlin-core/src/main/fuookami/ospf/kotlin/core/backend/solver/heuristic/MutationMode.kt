@@ -1,14 +1,17 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 
 interface MutationMode<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
-        population: Population<T, V>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Flt64
+        population: List<T>,
+        weights: List<Flt64>,
+        model: AbstractCallBackModelInterface<*, V>,
+        mutationRateRange: ValueRange<Flt64>
+    ): List<Flt64>
 }
 
 //interface MutationMode {

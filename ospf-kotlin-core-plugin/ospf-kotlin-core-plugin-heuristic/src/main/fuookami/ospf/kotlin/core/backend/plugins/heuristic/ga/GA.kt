@@ -1,46 +1,46 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.ga
 
-import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.Particle
 import kotlin.time.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.random.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.Cross
-import fuookami.ospf.kotlin.utils.memoryUseOver
 
 interface AbstractGeneAlgorithmPolicy<V> : AbstractHeuristicPolicy {
-    fun <T : Individual<V>> migrate(
+    suspend fun migrate(
         iteration: Iteration,
-        populations: List<AbstractPopulation<T, V>>,
+        populations: List<AbstractPopulation<V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<AbstractPopulation<T, V>>
+    ): List<AbstractPopulation<V>>
 
-    fun <T : Individual<V>> select(
+    suspend fun select(
         iteration: Iteration,
-        population: AbstractPopulation<T, V>,
+        population: AbstractPopulation<V>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<T>
+    ): List<Chromosome<V>>
 
-    fun <T : Individual<V>> cross(
+    suspend fun cross(
         iteration: Iteration,
-        population: List<T>,
+        population: List<Chromosome<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
-    ): List<T>
+    ): List<Chromosome<V>>
 
-    fun <T : Individual<V>> mutate(
+    suspend fun mutate(
         iteration: Iteration,
-        population: List<T>,
+        population: List<Chromosome<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         mutationRateRange: ValueRange<Flt64>
-    ): List<T>
+    ): List<Chromosome<V>>
 }
 
 class GeneAlgorithmPolicy<V>(
@@ -51,43 +51,97 @@ class GeneAlgorithmPolicy<V>(
     val cross: Cross<V>,
     val mutationMode: MutationMode<V>,
     val mutation: Mutation<V>,
+    val normalization: ObjectiveNormalization<V>,
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
 ) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGeneAlgorithmPolicy<V> {
-    override fun <T : Individual<V>> migrate(
+    override suspend fun migrate(
         iteration: Iteration,
-        populations: List<AbstractPopulation<T, V>>,
+        populations: List<AbstractPopulation<V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<AbstractPopulation<T, V>> {
-        TODO("Not yet implemented")
+    ): List<AbstractPopulation<V>> {
+        return migration(iteration, populations, model)
+            .map { (population, newIndividuals) ->
+                val individuals = (population.individuals + newIndividuals)
+                        .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                            model.compareObjective(lhs.fitness, rhs.fitness)
+                        }
+                AbstractPopulation(
+                    individuals = individuals,
+                    elites = individuals.take(population.eliteAmount.toInt()),
+                    best = individuals.first(),
+                    eliteAmount =  population.eliteAmount,
+                    densityRange = population.densityRange,
+                    mutationRateRange = population.mutationRateRange,
+                    parentAmountRange = population.parentAmountRange
+                )
+            }
     }
 
-    override fun <T : Individual<V>> select(
+    override suspend fun select(
         iteration: Iteration,
-        population: AbstractPopulation<T, V>,
+        population: AbstractPopulation<V>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<T> {
-        TODO("Not yet implemented")
+    ): List<Chromosome<V>> {
+        val amount = selectionMode(iteration, population, model)
+        val weights = normalization(model, population.individuals.map { it.fitness })
+        val indexes = selection(iteration, weights, amount)
+        return population.individuals.mapIndexedNotNull { index, individual ->
+            if (UInt64(index) in indexes) {
+                individual
+            } else {
+                null
+            }
+        }
     }
 
-    override fun <T : Individual<V>> cross(
+    override suspend fun cross(
         iteration: Iteration,
-        population: List<T>,
+        population: List<Chromosome<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
-    ): List<T> {
-        TODO("Not yet implemented")
+    ): List<Chromosome<V>> {
+        val weights = normalization(model, population.map { it.fitness })
+        val parentGroups = crossMode(iteration, population, weights, model, parentAmountRange)
+        return coroutineScope {
+            parentGroups.map { parents ->
+                async(Dispatchers.Default) {
+                    cross(iteration, parents, model).map {
+                        Chromosome(
+                            solution = it,
+                            fitness = model.objective(it).ifNull { model.defaultObjective }
+                        )
+                    }
+                }
+            }.awaitAll()
+        }.flatten()
     }
 
-    override fun <T : Individual<V>> mutate(
+    override suspend fun mutate(
         iteration: Iteration,
-        population: List<T>,
+        population: List<Chromosome<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         mutationRateRange: ValueRange<Flt64>
-    ): List<T> {
-        TODO("Not yet implemented")
+    ): List<Chromosome<V>> {
+        val weights = normalization(model, population.map { it.fitness })
+        val mutationRate = mutationMode(iteration, population, weights, model, mutationRateRange)
+        return coroutineScope {
+            population.mapIndexed { i, individual ->
+                async(Dispatchers.Default) {
+                    if (randomGenerator()!! geq mutationRate[i]) {
+                        val newIndividual = mutation(iteration, individual, model, mutationRate[i])
+                        Chromosome(
+                            solution = newIndividual,
+                            fitness = model.objective(newIndividual).ifNull { model.defaultObjective }
+                        )
+                    } else {
+                        null
+                    }
+                }
+            }.awaitAll().filterNotNull()
+        }
     }
 }
 
@@ -99,7 +153,7 @@ class GeneAlgorithm<Obj, V>(
 ) {
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Chromosome<V>, List<Chromosome<V>>, List<AbstractPopulation<Chromosome<V>, V>>) -> Try)? = null
+        runningCallBack: ((Iteration, Chromosome<V>, List<Chromosome<V>>, List<AbstractPopulation<V>>) -> Try)? = null
     ): List<Chromosome<V>> {
         val iteration = Iteration()
         val initialSolutions = model
@@ -176,7 +230,7 @@ class GeneAlgorithm<Obj, V>(
                     model.compareObjective(lhs.fitness, rhs.fitness)
                 }
             val newBestChromosome = newChromosomes.first()
-            refreshGoodChromosomes(goodChromosomes, newChromosomes, model)
+            refreshGoodIndividuals(goodChromosomes, newChromosomes, model, solutionAmount)
             if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
                 bestChromosome = goodChromosomes.first()
                 globalBetter = true
@@ -194,32 +248,6 @@ class GeneAlgorithm<Obj, V>(
         }
 
         return goodChromosomes.take(solutionAmount.toInt())
-    }
-
-    private fun refreshGoodChromosomes(
-        goodChromosomes: MutableList<Chromosome<V>>,
-        newChromosomes: List<Chromosome<V>>,
-        model: AbstractCallBackModelInterface<Obj, V>
-    ) {
-        var i = 0
-        var j = 0
-        while (i != goodChromosomes.size && j != newChromosomes.size) {
-            if (model.compareObjective(newChromosomes[j].fitness, goodChromosomes[i].fitness) is Order.Less) {
-                goodChromosomes.add(i, newChromosomes[j])
-                ++i
-                ++j
-            } else {
-                ++i
-            }
-        }
-        if (j != newChromosomes.size) {
-            goodChromosomes.addAll(
-                newChromosomes.subList(
-                    j,
-                    minOf(newChromosomes.size, maxOf(j, solutionAmount.toInt() - goodChromosomes.size))
-                )
-            )
-        }
     }
 }
 

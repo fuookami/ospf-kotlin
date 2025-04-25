@@ -1,13 +1,14 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 
 interface Cross<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         parent: List<T>,
-        model: AbstractCallBackModelInterface<T, V>
-    ): List<T>
+        model: AbstractCallBackModelInterface<*, V>
+    ): List<Solution>
 }
 
 //

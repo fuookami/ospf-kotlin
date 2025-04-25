@@ -1,15 +1,16 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 
 interface Mutation<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
-        population: List<T>,
-        model: AbstractCallBackModelInterface<T, V>,
+        individual: T,
+        model: AbstractCallBackModelInterface<*, V>,
         mutationRate: Flt64
-    ): List<T>
+    ): Solution
 }
 
 //interface MutationOperation {

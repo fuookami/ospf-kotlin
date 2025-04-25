@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 
 interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy {
-    fun transformParticle(
+    fun accelerate(
         iteration: Iteration,
         particle: Particle<V>,
         bestParticle: Particle<V>,
@@ -35,7 +35,7 @@ open class PSOPolicy<V>(
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
 ) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractPSOPolicy<V> {
-    override fun transformParticle(
+    override fun accelerate(
         iteration: Iteration,
         particle: Particle<V>,
         bestParticle: Particle<V>,
@@ -89,7 +89,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 
             val newParticles = particles
                 .map {
-                    policy.transformParticle(
+                    policy.accelerate(
                         iteration =  iteration,
                         particle = it,
                         bestParticle = bestParticle,
@@ -103,7 +103,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
                 bestParticle = newBestParticle
                 globalBetter = true
             }
-            refreshGoodParticles(goodParticles, newParticles, model)
+            refreshGoodIndividuals(goodParticles, newParticles, model, solutionAmount)
 
             model.flush()
             iteration.next(globalBetter)
@@ -124,32 +124,6 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
                     fitness = it.fitness
                 )
             }
-    }
-
-    private fun refreshGoodParticles(
-        goodParticles: MutableList<Particle<V>>,
-        newParticles: List<Particle<V>>,
-        model: AbstractCallBackModelInterface<Obj, V>
-    ) {
-        var i = 0
-        var j = 0
-        while (i != goodParticles.size && j != newParticles.size) {
-            if (model.compareObjective(newParticles[j].fitness, goodParticles[i].fitness) is Order.Less) {
-                goodParticles.add(i, newParticles[j])
-                ++i
-                ++j
-            } else {
-                ++i
-            }
-        }
-        if (j != newParticles.size) {
-            goodParticles.addAll(
-                newParticles.subList(
-                    j,
-                    minOf(newParticles.size, maxOf(j, solutionAmount.toInt() - goodParticles.size))
-                )
-            )
-        }
     }
 }
 

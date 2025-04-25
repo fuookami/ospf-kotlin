@@ -13,6 +13,8 @@ import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 
+typealias Universe<V> = SolutionWithFitness<V>
+
 interface AbstractMVOPolicy<V> {
     /**
      * calculate WEP (Wormhole Existence Probability)
@@ -29,10 +31,10 @@ interface AbstractMVOPolicy<V> {
         objs: List<V>
     ): List<Flt64>
 
-    fun transformSolutions(
+    fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution,
-        solutions: List<SolutionWithFitness<V>>,
+        solutions: List<Universe<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         wep: Flt64,
         tdr: Flt64
@@ -100,10 +102,10 @@ open class MVOPolicy<V>(
         return whiteHoleRateCalculator(model, objs)
     }
 
-    override fun transformSolutions(
+    override fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution,
-        solutions: List<SolutionWithFitness<V>>,
+        solutions: List<Universe<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         wep: Flt64,
         tdr: Flt64
@@ -157,12 +159,12 @@ class MultiVerseOptimizer<Obj, V>(
 ) {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, SolutionWithFitness<V>, List<SolutionWithFitness<V>>) -> Try)? = null
+        runningCallBack: ((Iteration, Universe<V>, List<Universe<V>>) -> Try)? = null
     ): List<Individual<V>> {
         val iteration = Iteration()
         var universes = model.initialSolutions(universeAmount)
             .map {
-                SolutionWithFitness(
+                Universe(
                     solution = it,
                     fitness = model.objective(it).ifNull { model.defaultObjective }
                 )
@@ -179,7 +181,7 @@ class MultiVerseOptimizer<Obj, V>(
             val tdr = policy.tdr(iteration)
 
             val newUniverses = policy
-                .transformSolutions(
+                .transformUniverses(
                     iteration = iteration,
                     bestSolution = bestUniverse.solution,
                     solutions = universes,
@@ -188,7 +190,7 @@ class MultiVerseOptimizer<Obj, V>(
                     tdr = tdr
                 )
                 .map {
-                    SolutionWithFitness(
+                    Universe(
                         solution = it,
                         fitness = model.objective(it).ifNull { model.defaultObjective }
                     )
@@ -202,7 +204,7 @@ class MultiVerseOptimizer<Obj, V>(
                 bestUniverse = newBestUniverse
                 globalBetter = true
             }
-            refreshGoodUniverses(gooUniverses, newUniverses, model)
+            refreshGoodIndividuals(gooUniverses, newUniverses, model, solutionAmount)
 
             model.flush()
             iteration.next(globalBetter)
@@ -216,32 +218,6 @@ class MultiVerseOptimizer<Obj, V>(
         }
 
         return gooUniverses.take(solutionAmount.toInt())
-    }
-
-    private fun refreshGoodUniverses(
-        goodUniverses: MutableList<SolutionWithFitness<V>>,
-        newUniverses: List<SolutionWithFitness<V>>,
-        model: AbstractCallBackModelInterface<Obj, V>
-    ) {
-        var i = 0
-        var j = 0
-        while (i != goodUniverses.size && j != newUniverses.size) {
-            if (model.compareObjective(newUniverses[j].fitness, goodUniverses[i].fitness) is Order.Less) {
-                goodUniverses.add(i, newUniverses[j])
-                ++i
-                ++j
-            } else {
-                ++i
-            }
-        }
-        if (j != newUniverses.size) {
-            goodUniverses.addAll(
-                newUniverses.subList(
-                    j,
-                    minOf(newUniverses.size, maxOf(j, solutionAmount.toInt() - goodUniverses.size))
-                )
-            )
-        }
     }
 }
 
