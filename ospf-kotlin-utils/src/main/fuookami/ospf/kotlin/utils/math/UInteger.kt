@@ -496,6 +496,8 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     fun toInt() = value.toInt()
     fun toLong() = value.toLong()
 
+    val indices get() = zero until this
+
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = Int16(value.toShort())
     override fun toInt32() = Int32(value.toInt())

@@ -90,39 +90,44 @@ interface LinearModel : Model {
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: LinearMonomial,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: AbstractLinearPolynomial<*>,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: LinearIntermediateSymbol,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: LinearInequality,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
     ): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -259,39 +264,44 @@ interface QuadraticModel : LinearModel {
     fun addConstraint(
         constraint: QuadraticMonomial,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
-        displayName: String?
+        displayName: String?,
+        withRangeSet: Boolean?
     ): Try {
-        return addConstraint(QuadraticInequality(constraint), name, displayName)
+        return addConstraint(QuadraticInequality(constraint), name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: AbstractQuadraticPolynomial<*>,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: QuadraticIntermediateSymbol,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, name, displayName)
+        return addConstraint(constraint eq true, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: QuadraticInequality,
         name: String? = null,
-        displayName: String? = null
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
     ): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")

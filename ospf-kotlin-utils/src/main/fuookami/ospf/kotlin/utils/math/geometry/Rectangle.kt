@@ -47,7 +47,7 @@ data class Rectangle<P : Point<D>, D : Dimension>(
     }
 
     val leftUpperPoint: Point<D> get() = Point(
-        leftUpperRightBottom.subList(0, p1.dim.size),
+        leftUpperRightBottom.take(p1.dim.size),
         p1.dim
     )
 

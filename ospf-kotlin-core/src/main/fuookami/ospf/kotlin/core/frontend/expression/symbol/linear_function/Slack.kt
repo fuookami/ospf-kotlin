@@ -99,28 +99,36 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            return if (withNegative && withPositive) {
-                val max = max(y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap(), x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap())
-                if (max leq Flt64.zero) {
-                    ValueRange(Flt64.zero, Flt64.zero).value!!
+            return try {
+                if (withNegative && withPositive) {
+                    val max = max(
+                        y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap(),
+                        x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()
+                    )
+                    if (max leq Flt64.zero) {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    } else {
+                        ValueRange(Flt64.zero, max).value!!
+                    }
+                } else if (withNegative) {
+                    val max = y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap()
+                    if (max leq Flt64.zero) {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    } else {
+                        ValueRange(Flt64.zero, max).value!!
+                    }
+                } else if (withPositive) {
+                    val max = x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()
+                    if (max leq Flt64.zero) {
+                        ValueRange(Flt64.zero, Flt64.zero).value!!
+                    } else {
+                        ValueRange(Flt64.zero, max).value!!
+                    }
                 } else {
-                    ValueRange(Flt64.zero, max).value!!
-                }
-            } else if (withNegative) {
-                val max = y.upperBound!!.value.unwrap() - x.lowerBound!!.value.unwrap()
-                if (max leq Flt64.zero) {
                     ValueRange(Flt64.zero, Flt64.zero).value!!
-                } else {
-                    ValueRange(Flt64.zero, max).value!!
                 }
-            } else if (withPositive) {
-                val max = x.upperBound!!.value.unwrap() - y.lowerBound!!.value.unwrap()
-                if (max leq Flt64.zero) {
-                    ValueRange(Flt64.zero, Flt64.zero).value!!
-                } else {
-                    ValueRange(Flt64.zero, max).value!!
-                }
-            } else {
+            } catch (e: Exception) {
+                e.printStackTrace()
                 ValueRange(Flt64.zero, Flt64.zero).value!!
             }
         }
@@ -137,11 +145,21 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (_neg != null && neg != null) {
             when (_neg) {
                 is UIntVar -> {
-                    (_neg!! as UIntVar).range.set(ValueRange(neg!!.lowerBound!!.value.unwrap().toUInt64(), neg!!.upperBound!!.value.unwrap().toUInt64()).value!!)
+                    (_neg!! as UIntVar).range.set(
+                        ValueRange(
+                            neg!!.lowerBound!!.value.unwrap().toUInt64(),
+                            neg!!.upperBound!!.value.unwrap().toUInt64()
+                        ).value!!
+                    )
                 }
 
                 is URealVar -> {
-                    (_neg!! as URealVar).range.set(ValueRange(neg!!.lowerBound!!.value.unwrap(), neg!!.upperBound!!.value.unwrap()).value!!)
+                    (_neg!! as URealVar).range.set(
+                        ValueRange(
+                            neg!!.lowerBound!!.value.unwrap(),
+                            neg!!.upperBound!!.value.unwrap()
+                        ).value!!
+                    )
                 }
             }
         }
@@ -149,11 +167,21 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (_pos != null && pos != null) {
             when (_pos) {
                 is UIntVar -> {
-                    (_pos!! as UIntVar).range.set(ValueRange(pos!!.lowerBound!!.value.unwrap().toUInt64(), pos!!.upperBound!!.value.unwrap().toUInt64()).value!!)
+                    (_pos!! as UIntVar).range.set(
+                        ValueRange(
+                            pos!!.lowerBound!!.value.unwrap().toUInt64(),
+                            pos!!.upperBound!!.value.unwrap().toUInt64()
+                        ).value!!
+                    )
                 }
 
                 is URealVar -> {
-                    (_pos!! as URealVar).range.set(ValueRange(pos!!.lowerBound!!.value.unwrap(), pos!!.upperBound!!.value.unwrap()).value!!)
+                    (_pos!! as URealVar).range.set(
+                        ValueRange(
+                            pos!!.lowerBound!!.value.unwrap(),
+                            pos!!.upperBound!!.value.unwrap()
+                        ).value!!
+                    )
                 }
             }
         }

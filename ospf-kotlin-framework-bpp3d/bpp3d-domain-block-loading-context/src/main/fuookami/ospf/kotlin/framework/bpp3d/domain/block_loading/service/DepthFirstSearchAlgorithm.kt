@@ -381,7 +381,7 @@ class DepthFirstSearchAlgorithm(
                                 break
                             }
                         }
-                        return@coroutineScope results.reversed().subList(0, min(branch, UInt64(results.size)).toInt())
+                        return@coroutineScope results.reversed().take(branch.toInt())
                     }
                     null
                 } ?: continue
@@ -493,7 +493,7 @@ class DepthFirstSearchAlgorithm(
             val promises = ArrayList<Deferred<Triple<Int, Space?, List<Space>>?>>()
             for (enabledSpace in enabledSpaces
                 .sortedWithThreeWayComparator { lhs, rhs -> config.spaceComparator(lhs, rhs, block) }
-                .subList(0, min(UInt64(enabledSpaces.size), config.branch).toInt())
+                .take(config.branch.toInt())
             ) {
                 promises.add(async(Dispatchers.Default) {
                     val thisUsedSpace = enabledSpace.put(block) ?: return@async null

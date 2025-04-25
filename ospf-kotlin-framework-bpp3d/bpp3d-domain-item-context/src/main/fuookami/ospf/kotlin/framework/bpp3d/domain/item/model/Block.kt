@@ -217,10 +217,10 @@ class LayeredBlock(
     val topItemView: ItemView = blocks.last().itemView
     val topItemOrientation: Orientation = blocks.last().itemOrientation
     val bottomLayer: UInt64 = blocks
-        .subList(0, blocks.indexOfFirst { it.item.type != bottomItem.type })
+        .takeWhile { it.item.type == bottomItem.type }
         .sumOf { it.layer }
     val topLayer: UInt64 = blocks
-        .subList(blocks.indexOfLast { it.item.type != topItem.type } + 1, blocks.size)
+        .takeLastWhile { it.item.type == topItem.type }
         .sumOf { it.layer }
 
     // inherited from ItemContainer<LayeredBlock>
