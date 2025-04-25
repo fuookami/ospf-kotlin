@@ -9,7 +9,7 @@ interface Migration<V> {
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>>
+    ): List<Pair<Population<T, V>, List<T>>>
 }
 
 data class RandomMigration<V>(
@@ -19,7 +19,7 @@ data class RandomMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 }
@@ -31,7 +31,7 @@ data class BetterToWorseMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 }
@@ -43,7 +43,7 @@ data class MoreToLessMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 }
@@ -55,7 +55,7 @@ data class MigrationMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 
@@ -119,7 +119,7 @@ data class RingExchangeMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 
@@ -150,7 +150,7 @@ data class RandomDiffusionMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 
@@ -179,7 +179,7 @@ data class ElitistMigrationMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 
@@ -221,7 +221,7 @@ data class PopulationMergeMigration<V>(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
-    ): List<Population<T, V>> {
+    ): List<Pair<Population<T, V>, List<T>>> {
         TODO("not implemented yet")
     }
 

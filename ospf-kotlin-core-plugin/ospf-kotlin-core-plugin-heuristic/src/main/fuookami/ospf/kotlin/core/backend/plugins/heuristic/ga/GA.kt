@@ -1,14 +1,19 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.ga
 
+import fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso.Particle
 import kotlin.time.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.random.*
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
+import fuookami.ospf.kotlin.core.backend.solver.heuristic.Cross
+import fuookami.ospf.kotlin.utils.memoryUseOver
 
 interface AbstractGeneAlgorithmPolicy<V> : AbstractHeuristicPolicy {
     fun <T : Individual<V>> migrate(
@@ -92,9 +97,9 @@ class GeneAlgorithm<Obj, V>(
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractGeneAlgorithmPolicy<V>,
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Chromosome<V>, List<AbstractPopulation<Chromosome<V>, V>>) -> Try)? = null
+        runningCallBack: ((Iteration, Chromosome<V>, List<Chromosome<V>>, List<AbstractPopulation<Chromosome<V>, V>>) -> Try)? = null
     ): List<Chromosome<V>> {
         val iteration = Iteration()
         val initialSolutions = model
@@ -105,7 +110,7 @@ class GeneAlgorithm<Obj, V>(
                     fitness = model.objective(it).ifNull { model.defaultObjective }
                 )
             }
-        val populations = population.mapIndexed { i, thisPopulation ->
+        var populations = population.mapIndexed { i, thisPopulation ->
             val fromIndex = population.take(i).sumOf { it.densityRange.lowerBound.value.unwrap() }
             val toIndex = fromIndex + thisPopulation.densityRange.upperBound.value.unwrap()
             val thisIndividuals = initialSolutions
@@ -134,12 +139,87 @@ class GeneAlgorithm<Obj, V>(
                 model.compareObjective(lhs.fitness, rhs.fitness)
             }
             .take(solutionAmount.toInt())
+            .toMutableList()
 
         while (!policy.finished(iteration)) {
-            TODO("not implemented yet")
+            var globalBetter = false
+
+            if (migrationPeriod > UInt64.zero && iteration.iteration % migrationPeriod == UInt64.zero) {
+                populations = policy.migrate(iteration, populations, model)
+            }
+
+            val newPopulationAndChromosomes = coroutineScope {
+                populations.map { population ->
+                    async(Dispatchers.Default) {
+                        val selected = policy.select(iteration, population, model)
+                        val crossed = policy.cross(iteration, selected, model, population.parentAmountRange)
+                        val mutated = policy.mutate(iteration, crossed, model, population.mutationRateRange)
+                        val combined = (crossed + mutated + population.elites).sortedWithPartialThreeWayComparator { lhs, rhs ->
+                            model.compareObjective(lhs.fitness, rhs.fitness)
+                        }
+                        AbstractPopulation(
+                            individuals = combined,
+                            elites = combined.take(population.eliteAmount.toInt()),
+                            best = combined.first(),
+                            eliteAmount =  population.eliteAmount,
+                            densityRange = population.densityRange,
+                            mutationRateRange = population.mutationRateRange,
+                            parentAmountRange = population.parentAmountRange
+                        ) to (crossed + mutated)
+                    }
+                }.awaitAll()
+            }
+            populations = newPopulationAndChromosomes.map { it.first }
+            val newChromosomes = newPopulationAndChromosomes
+                .flatMap { it.second }
+                .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                    model.compareObjective(lhs.fitness, rhs.fitness)
+                }
+            val newBestChromosome = newChromosomes.first()
+            refreshGoodChromosomes(goodChromosomes, newChromosomes, model)
+            if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
+                bestChromosome = goodChromosomes.first()
+                globalBetter = true
+            }
+
+            model.flush()
+            iteration.next(globalBetter)
+            if (memoryUseOver()) {
+                System.gc()
+            }
+
+            if (runningCallBack?.invoke(iteration, bestChromosome, goodChromosomes, populations) is Failed) {
+                break
+            }
         }
 
         return goodChromosomes.take(solutionAmount.toInt())
+    }
+
+    private fun refreshGoodChromosomes(
+        goodChromosomes: MutableList<Chromosome<V>>,
+        newChromosomes: List<Chromosome<V>>,
+        model: AbstractCallBackModelInterface<Obj, V>
+    ) {
+        var i = 0
+        var j = 0
+        while (i != goodChromosomes.size && j != newChromosomes.size) {
+            if (model.compareObjective(newChromosomes[j].fitness, goodChromosomes[i].fitness) is Order.Less) {
+                goodChromosomes.add(i, newChromosomes[j])
+                ++i
+                ++j
+            } else {
+                ++i
+            }
+        }
+        if (j != newChromosomes.size) {
+            goodChromosomes.addAll(
+                newChromosomes.subList(
+                    j,
+                    minOf(newChromosomes.size, maxOf(j, solutionAmount.toInt() - goodChromosomes.size))
+                )
+            )
+        }
     }
 }
 

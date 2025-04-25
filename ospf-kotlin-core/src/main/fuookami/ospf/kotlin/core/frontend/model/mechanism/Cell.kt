@@ -4,9 +4,9 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 
 sealed interface Cell {
-    fun value(): Flt64?
-    fun value(solution: List<Flt64>): Flt64
-    fun value(solution: Map<VariableItemKey, Flt64>): Flt64?
+    fun evaluate(): Flt64?
+    fun evaluate(solution: List<Flt64>): Flt64
+    fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64?
 }
 
 class LinearCell(
@@ -14,15 +14,15 @@ class LinearCell(
     val coefficient: Flt64,
     val token: Token
 ) : Cell {
-    override fun value(): Flt64? {
+    override fun evaluate(): Flt64? {
         return token.result?.let { coefficient * it }
     }
 
-    override fun value(solution: List<Flt64>): Flt64 {
+    override fun evaluate(solution: List<Flt64>): Flt64 {
         return coefficient * solution[tokenTable.tokenIndexMap[token]!!]
     }
 
-    override fun value(solution: Map<VariableItemKey, Flt64>): Flt64? {
+    override fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64? {
         return solution[token.key]?.let { coefficient * it }
     }
 
@@ -41,7 +41,7 @@ class QuadraticCell(
     val token1: Token,
     val token2: Token? = null
 ) : Cell {
-    override fun value(): Flt64? {
+    override fun evaluate(): Flt64? {
         return if (token2 == null) {
             token1.result?.let { coefficient * it }
         } else {
@@ -49,7 +49,7 @@ class QuadraticCell(
         }
     }
 
-    override fun value(solution: List<Flt64>): Flt64 {
+    override fun evaluate(solution: List<Flt64>): Flt64 {
         return if (token2 == null) {
             coefficient * solution[tokenTable.tokenIndexMap[token1]!!]
         } else {
@@ -57,7 +57,7 @@ class QuadraticCell(
         }
     }
 
-    override fun value(solution: Map<VariableItemKey, Flt64>): Flt64? {
+    override fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64? {
         return if (token2 == null) {
             solution[token1.key]?.let { coefficient * it }
         } else {

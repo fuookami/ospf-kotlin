@@ -249,7 +249,8 @@ abstract class AbstractMetaModel(
     val category: Category,
     manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
-    internal val dumpBlocking: Boolean = false
+    internal val dumpBlocking: Boolean = false,
+    internal val withRangeSet: Boolean = false
 ) : MetaModel {
     override val tokens: AbstractMutableTokenTable = if (concurrent) {
         if (manualTokenAddition) {
@@ -298,8 +299,9 @@ class LinearMetaModel(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     manualTokenAddition: Boolean = true,
     concurrent: Boolean = true,
-    dumpBlocking: Boolean = false
-) : AbstractMetaModel(Linear, manualTokenAddition, concurrent, dumpBlocking), AbstractLinearMetaModel {
+    dumpBlocking: Boolean = false,
+    withRangeSet: Boolean = true
+) : AbstractMetaModel(Linear, manualTokenAddition, concurrent, dumpBlocking, withRangeSet), AbstractLinearMetaModel {
     internal val _constraints: MutableList<LinearInequality> = ArrayList()
     override val constraints: List<Inequality<*, *>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
@@ -308,13 +310,15 @@ class LinearMetaModel(
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
-        displayName: String?
+        displayName: String?,
+        withRangeSet: Boolean?
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
         _constraints.add(constraint)
         
-        if (constraint.lhs.monomials.size == 1
+        if (withRangeSet ?: this.withRangeSet
+            && constraint.lhs.monomials.size == 1
             && !constraint.lhs.monomials.first().pure
             && constraint.rhs.monomials.isEmpty()
         ) {
@@ -363,8 +367,9 @@ class QuadraticMetaModel(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     manualTokenAddition: Boolean = true,
     concurrent: Boolean = true,
-    dumpBlocking: Boolean = false
-) : AbstractMetaModel(Quadratic, manualTokenAddition, concurrent, dumpBlocking), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
+    dumpBlocking: Boolean = false,
+    withRangeSet: Boolean = true
+) : AbstractMetaModel(Quadratic, manualTokenAddition, concurrent, dumpBlocking, withRangeSet), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
     internal val _constraints: MutableList<QuadraticInequality> = ArrayList()
     override val constraints: List<Inequality<*, *>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
@@ -373,13 +378,14 @@ class QuadraticMetaModel(
     override fun addConstraint(
         constraint: QuadraticInequality,
         name: String?,
-        displayName: String?
+        displayName: String?,
+        withRangeSet: Boolean?
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
         _constraints.add(constraint)
 
-        if (constraint.lhs.monomials.size == 1
+        if (withRangeSet ?: this.withRangeSet
             && !constraint.lhs.monomials.first().pure
             && constraint.lhs.monomials.first().symbol.symbol2 == null
             && constraint.rhs.monomials.isEmpty()
