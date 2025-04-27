@@ -13,14 +13,6 @@ interface Mutation<V> {
     ): Solution
 }
 
-//interface MutationOperation {
-//    operator fun invoke(
-//        chromosome: Chromosome,
-//        mutationRate: Flt64,
-//        model: CallBackModelInterface
-//    ): Chromosome?
-//}
-//
 //class UniformMutationOperation(
 //    val rng: Random
 //) : MutationOperation {

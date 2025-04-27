@@ -37,7 +37,8 @@ class ParallelCombinatorialColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean,
-        statusCallBack: SolvingStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
@@ -130,7 +131,8 @@ class ParallelCombinatorialColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean,
-        statusCallBack: SolvingStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<ColumnGenerationSolver.LPResult> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {

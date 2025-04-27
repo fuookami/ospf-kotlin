@@ -27,13 +27,19 @@ class CplexColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean,
-        statusCallBack: SolvingStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearMechanismModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(
+            metaModel = metaModel,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpMechanismModelBlocking,
+            registrationStatusCallBack = registrationStatusCallBack
+        )) {
             is Ok -> {
                 LinearTriadModel(result.value)
             }
@@ -52,7 +58,7 @@ class CplexColumnGenerationSolver(
             callBack = callBack.copy()
         )
 
-        return when (val result = solver(model, statusCallBack)) {
+        return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.forEach { it.join() }
@@ -72,13 +78,19 @@ class CplexColumnGenerationSolver(
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean,
-        statusCallBack: SolvingStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearMechanismModel(metaModel)) {
+        val model = when (val result = LinearMechanismModel(
+            metaModel = metaModel,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpMechanismModelBlocking,
+            registrationStatusCallBack = registrationStatusCallBack
+        )) {
             is Ok -> {
                 LinearTriadModel(result.value)
             }
@@ -125,7 +137,7 @@ class CplexColumnGenerationSolver(
                 }
         )
 
-        return when (val result = solver(model, statusCallBack)) {
+        return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
@@ -145,13 +157,19 @@ class CplexColumnGenerationSolver(
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean,
-        statusCallBack: SolvingStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
         }
-        val model = when (val result = LinearMechanismModel(metaModel, config.dumpMechanismModelConcurrent)) {
+        val model = when (val result = LinearMechanismModel(
+            metaModel = metaModel,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpMechanismModelBlocking,
+            registrationStatusCallBack = registrationStatusCallBack
+        )) {
             is Ok -> {
                 LinearTriadModel(result.value, config.dumpIntermediateModelConcurrent)
             }
@@ -180,7 +198,7 @@ class CplexColumnGenerationSolver(
                 }
         )
 
-        return when (val result = solver(model, statusCallBack)) {
+        return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.forEach { it.join() }

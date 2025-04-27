@@ -11,14 +11,6 @@ interface Cross<V> {
     ): List<Solution>
 }
 
-//
-//interface CrossOperation {
-//    operator fun invoke(
-//        population: Population,
-//        modelInterface: CallBackModelInterface
-//    ): List<Chromosome<*>>
-//}
-//
 //data object OnePointCrossOperation : CrossOperation {
 //    override fun invoke(population: Population, modelInterface: CallBackModelInterface): List<Chromosome> {
 //        TODO("Not yet implemented")

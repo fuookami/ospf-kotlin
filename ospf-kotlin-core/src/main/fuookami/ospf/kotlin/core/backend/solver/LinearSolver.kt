@@ -16,79 +16,80 @@ interface AbstractLinearSolver {
 
     suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput>
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@AbstractLinearSolver.invoke(model, statusCallBack)
+            return@future this@AbstractLinearSolver.invoke(model, solvingStatusCallBack)
         }
     }
 
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolverOutput, List<Solution>>>
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@AbstractLinearSolver.invoke(model, solutionAmount, statusCallBack)
+            return@future this@AbstractLinearSolver.invoke(model, solutionAmount, solvingStatusCallBack)
         }
     }
 
     suspend operator fun invoke(
         model: LinearMechanismModel,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput> {
         val intermediateModel = dump(model)
-        return this(intermediateModel, statusCallBack)
+        return this(intermediateModel, solvingStatusCallBack)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMechanismModel,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@AbstractLinearSolver.invoke(model, statusCallBack)
+            return@future this@AbstractLinearSolver.invoke(model, solvingStatusCallBack)
         }
     }
 
     suspend operator fun invoke(
         model: LinearMechanismModel,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         val intermediateModel = dump(model)
-        return this(intermediateModel, solutionAmount, statusCallBack)
+        return this(intermediateModel, solutionAmount, solvingStatusCallBack)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMechanismModel,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@AbstractLinearSolver.invoke(model, solutionAmount, statusCallBack)
+            return@future this@AbstractLinearSolver.invoke(model, solutionAmount, solvingStatusCallBack)
         }
     }
 
     suspend operator fun invoke(
         model: LinearMetaModel,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput> {
-        val mechanismModel = when (val result = dump(model)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -97,25 +98,27 @@ interface AbstractLinearSolver {
                 return Failed(result.error)
             }
         }
-        return this(mechanismModel, statusCallBack)
+        return this(mechanismModel, solvingStatusCallBack)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMetaModel,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@AbstractLinearSolver.invoke(model, statusCallBack)
+            return@future this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
 
     suspend operator fun invoke(
         model: LinearMetaModel,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -124,18 +127,19 @@ interface AbstractLinearSolver {
                 return Failed(result.error)
             }
         }
-        return this(mechanismModel, solutionAmount, statusCallBack)
+        return this(mechanismModel, solutionAmount, solvingStatusCallBack)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMetaModel,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack? = null,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
         callback: (Ret<Pair<SolverOutput, List<Solution>>>) -> Unit
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, statusCallBack)
+            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack)
             callback(result)
             return@future result
         }
@@ -145,8 +149,14 @@ interface AbstractLinearSolver {
         return LinearTriadModel(model)
     }
 
-    suspend fun dump(model: LinearMetaModel): Ret<LinearMechanismModel> {
-        return LinearMechanismModel(model)
+    suspend fun dump(
+        model: LinearMetaModel,
+        registrationStatusCallBack: RegistrationStatusCallBack?
+    ): Ret<LinearMechanismModel> {
+        return LinearMechanismModel(
+            metaModel = model,
+            registrationStatusCallBack = registrationStatusCallBack
+        )
     }
 }
 
@@ -157,7 +167,15 @@ interface LinearSolver : AbstractLinearSolver {
         return LinearTriadModel(model, config.dumpIntermediateModelConcurrent)
     }
 
-    override suspend fun dump(model: LinearMetaModel): Ret<LinearMechanismModel> {
-        return LinearMechanismModel(model, config.dumpMechanismModelConcurrent)
+    override suspend fun dump(
+        model: LinearMetaModel,
+        registrationStatusCallBack: RegistrationStatusCallBack?
+    ): Ret<LinearMechanismModel> {
+        return LinearMechanismModel(
+            metaModel = model,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpIntermediateModelConcurrent,
+            registrationStatusCallBack = registrationStatusCallBack
+        )
     }
 }

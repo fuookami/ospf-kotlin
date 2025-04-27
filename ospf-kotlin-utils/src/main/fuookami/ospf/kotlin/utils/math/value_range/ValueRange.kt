@@ -636,6 +636,18 @@ operator fun <T> T.times(valueRange: ValueRange<T>): ValueRange<T>? where T : Re
     return valueRange * this
 }
 
+fun <T> T.coerceIn(valueRange: ValueRange<T>): T where T : RealNumber<T>, T : NumberField<T> {
+    val lb = valueRange.lowerBound.value.unwrapOrNull()
+    val ub = valueRange.upperBound.value.unwrapOrNull()
+    return if (lb != null && this ord lb is Order.Less) {
+        lb
+    } else if (ub != null && this ord ub is Order.Greater) {
+        ub
+    } else {
+        this
+    }
+}
+
 @JvmName("negValueRangeFlt32")
 operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
     -upperBound,
