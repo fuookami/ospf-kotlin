@@ -442,12 +442,24 @@ sealed class ConcurrentMutableTokenTable(
         }
         return value
     }
+
+    internal fun cacheEmptySymbols(symbols: List<IntermediateSymbol>) {
+        synchronized(lock) {
+            cachedSymbolValue.putAll(symbols.associate {
+                Pair(it to null, Flt64.zero)
+            })
+        }
+    }
 }
 
 suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutableTokenTable): Try {
     return coroutineScope {
-        val completedSymbols = HashSet<IntermediateSymbol>()
-        var dependencies = this@register.associateWith { it.dependencies.toMutableSet() }.toMap()
+        val (emptySymbols, notEmptySymbols) = this@register.partition {
+            it is ExpressionSymbol && it.polynomial.monomials.isEmpty() && it.polynomial.constant eq Flt64.zero
+        }
+        tokenTable.cacheEmptySymbols(emptySymbols)
+        val completedSymbols = emptySymbols.toMutableSet()
+        var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {
