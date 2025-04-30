@@ -17,7 +17,8 @@ interface ColumnGenerationSolver {
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean = false,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput>
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -25,10 +26,11 @@ interface ColumnGenerationSolver {
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean = false,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, toLogModel, statusCallBack)
+            return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
 
@@ -37,9 +39,10 @@ interface ColumnGenerationSolver {
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean = false,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        return solveMILP(name, metaModel, toLogModel, statusCallBack)
+        return solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
             .map { Pair(it, listOf(it.solution)) }
     }
 
@@ -49,10 +52,11 @@ interface ColumnGenerationSolver {
         metaModel: LinearMetaModel,
         amount: UInt64,
         toLogModel: Boolean = false,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, amount, toLogModel, statusCallBack)
+            return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, amount, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
 
@@ -71,7 +75,8 @@ interface ColumnGenerationSolver {
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean = false,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<LPResult>
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -79,10 +84,11 @@ interface ColumnGenerationSolver {
         name: String,
         metaModel: LinearMetaModel,
         toLogModel: Boolean = false,
-        statusCallBack: SolvingStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LPResult>> {
         return GlobalScope.future {
-            return@future this@ColumnGenerationSolver.solveLP(name, metaModel, toLogModel, statusCallBack)
+            return@future this@ColumnGenerationSolver.solveLP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
 }

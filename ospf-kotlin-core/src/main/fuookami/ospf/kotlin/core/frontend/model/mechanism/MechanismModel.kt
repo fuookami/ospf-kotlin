@@ -55,12 +55,13 @@ class LinearMechanismModel(
         suspend operator fun invoke(
             metaModel: LinearMetaModel,
             concurrent: Boolean? = null,
-            blocking: Boolean? = null
+            blocking: Boolean? = null,
+            registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<LinearMechanismModel> {
             logger.info { "Creating LinearMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens)) {
+            val tokens = when (val result = unfold(metaModel.tokens, registrationStatusCallBack)) {
                 is Ok -> {
                     result.value
                 }
@@ -205,11 +206,14 @@ class LinearMechanismModel(
             )
         }
 
-        private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
+        private suspend fun unfold(
+            tokens: AbstractMutableTokenTable,
+            callBack: RegistrationStatusCallBack? = null
+        ): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp)) {
+                    when (val result = tokens.symbols.register(temp, callBack)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -222,7 +226,7 @@ class LinearMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp)) {
+                    when (val result = tokens.symbols.register(temp, callBack)) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }
@@ -266,12 +270,13 @@ class QuadraticMechanismModel(
         suspend operator fun invoke(
             metaModel: QuadraticMetaModel,
             concurrent: Boolean? = null,
-            blocking: Boolean? = null
+            blocking: Boolean? = null,
+            registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<QuadraticMechanismModel> {
             logger.info { "Creating QuadraticMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens)) {
+            val tokens = when (val result = unfold(metaModel.tokens, registrationStatusCallBack)) {
                 is Ok -> {
                     result.value
                 }
@@ -411,11 +416,14 @@ class QuadraticMechanismModel(
             )
         }
 
-        private suspend fun unfold(tokens: AbstractMutableTokenTable): Ret<AbstractTokenTable> {
+        private suspend fun unfold(
+            tokens: AbstractMutableTokenTable,
+            callBack: RegistrationStatusCallBack? = null
+        ): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp)) {
+                    when (val result = tokens.symbols.register(temp, callBack)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -428,7 +436,7 @@ class QuadraticMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp)) {
+                    when (val result = tokens.symbols.register(temp, callBack)) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }
