@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.Cross
 
-interface AbstractGeneAlgorithmPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractGAPolicy<V> : AbstractHeuristicPolicy {
     suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
@@ -43,7 +43,7 @@ interface AbstractGeneAlgorithmPolicy<V> : AbstractHeuristicPolicy {
     ): List<Chromosome<V>>
 }
 
-class GeneAlgorithmPolicy<V>(
+class GAPolicy<V>(
     val migration: Migration<V>,
     val selectionMode: SelectionMode<V>,
     val selection: Selection,
@@ -56,7 +56,7 @@ class GeneAlgorithmPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGeneAlgorithmPolicy<V> {
+) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGAPolicy<V> {
     override suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
@@ -149,7 +149,7 @@ class GeneAlgorithm<Obj, V>(
     val population: List<PopulationBuilder>,
     val migrationPeriod: UInt64,
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractGeneAlgorithmPolicy<V>,
+    val policy: AbstractGAPolicy<V>,
 ) {
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
@@ -232,7 +232,7 @@ class GeneAlgorithm<Obj, V>(
             val newBestChromosome = newChromosomes.first()
             refreshGoodIndividuals(goodChromosomes, newChromosomes, model, solutionAmount)
             if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
-                bestChromosome = goodChromosomes.first()
+                bestChromosome = newBestChromosome
                 globalBetter = true
             }
 
