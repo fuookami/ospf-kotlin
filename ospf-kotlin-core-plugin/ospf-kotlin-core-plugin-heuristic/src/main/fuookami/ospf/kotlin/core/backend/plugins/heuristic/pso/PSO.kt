@@ -42,7 +42,7 @@ open class PSOPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V> {
         return particle.new(
-            (0 until particle.size).map {
+            newVelocity = (0 until particle.size).map {
                 val newVelocity = w * particle.velocity[it] +
                         c1 * randomGenerator()!! * (particle.currentBest?.position?.get(it)
                     ?.let { pos -> pos - particle.position[it] } ?: Flt64.zero) +
@@ -55,7 +55,9 @@ open class PSOPolicy<V>(
                     newVelocity
                 }
             },
-            model
+            iteration = iteration,
+            policy = this,
+            model = model
         )
     }
 }
@@ -96,7 +98,9 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
                         model = model
                     )
                 }
-                .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
+                .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                    model.compareObjective(lhs.fitness, rhs.fitness)
+                }
             val newBestParticle = newParticles.first()
             particles = newParticles
             if (model.compareObjective(newBestParticle.fitness, bestParticle.fitness) is Order.Less) {
@@ -106,6 +110,14 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
             refreshGoodIndividuals(goodParticles, newParticles, model, solutionAmount)
 
             model.flush()
+            policy.update(
+                iteration = iteration,
+                better = globalBetter,
+                bestIndividual = bestParticle,
+                goodIndividuals = goodParticles,
+                populations = listOf(particles),
+                model = model
+            )
             iteration.next(globalBetter)
             if (memoryUseOver()) {
                 System.gc()

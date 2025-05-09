@@ -108,10 +108,18 @@ class GAPolicy<V>(
         return coroutineScope {
             parentGroups.map { parents ->
                 async(Dispatchers.Default) {
-                    cross(iteration, parents, model).map {
+                    cross(iteration, parents, model).map { newIndividual ->
+                        val fixIndividual = newIndividual.mapIndexed { i, value ->
+                            coerceIn(
+                                iteration = iteration,
+                                index = i,
+                                value = value,
+                                model = model
+                            )
+                        }
                         Chromosome(
-                            solution = it,
-                            fitness = model.objective(it).ifNull { model.defaultObjective }
+                            solution = fixIndividual,
+                            fitness = model.objective(fixIndividual).ifNull { model.defaultObjective }
                         )
                     }
                 }
@@ -132,9 +140,17 @@ class GAPolicy<V>(
                 async(Dispatchers.Default) {
                     if (randomGenerator()!! geq mutationRate[i]) {
                         val newIndividual = mutation(iteration, individual, model, mutationRate[i])
+                        val fixIndividual = newIndividual.mapIndexed { i, value ->
+                            coerceIn(
+                                iteration = iteration,
+                                index = i,
+                                value = value,
+                                model = model
+                            )
+                        }
                         Chromosome(
-                            solution = newIndividual,
-                            fitness = model.objective(newIndividual).ifNull { model.defaultObjective }
+                            solution = fixIndividual,
+                            fitness = model.objective(fixIndividual).ifNull { model.defaultObjective }
                         )
                     } else {
                         null
@@ -208,9 +224,10 @@ class GeneAlgorithm<Obj, V>(
                         val selected = policy.select(iteration, population, model)
                         val crossed = policy.cross(iteration, selected, model, population.parentAmountRange)
                         val mutated = policy.mutate(iteration, crossed, model, population.mutationRateRange)
-                        val combined = (crossed + mutated + population.elites).sortedWithPartialThreeWayComparator { lhs, rhs ->
-                            model.compareObjective(lhs.fitness, rhs.fitness)
-                        }
+                        val combined = (crossed + mutated + population.elites)
+                            .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                                model.compareObjective(lhs.fitness, rhs.fitness)
+                            }
                         AbstractPopulation(
                             individuals = combined,
                             elites = combined.take(population.eliteAmount.toInt()),
@@ -230,13 +247,26 @@ class GeneAlgorithm<Obj, V>(
                     model.compareObjective(lhs.fitness, rhs.fitness)
                 }
             val newBestChromosome = newChromosomes.first()
-            refreshGoodIndividuals(goodChromosomes, newChromosomes, model, solutionAmount)
+            refreshGoodIndividuals(
+                goodIndividuals = goodChromosomes,
+                newIndividuals = newChromosomes,
+                model = model,
+                solutionAmount = solutionAmount
+            )
             if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
                 bestChromosome = newBestChromosome
                 globalBetter = true
             }
 
             model.flush()
+            policy.update(
+                iteration = iteration,
+                better = globalBetter,
+                bestIndividual = bestChromosome,
+                goodIndividuals = goodChromosomes,
+                populations = populations.map { it.individuals },
+                model = model
+            )
             iteration.next(globalBetter)
             if (memoryUseOver()) {
                 System.gc()

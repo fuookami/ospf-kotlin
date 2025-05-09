@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
  *
  * @property markovLength               the length of the markov chain
  */
-interface AbstractSAAPolicy<V> {
+interface AbstractSAAPolicy<V> : AbstractHeuristicPolicy {
     val markovLength: UInt64
 
     fun transformSolution(
@@ -34,8 +34,6 @@ interface AbstractSAAPolicy<V> {
     ): Boolean
 
     fun improve()
-
-    fun finished(iteration: Iteration): Boolean
 }
 
 /**
@@ -111,7 +109,12 @@ open class SAAPolicy<V>(
         for (point in disturbancePoints) {
             val token = model.tokens[point]
             val newValue = newSolution[point] + step * (token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()) * randomGenerator()!!
-            newSolution[point] = newValue.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
+            newSolution[point] = coerceIn(
+                iteration = iteration,
+                index = point,
+                value = newValue,
+                model = model
+            )
         }
         return newSolution
     }
@@ -207,6 +210,14 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
             }
 
             model.flush()
+            policy.update(
+                iteration = iteration,
+                better = globalBetter,
+                bestIndividual = bestSolution,
+                goodIndividuals = listOf(bestSolution),
+                populations = listOf(listOf(currentSolution)),
+                model = model
+            )
             iteration.next(globalBetter)
             if (memoryUseOver()) {
                 System.gc()

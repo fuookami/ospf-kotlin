@@ -47,8 +47,10 @@ class GWOPolicy<V>(
 ) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGWOPolicy<V> {
     override fun a(iteration: Iteration): List<Flt64> {
         val iterationCoefficient = min(
-            ((iteration.iteration.toFlt64() * Flt64.pi) / (Flt64.two * iterationLimit.toFlt64())).exp(),
-            ((Flt64(iteration.time.toDouble(DurationUnit.SECONDS)) * Flt64.pi) / (Flt64.two * Flt64(timeLimit.toDouble(DurationUnit.SECONDS)))).exp()
+            ((iteration.iteration.toFlt64() * Flt64.pi)
+                    / (Flt64.two * iterationLimit.toFlt64())).exp(),
+            ((Flt64(iteration.time.toDouble(DurationUnit.SECONDS)) * Flt64.pi)
+                    / (Flt64.two * Flt64(timeLimit.toDouble(DurationUnit.SECONDS)))).exp()
         )
         val alphaA = (maxA * iterationCoefficient).pow(growthRateAlpha * (minA / maxA).lg2()!!).toFlt64()
         val betaA = (maxA * iterationCoefficient).pow(growthRateBeta * (minA / maxA).lg2()!!).toFlt64()
@@ -63,7 +65,12 @@ class GWOPolicy<V>(
     ): List<Wolf<V>> {
         fun Wolf<V>.randomWalk(): Wolf<V> {
             val newSolution = solution.mapIndexed { i, position ->
-                position + (randomGenerator()!! * Flt64.two - Flt64.one) * a[i]
+                coerceIn(
+                    iteration = iteration,
+                    index = i,
+                    value = position + (randomGenerator()!! * Flt64.two - Flt64.one) * a[i],
+                    model
+                )
             }
             return Wolf(
                 newSolution,
@@ -86,7 +93,6 @@ class GWOPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>
     ): Wolf<V> {
         val newSolution = wolf.solution.mapIndexed { i, position ->
-            val token = model.tokens[i]
             val a1 = a[0] * (Flt64.two * randomGenerator()!! - Flt64.one)
             val a2 = a[1] * (Flt64.two * randomGenerator()!! - Flt64.one)
             val a3 = a[2] * (Flt64.two * randomGenerator()!! - Flt64.one)
@@ -97,7 +103,12 @@ class GWOPolicy<V>(
             val x2 = leaders.beta.solution[i] - a2 * (c2 * leaders.beta.solution[i] - position).abs()
             val x3 = leaders.delta.solution[i] - a3 * (c3 * leaders.delta.solution[i] - position).abs()
             val newPosition = (x1 + x2 + x3) / Flt64.three
-            newPosition.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
+            coerceIn(
+                iteration = iteration,
+                index = i,
+                value = newPosition,
+                model = model
+            )
         }
         return Wolf(
             newSolution,
@@ -184,9 +195,10 @@ class GreyWolfOptimizer<Obj, V>(
                             a = a,
                             model = model
                         )
-                        val wolfs = (movedWolfs.subList(3, movedWolfs.size) + perturbedLeaders).sortedWithPartialThreeWayComparator { lhs, rhs ->
-                            model.compareObjective(lhs.fitness, rhs.fitness)
-                        }
+                        val wolfs = (movedWolfs.subList(3, movedWolfs.size) + perturbedLeaders)
+                            .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                                model.compareObjective(lhs.fitness, rhs.fitness)
+                            }
                         AbstractPopulation(
                             individuals = wolfs,
                             elites = wolfs.take(population.eliteAmount.toInt()),
@@ -213,6 +225,14 @@ class GreyWolfOptimizer<Obj, V>(
             }
 
             model.flush()
+            policy.update(
+                iteration = iteration,
+                better = globalBetter,
+                bestIndividual = bestWolf,
+                goodIndividuals = goodWolfs,
+                populations = populations.map { it.individuals },
+                model = model
+            )
             iteration.next(globalBetter)
             if (memoryUseOver()) {
                 System.gc()
