@@ -139,7 +139,7 @@ sealed class MutableTokenTable(
     private val _symbolsMap: MutableMap<String, IntermediateSymbol> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
 
-    private val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
+    internal val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
@@ -214,9 +214,19 @@ sealed class MutableTokenTable(
     }
 }
 
-fun Collection<IntermediateSymbol>.register(tokenTable: MutableTokenTable): Try {
-    val completedSymbols = HashSet<IntermediateSymbol>()
-    var dependencies = this@register.associateWith { it.dependencies.toMutableSet() }.toMap()
+fun Collection<IntermediateSymbol>.register(
+    tokenTable: MutableTokenTable,
+    callBack: RegistrationStatusCallBack? = null
+): Try {
+    val (emptySymbols, notEmptySymbols) = this@register.partition {
+        it is ExpressionSymbol && it.polynomial.monomials.isEmpty() && it.polynomial.constant eq Flt64.zero
+    }
+    tokenTable.cachedSymbolValue.putAll(emptySymbols.associate {
+        Pair(it to null, Flt64.zero)
+    })
+
+    val completedSymbols = emptySymbols.toMutableSet()
+    var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
@@ -236,6 +246,12 @@ fun Collection<IntermediateSymbol>.register(tokenTable: MutableTokenTable): Try 
         if (memoryUseOver()) {
             System.gc()
         }
+        callBack?.invoke(
+            RegistrationStatus(
+                readySymbolAmount = completedSymbols.usize + readySymbols.usize,
+                totalSymbolAmount = tokenTable.symbols.usize
+            )
+        )
 
         completedSymbols.addAll(readySymbols)
         val newReadySymbols = dependencies.filter {
@@ -360,8 +376,8 @@ sealed class ConcurrentMutableTokenTable(
     private val _symbolsMap: MutableMap<String, IntermediateSymbol> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
 
-    private val lock = Any()
-    private val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
+    internal val lock = Any()
+    internal val cachedSymbolValue: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
@@ -444,10 +460,21 @@ sealed class ConcurrentMutableTokenTable(
     }
 }
 
-suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutableTokenTable): Try {
+suspend fun Collection<IntermediateSymbol>.register(
+    tokenTable: ConcurrentMutableTokenTable,
+    callBack: RegistrationStatusCallBack? = null
+): Try {
     return coroutineScope {
-        val completedSymbols = HashSet<IntermediateSymbol>()
-        var dependencies = this@register.associateWith { it.dependencies.toMutableSet() }.toMap()
+        val (emptySymbols, notEmptySymbols) = this@register.partition {
+            it is ExpressionSymbol && it.polynomial.monomials.isEmpty() && it.polynomial.constant eq Flt64.zero
+        }
+        synchronized(tokenTable.lock) {
+            tokenTable.cachedSymbolValue.putAll(emptySymbols.associate {
+                Pair(it to null, Flt64.zero)
+            })
+        }
+        val completedSymbols = emptySymbols.toMutableSet()
+        var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {
@@ -467,6 +494,8 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
             }
 
             if (Runtime.getRuntime().availableProcessors() > 1) {
+                val thisCompletedSymbolAmountLock = Any()
+                var thisCompletedSymbolAmount = UInt64.zero
                 val jobs = if (Runtime.getRuntime().availableProcessors() > 2) {
                     val factor = Flt64(readySymbols.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val segment = if (factor >= 1) {
@@ -477,11 +506,22 @@ suspend fun Collection<IntermediateSymbol>.register(tokenTable: ConcurrentMutabl
                     val readySymbolList = readySymbols.toList()
                     (0..(readySymbolList.size / segment)).map { i ->
                         async(Dispatchers.Default) {
-                            readySymbolList.subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment)).map {
+                            val thisReadSymbol = readySymbolList.subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment))
+                            thisReadSymbol.forEach {
                                 it.prepare(tokenTable)
                             }
                             if (memoryUseOver()) {
                                 System.gc()
+                            }
+
+                            if (callBack != null) {
+                                synchronized(thisCompletedSymbolAmountLock) {
+                                    thisCompletedSymbolAmount += thisReadSymbol.usize
+                                    RegistrationStatus(
+                                        readySymbolAmount = completedSymbols.usize + thisCompletedSymbolAmount,
+                                        totalSymbolAmount = tokenTable.symbols.usize
+                                    )
+                                }
                             }
                         }
                     }

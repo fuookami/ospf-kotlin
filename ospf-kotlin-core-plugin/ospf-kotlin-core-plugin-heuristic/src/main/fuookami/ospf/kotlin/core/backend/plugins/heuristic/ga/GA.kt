@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.Cross
 
-interface AbstractGeneAlgorithmPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractGAPolicy<V> : AbstractHeuristicPolicy {
     suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
@@ -43,7 +43,7 @@ interface AbstractGeneAlgorithmPolicy<V> : AbstractHeuristicPolicy {
     ): List<Chromosome<V>>
 }
 
-class GeneAlgorithmPolicy<V>(
+class GAPolicy<V>(
     val migration: Migration<V>,
     val selectionMode: SelectionMode<V>,
     val selection: Selection,
@@ -56,7 +56,7 @@ class GeneAlgorithmPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGeneAlgorithmPolicy<V> {
+) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGAPolicy<V> {
     override suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
@@ -108,10 +108,18 @@ class GeneAlgorithmPolicy<V>(
         return coroutineScope {
             parentGroups.map { parents ->
                 async(Dispatchers.Default) {
-                    cross(iteration, parents, model).map {
+                    cross(iteration, parents, model).map { newIndividual ->
+                        val fixIndividual = newIndividual.mapIndexed { i, value ->
+                            coerceIn(
+                                iteration = iteration,
+                                index = i,
+                                value = value,
+                                model = model
+                            )
+                        }
                         Chromosome(
-                            solution = it,
-                            fitness = model.objective(it).ifNull { model.defaultObjective }
+                            solution = fixIndividual,
+                            fitness = model.objective(fixIndividual).ifNull { model.defaultObjective }
                         )
                     }
                 }
@@ -132,9 +140,17 @@ class GeneAlgorithmPolicy<V>(
                 async(Dispatchers.Default) {
                     if (randomGenerator()!! geq mutationRate[i]) {
                         val newIndividual = mutation(iteration, individual, model, mutationRate[i])
+                        val fixIndividual = newIndividual.mapIndexed { i, value ->
+                            coerceIn(
+                                iteration = iteration,
+                                index = i,
+                                value = value,
+                                model = model
+                            )
+                        }
                         Chromosome(
-                            solution = newIndividual,
-                            fitness = model.objective(newIndividual).ifNull { model.defaultObjective }
+                            solution = fixIndividual,
+                            fitness = model.objective(fixIndividual).ifNull { model.defaultObjective }
                         )
                     } else {
                         null
@@ -149,7 +165,7 @@ class GeneAlgorithm<Obj, V>(
     val population: List<PopulationBuilder>,
     val migrationPeriod: UInt64,
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractGeneAlgorithmPolicy<V>,
+    val policy: AbstractGAPolicy<V>,
 ) {
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
@@ -208,9 +224,10 @@ class GeneAlgorithm<Obj, V>(
                         val selected = policy.select(iteration, population, model)
                         val crossed = policy.cross(iteration, selected, model, population.parentAmountRange)
                         val mutated = policy.mutate(iteration, crossed, model, population.mutationRateRange)
-                        val combined = (crossed + mutated + population.elites).sortedWithPartialThreeWayComparator { lhs, rhs ->
-                            model.compareObjective(lhs.fitness, rhs.fitness)
-                        }
+                        val combined = (crossed + mutated + population.elites)
+                            .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                                model.compareObjective(lhs.fitness, rhs.fitness)
+                            }
                         AbstractPopulation(
                             individuals = combined,
                             elites = combined.take(population.eliteAmount.toInt()),
@@ -230,13 +247,26 @@ class GeneAlgorithm<Obj, V>(
                     model.compareObjective(lhs.fitness, rhs.fitness)
                 }
             val newBestChromosome = newChromosomes.first()
-            refreshGoodIndividuals(goodChromosomes, newChromosomes, model, solutionAmount)
+            refreshGoodIndividuals(
+                goodIndividuals = goodChromosomes,
+                newIndividuals = newChromosomes,
+                model = model,
+                solutionAmount = solutionAmount
+            )
             if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
-                bestChromosome = goodChromosomes.first()
+                bestChromosome = newBestChromosome
                 globalBetter = true
             }
 
             model.flush()
+            policy.update(
+                iteration = iteration,
+                better = globalBetter,
+                bestIndividual = bestChromosome,
+                goodIndividuals = goodChromosomes,
+                populations = populations.map { it.individuals },
+                model = model
+            )
             iteration.next(globalBetter)
             if (memoryUseOver()) {
                 System.gc()

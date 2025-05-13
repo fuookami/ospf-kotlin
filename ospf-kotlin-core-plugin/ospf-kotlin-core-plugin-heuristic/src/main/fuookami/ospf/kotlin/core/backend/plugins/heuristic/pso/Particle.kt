@@ -21,12 +21,18 @@ data class Particle<V>(
 
     fun new(
         newVelocity: List<Flt64>,
+        iteration: Iteration,
+        policy: AbstractHeuristicPolicy,
         model: AbstractCallBackModelInterface<*, V>
     ): Particle<V> {
         val newPosition = (0..<size).map {
             val newPosition = position[it] + velocity[it]
-            val token = model.tokens[it]
-            newPosition.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
+            policy.coerceIn(
+                iteration = iteration,
+                index = it,
+                value = newPosition,
+                model = model
+            )
         }
         val newFitness = model.objective(newPosition).ifNull { model.defaultObjective }
         return if (currentBest != null) {

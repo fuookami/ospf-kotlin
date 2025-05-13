@@ -39,7 +39,7 @@ class ParallelCombinatorialLinearSolver(
 
     override suspend fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
@@ -51,7 +51,7 @@ class ParallelCombinatorialLinearSolver(
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
                             launch(Dispatchers.Default) {
-                                when (val ret = solver.value.invoke(model, statusCallBack?.let {
+                                when (val ret = solver.value.invoke(model, solvingStatusCallBack?.let {
                                     { status ->
                                         synchronized(lock) {
                                             if (bestStatus == null) {
@@ -109,7 +109,7 @@ class ParallelCombinatorialLinearSolver(
                 coroutineScope {
                     val promises = solvers.mapIndexed { i, solver ->
                         async(Dispatchers.Default) {
-                            val result = solver.value.invoke(model, statusCallBack?.let {
+                            val result = solver.value.invoke(model, solvingStatusCallBack?.let {
                                 { status ->
                                     synchronized(lock) {
                                         if (bestStatus == null) {
@@ -179,7 +179,7 @@ class ParallelCombinatorialLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
@@ -191,7 +191,7 @@ class ParallelCombinatorialLinearSolver(
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
                             launch(Dispatchers.Default) {
-                                when (val ret = solver.value.invoke(model, solutionAmount, statusCallBack?.let {
+                                when (val ret = solver.value.invoke(model, solutionAmount, solvingStatusCallBack?.let {
                                     { status ->
                                         synchronized(lock) {
                                             if (bestStatus == null) {
@@ -249,7 +249,7 @@ class ParallelCombinatorialLinearSolver(
                 coroutineScope {
                     val promises = solvers.mapIndexed { i, solver ->
                         async(Dispatchers.Default) {
-                            val result = solver.value.invoke(model, solutionAmount, statusCallBack?.let {
+                            val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack?.let {
                                 { status ->
                                     synchronized(lock) {
                                         if (bestStatus == null) {

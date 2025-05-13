@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 
 typealias Universe<V> = SolutionWithFitness<V>
 
-interface AbstractMVOPolicy<V> {
+interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy {
     /**
      * calculate WEP (Wormhole Existence Probability)
      */
@@ -39,8 +39,6 @@ interface AbstractMVOPolicy<V> {
         wep: Flt64,
         tdr: Flt64
     ): List<Solution>
-
-    fun finished(iteration: Iteration): Boolean
 }
 
 /**
@@ -131,7 +129,12 @@ open class MVOPolicy<V>(
                 } else {
                     newValue
                 }
-                newSolution[dimension] = newValue.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
+                newSolution[dimension] = coerceIn(
+                    iteration = iteration,
+                    index = dimension,
+                    value = newValue,
+                    model = model
+                )
             }
         }
         return newSolutions
@@ -173,7 +176,7 @@ class MultiVerseOptimizer<Obj, V>(
                 model.compareObjective(lhs.fitness, rhs.fitness)
             }
         var bestUniverse = universes.first()
-        val gooUniverses = universes.take(solutionAmount.toInt()).toMutableList()
+        val goodUniverses = universes.take(solutionAmount.toInt()).toMutableList()
 
         while (!policy.finished(iteration)) {
             var globalBetter = false
@@ -204,20 +207,28 @@ class MultiVerseOptimizer<Obj, V>(
                 bestUniverse = newBestUniverse
                 globalBetter = true
             }
-            refreshGoodIndividuals(gooUniverses, newUniverses, model, solutionAmount)
+            refreshGoodIndividuals(goodUniverses, newUniverses, model, solutionAmount)
 
             model.flush()
+            policy.update(
+                iteration = iteration,
+                better = globalBetter,
+                bestIndividual = bestUniverse,
+                goodIndividuals = goodUniverses,
+                populations = listOf(universes),
+                model = model
+            )
             iteration.next(globalBetter)
             if (memoryUseOver()) {
                 System.gc()
             }
 
-            if (runningCallBack?.invoke(iteration, bestUniverse, gooUniverses) is Failed) {
+            if (runningCallBack?.invoke(iteration, bestUniverse, goodUniverses) is Failed) {
                 break
             }
         }
 
-        return gooUniverses.take(solutionAmount.toInt())
+        return goodUniverses.take(solutionAmount.toInt())
     }
 }
 
