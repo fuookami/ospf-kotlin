@@ -19,7 +19,8 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     protected val flag: AbstractLinearPolynomial<*>?,
     override var name: String,
     override var displayName: String? = null,
-    private val ctor: (String) -> V
+    private val ctor: (String) -> V,
+    private val rangeSetting: (V, Flt64) -> Unit
 ) : LinearFunctionSymbol {
     private val logger = logger()
 
@@ -30,7 +31,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     private val y: V by lazy {
-        ctor("${name}_y")
+        val y = ctor("${name}_y")
+        rangeSetting(y, possibleRange.upperBound.value.unwrap())
+        y
     }
 
     private val u: BinVar by lazy {
@@ -378,7 +381,7 @@ class SemiIntegerFunction(
     flag: AbstractLinearPolynomial<*>?,
     name: String,
     displayName: String? = null
-) : AbstractSemiFunction<UIntVar>(x, flag, name, displayName, { UIntVar(it) }) {
+) : AbstractSemiFunction<UIntVar>(x, flag, name, displayName, { UIntVar(it) }, { v, ub -> v.range.leq(ub.floor().toUInt64()) }) {
     constructor(
         x: AbstractLinearPolynomial<*>,
         name: String,
@@ -400,7 +403,7 @@ class SemiRealFunction(
     flag: AbstractLinearPolynomial<*>?,
     name: String,
     displayName: String? = null
-) : AbstractSemiFunction<URealVar>(x, flag, name, displayName, { URealVar(it) }) {
+) : AbstractSemiFunction<URealVar>(x, flag, name, displayName, { URealVar(it) }, { v, ub -> v.range.leq(ub) }) {
     constructor(
         x: AbstractLinearPolynomial<*>,
         name: String,
@@ -419,7 +422,7 @@ class ReluFunction(
     x: AbstractLinearPolynomial<*>,
     name: String = "${x}_relu",
     displayName: String? = "Relu(${x})"
-) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) }) {
+) : AbstractSemiFunction<URealVar>(x, null, name, displayName, { URealVar(it) }, { v, ub -> v.range.leq(ub) }) {
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
