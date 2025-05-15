@@ -226,6 +226,13 @@ fun Collection<IntermediateSymbol>.register(
     })
 
     val completedSymbols = emptySymbols.toMutableSet()
+    callBack?.invoke(
+        RegistrationStatus(
+            emptySymbolAmount = emptySymbols.usize,
+            readySymbolAmount = completedSymbols.usize,
+            totalSymbolAmount = tokenTable.symbols.usize
+        )
+    )
     var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
@@ -248,6 +255,7 @@ fun Collection<IntermediateSymbol>.register(
         }
         callBack?.invoke(
             RegistrationStatus(
+                emptySymbolAmount = emptySymbols.usize,
                 readySymbolAmount = completedSymbols.usize + readySymbols.usize,
                 totalSymbolAmount = tokenTable.symbols.usize
             )
@@ -474,6 +482,13 @@ suspend fun Collection<IntermediateSymbol>.register(
             })
         }
         val completedSymbols = emptySymbols.toMutableSet()
+        callBack?.invoke(
+            RegistrationStatus(
+                emptySymbolAmount = emptySymbols.usize,
+                readySymbolAmount = completedSymbols.usize,
+                totalSymbolAmount = tokenTable.symbols.usize
+            )
+        )
         var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
@@ -495,7 +510,7 @@ suspend fun Collection<IntermediateSymbol>.register(
 
             if (Runtime.getRuntime().availableProcessors() > 1) {
                 val thisCompletedSymbolAmountLock = Any()
-                var thisCompletedSymbolAmount = UInt64.zero
+                var thisCompletedSymbolAmount = completedSymbols.usize
                 val jobs = if (Runtime.getRuntime().availableProcessors() > 2) {
                     val factor = Flt64(readySymbols.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                     val segment = if (factor >= 1) {
@@ -517,9 +532,12 @@ suspend fun Collection<IntermediateSymbol>.register(
                             if (callBack != null) {
                                 synchronized(thisCompletedSymbolAmountLock) {
                                     thisCompletedSymbolAmount += thisReadSymbol.usize
-                                    RegistrationStatus(
-                                        readySymbolAmount = completedSymbols.usize + thisCompletedSymbolAmount,
-                                        totalSymbolAmount = tokenTable.symbols.usize
+                                    callBack(
+                                        RegistrationStatus(
+                                            emptySymbolAmount = emptySymbols.usize,
+                                            readySymbolAmount = thisCompletedSymbolAmount,
+                                            totalSymbolAmount = tokenTable.symbols.usize
+                                        )
                                     )
                                 }
                             }
