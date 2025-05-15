@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
         <artifactId>ospf-kotlin-core-plugin</artifactId>
-        <version>1.0.44</version>
+        <version>1.0.45</version>
     </parent>
 
     <artifactId>ospf-kotlin-core-plugin-mindopt</artifactId>
