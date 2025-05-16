@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
+import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 
 sealed class AbstractMultiArray<out T : Any, S : Shape>(
@@ -43,6 +44,10 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
         return list[i]
     }
 
+    operator fun get(i: UInt64): T {
+        return get(i.toInt())
+    }
+
     operator fun get(e: Indexed): T {
         return list[e.index]
     }
@@ -55,6 +60,10 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     @JvmName("getByInts")
     operator fun get(vararg v: Int): T {
         return list[shape.index(v)]
+    }
+
+    operator fun get(v: Iterable<UInt64>): T {
+        return get(v.map { it.toInt() }.toIntArray())
     }
 
     operator fun get(vararg v: Indexed): T {
@@ -79,12 +88,26 @@ open class MutableMultiArray<T : Any, S : Shape>(
         list[i] = value
     }
 
+    operator fun set(i: UInt64, value: T) {
+        set(i.toInt(), value)
+    }
+
     operator fun set(e: Indexed, value: T) {
         list[e.index] = value
     }
 
-    operator fun set(vararg v: Int, e: T) {
-        list[shape.index(v)] = e
+    @JvmName("setByIntArray")
+    operator fun set(v: IntArray, value: T) {
+        list[shape.index(v)] = value
+    }
+
+    @JvmName("setByInts")
+    operator fun set(vararg v: Int, value: T) {
+        list[shape.index(v)] = value
+    }
+
+    operator fun set(v: Iterable<UInt64>, value: T) {
+        set(v.map { it.toInt() }.toIntArray(), value)
     }
 
     operator fun set(vararg v: Indexed, value: T) {
@@ -103,3 +126,19 @@ typealias MutableMultiArray2<T> = MutableMultiArray<T, Shape2>
 typealias MutableMultiArray3<T> = MutableMultiArray<T, Shape3>
 typealias MutableMultiArray4<T> = MutableMultiArray<T, Shape4>
 typealias DynMutableMultiArray<T> = MutableMultiArray<T, DynShape>
+
+operator fun <K, T : Any, S : Shape> Map<K, MultiArray<T, S>>.get(k: K, i: Int): T {
+    return this[k]!![i]
+}
+
+operator fun <K, T : Any, S : Shape> Map<K, MultiArray<T, S>>.get(k: K, v: IntArray): T {
+    return this[k]!![v]
+}
+
+operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, i: Int): T {
+    return this[k1]!![k2]!![i]
+}
+
+operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, v: IntArray): T {
+    return this[k1]!![k2]!![v]
+}
