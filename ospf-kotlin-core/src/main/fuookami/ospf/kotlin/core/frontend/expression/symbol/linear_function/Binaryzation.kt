@@ -110,19 +110,19 @@ class BinaryzationFunctionImpl(
         x.copy()
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
-                val yValue = if (xValue gr Flt64.zero) {
+                if (xValue gr Flt64.zero) {
                     Flt64.one
                 } else {
                     Flt64.zero
                 }
-
-                tokenTable.cache(parent, null, yValue)
             }
+        } else {
+            null
         }
     }
 
@@ -166,14 +166,14 @@ class BinaryzationFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        piecewiseFunction.prepare(tokenTable)
+        piecewiseFunction.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            piecewiseFunction.evaluate(tokenTable)?.let { yValue ->
-                tokenTable.cache(parent, null, yValue)
-            }
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            piecewiseFunction.evaluate(tokenTable)
+        } else {
+            null
         }
     }
 
@@ -223,10 +223,10 @@ class BinaryzationFunctionDiscreteImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val bin = xValue gr Flt64.zero
                 val yValue = if (bin) {
@@ -240,8 +240,10 @@ class BinaryzationFunctionDiscreteImpl(
                     token._result = yValue
                 }
 
-                tokenTable.cache(parent, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 
@@ -311,10 +313,10 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val pct = xValue / x.upperBound!!.value.unwrap()
                 val bin = xValue gr Flt64.zero
@@ -333,8 +335,10 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
                     token._result = yValue
                 }
 
-                tokenTable.cache(parent, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 
@@ -437,8 +441,8 @@ class BinaryzationFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        impl.prepare(tokenTable)
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        return impl.prepare(tokenTable)
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {

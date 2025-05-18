@@ -78,11 +78,11 @@ class ModFunction(
         y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         d.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 d.evaluate(tokenTable)?.let { dValue ->
                     val qValue = (xValue / dValue).let {
@@ -102,9 +102,11 @@ class ModFunction(
                         token._result = rValue
                     }
 
-                    tokenTable.cache(this, null, rValue)
+                    rValue
                 }
             }
+        } else {
+            null
         }
     }
 

@@ -81,14 +81,16 @@ class SameAsFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
         }
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val values = inequalities.map { it.isTrue(tokenTable) ?: return }
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val values = inequalities.map {
+                it.isTrue(tokenTable) ?: return null
+            }
             if (!constraint && inequalities.size > 1) {
                 for (i in inequalities.indices) {
                     logger.trace { "Setting SameAsFunction ${name}.u[$i] to ${values[i]}" }
@@ -113,7 +115,9 @@ class SameAsFunction(
                 token._result = yValue
             }
 
-            tokenTable.cache(this, null, yValue)
+            yValue
+        } else {
+            null
         }
     }
 

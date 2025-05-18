@@ -69,10 +69,10 @@ class AbsFunction(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val pValue = xValue geq Flt64.zero
                 val yValue = abs(xValue)
@@ -99,8 +99,10 @@ class AbsFunction(
                     }
                 }
 
-                tokenTable.cache(this, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 

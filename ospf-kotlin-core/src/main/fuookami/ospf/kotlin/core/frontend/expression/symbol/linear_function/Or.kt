@@ -70,14 +70,14 @@ class OrFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             polynomials.forEach { polynomial ->
-                val value = polynomial.evaluate(tokenTable) ?: return
+                val value = polynomial.evaluate(tokenTable) ?: return null
                 val bin = value gr Flt64.zero
 
                 if (bin) {
@@ -85,8 +85,7 @@ class OrFunction(
                     tokenTable.find(y)?.let { token ->
                         token._result = Flt64.one
                     }
-                    tokenTable.cache(this, null, Flt64.one)
-                    return
+                    return Flt64.one
                 }
             }
 
@@ -94,6 +93,10 @@ class OrFunction(
             tokenTable.find(y)?.let { token ->
                 token._result = Flt64.zero
             }
+
+            Flt64.zero
+        } else {
+            null
         }
     }
 

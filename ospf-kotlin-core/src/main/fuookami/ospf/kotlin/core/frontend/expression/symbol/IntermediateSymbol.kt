@@ -38,7 +38,12 @@ interface IntermediateSymbol : Expression {
     val dependencies: Set<IntermediateSymbol>
 
     fun flush(force: Boolean = false)
-    fun prepare(tokenTable: AbstractTokenTable)
+    fun prepare(tokenTable: AbstractTokenTable): Flt64?
+    fun prepareAndCache(tokenTable: AbstractTokenTable) {
+        prepare(tokenTable)?.let {
+            tokenTable.cache(this, null, it)
+        }
+    }
 
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
@@ -302,8 +307,9 @@ class LinearExpressionSymbol(
         return _polynomial
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         cells
+        return _polynomial.evaluate(tokenTable)
     }
 }
 
@@ -533,8 +539,9 @@ class QuadraticExpressionSymbol(
         return _polynomial
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         cells
+        return _polynomial.evaluate(tokenTable)
     }
 }
 

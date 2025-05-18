@@ -111,15 +111,15 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         lb.cells
         ub.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return
-            val lbValue = lb.evaluate(tokenTable) ?: return
-            val ubValue = ub.evaluate(tokenTable) ?: return
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.evaluate(tokenTable) ?: return null
+            val lbValue = lb.evaluate(tokenTable) ?: return null
+            val ubValue = ub.evaluate(tokenTable) ?: return null
 
             val posValue = if (xValue geq ubValue) {
                 xValue - ubValue
@@ -141,8 +141,9 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
                 token._result = posValue
             }
 
-            val yValue = posValue + negValue
-            tokenTable.cache(this, null, yValue)
+            posValue + negValue
+        } else {
+            null
         }
     }
 

@@ -66,15 +66,16 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         flag?.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.evaluate(tokenTable) ?: return null
 
             val bin = if (flag != null) {
-                (flag.evaluate(tokenTable) ?: return) gr Flt64.zero
+                val value = flag.evaluate(tokenTable) ?: return null
+                value gr Flt64.zero
             } else {
                 val bin = xValue gr Flt64.zero
                 logger.trace { "Setting SemiFunction ${name}.u to $bin" }
@@ -99,7 +100,9 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
                 token._result = yValue
             }
 
-            tokenTable.cache(this, null, yValue)
+            yValue
+        } else {
+            null
         }
     }
 

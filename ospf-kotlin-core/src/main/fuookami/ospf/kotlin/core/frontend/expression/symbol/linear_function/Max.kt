@@ -76,16 +76,16 @@ sealed class AbstractMaxFunction(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val values = polynomials.map { it.evaluate(tokenTable) }
 
             if (values.all { it != null }) {
-                val max = values.withIndex().maxByOrNull { it.value!! } ?: return
+                val max = values.withIndex().maxByOrNull { it.value!! } ?: return null
 
                 logger.trace { "Setting MaxFunction ${name}.minmax to ${max.value}" }
                 tokenTable.find(minmax)?.let { token ->
@@ -108,8 +108,12 @@ sealed class AbstractMaxFunction(
                     }
                 }
 
-                tokenTable.cache(this, null, max.value!!)
+                max.value!!
+            } else {
+                null
             }
+        } else {
+            null
         }
     }
 

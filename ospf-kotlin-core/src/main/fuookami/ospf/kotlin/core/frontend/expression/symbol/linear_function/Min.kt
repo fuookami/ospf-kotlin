@@ -77,16 +77,16 @@ sealed class AbstractMinFunction(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val values = polynomials.map { it.evaluate(tokenTable) }
 
             if (values.all { it != null }) {
-                val min = values.withIndex().minByOrNull { it.value!! } ?: return
+                val min = values.withIndex().minByOrNull { it.value!! } ?: return null
 
                 logger.trace { "Setting MinFunction ${name}.maxmin to ${min.value}" }
                 tokenTable.find(maxmin)?.let { token ->
@@ -109,8 +109,12 @@ sealed class AbstractMinFunction(
                     }
                 }
 
-                tokenTable.cache(this, null, min.value!!)
+                min.value!!
+            } else {
+                null
             }
+        } else {
+            null
         }
     }
 

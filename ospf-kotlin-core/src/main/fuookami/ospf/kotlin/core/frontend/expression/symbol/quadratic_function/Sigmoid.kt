@@ -85,14 +85,14 @@ class Sigmoid(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        impl.prepare(tokenTable)
+        impl.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            impl.evaluate(tokenTable)?.let { yValue ->
-                tokenTable.cache(this, null, yValue)
-            }
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            impl.evaluate(tokenTable)
+        } else {
+            null
         }
     }
 

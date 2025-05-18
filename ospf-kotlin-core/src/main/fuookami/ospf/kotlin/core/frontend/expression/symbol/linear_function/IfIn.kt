@@ -85,14 +85,14 @@ class IfInFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         lb.cells
         ub.cells
         lowerBoundInequality.cells
         upperBoundInequality.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val bins = listOf(
                 lowerBoundInequality.isTrue(tokenTable),
                 upperBoundInequality.isTrue(tokenTable)
@@ -110,8 +110,12 @@ class IfInFunction(
                     token._result = yValue
                 }
 
-                tokenTable.cache(this, null, yValue)
+                yValue
+            } else {
+                null
             }
+        } else {
+            null
         }
     }
 
