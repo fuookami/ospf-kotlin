@@ -74,9 +74,33 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapSymbols")
+    fun <K> add(symbols: Map<K, IntermediateSymbol>): Try {
+        return tokens.add(symbols.values)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapSymbols")
+    fun <K1, K2> add(symbols: Map<K1, Map<K2, IntermediateSymbol>>): Try {
+        return tokens.add(symbols.values.flatMap { it.values })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantitySymbols")
     fun add(symbols: Iterable<QuantityIntermediateSymbol>): Try {
         return tokens.add(symbols.map { it.value })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapQuantitySymbols")
+    fun <K> add(symbols: Map<K, QuantityIntermediateSymbol>): Try {
+        return tokens.add(symbols.values.map { it.value })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapQuantitySymbols")
+    fun <K1, K2> add(symbols: Map<K1, Map<K2, QuantityIntermediateSymbol>>): Try {
+        return tokens.add(symbols.values.flatMap { it.values.map { token -> token.value } })
     }
 
     fun remove(symbol: IntermediateSymbol) {
