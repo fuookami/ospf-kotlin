@@ -113,11 +113,11 @@ class IfFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         inequality.lhs.cells
         inequality.rhs.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             inequality.isTrue(tokenTable)?.let { bin ->
                 val yValue = if (bin) {
                     Flt64.one
@@ -130,8 +130,10 @@ class IfFunction(
                     token._result = yValue
                 }
 
-                tokenTable.cache(this, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 

@@ -80,15 +80,22 @@ class FirstFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
-        for (bin in bins) {
-            bin.prepare(tokenTable)
-        }
+        tokenTable.cache(
+            bins.mapNotNull {
+                val value = it.prepare(tokenTable)
+                if (value != null) {
+                    (it as IntermediateSymbol) to value
+                } else {
+                    null
+                }
+            }.toMap()
+        )
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             var first: Int? = null
             polynomials.withIndex().forEach { (i, polynomial) ->
                 if (first == null) {
@@ -115,7 +122,9 @@ class FirstFunction(
                 }
             }
 
-            tokenTable.cache(this, null, Flt64(first ?: polynomials.size))
+            Flt64(first ?: polynomials.size)
+        } else {
+            null
         }
     }
 

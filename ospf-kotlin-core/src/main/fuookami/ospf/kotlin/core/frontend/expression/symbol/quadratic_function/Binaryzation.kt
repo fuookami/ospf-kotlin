@@ -105,10 +105,10 @@ class BinaryzationFunctionImpl(
         x.copy()
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val yValue = if (xValue gr Flt64.zero) {
                     Flt64.one
@@ -116,8 +116,10 @@ class BinaryzationFunctionImpl(
                     Flt64.zero
                 }
 
-                tokenTable.cache(this, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 
@@ -158,11 +160,11 @@ class BinaryzationFunctionLinearImpl(
         linearX.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        linearX.prepare(tokenTable)
+        linearX.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             linearX.evaluate(tokenTable)?.let { xValue ->
                 val yValue = if (xValue gr Flt64.zero) {
                     Flt64.one
@@ -175,8 +177,10 @@ class BinaryzationFunctionLinearImpl(
                     token._result = yValue
                 }
 
-                tokenTable.cache(parent, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 
@@ -253,8 +257,8 @@ class BinaryzationFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        impl.prepare(tokenTable)
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        return impl.prepare(tokenTable)
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {

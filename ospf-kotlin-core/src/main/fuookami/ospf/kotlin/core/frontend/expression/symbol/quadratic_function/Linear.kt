@@ -50,10 +50,10 @@ class LinearFunction(
         polyY.range.set(polynomial.range.valueRange!!)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         polynomial.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             polynomial.evaluate(tokenTable)?.let { yValue ->
                 if (polynomial.category != Linear) {
                     logger.trace { "Setting LinearFunction ${name}.y initial solution: $yValue" }
@@ -62,8 +62,10 @@ class LinearFunction(
                     }
                 }
 
-                tokenTable.cache(this, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 

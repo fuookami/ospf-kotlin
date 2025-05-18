@@ -71,22 +71,30 @@ class InStepRangeFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         lb.cells
         ub.cells
-        stepLinear.prepare(tokenTable)
-        q.prepare(tokenTable)
+        tokenTable.cache(
+            listOf(stepLinear, q).mapNotNull {
+                val value = it.prepare(tokenTable)
+                if (value != null) {
+                    (it as IntermediateSymbol) to value
+                } else {
+                    null
+                }
+            }.toMap()
+        )
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             lb.evaluate(tokenTable)?.let { lbValue ->
                 step.evaluate(tokenTable)?.let { stepValue ->
                     q.evaluate(tokenTable)?.let { qValue ->
-                        val yValue = lbValue + qValue * stepValue
-
-                        tokenTable.cache(this, null, yValue)
+                        lbValue + qValue * stepValue
                     }
                 }
             }
+        } else {
+            null
         }
     }
 

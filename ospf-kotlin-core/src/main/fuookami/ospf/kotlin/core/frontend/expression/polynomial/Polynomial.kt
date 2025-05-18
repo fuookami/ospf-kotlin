@@ -214,7 +214,8 @@ internal fun possibleRange(
     } else {
         var ret = monomials[0].range.range ?: return null
         for (i in 1..<monomials.size) {
-            ret += (monomials[i].range.range ?: return null)
+            val value = monomials[i].range.range ?: return null
+            ret += value
         }
         ret += constant
         ret

@@ -108,16 +108,16 @@ class IfThenFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         p.lhs.cells
         p.rhs.cells
         q.lhs.cells
         q.rhs.cells
-        y.prepare(tokenTable)
+        y.prepareAndCache(tokenTable)
 
-        if (!constraint && tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val pBin = p.isTrue(tokenTable) ?: return
-            val qBin = q.isTrue(tokenTable) ?: return
+        return if (!constraint && tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val pBin = p.isTrue(tokenTable) ?: return null
+            val qBin = q.isTrue(tokenTable) ?: return null
 
             logger.trace { "Setting IfThenFunction ${name}.pu initial solution: $pBin" }
             tokenTable.find(pu)?.let { token ->
@@ -144,13 +144,13 @@ class IfThenFunction(
             }
 
             val bin = uValue neq Flt64.zero
-            val yValue = if (bin) {
+            if (bin) {
                 Flt64.one
             } else {
                 Flt64.zero
             }
-
-            tokenTable.cache(this, null, yValue)
+        } else {
+            null
         }
     }
 

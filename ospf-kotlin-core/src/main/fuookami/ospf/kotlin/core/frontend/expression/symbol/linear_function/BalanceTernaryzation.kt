@@ -123,10 +123,10 @@ class BalanceTernaryzationFunctionImpl(
         x.copy()
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val neg = xValue ls Flt64.zero
@@ -138,8 +138,10 @@ class BalanceTernaryzationFunctionImpl(
                     Flt64.zero
                 }
 
-                tokenTable.cache(parent, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 
@@ -185,14 +187,14 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        piecewiseFunction.prepare(tokenTable)
+        piecewiseFunction.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            piecewiseFunction.evaluate(tokenTable)?.let { yValue ->
-                tokenTable.cache(parent, null, yValue)
-            }
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            piecewiseFunction.evaluate(tokenTable)
+        } else {
+            null
         }
     }
 
@@ -243,10 +245,10 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val neg = xValue ls Flt64.zero
@@ -267,15 +269,16 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                     }
                 }
 
-                val yValue = if (pos) {
+                if (pos) {
                     Flt64.one
                 } else if (neg) {
                     -Flt64.one
                 } else {
                     Flt64.zero
                 }
-                tokenTable.cache(parent, null, yValue)
             }
+        } else {
+            null
         }
     }
 
@@ -379,10 +382,10 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 val pos = xValue gr Flt64.zero
                 val pocPct = if (pos) {
@@ -427,8 +430,10 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                     }
                 }
 
-                tokenTable.cache(parent, null, yValue)
+                yValue
             }
+        } else {
+            null
         }
     }
 
@@ -575,8 +580,8 @@ class BalanceTernaryzationFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        impl.prepare(tokenTable)
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        return impl.prepare(tokenTable)
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {

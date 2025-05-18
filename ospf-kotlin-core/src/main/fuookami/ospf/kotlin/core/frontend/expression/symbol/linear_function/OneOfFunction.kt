@@ -5,7 +5,6 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -91,16 +90,23 @@ sealed class AbstractOneOfFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (branch in branches) {
             branch.polynomial.cells
             branch.condition?.cells
         }
-        for (semi in semis) {
-            semi.prepare(tokenTable)
-        }
+        tokenTable.cache(
+            semis.mapNotNull {
+                val value = it.prepare(tokenTable)
+                if (value != null) {
+                    (it as IntermediateSymbol) to value
+                } else {
+                    null
+                }
+            }.toMap()
+        )
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val values = branches.mapIndexedNotNull { b, branch ->
                 val semi = semis[b]
                 semi.evaluate(tokenTable)?.let { value ->
@@ -127,8 +133,12 @@ sealed class AbstractOneOfFunction(
             }
 
             if (values.size == 1) {
-                tokenTable.cache(this, null, values.first())
+                values.first()
+            } else {
+                null
             }
+        } else {
+            null
         }
     }
 

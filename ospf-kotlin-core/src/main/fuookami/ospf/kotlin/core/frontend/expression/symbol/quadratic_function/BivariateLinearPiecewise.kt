@@ -121,13 +121,13 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         polyZ.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         y.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return
-            val yValue = y.evaluate(tokenTable) ?: return
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.evaluate(tokenTable) ?: return null
+            val yValue = y.evaluate(tokenTable) ?: return null
 
             var zValue: Flt64? = null
             for (i in indices) {
@@ -167,9 +167,10 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
             }
-            if (zValue != null) {
-                tokenTable.cache(this, null, zValue)
-            }
+
+            zValue
+        } else {
+            null
         }
     }
 

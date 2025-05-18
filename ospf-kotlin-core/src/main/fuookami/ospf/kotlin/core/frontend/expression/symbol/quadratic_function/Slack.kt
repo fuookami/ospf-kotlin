@@ -161,13 +161,13 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         y.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return
-            val yValue = y.evaluate(tokenTable) ?: return
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+            val xValue = x.evaluate(tokenTable) ?: return null
+            val yValue = y.evaluate(tokenTable) ?: return null
             val negValue = max(Flt64.zero, yValue - xValue)
             val posValue = max(Flt64.zero, xValue - yValue)
 
@@ -184,8 +184,9 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                 }
             }
 
-            val slackValue = negValue + posValue
-            tokenTable.cache(this, null, slackValue)
+            negValue + posValue
+        } else {
+            null
         }
     }
 

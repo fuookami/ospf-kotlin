@@ -63,19 +63,19 @@ class InStepRangeFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         lb.cells
         ub.cells
-        q.prepare(tokenTable)
+        q.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             lb.evaluate(tokenTable)?.let { lbValue ->
                 q.evaluate(tokenTable)?.let { qValue ->
-                    val yValue = lbValue + qValue * step
-
-                    tokenTable.cache(this, null, yValue)
+                    lbValue + qValue * step
                 }
             }
+        } else {
+            null
         }
     }
 

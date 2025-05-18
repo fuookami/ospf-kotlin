@@ -64,10 +64,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
+        return null
     }
 
     override fun toRawString(unfold: UInt64): String {
@@ -184,19 +185,19 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
         or.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        super.prepare(tokenTable)
-        or.prepare(tokenTable)
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        super.prepareAndCache(tokenTable)
+        or.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            val bin = or.evaluate(tokenTable) ?: return
-            val yValue = if (bin eq Flt64.one) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            val bin = or.evaluate(tokenTable) ?: return null
+            if (bin eq Flt64.one) {
                 Flt64.one
             } else {
                 Flt64.zero
             }
-
-            tokenTable.cache(parent, null, yValue)
+        } else {
+            null
         }
     }
 
@@ -246,19 +247,19 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
         and.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        super.prepare(tokenTable)
-        and.prepare(tokenTable)
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        super.prepareAndCache(tokenTable)
+        and.prepareAndCache(tokenTable)
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            val bin = and.evaluate(tokenTable) ?: return
-            val yValue = if (bin eq Flt64.one) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            val bin = and.evaluate(tokenTable) ?: return null
+            if (bin eq Flt64.one) {
                 Flt64.one
             } else {
                 Flt64.zero
             }
-
-            tokenTable.cache(parent, null, yValue)
+        } else {
+            null
         }
     }
 
@@ -326,14 +327,24 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        super.prepare(tokenTable)
-        for (bin in bins) {
-            bin.prepare(tokenTable)
-        }
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        super.prepareAndCache(tokenTable)
+        tokenTable.cache(
+            bins.mapNotNull {
+                val value = it.prepare(tokenTable)
+                if (value != null) {
+                    (it as IntermediateSymbol) to value
+                } else {
+                    null
+                }
+            }.toMap()
+        )
 
-        if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            val count = bins.count { (it.evaluate(tokenTable) ?: return) eq Flt64.one }
+        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+            val count = bins.count {
+                val value = it.evaluate(tokenTable) ?: return null
+                value eq Flt64.one
+            }
 
             val yValue = if (amount != null) {
                 val bin = UInt64(count) >= amount
@@ -352,7 +363,9 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 Flt64(count)
             }
 
-            tokenTable.cache(parent, null, yValue)
+            yValue
+        } else {
+            null
         }
     }
 
@@ -462,8 +475,8 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
-        impl.prepare(tokenTable)
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+        return impl.prepare(tokenTable)
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {

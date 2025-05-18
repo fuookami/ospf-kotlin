@@ -100,10 +100,10 @@ class RoundingFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             x.evaluate(tokenTable)?.let { xValue ->
                 d.evaluate(tokenTable)?.let { dValue ->
                     val qValue = (xValue / dValue).round()
@@ -113,9 +113,11 @@ class RoundingFunction(
                     logger.trace { "Setting FloorFunction ${name}.r initial solution: $rValue" }
                     tokenTable.find(r)?.let { token -> token._result = rValue }
 
-                    tokenTable.cache(this, null, qValue)
+                    qValue
                 }
             }
+        } else {
+            null
         }
     }
 

@@ -102,23 +102,39 @@ class XorFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable) {
+    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
         if (polynomials.size > 2) {
-            maxmin.prepare(tokenTable)
-            minmax.prepare(tokenTable)
-        }
-        for (bin in bins) {
-            bin.prepare(tokenTable)
+            tokenTable.cache(
+                (listOf(maxmin, minmax) + bins).mapNotNull {
+                    val value = it.prepare(tokenTable)
+                    if (value != null) {
+                        (it as IntermediateSymbol) to value
+                    } else {
+                        null
+                    }
+                }.toMap()
+            )
+        } else {
+            tokenTable.cache(
+                bins.mapNotNull {
+                    val value = it.prepare(tokenTable)
+                    if (value != null) {
+                        (it as IntermediateSymbol) to value
+                    } else {
+                        null
+                    }
+                }.toMap()
+            )
         }
 
-        if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             var zero = false
             var one = false
             for (polynomial in polynomials) {
-                val result = polynomial.evaluate(tokenTable) ?: return
+                val result = polynomial.evaluate(tokenTable) ?: return null
                 if (result eq Flt64.zero) {
                     zero = true
                 }
@@ -141,7 +157,9 @@ class XorFunction(
                 token._result = yValue
             }
 
-            tokenTable.cache(this, null, yValue)
+            yValue
+        } else {
+            null
         }
     }
 
