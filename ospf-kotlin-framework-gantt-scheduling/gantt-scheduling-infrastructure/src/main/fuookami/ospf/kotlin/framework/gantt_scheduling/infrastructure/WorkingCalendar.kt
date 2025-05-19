@@ -114,7 +114,11 @@ open class WorkingCalendar(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Instant {
-        return WorkingCalendar.actualTime(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
+        return WorkingCalendar.actualTime(
+            time = time,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            connectionTime = connectionTime
+        )
     }
 
     fun actualTime(
@@ -122,7 +126,11 @@ open class WorkingCalendar(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
-        return WorkingCalendar.actualTime(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
+        return WorkingCalendar.actualTime(
+            time = time,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            connectionTime = connectionTime
+        )
     }
 
     fun validTime(
@@ -130,7 +138,11 @@ open class WorkingCalendar(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Duration {
-        return WorkingCalendar.validTime(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
+        return WorkingCalendar.validTime(
+            time = time,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            connectionTime = connectionTime
+        )
     }
 
     fun validTimes(
@@ -138,7 +150,11 @@ open class WorkingCalendar(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO,
     ): List<TimeRange> {
-        return WorkingCalendar.validTimes(time, (unavailableTimes + this.unavailableTimes).merge(), connectionTime)
+        return WorkingCalendar.validTimes(
+            time = time,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            connectionTime = connectionTime
+        )
     }
 }
 
@@ -241,12 +257,30 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): TimeRange {
         val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
         return actualTimeFrom(
-            material,
-            startTime,
-            productivityCalendar,
-            quantity,
-            unavailableTimes,
-            connectionTime
+            material = material,
+            startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        )
+    }
+
+    fun actualTimeFromOrNull(
+        material: T,
+        startTime: Instant,
+        quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): TimeRange? {
+        val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
+        return actualTimeFromOrNull(
+            material = material,
+            startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
         )
     }
 
@@ -259,12 +293,30 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): TimeRange {
         val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
         return actualTimeFrom(
-            material,
-            startTime,
-            productivityCalendar,
-            quantity,
-            unavailableTimes,
-            connectionTime
+            material = material,
+            startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        )
+    }
+
+    suspend fun actualTimeFromOrNullParallelly(
+        material: T,
+        startTime: Instant,
+        quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): TimeRange? {
+        val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
+        return actualTimeFromOrNull(
+            material = material,
+            startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
         )
     }
 
@@ -277,12 +329,30 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): TimeRange {
         val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
         return actualTimeUntil(
-            material,
-            endTime,
-            productivityCalendar,
-            quantity,
-            unavailableTimes,
-            connectionTime
+            material = material,
+            endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        )
+    }
+
+    fun actualTimeUntilOrNull(
+        material: T,
+        endTime: Instant,
+        quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): TimeRange? {
+        val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
+        return actualTimeUntilOrNull(
+            material = material,
+            endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
         )
     }
 
@@ -295,12 +365,30 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): TimeRange {
         val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
         return actualTimeUntil(
-            material,
-            endTime,
-            productivityCalendar,
-            quantity,
-            unavailableTimes,
-            connectionTime
+            material = material,
+            endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        )
+    }
+
+    suspend fun actualTimeUntilOrNullParallelly(
+        material: T,
+        endTime: Instant,
+        quantity: Q = constants.one,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): TimeRange? {
+        val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
+        return actualTimeUntilOrNull(
+            material = material,
+            endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
         )
     }
 
@@ -312,11 +400,27 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): Q {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
         return actualQuantity(
-            material,
-            time,
-            productivityCalendar,
-            unavailableTimes,
-            connectionTime
+            material = material,
+            time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        )
+    }
+
+    fun actualQuantityOrNull(
+        material: T,
+        time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): Q? {
+        val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
+        return actualQuantityOrNull(
+            material = material,
+            time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
         )
     }
 
@@ -328,11 +432,27 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): Q {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
         return actualQuantity(
-            material,
-            time,
-            productivityCalendar,
-            unavailableTimes,
-            connectionTime
+            material = material,
+            time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        )
+    }
+
+    suspend fun actualQuantityOrNullParallelly(
+        material: T,
+        time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): Q? {
+        val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
+        return actualQuantityOrNull(
+            material = material,
+            time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
         )
     }
 
@@ -344,6 +464,28 @@ sealed class ProductivityCalendar<Q, P, T>(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
+        return actualTimeFromOrNull(
+            material = material,
+            startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        ) ?: TimeRange(start = startTime)
+    }
+
+    private fun actualTimeFromOrNull(
+        material: T,
+        startTime: Instant,
+        productivityCalendar: List<Productivity<T>>,
+        quantity: Q,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): TimeRange? {
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
         var currentTime = max(startTime, productivityCalendar.first().timeWindow.start)
         var restQuantity = quantity
         for (calendar in productivityCalendar) {
@@ -378,9 +520,7 @@ sealed class ProductivityCalendar<Q, P, T>(
                 end = currentTime
             )
         } else {
-            TimeRange(
-                start = startTime
-            )
+            null
         }
     }
 
@@ -392,6 +532,28 @@ sealed class ProductivityCalendar<Q, P, T>(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): TimeRange {
+        return actualTimeUntilOrNull(
+            material = material,
+            endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        ) ?: TimeRange(end = endTime)
+    }
+
+    private fun actualTimeUntilOrNull(
+        material: T,
+        endTime: Instant,
+        productivityCalendar: List<Productivity<T>>,
+        quantity: Q,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): TimeRange? {
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
         var currentTime = min(endTime, productivityCalendar.first().timeWindow.end)
         var restAmount = quantity
         for (calendar in productivityCalendar) {
@@ -426,9 +588,7 @@ sealed class ProductivityCalendar<Q, P, T>(
                 end = endTime
             )
         } else {
-            TimeRange(
-                end = endTime
-            )
+            null
         }
     }
 
@@ -439,6 +599,26 @@ sealed class ProductivityCalendar<Q, P, T>(
         unavailableTimes: List<TimeRange> = emptyList(),
         connectionTime: Duration = Duration.ZERO
     ): Q {
+        return actualQuantityOrNull(
+            material = material,
+            time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = unavailableTimes,
+            connectionTime = connectionTime
+        ) ?: constants.zero
+    }
+
+    private fun actualQuantityOrNull(
+        material: T,
+        time: TimeRange,
+        productivityCalendar: List<Productivity<T>>,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        connectionTime: Duration = Duration.ZERO
+    ): Q? {
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
         var quantity = constants.zero
         for (calendar in productivityCalendar) {
             // todo: calculate with dayOfWeek and dayOfMonth appointment
