@@ -32,7 +32,7 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
 
     private val y: V by lazy {
         val y = ctor("${name}_y")
-        rangeSetting(y, possibleRange.upperBound.value.unwrap())
+        rangeSetting(y, possibleRange.upperBound.value.unwrap() + offset)
         y
     }
 
@@ -139,10 +139,6 @@ sealed class AbstractSemiFunction<V : Variable<*>>(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        if (x.lowerBound!!.value.unwrap() ls Flt64.zero) {
-            return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $x"))
-        }
-
         if (flag != null) {
             if (flag.lowerBound!!.value.unwrap() ls Flt64.zero || flag.upperBound!!.value.unwrap() gr Flt64.one) {
                 return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $flag"))

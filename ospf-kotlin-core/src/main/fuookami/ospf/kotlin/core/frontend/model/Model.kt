@@ -20,6 +20,12 @@ interface Model {
     fun remove(item: AbstractVariableItem<*, *>)
 
     @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addVariablesLists")
+    fun add(items: Iterable<Iterable<AbstractVariableItem<*, *>>>): Try {
+        return add(items.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityVariable")
     fun add(item: Quantity<AbstractVariableItem<*, *>>): Try {
         return add(item.value)
