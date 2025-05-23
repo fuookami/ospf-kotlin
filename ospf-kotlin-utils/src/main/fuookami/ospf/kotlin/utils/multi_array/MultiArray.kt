@@ -158,7 +158,7 @@ operator fun <K, T : Any, S : Shape> Map<K, MultiArray<T, S>>.get(k: K, vararg v
 }
 
 operator fun <K, T : Any, S : Shape> Map<K, MultiArray<T, S>>.get(k: K, vararg v: Any): MultiArrayView<T, S> {
-    return this[k]!![v]
+    return this[k]!!.get(*v)
 }
 
 operator fun <K, T : Any, S : Shape> Map<K, MutableMultiArray<T, S>>.set(k: K, i: Int, value: T) {
@@ -222,7 +222,7 @@ operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get
 }
 
 operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, vararg v: Any): MultiArrayView<T, S> {
-    return this[k1]!![k2]!![v]
+    return this[k1]!![k2]!!.get(*v)
 }
 
 operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, i: Int, value: T) {
@@ -285,7 +285,7 @@ operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray
 }
 
 operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, vararg v: Any): MultiArrayView<T, S> {
-    return this[k1]!![k2]!![k3]!![v]
+    return this[k1]!![k2]!![k3]!!.get(*v)
 }
 
 operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, i: Int, value: T) {
