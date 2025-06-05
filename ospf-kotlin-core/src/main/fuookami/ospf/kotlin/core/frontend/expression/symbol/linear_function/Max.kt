@@ -58,10 +58,14 @@ sealed class AbstractMaxFunction(
     override val cached get() = y.cached
 
     private val possibleRange
-        get() = ValueRange(
-            polynomials.minOf { it.lowerBound!!.value.unwrap() },
-            polynomials.maxOf { it.upperBound!!.value.unwrap() }
-        ).value!!
+        get() = if (polynomials.isNotEmpty()) {
+            ValueRange(
+                polynomials.minOf { it.lowerBound!!.value.unwrap() },
+                polynomials.maxOf { it.upperBound!!.value.unwrap() }
+            ).value!!
+        } else {
+            ValueRange(Flt64.zero, Flt64.zero).value!!
+        }
     private var m = possibleRange
 
     override fun flush(force: Boolean) {
@@ -187,19 +191,23 @@ sealed class AbstractMaxFunction(
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.evaluate(tokenList, zeroIfNone) ?: return null }
+        return polynomials.maxOfOrNull { it.evaluate(tokenList, zeroIfNone) ?: return null }
+            ?: Flt64.zero
     }
 
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.evaluate(results, tokenList, zeroIfNone) ?: return null }
+        return polynomials.maxOfOrNull { it.evaluate(results, tokenList, zeroIfNone) ?: return null }
+            ?: Flt64.zero
     }
 
     override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.evaluate(tokenTable, zeroIfNone) ?: return null }
+        return polynomials.maxOfOrNull { it.evaluate(tokenTable, zeroIfNone) ?: return null }
+            ?: Flt64.zero
     }
 
     override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOf { it.evaluate(results, tokenTable, zeroIfNone) ?: return null }
+        return polynomials.maxOfOrNull { it.evaluate(results, tokenTable, zeroIfNone) ?: return null }
+            ?: Flt64.zero
     }
 }
 
