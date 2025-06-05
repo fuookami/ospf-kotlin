@@ -10,6 +10,10 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.*
 
+operator fun <K, V> List<Pair<K, V>>.get(key: K): V? {
+    return this.firstOrNull { it.first == key }?.second
+}
+
 fun <T> List<T>.shuffle(
     randomGenerator: Generator<Int> = { Random.nextInt(0, this.size) }
 ): List<T> {

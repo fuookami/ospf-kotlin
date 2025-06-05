@@ -59,26 +59,88 @@ sealed interface AbstractTokenList {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 class TokenList(
     val list: Map<VariableItemKey, Token>
-) : AbstractTokenList {
+) : AbstractTokenList, AutoCloseable {
     constructor(tokens: MutableTokenList) : this(tokens.list.toMap())
 
+    init {
+        list.forEach { (key, value) ->
+            value.refreshCallbacks[this] = {
+                synchronized(lock) {
+                    _cachedSolution = tokens.any { it.result != null }
+                }
+            }
+        }
+    }
+
     override val tokens by list::values
-    override val tokenIndexMap: BiMap<Token, Int> by lazy { tokenIndexMap(tokens) }
+
+    private val lock = Any()
+
+    override val tokenIndexMap: BiMap<Token, Int> by lazy {
+        tokenIndexMap(tokens)
+    }
+    private var _cachedSolution: Boolean? = null
+    override val cachedSolution: Boolean
+        get() {
+            return synchronized(lock) {
+                if (_cachedSolution == null) {
+                    _cachedSolution = tokens.any { it.result != null }
+                }
+                _cachedSolution!!
+            }
+        }
 
     override fun find(item: AbstractVariableItem<*, *>): Token? {
         return list[item.key]
     }
+
+    override fun setSolution(solution: List<Flt64>) {
+        synchronized(lock) {
+            assert(solution.size >= tokens.size)
+            val tokenIndexMap = tokenIndexMap(tokens)
+            for (token in tokens) {
+                token.__result = solution[tokenIndexMap[token]!!]
+                _cachedSolution = tokens.any { it.result != null }
+            }
+        }
+    }
+
+    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        synchronized(lock) {
+            for ((variable, value) in solution) {
+                find(variable)?.__result = value
+            }
+            _cachedSolution = tokens.any { it.result != null }
+        }
+    }
+
+    override fun clearSolution() {
+        synchronized(lock) {
+            for (token in tokens) {
+                token.__result = null
+            }
+            _cachedSolution = tokens.any { it.result != null }
+        }
+    }
+
+    override fun close() {
+        list.forEach { (_, value) ->
+            value.refreshCallbacks.remove(this)
+        }
+    }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 sealed class MutableTokenList(
     internal val list: MutableMap<VariableItemKey, Token> = HashMap(),
     protected var currentIndex: Int = 0
-) : AbstractTokenList, Copyable<MutableTokenList> {
+) : AbstractTokenList, Copyable<MutableTokenList>, AutoCloseable {
     override val tokens by list::values
 
-    private val lock = Any()
+    protected val lock = Any()
 
     private lateinit var _tokenIndexMap: BiMap<Token, Int>
     override val tokenIndexMap: BiMap<Token, Int>
@@ -88,10 +150,14 @@ sealed class MutableTokenList(
             }
             return _tokenIndexMap
         }
+    protected var _cachedSolution: Boolean? = null
     override val cachedSolution: Boolean
         get() {
             return synchronized(lock) {
-                tokens.any { it.result != null }
+                if (_cachedSolution == null) {
+                    _cachedSolution = tokens.any { it.result != null }
+                }
+                _cachedSolution!!
             }
         }
 
@@ -100,7 +166,11 @@ sealed class MutableTokenList(
             if (list.containsKey(item.key)) {
                 return Failed(Err(ErrorCode.TokenExisted))
             }
-            list[item.key] = Token(item, currentIndex)
+            list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
+                synchronized(lock) {
+                    _cachedSolution = tokens.any { it.result != null }
+                }
+            }))
             ++currentIndex
         }
         return ok
@@ -112,7 +182,11 @@ sealed class MutableTokenList(
                 if (list.containsKey(item.key)) {
                     return Failed(Err(ErrorCode.TokenExisted))
                 }
-                list[item.key] = Token(item, currentIndex)
+                list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
+                    synchronized(lock) {
+                        _cachedSolution = tokens.any { it.result != null }
+                    }
+                }))
                 ++currentIndex
             }
         }
@@ -123,6 +197,42 @@ sealed class MutableTokenList(
         synchronized(lock) {
             _tokenIndexMap = HashBiMap()
             list.remove(item.key)
+            _cachedSolution = tokens.any { it.result != null }
+        }
+    }
+
+    override fun setSolution(solution: List<Flt64>) {
+        synchronized(lock) {
+            assert(solution.size >= tokens.size)
+            val tokenIndexMap = tokenIndexMap(tokens)
+            for (token in tokens) {
+                token.__result = solution[tokenIndexMap[token]!!]
+                _cachedSolution = tokens.any { it.result != null }
+            }
+        }
+    }
+
+    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        synchronized(lock) {
+            for ((variable, value) in solution) {
+                find(variable)?.__result = value
+            }
+            _cachedSolution = tokens.any { it.result != null }
+        }
+    }
+
+    override fun clearSolution() {
+        synchronized(lock) {
+            for (token in tokens) {
+                token.__result = null
+            }
+            _cachedSolution = tokens.any { it.result != null }
+        }
+    }
+
+    override fun close() {
+        list.forEach { (_, value) ->
+            value.refreshCallbacks.remove(this)
         }
     }
 }
@@ -147,7 +257,13 @@ class AutoTokenList private constructor(
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token {
-        return list.getOrPut(item.key) { Token(item, currentIndex) }
+        return list.getOrPut(item.key) {
+            Token(item, currentIndex, mutableMapOf(this to {
+                synchronized(super.lock) {
+                    super._cachedSolution = tokens.any { it.result != null }
+                }
+            }))
+        }
     }
 }
 

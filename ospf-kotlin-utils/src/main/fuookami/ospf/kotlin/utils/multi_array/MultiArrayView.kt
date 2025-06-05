@@ -25,7 +25,11 @@ class MultiArrayView<out T : Any, S : Shape>(
         }
 
         override fun hasNext(): Boolean {
-            return current == null || view.shape.next(current!!) != null
+            return if (current == null) {
+                view.isNotEmpty()
+            } else {
+                view.shape.next(current!!) != null
+            }
         }
 
         override fun equals(other: Any?): Boolean {
