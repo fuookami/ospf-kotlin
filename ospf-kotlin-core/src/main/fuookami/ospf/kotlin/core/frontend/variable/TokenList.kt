@@ -171,6 +171,7 @@ sealed class MutableTokenList(
                     _cachedSolution = tokens.any { it.result != null }
                 }
             }))
+            _cachedSolution = tokens.any { it.result != null }
             ++currentIndex
         }
         return ok
@@ -189,6 +190,7 @@ sealed class MutableTokenList(
                 }))
                 ++currentIndex
             }
+            _cachedSolution = tokens.any { it.result != null }
         }
         return ok
     }
@@ -243,7 +245,10 @@ class AutoTokenList private constructor(
 ) : MutableTokenList(list, currentIndex) {
     companion object {
         operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
-            return AutoTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+            return AutoTokenList(
+                tokenList.tokens.associateBy { it.key }.toMutableMap(),
+                tokenList.tokens.maxOf { it.solverIndex } + 1
+            )
         }
     }
 
@@ -257,12 +262,16 @@ class AutoTokenList private constructor(
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token {
-        return list.getOrPut(item.key) {
-            Token(item, currentIndex, mutableMapOf(this to {
-                synchronized(super.lock) {
-                    super._cachedSolution = tokens.any { it.result != null }
-                }
-            }))
+        return synchronized(lock) {
+            val token = list.getOrPut(item.key) {
+                Token(item, currentIndex, mutableMapOf(this to {
+                    synchronized(super.lock) {
+                        super._cachedSolution = tokens.any { it.result != null }
+                    }
+                }))
+            }
+            super._cachedSolution = tokens.any { it.result != null }
+            token
         }
     }
 }
