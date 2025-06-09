@@ -10,6 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>ospf-kotlin</name>
     <groupId>io.github.fuookami.ospf.kotlin.framework.csp2d</groupId>
     <artifactId>ospf-kotlin-framework-csp2d-jdk8</artifactId>
     <packaging>pom</packaging>

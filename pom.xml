@@ -25,10 +25,9 @@
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <version>1.0.47</version>
     <packaging>pom</packaging>
+    <name>ospf-kotlin</name>
     <description>operation research algorithm software framework</description>
     <url>https://github.com/fuookami/ospf-kotlin</url>
-
-    <name>ospf-kotlin</name>
 
     <licenses>
         <license>

@@ -7,8 +7,9 @@
         <artifactId>ospf-kotlin-jdk8</artifactId>
         <version>1.0.47</version>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
+
+    <name>ospf-kotlin</name>
     <artifactId>ospf-kotlin-parent-jdk8</artifactId>
     <packaging>pom</packaging>
 

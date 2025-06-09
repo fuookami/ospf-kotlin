@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <name>ospf-kotlin</name>
     <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context-jdk8</artifactId>
 
     <dependencies>
