@@ -598,7 +598,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                         .ceil()
                         .toUInt64()
                         .toInt()
-                    val readySymbolList = readySymbols.toList()
+                    val readySymbolList = readySymbols.toList().shuffled()
                     (0..(readySymbolList.size / segment)).map { i ->
                         launch(Dispatchers.Default) {
                             val thisReadSymbol = readySymbolList
