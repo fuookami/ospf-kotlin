@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import kotlin.collections.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
 import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*

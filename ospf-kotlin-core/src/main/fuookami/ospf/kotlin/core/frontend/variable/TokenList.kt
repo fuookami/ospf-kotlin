@@ -103,8 +103,8 @@ class TokenList(
             val tokenIndexMap = tokenIndexMap(tokens)
             for (token in tokens) {
                 token.__result = solution[tokenIndexMap[token]!!]
-                _cachedSolution = tokens.any { it.result != null }
             }
+            _cachedSolution = tokens.any { it.result != null }
         }
     }
 
@@ -171,6 +171,7 @@ sealed class MutableTokenList(
                     _cachedSolution = tokens.any { it.result != null }
                 }
             }))
+            _cachedSolution = tokens.any { it.result != null }
             ++currentIndex
         }
         return ok
@@ -189,6 +190,7 @@ sealed class MutableTokenList(
                 }))
                 ++currentIndex
             }
+            _cachedSolution = tokens.any { it.result != null }
         }
         return ok
     }
@@ -243,7 +245,10 @@ class AutoTokenList private constructor(
 ) : MutableTokenList(list, currentIndex) {
     companion object {
         operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
-            return AutoTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+            return AutoTokenList(
+                tokenList.tokens.associateBy { it.key }.toMutableMap(),
+                tokenList.tokens.maxOf { it.solverIndex } + 1
+            )
         }
     }
 
@@ -273,7 +278,10 @@ class ManualTokenList private constructor(
 ) : MutableTokenList(list, currentIndex) {
     companion object {
         operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
-            return ManualTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+            return ManualTokenList(
+                tokenList.tokens.associateBy { it.key }.toMutableMap(),
+                tokenList.tokens.maxOf { it.solverIndex } + 1
+            )
         }
     }
 

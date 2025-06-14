@@ -74,16 +74,24 @@ open class WorkingCalendar(
         protected fun validTime(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
-            connectionTime: Duration = Duration.ZERO
+            connectionTime: Duration? = null,
+            conditionalConnectionTime: ((TimeRange) -> Duration)? = null
         ): Duration {
             var currentTime = time.duration
             for (unavailableTime in unavailableTimes) {
-                val intersectionTime = time.intersectionWith(unavailableTime)?.duration ?: Duration.ZERO
-                if (intersectionTime != Duration.ZERO) {
-                    currentTime -= min(
-                        currentTime,
-                        intersectionTime + connectionTime
-                    )
+                val intersectionTime = time.intersectionWith(unavailableTime)
+                if (intersectionTime != null) {
+                    if (conditionalConnectionTime != null) {
+                        currentTime -= min(
+                            currentTime,
+                            intersectionTime.duration + conditionalConnectionTime(intersectionTime)
+                        )
+                    } else if (connectionTime != null) {
+                        currentTime -= min(
+                            currentTime,
+                            intersectionTime.duration + connectionTime
+                        )
+                    }
                 }
             }
             return currentTime
@@ -94,13 +102,19 @@ open class WorkingCalendar(
         protected fun validTimes(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
-            connectionTime: Duration = Duration.ZERO,
+            beforeConnectionTime: Duration? = null,
+            afterConnectionTime: Duration? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> Duration)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> Duration)? = null
         ): List<TimeRange> {
             var currentTime = mutableListOf(time)
             for (unavailableTime in unavailableTimes) {
                 currentTime = currentTime.flatMap { thisRestTime ->
-                    val diff = thisRestTime - unavailableTime
-                    diff.filter { thisRestTime.duration > connectionTime }
+                    val diff = thisRestTime - TimeRange(
+                        unavailableTime.start - (beforeConditionalConnectionTime?.let { it(unavailableTime) } ?: beforeConnectionTime ?: Duration.ZERO),
+                        unavailableTime.end + (afterConditionalConnectionTime?.let { it(unavailableTime) } ?: afterConnectionTime ?: Duration.ZERO)
+                    )
+                    diff.filter { thisRestTime.duration > Duration.ZERO }
                 }.toMutableList()
             }
             return currentTime
@@ -480,7 +494,10 @@ sealed class ProductivityCalendar<Q, P, T>(
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        beforeStopConnectionTime: Duration? = null,
+        afterStopConnectionTime: Duration? = null,
+        beforeConditionalStopConnectionTime: ((Duration) -> Duration)? = null,
+        afterConditionalStopConnectionTime: ((Duration) -> Duration)? = null,
     ): TimeRange? {
         if (productivityCalendar.isEmpty()) {
             return null

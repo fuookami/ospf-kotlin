@@ -7,15 +7,15 @@ import fuookami.ospf.kotlin.utils.math.value_range.*
 data class Token(
     val variable: AbstractVariableItem<*, *>,
     val solverIndex: Int,
-    internal val refreshCallbacks: MutableMap<AbstractTokenList, () -> Unit>
+    internal val refreshCallbacks: MutableMap<AbstractTokenList, (Boolean) -> Unit>
 ) {
     val key by variable::key
     internal var __result: Flt64? = null
     internal var _result: Flt64?
-        get() = __result;
+        get() = __result
         set(value) {
             __result = value
-            refreshCallbacks.values.forEach { it() }
+            refreshCallbacks.values.forEach { it(value != null) }
         }
     val result by ::_result
     val doubleResult get() = _result?.toDouble()
