@@ -103,8 +103,8 @@ class TokenList(
             val tokenIndexMap = tokenIndexMap(tokens)
             for (token in tokens) {
                 token.__result = solution[tokenIndexMap[token]!!]
-                _cachedSolution = tokens.any { it.result != null }
             }
+            _cachedSolution = tokens.any { it.result != null }
         }
     }
 
@@ -282,7 +282,10 @@ class ManualTokenList private constructor(
 ) : MutableTokenList(list, currentIndex) {
     companion object {
         operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
-            return ManualTokenList(tokenList.tokens.associateBy { it.key }.toMutableMap(), tokenList.tokens.maxOf { it.solverIndex } + 1)
+            return ManualTokenList(
+                tokenList.tokens.associateBy { it.key }.toMutableMap(),
+                tokenList.tokens.maxOf { it.solverIndex } + 1
+            )
         }
     }
 

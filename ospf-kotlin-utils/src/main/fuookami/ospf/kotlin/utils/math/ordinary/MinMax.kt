@@ -16,7 +16,8 @@ fun <T : Ord<T>> min(lhs: T, vararg rhs: T): T {
 }
 
 inline fun <T : Ord<T>, U> minOf(
-    lhs: U, vararg rhs: U,
+    lhs: U,
+    vararg rhs: U,
     crossinline extractor: Extractor<T, U>
 ): T {
     var min = extractor(lhs)

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 class TimeRangeFindTest {
     @Test
-    fun testTimeRange2() {
+    fun testTimeRangeFind1() {
         val calendar = listOf(
             TimeRange(
                 start = Instant.parse("2020-08-30T08:00:00Z"),
@@ -65,7 +65,7 @@ class TimeRangeFindTest {
     }
 
     @Test
-    fun testTimeRange3() {
+    fun testTimeRangeFind2() {
         val calendar = listOf(
             TimeRange(
                 start = Instant.parse("2020-08-30T08:00:00Z"),
@@ -155,7 +155,7 @@ class TimeRangeFindTest {
     }
 
     @Test
-    fun testInstant() {
+    fun testTimeRangeFind3() {
         val calendar = listOf(
             TimeRange(
                 start = Instant.parse("2020-08-30T08:00:00Z"),

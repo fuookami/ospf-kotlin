@@ -5,23 +5,8 @@ import kotlin.time.Duration.Companion.days
 import kotlin.reflect.*
 import kotlinx.datetime.*
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.functional.*
-
-fun max(lhs: Instant, rhs: Instant): Instant {
-    return if (lhs <= rhs) {
-        rhs
-    } else {
-        lhs
-    }
-}
-
-fun min(lhs: Instant, rhs: Instant): Instant {
-    return if (lhs <= rhs) {
-        lhs
-    } else {
-        rhs
-    }
-}
 
 // [b, e)
 data class TimeRange(
@@ -144,29 +129,99 @@ data class TimeRange(
     }
 
     fun differenceWith(ano: List<TimeRange>): List<TimeRange> {
-        var rest: List<TimeRange> = arrayListOf(this)
-        for (rhs in ano) {
-            rest = rest.flatMap { it.differenceWith(rhs) }
+        val mergedTimes = ano
+            .filter{ it.withIntersection(this) }
+            .map {
+                TimeRange(
+                    max(it.start, start),
+                    min(it.end, end)
+                )
+            }.merge()
+        if (mergedTimes.isEmpty()) {
+            return listOf(this)
         }
-        return rest
+
+        val result = ArrayList<TimeRange>()
+        var currentTime = start
+        for (i in mergedTimes.indices) {
+            if (currentTime < mergedTimes[i].start) {
+                result.add(
+                    TimeRange(
+                        currentTime,
+                        mergedTimes[i].start
+                    )
+                )
+            }
+            currentTime = mergedTimes[i].end
+            if (i == mergedTimes.size - 1) {
+                if (currentTime < end) {
+                    result.add(
+                        TimeRange(
+                            currentTime,
+                            end
+                        )
+                    )
+                }
+            }
+        }
+        return result
     }
 
-    fun contains(time: Instant): Boolean {
+    operator fun contains(time: Instant): Boolean {
         return start <= time && time < end;
     }
 
-    fun contains(time: TimeRange): Boolean {
+    operator fun contains(time: TimeRange): Boolean {
         return start <= time.start && time.end <= end;
     }
 
-    fun split(unit: Duration): List<TimeRange> {
-        val timeRanges = ArrayList<TimeRange>()
+    data class SplitTimeRanges(
+        val times: List<TimeRange>,
+        val breakTimes: List<TimeRange>
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is SplitTimeRanges) return false
+
+            if (times != other.times) return false
+            if (!(breakTimes.toTypedArray() contentEquals other.breakTimes.toTypedArray())) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = times.hashCode()
+            result = 31 * result + breakTimes.hashCode()
+            return result
+        }
+    }
+
+    fun split(
+        unit: Duration,
+        breakTime: Duration? = null
+    ): SplitTimeRanges {
+        val times = ArrayList<TimeRange>()
+        val breakTimes = ArrayList<TimeRange>()
         var currentTime = start
         while (currentTime < end) {
-            timeRanges.add(TimeRange(currentTime, currentTime + min(unit, end - currentTime)))
-            currentTime += unit
+            val duration = min(unit, end - currentTime)
+            times.add(
+                TimeRange(
+                    currentTime,
+                    currentTime + duration
+                )
+            )
+            if (breakTime != null && duration == unit && (currentTime + duration) != end) {
+                breakTimes.add(
+                    TimeRange(
+                        currentTime + duration,
+                        currentTime + duration + breakTime
+                    )
+                )
+            }
+            currentTime += unit + (breakTime ?: Duration.ZERO)
         }
-        return timeRanges
+        return SplitTimeRanges(times, breakTimes)
     }
 
     fun continuousBefore(time: TimeRange): Boolean {

@@ -80,9 +80,39 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapSymbolLists")
+    fun <K> add(symbols: Map<K, Iterable<IntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapMapSymbols")
     fun <K1, K2> add(symbols: Map<K1, Map<K2, IntermediateSymbol>>): Try {
         return tokens.add(symbols.values.flatMap { it.values })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapSymbolLists")
+    fun <K1, K2, K3> add(symbols: Map<K1, Map<K2, Map<K3, IntermediateSymbol>>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -98,9 +128,39 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapQuantitySymbolLists")
+    fun <K> add(symbols: Map<K, Iterable<QuantityIntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapMapQuantitySymbols")
     fun <K1, K2> add(symbols: Map<K1, Map<K2, QuantityIntermediateSymbol>>): Try {
         return tokens.add(symbols.values.flatMap { it.values.map { token -> token.value } })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapQuantitySymbolLists")
+    fun <K1, K2> add(symbols: Map<K1, Map<K2, Iterable<QuantityIntermediateSymbol>>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
     }
 
     fun remove(symbol: IntermediateSymbol) {
