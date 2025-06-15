@@ -3,6 +3,38 @@ package fuookami.ospf.kotlin.utils
 import kotlin.time.*
 import kotlinx.datetime.*
 
+fun max(lhs: Instant, rhs: Instant): Instant {
+    return if (lhs <= rhs) {
+        rhs
+    } else {
+        lhs
+    }
+}
+
+fun min(lhs: Instant, rhs: Instant): Instant {
+    return if (lhs <= rhs) {
+        lhs
+    } else {
+        rhs
+    }
+}
+
+fun max(lhs: Duration, rhs: Duration): Duration {
+    return if (lhs <= rhs) {
+        rhs
+    } else {
+        lhs
+    }
+}
+
+fun min(lhs: Duration, rhs: Duration): Duration {
+    return if (lhs <= rhs) {
+        lhs
+    } else {
+        rhs
+    }
+}
+
 fun Instant.truncatedTo(unit: DurationUnit): Instant {
     return this
         .toJavaInstant()

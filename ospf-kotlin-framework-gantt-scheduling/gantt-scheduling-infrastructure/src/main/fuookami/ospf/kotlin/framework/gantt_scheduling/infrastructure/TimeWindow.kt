@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 import kotlin.math.*
 import kotlin.time.*
 import kotlinx.datetime.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 
 data class TimeWindow(
@@ -231,8 +232,11 @@ data class TimeWindow(
         return window.contains(time)
     }
 
-    fun split(unit: Duration): List<TimeRange> {
-        return window.split(unit)
+    fun split(
+        unit: Duration,
+        breakTime: Duration? = null
+    ): TimeRange.SplitTimeRanges {
+        return window.split(unit, breakTime)
     }
 
     fun new(window: TimeRange, continues: Boolean): TimeWindow {
