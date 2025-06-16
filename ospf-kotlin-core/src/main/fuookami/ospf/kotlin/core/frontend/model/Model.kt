@@ -26,6 +26,30 @@ interface Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapVariables")
+    fun <K> add(items: Map<K, AbstractVariableItem<*, *>>): Try {
+        return add(items.values)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapVariablesLists")
+    fun <K> add(items: Map<K, Iterable<AbstractVariableItem<*, *>>>): Try {
+        return add(items.values.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapVariables")
+    fun <K1, K2> add(items: Map<K1, Map<K2, AbstractVariableItem<*, *>>>): Try {
+        return add(items.values.map { it.values }.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapVariableLists")
+    fun <K1, K2> add(items: Map<K1, Map<K2, Iterable<AbstractVariableItem<*, *>>>>): Try {
+        return add(items.values.map { it.values }.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityVariable")
     fun add(item: Quantity<AbstractVariableItem<*, *>>): Try {
         return add(item.value)

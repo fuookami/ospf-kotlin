@@ -1,47 +1,82 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.math.*
 import kotlin.time.*
 import kotlinx.datetime.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
-
-fun max(lhs: Duration, rhs: Duration): Duration {
-    return if (lhs <= rhs) {
-        rhs
-    } else {
-        lhs
-    }
-}
-
-fun min(lhs: Duration, rhs: Duration): Duration {
-    return if (lhs <= rhs) {
-        lhs
-    } else {
-        rhs
-    }
-}
 
 open class WorkingCalendar(
     val timeWindow: TimeWindow,
     unavailableTimes: List<TimeRange> = emptyList()
 ) {
+    data class ActualTime(
+        val time: TimeRange,
+        val workingTimes: List<TimeRange>,
+        val breakTimes: List<TimeRange>,
+        val connectionTimes: List<TimeRange>
+    ) {
+        val finishEnabled: Boolean get() = time.start != Instant.DISTANT_PAST && time.end != Instant.DISTANT_FUTURE
+
+        infix fun eq(time: TimeRange): Boolean {
+            return this.time == time
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is ActualTime) return false
+
+            if (time != other.time) return false
+            if (!(workingTimes.toTypedArray() contentEquals other.workingTimes.toTypedArray())) return false
+            if (!(breakTimes.toTypedArray() contentEquals other.breakTimes.toTypedArray())) return false
+            if (!(connectionTimes.toTypedArray() contentEquals other.connectionTimes.toTypedArray())) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = time.hashCode()
+            result = 31 * result + workingTimes.hashCode()
+            result = 31 * result + breakTimes.hashCode()
+            result = 31 * result + connectionTimes.hashCode()
+            return result
+        }
+    }
+
+    data class ValidTimes(
+        val times: List<TimeRange>,
+        val breakTimes: List<TimeRange>,
+        val connectionTimes: List<TimeRange>
+    )
+
     companion object {
-        @JvmStatic
-        @JvmName("staticActualTime")
         protected fun actualTime(
             time: Instant,
             unavailableTimes: List<TimeRange> = emptyList(),
-            connectionTime: Duration = Duration.ZERO
+            beforeConnectionTime: Duration? = null,
+            afterConnectionTime: Duration? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null
         ): Instant {
+            val mergedTimes = unavailableTimes.merge()
+            if (mergedTimes.isEmpty()) {
+                return time
+            }
+
             var currentTime = time
-            for (unavailableTime in unavailableTimes) {
-                if (currentTime < unavailableTime.start) {
-                    break
+            for ((i, thisUnavailableTime) in mergedTimes.withIndex()) {
+                if (time <= thisUnavailableTime.start - max(
+                        beforeConditionalConnectionTime?.invoke(mergedTimes.first()) ?: Duration.ZERO,
+                        beforeConnectionTime ?: Duration.ZERO
+                )) {
+                    return currentTime
                 }
-                if (unavailableTime.contains(currentTime)) {
-                    currentTime = unavailableTime.end + connectionTime
-                }
+
+                currentTime = thisUnavailableTime.end + max(
+                    afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
+                    afterConnectionTime ?: Duration.ZERO
+                )
             }
             return currentTime
         }
@@ -51,42 +86,152 @@ open class WorkingCalendar(
         protected fun actualTime(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
-            connectionTime: Duration = Duration.ZERO
-        ): TimeRange {
-            var currentTime = time
-            for (unavailableTime in unavailableTimes) {
-                val intersection = currentTime.intersectionWith(unavailableTime)
-                if (intersection == null && unavailableTime.start >= currentTime.start) {
-                    break
-                }
-                if (intersection != null && !intersection.empty) {
-                    currentTime = TimeRange(
-                        start = currentTime.start,
-                        end = max(currentTime.end, unavailableTime.end) + intersection.duration + connectionTime
+            beforeConnectionTime: Duration? = null,
+            afterConnectionTime: Duration? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+            breakTime: Pair<Duration, Duration>? = null
+        ): ActualTime {
+            val mergedTimes = unavailableTimes.merge()
+            return if (mergedTimes.isEmpty()) {
+                if (breakTime != null) {
+                    var currentTime = time.start
+                    var workingDuration = Duration.ZERO
+                    val workingTimes = ArrayList<TimeRange>()
+                    val breakTimes = ArrayList<TimeRange>()
+                    while (workingDuration != time.duration) {
+                        val thisDuration = min(breakTime.first, time.duration - workingDuration)
+                        workingTimes.add(TimeRange(currentTime, currentTime + thisDuration))
+                        currentTime = if (thisDuration < breakTime.first && (workingDuration + thisDuration) != time.duration) {
+                            currentTime + thisDuration
+                        } else {
+                            currentTime + thisDuration + breakTime.second
+                        }
+                        workingDuration += thisDuration
+                    }
+                    ActualTime(
+                        time = TimeRange(
+                            start = time.start,
+                            end = currentTime
+                        ),
+                        workingTimes = workingTimes,
+                        breakTimes = breakTimes,
+                        connectionTimes = emptyList()
+                    )
+                } else {
+                    ActualTime(
+                        time = time,
+                        workingTimes = emptyList(),
+                        breakTimes = emptyList(),
+                        connectionTimes = emptyList()
                     )
                 }
-            }
-            return currentTime
-        }
+            } else {
+                var currentTime = time.start
+                var workingDuration = Duration.ZERO
+                val workingTimes = ArrayList<TimeRange>()
+                val breakTimes = ArrayList<TimeRange>()
+                val connectionTimes = ArrayList<TimeRange>()
+                var i = mergedTimes.withIndex().indexOfLast {
+                    currentTime >= it.value.end
+                }
+                while (workingDuration != time.duration) {
+                    if (i == mergedTimes.size - 1 && currentTime == Instant.DISTANT_FUTURE) {
+                        break
+                    } else if (i != mergedTimes.size - 1 && currentTime in mergedTimes[i + 1]) {
+                        currentTime = mergedTimes[i + 1].end
+                        i += 1
+                        continue
+                    }
 
-        @JvmStatic
-        @JvmName("staticValidTime")
-        protected fun validTime(
-            time: TimeRange,
-            unavailableTimes: List<TimeRange> = emptyList(),
-            connectionTime: Duration = Duration.ZERO
-        ): Duration {
-            var currentTime = time.duration
-            for (unavailableTime in unavailableTimes) {
-                val intersectionTime = time.intersectionWith(unavailableTime)?.duration ?: Duration.ZERO
-                if (intersectionTime != Duration.ZERO) {
-                    currentTime -= min(
-                        currentTime,
-                        intersectionTime + connectionTime
-                    )
+                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
+                        max(
+                            beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1]) ?: Duration.ZERO,
+                            beforeConnectionTime ?: Duration.ZERO
+                        )
+                    } else {
+                        null
+                    }
+                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
+                        max(
+                            afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
+                            afterConnectionTime ?: Duration.ZERO
+                        )
+                    } else {
+                        null
+                    }
+
+                    currentTime = if (thisAfterConnectionTime?.let { it > Duration.ZERO } == true) {
+                        connectionTimes.add(
+                            TimeRange(
+                                start = currentTime,
+                                end = currentTime + thisAfterConnectionTime
+                            )
+                        )
+                        currentTime + thisAfterConnectionTime
+                    } else {
+                        currentTime
+                    }
+                    val thisEndTime = if (i == mergedTimes.size - 1) {
+                        Instant.DISTANT_FUTURE
+                    } else {
+                        mergedTimes[i + 1].start - (thisBeforeConnectionTime ?: Duration.ZERO)
+                    }
+                    while (workingDuration != time.duration && currentTime != thisEndTime) {
+                        val restDuration = min(
+                            time.duration - workingDuration,
+                            thisEndTime - currentTime
+                        )
+                        val thisDuration = if (breakTime != null) {
+                            min(
+                                breakTime.first,
+                                restDuration
+                            )
+                        } else {
+                            restDuration
+                        }
+                        workingTimes.add(
+                            TimeRange(
+                                start = currentTime,
+                                end = currentTime + thisDuration
+                            )
+                        )
+                        currentTime = if (breakTime != null && thisDuration == breakTime.first && (currentTime + thisDuration) != thisEndTime) {
+                            breakTimes.add(
+                                TimeRange(
+                                    start = currentTime + thisDuration,
+                                    end = currentTime + thisDuration + breakTime.second
+                                )
+                            )
+                            currentTime + thisDuration + breakTime.second
+                        } else {
+                            currentTime + thisDuration
+                        }
+                        workingDuration += thisDuration
+                    }
+                    if (workingDuration != time.duration && thisBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
+                        connectionTimes.add(
+                            TimeRange(
+                                start = currentTime,
+                                end = currentTime + thisBeforeConnectionTime
+                            )
+                        )
+                    } else if (workingDuration == time.duration) {
+                        break
+                    }
+                    currentTime = mergedTimes[i + 1].end
+                    i += 1
                 }
+                ActualTime(
+                    time = TimeRange(
+                        start = time.start,
+                        end = currentTime
+                    ),
+                    workingTimes = workingTimes,
+                    breakTimes = breakTimes,
+                    connectionTimes = connectionTimes
+                )
             }
-            return currentTime
         }
 
         @JvmStatic
@@ -94,16 +239,111 @@ open class WorkingCalendar(
         protected fun validTimes(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
-            connectionTime: Duration = Duration.ZERO,
-        ): List<TimeRange> {
-            var currentTime = mutableListOf(time)
-            for (unavailableTime in unavailableTimes) {
-                currentTime = currentTime.flatMap { thisRestTime ->
-                    val diff = thisRestTime - unavailableTime
-                    diff.filter { thisRestTime.duration > connectionTime }
-                }.toMutableList()
+            beforeConnectionTime: Duration? = null,
+            afterConnectionTime: Duration? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+            breakTime: Pair<Duration, Duration>? = null
+        ): ValidTimes {
+            val mergedTimes = unavailableTimes.merge()
+            return if (mergedTimes.isEmpty()) {
+                if (breakTime != null) {
+                    val (validTimes, breakTimes) = time.split(breakTime.first, breakTime.second)
+                    ValidTimes(
+                        times = validTimes,
+                        breakTimes = breakTimes,
+                        connectionTimes = emptyList()
+                    )
+                } else {
+                    ValidTimes(
+                        times = listOf(time),
+                        breakTimes = emptyList(),
+                        connectionTimes = emptyList()
+                    )
+                }
+            } else {
+                val validTimes = ArrayList<TimeRange>()
+                val breakTimes = ArrayList<TimeRange>()
+                val connectionTimes = ArrayList<TimeRange>()
+                var currentTime = time.start
+                var i = mergedTimes.withIndex().indexOfLast {
+                    currentTime >= it.value.end
+                }
+                while (currentTime != time.end) {
+                    if (i == mergedTimes.size - 1 && currentTime == Instant.DISTANT_FUTURE) {
+                        break
+                    } else if (i != mergedTimes.size - 1 && currentTime in mergedTimes[i + 1]) {
+                        currentTime = mergedTimes[i + 1].end
+                        i += 1
+                        continue
+                    }
+
+                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
+                        max(
+                            beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1]) ?: Duration.ZERO,
+                            beforeConnectionTime ?: Duration.ZERO
+                        )
+                    } else {
+                        null
+                    }
+                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
+                        max(
+                            afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
+                            afterConnectionTime ?: Duration.ZERO
+                        )
+                    } else {
+                        null
+                    }
+
+                    currentTime = if (thisAfterConnectionTime?.let { it > Duration.ZERO } == true) {
+                        connectionTimes.add(
+                            TimeRange(
+                                start = currentTime,
+                                end = currentTime + thisAfterConnectionTime
+                            )
+                        )
+                        currentTime + thisAfterConnectionTime
+                    } else {
+                        currentTime
+                    }
+                    val thisEndTime = if (i == mergedTimes.size - 1) {
+                        time.end
+                    } else {
+                        min(
+                            time.end,
+                            mergedTimes[i + 1].start - (thisBeforeConnectionTime ?: Duration.ZERO)
+                        )
+                    }
+                    val baseTime = TimeRange(
+                        start = currentTime,
+                        end = thisEndTime
+                    )
+                    if (breakTime != null) {
+                        val (thisValidTimes, thisBreakTimes) = baseTime.split(breakTime.first, breakTime.second)
+                        validTimes.addAll(thisValidTimes)
+                        breakTimes.addAll(thisBreakTimes)
+                    } else {
+                        validTimes.add(baseTime)
+                    }
+                    if (thisEndTime != time.end && thisBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
+                        connectionTimes.add(
+                            TimeRange(
+                                start = currentTime,
+                                end = currentTime + thisBeforeConnectionTime
+                            )
+                        )
+                    } else if (thisEndTime == time.end) {
+                        break
+                    }
+                    currentTime = mergedTimes[i + 1].end
+                    i += 1
+                }
+                return ValidTimes(
+                    times = validTimes,
+                    breakTimes = breakTimes,
+                    connectionTimes = connectionTimes
+                )
             }
-            return currentTime
         }
     }
 
@@ -112,48 +352,54 @@ open class WorkingCalendar(
     fun actualTime(
         time: Instant,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        afterConnectionTime: Duration? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null
     ): Instant {
         return WorkingCalendar.actualTime(
             time = time,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
-            connectionTime = connectionTime
+            afterConnectionTime = afterConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime
         )
     }
 
     fun actualTime(
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
         return WorkingCalendar.actualTime(
             time = time,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
-            connectionTime = connectionTime
-        )
-    }
-
-    fun validTime(
-        time: TimeRange,
-        unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): Duration {
-        return WorkingCalendar.validTime(
-            time = time,
-            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
-            connectionTime = connectionTime
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
     fun validTimes(
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO,
-    ): List<TimeRange> {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ValidTimes {
         return WorkingCalendar.validTimes(
             time = time,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
-            connectionTime = connectionTime
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 }
@@ -253,16 +499,36 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
         val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(
+                    start = startTime,
+                    end = Instant.DISTANT_FUTURE
+                ),
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
+            )
+        }
+
         return actualTimeFrom(
             material = material,
             startTime = startTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -271,16 +537,28 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange? {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime? {
         val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
-        return actualTimeFromOrNull(
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
+        return actualTimeFrom(
             material = material,
             startTime = startTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -289,16 +567,36 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
         val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(
+                    start = startTime,
+                    end = Instant.DISTANT_FUTURE
+                ),
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
+            )
+        }
+
         return actualTimeFrom(
             material = material,
             startTime = startTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -307,16 +605,28 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange? {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime? {
         val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
-        return actualTimeFromOrNull(
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
+        return actualTimeFrom(
             material = material,
             startTime = startTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -325,16 +635,36 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
         val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(
+                    start = Instant.DISTANT_PAST,
+                    end = endTime
+                ),
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
+            )
+        }
+
         return actualTimeUntil(
             material = material,
             endTime = endTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -343,16 +673,28 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange? {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime? {
         val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
-        return actualTimeUntilOrNull(
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
+        return actualTimeUntil(
             material = material,
             endTime = endTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -361,16 +703,36 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
         val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(
+                    start = Instant.DISTANT_PAST,
+                    end = endTime
+                ),
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
+            )
+        }
+
         return actualTimeUntil(
             material = material,
             endTime = endTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -379,16 +741,28 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange? {
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime? {
         val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
-        return actualTimeUntilOrNull(
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
+        return actualTimeUntil(
             material = material,
             endTime = endTime,
             productivityCalendar = productivityCalendar,
             quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -396,15 +770,27 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
     ): Q {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return constants.zero
+        }
+
         return actualQuantity(
             material = material,
             time = time,
             productivityCalendar = productivityCalendar,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -412,15 +798,27 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
     ): Q? {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
-        return actualQuantityOrNull(
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
+        return actualQuantity(
             material = material,
             time = time,
             productivityCalendar = productivityCalendar,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -428,15 +826,27 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
     ): Q {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return constants.zero
+        }
+
         return actualQuantity(
             material = material,
             time = time,
             productivityCalendar = productivityCalendar,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -444,15 +854,27 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
     ): Q? {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
-        return actualQuantityOrNull(
+        if (productivityCalendar.isEmpty()) {
+            return null
+        }
+
+        return actualQuantity(
             material = material,
             time = time,
             productivityCalendar = productivityCalendar,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
         )
     }
 
@@ -462,65 +884,106 @@ sealed class ProductivityCalendar<Q, P, T>(
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
-        return actualTimeFromOrNull(
-            material = material,
-            startTime = startTime,
-            productivityCalendar = productivityCalendar,
-            quantity = quantity,
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
+        val baseTime = TimeRange(
+            start = startTime,
+            end = Instant.DISTANT_FUTURE
+        )
+        val validTimes = validTimes(
+            time = baseTime,
             unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
-        ) ?: TimeRange(start = startTime)
-    }
-
-    private fun actualTimeFromOrNull(
-        material: T,
-        startTime: Instant,
-        productivityCalendar: List<Productivity<T>>,
-        quantity: Q,
-        unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange? {
-        if (productivityCalendar.isEmpty()) {
-            return null
-        }
-
-        var currentTime = max(startTime, productivityCalendar.first().timeWindow.start)
-        var restQuantity = quantity
-        for (calendar in productivityCalendar) {
-            // todo: calculate with dayOfWeek and dayOfMonth appointment
-            currentTime = max(
-                currentTime,
-                calendar.timeWindow.start + connectionTime
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        )
+        if (validTimes.times.isEmpty()) {
+            return ActualTime(
+                time = baseTime,
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
             )
-            val currentProductivity = calendar.capacityOf(material)
-                ?.let { Flt64.one / with(timeWindow) { it.value } }
-                ?: Flt64.zero
-            val maxProduceTime = with(timeWindow) {
-                WorkingCalendar.validTime(
-                    TimeRange(currentTime, calendar.timeWindow.end),
-                    unavailableTimes,
-                    connectionTime
-                ).value
+        }
+
+        var produceQuantity = constants.zero
+        var currentTime = validTimes.times.first().start
+        val workingTimes = ArrayList<TimeRange>()
+        for (validTime in validTimes.times) {
+            var flag = false
+
+            for (calendar in productivityCalendar) {
+                if (validTime.end <= calendar.timeWindow.start) {
+                    continue
+                } else if (flag && validTime.start >= calendar.timeWindow.end) {
+                    break
+                }
+                flag = true
+
+                val produceTime = validTime.intersectionWith(calendar.timeWindow) ?: continue
+                val currentProductivity = calendar.capacityOf(material)
+                    ?.let { Flt64.one / with(timeWindow) { it.value } }
+                    ?: continue
+                val maxQuantity = with(timeWindow) {
+                    floor(produceTime.duration.value * currentProductivity)
+                }
+                val thisQuantity = min(
+                    quantity - produceQuantity,
+                    maxQuantity
+                )
+                produceQuantity += thisQuantity
+                if (thisQuantity eq maxQuantity) {
+                    currentTime = max(currentTime, produceTime.end)
+                    workingTimes.add(produceTime)
+                } else {
+                    val actualProduceTime = (thisQuantity.toFlt64() / maxQuantity.toFlt64()).toDouble() * produceTime.duration
+                    currentTime = max(currentTime, produceTime.start + actualProduceTime)
+                    workingTimes.add(
+                        TimeRange(
+                            start = produceTime.start,
+                            end = produceTime.start + actualProduceTime
+                        )
+                    )
+                }
+
+                if (produceQuantity eq quantity) {
+                    break
+                }
             }
-            val maxProduceQuantity = floor(maxProduceTime * currentProductivity)
-            if (maxProduceQuantity geq restQuantity) {
-                val thisProduceTime = with(timeWindow) { (restQuantity.toFlt64() / currentProductivity).duration }
-                currentTime += thisProduceTime
-                restQuantity = constants.zero
+
+            if (produceQuantity eq quantity) {
                 break
-            } else {
-                restQuantity -= maxProduceQuantity
             }
         }
-        return if (restQuantity eq constants.zero) {
-            TimeRange(
+
+        return if (produceQuantity eq quantity) {
+            val time = TimeRange(
                 start = startTime,
                 end = currentTime
             )
+            ActualTime(
+                time = time,
+                workingTimes = workingTimes,
+                breakTimes = validTimes.breakTimes.filter {
+                    it.withIntersection(time)
+                },
+                connectionTimes = validTimes.connectionTimes.filter {
+                    it.withIntersection(time)
+                }
+            )
         } else {
-            null
+            ActualTime(
+                time = baseTime,
+                workingTimes = workingTimes,
+                breakTimes = validTimes.breakTimes,
+                connectionTimes = validTimes.connectionTimes
+            )
         }
     }
 
@@ -530,66 +993,13 @@ sealed class ProductivityCalendar<Q, P, T>(
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange {
-        return actualTimeUntilOrNull(
-            material = material,
-            endTime = endTime,
-            productivityCalendar = productivityCalendar,
-            quantity = quantity,
-            unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
-        ) ?: TimeRange(end = endTime)
-    }
-
-    private fun actualTimeUntilOrNull(
-        material: T,
-        endTime: Instant,
-        productivityCalendar: List<Productivity<T>>,
-        quantity: Q,
-        unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): TimeRange? {
-        if (productivityCalendar.isEmpty()) {
-            return null
-        }
-
-        var currentTime = min(endTime, productivityCalendar.first().timeWindow.end)
-        var restAmount = quantity
-        for (calendar in productivityCalendar) {
-            // todo: calculate with dayOfWeek and dayOfMonth appointment
-            currentTime = min(
-                currentTime,
-                calendar.timeWindow.end
-            )
-            val currentProductivity = calendar.capacityOf(material)
-                ?.let { Flt64.one / with(timeWindow) { it.value } }
-                ?: Flt64.zero
-            val maxProduceTime = with(timeWindow) {
-                WorkingCalendar.validTime(
-                    TimeRange(calendar.timeWindow.end, currentTime + connectionTime),
-                    unavailableTimes,
-                    connectionTime
-                ).value
-            }
-            val maxProduceAmount = floor(maxProduceTime * currentProductivity)
-            if (maxProduceAmount >= restAmount) {
-                val thisProduceTime = with(timeWindow) { (restAmount.toFlt64() / currentProductivity).duration }
-                currentTime -= thisProduceTime
-                restAmount = constants.zero
-                break
-            } else {
-                restAmount -= maxProduceAmount
-            }
-        }
-        return if (restAmount == constants.zero) {
-            TimeRange(
-                start = currentTime,
-                end = endTime
-            )
-        } else {
-            null
-        }
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
+    ): ActualTime {
+        TODO("not implemented yet")
     }
 
     private fun actualQuantity(
@@ -597,47 +1007,39 @@ sealed class ProductivityCalendar<Q, P, T>(
         time: TimeRange,
         productivityCalendar: List<Productivity<T>>,
         unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
+        beforeConnectionTime: Duration? = null,
+        afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
+        breakTime: Pair<Duration, Duration>? = null
     ): Q {
-        return actualQuantityOrNull(
-            material = material,
+        val validTimes = validTimes(
             time = time,
-            productivityCalendar = productivityCalendar,
             unavailableTimes = unavailableTimes,
-            connectionTime = connectionTime
-        ) ?: constants.zero
-    }
-
-    private fun actualQuantityOrNull(
-        material: T,
-        time: TimeRange,
-        productivityCalendar: List<Productivity<T>>,
-        unavailableTimes: List<TimeRange> = emptyList(),
-        connectionTime: Duration = Duration.ZERO
-    ): Q? {
-        if (productivityCalendar.isEmpty()) {
-            return null
-        }
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        ).times
 
         var quantity = constants.zero
         for (calendar in productivityCalendar) {
-            // todo: calculate with dayOfWeek and dayOfMonth appointment
-            val intersection = time.intersectionWith(calendar.timeWindow) ?: continue
-            val produceTime = with(timeWindow) {
-                WorkingCalendar.validTime(
-                    if (intersection.start == calendar.timeWindow.start) {
-                        TimeRange(intersection.start + connectionTime, intersection.end)
-                    } else {
-                        intersection
-                    },
-                    unavailableTimes,
-                    connectionTime
-                ).value
+            for (validTime in validTimes) {
+                if (validTime.end <= calendar.timeWindow.start) {
+                    continue
+                } else if (validTime.start >= calendar.timeWindow.end) {
+                    break
+                }
+
+                val produceTime = validTime.intersectionWith(calendar.timeWindow)?.duration ?: continue
+                val currentProductivity = calendar.capacityOf(material)
+                    ?.let { Flt64.one / with(timeWindow) { it.value } }
+                    ?: Flt64.zero
+                quantity += with(timeWindow) {
+                    floor(produceTime.value * currentProductivity)
+                }
             }
-            val currentProductivity = calendar.capacityOf(material)
-                ?.let { Flt64.one / with(timeWindow) { it.value } }
-                ?: Flt64.zero
-            quantity += floor(produceTime * currentProductivity)
         }
         return quantity
     }
