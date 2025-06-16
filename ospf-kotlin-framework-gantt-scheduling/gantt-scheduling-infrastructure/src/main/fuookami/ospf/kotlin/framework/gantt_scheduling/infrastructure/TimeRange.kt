@@ -167,18 +167,34 @@ data class TimeRange(
         return result
     }
 
-    fun contains(time: Instant): Boolean {
+    operator fun contains(time: Instant): Boolean {
         return start <= time && time < end;
     }
 
-    fun contains(time: TimeRange): Boolean {
+    operator fun contains(time: TimeRange): Boolean {
         return start <= time.start && time.end <= end;
     }
 
     data class SplitTimeRanges(
         val times: List<TimeRange>,
         val breakTimes: List<TimeRange>
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is SplitTimeRanges) return false
+
+            if (times != other.times) return false
+            if (!(breakTimes.toTypedArray() contentEquals other.breakTimes.toTypedArray())) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = times.hashCode()
+            result = 31 * result + breakTimes.hashCode()
+            return result
+        }
+    }
 
     fun split(
         unit: Duration,
@@ -195,7 +211,7 @@ data class TimeRange(
                     currentTime + duration
                 )
             )
-            if (breakTime != null && duration < unit) {
+            if (breakTime != null && duration == unit && (currentTime + duration) != end) {
                 breakTimes.add(
                     TimeRange(
                         currentTime + duration,
