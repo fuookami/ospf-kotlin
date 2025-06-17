@@ -328,8 +328,8 @@ open class WorkingCalendar(
                     if (thisEndTime != time.end && thisBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
                         connectionTimes.add(
                             TimeRange(
-                                start = currentTime,
-                                end = currentTime + thisBeforeConnectionTime
+                                start = thisEndTime,
+                                end = thisEndTime + thisBeforeConnectionTime
                             )
                         )
                     } else if (thisEndTime == time.end) {
@@ -892,7 +892,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): ActualTime {
         val baseTime = TimeRange(
             start = startTime,
-            end = Instant.DISTANT_FUTURE
+            end = timeWindow.end
         )
         val validTimes = validTimes(
             time = baseTime,
@@ -999,7 +999,101 @@ sealed class ProductivityCalendar<Q, P, T>(
         afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
         breakTime: Pair<Duration, Duration>? = null
     ): ActualTime {
-        TODO("not implemented yet")
+        val baseTime = TimeRange(
+            start = timeWindow.start,
+            end = endTime
+        )
+        val validTimes = validTimes(
+            time = baseTime,
+            unavailableTimes = unavailableTimes,
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        )
+        if (validTimes.times.isEmpty()) {
+            return ActualTime(
+                time = baseTime,
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
+            )
+        }
+
+        var produceQuantity = constants.zero
+        var currentTime = validTimes.times.last().end
+        val workingTimes = ArrayList<TimeRange>()
+        for (validTime in validTimes.times.reversed()) {
+            var flag = false
+
+            for (calendar in productivityCalendar.reversed()) {
+                if (validTime.start >= calendar.timeWindow.end) {
+                    continue
+                } else if (flag && validTime.end <= calendar.timeWindow.start) {
+                    break
+                }
+                flag = true
+
+                val produceTime = validTime.intersectionWith(calendar.timeWindow) ?: continue
+                val currentProductivity = calendar.capacityOf(material)
+                    ?.let { Flt64.one / with(timeWindow) { it.value } }
+                    ?: continue
+                val maxQuantity = with(timeWindow) {
+                    floor(produceTime.duration.value * currentProductivity)
+                }
+                val thisQuantity = min(
+                    quantity - produceQuantity,
+                    maxQuantity
+                )
+                produceQuantity += thisQuantity
+                if (thisQuantity eq maxQuantity) {
+                    currentTime = min(currentTime, produceTime.start)
+                    workingTimes.add(produceTime)
+                } else {
+                    val actualProduceTime = (thisQuantity.toFlt64() / maxQuantity.toFlt64()).toDouble() * produceTime.duration
+                    currentTime = min(currentTime, produceTime.end - actualProduceTime)
+                    workingTimes.add(
+                        TimeRange(
+                            start = produceTime.start,
+                            end = produceTime.end - actualProduceTime
+                        )
+                    )
+                }
+
+                if (produceQuantity eq quantity) {
+                    break
+                }
+            }
+
+            if (produceQuantity eq quantity) {
+                break
+            }
+        }
+
+        return if (produceQuantity eq quantity) {
+            val time = TimeRange(
+                start = currentTime,
+                end = endTime
+            )
+            ActualTime(
+                time = time,
+                workingTimes = workingTimes,
+                breakTimes = validTimes.breakTimes.filter {
+                    it.withIntersection(time)
+                },
+                connectionTimes = validTimes.connectionTimes.filter {
+                    it.withIntersection(time)
+                }
+            )
+        } else {
+            ActualTime(
+                time = baseTime,
+                workingTimes = workingTimes,
+                breakTimes = validTimes.breakTimes,
+                connectionTimes = validTimes.connectionTimes
+            )
+        }
     }
 
     private fun actualQuantity(
