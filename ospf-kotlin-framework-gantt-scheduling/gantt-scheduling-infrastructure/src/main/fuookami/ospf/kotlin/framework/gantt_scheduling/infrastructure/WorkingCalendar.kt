@@ -328,8 +328,8 @@ open class WorkingCalendar(
                     if (thisEndTime != time.end && thisBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
                         connectionTimes.add(
                             TimeRange(
-                                start = currentTime,
-                                end = currentTime + thisBeforeConnectionTime
+                                start = thisEndTime,
+                                end = thisEndTime + thisBeforeConnectionTime
                             )
                         )
                     } else if (thisEndTime == time.end) {
@@ -892,7 +892,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     ): ActualTime {
         val baseTime = TimeRange(
             start = startTime,
-            end = Instant.DISTANT_FUTURE
+            end = timeWindow.end
         )
         val validTimes = validTimes(
             time = baseTime,
@@ -1000,7 +1000,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         breakTime: Pair<Duration, Duration>? = null
     ): ActualTime {
         val baseTime = TimeRange(
-            start = Instant.DISTANT_PAST,
+            start = timeWindow.start,
             end = endTime
         )
         val validTimes = validTimes(
