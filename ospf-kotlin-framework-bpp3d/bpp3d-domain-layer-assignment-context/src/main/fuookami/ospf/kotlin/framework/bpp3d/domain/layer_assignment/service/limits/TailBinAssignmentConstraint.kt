@@ -15,7 +15,7 @@ class TailBinAssignmentConstraint(
 ) : Pipeline<AbstractLinearMetaModel> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         for (i in bins.indices) {
-            if (i == (bins.size - 1)) {
+            if (i == bins.lastIndex) {
                 when (val result = model.addConstraint(
                     assignment.tail[i] geq assignment.v[i],
                     name = "${name}_lb_${i}"

@@ -2,7 +2,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.time.*
 import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.*
+import fuookami.ospf.kotlin.utils.min
+import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -17,6 +18,7 @@ open class WorkingCalendar(
         val breakTimes: List<TimeRange>,
         val connectionTimes: List<TimeRange>
     ) {
+        val duration: Duration get() = time.duration
         val finishEnabled: Boolean get() = time.start != Instant.DISTANT_PAST && time.end != Instant.DISTANT_FUTURE
 
         infix fun eq(time: TimeRange): Boolean {
@@ -54,10 +56,10 @@ open class WorkingCalendar(
         protected fun actualTime(
             time: Instant,
             unavailableTimes: List<TimeRange> = emptyList(),
-            beforeConnectionTime: Duration? = null,
-            afterConnectionTime: Duration? = null,
-            beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-            afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null
+            beforeConnectionTime: DurationRange? = null,
+            afterConnectionTime: DurationRange? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null
         ): Instant {
             val mergedTimes = unavailableTimes.merge()
             if (mergedTimes.isEmpty()) {
@@ -65,17 +67,21 @@ open class WorkingCalendar(
             }
 
             var currentTime = time
-            for ((i, thisUnavailableTime) in mergedTimes.withIndex()) {
+            for (thisUnavailableTime in mergedTimes) {
                 if (time <= thisUnavailableTime.start - max(
-                        beforeConditionalConnectionTime?.invoke(mergedTimes.first()) ?: Duration.ZERO,
-                        beforeConnectionTime ?: Duration.ZERO
-                )) {
+                        beforeConditionalConnectionTime?.invoke(thisUnavailableTime)?.lb ?: Duration.ZERO,
+                        beforeConnectionTime?.lb ?: Duration.ZERO
+                    )
+                ) {
                     return currentTime
                 }
 
-                currentTime = thisUnavailableTime.end + max(
-                    afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
-                    afterConnectionTime ?: Duration.ZERO
+                currentTime = max(
+                    currentTime,
+                    thisUnavailableTime.end + max(
+                        afterConditionalConnectionTime?.invoke(thisUnavailableTime)?.lb ?: Duration.ZERO,
+                        afterConnectionTime?.lb ?: Duration.ZERO
+                    )
                 )
             }
             return currentTime
@@ -86,28 +92,43 @@ open class WorkingCalendar(
         protected fun actualTime(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
-            beforeConnectionTime: Duration? = null,
-            afterConnectionTime: Duration? = null,
-            beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-            afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-            breakTime: Pair<Duration, Duration>? = null
+            beforeConnectionTime: DurationRange? = null,
+            afterConnectionTime: DurationRange? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            currentDuration: Duration = Duration.ZERO,
+            breakTime: Pair<DurationRange, Duration>? = null
         ): ActualTime {
             val mergedTimes = unavailableTimes.merge()
             return if (mergedTimes.isEmpty()) {
                 if (breakTime != null) {
                     var currentTime = time.start
-                    var workingDuration = Duration.ZERO
+                    var totalDuration = Duration.ZERO
                     val workingTimes = ArrayList<TimeRange>()
                     val breakTimes = ArrayList<TimeRange>()
-                    while (workingDuration != time.duration) {
-                        val thisDuration = min(breakTime.first, time.duration - workingDuration)
-                        workingTimes.add(TimeRange(currentTime, currentTime + thisDuration))
-                        currentTime = if (thisDuration < breakTime.first && (workingDuration + thisDuration) != time.duration) {
+                    while (totalDuration != time.duration) {
+                        val thisDuration = min(
+                            breakTime.first.lb,
+                            time.duration - totalDuration
+                        )
+                        workingTimes.add(
+                            TimeRange(
+                                start = currentTime,
+                                end = currentTime + thisDuration
+                            )
+                        )
+                        currentTime = if (thisDuration < breakTime.first.ub && (totalDuration + thisDuration) != time.duration) {
                             currentTime + thisDuration
                         } else {
+                            breakTimes.add(
+                                TimeRange(
+                                    start = currentTime + thisDuration,
+                                    end = currentTime + thisDuration + breakTime.second
+                                )
+                            )
                             currentTime + thisDuration + breakTime.second
                         }
-                        workingDuration += thisDuration
+                        totalDuration += thisDuration
                     }
                     ActualTime(
                         time = TimeRange(
@@ -128,95 +149,139 @@ open class WorkingCalendar(
                 }
             } else {
                 var currentTime = time.start
-                var workingDuration = Duration.ZERO
+                var totalDuration = Duration.ZERO
                 val workingTimes = ArrayList<TimeRange>()
                 val breakTimes = ArrayList<TimeRange>()
                 val connectionTimes = ArrayList<TimeRange>()
                 var i = mergedTimes.withIndex().indexOfLast {
                     currentTime >= it.value.end
                 }
-                while (workingDuration != time.duration) {
-                    if (i == mergedTimes.size - 1 && currentTime == Instant.DISTANT_FUTURE) {
+                while (totalDuration != time.duration) {
+                    if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
                         break
-                    } else if (i != mergedTimes.size - 1 && currentTime in mergedTimes[i + 1]) {
+                    } else if (i != mergedTimes.lastIndex && currentTime in mergedTimes[i + 1]) {
                         currentTime = mergedTimes[i + 1].end
                         i += 1
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
-                        max(
-                            beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1]) ?: Duration.ZERO,
-                            beforeConnectionTime ?: Duration.ZERO
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
+                        DurationRange(
+                            max(
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
+                                beforeConnectionTime?.lb ?: Duration.ZERO
+                            ),
+                            max(
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.ub ?: Duration.ZERO,
+                                beforeConnectionTime?.ub ?: Duration.ZERO
+                            )
                         )
                     } else {
                         null
                     }
                     val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
-                        max(
-                            afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
-                            afterConnectionTime ?: Duration.ZERO
+                        DurationRange(
+                            max(
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
+                                afterConnectionTime?.lb ?: Duration.ZERO
+                            ),
+                            max(
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
+                                afterConnectionTime?.ub ?: Duration.ZERO
+                            )
                         )
                     } else {
                         null
                     }
 
-                    currentTime = if (thisAfterConnectionTime?.let { it > Duration.ZERO } == true) {
+                    val thisMaxDuration = if (i == -1 && thisBeforeConnectionTime != null) {
+                        DurationRange(
+                            mergedTimes.first().start - time.start - thisBeforeConnectionTime.ub,
+                            mergedTimes.first().start - time.start - thisBeforeConnectionTime.lb
+                        )
+                    } else if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                        DurationRange(
+                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
+                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
+                        )
+                    } else {
+                        null
+                    }
+                    val (thisActualBeforeConnectionTime, thisActualAfterConnectionTime) = if (thisMaxDuration != null
+                        && (totalDuration + thisMaxDuration.lb) <= time.duration
+                        && (totalDuration + thisMaxDuration.ub) >= time.duration
+                    ) {
+                        val restDuration = thisMaxDuration.ub - (time.duration - totalDuration)
+                        if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
+                            if (restDuration >= (thisBeforeConnectionTime.ub - thisBeforeConnectionTime.lb)) {
+                                thisBeforeConnectionTime.ub to (thisAfterConnectionTime.lb + restDuration)
+                            } else {
+                                (thisBeforeConnectionTime.lb + restDuration) to thisAfterConnectionTime.lb
+                            }
+                        } else if (thisBeforeConnectionTime != null) {
+                            (thisBeforeConnectionTime.lb + restDuration) to null
+                        } else {
+                            null to restDuration
+                        }
+                    } else {
+                        thisBeforeConnectionTime?.ub to thisAfterConnectionTime?.ub
+                    }
+
+                    currentTime = if (thisActualAfterConnectionTime?.let { it > Duration.ZERO } == true) {
                         connectionTimes.add(
                             TimeRange(
                                 start = currentTime,
-                                end = currentTime + thisAfterConnectionTime
+                                end = currentTime + thisActualAfterConnectionTime
                             )
                         )
-                        currentTime + thisAfterConnectionTime
+                        currentTime + thisActualAfterConnectionTime
                     } else {
                         currentTime
                     }
-                    val thisEndTime = if (i == mergedTimes.size - 1) {
+                    val thisEndTime = if (i == mergedTimes.lastIndex) {
                         Instant.DISTANT_FUTURE
                     } else {
-                        mergedTimes[i + 1].start - (thisBeforeConnectionTime ?: Duration.ZERO)
+                        mergedTimes[i + 1].start - (thisActualBeforeConnectionTime ?: Duration.ZERO)
                     }
-                    while (workingDuration != time.duration && currentTime != thisEndTime) {
-                        val restDuration = min(
-                            time.duration - workingDuration,
-                            thisEndTime - currentTime
+                    val baseTime = TimeRange(
+                        start = currentTime,
+                        end = thisEndTime
+                    )
+                    currentTime = if (breakTime != null) {
+                        val (thisValidTimes, thisBreakTimes) = baseTime.split(
+                            unit = breakTime.first,
+                            currentDuration = if (currentTime == time.start) { currentDuration } else { Duration.ZERO },
+                            maxDuration = time.duration - totalDuration,
+                            breakTime = breakTime.second
                         )
-                        val thisDuration = if (breakTime != null) {
-                            min(
-                                breakTime.first,
-                                restDuration
-                            )
-                        } else {
-                            restDuration
+                        for (validTime in thisValidTimes) {
+                            totalDuration += validTime.duration
                         }
+                        workingTimes.addAll(thisValidTimes)
+                        breakTimes.addAll(thisBreakTimes)
+                        (thisValidTimes.map { it.end } + thisBreakTimes.map { it.end }).max()
+                    } else {
+                        val duration = min(
+                            baseTime.duration,
+                            time.duration - totalDuration
+                        )
+                        totalDuration += duration
                         workingTimes.add(
                             TimeRange(
                                 start = currentTime,
-                                end = currentTime + thisDuration
+                                end = currentTime + duration
                             )
                         )
-                        currentTime = if (breakTime != null && thisDuration == breakTime.first && (currentTime + thisDuration) != thisEndTime) {
-                            breakTimes.add(
-                                TimeRange(
-                                    start = currentTime + thisDuration,
-                                    end = currentTime + thisDuration + breakTime.second
-                                )
-                            )
-                            currentTime + thisDuration + breakTime.second
-                        } else {
-                            currentTime + thisDuration
-                        }
-                        workingDuration += thisDuration
+                        currentTime + duration
                     }
-                    if (workingDuration != time.duration && thisBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
+                    if (totalDuration != time.duration && thisActualBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
                         connectionTimes.add(
                             TimeRange(
-                                start = currentTime,
-                                end = currentTime + thisBeforeConnectionTime
+                                start = thisEndTime,
+                                end = thisEndTime + thisActualBeforeConnectionTime
                             )
                         )
-                    } else if (workingDuration == time.duration) {
+                    } else if (totalDuration == time.duration) {
                         break
                     }
                     currentTime = mergedTimes[i + 1].end
@@ -239,19 +304,36 @@ open class WorkingCalendar(
         protected fun validTimes(
             time: TimeRange,
             unavailableTimes: List<TimeRange> = emptyList(),
-            beforeConnectionTime: Duration? = null,
-            afterConnectionTime: Duration? = null,
-            beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-            afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-            breakTime: Pair<Duration, Duration>? = null
+            beforeConnectionTime: DurationRange? = null,
+            afterConnectionTime: DurationRange? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            currentDuration: Duration = Duration.ZERO,
+            maxDuration: Duration? = null,
+            breakTime: Pair<DurationRange, Duration>? = null
         ): ValidTimes {
             val mergedTimes = unavailableTimes.merge()
             return if (mergedTimes.isEmpty()) {
                 if (breakTime != null) {
-                    val (validTimes, breakTimes) = time.split(breakTime.first, breakTime.second)
+                    val (validTimes, breakTimes) = time.split(
+                        unit = breakTime.first,
+                        maxDuration = maxDuration,
+                        breakTime = breakTime.second
+                    )
                     ValidTimes(
                         times = validTimes,
                         breakTimes = breakTimes,
+                        connectionTimes = emptyList()
+                    )
+                } else if (maxDuration != null) {
+                    ValidTimes(
+                        times = listOf(
+                            TimeRange(
+                                start = time.start,
+                                end = time.start + maxDuration
+                            )
+                        ),
+                        breakTimes = emptyList(),
                         connectionTimes = emptyList()
                     )
                 } else {
@@ -269,74 +351,312 @@ open class WorkingCalendar(
                 var i = mergedTimes.withIndex().indexOfLast {
                     currentTime >= it.value.end
                 }
+                var totalDuration = Duration.ZERO
                 while (currentTime != time.end) {
-                    if (i == mergedTimes.size - 1 && currentTime == Instant.DISTANT_FUTURE) {
+                    if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
                         break
-                    } else if (i != mergedTimes.size - 1 && currentTime in mergedTimes[i + 1]) {
+                    } else if (i != mergedTimes.lastIndex && mergedTimes[i + 1].contains(currentTime)) {
                         currentTime = mergedTimes[i + 1].end
                         i += 1
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
-                        max(
-                            beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1]) ?: Duration.ZERO,
-                            beforeConnectionTime ?: Duration.ZERO
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
+                        DurationRange(
+                            max(
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
+                                beforeConnectionTime?.lb ?: Duration.ZERO
+                            ),
+                            max(
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.ub ?: Duration.ZERO,
+                                beforeConnectionTime?.ub ?: Duration.ZERO
+                            )
                         )
                     } else {
                         null
                     }
                     val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
-                        max(
-                            afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
-                            afterConnectionTime ?: Duration.ZERO
+                        DurationRange(
+                            max(
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
+                                afterConnectionTime?.lb ?: Duration.ZERO
+                            ),
+                            max(
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
+                                afterConnectionTime?.ub ?: Duration.ZERO
+                            )
                         )
                     } else {
                         null
                     }
 
-                    currentTime = if (thisAfterConnectionTime?.let { it > Duration.ZERO } == true) {
+                    val thisMaxDuration = if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                        DurationRange(
+                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
+                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
+                        )
+                    } else {
+                        null
+                    }
+                    val (thisActualBeforeConnectionTime, thisActualAfterConnectionTime) = if (maxDuration != null
+                        && thisMaxDuration != null
+                        && (totalDuration + thisMaxDuration.lb) <= maxDuration
+                        && (totalDuration + thisMaxDuration.ub) >= maxDuration
+                    ) {
+                        val restDuration = thisMaxDuration.ub - (maxDuration - totalDuration)
+                        if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
+                            if (restDuration >= (thisBeforeConnectionTime.ub - thisBeforeConnectionTime.lb)) {
+                                thisBeforeConnectionTime.ub to (thisAfterConnectionTime.lb + restDuration)
+                            } else {
+                                (thisBeforeConnectionTime.lb + restDuration) to thisAfterConnectionTime.lb
+                            }
+                        } else if (thisBeforeConnectionTime != null) {
+                            (thisBeforeConnectionTime.lb + restDuration) to null
+                        } else {
+                            null to restDuration
+                        }
+                    } else {
+                        thisBeforeConnectionTime?.ub to thisAfterConnectionTime?.ub
+                    }
+
+                    currentTime = if (thisActualAfterConnectionTime?.let { it > Duration.ZERO } == true) {
                         connectionTimes.add(
                             TimeRange(
                                 start = currentTime,
-                                end = currentTime + thisAfterConnectionTime
+                                end = currentTime + thisActualAfterConnectionTime
                             )
                         )
-                        currentTime + thisAfterConnectionTime
+                        currentTime + thisActualAfterConnectionTime
                     } else {
                         currentTime
                     }
-                    val thisEndTime = if (i == mergedTimes.size - 1) {
-                        time.end
-                    } else {
-                        min(
+                    val thisEndTime = if (i == mergedTimes.lastIndex) {
+                        listOf(
                             time.end,
-                            mergedTimes[i + 1].start - (thisBeforeConnectionTime ?: Duration.ZERO)
+                            currentTime + (maxDuration ?: Duration.INFINITE)
                         )
-                    }
+                    } else {
+                        listOf(
+                            time.end,
+                            mergedTimes[i + 1].start - (thisActualBeforeConnectionTime ?: Duration.ZERO),
+                            currentTime + (maxDuration ?: Duration.INFINITE)
+                        )
+                    }.min()
                     val baseTime = TimeRange(
                         start = currentTime,
                         end = thisEndTime
                     )
                     if (breakTime != null) {
-                        val (thisValidTimes, thisBreakTimes) = baseTime.split(breakTime.first, breakTime.second)
+                        val (thisValidTimes, thisBreakTimes) = baseTime.split(
+                            unit = breakTime.first,
+                            currentDuration = if (currentTime == time.start) { currentDuration } else { Duration.ZERO },
+                            maxDuration = maxDuration?.let { it - totalDuration },
+                            breakTime = breakTime.second
+                        )
+                        for (validTime in thisValidTimes) {
+                            totalDuration += validTime.duration
+                        }
                         validTimes.addAll(thisValidTimes)
                         breakTimes.addAll(thisBreakTimes)
                     } else {
+                        totalDuration += baseTime.duration
                         validTimes.add(baseTime)
                     }
-                    if (thisEndTime != time.end && thisBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
+                    if (thisEndTime != time.end && totalDuration != maxDuration && thisActualBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
                         connectionTimes.add(
                             TimeRange(
                                 start = thisEndTime,
-                                end = thisEndTime + thisBeforeConnectionTime
+                                end = thisEndTime + thisActualBeforeConnectionTime
                             )
                         )
-                    } else if (thisEndTime == time.end) {
+                    } else if (thisEndTime == time.end || totalDuration == maxDuration) {
                         break
                     }
                     currentTime = mergedTimes[i + 1].end
                     i += 1
+                }
+                return ValidTimes(
+                    times = validTimes,
+                    breakTimes = breakTimes,
+                    connectionTimes = connectionTimes
+                )
+            }
+        }
+
+        @JvmStatic
+        @JvmName("staticRValidTime")
+        protected fun reversedValidTimes(
+            time: TimeRange,
+            unavailableTimes: List<TimeRange> = emptyList(),
+            beforeConnectionTime: DurationRange? = null,
+            afterConnectionTime: DurationRange? = null,
+            beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+            maxDuration: Duration? = null,
+            breakTime: Pair<DurationRange, Duration>? = null
+        ): ValidTimes {
+            val mergedTimes = unavailableTimes.merge()
+            return if (mergedTimes.isEmpty()) {
+                if (breakTime != null) {
+                    val (validTimes, breakTimes) = time.rsplit(
+                        unit = breakTime.first,
+                        maxDuration = maxDuration,
+                        breakTime = breakTime.second
+                    )
+                    ValidTimes(
+                        times = validTimes,
+                        breakTimes = breakTimes,
+                        connectionTimes = emptyList()
+                    )
+                } else if (maxDuration != null) {
+                    ValidTimes(
+                        times = listOf(
+                            TimeRange(
+                                start = time.end - maxDuration,
+                                end = time.end
+                            )
+                        ),
+                        breakTimes = emptyList(),
+                        connectionTimes = emptyList()
+                    )
+                } else {
+                    ValidTimes(
+                        times = listOf(time),
+                        breakTimes = emptyList(),
+                        connectionTimes = emptyList()
+                    )
+                }
+            } else {
+                val validTimes = ArrayList<TimeRange>()
+                val breakTimes = ArrayList<TimeRange>()
+                val connectionTimes = ArrayList<TimeRange>()
+                var currentTime = time.end
+                var i = mergedTimes.withIndex().indexOfFirst {
+                    currentTime <= it.value.start
+                }
+                var totalDuration = Duration.ZERO
+                while (currentTime != time.start) {
+                    if (i == -1 && currentTime == Instant.DISTANT_PAST) {
+                        break
+                    } else if (i != -1 && mergedTimes[i].contains(currentTime)) {
+                        currentTime = mergedTimes[i].start
+                        i -= 1
+                        continue
+                    }
+
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
+                        DurationRange(
+                            max(
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
+                                beforeConnectionTime?.lb ?: Duration.ZERO
+                            ),
+                            max(
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.ub ?: Duration.ZERO,
+                                beforeConnectionTime?.ub ?: Duration.ZERO
+                            )
+                        )
+                    } else {
+                        null
+                    }
+                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime >= mergedTimes[i].end) {
+                        DurationRange(
+                            max(
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
+                                afterConnectionTime?.lb ?: Duration.ZERO
+                            ),
+                            max(
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
+                                afterConnectionTime?.ub ?: Duration.ZERO
+                            )
+                        )
+                    } else {
+                        null
+                    }
+
+                    val thisMaxDuration = if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                        DurationRange(
+                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
+                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
+                        )
+                    } else {
+                        null
+                    }
+                    val (thisActualBeforeConnectionTime, thisActualAfterConnectionTime) = if (maxDuration != null
+                        && thisMaxDuration != null
+                        && (totalDuration + thisMaxDuration.lb) <= maxDuration
+                        && (totalDuration + thisMaxDuration.ub) >= maxDuration
+                    ) {
+                        val restDuration = thisMaxDuration.ub - (maxDuration - totalDuration)
+                        if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
+                            if (restDuration >= (thisBeforeConnectionTime.ub - thisBeforeConnectionTime.lb)) {
+                                thisBeforeConnectionTime.ub to (thisAfterConnectionTime.lb + restDuration)
+                            } else {
+                                (thisBeforeConnectionTime.lb + restDuration) to thisAfterConnectionTime.lb
+                            }
+                        } else if (thisBeforeConnectionTime != null) {
+                            (thisBeforeConnectionTime.lb + restDuration) to null
+                        } else {
+                            null to restDuration
+                        }
+                    } else {
+                        thisBeforeConnectionTime?.ub to thisAfterConnectionTime?.ub
+                    }
+
+                    currentTime = if (thisActualBeforeConnectionTime?.let { it > Duration.ZERO } == true) {
+                        connectionTimes.add(
+                            TimeRange(
+                                start = currentTime - thisActualBeforeConnectionTime,
+                                end = currentTime
+                            )
+                        )
+                        currentTime - thisActualBeforeConnectionTime
+                    } else {
+                        currentTime
+                    }
+                    val thisStartTime = if (i == -1 || i == 0) {
+                        listOf(
+                            time.start,
+                            currentTime - (maxDuration ?: Duration.INFINITE)
+                        )
+                    } else {
+                        listOf(
+                            time.start,
+                            mergedTimes[i - 1].end + (thisActualAfterConnectionTime ?: Duration.ZERO),
+                            currentTime - (maxDuration ?: Duration.INFINITE)
+                        )
+                    }.max()
+                    val baseTime = TimeRange(
+                        start = thisStartTime,
+                        end = currentTime
+                    )
+                    if (breakTime != null) {
+                        val (thisValidTimes, thisBreakTimes) = baseTime.rsplit(
+                            unit = breakTime.first,
+                            maxDuration = maxDuration?.let { it - totalDuration },
+                            breakTime = breakTime.second
+                        )
+                        for (validTime in thisValidTimes) {
+                            totalDuration += validTime.duration
+                        }
+                        validTimes.addAll(thisValidTimes)
+                        breakTimes.addAll(thisBreakTimes)
+                    } else {
+                        totalDuration += baseTime.duration
+                        validTimes.add(baseTime)
+                    }
+
+                    if (thisStartTime != time.start && totalDuration != maxDuration && thisActualAfterConnectionTime?.let { it > Duration.ZERO } == true) {
+                        connectionTimes.add(
+                            TimeRange(
+                                start = thisStartTime - thisActualAfterConnectionTime,
+                                end = thisStartTime
+                            )
+                        )
+                    } else if (thisStartTime == time.start || totalDuration == maxDuration) {
+                        break
+                    }
+                    currentTime = mergedTimes[i].start
+                    i -= 1
                 }
                 return ValidTimes(
                     times = validTimes,
@@ -352,13 +672,17 @@ open class WorkingCalendar(
     fun actualTime(
         time: Instant,
         unavailableTimes: List<TimeRange> = emptyList(),
-        afterConnectionTime: Duration? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null
     ): Instant {
         return WorkingCalendar.actualTime(
             time = time,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime
         )
     }
@@ -366,11 +690,12 @@ open class WorkingCalendar(
     fun actualTime(
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
         return WorkingCalendar.actualTime(
             time = time,
@@ -379,6 +704,7 @@ open class WorkingCalendar(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -386,11 +712,12 @@ open class WorkingCalendar(
     fun validTimes(
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ValidTimes {
         return WorkingCalendar.validTimes(
             time = time,
@@ -399,6 +726,7 @@ open class WorkingCalendar(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -487,7 +815,7 @@ sealed class ProductivityCalendar<Q, P, T>(
                 } else {
                     produceTime.timeWindow.frontBetween(productivity[i - 1].timeWindow)?.let { result.add(it) }
                 }
-                if (i == (productivity.size - 1)) {
+                if (i == productivity.lastIndex) {
                     produceTime.timeWindow.back?.let { result.add(it) }
                 }
                 result
@@ -499,11 +827,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
         val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -528,6 +857,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -537,11 +867,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
         val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -558,6 +889,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -567,11 +899,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
         val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -596,6 +929,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -605,11 +939,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         startTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
         val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -626,6 +961,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -635,11 +971,11 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
         val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
@@ -673,11 +1009,11 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
         val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
@@ -703,11 +1039,11 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
         val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
@@ -741,11 +1077,11 @@ sealed class ProductivityCalendar<Q, P, T>(
         endTime: Instant,
         quantity: Q = constants.one,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
         val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
@@ -770,11 +1106,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): Q {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -790,6 +1127,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -798,11 +1136,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): Q? {
         val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -818,6 +1157,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -826,11 +1166,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): Q {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -846,6 +1187,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -854,11 +1196,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         material: T,
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): Q? {
         val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
         if (productivityCalendar.isEmpty()) {
@@ -874,6 +1217,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         )
     }
@@ -884,105 +1228,83 @@ sealed class ProductivityCalendar<Q, P, T>(
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        val baseTime = TimeRange(
-            start = startTime,
-            end = timeWindow.end
-        )
-        val validTimes = validTimes(
-            time = baseTime,
-            unavailableTimes = unavailableTimes,
-            beforeConnectionTime = beforeConnectionTime,
-            afterConnectionTime = afterConnectionTime,
-            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
-            afterConditionalConnectionTime = afterConditionalConnectionTime,
-            breakTime = breakTime
-        )
-        if (validTimes.times.isEmpty()) {
-            return ActualTime(
-                time = baseTime,
-                workingTimes = emptyList(),
-                breakTimes = emptyList(),
-                connectionTimes = emptyList()
-            )
-        }
-
-        var produceQuantity = constants.zero
-        var currentTime = validTimes.times.first().start
+        var produceQuantity = Flt64.zero
+        var currentTime = startTime
         val workingTimes = ArrayList<TimeRange>()
-        for (validTime in validTimes.times) {
-            var flag = false
-
-            for (calendar in productivityCalendar) {
-                if (validTime.end <= calendar.timeWindow.start) {
-                    continue
-                } else if (flag && validTime.start >= calendar.timeWindow.end) {
-                    break
+        val breakTimes = ArrayList<TimeRange>()
+        val connectionTimes = ArrayList<TimeRange>()
+        for (calendar in productivityCalendar) {
+            val currentProductivity = calendar.capacityOf(material)
+                ?.let {
+                    Flt64.one / with(timeWindow) {
+                        it.value
+                    }
                 }
-                flag = true
-
-                val produceTime = validTime.intersectionWith(calendar.timeWindow) ?: continue
-                val currentProductivity = calendar.capacityOf(material)
-                    ?.let { Flt64.one / with(timeWindow) { it.value } }
-                    ?: continue
-                val maxQuantity = with(timeWindow) {
-                    floor(produceTime.duration.value * currentProductivity)
-                }
-                val thisQuantity = min(
-                    quantity - produceQuantity,
-                    maxQuantity
-                )
-                produceQuantity += thisQuantity
-                if (thisQuantity eq maxQuantity) {
-                    currentTime = max(currentTime, produceTime.end)
-                    workingTimes.add(produceTime)
-                } else {
-                    val actualProduceTime = (thisQuantity.toFlt64() / maxQuantity.toFlt64()).toDouble() * produceTime.duration
-                    currentTime = max(currentTime, produceTime.start + actualProduceTime)
-                    workingTimes.add(
-                        TimeRange(
-                            start = produceTime.start,
-                            end = produceTime.start + actualProduceTime
-                        )
-                    )
-                }
-
-                if (produceQuantity eq quantity) {
-                    break
-                }
+                ?: continue
+            val maxDuration = with(timeWindow) {
+                durationOf((quantity.toFlt64() - produceQuantity) / currentProductivity).ceil
             }
 
-            if (produceQuantity eq quantity) {
+            val validTimes = validTimes(
+                time = calendar.timeWindow.intersectionWith(TimeRange(start = currentTime)) ?: continue,
+                unavailableTimes = unavailableTimes,
+                beforeConnectionTime = beforeConnectionTime,
+                afterConnectionTime = afterConnectionTime,
+                beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+                afterConditionalConnectionTime = afterConditionalConnectionTime,
+                currentDuration = if (currentTime == startTime) { currentDuration } else { Duration.ZERO },
+                maxDuration = maxDuration,
+                breakTime = breakTime
+            )
+            workingTimes.addAll(validTimes.times)
+            breakTimes.addAll(validTimes.breakTimes)
+            connectionTimes.addAll(validTimes.connectionTimes)
+            for (produceTime in validTimes.times) {
+                val thisQuantity = with(timeWindow) {
+                    produceTime.duration.value * currentProductivity
+                }
+                produceQuantity += min(
+                    quantity.toFlt64() - produceQuantity,
+                    thisQuantity.toFlt64()
+                )
+            }
+            currentTime = (
+                    validTimes.times.map { it.end } +
+                    validTimes.breakTimes.map { it.end } +
+                    validTimes.connectionTimes.map { it.end }
+            ).max()
+
+            if (produceQuantity eq quantity.toFlt64()) {
                 break
             }
         }
 
-        return if (produceQuantity eq quantity) {
-            val time = TimeRange(
-                start = startTime,
-                end = currentTime
-            )
+        return if (produceQuantity eq quantity.toFlt64()) {
             ActualTime(
-                time = time,
+                time = TimeRange(
+                    start = startTime,
+                    end = currentTime
+                ),
                 workingTimes = workingTimes,
-                breakTimes = validTimes.breakTimes.filter {
-                    it.withIntersection(time)
-                },
-                connectionTimes = validTimes.connectionTimes.filter {
-                    it.withIntersection(time)
-                }
+                breakTimes = breakTimes,
+                connectionTimes = connectionTimes
             )
         } else {
             ActualTime(
-                time = baseTime,
+                time = TimeRange(
+                    start = startTime,
+                    end = Instant.DISTANT_FUTURE
+                ),
                 workingTimes = workingTimes,
-                breakTimes = validTimes.breakTimes,
-                connectionTimes = validTimes.connectionTimes
+                breakTimes = breakTimes,
+                connectionTimes = connectionTimes
             )
         }
     }
@@ -993,105 +1315,81 @@ sealed class ProductivityCalendar<Q, P, T>(
         productivityCalendar: List<Productivity<T>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        val baseTime = TimeRange(
-            start = timeWindow.start,
-            end = endTime
-        )
-        val validTimes = validTimes(
-            time = baseTime,
-            unavailableTimes = unavailableTimes,
-            beforeConnectionTime = beforeConnectionTime,
-            afterConnectionTime = afterConnectionTime,
-            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
-            afterConditionalConnectionTime = afterConditionalConnectionTime,
-            breakTime = breakTime
-        )
-        if (validTimes.times.isEmpty()) {
-            return ActualTime(
-                time = baseTime,
-                workingTimes = emptyList(),
-                breakTimes = emptyList(),
-                connectionTimes = emptyList()
-            )
-        }
-
-        var produceQuantity = constants.zero
-        var currentTime = validTimes.times.last().end
+        var produceQuantity = Flt64.zero
+        var currentTime = endTime
         val workingTimes = ArrayList<TimeRange>()
-        for (validTime in validTimes.times.reversed()) {
-            var flag = false
-
-            for (calendar in productivityCalendar.reversed()) {
-                if (validTime.start >= calendar.timeWindow.end) {
-                    continue
-                } else if (flag && validTime.end <= calendar.timeWindow.start) {
-                    break
+        val breakTimes = ArrayList<TimeRange>()
+        val connectionTimes = ArrayList<TimeRange>()
+        for (calendar in productivityCalendar) {
+            val currentProductivity = calendar.capacityOf(material)
+                ?.let {
+                    Flt64.one / with(timeWindow) {
+                        it.value
+                    }
                 }
-                flag = true
-
-                val produceTime = validTime.intersectionWith(calendar.timeWindow) ?: continue
-                val currentProductivity = calendar.capacityOf(material)
-                    ?.let { Flt64.one / with(timeWindow) { it.value } }
-                    ?: continue
-                val maxQuantity = with(timeWindow) {
-                    floor(produceTime.duration.value * currentProductivity)
-                }
-                val thisQuantity = min(
-                    quantity - produceQuantity,
-                    maxQuantity
-                )
-                produceQuantity += thisQuantity
-                if (thisQuantity eq maxQuantity) {
-                    currentTime = min(currentTime, produceTime.start)
-                    workingTimes.add(produceTime)
-                } else {
-                    val actualProduceTime = (thisQuantity.toFlt64() / maxQuantity.toFlt64()).toDouble() * produceTime.duration
-                    currentTime = min(currentTime, produceTime.end - actualProduceTime)
-                    workingTimes.add(
-                        TimeRange(
-                            start = produceTime.start,
-                            end = produceTime.end - actualProduceTime
-                        )
-                    )
-                }
-
-                if (produceQuantity eq quantity) {
-                    break
-                }
+                ?: continue
+            val maxDuration = with(timeWindow) {
+                durationOf((quantity.toFlt64() - produceQuantity) / currentProductivity).ceil
             }
 
-            if (produceQuantity eq quantity) {
+            val validTimes = reversedValidTimes(
+                time = calendar.timeWindow.intersectionWith(TimeRange(end = currentTime)) ?: continue,
+                unavailableTimes = unavailableTimes,
+                beforeConnectionTime = beforeConnectionTime,
+                afterConnectionTime = afterConnectionTime,
+                beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+                afterConditionalConnectionTime = afterConditionalConnectionTime,
+                maxDuration = maxDuration,
+                breakTime = breakTime
+            )
+            workingTimes.addAll(validTimes.times)
+            breakTimes.addAll(validTimes.breakTimes)
+            connectionTimes.addAll(validTimes.connectionTimes)
+            for (produceTime in validTimes.times) {
+                val thisQuantity = with(timeWindow) {
+                    produceTime.duration.value * currentProductivity
+                }
+                produceQuantity += min(
+                    quantity.toFlt64() - produceQuantity,
+                    thisQuantity.toFlt64()
+                )
+            }
+            currentTime = (
+                    validTimes.times.map { it.start } +
+                    validTimes.breakTimes.map { it.start } +
+                    validTimes.connectionTimes.map { it.start }
+            ).min()
+
+            if (produceQuantity eq quantity.toFlt64()) {
                 break
             }
         }
 
-        return if (produceQuantity eq quantity) {
-            val time = TimeRange(
-                start = currentTime,
-                end = endTime
-            )
+        return if (produceQuantity eq quantity.toFlt64()) {
             ActualTime(
-                time = time,
+                time = TimeRange(
+                    start = currentTime,
+                    end = endTime
+                ),
                 workingTimes = workingTimes,
-                breakTimes = validTimes.breakTimes.filter {
-                    it.withIntersection(time)
-                },
-                connectionTimes = validTimes.connectionTimes.filter {
-                    it.withIntersection(time)
-                }
+                breakTimes = breakTimes,
+                connectionTimes = connectionTimes
             )
         } else {
             ActualTime(
-                time = baseTime,
+                time = TimeRange(
+                    start = Instant.DISTANT_PAST,
+                    end = endTime
+                ),
                 workingTimes = workingTimes,
-                breakTimes = validTimes.breakTimes,
-                connectionTimes = validTimes.connectionTimes
+                breakTimes = breakTimes,
+                connectionTimes = connectionTimes
             )
         }
     }
@@ -1101,11 +1399,12 @@ sealed class ProductivityCalendar<Q, P, T>(
         time: TimeRange,
         productivityCalendar: List<Productivity<T>>,
         unavailableTimes: List<TimeRange> = emptyList(),
-        beforeConnectionTime: Duration? = null,
-        afterConnectionTime: Duration? = null,
-        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
-        breakTime: Pair<Duration, Duration>? = null
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
     ): Q {
         val validTimes = validTimes(
             time = time,
@@ -1114,6 +1413,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             afterConnectionTime = afterConnectionTime,
             beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
             breakTime = breakTime
         ).times
 

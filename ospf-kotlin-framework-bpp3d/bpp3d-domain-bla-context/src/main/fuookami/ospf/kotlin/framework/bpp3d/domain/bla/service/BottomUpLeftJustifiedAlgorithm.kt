@@ -213,10 +213,10 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 return
             }
 
-            val top = stack.removeAt(stack.size - 1)
+            val top = stack.removeAt(stack.lastIndex)
             placements[top.first] = top.second
             val i = top.first + 1
-            if (top.first == (projections.size - 1)) {
+            if (top.first == projections.lastIndex) {
                 if (promise.isClosedForSend) {
                     return
                 }
@@ -342,7 +342,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         val stack = arrayListOf(point)
         val points = ArrayList<Point2>()
         while (stack.isNotEmpty()) {
-            val thisPoint = stack.removeAt(stack.size - 1)
+            val thisPoint = stack.removeAt(stack.lastIndex)
             points.add(thisPoint)
 
             if (config.withDisplacementX) {

@@ -346,7 +346,7 @@ class NotAllFunction(
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(inequalities, name = name, displayName = displayName),
     LinearLogicFunctionSymbol {
-    override val amount: ValueRange<UInt64> = ValueRange(UInt64.one, UInt64(inequalities.size - 1)).value!!
+    override val amount: ValueRange<UInt64> = ValueRange(UInt64.one, UInt64(inequalities.lastIndex)).value!!
 
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {

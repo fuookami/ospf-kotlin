@@ -29,7 +29,7 @@ fun <T> cross(
             break
         }
         var i = n - 1
-        while (i >= 0 && indices[i] == input[i].size - 1) {
+        while (i >= 0 && indices[i] == input[i].lastIndex) {
             i--
         }
         if (i < 0) {
@@ -65,7 +65,7 @@ fun <T> crossAsync(
                 }
                 promise.send(row)
                 var i = n - 1
-                while (i >= 0 && indices[i] == input[i].size - 1) {
+                while (i >= 0 && indices[i] == input[i].lastIndex) {
                     i--
                 }
                 if (i < 0) {
