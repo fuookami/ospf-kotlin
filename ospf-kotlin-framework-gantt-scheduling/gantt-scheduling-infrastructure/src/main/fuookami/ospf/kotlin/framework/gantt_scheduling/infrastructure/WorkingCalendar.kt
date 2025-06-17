@@ -69,13 +69,17 @@ open class WorkingCalendar(
                 if (time <= thisUnavailableTime.start - max(
                         beforeConditionalConnectionTime?.invoke(mergedTimes.first()) ?: Duration.ZERO,
                         beforeConnectionTime ?: Duration.ZERO
-                )) {
+                    )
+                ) {
                     return currentTime
                 }
 
-                currentTime = thisUnavailableTime.end + max(
-                    afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
-                    afterConnectionTime ?: Duration.ZERO
+                currentTime = max(
+                    currentTime,
+                    thisUnavailableTime.end + max(
+                        afterConditionalConnectionTime?.invoke(mergedTimes[i]) ?: Duration.ZERO,
+                        afterConnectionTime ?: Duration.ZERO
+                    )
                 )
             }
             return currentTime
@@ -352,13 +356,17 @@ open class WorkingCalendar(
     fun actualTime(
         time: Instant,
         unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: Duration? = null,
         afterConnectionTime: Duration? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> Duration?)? = null,
         afterConditionalConnectionTime: ((TimeRange) -> Duration?)? = null
     ): Instant {
         return WorkingCalendar.actualTime(
             time = time,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
             afterConditionalConnectionTime = afterConditionalConnectionTime
         )
     }
