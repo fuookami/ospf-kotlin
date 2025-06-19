@@ -48,12 +48,11 @@ class WorkingCalendarTest {
                     start = Instant.parse("2020-08-30T14:00:00Z"),
                     end = Instant.parse("2020-08-30T20:00:00Z")
                 ),
-                unavailableTimes = emptyList(),
-                beforeConnectionTime = 5.minutes,
-                afterConnectionTime = 5.minutes,
+                beforeConnectionTime = DurationRange(5.minutes),
+                afterConnectionTime = DurationRange(5.minutes),
                 beforeConditionalConnectionTime = null,
                 afterConditionalConnectionTime = null,
-                breakTime = Pair(1.hours, 5.minutes)
+                breakTime = Pair(DurationRange(1.hours), 5.minutes)
             ) == WorkingCalendar.ActualTime(
                 time = TimeRange(
                     start = Instant.parse("2020-08-30T14:00:00Z"),
@@ -217,6 +216,17 @@ class WorkingCalendarTest {
         )
 
         assert(
+            calendar1.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(60),
+                endTime = Instant.parse("2020-08-30T09:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            )
+        )
+
+        assert(
             calendar1.actualQuantity(
                 material = 1,
                 time = TimeRange(
@@ -231,6 +241,17 @@ class WorkingCalendarTest {
                 material = 1,
                 quantity = UInt64(60),
                 startTime = Instant.parse("2020-08-30T14:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T14:00:00Z"),
+                end = Instant.parse("2020-08-30T16:00:00Z")
+            )
+        )
+
+        assert(
+            calendar1.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(60),
+                endTime = Instant.parse("2020-08-30T16:00:00Z")
             ).time == TimeRange(
                 start = Instant.parse("2020-08-30T14:00:00Z"),
                 end = Instant.parse("2020-08-30T16:00:00Z")
@@ -259,6 +280,17 @@ class WorkingCalendarTest {
         )
 
         assert(
+            calendar1.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(90),
+                endTime = Instant.parse("2020-08-30T17:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T15:00:00Z"),
+                end = Instant.parse("2020-08-30T17:00:00Z")
+            )
+        )
+
+        assert(
             calendar1.actualQuantity(
                 material = 1,
                 time = TimeRange(
@@ -280,6 +312,17 @@ class WorkingCalendarTest {
         )
 
         assert(
+            calendar1.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(120),
+                endTime = Instant.parse("2020-08-31T08:30:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T17:00:00Z"),
+                end = Instant.parse("2020-08-31T08:30:00Z")
+            )
+        )
+
+        assert(
             calendar1.actualQuantity(
                 material = 1,
                 time = TimeRange(
@@ -294,6 +337,17 @@ class WorkingCalendarTest {
                 material = 1,
                 quantity = UInt64(120),
                 startTime = Instant.parse("2020-08-30T17:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T17:00:00Z"),
+                end = Instant.parse("2020-08-31T08:30:00Z")
+            )
+        )
+
+        assert(
+            calendar1.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(120),
+                endTime = Instant.parse("2020-08-31T08:30:00Z")
             ).time == TimeRange(
                 start = Instant.parse("2020-08-30T17:00:00Z"),
                 end = Instant.parse("2020-08-31T08:30:00Z")
@@ -368,6 +422,17 @@ class WorkingCalendarTest {
         )
 
         assert(
+            calendar2.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(60),
+                endTime = Instant.parse("2020-08-30T09:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            )
+        )
+
+        assert(
             calendar2.actualQuantity(
                 material = 1,
                 time = TimeRange(
@@ -382,6 +447,17 @@ class WorkingCalendarTest {
                 material = 1,
                 quantity = UInt64(60),
                 startTime = Instant.parse("2020-08-30T14:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T14:00:00Z"),
+                end = Instant.parse("2020-08-30T16:00:00Z")
+            )
+        )
+
+        assert(
+            calendar2.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(60),
+                endTime = Instant.parse("2020-08-30T16:00:00Z")
             ).time == TimeRange(
                 start = Instant.parse("2020-08-30T14:00:00Z"),
                 end = Instant.parse("2020-08-30T16:00:00Z")
@@ -410,6 +486,17 @@ class WorkingCalendarTest {
         )
 
         assert(
+            calendar2.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(90),
+                endTime = Instant.parse("2020-08-30T17:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T15:00:00Z"),
+                end = Instant.parse("2020-08-30T17:00:00Z")
+            )
+        )
+
+        assert(
             calendar2.actualQuantity(
                 material = 1,
                 time = TimeRange(
@@ -431,6 +518,17 @@ class WorkingCalendarTest {
         )
 
         assert(
+            calendar2.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(120),
+                endTime = Instant.parse("2020-08-31T08:30:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T17:00:00Z"),
+                end = Instant.parse("2020-08-31T08:30:00Z")
+            )
+        )
+
+        assert(
             calendar2.actualQuantity(
                 material = 1,
                 time = TimeRange(
@@ -445,6 +543,17 @@ class WorkingCalendarTest {
                 material = 1,
                 quantity = UInt64(210),
                 startTime = Instant.parse("2020-08-30T17:00:00Z")
+            ).time == TimeRange(
+                start = Instant.parse("2020-08-30T17:00:00Z"),
+                end = Instant.parse("2020-08-31T10:00:00Z")
+            )
+        )
+
+        assert(
+            calendar2.actualTimeUntil(
+                material = 1,
+                quantity = UInt64(210),
+                endTime = Instant.parse("2020-08-31T10:00:00Z")
             ).time == TimeRange(
                 start = Instant.parse("2020-08-30T17:00:00Z"),
                 end = Instant.parse("2020-08-31T10:00:00Z")
