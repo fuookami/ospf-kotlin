@@ -157,15 +157,15 @@ open class WorkingCalendar(
                     currentTime >= it.value.end
                 }
                 while (totalDuration != time.duration) {
-                    if (i == mergedTimes.size - 1 && currentTime == Instant.DISTANT_FUTURE) {
+                    if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
                         break
-                    } else if (i != mergedTimes.size - 1 && currentTime in mergedTimes[i + 1]) {
+                    } else if (i != mergedTimes.lastIndex && currentTime in mergedTimes[i + 1]) {
                         currentTime = mergedTimes[i + 1].end
                         i += 1
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
                         DurationRange(
                             max(
                                 beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
@@ -199,7 +199,7 @@ open class WorkingCalendar(
                             mergedTimes.first().start - time.start - thisBeforeConnectionTime.ub,
                             mergedTimes.first().start - time.start - thisBeforeConnectionTime.lb
                         )
-                    } else if (i != mergedTimes.size - 1 && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    } else if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
@@ -238,7 +238,7 @@ open class WorkingCalendar(
                     } else {
                         currentTime
                     }
-                    val thisEndTime = if (i == mergedTimes.size - 1) {
+                    val thisEndTime = if (i == mergedTimes.lastIndex) {
                         Instant.DISTANT_FUTURE
                     } else {
                         mergedTimes[i + 1].start - (thisActualBeforeConnectionTime ?: Duration.ZERO)
@@ -353,15 +353,15 @@ open class WorkingCalendar(
                 }
                 var totalDuration = Duration.ZERO
                 while (currentTime != time.end) {
-                    if (i == mergedTimes.size - 1 && currentTime == Instant.DISTANT_FUTURE) {
+                    if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
                         break
-                    } else if (i != mergedTimes.size - 1 && mergedTimes[i + 1].contains(currentTime)) {
+                    } else if (i != mergedTimes.lastIndex && mergedTimes[i + 1].contains(currentTime)) {
                         currentTime = mergedTimes[i + 1].end
                         i += 1
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
                         DurationRange(
                             max(
                                 beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
@@ -390,7 +390,7 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisMaxDuration = if (i != mergedTimes.size - 1 && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    val thisMaxDuration = if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
@@ -430,7 +430,7 @@ open class WorkingCalendar(
                     } else {
                         currentTime
                     }
-                    val thisEndTime = if (i == mergedTimes.size - 1) {
+                    val thisEndTime = if (i == mergedTimes.lastIndex) {
                         listOf(
                             time.end,
                             currentTime + (maxDuration ?: Duration.INFINITE)
@@ -544,7 +544,7 @@ open class WorkingCalendar(
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.size - 1) {
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
                         DurationRange(
                             max(
                                 beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
@@ -573,7 +573,7 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisMaxDuration = if (i != mergedTimes.size - 1 && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    val thisMaxDuration = if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
@@ -815,7 +815,7 @@ sealed class ProductivityCalendar<Q, P, T>(
                 } else {
                     produceTime.timeWindow.frontBetween(productivity[i - 1].timeWindow)?.let { result.add(it) }
                 }
-                if (i == (productivity.size - 1)) {
+                if (i == productivity.lastIndex) {
                     produceTime.timeWindow.back?.let { result.add(it) }
                 }
                 result
@@ -1353,7 +1353,7 @@ sealed class ProductivityCalendar<Q, P, T>(
             connectionTimes.addAll(validTimes.connectionTimes)
             for (produceTime in validTimes.times) {
                 val thisQuantity = with(timeWindow) {
-                    (produceTime.duration.value * currentProductivity).floor()
+                    produceTime.duration.value * currentProductivity
                 }
                 produceQuantity += min(
                     quantity.toFlt64() - produceQuantity,

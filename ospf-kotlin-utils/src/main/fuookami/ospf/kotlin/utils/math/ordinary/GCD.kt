@@ -35,7 +35,7 @@ internal fun <I> gcdImpl(numbers: List<I>): I where I : Integer<I>, I : Rem<I, I
     val restNumbers = numbers.toMutableList()
 
     while (restNumbers.first() neq restNumbers.last()) {
-        for (i in 0 until (restNumbers.size - 1)) {
+        for (i in 0 until restNumbers.lastIndex) {
             if (restNumbers[i] % restNumbers[i + 1] eq zero) {
                 restNumbers[i] = restNumbers[i + 1]
             } else {

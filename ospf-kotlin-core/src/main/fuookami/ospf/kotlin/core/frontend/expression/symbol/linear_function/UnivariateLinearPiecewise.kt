@@ -70,7 +70,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     }
 
     internal val b: BinVariable1 by lazy {
-        BinVariable1("${name}_b", Shape1(points.size - 1))
+        BinVariable1("${name}_b", Shape1(points.lastIndex))
     }
 
     private val polyY: LinearPolynomial by lazy {

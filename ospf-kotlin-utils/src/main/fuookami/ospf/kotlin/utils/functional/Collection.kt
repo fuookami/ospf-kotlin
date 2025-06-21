@@ -18,7 +18,7 @@ fun <T> List<T>.shuffle(
     randomGenerator: Generator<Int> = { Random.nextInt(0, this.size) }
 ): List<T> {
     val list = this.toMutableList()
-    for (i in list.size - 1 downTo 1) {
+    for (i in list.lastIndex downTo 1) {
         val j = randomGenerator()!! % list.size
         val temp = list[i]
         list[i] = list[j]

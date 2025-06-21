@@ -268,7 +268,7 @@ class DepthFirstSearchAlgorithm(
                 break
             }
 
-            val (enabledSpaces, thisFixedSpaces) = stack.removeAt(stack.size - 1)
+            val (enabledSpaces, thisFixedSpaces) = stack.removeAt(stack.lastIndex)
             val restItems = items.toMutableMap()
             for (space in thisFixedSpaces) {
                 for ((item, amount) in space.block!!.amounts) {
@@ -279,7 +279,7 @@ class DepthFirstSearchAlgorithm(
 
             var flag = false
             while (enabledSpaces.isNotEmpty()) {
-                val enabledSpace = enabledSpaces.removeAt(stack.size - 1)
+                val enabledSpace = enabledSpaces.removeAt(stack.lastIndex)
 
                 val thisBlocks = if (cache.containsKey(enabledSpace)) {
                     cache[enabledSpace]!!
@@ -448,7 +448,7 @@ class DepthFirstSearchAlgorithm(
                 break
             }
 
-            val (top, usedSpace, thisEnabledSpaces) = stack.removeAt(stack.size - 1)
+            val (top, usedSpace, thisEnabledSpaces) = stack.removeAt(stack.lastIndex)
             val i = top + 1
             if (i >= blocks.size) {
                 if (promise.isClosedForSend) {

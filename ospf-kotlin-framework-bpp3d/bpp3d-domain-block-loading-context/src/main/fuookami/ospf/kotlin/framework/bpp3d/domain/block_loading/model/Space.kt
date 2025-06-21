@@ -30,7 +30,7 @@ data class Space(
                 if (memoryUseOver()) {
                     System.gc()
                 }
-                val top = stack.removeAt(stack.size - 1)
+                val top = stack.removeAt(stack.lastIndex)
                 val block = absoluteBlocks.find { it.position == top.position } ?: continue
                 val space = top.put(block.unit) ?: continue
                 spaces.add(space)

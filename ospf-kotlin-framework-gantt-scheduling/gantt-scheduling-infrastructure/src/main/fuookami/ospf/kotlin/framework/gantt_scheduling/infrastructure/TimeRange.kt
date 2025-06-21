@@ -153,7 +153,7 @@ data class TimeRange(
                 )
             }
             currentTime = mergedTimes[i].end
-            if (i == mergedTimes.size - 1) {
+            if (i == mergedTimes.lastIndex) {
                 if (currentTime < end) {
                     result.add(
                         TimeRange(
@@ -186,7 +186,7 @@ data class TimeRange(
             if (i == 0) {
                 result.add(TimeRange(start, containsTimes[i]))
             }
-            if (i == containsTimes.size - 1) {
+            if (i == containsTimes.lastIndex) {
                 result.add(TimeRange(containsTimes[i], end))
             } else {
                 result.add(TimeRange(containsTimes[i], containsTimes[i + 1]))
@@ -363,7 +363,7 @@ fun List<TimeRange>.frontAt(i: Int): TimeRange {
 }
 
 fun List<TimeRange>.backAt(i: Int): TimeRange {
-    return if (i == (this.size - 1)) {
+    return if (i == this.lastIndex) {
         this[i].back!!
     } else {
         this[i].backBetween(this[i + 1])!!

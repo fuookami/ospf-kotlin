@@ -324,7 +324,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         }
         // if all polynomial are not zero, y will be not zero
         when (val result = model.addConstraint(
-            y geq (sum(polynomials) - Flt64(polynomials.size - 1)),
+            y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
             "${name}_lb"
         )) {
             is Ok -> {}

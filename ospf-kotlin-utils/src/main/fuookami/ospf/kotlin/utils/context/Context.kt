@@ -27,7 +27,7 @@ data class ContextKey(
             val stackTree = Thread.currentThread().stackTrace
             return ContextKey(
                 thread = Thread.currentThread(),
-                stackTree = dump(stackTree.toList().subList(3, stackTree.size - 1))
+                stackTree = dump(stackTree.toList().subList(3, stackTree.lastIndex))
             )
         }
     }

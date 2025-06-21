@@ -19,18 +19,18 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
     // it means that nodes in the stack is in descending order
     // so the tasks will be in increasing order
     val labels = ArrayList<Label<T, E, A>>()
-    var currlabel = label.prevLabel
-    while (currlabel!!.node !is RootNode) {
+    var currLabel = label.prevLabel
+    while (currLabel!!.node !is RootNode) {
         labels.add(label)
-        currlabel = currlabel.prevLabel
+        currLabel = currLabel.prevLabel
     }
 
     val tasks = ArrayList<T>()
     while (labels.isNotEmpty()) {
-        currlabel = labels.last()
-        labels.removeAt(labels.size - 1)
+        currLabel = labels.last()
+        labels.removeAt(labels.lastIndex)
 
-        tasks.add(currlabel.task!!)
+        tasks.add(currLabel.task!!)
     }
     val totalCost = totalCostCalculator(executor, executorUsability.lastTask, tasks)
     return totalCost?.let { AbstractTaskBunch(executor, executorUsability, tasks, it, iteration) }
@@ -51,18 +51,18 @@ private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executo
     // it means that nodes in the stack is in descending order
     // so the tasks will be in increasing order
     val labels = ArrayList<Label<T, E, A>>()
-    var currlabel = label.prevLabel
-    while (currlabel!!.node !is RootNode) {
+    var currLabel = label.prevLabel
+    while (currLabel!!.node !is RootNode) {
         labels.add(label)
-        currlabel = currlabel.prevLabel
+        currLabel = currLabel.prevLabel
     }
 
     val tasks = ArrayList<T>()
     while (labels.isNotEmpty()) {
-        currlabel = labels.last()
-        labels.removeAt(labels.size - 1)
+        currLabel = labels.last()
+        labels.removeAt(labels.lastIndex)
 
-        tasks.add(currlabel.task!!)
+        tasks.add(currLabel.task!!)
     }
     val totalCost = totalCostCalculator(executor, executorUsability.lastTask, tasks)
     return totalCost?.let { bunchCtor(executor, executorUsability, tasks, iteration, it) }

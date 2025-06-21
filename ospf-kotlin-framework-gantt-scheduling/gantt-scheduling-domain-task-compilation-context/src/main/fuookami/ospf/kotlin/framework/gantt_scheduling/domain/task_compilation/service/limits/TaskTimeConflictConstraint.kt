@@ -27,7 +27,7 @@ class TaskTimeConflictConstraint<
         val x = compilation.x
 
         for (executor in executors) {
-            for (i in 0 until (tasks.size - 1)) {
+            for (i in tasks.indices) {
                 for (j in (i + 1) until tasks.size) {
                     if (tasks[i].time!!.withIntersection(tasks[j].time!!)) {
                         when (val result = model.addConstraint(

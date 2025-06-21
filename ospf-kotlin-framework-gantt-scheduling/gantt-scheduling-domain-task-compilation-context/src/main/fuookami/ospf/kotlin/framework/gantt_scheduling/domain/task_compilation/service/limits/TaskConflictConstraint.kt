@@ -24,7 +24,7 @@ class TaskConflictConstraint<
         val x = compilation.x
 
         for (executor in executors) {
-            for (i in 0 until (tasks.size - 1)) {
+            for (i in tasks.indices) {
                 for (j in (i + 1) until tasks.size) {
                     if (conflict(executor, tasks[i], tasks[j])) {
                         when (val result = model.addConstraint(
