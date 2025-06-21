@@ -153,7 +153,7 @@ data class TimeRange(
                 )
             }
             currentTime = mergedTimes[i].end
-            if (i == mergedTimes.size - 1) {
+            if (i == mergedTimes.lastIndex) {
                 if (currentTime < end) {
                     result.add(
                         TimeRange(
@@ -173,6 +173,26 @@ data class TimeRange(
 
     operator fun contains(time: TimeRange): Boolean {
         return start <= time.start && time.end <= end;
+    }
+
+    fun split(
+        times: List<Instant>
+    ): List<TimeRange> {
+        val result = ArrayList<TimeRange>()
+        val containsTimes = times
+            .filter { contains(it) }
+            .sorted()
+        for (i in containsTimes.indices) {
+            if (i == 0) {
+                result.add(TimeRange(start, containsTimes[i]))
+            }
+            if (i == containsTimes.lastIndex) {
+                result.add(TimeRange(containsTimes[i], end))
+            } else {
+                result.add(TimeRange(containsTimes[i], containsTimes[i + 1]))
+            }
+        }
+        return result
     }
 
     data class SplitTimeRanges(
@@ -197,31 +217,97 @@ data class TimeRange(
     }
 
     fun split(
-        unit: Duration,
+        unit: DurationRange,
+        currentDuration: Duration = Duration.ZERO,
+        maxDuration: Duration? = null,
         breakTime: Duration? = null
     ): SplitTimeRanges {
         val times = ArrayList<TimeRange>()
         val breakTimes = ArrayList<TimeRange>()
         var currentTime = start
-        while (currentTime < end) {
-            val duration = min(unit, end - currentTime)
-            times.add(
-                TimeRange(
-                    currentTime,
-                    currentTime + duration
+        var totalDuration = Duration.ZERO
+        while (currentTime < end && (maxDuration == null || totalDuration < maxDuration)) {
+            val duration = listOf(
+                unit.lb - if (currentTime == start) { currentDuration } else { Duration.ZERO },
+                end - currentTime,
+                maxDuration?.let { it - totalDuration } ?: Duration.INFINITE
+            ).min()
+            if (maxDuration != null
+                && (duration + totalDuration + (unit.ub - unit.lb)) >= maxDuration
+            ) {
+                val extraDuration = min(
+                    maxDuration - totalDuration,
+                    end - currentTime
                 )
-            )
-            if (breakTime != null && duration == unit && (currentTime + duration) != end) {
-                breakTimes.add(
+                times.add(
                     TimeRange(
-                        currentTime + duration,
-                        currentTime + duration + breakTime
+                        currentTime,
+                        currentTime + extraDuration
                     )
                 )
+                totalDuration += extraDuration
+                currentTime = currentTime + extraDuration
+            } else if (breakTime != null
+                && duration + if (currentTime == start) { currentDuration } else { Duration.ZERO } == unit.lb
+                && (currentTime + duration) != end
+            ) {
+                if (currentTime + duration + breakTime + (unit.ub - unit.lb) >= end
+                    || currentTime + duration + breakTime >= end
+                ) {
+                    times.add(
+                        TimeRange(
+                            currentTime,
+                            end - breakTime
+                        )
+                    )
+                    breakTimes.add(
+                        TimeRange(
+                            end - breakTime,
+                            end
+                        )
+                    )
+                    totalDuration += (end - breakTime) - currentTime
+                    currentTime = end
+                } else {
+                    times.add(
+                        TimeRange(
+                            currentTime,
+                            currentTime + duration
+                        )
+                    )
+                    breakTimes.add(
+                        TimeRange(
+                            currentTime + duration,
+                            currentTime + duration + breakTime
+                        )
+                    )
+                    totalDuration += duration
+                    currentTime += duration + breakTime
+                }
+            } else {
+                times.add(
+                    TimeRange(
+                        currentTime,
+                        currentTime + duration
+                    )
+                )
+                totalDuration += duration
+                currentTime += duration
             }
-            currentTime += unit + (breakTime ?: Duration.ZERO)
         }
         return SplitTimeRanges(times, breakTimes)
+    }
+
+    fun rsplit(
+        unit: DurationRange,
+        maxDuration: Duration? = null,
+        breakTime: Duration? = null
+    ): SplitTimeRanges {
+        if (maxDuration == null || maxDuration <= duration) {
+            return split(unit, Duration.ZERO, maxDuration, breakTime)
+        }
+
+        TODO("not implemented yet")
     }
 
     fun continuousBefore(time: TimeRange): Boolean {
@@ -255,7 +341,10 @@ fun List<TimeRange>.merge(): List<TimeRange> {
     var currentTime = times.first()
     for (i in 1 until times.size) {
         if (times[i].start <= currentTime.end) {
-            currentTime = TimeRange(currentTime.start, times[i].end)
+            currentTime = TimeRange(
+                currentTime.start,
+                max(currentTime.end, times[i].end)
+            )
         } else {
             mergedTimes.add(currentTime)
             currentTime = times[i]
@@ -274,7 +363,7 @@ fun List<TimeRange>.frontAt(i: Int): TimeRange {
 }
 
 fun List<TimeRange>.backAt(i: Int): TimeRange {
-    return if (i == (this.size - 1)) {
+    return if (i == this.lastIndex) {
         this[i].back!!
     } else {
         this[i].backBetween(this[i + 1])!!

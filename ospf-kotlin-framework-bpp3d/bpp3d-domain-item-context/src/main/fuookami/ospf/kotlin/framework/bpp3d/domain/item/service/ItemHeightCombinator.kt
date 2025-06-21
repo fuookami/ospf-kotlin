@@ -120,7 +120,7 @@ data object ItemHeightCombinator {
                     )) {
                         val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending { it.weight }
                         var flag = true
-                        for (i in 0 until (thisItems.size - 1)) {
+                        for (i in thisItems.indices) {
                             if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
                                 flag = false
                                 break
@@ -193,7 +193,7 @@ data object ItemHeightCombinator {
                         )) {
                             val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight }
                             var flag = true
-                            for (i in 0 until (thisItems.size - 1)) {
+                            for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
                                     flag = false
                                     break
@@ -226,7 +226,7 @@ data object ItemHeightCombinator {
                         )) {
                             val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight }
                             var flag = true
-                            for (i in 0 until (thisItems.size - 1)) {
+                            for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
                                     flag = false
                                     break
@@ -268,7 +268,7 @@ data object ItemHeightCombinator {
                             )) {
                                 val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight }
                                 var flag = true
-                                for (i in 0 until (thisItems.size - 1)) {
+                                for (i in thisItems.indices) {
                                     if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
                                         flag = false
                                         break

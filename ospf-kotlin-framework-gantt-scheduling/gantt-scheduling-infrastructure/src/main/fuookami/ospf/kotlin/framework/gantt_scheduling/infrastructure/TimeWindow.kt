@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange.SplitTimeRanges
 import kotlin.math.*
 import kotlin.time.*
 import kotlinx.datetime.*
@@ -233,10 +234,26 @@ data class TimeWindow(
     }
 
     fun split(
-        unit: Duration,
+        times: List<Instant>
+    ): List<TimeRange> {
+        return window.split(times)
+    }
+
+    fun split(
+        unit: DurationRange,
+        currentDuration: Duration = Duration.ZERO,
+        maxDuration: Duration? = null,
         breakTime: Duration? = null
-    ): TimeRange.SplitTimeRanges {
-        return window.split(unit, breakTime)
+    ): SplitTimeRanges {
+        return window.split(unit, currentDuration, maxDuration, breakTime)
+    }
+
+    fun rsplit(
+        unit: DurationRange,
+        maxDuration: Duration? = null,
+        breakTime: Duration? = null
+    ): SplitTimeRanges {
+        return window.rsplit(unit, maxDuration, breakTime)
     }
 
     fun new(window: TimeRange, continues: Boolean): TimeWindow {

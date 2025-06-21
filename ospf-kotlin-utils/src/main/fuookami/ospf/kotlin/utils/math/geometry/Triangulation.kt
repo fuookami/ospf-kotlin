@@ -128,7 +128,7 @@ fun triangulate(points: List<Point3>): List<Triangle3> {
 @JvmName("triangulate3Isolines")
 fun triangulate(isolines: List<Pair<Flt64, List<Point2>>>): List<Triangle3> {
     val triangles = ArrayList<Triangle3>()
-    for (i in 0 until (isolines.size - 1)) {
+    for (i in 0 until isolines.lastIndex) {
         val thisLine = isolines[i]
         val nextLine = isolines[i + 1]
         val points = (thisLine.second.map { point3(it.x, it.y, thisLine.first) } + nextLine.second.map {

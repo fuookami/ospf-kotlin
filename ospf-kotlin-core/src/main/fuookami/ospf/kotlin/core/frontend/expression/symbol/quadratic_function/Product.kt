@@ -32,7 +32,7 @@ class ProductFunction(
     }
 
     private val y: RealVariable1 by lazy {
-        RealVariable1("${name}_y", Shape1(polynomials.size - 1))
+        RealVariable1("${name}_y", Shape1(polynomials.lastIndex))
     }
 
     private val polyY: AbstractQuadraticPolynomial<*> by lazy {

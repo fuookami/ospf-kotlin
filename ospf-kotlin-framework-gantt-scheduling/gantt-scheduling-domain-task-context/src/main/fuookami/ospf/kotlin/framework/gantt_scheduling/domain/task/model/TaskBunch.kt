@@ -30,7 +30,7 @@ open class AbstractTaskBunch<
             } else {
                 lastTask
             }
-            val succTask = if (i != (tasks.size - 1)) {
+            val succTask = if (i != tasks.lastIndex) {
                 tasks[i + 1]
             } else {
                 null

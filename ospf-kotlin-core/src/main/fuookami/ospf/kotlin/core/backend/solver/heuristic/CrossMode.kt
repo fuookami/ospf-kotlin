@@ -47,7 +47,7 @@ class TwoParentCrossMode<V>(
         return when (method) {
             CrossMode.Method.WeightedRing -> {
                 val weighted = population.withIndex().sortedByDescending { weights[it.index] }
-                (0 until (population.size - 1)).map { i ->
+                population.indices.map { i ->
                     weighted
                         .subList(i, i + 2)
                         .map { it.value }
@@ -57,7 +57,7 @@ class TwoParentCrossMode<V>(
             CrossMode.Method.WeightedBidirectional -> {
                 val weighted = population.withIndex().sortedByDescending { weights[it.index] }
                 (0 until (population.size / 2 + 1)).mapNotNull { i ->
-                    val j = population.size - 1 - i
+                    val j = population.lastIndex - i
                     if (i <= j) {
                         listOf(weighted[i].value, weighted[j].value)
                     } else {
@@ -68,7 +68,7 @@ class TwoParentCrossMode<V>(
 
             CrossMode.Method.RandomRing -> {
                 val shuffled = population.shuffled()
-                (0 until (population.size - 1)).map {
+                population.indices.map {
                     shuffled.subList(it, it + 2)
                 } + listOf(listOf(shuffled.last(), shuffled.first()))
             }
@@ -76,7 +76,7 @@ class TwoParentCrossMode<V>(
             CrossMode.Method.RandomBidirectional -> {
                 val shuffled = population.shuffled()
                 (0 until (population.size / 2 + 1)).mapNotNull { i ->
-                    val j = population.size - 1 - i
+                    val j = population.lastIndex - i
                     if (i <= j) {
                         listOf(shuffled[i], shuffled[j])
                     } else {
