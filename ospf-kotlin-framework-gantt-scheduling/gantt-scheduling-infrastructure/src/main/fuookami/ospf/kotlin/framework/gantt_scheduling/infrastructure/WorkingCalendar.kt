@@ -390,7 +390,12 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisMaxDuration = if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    val thisMaxDuration = if (i == -1 && thisBeforeConnectionTime != null) {
+                        DurationRange(
+                            mergedTimes.first().start - time.start - thisBeforeConnectionTime.ub,
+                            mergedTimes.first().start - time.start - thisBeforeConnectionTime.lb
+                        )
+                    } else if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
@@ -534,12 +539,15 @@ open class WorkingCalendar(
                 var i = mergedTimes.withIndex().indexOfFirst {
                     currentTime <= it.value.start
                 }
+                if (i == -1) {
+                    i = mergedTimes.size
+                }
                 var totalDuration = Duration.ZERO
                 while (currentTime != time.start) {
-                    if (i == -1 && currentTime == Instant.DISTANT_PAST) {
+                    if (i == 0 && currentTime == Instant.DISTANT_PAST) {
                         break
-                    } else if (i != -1 && mergedTimes[i].contains(currentTime)) {
-                        currentTime = mergedTimes[i].start
+                    } else if (i != 0 && mergedTimes[i - 1].contains(currentTime)) {
+                        currentTime = mergedTimes[i - 1].start
                         i -= 1
                         continue
                     }
@@ -573,7 +581,12 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisMaxDuration = if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    val thisMaxDuration = if (i == mergedTimes.size && thisAfterConnectionTime != null) {
+                        DurationRange(
+                            time.end - mergedTimes.last().end - thisAfterConnectionTime.ub,
+                            time.end - mergedTimes.last().end - thisAfterConnectionTime.lb
+                        )
+                    } else if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
                             mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
