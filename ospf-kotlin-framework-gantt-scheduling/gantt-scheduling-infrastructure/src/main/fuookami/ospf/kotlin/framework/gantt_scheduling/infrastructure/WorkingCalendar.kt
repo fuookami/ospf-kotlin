@@ -552,28 +552,29 @@ open class WorkingCalendar(
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
+                    val thisBeforeConnectionTime = if (i != mergedTimes.size) {
                         DurationRange(
                             max(
-                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
                                 beforeConnectionTime?.lb ?: Duration.ZERO
                             ),
                             max(
-                                beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.ub ?: Duration.ZERO,
+                                beforeConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
                                 beforeConnectionTime?.ub ?: Duration.ZERO
                             )
                         )
                     } else {
                         null
                     }
-                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime >= mergedTimes[i].end) {
+
+                    val thisAfterConnectionTime = if (i != 0 && currentTime >= mergedTimes[i - 1].end) {
                         DurationRange(
                             max(
-                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i - 1])?.lb ?: Duration.ZERO,
                                 afterConnectionTime?.lb ?: Duration.ZERO
                             ),
                             max(
-                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
+                                afterConditionalConnectionTime?.invoke(mergedTimes[i - 1])?.ub ?: Duration.ZERO,
                                 afterConnectionTime?.ub ?: Duration.ZERO
                             )
                         )
@@ -586,10 +587,10 @@ open class WorkingCalendar(
                             time.end - mergedTimes.last().end - thisAfterConnectionTime.ub,
                             time.end - mergedTimes.last().end - thisAfterConnectionTime.lb
                         )
-                    } else if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    } else if (i != 0 && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
-                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
-                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
+                            mergedTimes[i].start - mergedTimes[i - 1].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
+                            mergedTimes[i].start - mergedTimes[i - 1].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
                         )
                     } else {
                         null
@@ -626,7 +627,7 @@ open class WorkingCalendar(
                     } else {
                         currentTime
                     }
-                    val thisStartTime = if (i == -1 || i == 0) {
+                    val thisStartTime = if (i == 0) {
                         listOf(
                             time.start,
                             currentTime - (maxDuration ?: Duration.INFINITE)
@@ -668,7 +669,7 @@ open class WorkingCalendar(
                     } else if (thisStartTime == time.start || totalDuration == maxDuration) {
                         break
                     }
-                    currentTime = mergedTimes[i].start
+                    currentTime = mergedTimes[i - 1].start
                     i -= 1
                 }
                 return ValidTimes(
