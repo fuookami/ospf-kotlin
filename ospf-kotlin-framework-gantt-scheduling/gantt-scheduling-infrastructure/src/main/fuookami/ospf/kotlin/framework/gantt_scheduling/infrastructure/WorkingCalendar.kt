@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
+import kotlin.math.*
 import kotlin.time.*
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.min
@@ -248,9 +249,10 @@ open class WorkingCalendar(
                         end = thisEndTime
                     )
                     currentTime = if (breakTime != null) {
+                        val offset = if (currentTime == time.start) { currentDuration } else { Duration.ZERO }
                         val (thisValidTimes, thisBreakTimes) = baseTime.split(
                             unit = breakTime.first,
-                            currentDuration = if (currentTime == time.start) { currentDuration } else { Duration.ZERO },
+                            currentDuration = offset,
                             maxDuration = time.duration - totalDuration,
                             breakTime = breakTime.second
                         )
@@ -438,13 +440,21 @@ open class WorkingCalendar(
                     val thisEndTime = if (i == mergedTimes.lastIndex) {
                         listOf(
                             time.end,
-                            currentTime + (maxDuration ?: Duration.INFINITE)
+                            currentTime + (maxDuration ?: Duration.INFINITE) + if (maxDuration != null && breakTime != null) {
+                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                            } else {
+                                Duration.ZERO
+                            }
                         )
                     } else {
                         listOf(
                             time.end,
                             mergedTimes[i + 1].start - (thisActualBeforeConnectionTime ?: Duration.ZERO),
-                            currentTime + (maxDuration ?: Duration.INFINITE)
+                            currentTime + (maxDuration ?: Duration.INFINITE) + if (maxDuration != null && breakTime != null) {
+                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                            } else {
+                                Duration.ZERO
+                            }
                         )
                     }.min()
                     val baseTime = TimeRange(
@@ -452,9 +462,10 @@ open class WorkingCalendar(
                         end = thisEndTime
                     )
                     if (breakTime != null) {
+                        val offset = if (currentTime == time.start) { currentDuration } else { Duration.ZERO }
                         val (thisValidTimes, thisBreakTimes) = baseTime.split(
                             unit = breakTime.first,
-                            currentDuration = if (currentTime == time.start) { currentDuration } else { Duration.ZERO },
+                            currentDuration = offset,
                             maxDuration = maxDuration?.let { it - totalDuration },
                             breakTime = breakTime.second
                         )
@@ -630,13 +641,21 @@ open class WorkingCalendar(
                     val thisStartTime = if (i == 0) {
                         listOf(
                             time.start,
-                            currentTime - (maxDuration ?: Duration.INFINITE)
+                            currentTime - (maxDuration ?: Duration.INFINITE) - if (maxDuration != null && breakTime != null) {
+                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                            } else {
+                                Duration.ZERO
+                            }
                         )
                     } else {
                         listOf(
                             time.start,
                             mergedTimes[i - 1].end + (thisActualAfterConnectionTime ?: Duration.ZERO),
-                            currentTime - (maxDuration ?: Duration.INFINITE)
+                            currentTime - (maxDuration ?: Duration.INFINITE) - if (maxDuration != null && breakTime != null) {
+                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                            } else {
+                                Duration.ZERO
+                            }
                         )
                     }.max()
                     val baseTime = TimeRange(
