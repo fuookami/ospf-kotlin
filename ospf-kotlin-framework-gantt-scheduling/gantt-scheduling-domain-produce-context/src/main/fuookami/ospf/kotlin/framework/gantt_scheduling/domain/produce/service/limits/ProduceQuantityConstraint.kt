@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 
 data class ProduceQuantityShadowPriceKey(
-    val product: Product
+    val product: Material
 ) : ShadowPriceKey(ProduceQuantityShadowPriceKey::class)
 
 class ProduceQuantityConstraint<
@@ -18,12 +18,14 @@ class ProduceQuantityConstraint<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    products: List<Pair<Product, ProductDemand?>>,
+    products: List<Pair<Material, ProductDemand?>>,
     private val produce: Produce,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "produce_quantity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    private val products = products.filterIsInstance<Pair<Product, ProductDemand>>()
+    private val products = products
+        .filter { it.second != null }
+        .filterIsInstance<Pair<Product, ProductDemand>>()
 
     override fun invoke(model: AbstractLinearMetaModel): Try {
         for ((product, demand) in products) {
