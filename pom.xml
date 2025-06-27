@@ -23,7 +23,7 @@
         <module>ospf-kotlin-starters</module>
     </modules>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
-    <version>1.0.52</version>
+    <version>1.0.53</version>
     <packaging>pom</packaging>
     <name>ospf-kotlin</name>
     <description>operation research algorithm software framework</description>
