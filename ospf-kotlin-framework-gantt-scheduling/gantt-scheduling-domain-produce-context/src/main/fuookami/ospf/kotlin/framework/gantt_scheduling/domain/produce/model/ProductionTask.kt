@@ -6,8 +6,10 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-interface Product : Indexed
-interface RawMaterial : Indexed
+interface Material : Indexed
+interface Product : Material
+interface SemiProduct : Material
+interface RawMaterial : Material
 
 data class ProductDemand(
     val quantity: ValueRange<Flt64>,
@@ -31,8 +33,8 @@ interface ProductionTask<
     out E : Executor,
     out A : AssignmentPolicy<E>
 > : AbstractTask<E, A> {
-    val produce: Map<Product, Flt64>
-    val consumption: Map<RawMaterial, Flt64>
+    val produce: Map<Material, Flt64>
+    val consumption: Map<Material, Flt64>
 }
 
 fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> AbstractTaskBunch<T, E, A>.produce(product: Product): Flt64 {
