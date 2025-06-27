@@ -227,47 +227,89 @@ data class TimeRange(
         var currentTime = start
         var totalDuration = Duration.ZERO
         while (currentTime < end && (maxDuration == null || totalDuration < maxDuration)) {
-            val duration = listOf(
-                unit.lb - if (currentTime == start) { currentDuration } else { Duration.ZERO },
-                end - currentTime,
-                maxDuration?.let { it - totalDuration } ?: Duration.INFINITE
-            ).min()
-            if (maxDuration != null
-                && (duration + totalDuration + (unit.ub - unit.lb)) >= maxDuration
-            ) {
-                val extraDuration = min(
-                    maxDuration - totalDuration,
-                    end - currentTime
+            if (currentTime == start && currentDuration >= unit.lb && breakTime != null) {
+                val duration = min(
+                    end - currentTime,
+                    maxDuration ?: Duration.INFINITE
                 )
-                times.add(
-                    TimeRange(
-                        currentTime,
-                        currentTime + extraDuration
-                    )
-                )
-                totalDuration += extraDuration
-                currentTime = currentTime + extraDuration
-            } else if (breakTime != null
-                && duration + if (currentTime == start) { currentDuration } else { Duration.ZERO } == unit.lb
-                && (currentTime + duration) != end
-            ) {
-                if (currentTime + duration + breakTime + (unit.ub - unit.lb) >= end
-                    || currentTime + duration + breakTime >= end
-                ) {
+                if (currentDuration + duration <= unit.ub) {
                     times.add(
                         TimeRange(
                             currentTime,
-                            end - breakTime
+                            currentTime + duration
                         )
                     )
+                    currentTime = currentTime + duration
+                    totalDuration += duration
+                    break
+                } else {
                     breakTimes.add(
                         TimeRange(
-                            end - breakTime,
-                            end
+                            currentTime,
+                            currentTime + breakTime
                         )
                     )
-                    totalDuration += (end - breakTime) - currentTime
-                    currentTime = end
+                    currentTime = currentTime + breakTime
+                    continue
+                }
+            } else {
+                val duration = listOf(
+                    unit.lb - if (breakTime != null && currentTime == start) { currentDuration } else { Duration.ZERO },
+                    end - currentTime,
+                    maxDuration?.let { it - totalDuration } ?: Duration.INFINITE
+                ).min()
+                if (maxDuration != null
+                    && (duration + totalDuration + (unit.ub - unit.lb)) >= maxDuration
+                ) {
+                    val extraDuration = min(
+                        maxDuration - totalDuration,
+                        end - currentTime
+                    )
+                    times.add(
+                        TimeRange(
+                            currentTime,
+                            currentTime + extraDuration
+                        )
+                    )
+                    totalDuration += extraDuration
+                    currentTime = currentTime + extraDuration
+                } else if (breakTime != null
+                    && duration + if (currentTime == start) { currentDuration } else { Duration.ZERO } == unit.lb
+                    && (currentTime + duration) != end
+                ) {
+                    if (currentTime + duration + breakTime + (unit.ub - unit.lb) >= end
+                        || currentTime + duration + breakTime >= end
+                    ) {
+                        times.add(
+                            TimeRange(
+                                currentTime,
+                                end - breakTime
+                            )
+                        )
+                        breakTimes.add(
+                            TimeRange(
+                                end - breakTime,
+                                end
+                            )
+                        )
+                        totalDuration += (end - breakTime) - currentTime
+                        currentTime = end
+                    } else {
+                        times.add(
+                            TimeRange(
+                                currentTime,
+                                currentTime + duration
+                            )
+                        )
+                        breakTimes.add(
+                            TimeRange(
+                                currentTime + duration,
+                                currentTime + duration + breakTime
+                            )
+                        )
+                        totalDuration += duration
+                        currentTime += duration + breakTime
+                    }
                 } else {
                     times.add(
                         TimeRange(
@@ -275,24 +317,9 @@ data class TimeRange(
                             currentTime + duration
                         )
                     )
-                    breakTimes.add(
-                        TimeRange(
-                            currentTime + duration,
-                            currentTime + duration + breakTime
-                        )
-                    )
                     totalDuration += duration
-                    currentTime += duration + breakTime
+                    currentTime += duration
                 }
-            } else {
-                times.add(
-                    TimeRange(
-                        currentTime,
-                        currentTime + duration
-                    )
-                )
-                totalDuration += duration
-                currentTime += duration
             }
         }
         return SplitTimeRanges(times, breakTimes)
