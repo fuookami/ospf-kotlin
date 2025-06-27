@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 
 data class ConsumptionQuantityShadowPriceKey(
-    val material: RawMaterial,
+    val material: Material,
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
 
 class ConsumptionQuantityConstraint<
@@ -18,12 +18,14 @@ class ConsumptionQuantityConstraint<
     E : Executor,
     A : AssignmentPolicy<E>
 >(
-    materials: List<Pair<RawMaterial, RawMaterialReserves?>>,
+    materials: List<Pair<Material, RawMaterialReserves?>>,
     private val consumption: Consumption,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "consumption_quantity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    private val materials = materials.filterIsInstance<Pair<RawMaterial, RawMaterialReserves>>()
+    private val materials = materials
+        .filter { it.second != null }
+        .filterIsInstance<Pair<RawMaterial, RawMaterialReserves>>()
 
     override fun invoke(model: AbstractLinearMetaModel): Try {
         for ((material, reserve) in materials) {
