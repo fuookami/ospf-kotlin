@@ -354,7 +354,7 @@ open class WorkingCalendar(
                     currentTime >= it.value.end
                 }
                 var totalDuration = Duration.ZERO
-                while (currentTime != time.end) {
+                while (currentTime < time.end) {
                     if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
                         break
                     } else if (i != mergedTimes.lastIndex && mergedTimes[i + 1].contains(currentTime)) {
@@ -377,6 +377,7 @@ open class WorkingCalendar(
                     } else {
                         null
                     }
+
                     val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
                         DurationRange(
                             max(
@@ -397,14 +398,73 @@ open class WorkingCalendar(
                             mergedTimes.first().start - time.start - thisBeforeConnectionTime.ub,
                             mergedTimes.first().start - time.start - thisBeforeConnectionTime.lb
                         )
-                    } else if (i != mergedTimes.lastIndex && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    } else if (i != mergedTimes.lastIndex && currentTime != mergedTimes[i].end && thisBeforeConnectionTime != null) {
                         DurationRange(
-                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
-                            mergedTimes[i + 1].start - mergedTimes[i].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
+                            mergedTimes[i + 1].start
+                                    - currentTime
+                                    - thisBeforeConnectionTime.ub,
+                            mergedTimes[i + 1].start
+                                    - currentTime
+                                    - thisBeforeConnectionTime.lb
+                        )
+                    } else if (i != mergedTimes.lastIndex && currentTime == mergedTimes[i].end && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                        DurationRange(
+                            mergedTimes[i + 1].start
+                                    - mergedTimes[i].end
+                                    - (thisBeforeConnectionTime?.ub ?: Duration.ZERO)
+                                    - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
+                            mergedTimes[i + 1].start
+                                    - mergedTimes[i].end
+                                    - (thisBeforeConnectionTime?.lb ?: Duration.ZERO)
+                                    - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
                         )
                     } else {
                         null
                     }
+
+                    if (thisMaxDuration?.let { it.lb < Duration.ZERO } == true) {
+                        if (i == -1) {
+                            connectionTimes.add(
+                                TimeRange(
+                                    start = time.start,
+                                    end = mergedTimes.first().start
+                                )
+                            )
+                        } else if (currentTime != mergedTimes[i].end && thisBeforeConnectionTime != null) {
+                            connectionTimes.add(
+                                TimeRange(
+                                    start = currentTime,
+                                    end = mergedTimes[i + 1].start
+                                )
+                            )
+                        } else if (currentTime == mergedTimes[i].end) {
+                            if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
+                                connectionTimes.add(
+                                    TimeRange(
+                                        start = mergedTimes[i].end,
+                                        end = mergedTimes[i].end + thisAfterConnectionTime.lb
+                                    )
+                                )
+                                connectionTimes.add(
+                                    TimeRange(
+                                        start = mergedTimes[i + 1].start - (mergedTimes[i + 1].start - mergedTimes[i].end - thisBeforeConnectionTime.lb),
+                                        end = mergedTimes[i + 1].start
+                                    )
+                                )
+                            } else {
+                                connectionTimes.add(
+                                    TimeRange(
+                                        start = mergedTimes[i].end,
+                                        end = mergedTimes[i + 1].start
+                                    )
+                                )
+                            }
+                        }
+                        currentTime = mergedTimes[i + 1].end
+                        i += 1
+                        continue
+                    }
+
                     val (thisActualBeforeConnectionTime, thisActualAfterConnectionTime) = if (maxDuration != null
                         && thisMaxDuration != null
                         && (totalDuration + thisMaxDuration.lb) <= maxDuration
@@ -554,7 +614,7 @@ open class WorkingCalendar(
                     i = mergedTimes.size
                 }
                 var totalDuration = Duration.ZERO
-                while (currentTime != time.start) {
+                while (currentTime > time.start) {
                     if (i == 0 && currentTime == Instant.DISTANT_PAST) {
                         break
                     } else if (i != 0 && mergedTimes[i - 1].contains(currentTime)) {
@@ -595,17 +655,64 @@ open class WorkingCalendar(
 
                     val thisMaxDuration = if (i == mergedTimes.size && thisAfterConnectionTime != null) {
                         DurationRange(
-                            time.end - mergedTimes.last().end - thisAfterConnectionTime.ub,
-                            time.end - mergedTimes.last().end - thisAfterConnectionTime.lb
+                            time.end
+                                    - mergedTimes.last().end
+                                    - thisAfterConnectionTime.ub,
+                            time.end
+                                    - mergedTimes.last().end
+                                    - thisAfterConnectionTime.lb
                         )
                     } else if (i != 0 && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
                         DurationRange(
-                            mergedTimes[i].start - mergedTimes[i - 1].end - (thisBeforeConnectionTime?.ub ?: Duration.ZERO) - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
-                            mergedTimes[i].start - mergedTimes[i - 1].end - (thisBeforeConnectionTime?.lb ?: Duration.ZERO) - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
+                            min(currentTime, mergedTimes[i].start)
+                                    - mergedTimes[i - 1].end
+                                    - (thisBeforeConnectionTime?.ub ?: Duration.ZERO)
+                                    - (thisAfterConnectionTime?.ub ?: Duration.ZERO),
+                            min(currentTime, mergedTimes[i].start)
+                                    - mergedTimes[i - 1].end
+                                    - (thisBeforeConnectionTime?.lb ?: Duration.ZERO)
+                                    - (thisAfterConnectionTime?.lb ?: Duration.ZERO)
                         )
                     } else {
                         null
                     }
+
+                    if (thisMaxDuration?.let { it.lb < Duration.ZERO } == true) {
+                        if (i == mergedTimes.size) {
+                            connectionTimes.add(
+                                TimeRange(
+                                    start = mergedTimes.last().end,
+                                    end = time.end
+                                )
+                            )
+                        } else {
+                            if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
+                                connectionTimes.add(
+                                    TimeRange(
+                                        start = mergedTimes[i - 1].end,
+                                        end = mergedTimes[i - 1].end + thisAfterConnectionTime.lb
+                                    )
+                                )
+                                connectionTimes.add(
+                                    TimeRange(
+                                        start = mergedTimes[i].start - (min(currentTime, mergedTimes[i].start) - mergedTimes[i - 1].end - thisAfterConnectionTime.lb),
+                                        end = mergedTimes[i].start
+                                    )
+                                )
+                            } else {
+                                connectionTimes.add(
+                                    TimeRange(
+                                        start = mergedTimes[i - 1].end,
+                                        end = min(currentTime, mergedTimes[i].start)
+                                    )
+                                )
+                            }
+                        }
+                        currentTime = mergedTimes[i - 1].start
+                        i -= 1
+                        continue
+                    }
+
                     val (thisActualBeforeConnectionTime, thisActualAfterConnectionTime) = if (maxDuration != null
                         && thisMaxDuration != null
                         && (totalDuration + thisMaxDuration.lb) <= maxDuration

@@ -180,8 +180,12 @@ data class TimeRange(
     ): List<TimeRange> {
         val result = ArrayList<TimeRange>()
         val containsTimes = times
-            .filter { contains(it) }
+            .filter { it != start && contains(it) }
             .sorted()
+            .distinct()
+        if (containsTimes.isEmpty()) {
+            return listOf(this)
+        }
         for (i in containsTimes.indices) {
             if (i == 0) {
                 result.add(TimeRange(start, containsTimes[i]))
