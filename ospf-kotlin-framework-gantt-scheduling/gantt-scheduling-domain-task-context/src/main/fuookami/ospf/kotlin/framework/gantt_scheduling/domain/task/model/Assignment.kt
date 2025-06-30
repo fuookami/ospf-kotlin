@@ -7,8 +7,12 @@ open class AssignmentPolicy<out E : Executor>(
     open val executor: E? = null,
     open val time: TimeRange? = null,
 ) : Eq<AssignmentPolicy<@UnsafeVariance E>> {
-    open val full: Boolean by lazy { executor != null && time != null }
-    open val empty: Boolean by lazy { executor == null && time == null }
+    open val full: Boolean by lazy {
+        executor != null && time != null
+    }
+    open val empty: Boolean by lazy {
+        executor == null && time == null
+    }
 
     override fun partialEq(rhs: AssignmentPolicy<@UnsafeVariance E>): Boolean? {
         if (this === rhs) return true
