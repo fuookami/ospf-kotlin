@@ -433,7 +433,7 @@ open class WorkingCalendar(
                         } else if (currentTime != mergedTimes[i].end && thisBeforeConnectionTime != null) {
                             connectionTimes.add(
                                 TimeRange(
-                                    start = currentTime,
+                                    start = max(currentTime, mergedTimes[i + 1].start - thisBeforeConnectionTime.ub),
                                     end = mergedTimes[i + 1].start
                                 )
                             )
@@ -685,7 +685,14 @@ open class WorkingCalendar(
                                     end = time.end
                                 )
                             )
-                        } else {
+                        } else if (currentTime != mergedTimes[i].start && thisBeforeConnectionTime != null) {
+                            connectionTimes.add(
+                                TimeRange(
+                                    start = max(currentTime, mergedTimes[i].start - thisBeforeConnectionTime.ub),
+                                    end = mergedTimes[i].start
+                                )
+                            )
+                        } else if (currentTime == mergedTimes[i].start) {
                             if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
                                 connectionTimes.add(
                                     TimeRange(

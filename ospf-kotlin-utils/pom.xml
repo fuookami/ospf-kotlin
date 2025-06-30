@@ -5,12 +5,12 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.54</version>
+        <version>1.0.55</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin</name>
+    <name>ospf-kotlin-utils</name>
     <artifactId>ospf-kotlin-utils</artifactId>
 
     <build>

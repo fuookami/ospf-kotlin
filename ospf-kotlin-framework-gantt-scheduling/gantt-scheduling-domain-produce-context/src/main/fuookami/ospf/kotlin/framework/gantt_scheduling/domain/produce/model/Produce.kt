@@ -25,11 +25,13 @@ interface Produce {
 }
 
 abstract class AbstractProduce<
-    out T : ProductionTask<E, A>,
+    out T : ProductionTask<E, A, P, C>,
     out E : Executor,
-    out A : AssignmentPolicy<E>
+    out A : AssignmentPolicy<E>,
+    P : AbstractMaterial,
+    C : AbstractMaterial
 >(
-    val products: List<Pair<Product, ProductDemand?>>
+    val products: List<Pair<P, MaterialDemand?>>
 ) : Produce {
     override lateinit var lessQuantity: LinearIntermediateSymbols1
     override lateinit var overQuantity: LinearIntermediateSymbols1
@@ -107,14 +109,16 @@ abstract class AbstractProduce<
 }
 
 class TaskSchedulingProduce<
-    out T : ProductionTask<E, A>,
+    out T : ProductionTask<E, A, P, C>,
     out E : Executor,
-    out A : AssignmentPolicy<E>
+    out A : AssignmentPolicy<E>,
+    P : AbstractMaterial,
+    C : AbstractMaterial
 >(
-    products: List<Pair<Product, ProductDemand?>>,
+    products: List<Pair<P, MaterialDemand?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractProduce<T, E, A>(products.sortedBy { it.first.index }) {
+) : AbstractProduce<T, E, A, P, C>(products.sortedBy { it.first.index }) {
     override lateinit var quantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
@@ -123,12 +127,14 @@ class TaskSchedulingProduce<
 }
 
 class BunchSchedulingProduce<
-    out T : ProductionTask<E, A>,
+    out T : ProductionTask<E, A, P, C>,
     out E : Executor,
-    out A : AssignmentPolicy<E>
+    out A : AssignmentPolicy<E>,
+    P : AbstractMaterial,
+    C : AbstractMaterial
 >(
-    products: List<Pair<Product, ProductDemand?>>
-) : AbstractProduce<T, E, A>(products.sortedBy { it.first.index }) {
+    products: List<Pair<P, MaterialDemand?>>
+) : AbstractProduce<T, E, A, P, C>(products.sortedBy { it.first.index }) {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 

@@ -46,7 +46,7 @@ class PlaneLayer<P : ProjectivePlane>(
 }
 
 class BinLayer(
-    val iteration: Int,
+    val iteration: Int64,
     val from: KClass<*>,
     val bin: BinType? = null,
     // inherited from Container3<BinLayer>
@@ -55,7 +55,7 @@ class BinLayer(
 ) : ItemContainer<BinLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
-            iteration: Int,
+            iteration: Int64,
             bin: BinType,
             layer: PlaneLayer<Side>
         ): BinLayer {
@@ -72,7 +72,7 @@ class BinLayer(
         }
 
         operator fun invoke(
-            iteration: Int,
+            iteration: Int64,
             from: KClass<*>,
             bin: BinType,
             units: List<ItemPlacement3>
@@ -115,7 +115,7 @@ class BinLayer(
 }
 
 class PalletLayer(
-    val iteration: Int,
+    val iteration: Int64,
     val from: KClass<*>,
     // inherited from Container3<PalletLayer>
     override val shape: AbstractContainer3Shape,
@@ -123,7 +123,7 @@ class PalletLayer(
 ) : ItemContainer<PalletLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
-            iteration: Int,
+            iteration: Int64,
             layer: PlaneLayer<Bottom>
         ): BinLayer {
             return BinLayer(
@@ -138,7 +138,7 @@ class PalletLayer(
         }
 
         operator fun invoke(
-            iteration: Int,
+            iteration: Int64,
             from: KClass<*>,
             bin: BinType,
             units: List<ItemPlacement3>
