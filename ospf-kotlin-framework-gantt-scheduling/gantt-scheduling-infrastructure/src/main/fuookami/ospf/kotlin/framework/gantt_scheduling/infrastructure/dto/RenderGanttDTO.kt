@@ -11,7 +11,8 @@ data class RenderGanttSubItemDTO(
     @Serializable(with = DateTimeSerializer::class)
     val startTime: Instant,
     @Serializable(with = DateTimeSerializer::class)
-    val endTime: Instant
+    val endTime: Instant,
+    val info: Map<String, String>
 ) {
     companion object {
         operator fun invoke(task: RenderSubTaskDTO): RenderGanttSubItemDTO {
@@ -19,17 +20,12 @@ data class RenderGanttSubItemDTO(
                 name = task.name,
                 category = task.category,
                 startTime = task.startTime,
-                endTime = task.endTime
+                endTime = task.endTime,
+                info = task.info
             )
         }
     }
 }
-
-@Serializable
-data class RenderGanttItemInfoDTO(
-    val key: String,
-    val value: String
-)
 
 @Serializable
 data class RenderGanttItemDTO(
@@ -44,9 +40,9 @@ data class RenderGanttItemDTO(
     val startTime: Instant,
     @Serializable(with = DateTimeSerializer::class)
     val endTime: Instant,
-    val produces: List<RenderGanttItemInfoDTO>,
-    val resources: List<RenderGanttItemInfoDTO>,
-    val info: List<RenderGanttItemInfoDTO>
+    val produces: Map<String, String>,
+    val consumption: Map<String, String>,
+    val info: Map<String, String>
 ) {
     companion object {
         operator fun invoke(task: RenderTaskDTO): RenderGanttItemDTO {
@@ -60,9 +56,7 @@ data class RenderGanttItemDTO(
             when (val products = task.products) {
                 is Map<String, String> -> produces.putAll(products.map { Pair("product", "${it.key}, ${it.value}") })
             }
-            when (val materials = task.materials) {
-                is Map<String, String> -> produces.putAll(materials.map { Pair("material", "${it.key}, ${it.value}") })
-            }
+            produces.putAll(task.consumption.map { Pair("material", "${it.key}, ${it.value}") })
 
             return RenderGanttItemDTO(
                 name = task.name,
@@ -72,9 +66,9 @@ data class RenderGanttItemDTO(
                 scheduledEndTime = task.scheduledEndTime ?: task.endTime,
                 startTime = task.startTime,
                 endTime = task.endTime,
-                produces = produces.map { RenderGanttItemInfoDTO(key = it.key, value = it.value) },
-                resources = task.resources.map { RenderGanttItemInfoDTO(key = it.key, value = it.value) },
-                info = task.info.map { RenderGanttItemInfoDTO(key = it.key, value = it.value) }
+                produces = produces,
+                consumption = task.consumption,
+                info = task.info
             )
         }
     }
@@ -107,7 +101,7 @@ data class RenderGanttDTO(
     companion object {
         operator fun invoke(renderTasks: RenderDTO): RenderGanttDTO {
             val tasks = renderTasks.tasks.groupBy { it.executor }
-            val linkInfo = renderTasks.tasks.flatMap { it.resources.keys }.toSet()
+            val linkInfo = renderTasks.tasks.flatMap { it.consumption.keys }.toSet()
             val startTime = renderTasks.tasks.minOf { it.startTime }
             val endTime = renderTasks.tasks.maxOf { it.endTime }
             return RenderGanttDTO(
