@@ -13,12 +13,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 class ConsumptionQuantityMaximization<
     Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
-    A : AssignmentPolicy<E>
+    A : AssignmentPolicy<E>,
+    C : AbstractMaterial
 >(
-    private val materials: List<RawMaterial>,
+    private val materials: List<C>,
     private val consumption: Consumption,
-    private val threshold: (RawMaterial) -> Flt64 = { Flt64.zero },
-    private val coefficient: (RawMaterial) -> Flt64 = { Flt64.one },
+    private val threshold: (C) -> Flt64 = { Flt64.zero },
+    private val coefficient: (C) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_quantity_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {

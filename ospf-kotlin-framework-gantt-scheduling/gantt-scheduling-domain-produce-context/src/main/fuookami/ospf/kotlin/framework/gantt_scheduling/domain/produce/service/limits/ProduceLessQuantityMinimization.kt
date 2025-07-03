@@ -13,12 +13,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 class ProduceLessQuantityMinimization<
     Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
-    A : AssignmentPolicy<E>
+    A : AssignmentPolicy<E>,
+    P : AbstractMaterial
 >(
-    products: List<Pair<Product, ProductDemand?>>,
+    products: List<Pair<P, MaterialDemand?>>,
     private val produce: Produce,
-    private val threshold: (Product) -> Flt64 = { Flt64.zero },
-    private val coefficient: (Product) -> Flt64 = { Flt64.one },
+    private val threshold: (P) -> Flt64 = { Flt64.zero },
+    private val coefficient: (P) -> Flt64 = { Flt64.one },
     override val name: String = "produce_less_quantity_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val products = if (produce.lessEnabled) {

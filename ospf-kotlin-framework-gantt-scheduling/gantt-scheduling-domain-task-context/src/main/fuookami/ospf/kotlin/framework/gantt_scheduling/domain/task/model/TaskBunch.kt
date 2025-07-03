@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.time.*
 import kotlinx.datetime.*
+import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -19,41 +20,6 @@ open class AbstractTaskBunch<
     open val initialUsability: ExecutorInitialUsability<T, E, A>,
     val iteration: UInt64 = UInt64.zero
 ) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>> {
-    val size by lazy { tasks.size }
-    val empty by lazy { tasks.isEmpty() }
-    val lastTask by lazy { initialUsability.lastTask }
-    val costDensity by lazy { (cost.sum ?: Flt64.zero) / Flt64(size.toDouble()) }
-    val busyTime: Duration by lazy {
-        tasks.foldIndexed(Duration.ZERO) { i, busyTime, task ->
-            val prevTask = if (i > 0) {
-                tasks[i - 1]
-            } else {
-                lastTask
-            }
-            val succTask = if (i != tasks.lastIndex) {
-                tasks[i + 1]
-            } else {
-                null
-            }
-            busyTime + task.duration!! + task.connectionTime(task.executor!!, prevTask, succTask)
-        }
-    }
-    val totalDelay: Duration by lazy { tasks.fold(Duration.ZERO) { delay, task -> delay + task.delay } }
-    val totalAdvance: Duration by lazy { tasks.fold(Duration.ZERO) { advance, task -> advance + task.advance } }
-    val executorChange: UInt64 by lazy { UInt64(tasks.count { it.executorChanged }.toULong()) }
-    val keys: Map<TaskKey, Int> by lazy { tasks.withIndex().associate { Pair(it.value.key, it.index) } }
-    val connections: List<Pair<T?, T?>> by lazy {
-        (1..tasks.size).map {
-            if (it == 0) {
-                Pair(null, tasks[it])
-            } else if (it == tasks.size) {
-                Pair(tasks[it - 1], null)
-            } else {
-                Pair(tasks[it - 1], tasks[it])
-            }
-        }
-    }
-
     companion object {
         val originIteration = UInt64.maximum
     }
@@ -86,6 +52,73 @@ open class AbstractTaskBunch<
         initialUsability = initialUsability,
         iteration = iteration
     )
+
+    val size by tasks::size
+    val empty get() = tasks.isEmpty()
+    val lastTask by initialUsability::lastTask
+
+    val costDensity by lazy {
+        (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
+    }
+
+    val busyTime: Duration by lazy {
+        tasks.withIndex().sumOf { (i, task) ->
+            val prevTask = if (i > 0) {
+                tasks[i - 1]
+            } else {
+                lastTask
+            }
+            val succTask = if (i != tasks.lastIndex) {
+                tasks[i + 1]
+            } else {
+                null
+            }
+            task.duration!! + task.connectionTime(task.executor!!, prevTask, succTask)
+        }
+    }
+
+    val totalDelay: Duration by lazy {
+        tasks.sumOf { it.delay }
+    }
+
+    val totalAdvance: Duration by lazy {
+        tasks.sumOf { it.advance }
+    }
+
+    val executorChange: UInt64 by lazy {
+        UInt64(tasks.count { it.executorChanged }.toULong())
+    }
+
+    val keys: Map<TaskKey, Int> by lazy {
+        tasks.withIndex().associate {
+            it.value.key to it.index
+        }
+    }
+
+    val makespan: Instant by lazy {
+        tasks
+            .mapNotNull { it.time?.end }
+            .maxOrNull()
+            ?: initialUsability.enabledTime
+    }
+
+    val connections: List<Pair<T?, T?>> by lazy {
+        (1..tasks.size).map {
+            when (it) {
+                0 -> {
+                    Pair(null, tasks[it])
+                }
+
+                tasks.size -> {
+                    Pair(tasks[it - 1], null)
+                }
+
+                else -> {
+                    Pair(tasks[it - 1], tasks[it])
+                }
+            }
+        }
+    }
 
     operator fun get(index: Int): T {
         return tasks[index]
