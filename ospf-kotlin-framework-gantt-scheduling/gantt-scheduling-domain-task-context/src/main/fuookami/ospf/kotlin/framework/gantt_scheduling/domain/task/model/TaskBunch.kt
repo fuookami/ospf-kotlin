@@ -18,7 +18,7 @@ open class AbstractTaskBunch<
     open val tasks: List<T>,
     val cost: Cost,
     open val initialUsability: ExecutorInitialUsability<T, E, A>,
-    val iteration: UInt64 = UInt64.zero
+    val iteration: Int64 = Int64(-1)
 ) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>> {
     companion object {
         val originIteration = UInt64.maximum
@@ -28,7 +28,7 @@ open class AbstractTaskBunch<
         executor: E,
         time: Instant,
         initialUsability: ExecutorInitialUsability<T, E, A>,
-        iteration: UInt64 = UInt64.zero
+        iteration: Int64 = Int64(-1)
     ) : this(
         executor = executor,
         time = TimeRange(time, Instant.DISTANT_FUTURE),
@@ -43,7 +43,7 @@ open class AbstractTaskBunch<
         initialUsability: ExecutorInitialUsability<T, E, A>,
         tasks: List<T>,
         cost: Cost = Cost(),
-        iteration: UInt64 = UInt64.zero
+        iteration: Int64 = Int64(-1)
     ) : this(
         executor = executor,
         time = TimeRange(tasks.first().time!!.start, tasks.last().time!!.end),
