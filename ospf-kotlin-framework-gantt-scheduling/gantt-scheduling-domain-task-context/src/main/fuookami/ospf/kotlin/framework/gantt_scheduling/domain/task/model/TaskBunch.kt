@@ -53,15 +53,15 @@ open class AbstractTaskBunch<
         iteration = iteration
     )
 
-    val size by tasks::size
-    val empty get() = tasks.isEmpty()
-    val lastTask by initialUsability::lastTask
+    open val size by tasks::size
+    open val empty get() = tasks.isEmpty()
+    open val lastTask by initialUsability::lastTask
 
-    val costDensity by lazy {
+    open val costDensity by lazy {
         (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
     }
 
-    val busyTime: Duration by lazy {
+    open val busyTime: Duration by lazy {
         tasks.withIndex().sumOf { (i, task) ->
             val prevTask = if (i > 0) {
                 tasks[i - 1]
@@ -77,32 +77,32 @@ open class AbstractTaskBunch<
         }
     }
 
-    val totalDelay: Duration by lazy {
+    open val totalDelay: Duration by lazy {
         tasks.sumOf { it.delay }
     }
 
-    val totalAdvance: Duration by lazy {
+    open val totalAdvance: Duration by lazy {
         tasks.sumOf { it.advance }
     }
 
-    val executorChange: UInt64 by lazy {
+    open val executorChange: UInt64 by lazy {
         UInt64(tasks.count { it.executorChanged }.toULong())
     }
 
-    val keys: Map<TaskKey, Int> by lazy {
+    open val keys: Map<TaskKey, Int> by lazy {
         tasks.withIndex().associate {
             it.value.key to it.index
         }
     }
 
-    val makespan: Instant by lazy {
+    open val makespan: Instant by lazy {
         tasks
             .mapNotNull { it.time?.end }
             .maxOrNull()
             ?: initialUsability.enabledTime
     }
 
-    val connections: List<Pair<T?, T?>> by lazy {
+    open val connections: List<Pair<T?, T?>> by lazy {
         (1..tasks.size).map {
             when (it) {
                 0 -> {
@@ -120,15 +120,15 @@ open class AbstractTaskBunch<
         }
     }
 
-    operator fun get(index: Int): T {
+    open operator fun get(index: Int): T {
         return tasks[index]
     }
 
-    fun contains(task: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean {
+    open fun contains(task: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean {
         return keys.contains(task.key)
     }
 
-    fun contains(
+    open fun contains(
         prev: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>,
         succ: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>
     ): Boolean {
@@ -141,13 +141,13 @@ open class AbstractTaskBunch<
         }
     }
 
-    fun contains(
+    open fun contains(
         taskPair: Pair<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>, AbstractTask<@UnsafeVariance E, @UnsafeVariance A>>
     ): Boolean {
         return contains(taskPair.first, taskPair.second)
     }
 
-    fun get(originTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): T? {
+    open fun get(originTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): T? {
         val task = keys[originTask.key]
         return if (task != null) {
             tasks[task]

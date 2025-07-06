@@ -294,29 +294,29 @@ open class AbstractPlannedTask<out P: AbstractTaskPlan<E>, out E : Executor, out
         assignmentPolicy = assignmentPolicy
     )
 
-    override val id: String by plan::id
-    override val name: String by plan::name
+    override val id: String get() = plan.id
+    override val name: String get() = plan.name
 
     final override val status: Set<TaskStatus> get() = plan.status
 
     override val executor: E? by lazy { assignmentPolicy?.executor ?: plan.executor }
-    final override val enabledExecutors: Set<E> by plan::enabledExecutors
+    final override val enabledExecutors: Set<E> get() = plan.enabledExecutors
 
-    override val scheduledTime: TimeRange? by plan::scheduledTime
+    override val scheduledTime: TimeRange? get() = plan.scheduledTime
     override val time: TimeRange? by lazy { assignmentPolicy?.time ?: plan.time }
 
-    override val earliestEndTime: Instant? by plan::earliestEndTime
-    override val lastEndTime: Instant? by plan::lastEndTime
+    override val earliestEndTime: Instant? get() = plan.earliestEndTime
+    override val lastEndTime: Instant? get() = plan.lastEndTime
 
     override val duration: Duration? by lazy { assignmentPolicy?.time?.duration ?: plan.duration }
     override fun duration(executor: @UnsafeVariance E, time: Instant?): Duration {
         return assignmentPolicy?.time?.duration ?: plan.duration(executor)
     }
 
-    override val minDuration: Duration? by plan::minDuration
-    override val maxDuration: Duration? by plan::maxDuration
+    override val minDuration: Duration? get() = plan.minDuration
+    override val maxDuration: Duration? get() = plan.maxDuration
 
-    final override val timeWindow: TimeRange? by plan::timeWindow
+    final override val timeWindow: TimeRange? get() = plan.timeWindow
 
     override val earliestStartTime: Instant? get() = plan.earliestStartTime
     override fun earliestStartTime(executor: @UnsafeVariance E): Instant? {
@@ -365,13 +365,13 @@ open class AbstractPlannedTask<out P: AbstractTaskPlan<E>, out E : Executor, out
             null
         }
 
-    final override val cancelEnabled by plan::cancelEnabled
-    final override val notCancelPreferred by plan::notCancelPreferred
-    final override val delayEnabled by plan::delayEnabled
-    final override val advanceEnabled by plan::advanceEnabled
-    final override val executorChangeEnabled by plan::executorChangeEnabled
-    final override val parallelable by plan::parallelable
-    final override val divisible by plan::divisible
+    final override val cancelEnabled get() = plan.cancelEnabled
+    final override val notCancelPreferred get() = plan.notCancelPreferred
+    final override val delayEnabled get() = plan.delayEnabled
+    final override val advanceEnabled get() = plan.advanceEnabled
+    final override val executorChangeEnabled get() = plan.executorChangeEnabled
+    final override val parallelable get() = plan.parallelable
+    final override val divisible get() = plan.divisible
 
     override fun scheduleNeeded(timeWindow: TimeRange): Boolean {
         return scheduleEnabled(timeWindow)

@@ -263,7 +263,7 @@ data class TimeRange(
                     maxDuration?.let { it - totalDuration } ?: Duration.INFINITE
                 ).min()
                 if (maxDuration != null
-                    && (duration + totalDuration + (unit.ub - unit.lb)) >= maxDuration
+                    && ((duration + totalDuration + (unit.ub - unit.lb)) >= maxDuration || (currentTime + duration + (unit.ub - unit.lb)) >= end)
                 ) {
                     val extraDuration = min(
                         maxDuration - totalDuration,
