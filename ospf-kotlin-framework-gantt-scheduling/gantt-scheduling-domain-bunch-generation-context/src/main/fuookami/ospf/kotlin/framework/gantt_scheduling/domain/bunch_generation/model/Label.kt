@@ -7,7 +7,7 @@ typealias TotalCostCalculator<T, E> = (executor: E, lastTask: T?, tasks: List<T>
 
 private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A>,
-    iteration: UInt64,
+    iteration: Int64,
     executor: E,
     executorUsability: ExecutorInitialUsability<T, E, A>,
     totalCostCalculator: TotalCostCalculator<T, E>
@@ -38,11 +38,11 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
 
 private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A>,
-    iteration: UInt64,
+    iteration: Int64,
     executor: E,
     executorUsability: ExecutorInitialUsability<T, E, A>,
     totalCostCalculator: TotalCostCalculator<T, E>,
-    bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, UInt64, Cost) -> B
+    bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost) -> B
 ): B? {
     if (label.node !is EndNode) {
         return null
@@ -141,7 +141,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     }
 
     fun generateBunch(
-        iteration: UInt64,
+        iteration: Int64,
         executor: E,
         executorUsability: ExecutorInitialUsability<T, E, A>,
         totalCostCalculator: TotalCostCalculator<T, E>
@@ -150,11 +150,11 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     }
 
     fun <B : AbstractTaskBunch<T, E, A>> generateBunch(
-        iteration: UInt64,
+        iteration: Int64,
         executor: E,
         executorUsability: ExecutorInitialUsability<T, E, A>,
         totalCostCalculator: TotalCostCalculator<T, E>,
-        bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, UInt64, Cost) -> B
+        bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost) -> B
     ): B? {
         return generateBunch(this, iteration, executor, executorUsability, totalCostCalculator, bunchCtor)
     }

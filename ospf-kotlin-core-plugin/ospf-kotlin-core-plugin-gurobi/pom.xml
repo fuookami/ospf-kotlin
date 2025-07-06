@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
         <artifactId>ospf-kotlin-core-plugin-jdk8</artifactId>
-        <version>1.0.54</version>
+        <version>1.0.55</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin</name>
+    <name>ospf-kotlin-core-plugin-gurobi</name>
     <artifactId>ospf-kotlin-core-plugin-gurobi-jdk8</artifactId>
 
     <dependencies>

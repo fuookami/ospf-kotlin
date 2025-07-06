@@ -25,11 +25,13 @@ interface Consumption {
 }
 
 abstract class AbstractConsumption<
-    out T : ProductionTask<E, A>,
+    out T : ProductionTask<E, A, P, C>,
     out E : Executor,
-    out A : AssignmentPolicy<E>
+    out A : AssignmentPolicy<E>,
+    P : AbstractMaterial,
+    C : AbstractMaterial
 >(
-    val materials: List<Pair<RawMaterial, RawMaterialReserves?>>
+    val materials: List<Pair<C, MaterialReserves?>>
 ) : Consumption {
     override lateinit var lessQuantity: LinearIntermediateSymbols1
     override lateinit var overQuantity: LinearIntermediateSymbols1
@@ -107,14 +109,16 @@ abstract class AbstractConsumption<
 }
 
 class TaskSchedulingConsumption<
-    out T : ProductionTask<E, A>,
+    out T : ProductionTask<E, A, P, C>,
     out E : Executor,
-    out A : AssignmentPolicy<E>
+    out A : AssignmentPolicy<E>,
+    P : AbstractMaterial,
+    C : AbstractMaterial
 >(
-    materials: List<Pair<RawMaterial, RawMaterialReserves?>>,
+    materials: List<Pair<C, MaterialReserves?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractConsumption<T, E, A>(materials.sortedBy { it.first.index }) {
+) : AbstractConsumption<T, E, A, P, C>(materials.sortedBy { it.first.index }) {
     override lateinit var quantity: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel): Try {
@@ -123,12 +127,14 @@ class TaskSchedulingConsumption<
 }
 
 class BunchSchedulingConsumption<
-    out T : ProductionTask<E, A>,
+    out T : ProductionTask<E, A, P, C>,
     out E : Executor,
-    out A : AssignmentPolicy<E>
+    out A : AssignmentPolicy<E>,
+    P : AbstractMaterial,
+    C : AbstractMaterial
 >(
-    materials: List<Pair<RawMaterial, RawMaterialReserves?>>,
-) : AbstractConsumption<T, E, A>(materials.sortedBy { it.first.index }) {
+    materials: List<Pair<C, MaterialReserves?>>,
+) : AbstractConsumption<T, E, A, P, C>(materials.sortedBy { it.first.index }) {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 

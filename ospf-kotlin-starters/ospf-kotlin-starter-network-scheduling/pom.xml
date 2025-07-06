@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-starters-jdk8</artifactId>
-        <version>1.0.54</version>
+        <version>1.0.55</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin</name>
+    <name>ospf-kotlin-starter-network-scheduling</name>
     <artifactId>ospf-kotlin-starter-network-scheduling-jdk8</artifactId>
 
     <dependencies>

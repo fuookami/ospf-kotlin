@@ -10,22 +10,23 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 
 data class ProduceQuantityShadowPriceKey(
-    val product: Material
+    val product: AbstractMaterial
 ) : ShadowPriceKey(ProduceQuantityShadowPriceKey::class)
 
 class ProduceQuantityConstraint<
     Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
     E : Executor,
-    A : AssignmentPolicy<E>
+    A : AssignmentPolicy<E>,
+    P : AbstractMaterial
 >(
-    products: List<Pair<Material, ProductDemand?>>,
+    products: List<Pair<P, MaterialDemand?>>,
     private val produce: Produce,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "produce_quantity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val products = products
         .filter { it.second != null }
-        .filterIsInstance<Pair<Product, ProductDemand>>()
+        .filterIsInstance<Pair<P, MaterialDemand>>()
 
     override fun invoke(model: AbstractLinearMetaModel): Try {
         for ((product, demand) in products) {
@@ -119,7 +120,7 @@ class ProduceQuantityConstraint<
             shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
-                        is ProductionTask<*, *> -> {
+                        is ProductionTask<*, *, *, *> -> {
                             val materials = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
                             materials.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
@@ -132,7 +133,7 @@ class ProduceQuantityConstraint<
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
-                        is ProductionTask<*, *> -> {
+                        is ProductionTask<*, *, *, *> -> {
                             val materials = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
                             materials.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
@@ -155,7 +156,7 @@ class ProduceQuantityConstraint<
         model: AbstractLinearMetaModel,
         shadowPrices: List<Flt64>
     ): Try {
-        val thisShadowPrices = HashMap<Product, Flt64>()
+        val thisShadowPrices = HashMap<P, Flt64>()
         val indices = model.indicesOfConstraintGroup(name)
             ?: model.constraints.indices
         val iteratorLb = products.iterator()

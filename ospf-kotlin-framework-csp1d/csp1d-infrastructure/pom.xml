@@ -5,11 +5,11 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
         <artifactId>ospf-kotlin-framework-csp1d-jdk8</artifactId>
-        <version>1.0.54</version>
+        <version>1.0.55</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin</name>
+    <name>ospf-kotlin-framework-csp1d-infrastructure</name>
     <artifactId>ospf-kotlin-framework-csp1d-infrastructure-jdk8</artifactId>
 
     <build>

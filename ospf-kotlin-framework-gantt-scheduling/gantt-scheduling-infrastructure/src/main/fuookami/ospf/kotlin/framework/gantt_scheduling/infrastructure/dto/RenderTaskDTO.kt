@@ -33,8 +33,7 @@ sealed interface RenderTaskDTO {
     val order: String?
     val produce: String?
     val products: Map<String, String>?
-    val materials: Map<String, String>?
-    val resources: Map<String, String>
+    val consumption: Map<String, String>
     val scheduledStartTime: Instant?
     val scheduledEndTime: Instant?
     val subTasks: List<RenderSubTaskDTO>
@@ -48,8 +47,7 @@ data class RenderNormalTaskDTO(
     override val order: String? = null,
     override val produce: String? = null,
     override val products: Map<String, String>? = null,
-    override val materials: Map<String, String>? = null,
-    override val resources: Map<String, String> = emptyMap(),
+    override val consumption: Map<String, String> = emptyMap(),
     @Serializable(with = DateTimeSerializer::class)
     override val scheduledStartTime: Instant? = null,
     @Serializable(with = DateTimeSerializer::class)
