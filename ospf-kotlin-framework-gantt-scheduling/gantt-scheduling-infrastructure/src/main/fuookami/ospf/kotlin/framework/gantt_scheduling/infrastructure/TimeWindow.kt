@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.math.*
 import kotlin.time.*
+import kotlin.math.*
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
@@ -273,9 +273,12 @@ data class TimeWindow(
     ): TimeRange.SplitTimeRanges {
         return window.rsplit(unit, maxDuration, breakTime)
     }
-
-    fun date(time: LocalDateTime): LocalDate {
-        return if (time.toInstant(TimeZone.currentSystemDefault()) < (time.date.atStartOfDayIn(TimeZone.currentSystemDefault()) + dateOffset)) {
+    
+    fun date(
+        time: LocalDateTime,
+        timeZone: TimeZone = TimeZone.currentSystemDefault()
+    ): LocalDate {
+        return if (time.toInstant(timeZone) < (time.date.atStartOfDayIn(timeZone) + dateOffset)) {
             time.date.minus(DatePeriod(days = 1))
         } else {
             time.date

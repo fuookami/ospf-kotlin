@@ -53,9 +53,9 @@ open class AbstractTaskBunch<
         iteration = iteration
     )
 
-    open val size by tasks::size
+    open val size get() = tasks.size
     open val empty get() = tasks.isEmpty()
-    open val lastTask by initialUsability::lastTask
+    open val lastTask get() = initialUsability.lastTask
 
     open val costDensity by lazy {
         (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())

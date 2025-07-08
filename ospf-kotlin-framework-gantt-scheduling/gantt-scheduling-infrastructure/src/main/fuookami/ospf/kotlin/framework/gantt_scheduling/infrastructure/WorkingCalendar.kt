@@ -166,7 +166,7 @@ open class WorkingCalendar(
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
+                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex && (beforeConnectionTime != null || beforeConditionalConnectionTime != null)) {
                         DurationRange(
                             max(
                                 beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
@@ -180,7 +180,7 @@ open class WorkingCalendar(
                     } else {
                         null
                     }
-                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
+                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end && (afterConnectionTime != null || afterConditionalConnectionTime != null)) {
                         DurationRange(
                             max(
                                 afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
@@ -221,8 +221,10 @@ open class WorkingCalendar(
                             }
                         } else if (thisBeforeConnectionTime != null) {
                             (thisBeforeConnectionTime.lb + restDuration) to null
+                        } else if (thisAfterConnectionTime != null) {
+                            null to (thisAfterConnectionTime.lb + restDuration)
                         } else {
-                            null to restDuration
+                            null to null
                         }
                     } else {
                         thisBeforeConnectionTime?.ub to thisAfterConnectionTime?.ub
@@ -363,7 +365,9 @@ open class WorkingCalendar(
                         continue
                     }
 
-                    val thisBeforeConnectionTime = if (i < mergedTimes.lastIndex) {
+                    val thisBeforeConnectionTime = if (i != mergedTimes.lastIndex
+                        && (beforeConnectionTime != null || beforeConditionalConnectionTime != null)
+                    ) {
                         DurationRange(
                             max(
                                 beforeConditionalConnectionTime?.invoke(mergedTimes[i + 1])?.lb ?: Duration.ZERO,
@@ -378,7 +382,10 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end) {
+                    val thisAfterConnectionTime = if (i != -1
+                        && currentTime <= mergedTimes[i].end
+                        && (afterConnectionTime != null || afterConditionalConnectionTime != null)
+                    ) {
                         DurationRange(
                             max(
                                 afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
@@ -393,12 +400,17 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisMaxDuration = if (i == -1 && thisBeforeConnectionTime != null) {
+                    val thisMaxDuration = if (i == -1
+                        && thisBeforeConnectionTime != null
+                    ) {
                         DurationRange(
                             mergedTimes.first().start - time.start - thisBeforeConnectionTime.ub,
                             mergedTimes.first().start - time.start - thisBeforeConnectionTime.lb
                         )
-                    } else if (i != mergedTimes.lastIndex && currentTime != mergedTimes[i].end && thisBeforeConnectionTime != null) {
+                    } else if (i != mergedTimes.lastIndex
+                        && (i == -1 || currentTime != mergedTimes[i].end)
+                        && thisBeforeConnectionTime != null
+                    ) {
                         DurationRange(
                             mergedTimes[i + 1].start
                                     - currentTime
@@ -407,7 +419,11 @@ open class WorkingCalendar(
                                     - currentTime
                                     - thisBeforeConnectionTime.lb
                         )
-                    } else if (i != mergedTimes.lastIndex && currentTime == mergedTimes[i].end && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    } else if (i != -1
+                        && i != mergedTimes.lastIndex
+                        && currentTime == mergedTimes[i].end
+                        && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)
+                    ) {
                         DurationRange(
                             mergedTimes[i + 1].start
                                     - mergedTimes[i].end
@@ -479,8 +495,10 @@ open class WorkingCalendar(
                             }
                         } else if (thisBeforeConnectionTime != null) {
                             (thisBeforeConnectionTime.lb + restDuration) to null
+                        } else if (thisAfterConnectionTime != null) {
+                            null to (thisAfterConnectionTime.lb + restDuration)
                         } else {
-                            null to restDuration
+                            null to null
                         }
                     } else {
                         thisBeforeConnectionTime?.ub to thisAfterConnectionTime?.ub
@@ -653,7 +671,9 @@ open class WorkingCalendar(
                         null
                     }
 
-                    val thisMaxDuration = if (i == mergedTimes.size && thisAfterConnectionTime != null) {
+                    val thisMaxDuration = if (i == mergedTimes.size
+                        && thisAfterConnectionTime != null
+                    ) {
                         DurationRange(
                             time.end
                                     - mergedTimes.last().end
@@ -662,7 +682,10 @@ open class WorkingCalendar(
                                     - mergedTimes.last().end
                                     - thisAfterConnectionTime.lb
                         )
-                    } else if (i != 0 && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)) {
+                    } else if (i != 0
+                        && i != mergedTimes.size
+                        && (thisBeforeConnectionTime != null || thisAfterConnectionTime != null)
+                    ) {
                         DurationRange(
                             min(currentTime, mergedTimes[i].start)
                                     - mergedTimes[i - 1].end
@@ -692,7 +715,7 @@ open class WorkingCalendar(
                                     end = mergedTimes[i].start
                                 )
                             )
-                        } else if (currentTime == mergedTimes[i].start) {
+                        } else if (i != 0 && currentTime == mergedTimes[i].start) {
                             if (thisBeforeConnectionTime != null && thisAfterConnectionTime != null) {
                                 connectionTimes.add(
                                     TimeRange(
