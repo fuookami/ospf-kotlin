@@ -10,15 +10,15 @@ data class TimeWindow(
     val window: TimeRange,
     val continues: Boolean = true,
     val durationUnit: DurationUnit = DurationUnit.SECONDS,
-    val dateOffset: Duration = Duration.Companion.ZERO,
+    val dateOffset: Duration = Duration.ZERO,
     val interval: Duration = 1.toDuration(durationUnit)
 ) {
     companion object {
         fun seconds(
             timeWindow: TimeRange,
-            dateOffset: Flt64 = Flt64.Companion.zero,
+            dateOffset: Flt64 = Flt64.zero,
             continues: Boolean = true,
-            interval: Flt64 = Flt64.Companion.one
+            interval: Flt64 = Flt64.one
         ): TimeWindow {
             return TimeWindow(
                 window = timeWindow,
@@ -31,9 +31,9 @@ data class TimeWindow(
 
         fun minutes(
             timeWindow: TimeRange,
-            dateOffset: Flt64 = Flt64.Companion.zero,
+            dateOffset: Flt64 = Flt64.zero,
             continues: Boolean = true,
-            interval: Flt64 = Flt64.Companion.one
+            interval: Flt64 = Flt64.one
         ): TimeWindow {
             return TimeWindow(
                 window = timeWindow,
@@ -46,9 +46,9 @@ data class TimeWindow(
 
         fun hours(
             timeWindow: TimeRange,
-            dateOffset: Flt64 = Flt64.Companion.zero,
+            dateOffset: Flt64 = Flt64.zero,
             continues: Boolean = true,
-            interval: Flt64 = Flt64.Companion.one
+            interval: Flt64 = Flt64.one
         ): TimeWindow {
             return TimeWindow(
                 window = timeWindow,
@@ -259,7 +259,7 @@ data class TimeWindow(
 
     fun split(
         unit: DurationRange,
-        currentDuration: Duration = Duration.Companion.ZERO,
+        currentDuration: Duration = Duration.ZERO,
         maxDuration: Duration? = null,
         breakTime: Duration? = null
     ): TimeRange.SplitTimeRanges {
