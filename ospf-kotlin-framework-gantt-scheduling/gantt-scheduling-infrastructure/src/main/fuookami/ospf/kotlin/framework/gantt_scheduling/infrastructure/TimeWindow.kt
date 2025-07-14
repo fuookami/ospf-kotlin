@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange.SplitTimeRanges
-import kotlin.math.*
 import kotlin.time.*
+import kotlin.math.*
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
@@ -11,30 +10,49 @@ data class TimeWindow(
     val window: TimeRange,
     val continues: Boolean = true,
     val durationUnit: DurationUnit = DurationUnit.SECONDS,
+    val dateOffset: Duration = Duration.ZERO,
     val interval: Duration = 1.toDuration(durationUnit)
 ) {
     companion object {
-        fun seconds(timeWindow: TimeRange, continues: Boolean = true, interval: Flt64 = Flt64.one): TimeWindow {
+        fun seconds(
+            timeWindow: TimeRange,
+            dateOffset: Flt64 = Flt64.zero,
+            continues: Boolean = true,
+            interval: Flt64 = Flt64.one
+        ): TimeWindow {
             return TimeWindow(
                 window = timeWindow,
+                dateOffset = dateOffset.toDuration(DurationUnit.SECONDS),
                 continues = continues,
                 durationUnit = DurationUnit.SECONDS,
                 interval = interval.toDouble().toDuration(DurationUnit.SECONDS)
             )
         }
 
-        fun minutes(timeWindow: TimeRange, continues: Boolean = true, interval: Flt64 = Flt64.one): TimeWindow {
+        fun minutes(
+            timeWindow: TimeRange,
+            dateOffset: Flt64 = Flt64.zero,
+            continues: Boolean = true,
+            interval: Flt64 = Flt64.one
+        ): TimeWindow {
             return TimeWindow(
                 window = timeWindow,
+                dateOffset = dateOffset.toDuration(DurationUnit.MINUTES),
                 continues = continues,
                 durationUnit = DurationUnit.MINUTES,
                 interval = interval.toDouble().toDuration(DurationUnit.MINUTES)
             )
         }
 
-        fun hours(timeWindow: TimeRange, continues: Boolean = true, interval: Flt64 = Flt64.one): TimeWindow {
+        fun hours(
+            timeWindow: TimeRange,
+            dateOffset: Flt64 = Flt64.zero,
+            continues: Boolean = true,
+            interval: Flt64 = Flt64.one
+        ): TimeWindow {
             return TimeWindow(
                 window = timeWindow,
+                dateOffset = dateOffset.toDuration(DurationUnit.HOURS),
                 continues = continues,
                 durationUnit = DurationUnit.HOURS,
                 interval = interval.toDouble().toDuration(DurationUnit.HOURS)
@@ -244,7 +262,7 @@ data class TimeWindow(
         currentDuration: Duration = Duration.ZERO,
         maxDuration: Duration? = null,
         breakTime: Duration? = null
-    ): SplitTimeRanges {
+    ): TimeRange.SplitTimeRanges {
         return window.split(unit, currentDuration, maxDuration, breakTime)
     }
 
@@ -252,8 +270,19 @@ data class TimeWindow(
         unit: DurationRange,
         maxDuration: Duration? = null,
         breakTime: Duration? = null
-    ): SplitTimeRanges {
+    ): TimeRange.SplitTimeRanges {
         return window.rsplit(unit, maxDuration, breakTime)
+    }
+    
+    fun date(
+        time: LocalDateTime,
+        timeZone: TimeZone = TimeZone.currentSystemDefault()
+    ): LocalDate {
+        return if (time.toInstant(timeZone) < (time.date.atStartOfDayIn(timeZone) + dateOffset)) {
+            time.date.minus(DatePeriod(days = 1))
+        } else {
+            time.date
+        }
     }
 
     fun new(window: TimeRange, continues: Boolean): TimeWindow {
