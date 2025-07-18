@@ -16,7 +16,7 @@ class ResourceOverQuantityMinimization<
     A : AssignmentPolicy<E>,
     S : ResourceTimeSlot<R, C>,
     R : Resource<C>,
-    C : ResourceCapacity
+    C : AbstractResourceCapacity
 >(
     private val quantity: ResourceUsage<S, R, C>,
     private val threshold: (S) -> Flt64 = { Flt64.zero },

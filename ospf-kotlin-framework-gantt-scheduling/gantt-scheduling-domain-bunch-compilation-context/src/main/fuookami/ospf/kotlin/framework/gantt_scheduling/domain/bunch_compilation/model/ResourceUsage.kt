@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 
 class BunchSchedulingExecutionResourceUsage<
     out R : ExecutionResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
@@ -122,7 +122,7 @@ class BunchSchedulingExecutionResourceUsage<
 
 class BunchSchedulingConnectionResourceUsage<
         out R : ConnectionResource<C>,
-        out C : ResourceCapacity
+        out C : AbstractResourceCapacity
         > private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
@@ -228,7 +228,7 @@ class BunchSchedulingConnectionResourceUsage<
 class BunchSchedulingStorageResourceUsage<
     out E : Executor,
     out R : StorageResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     timeWindow: TimeWindow,
     executors: List<E>,

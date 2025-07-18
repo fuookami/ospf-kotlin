@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.math.*
 @Serializable
 data class RenderLoadingPlanItemDTO(
     val name: String,
-    val packageType: String?,
+    val packageType: String? = null,
     val width: Flt64,
     val height: Flt64,
     val depth: Flt64,
@@ -20,7 +20,8 @@ data class RenderLoadingPlanItemDTO(
 
 @Serializable
 data class RenderLoadingPlanDTO(
-    val group: List<String>,
+    val group: List<String> = emptyList(),
+    val name: String,
     val typeCode: String,
     val width: Flt64,
     val height: Flt64,
@@ -28,12 +29,12 @@ data class RenderLoadingPlanDTO(
     val loadingRate: Flt64,
     val weight: Flt64,
     val volume: Flt64,
-    val items: List<RenderLoadingPlanItemDTO>,
+    val items: List<RenderLoadingPlanItemDTO> = emptyList(),
     val info: Map<String, String> = emptyMap()
 )
 
 @Serializable
 data class SchemaDTO(
-    val kpi: Map<String, String>,
-    val loadingPlans: List<RenderLoadingPlanDTO>,
+    val kpi: Map<String, String> = emptyMap(),
+    val loadingPlans: List<RenderLoadingPlanDTO> = emptyList(),
 )

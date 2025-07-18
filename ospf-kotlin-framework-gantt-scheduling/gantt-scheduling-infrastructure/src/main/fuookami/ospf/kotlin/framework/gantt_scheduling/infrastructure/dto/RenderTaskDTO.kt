@@ -14,12 +14,12 @@ enum class GanttRenderTaskCategory {
 @Serializable
 data class GanttRenderSubTaskDTO(
     val name: String,
-    val category: String,
+    val category: String = GanttRenderTaskCategory.Normal.name,
     @Serializable(with = DateTimeSerializer::class)
     val startTime: Instant,
     @Serializable(with = DateTimeSerializer::class)
     val endTime: Instant,
-    val info: Map<String, String>
+    val info: Map<String, String> = emptyMap()
 )
 
 @Serializable
@@ -46,5 +46,5 @@ data class GanttRenderTaskDTO(
 
 @Serializable
 data class GanttRenderSchemaDTO(
-    val tasks: List<GanttRenderTaskDTO>
+    val tasks: List<GanttRenderTaskDTO> = emptyList()
 )

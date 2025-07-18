@@ -6,21 +6,29 @@ import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
-open class ResourceCapacity(
-    val time: TimeRange,
-    val quantity: ValueRange<Flt64>,
-    val lessQuantity: Flt64? = null,
-    val overQuantity: Flt64? = null,
-    val interval: Duration = Duration.INFINITE,
-    val name: String? = null
-) {
-    open val lessEnabled: Boolean get() = lessQuantity != null
-    open val overEnabled: Boolean get() = overQuantity != null
+interface AbstractResourceCapacity {
+    val time: TimeRange
+    val quantity: ValueRange<Flt64>
+    val lessQuantity: Flt64? get() = null
+    val overQuantity: Flt64? get() = null
+    val interval: Duration
+    val name: String? get() = null
+    val lessEnabled: Boolean get() = lessQuantity != null
+    val overEnabled: Boolean get() = overQuantity != null
+}
 
+open class ResourceCapacity(
+    override val time: TimeRange,
+    override val quantity: ValueRange<Flt64>,
+    override val lessQuantity: Flt64? = null,
+    override val overQuantity: Flt64? = null,
+    override val interval: Duration = Duration.INFINITE,
+    override val name: String? = null
+): AbstractResourceCapacity {
     override fun toString() = name ?: "${quantity}_${interval}"
 }
 
-abstract class Resource<out C : ResourceCapacity> : ManualIndexed() {
+abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
@@ -32,7 +40,7 @@ abstract class Resource<out C : ResourceCapacity> : ManualIndexed() {
     ): Flt64
 }
 
-abstract class ExecutionResource<out C : ResourceCapacity>(
+abstract class ExecutionResource<out C : AbstractResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -55,7 +63,7 @@ abstract class ExecutionResource<out C : ResourceCapacity>(
     }
 }
 
-abstract class ConnectionResource<out C : ResourceCapacity>(
+abstract class ConnectionResource<out C : AbstractResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
@@ -83,7 +91,7 @@ abstract class ConnectionResource<out C : ResourceCapacity>(
     }
 }
 
-abstract class StorageResource<out C : ResourceCapacity>(
+abstract class StorageResource<out C : AbstractResourceCapacity>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
