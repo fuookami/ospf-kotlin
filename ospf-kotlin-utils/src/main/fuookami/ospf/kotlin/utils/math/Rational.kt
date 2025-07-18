@@ -283,6 +283,10 @@ data class RtnX internal constructor(
     override val den: IntX
 ) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX) {
+        operator fun invoke(num: Int, den: Int): RtnX {
+            return RtnX(IntX(num.toLong()), IntX(den.toLong()))
+        }
+
         operator fun invoke(num: IntX, den: IntX): RtnX {
             val divisor = gcd(num, den)
             return RtnX(num / divisor, den / divisor)

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
-data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : ResourceCapacity>(
+data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : AbstractResourceCapacity>(
     val slot: ResourceTimeSlot<R, C>
 ) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class)
 
@@ -20,7 +20,7 @@ class ResourceCapacityConstraint<
     A : AssignmentPolicy<E>,
     S : ResourceTimeSlot<R, C>,
     R : StorageResource<C>,
-    C : ResourceCapacity
+    C : AbstractResourceCapacity
 >(
     private val usage: ResourceUsage<S, R, C>,
     private val quantity: Extractor<ValueRange<Flt64>, S> = { it.resourceCapacity.quantity },

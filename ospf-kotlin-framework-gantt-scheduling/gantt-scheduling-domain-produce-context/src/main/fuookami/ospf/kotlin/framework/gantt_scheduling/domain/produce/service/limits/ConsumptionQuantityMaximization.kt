@@ -30,9 +30,9 @@ class ConsumptionQuantityMaximization<
                     coefficient(it) * consumption.quantity[it]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(consumption.quantity[it]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = consumption.quantity[it],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "consumption_quantity_maximization_threshold_$it"
                     )
                     when (val result = model.add(slack)) {

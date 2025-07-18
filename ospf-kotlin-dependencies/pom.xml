@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin</artifactId>
-        <version>1.0.56</version>
+        <version>1.0.57</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -237,6 +237,11 @@
                 <artifactId>complex-numbers</artifactId>
                 <version>${complex-numbers.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>${apache-commons-math3.version}</version>
+            </dependency>
             <!-- ospf -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
@@ -456,12 +461,37 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
                 <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-csp1d</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-csp2d</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
                 <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

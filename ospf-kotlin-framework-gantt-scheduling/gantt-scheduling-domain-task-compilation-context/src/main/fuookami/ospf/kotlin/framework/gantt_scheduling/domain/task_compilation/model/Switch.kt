@@ -142,15 +142,10 @@ class TaskSchedulingSwitch<
                 val task2 = tasks[v[1]]
                 val thisSwitch = sum(switch[_a, task1, task2])
                 thisSwitch.range.leq(Flt64.one)
-                SemiFunction(
-                    if (timeWindow.continues) {
-                        UContinuous
-                    } else {
-                        UInteger
-                    },
+                MaskingFunction(
                     x = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
                         ?: LinearPolynomial(with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }),
-                    flag = thisSwitch,
+                    mask = thisSwitch,
                     name = "switch_time_${task1}_$task2"
                 )
             }

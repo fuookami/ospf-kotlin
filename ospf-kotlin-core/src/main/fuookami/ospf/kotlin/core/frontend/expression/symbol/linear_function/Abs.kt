@@ -20,6 +20,22 @@ class AbsFunction(
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol {
+    companion object {
+        operator fun <T : ToLinearPolynomial<Poly>, Poly : AbstractLinearPolynomial<Poly>> invoke(
+            x: T,
+            extract: Boolean = true,
+            name: String,
+            displayName: String? = null,
+        ): AbsFunction {
+            return AbsFunction(
+                x.toLinearPolynomial(),
+                extract,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val logger = logger()
 
     private val neg: PctVar by lazy {
@@ -163,6 +179,17 @@ class AbsFunction(
             }
 
             when (val result = model.addConstraint(
+                p geq pos,
+                "${name}_p"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 neg leq Flt64.one - p,
                 "${name}_n"
             )) {
@@ -189,19 +216,33 @@ class AbsFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenList, zeroIfNone)?.let { abs(it) }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenList, zeroIfNone)?.let { abs(it) }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenTable, zeroIfNone)?.let { abs(it) }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenTable, zeroIfNone)?.let { abs(it) }
     }
 }

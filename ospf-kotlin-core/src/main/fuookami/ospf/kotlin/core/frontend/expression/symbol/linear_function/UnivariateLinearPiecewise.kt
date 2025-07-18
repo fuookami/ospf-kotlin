@@ -234,19 +234,33 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenList, zeroIfNone)?.let { y(it) }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenList, zeroIfNone)?.let { y(it) }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenTable, zeroIfNone)?.let { y(it) }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenTable, zeroIfNone)?.let { y(it) }
     }
 }
@@ -256,7 +270,23 @@ open class UnivariateLinearPiecewiseFunction(
     points: List<Point2>,
     name: String,
     displayName: String? = null
-) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName)
+) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName) {
+    companion object {
+        operator fun <T : ToLinearPolynomial<Poly>, Poly : AbstractLinearPolynomial<Poly>> invoke(
+            x: T,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): UnivariateLinearPiecewiseFunction {
+            return UnivariateLinearPiecewiseFunction(
+                x = x.toLinearPolynomial(),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
 
 open class MonotoneUnivariateLinearPiecewiseFunction(
     x: AbstractLinearPolynomial<*>,
@@ -264,6 +294,22 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
     name: String,
     displayName: String? = null
 ) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName) {
+    companion object {
+        operator fun <T : ToLinearPolynomial<Poly>, Poly : AbstractLinearPolynomial<Poly>> invoke(
+            x: T,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): MonotoneUnivariateLinearPiecewiseFunction {
+            return MonotoneUnivariateLinearPiecewiseFunction(
+                x = x.toLinearPolynomial(),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     init {
         assert(points.foldIndexed(true) { index, acc, point ->
             acc && (index == 0 || point.y geq points[index - 1].y)

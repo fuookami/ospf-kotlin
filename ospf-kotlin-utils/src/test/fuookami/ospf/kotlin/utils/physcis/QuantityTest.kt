@@ -10,14 +10,14 @@ class QuantityTest {
     @Test
     fun eq() {
         val value = Flt64.one * Meter
-        assert((value * value) eq (Flt64.one * SquaredMeter))
+        assert((value * value) eq (Flt64.one * SquareMeter))
     }
 
     @Test
     fun ord() {
         val value = Flt64.one * Meter
-        assert((value * value) partialOrd (Flt64.one * SquaredMeter) == Order.Equal)
-        assert((value * value) partialOrd (Flt64.two * SquaredMeter) is Order.Less)
+        assert((value * value) partialOrd (Flt64.one * SquareMeter) == Order.Equal)
+        assert((value * value) partialOrd (Flt64.two * SquareMeter) is Order.Less)
         assert((value * value) partialOrd (Flt64.one * CubicMeter) == null)
     }
 

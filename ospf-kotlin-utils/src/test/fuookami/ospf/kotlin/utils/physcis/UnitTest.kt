@@ -12,7 +12,12 @@ class UnitTest {
     }
 
     @Test
+    fun pow() {
+        assert((Meter * Second.reciprocal() * Second.reciprocal()) == (Meter / Second.pow(2)))
+    }
+
+    @Test
     fun convert() {
-        assert(Meter.to(Kilometer)!!.value eq Flt64(0.001))
+        assert(Meter.to(Kilometer)!!.value eq FltX(0.001))
     }
 }

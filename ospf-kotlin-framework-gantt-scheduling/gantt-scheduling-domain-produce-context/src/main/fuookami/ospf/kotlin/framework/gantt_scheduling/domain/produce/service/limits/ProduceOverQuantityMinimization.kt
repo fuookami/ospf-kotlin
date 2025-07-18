@@ -37,9 +37,9 @@ class ProduceOverQuantityMinimization<
                     cost += coefficient(product) * produce.overQuantity[product]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(produce.overQuantity[product]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = produce.overQuantity[product],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "produce_over_quantity_minimization_threshold_$product"
                     )
                     when (val result = model.add(slack)) {

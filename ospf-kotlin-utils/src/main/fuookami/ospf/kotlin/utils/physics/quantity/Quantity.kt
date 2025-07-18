@@ -176,7 +176,7 @@ fun Quantity<Flt64>.to(unit: PhysicalUnit): Quantity<Flt64>? {
         Quantity(this.value, unit)
     } else {
         this.unit.to(unit)?.value?.let {
-            Quantity(it * this.value, unit)
+            Quantity(it.toFlt64() * this.value, unit)
         }
     }
 }
