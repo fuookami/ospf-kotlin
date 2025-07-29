@@ -49,7 +49,7 @@ abstract class TaskTimeImpl<
     protected val timeWindow: TimeWindow,
     protected val tasks: List<T>
 ) : TaskTime {
-    abstract val compilation: Compilation
+    protected abstract val compilation: Compilation
     protected abstract var estSlack: LinearIntermediateSymbols1
 
     override lateinit var delayTime: LinearIntermediateSymbols1

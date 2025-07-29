@@ -356,7 +356,7 @@ abstract class AbstractExecutionResourceUsage<
 class TaskSchedulingExecutionResourceUsage<
     out R : ExecutionResource<C>,
     out C : AbstractResourceCapacity
->private constructor(
+> private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
     times: List<TimeRange>,
@@ -431,17 +431,7 @@ data class StorageResourceTimeSlot<
         task: AbstractTask<E, A>?
     ): Flt64 {
         return if (task != null) {
-            val timeRange = TimeRange(
-                min(
-                    task.time!!.start,
-                    time.start
-                ),
-                min(
-                    task.time!!.end,
-                    time.end
-                )
-            )
-            resource.supplyBy(task, timeRange) - resource.costBy(task, timeRange)
+            supplyBy(task) - costBy(task)
         } else {
             Flt64.zero
         }
