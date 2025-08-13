@@ -77,6 +77,7 @@
         <bimap.version>1.1.0</bimap.version>
         <jackson.version>2.18.2</jackson.version>
         <complex-numbers.version>1.0</complex-numbers.version>
+        <apache-commons-math3.version>3.6.1</apache-commons-math3.version>
         <ktorm.version>4.1.1</ktorm.version>
         <http4k.version>5.13.7.0</http4k.version>
     </properties>

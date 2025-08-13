@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
 object Newton : PhysicalUnit() {
@@ -15,10 +14,12 @@ object Newton : PhysicalUnit() {
 }
 
 object KilogramForce : PhysicalUnit() {
+    private val unit = Newton * 9.80665
+
     override val name = "kilogram force"
     override val symbol = "kgf"
 
-    override val quantity = Force
-    override val system = SI
-    override val scale = Scale(Flt64(9.80665), Flt64.one)
+    override val quantity by unit::quantity
+    override val system by unit::system
+    override val scale by unit::scale
 }

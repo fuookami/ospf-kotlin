@@ -81,11 +81,11 @@ data class AnonymousPhysicalUnit(
     }
 
     override fun toString(): String {
-        return symbol ?: TODO("not implemented yet")
+        return symbol ?: ""
     }
 }
 
-data object NoneUnit : PhysicalUnit() {
+object NoneUnit : PhysicalUnit() {
     override val system = SI
     override val quantity = DerivedQuantity(emptyList())
     override val scale = Scale()
@@ -100,6 +100,70 @@ data class QuantityUnit(
 ) : PhysicalUnit() {
     override val quantity = DerivedQuantity(emptyList())
     override val scale = Scale()
+}
+
+operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale * Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale / Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale * Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale / Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale * Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale / Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.times(scale: Scale): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale * scale,
+    )
+}
+
+operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale / scale,
+    )
 }
 
 operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {

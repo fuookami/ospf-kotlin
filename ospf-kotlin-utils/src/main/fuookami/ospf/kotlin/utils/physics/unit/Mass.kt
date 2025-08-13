@@ -9,7 +9,7 @@ object Gram : PhysicalUnit() {
 
     override val quantity = Mass
     override val system = SI
-    override val scale = Scale(Flt64.ten, -Flt64.three)
+    override val scale = Scale(10, -3)
 }
 
 object Kilogram : PhysicalUnit() {
@@ -27,5 +27,5 @@ object Ton : PhysicalUnit() {
 
     override val quantity = Mass
     override val system = SI
-    override val scale = Scale(Flt64.ten, Flt64.three)
+    override val scale = Scale(10, 3)
 }

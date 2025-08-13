@@ -13,6 +13,6 @@ class UnitTest {
 
     @Test
     fun convert() {
-        assert(Meter.to(Kilometer)!!.value eq Flt64(0.001))
+        assert(Meter.to(Kilometer)!!.value eq FltX(0.001))
     }
 }

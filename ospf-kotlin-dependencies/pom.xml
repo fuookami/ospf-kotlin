@@ -236,6 +236,11 @@
                 <artifactId>complex-numbers</artifactId>
                 <version>${complex-numbers.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>${apache-commons-math3.version}</version>
+            </dependency>
             <!-- ospf -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>

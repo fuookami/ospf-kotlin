@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
+import java.math.*
 import fuookami.ospf.kotlin.utils.math.*
 
 private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(value: T, base: T, index: Int): T =
@@ -32,6 +33,27 @@ fun <T> pow(base: T, index: Int, constants: RealNumberConstants<T>): T where T :
 }
 
 fun <T : FloatingNumber<T>> pow(base: T, index: T, constants: FloatingNumberConstants<T>): T {
-    // todo: use taylor formula to replace it
-    return base
+    val lnBase = ln(base, constants)!!
+    return epow(index * lnBase, constants)
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : FloatingNumber<T>> epow(index: T, constants: FloatingNumberConstants<T>): T {
+    var value  = constants.one
+    var term = constants.one
+    var i = constants.one
+    while (true) {
+        var thisItem = (term * index) / i
+        if (thisItem is FltX) {
+            thisItem = thisItem.withScale(constants.decimalDigits!!, RoundingMode.HALF_UP) as T
+        }
+        value += thisItem
+        i += constants.one
+
+        if (thisItem.abs() leq constants.epsilon) {
+            break
+        }
+        term = thisItem
+    }
+    return value
 }

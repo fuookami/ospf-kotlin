@@ -9,7 +9,7 @@ object Millisecond : PhysicalUnit() {
 
     override val quantity = Time
     override val system = SI
-    override val scale: Scale = Scale(Flt64.ten, -Flt64.three)
+    override val scale: Scale = Scale(10, -3)
 }
 
 object Second : PhysicalUnit() {
@@ -22,33 +22,34 @@ object Second : PhysicalUnit() {
 }
 
 object Minute : PhysicalUnit() {
+    private val unit = Second * 60
+
     override val name: String = "minute"
     override val symbol: String = "min"
 
-    override val quantity = Time
-    override val system = SI
-    override val scale: Scale = Scale(Flt64(60.0), Flt64.one)
+    override val quantity by unit::quantity
+    override val system by unit::system
+    override val scale by unit::scale
 }
 
 object Hour : PhysicalUnit() {
+    private val unit = Minute * 60
+
     override val name: String = "hour"
     override val symbol: String = "h"
 
-    override val quantity = Time
-    override val system = SI
-    override val scale: Scale = Scale(Flt64(60.0), Flt64.two)
+    override val quantity by unit::quantity
+    override val system by unit::system
+    override val scale by unit::scale
 }
 
 object Day : PhysicalUnit() {
+    private val unit = Hour * 24
+
     override val name: String = "day"
     override val symbol: String = "d"
 
-    override val quantity = Time
-    override val system = SI
-    override val scale: Scale = Scale(
-        listOf(
-            Flt64(60.0) to Flt64.two,
-            Flt64(24.0) to Flt64.one
-        )
-    )
+    override val quantity by unit::quantity
+    override val system by unit::system
+    override val scale by unit::scale
 }

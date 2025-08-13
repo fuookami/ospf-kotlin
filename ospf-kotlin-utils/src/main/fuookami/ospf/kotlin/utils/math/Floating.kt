@@ -2,14 +2,13 @@ package fuookami.ospf.kotlin.utils.math
 
 import java.math.*
 import kotlin.math.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.operator.*
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.math.Flt32.Companion
-import fuookami.ospf.kotlin.utils.operator.*
+import kotlinx.serialization.json.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
     f: F,
@@ -137,6 +136,10 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
         override val pi: Flt32 get() = Flt32(PI.toFloat())
         @JvmStatic
         override val e: Flt32 get() = Flt32(E.toFloat())
+        @JvmStatic
+        override val ln2: Flt32 by lazy {
+            ln(two, this)!!
+        }
     }
 
     override val constants: FloatingNumberConstants<Flt32> get() = Companion
@@ -388,6 +391,10 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
         override val pi: Flt64 get() = Flt64(PI)
         @JvmStatic
         override val e: Flt64 get() = Flt64(E)
+        @JvmStatic
+        override val ln2: Flt64 by lazy {
+            ln(two, this)!!
+        }
     }
 
     override val constants: FloatingNumberConstants<Flt64> get() = Flt64
@@ -650,6 +657,10 @@ value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<F
         override val pi: FltX get() = FltX(PI.toBigDecimal())
         @JvmStatic
         override val e: FltX get() = FltX(E.toBigDecimal())
+        @JvmStatic
+        override val ln2: FltX by lazy {
+            ln(two, this)!!
+        }
     }
 
     constructor(value: Double, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
@@ -677,7 +688,7 @@ value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<F
     override fun plus(rhs: FltX) = FltX(value + rhs.value)
     override fun minus(rhs: FltX) = FltX(value - rhs.value)
     override fun times(rhs: FltX) = FltX(value * rhs.value)
-    override fun div(rhs: FltX) = FltX(value / rhs.value)
+    override fun div(rhs: FltX) = FltX(value.setScale(decimalDigits, RoundingMode.HALF_UP) / rhs.value.setScale(decimalDigits, RoundingMode.HALF_UP))
     override fun intDiv(rhs: FltX) = FltX(value - value % rhs.value)
     override fun rem(rhs: FltX) = FltX(value % rhs.value)
 

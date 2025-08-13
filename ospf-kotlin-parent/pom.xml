@@ -167,6 +167,11 @@
             <groupId>org.kotlinmath</groupId>
             <artifactId>complex-numbers</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>${apache-commons-math3.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
