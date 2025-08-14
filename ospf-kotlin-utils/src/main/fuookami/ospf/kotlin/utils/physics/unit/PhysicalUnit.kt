@@ -55,6 +55,14 @@ abstract class PhysicalUnit {
     }
 }
 
+abstract class DerivedPhysicalUnit(
+    private val unit: PhysicalUnit,
+) : PhysicalUnit() {
+    override val system by unit::system
+    override val quantity by unit::quantity
+    override val scale by unit::scale
+}
+
 data class AnonymousPhysicalUnit(
     override val system: UnitSystem,
     override val quantity: DerivedQuantity,
@@ -143,6 +151,22 @@ operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
 }
 
 operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale / Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
+    return AnonymousPhysicalUnit(
+        system = this.system,
+        quantity = this.quantity,
+        scale = this.scale * Scale(scale)
+    )
+}
+
+operator fun PhysicalUnit.div(scale: RtnX): PhysicalUnit {
     return AnonymousPhysicalUnit(
         system = this.system,
         quantity = this.quantity,

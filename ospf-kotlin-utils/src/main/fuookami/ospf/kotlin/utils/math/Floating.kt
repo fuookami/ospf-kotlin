@@ -628,7 +628,10 @@ interface FltXInterface {
 
 @JvmInline
 @Serializable(with = FltXSerializer::class)
-value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<FltX>, Copyable<FltX> {
+value class FltX(internal val value: BigDecimal) :
+    FltXInterface, FloatingImpl<FltX>, Copyable<FltX>,
+    LogP<FloatingNumber<*>, FloatingNumber<*>>, PowFP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>>
+{
     companion object : FloatingNumberConstants<FltX> {
         @JvmStatic
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
@@ -688,29 +691,72 @@ value class FltX(internal val value: BigDecimal) : FltXInterface, FloatingImpl<F
     override fun plus(rhs: FltX) = FltX(value + rhs.value)
     override fun minus(rhs: FltX) = FltX(value - rhs.value)
     override fun times(rhs: FltX) = FltX(value * rhs.value)
-    override fun div(rhs: FltX) = FltX(value.setScale(decimalDigits, RoundingMode.HALF_UP) / rhs.value.setScale(decimalDigits, RoundingMode.HALF_UP))
+    override fun div(rhs: FltX) = FltX(value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
+            / rhs.value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
+    )
     override fun intDiv(rhs: FltX) = FltX(value - value % rhs.value)
     override fun rem(rhs: FltX) = FltX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FltX? = when (base) {
-        is Flt32 -> log(this, base.toFltX(), FltX)
-        is Flt64 -> log(this, base.toFltX(), FltX)
-        is FltX -> log(this, base, FltX)
+        is Flt32 -> log(base, decimalDigits)
+        is Flt64 -> log(base, decimalDigits)
+        is FltX -> log(base, maxOf(value.scale(), base.value.scale(), decimalDigits))
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = FltX(value.pow(index))
+    fun log(
+        base: FloatingNumber<*>,
+        digits: Int
+    ): FltX? = log(base, digits + 1, min(pow(FltX(10), -digits, FltX, digits + 1), epsilon))
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(
+        base: FloatingNumber<*>,
+        digits: Int,
+        precision: FloatingNumber<*>
+    ): FltX? = when (base) {
+        is Flt32 -> log(this.withScale(digits), base.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+        is Flt64 -> log(this.withScale(digits), base.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+        is FltX -> log(this.withScale(digits), base.withScale(digits), FltX, digits, precision.toFltX())
+        else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
+    }
+
+    override fun pow(index: Int) = pow(this, index, FltX)
 
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FltX = when (index) {
-        is Flt32 -> pow(this, index.toFltX(), FltX)
-        is Flt64 -> pow(this, index.toFltX(), FltX)
-        is FltX -> pow(this, index, FltX)
+        is Flt32 -> pow(index, decimalDigits)
+        is Flt64 -> pow(index, decimalDigits)
+        is FltX -> pow(index, maxOf(value.scale(), index.value.scale(), decimalDigits))
         else -> throw IllegalArgumentException("Unknown argument type to FltX.pow: ${index.javaClass}")
     }
 
-    override fun exp() = FltX(exp(value.toDouble()))
+    fun pow(
+        index: FloatingNumber<*>,
+        digits: Int
+    ): FltX = pow(index, digits + 1, min(pow(FltX(10), -digits, FltX, digits + 1), epsilon))
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(
+        index: FloatingNumber<*>,
+        digits: Int,
+        precision: FloatingNumber<*>
+    ): FltX = when (index) {
+        is Flt32 -> pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+        is Flt64 -> pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+        is FltX -> pow(this.withScale(digits), index.withScale(digits), FltX, digits, precision.toFltX())
+        else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
+    }
+
+    override fun exp() = exp(decimalDigits)
+
+    fun exp(digits: Int) = exp(this, FltX, digits + 1, min(pow(FltX(10), -digits, FltX, digits + 1), epsilon))
+
+    override fun exp(
+        digits: Int,
+        precision: FloatingNumber<*>
+    ): FloatingNumber<*> = exp(this, FltX, digits, precision.toFltX())
 
     override fun sin() = toFlt64().sin().toFltX()
     override fun cos() = toFlt64().cos().toFltX()

@@ -163,6 +163,17 @@ class AbsFunction(
             }
 
             when (val result = model.addConstraint(
+                p geq pos,
+                "${name}_p"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
                 neg leq Flt64.one - p,
                 "${name}_n"
             )) {

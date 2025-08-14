@@ -4,7 +4,12 @@ import java.math.*
 import fuookami.ospf.kotlin.utils.math.*
 
 @Suppress("UNCHECKED_CAST")
-fun <T : FloatingNumber<T>> ln(x: T, constants: FloatingNumberConstants<T>): T? {
+fun <T : FloatingNumber<T>> ln(
+    x: T,
+    constants: FloatingNumberConstants<T>,
+    digits: Int = constants.decimalDigits!!,
+    precision: T = constants.epsilon
+): T? {
     return if (x leq constants.zero) {
         constants.nan
     } else if (x leq constants.two) {
@@ -15,16 +20,16 @@ fun <T : FloatingNumber<T>> ln(x: T, constants: FloatingNumberConstants<T>): T? 
         while (true) {
             yPow = yPow * y * y
             if (yPow is FltX) {
-                yPow = yPow.withScale(constants.decimalDigits!!, RoundingMode.HALF_UP) as T
+                yPow = yPow.withScale(digits, RoundingMode.HALF_UP) as T
             }
             var term =  yPow / (constants.two * i + constants.one)
             if (term is FltX) {
-                term = term.withScale(constants.decimalDigits!!, RoundingMode.HALF_UP) as T
+                term = term.withScale(digits, RoundingMode.HALF_UP) as T
             }
             value += term
             i += constants.one
 
-            if (term.abs() <= constants.epsilon) {
+            if (term.abs() <= precision) {
                 break
             }
         }
@@ -45,9 +50,15 @@ fun <T : FloatingNumber<T>> ln(x: T, constants: FloatingNumberConstants<T>): T? 
     }
 }
 
-fun <T : FloatingNumber<T>> log(x: T, base: T, constants: FloatingNumberConstants<T>): T? {
-    return ln(x, constants)?.let { lhs ->
-        ln(base, constants)?.let {
+fun <T : FloatingNumber<T>> log(
+    x: T,
+    base: T,
+    constants: FloatingNumberConstants<T>,
+    digits: Int = constants.decimalDigits!!,
+    precision: T = constants.epsilon
+): T? {
+    return ln(x, constants, digits, precision)?.let { lhs ->
+        ln(base, constants, digits, precision)?.let {
             lhs / it
         }
     } ?: constants.nan
