@@ -214,6 +214,16 @@ operator fun PhysicalUnit.div(other: PhysicalUnit): PhysicalUnit {
     }
 }
 
+fun PhysicalUnit.pow(index: Int): PhysicalUnit {
+    return if (index > 0) {
+        pow(index - 1) * this
+    } else if (index < 0) {
+        pow(index + 1) / this
+    } else {
+        NoneUnit
+    }
+}
+
 fun PhysicalUnit.reciprocal(): PhysicalUnit {
     return NoneUnit / this
 }
