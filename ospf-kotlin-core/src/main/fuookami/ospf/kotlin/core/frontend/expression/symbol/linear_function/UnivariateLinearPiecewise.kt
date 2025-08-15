@@ -256,7 +256,51 @@ open class UnivariateLinearPiecewiseFunction(
     points: List<Point2>,
     name: String,
     displayName: String? = null
-) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName)
+) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName) {
+    companion object {
+        operator fun invoke(
+            x: AbstractVariableItem<*, *>,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): UnivariateLinearPiecewiseFunction {
+            return UnivariateLinearPiecewiseFunction(
+                x = LinearPolynomial(x),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): UnivariateLinearPiecewiseFunction {
+            return UnivariateLinearPiecewiseFunction(
+                x = LinearPolynomial(x),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            x: LinearMonomial,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): UnivariateLinearPiecewiseFunction {
+            return UnivariateLinearPiecewiseFunction(
+                x = LinearPolynomial(x),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
 
 open class MonotoneUnivariateLinearPiecewiseFunction(
     x: AbstractLinearPolynomial<*>,
@@ -264,6 +308,50 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
     name: String,
     displayName: String? = null
 ) : AbstractUnivariateLinearPiecewiseFunction(x, points.sortedBy { it.x }, name, displayName) {
+    companion object {
+        operator fun invoke(
+            x: AbstractVariableItem<*, *>,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): MonotoneUnivariateLinearPiecewiseFunction {
+            return MonotoneUnivariateLinearPiecewiseFunction(
+                x = LinearPolynomial(x),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): MonotoneUnivariateLinearPiecewiseFunction {
+            return MonotoneUnivariateLinearPiecewiseFunction(
+                x = LinearPolynomial(x),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            x: LinearMonomial,
+            points: List<Point2>,
+            name: String,
+            displayName: String? = null
+        ): MonotoneUnivariateLinearPiecewiseFunction {
+            return MonotoneUnivariateLinearPiecewiseFunction(
+                x = LinearPolynomial(x),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     init {
         assert(points.foldIndexed(true) { index, acc, point ->
             acc && (index == 0 || point.y geq points[index - 1].y)

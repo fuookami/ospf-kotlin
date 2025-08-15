@@ -20,6 +20,44 @@ class AbsFunction(
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol {
+    companion object {
+        operator fun invoke(
+            x: AbstractVariableItem<*, *>,
+            extract: Boolean = true,
+            name: String = "${x}_abs",
+            displayName: String? = "|$x|"
+        ) = AbsFunction(
+            x = LinearPolynomial(x),
+            extract = extract,
+            name = name,
+            displayName = displayName
+        )
+
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            extract: Boolean = true,
+            name: String = "${x}_abs",
+            displayName: String? = "|$x|"
+        ) = AbsFunction(
+            x = LinearPolynomial(x),
+            extract = extract,
+            name = name,
+            displayName = displayName
+        )
+
+        operator fun invoke(
+            x: LinearMonomial,
+            extract: Boolean = true,
+            name: String = "${x}_abs",
+            displayName: String? = "|$x|"
+        ) = AbsFunction(
+            x = LinearPolynomial(x),
+            extract = extract,
+            name = name,
+            displayName = displayName
+        )
+    }
+
     private val logger = logger()
 
     private val neg: PctVar by lazy {
