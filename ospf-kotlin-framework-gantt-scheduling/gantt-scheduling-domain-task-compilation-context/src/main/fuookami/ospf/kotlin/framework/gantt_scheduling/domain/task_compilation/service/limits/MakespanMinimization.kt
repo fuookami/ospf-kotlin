@@ -35,13 +35,13 @@ class MakespanMinimization<
             }
         } else {
             val slack = SlackFunction(
-                if (timeWindow.continues) {
+                x = makespan.makespan,
+                threshold = thresholdValue,
+                type = if (timeWindow.continues) {
                     UContinuous
                 } else {
                     UInteger
                 },
-                x = LinearPolynomial(makespan.makespan),
-                threshold = LinearPolynomial(thresholdValue),
                 name = "makespan_threshold"
             )
             when (val result = model.add(slack)) {

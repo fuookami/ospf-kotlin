@@ -49,7 +49,7 @@ abstract class TaskTimeImpl<
     protected val timeWindow: TimeWindow,
     protected val tasks: List<T>
 ) : TaskTime {
-    abstract val compilation: Compilation
+    protected abstract val compilation: Compilation
     protected abstract var estSlack: LinearIntermediateSymbols1
 
     override lateinit var delayTime: LinearIntermediateSymbols1
@@ -86,14 +86,9 @@ abstract class TaskTimeImpl<
                         }
                     }
                     if (compilation.taskCancelEnabled) {
-                        SemiFunction(
-                            if (timeWindow.continues) {
-                                UContinuous
-                            } else {
-                                UInteger
-                            },
+                        MaskingFunction(
                             x = polynomial,
-                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                            mask = compilation.taskCompilation[task],
                             name = "delay_time_$task"
                         )
                     } else {
@@ -144,14 +139,9 @@ abstract class TaskTimeImpl<
                         }
                     }
                     if (compilation.taskCancelEnabled) {
-                        SemiFunction(
-                            if (timeWindow.continues) {
-                                UContinuous
-                            } else {
-                                UInteger
-                            },
+                        MaskingFunction(
                             x = polynomial,
-                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                            mask = compilation.taskCompilation[task],
                             name = "advance_time_$task"
                         )
                     } else {
@@ -203,13 +193,13 @@ abstract class TaskTimeImpl<
 
                                 else -> {
                                     val slack = SlackFunction(
-                                        if (timeWindow.continues) {
+                                        x = delayTime[task],
+                                        y = with(timeWindow) { maxDelayTime.value },
+                                        type = if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        x = LinearPolynomial(delayTime[task]),
-                                        y = LinearPolynomial(with(timeWindow) { maxDelayTime.value }),
                                         withNegative = false,
                                         name = "over_max_delay_time_$task"
                                     )
@@ -222,14 +212,9 @@ abstract class TaskTimeImpl<
                                                 throw ApplicationException(result.error)
                                             }
                                         }
-                                        SemiFunction(
-                                            if (timeWindow.continues) {
-                                                UContinuous
-                                            } else {
-                                                UInteger
-                                            },
-                                            x = LinearPolynomial(slack),
-                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        MaskingFunction(
+                                            x = slack,
+                                            mask = compilation.taskCompilation[task],
                                             name = "over_max_delay_time_$task"
                                         )
                                     } else {
@@ -284,13 +269,13 @@ abstract class TaskTimeImpl<
 
                                 else -> {
                                     val slack = SlackFunction(
-                                        if (timeWindow.continues) {
+                                        x = advanceTime[task],
+                                        y = with(timeWindow) { maxAdvanceTime.value },
+                                        type = if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        x = LinearPolynomial(advanceTime[task]),
-                                        y = LinearPolynomial(with(timeWindow) { maxAdvanceTime.value }),
                                         withNegative = false,
                                         name = "over_max_advance_time_$task"
                                     )
@@ -303,14 +288,9 @@ abstract class TaskTimeImpl<
                                                 throw ApplicationException(result.error)
                                             }
                                         }
-                                        SemiFunction(
-                                            if (timeWindow.continues) {
-                                                UContinuous
-                                            } else {
-                                                UInteger
-                                            },
-                                            x = LinearPolynomial(slack),
-                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        MaskingFunction(
+                                            x = slack,
+                                            mask = compilation.taskCompilation[task],
                                             name = "over_max_advance_time_$task"
                                         )
                                     } else {
@@ -365,13 +345,13 @@ abstract class TaskTimeImpl<
 
                                 else -> {
                                     val slack = SlackFunction(
-                                        if (timeWindow.continues) {
+                                        x = estimateEndTime[task],
+                                        y = with(timeWindow) { lastEndTime.value },
+                                        type = if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        x = LinearPolynomial(estimateEndTime[task]),
-                                        y = LinearPolynomial(with(timeWindow) { lastEndTime.value }),
                                         withNegative = false,
                                         name = "delay_last_end_time_$task"
                                     )
@@ -384,14 +364,9 @@ abstract class TaskTimeImpl<
                                                 throw ApplicationException(result.error)
                                             }
                                         }
-                                        SemiFunction(
-                                            if (timeWindow.continues) {
-                                                UContinuous
-                                            } else {
-                                                UInteger
-                                            },
-                                            x = LinearPolynomial(slack),
-                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        MaskingFunction(
+                                            x = slack,
+                                            mask = compilation.taskCompilation[task],
                                             name = "delay_last_end_time_$task"
                                         )
                                     } else {
@@ -446,13 +421,13 @@ abstract class TaskTimeImpl<
 
                                 else -> {
                                     val slack = SlackFunction(
-                                        if (timeWindow.continues) {
+                                        x = estimateEndTime[task],
+                                        y = with(timeWindow) { earliestEndTime.value },
+                                        type = if (timeWindow.continues) {
                                             UContinuous
                                         } else {
                                             UInteger
                                         },
-                                        x = LinearPolynomial(estimateEndTime[task]),
-                                        y = LinearPolynomial(with(timeWindow) { earliestEndTime.value }),
                                         withPositive = false,
                                         name = "advance_earliest_end_time_$task"
                                     )
@@ -465,14 +440,9 @@ abstract class TaskTimeImpl<
                                                 throw ApplicationException(result.error)
                                             }
                                         }
-                                        SemiFunction(
-                                            if (timeWindow.continues) {
-                                                UContinuous
-                                            } else {
-                                                UInteger
-                                            },
-                                            x = LinearPolynomial(slack),
-                                            flag = LinearPolynomial(compilation.taskCompilation[task]),
+                                        MaskingFunction(
+                                            x = slack,
+                                            mask = compilation.taskCompilation[task],
                                             name = "advance_earliest_end_time_$task"
                                         )
                                     } else {
@@ -803,13 +773,13 @@ class TaskSchedulingTaskTime<
                                     with(timeWindow) { time.start.value }.floor()
                                 }
                                 val slack = SlackFunction(
-                                    if (timeWindow.continues) {
+                                    x = est[task],
+                                    y = y,
+                                    type = if (timeWindow.continues) {
                                         UContinuous
                                     } else {
                                         UInteger
                                     },
-                                    x = LinearPolynomial(est[task]),
-                                    y = LinearPolynomial(y),
                                     withNegative = advanceEnabled && task.advanceEnabled,
                                     withPositive = delayEnabled && task.delayEnabled,
                                     name = "est_slack_$task"
@@ -999,13 +969,13 @@ open class IterativeTaskSchedulingTaskTime<
                                 with(timeWindow) { time.start.value }.floor()
                             }
                             val slack = SlackFunction(
-                                if (timeWindow.continues) {
+                                x = LinearPolynomial(estimateStartTime[task]),
+                                y = LinearPolynomial(y),
+                                type = if (timeWindow.continues) {
                                     UContinuous
                                 } else {
                                     UInteger
                                 },
-                                x = LinearPolynomial(estimateStartTime[task]),
-                                y = LinearPolynomial(y),
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_$task"

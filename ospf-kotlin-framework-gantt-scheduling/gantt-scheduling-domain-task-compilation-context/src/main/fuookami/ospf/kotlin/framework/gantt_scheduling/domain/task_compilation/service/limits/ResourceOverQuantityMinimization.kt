@@ -16,7 +16,7 @@ class ResourceOverQuantityMinimization<
     A : AssignmentPolicy<E>,
     S : ResourceTimeSlot<R, C>,
     R : Resource<C>,
-    C : ResourceCapacity
+    C : AbstractResourceCapacity
 >(
     private val quantity: ResourceUsage<S, R, C>,
     private val threshold: (S) -> Flt64 = { Flt64.zero },
@@ -39,9 +39,9 @@ class ResourceOverQuantityMinimization<
                     cost += thisCoefficient * quantity.overQuantity[slot]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(quantity.overQuantity[slot]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = quantity.overQuantity[slot],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "${quantity.name}_${slot}_${name}_over_quantity_threshold"
                     )
                     when (val result = model.add(slack)) {

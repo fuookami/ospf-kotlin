@@ -37,10 +37,9 @@ sealed class AbstractOneOfFunction(
     private val semis: LinearIntermediateSymbols1 by lazy {
         LinearIntermediateSymbols1("${name}_semi", Shape1(branches.size)) { b, _ ->
             val branch = branches[b]
-            SemiFunction(
-                type = UContinuous,
+            MaskingFunction(
                 x = branch.polynomial,
-                flag = branch.condition ?: LinearPolynomial(u[b]!!),
+                mask = branch.condition ?: LinearPolynomial(u[b]!!),
                 name = "${name}_${branch.name}_semi"
             )
         }

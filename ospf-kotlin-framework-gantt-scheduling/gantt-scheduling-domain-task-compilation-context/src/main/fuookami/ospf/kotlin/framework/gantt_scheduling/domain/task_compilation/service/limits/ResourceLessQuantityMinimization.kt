@@ -16,7 +16,7 @@ class ResourceLessQuantityMinimization<
     A : AssignmentPolicy<E>,
     S : ResourceTimeSlot<R, C>,
     R : Resource<C>,
-    C : ResourceCapacity
+    C : AbstractResourceCapacity
 >(
     private val quantity: ResourceUsage<S, R, C>,
     private val threshold: (S) -> Flt64 = { Flt64.zero },
@@ -39,9 +39,9 @@ class ResourceLessQuantityMinimization<
                     cost += thisCoefficient * quantity.lessQuantity[slot]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(quantity.lessQuantity[slot]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = quantity.lessQuantity[slot],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "${quantity.name}_${slot}_${name}_over_quantity_threshold"
                     )
                     when (val result = model.add(slack)) {

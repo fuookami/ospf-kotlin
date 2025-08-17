@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -295,7 +296,10 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(tokenList, zeroIfNone) ?: return null
         val yValue = y.evaluate(tokenList, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
@@ -309,7 +313,11 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
         val yValue = y.evaluate(results, tokenList, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
@@ -323,7 +331,10 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(tokenTable, zeroIfNone) ?: return null
         val yValue = y.evaluate(tokenTable, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
@@ -337,7 +348,11 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val yValue = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
@@ -354,9 +369,13 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
 
 object SlackFunction {
     operator fun invoke(
-        type: VariableType<*> = UInteger,
         x: AbstractLinearPolynomial<*>,
         y: AbstractLinearPolynomial<*>,
+        type: VariableType<*> = if (x.discrete && y.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
         withNegative: Boolean = true,
         withPositive: Boolean = true,
         threshold: Boolean = false,
@@ -365,16 +384,491 @@ object SlackFunction {
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
         return if (type.isIntegerType) {
-            UIntegerSlackFunction(x, y, withNegative, withPositive, threshold, constraint, name, displayName)
+            UIntegerSlackFunction(
+                x,
+                y,
+                withNegative,
+                withPositive,
+                threshold,
+                constraint,
+                name,
+                displayName
+            )
         } else {
-            URealSlackFunction(x, y, withNegative, withPositive, threshold, constraint, name, displayName)
+            URealSlackFunction(
+                x,
+                y,
+                withNegative,
+                withPositive,
+                threshold,
+                constraint,
+                name,
+                displayName
+            )
         }
     }
 
     operator fun invoke(
-        type: VariableType<*> = UInteger,
+        x: AbstractLinearPolynomial<*>,
+        y: Int,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(y),
+            type,
+            withNegative,
+            withPositive,
+            threshold,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        y: Double,
+        type: VariableType<*> = UContinuous,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(y),
+            type,
+            withNegative,
+            withPositive,
+            threshold,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        y: Boolean,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(y),
+            type,
+            withNegative,
+            withPositive,
+            threshold,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        y: Trivalent,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(y),
+            type,
+            withNegative,
+            withPositive,
+            threshold,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        y: BalancedTrivalent,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(y),
+            type,
+            withNegative,
+            withPositive,
+            threshold,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <T : RealNumber<T>> invoke(
+        x: AbstractLinearPolynomial<*>,
+        y: T,
+        type: VariableType<*> = UContinuous,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(y),
+            type,
+            withNegative,
+            withPositive,
+            threshold,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        y: Int,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            y = LinearPolynomial(y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        y: Double,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: UContinuous
+        return invoke(
+            x = xPoly,
+            y = LinearPolynomial(y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        y: Boolean,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            y = LinearPolynomial(y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        y: Trivalent,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            y = LinearPolynomial(y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        y: BalancedTrivalent,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            y = LinearPolynomial(y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T1 : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>,
+        T2 : RealNumber<T2>
+    > invoke(
+        x: T1,
+        y: T2,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: UContinuous
+        return invoke(
+            x = xPoly,
+            y = LinearPolynomial(y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        y: AbstractLinearPolynomial<*>,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete && y.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            y = y,
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: AbstractLinearPolynomial<*>,
+        y: T,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val yPoly = y.toLinearPolynomial()
+        val type = type ?: if (x.discrete && yPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = x,
+            y = yPoly,
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T1 : ToLinearPolynomial<Poly1>,
+        T2 : ToLinearPolynomial<Poly2>,
+        Poly1 : AbstractLinearPolynomial<Poly1>,
+        Poly2 : AbstractLinearPolynomial<Poly2>
+    > invoke(
+        x: T1,
+        y: T2,
+        type: VariableType<*>? = null,
+        withNegative: Boolean = true,
+        withPositive: Boolean = true,
+        threshold: Boolean = false,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val yPoly = y.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete && yPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            y = yPoly,
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun invoke(
         x: AbstractLinearPolynomial<*>,
         threshold: AbstractLinearPolynomial<*>,
+        type: VariableType<*> = if (x.discrete && threshold.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
         withPositive: Boolean = true,
         constraint: Boolean = true,
         name: String,
@@ -404,6 +898,401 @@ object SlackFunction {
             )
         }
     }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: Int,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(threshold),
+            type,
+            withPositive,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: Double,
+        type: VariableType<*> = UContinuous,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(threshold),
+            type,
+            withPositive,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: Boolean,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(threshold),
+            type,
+            withPositive,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: Trivalent,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(threshold),
+            type,
+            withPositive,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: BalancedTrivalent,
+        type: VariableType<*> = if (x.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(threshold),
+            type,
+            withPositive,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T : RealNumber<T>
+    > invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: T,
+        type: VariableType<*> = UContinuous,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        return invoke(
+            x,
+            LinearPolynomial(threshold),
+            type,
+            withPositive,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        threshold: Int,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        threshold: Double,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: UContinuous
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        threshold: Boolean,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        threshold: Trivalent,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        threshold: BalancedTrivalent,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T1 : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>,
+        T2 : RealNumber<T2>
+    > invoke(
+        x: T1,
+        threshold: T2,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: UContinuous
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: T,
+        threshold: AbstractLinearPolynomial<*>,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete && threshold.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            threshold = LinearPolynomial(threshold),
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T : ToLinearPolynomial<Poly>,
+        Poly : AbstractLinearPolynomial<Poly>
+    > invoke(
+        x: AbstractLinearPolynomial<*>,
+        threshold: T,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val thresholdPoly = threshold.toLinearPolynomial()
+        val type = type ?: if (x.discrete && thresholdPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = x,
+            threshold = thresholdPoly,
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    operator fun <
+        T1 : ToLinearPolynomial<Poly1>,
+        T2 : ToLinearPolynomial<Poly2>,
+        Poly1 : AbstractLinearPolynomial<Poly1>,
+        Poly2 : AbstractLinearPolynomial<Poly2>
+    > invoke(
+        x: T1,
+        threshold: T2,
+        type: VariableType<*>? = null,
+        withPositive: Boolean = true,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackFunction<*> {
+        val xPoly = x.toLinearPolynomial()
+        val thresholdPoly = threshold.toLinearPolynomial()
+        val type = type ?: if (xPoly.discrete && thresholdPoly.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        }
+        return invoke(
+            x = xPoly,
+            threshold = thresholdPoly,
+            type = type,
+            withPositive = withPositive,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+    }
 }
 
 class UIntegerSlackFunction(
@@ -424,7 +1313,8 @@ class UIntegerSlackFunction(
     constraint,
     name,
     displayName,
-    { UIntVar(it) }) {
+    { UIntVar(it) }
+) {
     override val discrete = true
 }
 
@@ -446,4 +1336,5 @@ class URealSlackFunction(
     constraint,
     name,
     displayName,
-    { URealVar(it) })
+    { URealVar(it) }
+)

@@ -50,6 +50,18 @@ interface Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapMapVariables")
+    fun <K1, K2, K3> add(items: Map<K1, Map<K2, Map<K3, AbstractVariableItem<*, *>>>>): Try {
+        return add(items.values.flatMap { it.values }.map { it.values }.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapMapVariableLists")
+    fun <K1, K2, K3> add(items: Map<K1, Map<K2, Map<K3, Iterable<AbstractVariableItem<*, *>>>>>): Try {
+        return add(items.values.flatMap { it.values }.map { it.values }.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityVariable")
     fun add(item: Quantity<AbstractVariableItem<*, *>>): Try {
         return add(item.value)
@@ -403,8 +415,7 @@ interface QuadraticModel : LinearModel {
         polynomial: AbstractLinearPolynomial<*>,
         name: String?,
         displayName: String?
-    )
-            : Try {
+    ) : Try {
         return addObject(category, QuadraticPolynomial(polynomial), name, displayName)
     }
 

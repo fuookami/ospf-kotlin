@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 interface ResourceTimeSlot<
     out R : Resource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 > : Indexed {
     val resource: R
     val resourceCapacity: C
@@ -50,7 +50,7 @@ interface ResourceTimeSlot<
 interface ResourceUsage<
     out S : ResourceTimeSlot<R, C>,
     out R : Resource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 > {
     val name: String
 
@@ -68,7 +68,7 @@ interface ResourceUsage<
 abstract class AbstractResourceUsage<
     out S : ResourceTimeSlot<R, C>,
     out R : Resource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 > : ResourceUsage<S, R, C> {
     override lateinit var overQuantity: LinearIntermediateSymbols1
     override lateinit var lessQuantity: LinearIntermediateSymbols1
@@ -84,9 +84,9 @@ abstract class AbstractResourceUsage<
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.overEnabled) {
                             val slack = SlackFunction(
-                                UContinuous,
-                                x = LinearPolynomial(quantity[slot]),
-                                threshold = LinearPolynomial(slot.resourceCapacity.quantity.upperBound.value.unwrap()),
+                                x = quantity[slot],
+                                threshold = slot.resourceCapacity.quantity.upperBound.value.unwrap(),
+                                type = UContinuous,
                                 constraint = false,
                                 name = "${name}_over_quantity_$slot"
                             )
@@ -117,9 +117,8 @@ abstract class AbstractResourceUsage<
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.lessEnabled) {
                             val slack = SlackFunction(
-                                UContinuous,
-                                x = LinearPolynomial(quantity[slot]),
-                                threshold = LinearPolynomial(slot.resourceCapacity.quantity.lowerBound.value.unwrap()),
+                                x = quantity[slot],
+                                threshold = slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
                                 withPositive = false,
                                 constraint = false,
                                 name = "${name}_less_quantity_$slot"
@@ -151,7 +150,7 @@ abstract class AbstractResourceUsage<
 
 data class ConnectionResourceTimeSlot<
     out R : ConnectionResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     override val resource: R,
     override val resourceCapacity: C,
@@ -179,7 +178,7 @@ typealias ConnectionResourceUsage<R, C> = ResourceUsage<ConnectionResourceTimeSl
 
 abstract class AbstractConnectionResourceUsage<
     out R : ConnectionResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
@@ -224,7 +223,7 @@ abstract class AbstractConnectionResourceUsage<
 
 class TaskSchedulingConnectionResourceUsage<
     out R : ConnectionResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
@@ -279,7 +278,7 @@ class TaskSchedulingConnectionResourceUsage<
 
 data class ExecutionResourceTimeSlot<
     out R : ExecutionResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     override val resource: R,
     override val resourceCapacity: C,
@@ -310,7 +309,7 @@ typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot
 
 abstract class AbstractExecutionResourceUsage<
     out R : ExecutionResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
@@ -355,8 +354,8 @@ abstract class AbstractExecutionResourceUsage<
 
 class TaskSchedulingExecutionResourceUsage<
     out R : ExecutionResource<C>,
-    out C : ResourceCapacity
->private constructor(
+    out C : AbstractResourceCapacity
+> private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
     times: List<TimeRange>,
@@ -410,7 +409,7 @@ class TaskSchedulingExecutionResourceUsage<
 
 data class StorageResourceTimeSlot<
     out R : StorageResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     private val timeWindow: TimeWindow,
     override val resource: R,
@@ -431,17 +430,7 @@ data class StorageResourceTimeSlot<
         task: AbstractTask<E, A>?
     ): Flt64 {
         return if (task != null) {
-            val timeRange = TimeRange(
-                min(
-                    task.time!!.start,
-                    time.start
-                ),
-                min(
-                    task.time!!.end,
-                    time.end
-                )
-            )
-            resource.supplyBy(task, timeRange) - resource.costBy(task, timeRange)
+            supplyBy(task) - costBy(task)
         } else {
             Flt64.zero
         }
@@ -455,7 +444,7 @@ typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, 
 abstract class AbstractStorageResourceUsage<
     out E : Executor,
     out R : StorageResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     protected val timeWindow: TimeWindow,
     protected val executors: List<E>,
@@ -565,7 +554,7 @@ abstract class AbstractStorageResourceUsage<
 class TaskSchedulingStorageResourceUsage<
     out E : Executor,
     out R : StorageResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 >(
     timeWindow: TimeWindow,
     executors: List<E>,
@@ -625,7 +614,7 @@ class TaskSchedulingStorageResourceUsage<
 class IterativeTaskSchedulingStorageResourceUsage<
     out E : Executor,
     out R : StorageResource<C>,
-    out C : ResourceCapacity
+    out C : AbstractResourceCapacity
 > private constructor(
     timeWindow: TimeWindow,
     executors: List<E>,

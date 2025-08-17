@@ -265,6 +265,7 @@ private class GurobiQuadraticSolverImpl(
                                 when (it(
                                     SolvingStatus(
                                         solver = "gurobi",
+                                        time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
