@@ -37,9 +37,9 @@ class TaskOnTimeMaximization<
             }
         } else {
             val slack = SlackFunction(
-                UInteger,
                 x = sum(taskTime.onTime[_a]),
-                threshold = LinearPolynomial(threshold),
+                threshold = threshold,
+                type = UInteger,
                 name = "task_on_time_threshold"
             )
             when (val result = model.add(slack)) {

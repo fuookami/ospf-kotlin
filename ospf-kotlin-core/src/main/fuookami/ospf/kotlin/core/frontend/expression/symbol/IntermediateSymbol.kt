@@ -48,12 +48,24 @@ interface IntermediateSymbol : Expression {
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
-interface LinearIntermediateSymbol : IntermediateSymbol {
+interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
     val cells: List<LinearMonomialCell>
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return LinearPolynomial(this)
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
+    }
 }
 
-interface QuadraticIntermediateSymbol : IntermediateSymbol {
+interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomial<QuadraticPolynomial> {
     val cells: List<QuadraticMonomialCell>
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
+    }
 }
 
 abstract class ExpressionSymbol(

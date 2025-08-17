@@ -416,9 +416,9 @@ class BinaryzationFunction(
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
         impl ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
             BinaryzationFunctionImpl(x, this, name, displayName)
-        } else if (x.discrete) {
+        } else if (x.discrete || !extract) {
             BinaryzationFunctionDiscreteImpl(x, this, extract, name, displayName)
-        } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
+        } else if (!x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
             BinaryzationFunctionPiecewiseImpl(x, this, epsilon, name, displayName)
         } else {
             BinaryzationFunctionExtractAndNotDiscreteImpl(x, this, epsilon, name, displayName)

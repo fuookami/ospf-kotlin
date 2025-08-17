@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
@@ -60,7 +61,11 @@ data class QuadraticMonomialCell internal constructor(
             if (variable2 != null || rhs.variable2 != null) {
                 throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.times: over quadratic.")
             }
-            return QuadraticCellTriple(coefficient * rhs.coefficient, variable1, rhs.variable1)
+            return if ((variable1.key ord rhs.variable1.key) is Order.Greater) {
+                QuadraticCellTriple(coefficient * rhs.coefficient, rhs.variable1, variable1)
+            } else {
+                QuadraticCellTriple(coefficient * rhs.coefficient, variable1, rhs.variable1)
+            }
         }
 
         operator fun div(rhs: Flt64) = QuadraticCellTriple(coefficient / rhs, variable1, variable2)
@@ -972,7 +977,7 @@ class QuadraticMonomial(
     override val symbol: QuadraticMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<QuadraticMonomial, QuadraticMonomialCell> {
+) : Monomial<QuadraticMonomial, QuadraticMonomialCell>, ToQuadraticPolynomial<QuadraticPolynomial> {
     companion object {
         operator fun invoke(item: AbstractVariableItem<*, *>): QuadraticMonomial {
             return QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item))
@@ -1356,6 +1361,10 @@ class QuadraticMonomial(
                 "$coefficient * $symbol"
             }
         }
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 }
 

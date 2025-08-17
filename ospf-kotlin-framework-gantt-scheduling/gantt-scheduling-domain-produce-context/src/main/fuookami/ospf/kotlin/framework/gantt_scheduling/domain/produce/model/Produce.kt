@@ -46,9 +46,9 @@ abstract class AbstractProduce<
                     val (product, demand) = products[i]
                     if (demand != null && demand.overEnabled) {
                         val slack = SlackFunction(
-                            UContinuous,
-                            x = LinearPolynomial(quantity[product]),
-                            threshold = LinearPolynomial(demand.quantity.upperBound.value.unwrap()),
+                            x = quantity[product],
+                            threshold = demand.quantity.upperBound.value.unwrap(),
+                            type = UContinuous,
                             constraint = false,
                             name = "produce_over_quantity_$product"
                         )
@@ -79,9 +79,9 @@ abstract class AbstractProduce<
                     val (product, demand) = products[i]
                     if (demand != null && demand.lessEnabled) {
                         val slack = SlackFunction(
-                            UContinuous,
-                            x = LinearPolynomial(quantity[product]),
-                            threshold = LinearPolynomial(demand.quantity.lowerBound.value.unwrap()),
+                            x = quantity[product],
+                            threshold = demand.quantity.lowerBound.value.unwrap(),
+                            type = UContinuous,
                             withPositive = false,
                             constraint = false,
                             name = "produce_less_quantity_$product"

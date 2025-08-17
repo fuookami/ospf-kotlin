@@ -108,6 +108,10 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     }
 }
 
+interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> {
+    fun toLinearPolynomial(): Poly
+}
+
 class LinearPolynomial(
     override val monomials: List<LinearMonomial> = emptyList(),
     override val constant: Flt64 = Flt64.zero,

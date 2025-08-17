@@ -159,13 +159,13 @@ open class BunchSchedulingTaskTime<
                                 with(timeWindow) { time.start.value }.floor()
                             }
                             val slack = SlackFunction(
-                                if (timeWindow.continues) {
+                                x = estimateStartTime[task],
+                                y = y,
+                                type = if (timeWindow.continues) {
                                     UContinuous
                                 } else {
                                     UInteger
                                 },
-                                x = LinearPolynomial(estimateStartTime[task]),
-                                y = LinearPolynomial(y),
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_$task"

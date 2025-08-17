@@ -84,9 +84,9 @@ abstract class AbstractResourceUsage<
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.overEnabled) {
                             val slack = SlackFunction(
-                                UContinuous,
-                                x = LinearPolynomial(quantity[slot]),
-                                threshold = LinearPolynomial(slot.resourceCapacity.quantity.upperBound.value.unwrap()),
+                                x = quantity[slot],
+                                threshold = slot.resourceCapacity.quantity.upperBound.value.unwrap(),
+                                type = UContinuous,
                                 constraint = false,
                                 name = "${name}_over_quantity_$slot"
                             )
@@ -117,9 +117,8 @@ abstract class AbstractResourceUsage<
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.lessEnabled) {
                             val slack = SlackFunction(
-                                UContinuous,
-                                x = LinearPolynomial(quantity[slot]),
-                                threshold = LinearPolynomial(slot.resourceCapacity.quantity.lowerBound.value.unwrap()),
+                                x = quantity[slot],
+                                threshold = slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
                                 withPositive = false,
                                 constraint = false,
                                 name = "${name}_less_quantity_$slot"

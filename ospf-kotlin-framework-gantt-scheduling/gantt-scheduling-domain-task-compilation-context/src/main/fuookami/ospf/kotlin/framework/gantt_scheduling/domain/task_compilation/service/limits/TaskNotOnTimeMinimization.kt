@@ -37,9 +37,9 @@ class TaskNotOnTimeMinimization<
             }
         } else {
             val slack = SlackFunction(
-                UInteger,
                 x = sum(taskTime.notOnTime[_a]),
-                threshold = LinearPolynomial(threshold),
+                threshold = threshold,
+                type = UInteger,
                 name = "task_not_on_time_threshold"
             )
             when (val result = model.add(slack)) {

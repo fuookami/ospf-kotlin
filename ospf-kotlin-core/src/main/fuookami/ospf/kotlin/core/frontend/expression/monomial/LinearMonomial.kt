@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
@@ -548,7 +549,7 @@ data class LinearMonomial(
     override val symbol: LinearMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<LinearMonomial, LinearMonomialCell> {
+) : Monomial<LinearMonomial, LinearMonomialCell>, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
     companion object {
         operator fun invoke(item: AbstractVariableItem<*, *>): LinearMonomial {
             return LinearMonomial(Flt64.one, LinearMonomialSymbol(item))
@@ -645,6 +646,14 @@ data class LinearMonomial(
                 "$coefficient * $symbol"
             }
         }
+    }
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return LinearPolynomial(this)
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 }
 

@@ -37,9 +37,9 @@ class ProduceLessQuantityMinimization<
                     cost += coefficient(product) * produce.lessQuantity[product]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(produce.lessQuantity[product]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = produce.lessQuantity[product],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "produce_less_quantity_minimization_threshold_$product"
                     )
                     when (val result = model.add(slack)) {

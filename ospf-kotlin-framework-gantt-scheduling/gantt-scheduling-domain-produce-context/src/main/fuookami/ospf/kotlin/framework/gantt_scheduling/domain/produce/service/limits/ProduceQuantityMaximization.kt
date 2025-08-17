@@ -30,9 +30,9 @@ class ProduceQuantityMaximization<
                     coefficient(it) * produce.quantity[it]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(produce.quantity[it]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = produce.quantity[it],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "produce_quantity_minimization_threshold_$it"
                     )
                     when (val result = model.add(slack)) {

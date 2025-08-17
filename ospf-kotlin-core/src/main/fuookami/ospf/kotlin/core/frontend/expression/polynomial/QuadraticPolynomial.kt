@@ -166,6 +166,10 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
     }
 }
 
+interface ToQuadraticPolynomial<Poly : AbstractQuadraticPolynomial<Poly>> {
+    fun toQuadraticPolynomial(): Poly
+}
+
 class QuadraticPolynomial(
     override val monomials: List<QuadraticMonomial> = emptyList(),
     override val constant: Flt64 = Flt64.zero,

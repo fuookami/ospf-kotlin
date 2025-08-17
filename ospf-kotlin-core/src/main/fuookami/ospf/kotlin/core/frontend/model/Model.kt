@@ -415,8 +415,7 @@ interface QuadraticModel : LinearModel {
         polynomial: AbstractLinearPolynomial<*>,
         name: String?,
         displayName: String?
-    )
-            : Try {
+    ) : Try {
         return addObject(category, QuadraticPolynomial(polynomial), name, displayName)
     }
 

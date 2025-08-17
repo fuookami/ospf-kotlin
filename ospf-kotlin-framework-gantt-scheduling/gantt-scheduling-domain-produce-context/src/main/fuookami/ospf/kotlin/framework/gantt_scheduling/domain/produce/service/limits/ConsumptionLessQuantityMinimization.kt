@@ -37,9 +37,9 @@ class ConsumptionLessQuantityMinimization<
                     cost += coefficient(material) * consumption.lessQuantity[material]
                 } else {
                     val slack = SlackFunction(
-                        UContinuous,
-                        x = LinearPolynomial(consumption.lessQuantity[material]),
-                        threshold = LinearPolynomial(thresholdValue),
+                        x = consumption.lessQuantity[material],
+                        threshold = thresholdValue,
+                        type = UContinuous,
                         name = "consumption_less_quantity_minimization_threshold_$material"
                     )
                     when (val result = model.add(slack)) {

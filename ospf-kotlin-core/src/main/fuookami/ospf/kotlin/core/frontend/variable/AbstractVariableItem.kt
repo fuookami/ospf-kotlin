@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
 import fuookami.ospf.kotlin.utils.physics.quantity.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 
 data class VariableItemKey(
     val identifier: UInt64,
@@ -51,7 +52,8 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     val type: Type,
     var name: String,
     val constants: RealNumberConstants<T>
-) where T : RealNumber<T>, T : NumberField<T> {
+): ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial>
+        where T : RealNumber<T>, T : NumberField<T> {
     abstract val dimension: Int
     abstract val identifier: UInt64
     abstract val index: Int
@@ -73,6 +75,14 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
 
     open infix fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
         return identifier == combination.identifier
+    }
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return LinearPolynomial(this)
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 
     override fun hashCode() = key.hashCode()
