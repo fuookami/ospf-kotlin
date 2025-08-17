@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-plugin-persistence-mysql</name>
+    <name>ospf-kotlin-framework-plugin-persistence-mysql-jdk8</name>
     <artifactId>ospf-kotlin-framework-plugin-persistence-mysql-jdk8</artifactId>
 
     <properties>

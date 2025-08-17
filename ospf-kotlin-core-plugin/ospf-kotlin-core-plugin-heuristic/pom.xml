@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-core-plugin-heuristic</name>
+    <name>ospf-kotlin-core-plugin-heuristic-jdk8</name>
     <artifactId>ospf-kotlin-core-plugin-heuristic-jdk8</artifactId>
 
     <build>

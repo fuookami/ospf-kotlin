@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-starters</name>
+    <name>ospf-kotlin-starters-jdk8</name>
     <artifactId>ospf-kotlin-starters-jdk8</artifactId>
     <packaging>pom</packaging>
     <modules>

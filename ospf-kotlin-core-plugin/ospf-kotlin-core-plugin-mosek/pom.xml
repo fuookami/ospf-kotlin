@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-core-plugin-mosek</name>
+    <name>ospf-kotlin-core-plugin-mosek-jdk8</name>
     <artifactId>ospf-kotlin-core-plugin-mosek-jdk8</artifactId>
 
     <dependencies>

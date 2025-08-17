@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-plugin-persistence-redis</name>
+    <name>ospf-kotlin-framework-plugin-persistence-redis-jdk8</name>
     <artifactId>ospf-kotlin-framework-plugin-persistence-redis-jdk8</artifactId>
 
     <properties>

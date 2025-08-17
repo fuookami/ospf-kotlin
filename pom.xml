@@ -25,7 +25,7 @@
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <version>1.0.57</version>
     <packaging>pom</packaging>
-    <name>ospf-kotlin</name>
+    <name>ospf-kotlin-jdk8</name>
     <description>operation research algorithm software framework</description>
     <url>https://github.com/fuookami/ospf-kotlin</url>
 
@@ -38,7 +38,7 @@
 
     <developers>
         <developer>
-            <name>fuookami</name>
+            <name>fuookami-jdk8</name>
             <email>wfuookami@gmail.com</email>
             <roles>
                 <role>developer</role>

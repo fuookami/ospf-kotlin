@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-plugin-persistence-sqlite</name>
+    <name>ospf-kotlin-framework-plugin-persistence-sqlite-jdk8</name>
     <artifactId>ospf-kotlin-framework-plugin-persistence-sqlite-jdk8</artifactId>
 
     <properties>

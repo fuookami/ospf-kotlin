@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-gantt-scheduling-application</name>
+    <name>ospf-kotlin-framework-gantt-scheduling-application-jdk8</name>
     <artifactId>ospf-kotlin-framework-gantt-scheduling-application-jdk8</artifactId>
 
     <build>

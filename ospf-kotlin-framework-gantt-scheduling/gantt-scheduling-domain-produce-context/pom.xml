@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-fraemwork-gantt-scheduling-domain-produce-context</name>
+    <name>ospf-kotlin-fraemwork-gantt-scheduling-domain-produce-context-jdk8</name>
     <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-produce-context-jdk8</artifactId>
 
     <dependencies>

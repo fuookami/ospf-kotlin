@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-starter-network-scheduling</name>
+    <name>ospf-kotlin-starter-network-scheduling-jdk8</name>
     <artifactId>ospf-kotlin-starter-network-scheduling-jdk8</artifactId>
 
     <dependencies>

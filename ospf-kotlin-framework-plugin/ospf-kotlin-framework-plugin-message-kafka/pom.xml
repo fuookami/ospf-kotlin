@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-plugin-message-kafka</name>
+    <name>ospf-kotlin-framework-plugin-message-kafka-jdk8</name>
     <artifactId>ospf-kotlin-framework-plugin-message-kafka-jdk8</artifactId>
 
     <properties>

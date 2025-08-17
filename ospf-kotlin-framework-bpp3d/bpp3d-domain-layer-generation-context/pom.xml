@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-bpp3d-domain-layer-generation-context</name>
+    <name>ospf-kotlin-framework-bpp3d-domain-layer-generation-context-jdk8</name>
     <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-generation-context-jdk8</artifactId>
 
     <dependencies>

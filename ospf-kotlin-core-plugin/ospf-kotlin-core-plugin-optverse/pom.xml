@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-core-plugin-optverse</name>
+    <name>ospf-kotlin-core-plugin-optverse-jdk8</name>
     <artifactId>ospf-kotlin-core-plugin-optverse-jdk8</artifactId>
 
     <properties>

@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework</name>
+    <name>ospf-kotlin-framework-jdk8</name>
     <artifactId>ospf-kotlin-framework-jdk8</artifactId>
 
     <dependencies>

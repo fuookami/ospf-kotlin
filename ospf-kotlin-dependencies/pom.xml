@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-dependencies</name>
+    <name>ospf-kotlin-dependencies-jdk8</name>
     <artifactId>ospf-kotlin-dependencies-jdk8</artifactId>
     <packaging>pom</packaging>
 
