@@ -12,9 +12,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias AndFunctionImplBuilder = (AndFunction) -> AbstractAndFunctionImpl
+
 abstract class AbstractAndFunctionImpl(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    protected val parent: LinearLogicFunctionSymbol
+    protected val parent: AndFunction
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -68,44 +70,58 @@ abstract class AbstractAndFunctionImpl(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -113,12 +129,31 @@ abstract class AbstractAndFunctionImpl(
     }
 }
 
-private class AndFunctionOnePolynomialImpl(
+class AndFunctionOnePolynomialImpl(
     val polynomial: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: AndFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(listOf(polynomial), parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            polynomial: T,
+            parent: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionOnePolynomialImpl {
+            return AndFunctionOnePolynomialImpl(
+                polynomial.toLinearPolynomial(),
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val bin: BinaryzationFunction by lazy {
         BinaryzationFunction(polynomial, name = "${name}_bin")
     }
@@ -172,10 +207,26 @@ private class AndFunctionOnePolynomialImpl(
 
 private class AndFunctionMultiPolynomialImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: LinearLogicFunctionSymbol,
+    parent: AndFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(polynomials, parent) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            parent: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionMultiPolynomialImpl {
+            return AndFunctionMultiPolynomialImpl(
+                polynomials.map { it.toLinearPolynomial() },
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val maxmin: MaxMinFunction by lazy {
         MaxMinFunction(polynomials, "${name}_maxmin")
     }
@@ -253,10 +304,26 @@ private class AndFunctionMultiPolynomialImpl(
 
 private class AndFunctionMultiPolynomialBinaryImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: LinearLogicFunctionSymbol,
+    parent: AndFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(polynomials, parent) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<AbstractLinearPolynomial<*>>,
+            parent: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionMultiPolynomialImpl {
+            return AndFunctionMultiPolynomialImpl(
+                polynomials.map { it.toLinearPolynomial() },
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val y: BinVar by lazy {
         BinVar("${name}_y")
     }
@@ -342,15 +409,46 @@ class AndFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override var name: String,
     override var displayName: String? = null,
-    impl: AbstractAndFunctionImpl? = null
+    impl: AndFunctionImplBuilder? = null
 ) : LinearLogicFunctionSymbol {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            name: String,
+            displayName: String? = null,
+            impl: AndFunctionImplBuilder? = null
+        ): AndFunction {
+            return AndFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                name,
+                displayName,
+                impl
+            )
+        }
+    }
+
     private val impl: AbstractAndFunctionImpl by lazy {
-        impl ?: if (polynomials.size == 1) {
-            AndFunctionOnePolynomialImpl(polynomials[0], this, name, displayName)
+        impl?.invoke(this) ?: if (polynomials.size == 1) {
+            AndFunctionOnePolynomialImpl(
+                polynomials.first(),
+                this,
+                name,
+                displayName
+            )
         } else if (polynomials.all { it.discrete && it.upperBound!!.value.unwrap() leq Flt64.one }) {
-            AndFunctionMultiPolynomialBinaryImpl(polynomials, this, name, displayName)
+            AndFunctionMultiPolynomialBinaryImpl(
+                polynomials,
+                this,
+                name,
+                displayName
+            )
         } else {
-            AndFunctionMultiPolynomialImpl(polynomials, this, name, displayName)
+            AndFunctionMultiPolynomialImpl(
+                polynomials,
+                this,
+                name,
+                displayName
+            )
         }
     }
 
@@ -417,19 +515,33 @@ class AndFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
     }
 }

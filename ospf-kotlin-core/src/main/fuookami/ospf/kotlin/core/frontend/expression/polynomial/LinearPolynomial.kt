@@ -30,8 +30,12 @@ private fun cells(
     return cells.map { LinearMonomialCell(it.value, it.key) } + LinearMonomialCell(totalConstant)
 }
 
+interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> {
+    fun toLinearPolynomial(): Poly
+}
+
 sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
-    Polynomial<Self, LinearMonomial, LinearMonomialCell> {
+    Polynomial<Self, LinearMonomial, LinearMonomialCell>, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
     abstract override val monomials: List<LinearMonomial>
     override val category get() = Linear
 
@@ -106,10 +110,6 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
                 }
             }
     }
-}
-
-interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> {
-    fun toLinearPolynomial(): Poly
 }
 
 class LinearPolynomial(
@@ -409,6 +409,14 @@ class LinearPolynomial(
             monomials = monomials.map { it / rhs },
             constant = constant
         )
+    }
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return this
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 }
 
@@ -788,6 +796,14 @@ class MutableLinearPolynomial(
     override fun divAssign(rhs: Flt64) {
         monomials = monomials.map { it / rhs }.toMutableList()
         constant /= rhs
+    }
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return LinearPolynomial(this)
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 }
 

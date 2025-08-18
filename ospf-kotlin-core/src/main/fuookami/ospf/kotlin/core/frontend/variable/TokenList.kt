@@ -66,7 +66,7 @@ class TokenList(
     constructor(tokens: MutableTokenList) : this(tokens.list.toMap())
 
     init {
-        list.forEach { (key, value) ->
+        list.forEach { (_, value) ->
             value.refreshCallbacks[this] = {
                 synchronized(lock) {
                     _cachedSolution = tokens.any { it.result != null }

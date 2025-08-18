@@ -139,7 +139,7 @@ class MaskingFunction(
         return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val xValue = x.evaluate(tokenTable) ?: return null
 
-            val maskValue = mask?.evaluate(tokenTable)?.let {
+            val maskValue = mask.evaluate(tokenTable)?.let {
                 it gr Flt64.zero
             } ?: return null
 
