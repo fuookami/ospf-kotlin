@@ -32,7 +32,9 @@ class CplexColumnGenerationSolver(
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
         }
         val model = when (val result = LinearMechanismModel(
             metaModel = metaModel,
@@ -45,12 +47,14 @@ class CplexColumnGenerationSolver(
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
         }
 
         val solver = CplexLinearSolver(
@@ -61,12 +65,12 @@ class CplexColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Ok(result.value)
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Failed(result.error)
             }
         }
@@ -83,7 +87,9 @@ class CplexColumnGenerationSolver(
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
         }
         val model = when (val result = LinearMechanismModel(
             metaModel = metaModel,
@@ -96,12 +102,14 @@ class CplexColumnGenerationSolver(
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
         }
 
         val results = ArrayList<Solution>()
@@ -141,12 +149,12 @@ class CplexColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Ok(Pair(result.value, results))
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Failed(result.error)
             }
         }
@@ -162,7 +170,9 @@ class CplexColumnGenerationSolver(
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
         }
         val model = when (val result = LinearMechanismModel(
             metaModel = metaModel,
@@ -171,17 +181,19 @@ class CplexColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 return Failed(result.error)
             }
         }
         model.linearRelax()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
         }
 
         lateinit var dualSolution: Solution
@@ -193,7 +205,9 @@ class CplexColumnGenerationSolver(
                     ok
                 }
                 .analyzingSolution { cplex, _, constraints ->
-                    dualSolution = constraints.map { Flt64(cplex.getDual(it)) }
+                    dualSolution = constraints.map {
+                        Flt64(cplex.getDual(it))
+                    }
                     ok
                 }
         )
@@ -201,12 +215,12 @@ class CplexColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Failed(result.error)
             }
         }

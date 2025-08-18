@@ -13,9 +13,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias NotFunctionImplBuilder = (NotFunction) -> AbstractNotFunctionImpl
+
 abstract class AbstractNotFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
-    protected val parent: LinearFunctionSymbol
+    protected val parent: NotFunction
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -59,7 +61,10 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(tokenList, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
@@ -69,7 +74,11 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(results, tokenList, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
@@ -79,7 +88,10 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(tokenTable, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
@@ -89,7 +101,11 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value eq Flt64.zero) {
@@ -102,10 +118,29 @@ abstract class AbstractNotFunctionImpl(
 
 class NotFunctionImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionImpl {
+            return NotFunctionImpl(
+                x.toLinearPolynomial(),
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     override val polyY: AbstractLinearPolynomial<*> by lazy {
         Flt64.one - x
     }
@@ -137,11 +172,32 @@ class NotFunctionImpl(
 
 class NotFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            epsilon: Flt64,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionPiecewiseImpl {
+            return NotFunctionPiecewiseImpl(
+                x.toLinearPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
             x,
@@ -204,12 +260,33 @@ class NotFunctionPiecewiseImpl(
 
 class NotFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            extract: Boolean,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionDiscreteImpl {
+            return NotFunctionDiscreteImpl(
+                x.toLinearPolynomial(),
+                parent,
+                extract,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val y: BinVar by lazy {
         val y = BinVar("${name}_y")
@@ -290,12 +367,33 @@ class NotFunctionDiscreteImpl(
 
 class NotFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            epsilon: Flt64,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionExtractAndNotDiscreteImpl {
+            return NotFunctionExtractAndNotDiscreteImpl(
+                x.toLinearPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val b: PctVar by lazy {
         PctVar("${name}_b")
@@ -405,23 +503,69 @@ class NotFunction(
     private val extract: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     private val piecewise: Boolean = false,
-    impl: AbstractNotFunctionImpl? = null,
+    impl: NotFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
     companion object {
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
+
+        operator fun <
+           T : ToLinearPolynomial<Poly>,
+           Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            extract: Boolean = true,
+            epsilon: Flt64 = Flt64(1e-6),
+            piecewise: Boolean = false,
+            impl: NotFunctionImplBuilder? = null,
+            name: String,
+            displayName: String? = null,
+        ): NotFunction {
+            return NotFunction(
+                x.toLinearPolynomial(),
+                extract,
+                epsilon,
+                piecewise,
+                impl,
+                name,
+                displayName
+            )
+        }
     }
 
     private val impl: AbstractNotFunctionImpl by lazy {
-        impl ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
-            NotFunctionImpl(x, this, name, displayName)
+        impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
+            NotFunctionImpl(
+                x,
+                this,
+                name,
+                displayName
+            )
         } else if (x.discrete) {
-            NotFunctionDiscreteImpl(x, this, extract, name, displayName)
+            NotFunctionDiscreteImpl(
+                x,
+                this,
+                extract,
+                name,
+                displayName
+            )
         } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
-            NotFunctionPiecewiseImpl(x, this, epsilon, name, displayName)
+            NotFunctionPiecewiseImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         } else {
-            NotFunctionExtractAndNotDiscreteImpl(x, this, epsilon, name, displayName)
+            NotFunctionExtractAndNotDiscreteImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         }
     }
 
@@ -481,19 +625,33 @@ class NotFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
     }
 }

@@ -190,24 +190,42 @@ sealed class AbstractMaxFunction(
         return displayName ?: name
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOfOrNull { it.evaluate(tokenList, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.maxOfOrNull {
+            it.evaluate(tokenList, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOfOrNull { it.evaluate(results, tokenList, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.maxOfOrNull {
+            it.evaluate(results, tokenList, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOfOrNull { it.evaluate(tokenTable, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.maxOfOrNull {
+            it.evaluate(tokenTable, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return polynomials.maxOfOrNull { it.evaluate(results, tokenTable, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.maxOfOrNull {
+            it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 }
 
@@ -216,6 +234,20 @@ class MinMaxFunction(
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(polynomials, true, name, displayName) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            name: String,
+            displayName: String? = name
+        ): MinMaxFunction {
+            return MinMaxFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                name,
+                displayName
+            )
+        }
+    }
+
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
@@ -230,6 +262,20 @@ class MaxFunction(
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(polynomials, false, name, displayName) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            name: String,
+            displayName: String? = name
+        ): MaxFunction {
+            return MaxFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                name,
+                displayName
+            )
+        }
+    }
+
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name

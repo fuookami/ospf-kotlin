@@ -131,9 +131,28 @@ interface Expression {
     val range: ExpressionRange<Flt64>
     val lowerBound get() = range.lowerBound?.toFlt64()
     val upperBound get() = range.upperBound?.toFlt64()
+    val fixedValue get() = range.fixedValue
 
     fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
+
+    fun evaluate(values: Map<AbstractVariableItem<*, *>, Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64? {
+        val results = (0 until tokenList.tokenIndexMap.size).map { index ->
+            val token = tokenList.tokenIndexMap.inverse[index]
+            token?.let { values[it.variable] }
+                ?: token?.result
+                ?: if (zeroIfNone) {
+                    return@map Flt64.zero
+                } else {
+                    return null
+                }
+        }
+        return evaluate(results, tokenList, zeroIfNone)
+    }
+
+    fun evaluate(values: Map<AbstractVariableItem<*, *>, Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(values, tokenTable.tokenList, zeroIfNone)
+    }
 }

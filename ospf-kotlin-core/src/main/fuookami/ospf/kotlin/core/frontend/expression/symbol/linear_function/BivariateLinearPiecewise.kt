@@ -390,25 +390,39 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val thisX = x.evaluate(tokenList, zeroIfNone) ?: return null
         val thisY = y.evaluate(tokenList, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val thisX = x.evaluate(results, tokenList, zeroIfNone) ?: return null
         val thisY = y.evaluate(results, tokenList, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val thisX = x.evaluate(tokenTable, zeroIfNone) ?: return null
         val thisY = y.evaluate(tokenTable, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val thisX = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val thisY = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return z(thisX, thisY)
@@ -442,6 +456,27 @@ class BivariateLinearPiecewiseFunction(
                 displayName = displayName
             )
         }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly1>,
+            T2 : ToLinearPolynomial<Poly2>,
+            Poly1 : AbstractLinearPolynomial<Poly1>,
+            Poly2 : AbstractLinearPolynomial<Poly2>
+        > invoke(
+            x: T1,
+            y: T2,
+            points: List<Point3>,
+            name: String,
+            displayName: String? = null
+        ): BivariateLinearPiecewiseFunction {
+            return BivariateLinearPiecewiseFunction(
+                x = x.toLinearPolynomial(),
+                y = y.toLinearPolynomial(),
+                points = points,
+                name = name,
+                displayName = displayName
+            )
+        }
     }
 }
 
@@ -459,7 +494,7 @@ class IsolineBivariateLinearPiecewiseFunction(
             y: AbstractLinearPolynomial<*>,
             isolines: List<Pair<Flt64, List<Point2>>>,
             name: String,
-            displayName: String? = "${name}(${x.name}, ${y.name})"
+            displayName: String? = null
         ): IsolineBivariateLinearPiecewiseFunction {
             val sortedIsolines = isolines
                 .map { Pair(it.first, it.second.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }) }
@@ -470,6 +505,27 @@ class IsolineBivariateLinearPiecewiseFunction(
                 y = y,
                 isolines = sortedIsolines,
                 triangles = triangles,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly1>,
+            T2 : ToLinearPolynomial<Poly2>,
+            Poly1 : AbstractLinearPolynomial<Poly1>,
+            Poly2 : AbstractLinearPolynomial<Poly2>
+        > invoke(
+            x: T1,
+            y: T2,
+            isolines: List<Pair<Flt64, List<Point2>>>,
+            name: String,
+            displayName: String? = null
+        ): IsolineBivariateLinearPiecewiseFunction {
+            return IsolineBivariateLinearPiecewiseFunction(
+                x = x.toLinearPolynomial(),
+                y = y.toLinearPolynomial(),
+                isolines = isolines,
                 name = name,
                 displayName = displayName
             )

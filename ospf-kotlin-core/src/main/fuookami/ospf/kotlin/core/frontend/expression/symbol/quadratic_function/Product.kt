@@ -20,6 +20,38 @@ class ProductFunction(
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToQuadraticPolynomial<*>>,
+            name: String = polynomials.joinToString("*") { "$it" },
+            displayName: String? = null
+        ): ProductFunction {
+            return ProductFunction(
+                polynomials.map { it.toQuadraticPolynomial() },
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : AbstractQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : AbstractQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>
+        > invoke(
+            x: T1,
+            y: T2,
+            name: String = "$x*$y",
+            displayName: String? = null
+        ): ProductFunction {
+            return ProductFunction(
+                listOf(x.toQuadraticPolynomial(), y.toQuadraticPolynomial()),
+                name,
+                displayName
+            )
+        }
+    }
+
     constructor(
         x: AbstractQuadraticPolynomial<*>,
         y: AbstractQuadraticPolynomial<*>,
@@ -159,7 +191,10 @@ class ProductFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
             val thisValue = rhs.evaluate(tokenList, zeroIfNone)
                 ?: return null
@@ -167,7 +202,11 @@ class ProductFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
             val thisValue = rhs.evaluate(results, tokenList, zeroIfNone)
                 ?: return null
@@ -175,7 +214,10 @@ class ProductFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
             val thisValue = rhs.evaluate(tokenTable, zeroIfNone)
                 ?: return null
@@ -183,7 +225,11 @@ class ProductFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
             val thisValue = rhs.evaluate(results, tokenTable, zeroIfNone)
                 ?: return null

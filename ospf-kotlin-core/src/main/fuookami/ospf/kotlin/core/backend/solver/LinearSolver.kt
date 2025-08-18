@@ -164,7 +164,7 @@ interface LinearSolver : AbstractLinearSolver {
     val config: SolverConfig
 
     override suspend fun dump(model: LinearMechanismModel): LinearTriadModel {
-        return LinearTriadModel(model, config.dumpIntermediateModelConcurrent)
+        return LinearTriadModel(model, null, config.dumpIntermediateModelConcurrent)
     }
 
     override suspend fun dump(

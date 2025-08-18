@@ -21,6 +21,90 @@ class IfInFunction(
 ) : LinearLogicFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            lowerBound: Int,
+            upperBound: Int,
+            name: String,
+            displayName: String? = null
+        ): IfInFunction {
+            return IfInFunction(
+                x.toLinearPolynomial(),
+                LinearPolynomial(lowerBound),
+                LinearPolynomial(upperBound),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            lowerBound: Double,
+            upperBound: Double,
+            name: String,
+            displayName: String? = null
+        ): IfInFunction {
+            return IfInFunction(
+                x.toLinearPolynomial(),
+                LinearPolynomial(lowerBound),
+                LinearPolynomial(upperBound),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>,
+            T2 : RealNumber<T2>,
+            T3 : RealNumber<T3>
+        > invoke (
+            x: T1,
+            lowerBound: T2,
+            upperBound: T3,
+            name: String,
+            displayName: String? = null
+        ): IfInFunction {
+            return IfInFunction(
+                x.toLinearPolynomial(),
+                LinearPolynomial(lowerBound),
+                LinearPolynomial(upperBound),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly1>,
+            Poly1 : AbstractLinearPolynomial<Poly1>,
+            T2 : ToLinearPolynomial<Poly2>,
+            Poly2 : AbstractLinearPolynomial<Poly2>,
+            T3 : ToLinearPolynomial<Poly3>,
+            Poly3 : AbstractLinearPolynomial<Poly3>
+        > invoke(
+            x: T1,
+            lowerBound: T2,
+            upperBound: T3,
+            name: String,
+            displayName: String? = null
+        ): IfInFunction {
+            return IfInFunction(
+                x.toLinearPolynomial(),
+                lowerBound.toLinearPolynomial(),
+                upperBound.toLinearPolynomial(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val lb = lowerBound
     private val ub = upperBound
 
@@ -163,7 +247,10 @@ class IfInFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(tokenList, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(tokenList, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(tokenList, zeroIfNone) ?: return null
@@ -174,7 +261,11 @@ class IfInFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(results, tokenList, zeroIfNone) ?: return null
@@ -185,7 +276,10 @@ class IfInFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(tokenTable, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(tokenTable, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(tokenTable, zeroIfNone) ?: return null
@@ -196,7 +290,11 @@ class IfInFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(results, tokenTable, zeroIfNone) ?: return null

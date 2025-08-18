@@ -8,13 +8,17 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
+interface ToQuadraticInequality {
+    fun toQuadraticInequality(): QuadraticInequality
+}
+
 class QuadraticInequality(
     override val lhs: AbstractQuadraticPolynomial<*>,
     override val rhs: AbstractQuadraticPolynomial<*>,
     sign: Sign,
     name: String = "",
     displayName: String? = null
-) : Inequality<QuadraticInequality, QuadraticMonomialCell>(lhs, rhs, sign, name, displayName) {
+) : Inequality<QuadraticInequality, QuadraticMonomialCell>(lhs, rhs, sign, name, displayName), ToQuadraticInequality {
     companion object {
         operator fun invoke(inequality: LinearInequality): QuadraticInequality {
             return QuadraticInequality(
@@ -93,6 +97,24 @@ class QuadraticInequality(
             name = name,
             displayName = displayName
         )
+    }
+
+    override fun normalizeToLessEqual(): QuadraticInequality {
+        return when (sign) {
+            Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
+
+            Sign.Greater, Sign.GreaterEqual -> QuadraticInequality(
+                lhs = QuadraticPolynomial(lhs.monomials.map { -it } + rhs.monomials.map { it.copy() }),
+                rhs = QuadraticPolynomial(lhs.constant - rhs.constant),
+                sign = sign.reverse,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
+    override fun toQuadraticInequality(): QuadraticInequality {
+        return this
     }
 }
 

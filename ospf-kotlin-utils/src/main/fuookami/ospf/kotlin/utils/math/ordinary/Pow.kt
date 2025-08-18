@@ -28,7 +28,7 @@ fun <T> pow(
     base: T,
     index: Int,
     constants: RealNumberConstants<T>,
-    digits: Int = constants.decimalDigits!!,
+    digits: Int = constants.decimalDigits ?: 0,
     precision: T = constants.epsilon
 ): T where T : TimesSemiGroup<T>, T : RealNumber<T> {
     return if (index >= 1) {
@@ -44,7 +44,7 @@ fun <T> pow(
     base: T,
     index: Int,
     constants: RealNumberConstants<T>,
-    digits: Int = constants.decimalDigits!!,
+    digits: Int = constants.decimalDigits ?: 0,
     precision: T = constants.epsilon
 ): T where T : TimesGroup<T>, T : RealNumber<T> {
     return if (index >= 1) {
@@ -60,7 +60,7 @@ fun <T : FloatingNumber<T>> pow(
     base: T,
     index: T,
     constants: FloatingNumberConstants<T>,
-    digits: Int = constants.decimalDigits!!,
+    digits: Int = constants.decimalDigits ?: 0,
     precision: T = constants.epsilon
 ): T {
     val lnBase = ln(base, constants, digits, precision)!!
@@ -71,7 +71,7 @@ fun <T : FloatingNumber<T>> pow(
 fun <T : FloatingNumber<T>> exp(
     index: T,
     constants: FloatingNumberConstants<T>,
-    digits: Int = constants.decimalDigits!!,
+    digits: Int = constants.decimalDigits ?: 0,
     precision: T = constants.epsilon
 ): T {
     var value  = constants.one

@@ -12,10 +12,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias SatisfiedAmountPolynomialFunctionImplBuilder = (AbstractSatisfiedAmountPolynomialFunction) -> AbstractSatisfiedAmountPolynomialFunctionImpl
+
 abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     protected val amount: UInt64? = null,
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    protected val parent: LinearFunctionSymbol
+    protected val parent: AbstractSatisfiedAmountPolynomialFunction
 ) : LinearFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -83,7 +85,10 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
             val value = polynomial.evaluate(tokenList, zeroIfNone)
@@ -103,7 +108,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
             val value = polynomial.evaluate(results, tokenList, zeroIfNone)
@@ -123,7 +132,10 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
             val value = polynomial.evaluate(tokenTable, zeroIfNone)
@@ -143,7 +155,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
             val value = polynomial.evaluate(results, tokenTable, zeroIfNone)
@@ -166,10 +182,26 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
 
 private class SatisfiedAmountPolynomialFunctionAnyImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: LinearFunctionSymbol,
+    parent: AbstractSatisfiedAmountPolynomialFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64.one, polynomials, parent) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            parent: AbstractSatisfiedAmountPolynomialFunction,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountPolynomialFunctionAnyImpl {
+            return SatisfiedAmountPolynomialFunctionAnyImpl(
+                polynomials.map { it.toLinearPolynomial() },
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val or: OrFunction by lazy {
         OrFunction(polynomials, name, displayName)
     }
@@ -228,10 +260,26 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
 
 private class SatisfiedAmountPolynomialFunctionAllImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: LinearFunctionSymbol,
+    parent: AbstractSatisfiedAmountPolynomialFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64(polynomials.size), polynomials, parent) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            parent: AbstractSatisfiedAmountPolynomialFunction,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountPolynomialFunctionAllImpl {
+            return SatisfiedAmountPolynomialFunctionAllImpl(
+                polynomials.map { it.toLinearPolynomial() },
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val and: AndFunction by lazy {
         AndFunction(polynomials, name, displayName)
     }
@@ -292,11 +340,31 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
     amount: UInt64?,
     polynomials: List<AbstractLinearPolynomial<*>>,
     private val extract: Boolean = true,
-    parent: LinearFunctionSymbol,
+    parent: AbstractSatisfiedAmountPolynomialFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractSatisfiedAmountPolynomialFunctionImpl(amount, polynomials, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun invoke(
+            amount: UInt64?,
+            polynomials: List<ToLinearPolynomial<*>>,
+            extract: Boolean,
+            parent: AbstractSatisfiedAmountPolynomialFunction,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountPolynomialFunctionSomeImpl {
+            return SatisfiedAmountPolynomialFunctionSomeImpl(
+                amount,
+                polynomials.map { it.toLinearPolynomial() },
+                extract,
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
@@ -437,24 +505,41 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 sealed class AbstractSatisfiedAmountPolynomialFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     private val extract: Boolean = true,
-    impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
+    impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
     open val amount: UInt64? = null
 
     private val impl: AbstractSatisfiedAmountPolynomialFunctionImpl by lazy {
-        impl ?: when (amount) {
+        impl?.invoke(this) ?: when (amount) {
             UInt64.one -> {
-                SatisfiedAmountPolynomialFunctionAnyImpl(polynomials, this, name, displayName)
+                SatisfiedAmountPolynomialFunctionAnyImpl(
+                    polynomials,
+                    this,
+                    name,
+                    displayName
+                )
             }
 
             UInt64(polynomials.size) -> {
-                SatisfiedAmountPolynomialFunctionAllImpl(polynomials, this, name, displayName)
+                SatisfiedAmountPolynomialFunctionAllImpl(
+                    polynomials,
+                    this,
+                    name,
+                    displayName
+                )
             }
 
             else -> {
-                SatisfiedAmountPolynomialFunctionSomeImpl(amount, polynomials, extract, this, name, displayName)
+                SatisfiedAmountPolynomialFunctionSomeImpl(
+                    amount,
+                    polynomials,
+                    extract,
+                    this,
+                    name,
+                    displayName
+                )
             }
         }
     }
@@ -519,38 +604,99 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
     }
 }
 
 class SatisfiedAmountPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
+    impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     name: String,
     displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunction(polynomials, impl = impl, name = name, displayName = displayName)
+) : AbstractSatisfiedAmountPolynomialFunction(
+    polynomials,
+    impl = impl,
+    name = name,
+    displayName = displayName
+) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountPolynomialFunction {
+            return SatisfiedAmountPolynomialFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                impl = impl,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
 
 class AtLeastPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     override val amount: UInt64,
     extract: Boolean = true,
-    impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
+    impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     name: String,
     displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunction(polynomials, extract, impl = impl, name = name, displayName = displayName), LinearLogicFunctionSymbol {
+) : AbstractSatisfiedAmountPolynomialFunction(
+    polynomials,
+    extract,
+    impl = impl,
+    name = name,
+    displayName = displayName
+), LinearLogicFunctionSymbol {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            amount: UInt64,
+            extract: Boolean = true,
+            impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
+            name: String,
+            displayName: String? = null
+        ): AtLeastPolynomialFunction {
+            return AtLeastPolynomialFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                amount,
+                extract,
+                impl = impl,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     init {
         assert(amount != UInt64.zero)
         assert(UInt64(polynomials.size) geq amount)
@@ -568,19 +714,42 @@ class AtLeastPolynomialFunction(
 data object SatisfiedAmountFunction {
     operator fun invoke(
         polynomials: List<AbstractLinearPolynomial<*>>,
-        impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
+        impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
         name: String,
         displayName: String? = null
     ): SatisfiedAmountPolynomialFunction {
-        return SatisfiedAmountPolynomialFunction(polynomials, impl = impl, name = name, displayName = displayName)
+        return SatisfiedAmountPolynomialFunction(
+            polynomials,
+            impl = impl,
+            name = name,
+            displayName = displayName
+        )
     }
 
+    @JvmName("constructWithInequalities")
     operator fun invoke(
         inequalities: List<LinearInequality>,
         name: String,
         displayName: String? = null
     ): SatisfiedAmountInequalityFunction {
-        return SatisfiedAmountInequalityFunction(inequalities, name = name, displayName = displayName)
+        return SatisfiedAmountInequalityFunction(
+            inequalities,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @JvmName("constructWithToInequalities")
+    operator fun invoke(
+        inequalities: List<ToLinearInequality>,
+        name: String,
+        displayName: String? = null
+    ): SatisfiedAmountInequalityFunction {
+        return SatisfiedAmountInequalityFunction(
+            inequalities.map { it.toLinearInequality() },
+            name = name,
+            displayName = displayName
+        )
     }
 }
 
@@ -589,13 +758,21 @@ data object AtLeastFunction {
         polynomials: List<AbstractLinearPolynomial<*>>,
         amount: UInt64,
         extract: Boolean = true,
-        impl: AbstractSatisfiedAmountPolynomialFunctionImpl? = null,
+        impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
         name: String,
         displayName: String? = null
     ): AtLeastPolynomialFunction {
-        return AtLeastPolynomialFunction(polynomials, amount, extract, impl = impl, name = name, displayName = displayName)
+        return AtLeastPolynomialFunction(
+            polynomials,
+            amount,
+            extract,
+            impl = impl,
+            name = name,
+            displayName = displayName
+        )
     }
 
+    @JvmName("constructWithInequalities")
     operator fun invoke(
         inequalities: List<LinearInequality>,
         constraint: Boolean = true,
@@ -603,6 +780,29 @@ data object AtLeastFunction {
         name: String,
         displayName: String? = null
     ): AtLeastInequalityFunction {
-        return AtLeastInequalityFunction(inequalities, constraint, amount, name = name, displayName = displayName)
+        return AtLeastInequalityFunction(
+            inequalities,
+            constraint,
+            amount,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @JvmName("constructWithToInequalities")
+    operator fun invoke(
+        inequalities: List<ToLinearInequality>,
+        constraint: Boolean = true,
+        amount: UInt64,
+        name: String,
+        displayName: String? = null
+    ): AtLeastInequalityFunction {
+        return AtLeastInequalityFunction(
+            inequalities.map { it.toLinearInequality() },
+            constraint,
+            amount,
+            name = name,
+            displayName = displayName
+        )
     }
 }

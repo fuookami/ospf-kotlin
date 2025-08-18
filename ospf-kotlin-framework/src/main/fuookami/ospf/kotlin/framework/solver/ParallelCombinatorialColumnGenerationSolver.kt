@@ -96,7 +96,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                             result
                         }
                     }
-                    val results = promises.map { it.await() }
+                    val results = promises.awaitAll()
                     val successResults = results.mapNotNull {
                         when (it) {
                             is Ok -> {
@@ -190,7 +190,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                             result
                         }
                     }
-                    val results = promises.map { it.await() }
+                    val results = promises.awaitAll()
                     val successResults = results.mapNotNull {
                         when (it) {
                             is Ok -> {

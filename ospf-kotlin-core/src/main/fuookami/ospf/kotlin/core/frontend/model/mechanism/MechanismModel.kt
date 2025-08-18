@@ -6,9 +6,12 @@ import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
+import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed interface MechanismModel {
     val name: String
@@ -49,6 +52,8 @@ class LinearMechanismModel(
     override val objectFunction: SingleObject,
     override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
+    private val logger = logger()
+
     companion object {
         private val logger = logger()
 
@@ -250,6 +255,63 @@ class LinearMechanismModel(
         name?.let { constraint.name = it }
         _constraints.add(LinearConstraint(constraint, tokens))
         return ok
+    }
+
+    fun generateFeasibleCut(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualSolution: Solution,
+    ): List<LinearInequality> {
+        val rhs = MutableLinearPolynomial(constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
+            acc + dualSolution[i] * constraint.rhs
+        })
+        for ((i, constraint) in constraints.withIndex()) {
+            if (dualSolution[i] eq Flt64.zero) {
+                continue
+            }
+
+            for (cell in constraint.lhs) {
+                val variable = cell.token.variable
+                if (variable in fixedVariables) {
+                    val coefficient = dualSolution[i] * cell.coefficient
+                    if (coefficient neq Flt64.zero) {
+                        rhs -= coefficient * variable
+                    }
+                }
+            }
+        }
+        return listOf((objectVariable geq rhs).normalize())
+    }
+
+    fun generateInfeasibleCut(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualSolution: Solution,
+    ): List<LinearInequality> {
+        var value = Flt64.zero
+        val lhs = MutableLinearPolynomial()
+        for ((i, constraint) in constraints.withIndex()) {
+            if (farkasDualSolution[i] eq Flt64.zero) {
+                continue
+            }
+
+            value += farkasDualSolution[i] * constraint.rhs
+            lhs += farkasDualSolution[i] * constraint.rhs
+            for (cell in constraint.lhs) {
+                val variable = cell.token.variable
+                if (variable in fixedVariables) {
+                    val coefficient = farkasDualSolution[i] * cell.coefficient
+                    if (coefficient neq Flt64.zero) {
+                        lhs -= coefficient * variable
+                    }
+                    value -= farkasDualSolution[i] * cell.coefficient * fixedVariables[variable]!!
+                }
+            }
+        }
+        if (value ls Flt64.zero) {
+            logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
+            lhs *= -Flt64.one
+        }
+        return listOf((lhs leq Flt64.zero).normalize())
     }
 
     override fun toString(): String {

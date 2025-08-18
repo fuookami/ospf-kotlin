@@ -20,6 +20,25 @@ class RoundingFunction(
 ) : LinearFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Flt64,
+            name: String = "round_${x}_${d}",
+            displayName: String? = "⌊$x/$d⌉"
+        ): RoundingFunction {
+            return RoundingFunction(
+                x.toLinearPolynomial(),
+                d,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val q: IntVar by lazy {
         val q = IntVar("${name}_q")
         q.range.set(
@@ -144,19 +163,33 @@ class RoundingFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenList, zeroIfNone)?.let { (it / d).round() }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenList, zeroIfNone)?.let { (it / d).round() }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenTable, zeroIfNone)?.let { (it / d).round() }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenTable, zeroIfNone)?.let { (it / d).round() }
     }
 }

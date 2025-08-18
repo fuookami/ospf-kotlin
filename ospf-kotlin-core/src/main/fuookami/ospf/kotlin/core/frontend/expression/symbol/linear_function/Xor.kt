@@ -21,6 +21,22 @@ class XorFunction(
 ) : LinearLogicFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun invoke(
+            polynomials: List<AbstractLinearPolynomial<*>>,
+            extract: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): XorFunction {
+            return XorFunction(
+                polynomials,
+                extract,
+                name,
+                displayName
+            )
+        }
+    }
+
     init {
         assert(polynomials.size >= 2)
     }
@@ -289,7 +305,10 @@ class XorFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
@@ -308,7 +327,11 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
@@ -327,7 +350,10 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
@@ -346,7 +372,11 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {

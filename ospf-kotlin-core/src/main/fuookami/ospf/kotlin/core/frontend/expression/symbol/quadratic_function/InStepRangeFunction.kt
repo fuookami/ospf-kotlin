@@ -20,6 +20,95 @@ class InStepRangeFunction(
     private val lb = lowerBound
     private val ub = upperBound
 
+    companion object {
+        operator fun <
+            T1 : AbstractQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : AbstractQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>
+        > invoke(
+            lowerBound: T1,
+            upperBound: T2,
+            step: Int,
+            name: String,
+            displayName: String? = null
+        ): InStepRangeFunction {
+            return InStepRangeFunction(
+                lowerBound.toQuadraticPolynomial(),
+                upperBound.toQuadraticPolynomial(),
+                QuadraticPolynomial(step),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : AbstractQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : AbstractQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>
+        > invoke(
+            lowerBound: T1,
+            upperBound: T2,
+            step: Double,
+            name: String,
+            displayName: String? = null
+        ): InStepRangeFunction {
+            return InStepRangeFunction(
+                lowerBound.toQuadraticPolynomial(),
+                upperBound.toQuadraticPolynomial(),
+                QuadraticPolynomial(step),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : AbstractQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : AbstractQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>,
+            T3 : RealNumber<T3>
+        > invoke(
+            lowerBound: T1,
+            upperBound: T2,
+            step: T3,
+            name: String,
+            displayName: String? = null
+        ): InStepRangeFunction {
+            return InStepRangeFunction(
+                lowerBound.toQuadraticPolynomial(),
+                upperBound.toQuadraticPolynomial(),
+                QuadraticPolynomial(step),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : AbstractQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : AbstractQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>,
+            T3 : AbstractQuadraticPolynomial<Poly3>,
+            Poly3 : AbstractQuadraticPolynomial<Poly3>
+        > invoke(
+            lowerBound: T1,
+            upperBound: T2,
+            step: T3,
+            name: String,
+            displayName: String? = null
+        ): InStepRangeFunction {
+            return InStepRangeFunction(
+                lowerBound.toQuadraticPolynomial(),
+                upperBound.toQuadraticPolynomial(),
+                step.toQuadraticPolynomial(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val stepLinear: LinearFunction by lazy {
         LinearFunction(
             step,
@@ -150,7 +239,10 @@ class InStepRangeFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(tokenList, zeroIfNone)?.let { lbValue ->
             step.evaluate(tokenList, zeroIfNone)?.let { stepValue ->
                 q.evaluate(tokenList, zeroIfNone)?.let { qValue ->
@@ -160,7 +252,11 @@ class InStepRangeFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(results, tokenList, zeroIfNone)?.let { lbValue ->
             step.evaluate(results, tokenList, zeroIfNone)?.let { stepValue ->
                 q.evaluate(results, tokenList, zeroIfNone)?.let { qValue ->
@@ -170,7 +266,10 @@ class InStepRangeFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(tokenTable, zeroIfNone)?.let { lbValue ->
             step.evaluate(tokenTable, zeroIfNone)?.let { stepValue ->
                 q.evaluate(tokenTable, zeroIfNone)?.let { qValue ->
@@ -180,7 +279,11 @@ class InStepRangeFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(results, tokenTable, zeroIfNone)?.let { lbValue ->
             step.evaluate(tokenTable, zeroIfNone)?.let { stepValue ->
                 q.evaluate(results, tokenTable, zeroIfNone)?.let { qValue ->

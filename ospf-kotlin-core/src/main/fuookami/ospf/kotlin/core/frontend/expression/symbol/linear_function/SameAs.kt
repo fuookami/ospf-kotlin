@@ -15,11 +15,29 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class SameAsFunction(
     inequalities: List<LinearInequality>,
     private val constraint: Boolean = true,
-    private val fixedValue: Boolean? = null,
+    private val fixed: Boolean? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
     private val logger = logger()
+
+    companion object {
+        operator fun invoke(
+            inequalities: List<ToLinearInequality>,
+            constraint: Boolean = true,
+            fixedValue: Boolean? = null,
+            name: String,
+            displayName: String? = null
+        ): SameAsFunction {
+            return SameAsFunction(
+                inequalities.map { it.toLinearInequality() },
+                constraint,
+                fixedValue,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val inequalities by lazy {
         inequalities.map { it.normalize() }
@@ -35,8 +53,8 @@ class SameAsFunction(
 
     private val y: BinVar by lazy {
         val y = BinVar("${name}_y")
-        if (fixedValue != null) {
-            y.range.eq(fixedValue)
+        if (fixed != null) {
+            y.range.eq(fixed)
         }
         y
     }
@@ -203,7 +221,10 @@ class SameAsFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
             val value = inequality.isTrue(tokenList, zeroIfNone) ?: return null
@@ -216,7 +237,11 @@ class SameAsFunction(
         return Flt64.one
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
             val value = inequality.isTrue(results, tokenList, zeroIfNone) ?: return null
@@ -229,7 +254,10 @@ class SameAsFunction(
         return Flt64.one
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
             val value = inequality.isTrue(tokenTable, zeroIfNone) ?: return null
@@ -242,7 +270,11 @@ class SameAsFunction(
         return Flt64.one
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
             val value = inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null

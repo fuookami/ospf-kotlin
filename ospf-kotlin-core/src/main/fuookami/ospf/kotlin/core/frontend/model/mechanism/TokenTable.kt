@@ -48,6 +48,19 @@ sealed interface AbstractTokenTable {
         return find(item)?.let { indexOf(it) }
     }
 
+    fun tokenIndexMapWithout(items: Set<AbstractVariableItem<*, *>>): BiMap<Token, Int> {
+        var i = 0
+        val thisTokenIndexMap = HashBiMap<Token, Int>()
+        for (j in 0 until tokenIndexMap.size) {
+            val token = tokenIndexMap.inverse[j]!!
+            if (token.variable !in items) {
+                thisTokenIndexMap[token] = i
+                i += 1
+            }
+        }
+        return thisTokenIndexMap
+    }
+
     fun setSolution(solution: List<Flt64>) {
         flush()
         tokenList.setSolution(solution)

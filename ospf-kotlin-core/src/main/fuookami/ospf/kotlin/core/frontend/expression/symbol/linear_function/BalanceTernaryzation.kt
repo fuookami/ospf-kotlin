@@ -14,9 +14,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias BalanceTernaryzationFunctionImplBuilder = (BalanceTernaryzationFunction) -> AbstractBalanceTernaryzationFunctionImpl
+
 abstract class AbstractBalanceTernaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
-    protected val parent: LinearFunctionSymbol
+    protected val parent: BalanceTernaryzationFunction
 ) : LinearFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -64,7 +66,10 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(tokenList, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
@@ -76,7 +81,11 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(results, tokenList, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
@@ -88,7 +97,10 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(tokenTable, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
@@ -100,7 +112,11 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value ls Flt64.zero) {
@@ -115,10 +131,29 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
 
 class BalanceTernaryzationFunctionImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearFunctionSymbol,
+    parent: BalanceTernaryzationFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<*>
+        > invoke(
+            x: T,
+            parent: BalanceTernaryzationFunction,
+            name: String,
+            displayName: String? = null,
+        ): BalanceTernaryzationFunctionImpl {
+            return BalanceTernaryzationFunctionImpl(
+                x.toLinearPolynomial(),
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     override val polyY: AbstractLinearPolynomial<*> by lazy {
         x.copy()
     }
@@ -156,11 +191,32 @@ class BalanceTernaryzationFunctionImpl(
 
 class BalanceTernaryzationFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearFunctionSymbol,
+    parent: BalanceTernaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<*>
+        > invoke(
+            x: T,
+            parent: BalanceTernaryzationFunction,
+            epsilon: Flt64 = Flt64(1e-6),
+            name: String,
+            displayName: String? = null,
+        ): BalanceTernaryzationFunctionPiecewiseImpl {
+            return BalanceTernaryzationFunctionPiecewiseImpl(
+                x.toLinearPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
             x,
@@ -225,12 +281,33 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 
 class BalanceTernaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearFunctionSymbol,
+    parent: BalanceTernaryzationFunction,
     private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: BalanceTernaryzationFunction,
+            extract: Boolean = true,
+            name: String,
+            displayName: String? = null,
+        ): BalanceTernaryzationFunctionDiscreteImpl {
+            return BalanceTernaryzationFunctionDiscreteImpl(
+                x = x.toLinearPolynomial(),
+                parent = parent,
+                extract = extract,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
 
     private val y: BinVariable1 by lazy {
         val y = BinVariable1("${name}_y", Shape1(2))
@@ -358,12 +435,33 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
 class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearFunctionSymbol,
+    parent: BalanceTernaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: BalanceTernaryzationFunction,
+            epsilon: Flt64 = Flt64(1e-6),
+            name: String,
+            displayName: String? = null,
+        ): BalanceTernaryzationFunctionExtractAndNotDiscreteImpl {
+            return BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
+                x.toLinearPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val b: PctVariable1 by lazy {
         PctVariable1(name = "${name}_b", Shape1(2))
@@ -544,23 +642,69 @@ class BalanceTernaryzationFunction(
     private val extract: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     private val piecewise: Boolean = false,
-    impl: AbstractBalanceTernaryzationFunctionImpl? = null,
+    impl: BalanceTernaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
     companion object {
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
+
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x : T,
+            extract: Boolean = true,
+            epsilon: Flt64 = Flt64(1e-6),
+            piecewise: Boolean = false,
+            impl: BalanceTernaryzationFunctionImplBuilder? = null,
+            name: String,
+            displayName: String? = null
+        ): BalanceTernaryzationFunction {
+            return BalanceTernaryzationFunction(
+                x.toLinearPolynomial(),
+                extract,
+                epsilon,
+                piecewise,
+                impl,
+                name,
+                displayName
+            )
+        }
     }
 
     private val impl: AbstractBalanceTernaryzationFunctionImpl by lazy {
-        impl ?: if (x.discrete && ValueRange(-Flt64.one, Flt64.one).value!! contains x.range.range!!) {
-            BalanceTernaryzationFunctionImpl(x, this, name, displayName)
+        impl?.invoke(this) ?: if (x.discrete && ValueRange(-Flt64.one, Flt64.one).value!! contains x.range.range!!) {
+            BalanceTernaryzationFunctionImpl(
+                x,
+                this,
+                name,
+                displayName
+            )
         } else if (x.discrete) {
-            BalanceTernaryzationFunctionDiscreteImpl(x, this, extract, name, displayName)
+            BalanceTernaryzationFunctionDiscreteImpl(
+                x,
+                this,
+                extract,
+                name,
+                displayName
+            )
         } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
-            BalanceTernaryzationFunctionPiecewiseImpl(x, this, epsilon, name, displayName)
+            BalanceTernaryzationFunctionPiecewiseImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         } else {
-            BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(x, this, epsilon, name, displayName)
+            BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         }
     }
 
@@ -616,19 +760,33 @@ class BalanceTernaryzationFunction(
         return "bter(${x.toRawString(unfold)})"
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
     }
 }

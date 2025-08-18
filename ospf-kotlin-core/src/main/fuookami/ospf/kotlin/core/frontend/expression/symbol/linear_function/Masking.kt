@@ -20,41 +20,9 @@ class MaskingFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     companion object {
-        operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
-            x: T,
-            mask: AbstractLinearPolynomial<*>,
-            name: String,
-            displayName: String? = null
-        ): MaskingFunction {
-            return MaskingFunction(
-                x.toLinearPolynomial(),
-                mask,
-                name,
-                displayName
-            )
-        }
-
-        operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
-            x: AbstractLinearPolynomial<*>,
-            mask: T,
-            name: String,
-            displayName: String? = null
-        ): MaskingFunction {
-            return MaskingFunction(
-                x,
-                mask.toLinearPolynomial(),
-                name,
-                displayName
-            )
-        }
-
         operator fun <
             T1 : ToLinearPolynomial<Poly1>,
             T2 : ToLinearPolynomial<Poly2>,
@@ -74,8 +42,6 @@ class MaskingFunction(
             )
         }
     }
-
-    private val logger = logger()
 
     private val y: RealVar by lazy {
         val y = RealVar("${name}_y")
@@ -139,7 +105,7 @@ class MaskingFunction(
         return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
             val xValue = x.evaluate(tokenTable) ?: return null
 
-            val maskValue = mask?.evaluate(tokenTable)?.let {
+            val maskValue = mask.evaluate(tokenTable)?.let {
                 it gr Flt64.zero
             } ?: return null
 

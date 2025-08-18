@@ -20,6 +20,8 @@ class AbsFunction(
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     companion object {
         operator fun <T : ToLinearPolynomial<Poly>, Poly : AbstractLinearPolynomial<Poly>> invoke(
             x: T,
@@ -35,8 +37,6 @@ class AbsFunction(
             )
         }
     }
-
-    private val logger = logger()
 
     private val neg: PctVar by lazy {
         PctVar("${name}_neg")

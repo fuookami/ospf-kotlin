@@ -17,11 +17,34 @@ class InStepRangeFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    companion object {
+        operator fun <
+            T1 : ToLinearPolynomial<Poly1>,
+            Poly1 : AbstractLinearPolynomial<Poly1>,
+            T2 : ToLinearPolynomial<Poly2>,
+            Poly2 : AbstractLinearPolynomial<Poly2>
+        > invoke (
+            lowerBound: T1,
+            upperBound: T2,
+            step: Flt64,
+            name: String,
+            displayName: String? = null
+        ): InStepRangeFunction {
+            return InStepRangeFunction(
+                lowerBound.toLinearPolynomial(),
+                upperBound.toLinearPolynomial(),
+                step,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val lb = lowerBound
     private val ub = upperBound
 
-    private val q: Floor by lazy {
-        Floor(
+    private val q: FloorFunction by lazy {
+        FloorFunction(
             upperBound - lowerBound,
             step,
             name = "${name}_intDiv_$step"
@@ -115,7 +138,10 @@ class InStepRangeFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(tokenList, zeroIfNone)?.let { lbValue ->
             q.evaluate(tokenList, zeroIfNone)?.let { qValue ->
                 lbValue + qValue * step
@@ -123,7 +149,11 @@ class InStepRangeFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(results, tokenList, zeroIfNone)?.let { lbValue ->
             q.evaluate(results, tokenList, zeroIfNone)?.let { qValue ->
                 lbValue + qValue * step
@@ -131,7 +161,10 @@ class InStepRangeFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(tokenTable, zeroIfNone)?.let { lbValue ->
             q.evaluate(tokenTable, zeroIfNone)?.let { qValue ->
                 lbValue + qValue * step
@@ -139,7 +172,11 @@ class InStepRangeFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return lb.evaluate(results, tokenTable, zeroIfNone)?.let { lbValue ->
             q.evaluate(results, tokenTable, zeroIfNone)?.let { qValue ->
                 lbValue + qValue * step
