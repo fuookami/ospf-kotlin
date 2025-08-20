@@ -12,13 +12,67 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class Ceiling(
+class CeilingFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
     override var name: String = "ceil_${x}_${d}",
     override var displayName: String? = "⌈$x/$d⌉"
 ) : LinearFunctionSymbol {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Int,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toLinearPolynomial(),
+                Flt64(d.toDouble()),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Double,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toLinearPolynomial(),
+                Flt64(d),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>,
+            T2 : RealNumber<T2>
+        > invoke(
+            x: T1,
+            d: T2,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toLinearPolynomial(),
+                d.toFlt64(),
+                name,
+                displayName
+            )
+        }
+    }
 
     private val q: IntVar by lazy {
         val q = IntVar("${name}_q")
@@ -150,19 +204,39 @@ class Ceiling(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(tokenList, zeroIfNone)?.let { (it / d).ceil() }
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(tokenList, zeroIfNone)?.let {
+            (it / d).ceil()
+        }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let { (it / d).ceil() }
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+            (it / d).ceil()
+        }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(tokenTable, zeroIfNone)?.let { (it / d).floor() }
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(tokenTable, zeroIfNone)?.let {
+            (it / d).floor()
+        }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenTable, zeroIfNone)?.let { (it / d).ceil() }
     }
 }

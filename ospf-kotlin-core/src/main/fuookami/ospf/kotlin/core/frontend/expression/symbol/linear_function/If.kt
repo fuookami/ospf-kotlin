@@ -20,6 +20,22 @@ class IfFunction(
 ) : LinearLogicFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToLinearInequality
+        > invoke(
+            condition: T,
+            name: String,
+            displayName: String? = null
+        ): IfFunction {
+            return IfFunction(
+                condition.toLinearInequality(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val inequality by lazy {
         inequality.normalize()
     }
@@ -181,7 +197,10 @@ class IfFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (inequality.isTrue(tokenList, zeroIfNone)) {
             true -> {
                 Flt64.one
@@ -197,7 +216,11 @@ class IfFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (inequality.isTrue(results, tokenList, zeroIfNone)) {
             true -> {
                 Flt64.one
@@ -213,7 +236,10 @@ class IfFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (inequality.isTrue(tokenTable, zeroIfNone)) {
             true -> {
                 Flt64.one
@@ -229,7 +255,11 @@ class IfFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (inequality.isTrue(results, tokenTable, zeroIfNone)) {
             true -> {
                 Flt64.one

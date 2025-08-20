@@ -21,6 +21,79 @@ class CeilingFunction(
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Int,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toQuadraticPolynomial(),
+                QuadraticPolynomial(d),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Double,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toQuadraticPolynomial(),
+                QuadraticPolynomial(d),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>,
+            T2 : RealNumber<T2>
+        > invoke(
+            x: T1,
+            d: T2,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toQuadraticPolynomial(),
+                QuadraticPolynomial(d),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : ToQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>
+        > invoke(
+            x: T1,
+            d: T2,
+            name: String = "ceil_${x}_${d}",
+            displayName: String? = "⌈$x/$d⌉"
+        ): CeilingFunction {
+            return CeilingFunction(
+                x.toQuadraticPolynomial(),
+                d.toQuadraticPolynomial(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val dLinear: LinearFunction by lazy {
         LinearFunction(d, "${name}_d")
     }
@@ -197,7 +270,10 @@ class CeilingFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenList, zeroIfNone)?.let { xValue ->
             d.evaluate(tokenList, zeroIfNone)?.let { dValue ->
                 (xValue / dValue).ceil()
@@ -205,7 +281,11 @@ class CeilingFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenList, zeroIfNone)?.let { xValue ->
             d.evaluate(results, tokenList, zeroIfNone)?.let { dValue ->
                 (xValue / dValue).ceil()
@@ -213,7 +293,10 @@ class CeilingFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(tokenTable, zeroIfNone)?.let { xValue ->
             d.evaluate(tokenTable, zeroIfNone)?.let { dValue ->
                 (xValue / dValue).ceil()
@@ -221,7 +304,11 @@ class CeilingFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return x.evaluate(results, tokenTable, zeroIfNone)?.let { xValue ->
             d.evaluate(results, tokenTable, zeroIfNone)?.let { dValue ->
                 (xValue / dValue).ceil()

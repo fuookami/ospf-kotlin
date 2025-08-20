@@ -216,7 +216,10 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(tokenList, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(tokenList, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(tokenList, zeroIfNone) ?: return null
@@ -229,7 +232,11 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(results, tokenList, zeroIfNone) ?: return null
@@ -242,7 +249,10 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(tokenTable, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(tokenTable, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(tokenTable, zeroIfNone) ?: return null
@@ -255,7 +265,11 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(results, tokenTable, zeroIfNone) ?: return null
@@ -271,10 +285,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
 object SlackRangeFunction {
     operator fun invoke(
-        type: VariableType<*> = UInteger,
         x: AbstractQuadraticPolynomial<*>,
         lb: AbstractQuadraticPolynomial<*>,
         ub: AbstractQuadraticPolynomial<*>,
+        type: VariableType<*> = if (x.discrete && lb.discrete && ub.discrete) {
+            UInteger
+        } else {
+            UContinuous
+        },
         constraint: Boolean = true,
         name: String,
         displayName: String? = null,
@@ -284,6 +302,172 @@ object SlackRangeFunction {
         } else {
             URealSlackRangeFunction(x, lb, ub, constraint, name, displayName)
         }
+    }
+
+    operator fun <
+        T : ToQuadraticPolynomial<Poly>,
+        Poly : AbstractQuadraticPolynomial<Poly>
+    > invoke(
+        x: T,
+        lb: Int,
+        ub: Int,
+        type: VariableType<*>? = null,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackRangeFunction<*> {
+        val xPoly = x.toQuadraticPolynomial()
+        return invoke(
+            xPoly,
+            QuadraticPolynomial(lb),
+            QuadraticPolynomial(ub),
+            type = type ?: if (xPoly.discrete) {
+                UInteger
+            } else {
+                UContinuous
+            },
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T : ToQuadraticPolynomial<Poly>,
+        Poly : AbstractQuadraticPolynomial<Poly>
+    > invoke(
+        x: T,
+        lb: Double,
+        ub: Double,
+        type: VariableType<*>? = null,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackRangeFunction<*> {
+        return invoke(
+            x.toQuadraticPolynomial(),
+            QuadraticPolynomial(lb),
+            QuadraticPolynomial(ub),
+            type = type ?: UContinuous,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T : ToQuadraticPolynomial<Poly>,
+        Poly : AbstractQuadraticPolynomial<Poly>
+    > invoke(
+        x: T,
+        lb: Trivalent,
+        ub: Trivalent,
+        type: VariableType<*>? = null,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackRangeFunction<*> {
+        val xPoly = x.toQuadraticPolynomial()
+        return invoke(
+            xPoly,
+            QuadraticPolynomial(lb.value),
+            QuadraticPolynomial(ub.value),
+            type = type ?: if (xPoly.discrete) {
+                UInteger
+            } else {
+                UContinuous
+            },
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T : ToQuadraticPolynomial<Poly>,
+        Poly : AbstractQuadraticPolynomial<Poly>
+    > invoke(
+        x: T,
+        lb: BalancedTrivalent,
+        ub: BalancedTrivalent,
+        type: VariableType<*>? = null,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackRangeFunction<*> {
+        val xPoly = x.toQuadraticPolynomial()
+        return invoke(
+            xPoly,
+            QuadraticPolynomial(lb.value),
+            QuadraticPolynomial(ub.value),
+            type = type ?: if (xPoly.discrete) {
+                UInteger
+            } else {
+                UContinuous
+            },
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T1 : ToQuadraticPolynomial<Poly>,
+        Poly : AbstractQuadraticPolynomial<Poly>,
+        T2 : RealNumber<T2>,
+        T3 : RealNumber<T3>
+    > invoke(
+        x: T1,
+        lb: T2,
+        ub: T3,
+        type: VariableType<*>? = null,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackRangeFunction<*> {
+        return invoke(
+            x.toQuadraticPolynomial(),
+            QuadraticPolynomial(lb),
+            QuadraticPolynomial(ub),
+            type = type ?: UContinuous,
+            constraint,
+            name,
+            displayName
+        )
+    }
+
+    operator fun <
+        T1 : ToQuadraticPolynomial<Poly1>,
+        Poly1 : AbstractQuadraticPolynomial<Poly1>,
+        T2 : ToQuadraticPolynomial<Poly2>,
+        Poly2 : AbstractQuadraticPolynomial<Poly2>,
+        T3 : ToQuadraticPolynomial<Poly3>,
+        Poly3 : AbstractQuadraticPolynomial<Poly3>
+    > invoke(
+        x: T1,
+        lb: T2,
+        ub: T3,
+        type: VariableType<*>? = null,
+        constraint: Boolean = true,
+        name: String,
+        displayName: String? = null,
+    ): AbstractSlackRangeFunction<*> {
+        val xPoly = x.toQuadraticPolynomial()
+        val lbPoly = lb.toQuadraticPolynomial()
+        val ubPoly = ub.toQuadraticPolynomial()
+        return invoke(
+            xPoly,
+            lbPoly,
+            ubPoly,
+            type = type ?: if (xPoly.discrete && lbPoly.discrete && ubPoly.discrete) {
+                UInteger
+            } else {
+                UContinuous
+            },
+            constraint,
+            name,
+            displayName
+        )
     }
 }
 

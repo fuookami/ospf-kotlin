@@ -19,10 +19,29 @@ sealed class AbstractOneOfFunction(
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
     data class Branch(
-        val condition: LinearPolynomial?,
-        val polynomial: LinearPolynomial,
+        val condition: AbstractLinearPolynomial<*>?,
+        val polynomial: AbstractLinearPolynomial<*>,
         val name: String
-    )
+    ) {
+        companion object {
+            operator fun <
+                T1 : ToLinearPolynomial<Poly1>,
+                Poly1 : AbstractLinearPolynomial<Poly1>,
+                T2 : ToLinearPolynomial<Poly2>,
+                Poly2 : AbstractLinearPolynomial<Poly2>
+            > invoke(
+                condition: T1?,
+                polynomial: T2,
+                name: String
+            ): Branch {
+                return Branch(
+                    condition?.toLinearPolynomial(),
+                    polynomial.toLinearPolynomial(),
+                    name
+                )
+            }
+        }
+    }
 
     private val u: List<BinVar?> by lazy {
         branches.map {
@@ -194,7 +213,10 @@ sealed class AbstractOneOfFunction(
         return displayName ?: name
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((b, _) in branches.withIndex()) {
             val value = semis[b].evaluate(tokenList, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
@@ -204,7 +226,11 @@ sealed class AbstractOneOfFunction(
         return null
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((b, _) in branches.withIndex()) {
             val value = semis[b].evaluate(results, tokenList, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
@@ -214,7 +240,10 @@ sealed class AbstractOneOfFunction(
         return null
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((b, _) in branches.withIndex()) {
             val value = semis[b].evaluate(tokenTable, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
@@ -224,7 +253,11 @@ sealed class AbstractOneOfFunction(
         return null
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((b, _) in branches.withIndex()) {
             val value = semis[b].evaluate(results, tokenTable, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
@@ -238,7 +271,7 @@ sealed class AbstractOneOfFunction(
 class IfElseFunction(
     private val branch: Branch,
     private val elseBranch: Branch,
-    private val condition: LinearPolynomial,
+    private val condition: AbstractLinearPolynomial<*>,
     name: String,
     displayName: String? = null
 ) : AbstractOneOfFunction(
@@ -258,9 +291,43 @@ class IfElseFunction(
     displayName = displayName
 ) {
     data class Branch(
-        val polynomial: LinearPolynomial,
+        val polynomial: AbstractLinearPolynomial<*>,
         val name: String
-    )
+    ) {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            polynomial: T,
+            name: String
+        ): Branch {
+            return Branch(
+                polynomial.toLinearPolynomial(),
+                name
+            )
+        }
+    }
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            branch: Branch,
+            elseBranch: Branch,
+            condition: T,
+            name: String,
+            displayName: String? = null
+        ): IfElseFunction {
+            return IfElseFunction(
+                branch = branch,
+                elseBranch = elseBranch,
+                condition = condition.toLinearPolynomial(),
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
 
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {

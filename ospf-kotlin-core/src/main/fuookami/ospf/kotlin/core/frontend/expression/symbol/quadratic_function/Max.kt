@@ -192,22 +192,36 @@ sealed class AbstractMaxFunction(
         return displayName ?: name
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.maxOfOrNull { it.evaluate(tokenList, zeroIfNone) ?: return null }
             ?: Flt64.zero
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.maxOfOrNull { it.evaluate(results, tokenList, zeroIfNone) ?: return null }
             ?: Flt64.zero
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.maxOfOrNull { it.evaluate(tokenTable, zeroIfNone) ?: return null }
             ?: Flt64.zero
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomials.maxOfOrNull { it.evaluate(results, tokenTable, zeroIfNone) ?: return null }
             ?: Flt64.zero
     }
@@ -217,7 +231,26 @@ class MinMaxFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     name: String,
     displayName: String? = name
-) : AbstractMaxFunction(polynomials, true, name, displayName) {
+) : AbstractMaxFunction(
+    polynomials,
+    true,
+    name,
+    displayName
+) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToQuadraticPolynomial<*>>,
+            name: String,
+            displayName: String? = null
+        ): MinMaxFunction {
+            return MinMaxFunction(
+                polynomials.map { it.toQuadraticPolynomial() },
+                name,
+                displayName
+            )
+        }
+    }
+
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
@@ -231,7 +264,26 @@ class MaxFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     name: String,
     displayName: String? = name
-) : AbstractMaxFunction(polynomials, false, name, displayName) {
+) : AbstractMaxFunction(
+    polynomials,
+    false,
+    name,
+    displayName
+) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToQuadraticPolynomial<*>>,
+            name: String,
+            displayName: String? = null
+        ): MaxFunction {
+            return MaxFunction(
+                polynomials.map { it.toQuadraticPolynomial() },
+                name,
+                displayName
+            )
+        }
+    }
+
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name

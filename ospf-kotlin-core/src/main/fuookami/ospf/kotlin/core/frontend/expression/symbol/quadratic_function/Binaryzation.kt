@@ -12,9 +12,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias BinaryzationFunctionImplBuilder = (BinaryzationFunction) -> AbstractBinaryzationFunctionImpl
+
 abstract class AbstractBinaryzationFunctionImpl(
     protected val x: AbstractQuadraticPolynomial<*>,
-    protected val parent: QuadraticLogicFunctionSymbol
+    protected val parent: BinaryzationFunction
 ) : QuadraticLogicFunctionSymbol {
     protected abstract val polyY: AbstractQuadraticPolynomial<*>
 
@@ -54,7 +56,10 @@ abstract class AbstractBinaryzationFunctionImpl(
         return "bin(${x.toRawString(unfold)})"
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(tokenList, zeroIfNone)
             ?: return null
         return if (value neq Flt64.zero) {
@@ -64,7 +69,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(results, tokenList, zeroIfNone)
             ?: return null
         return if (value neq Flt64.zero) {
@@ -74,7 +83,10 @@ abstract class AbstractBinaryzationFunctionImpl(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(tokenTable, zeroIfNone)
             ?: return null
         return if (value neq Flt64.zero) {
@@ -84,7 +96,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val value = x.evaluate(results, tokenTable, zeroIfNone)
             ?: return null
         return if (value neq Flt64.zero) {
@@ -97,10 +113,29 @@ abstract class AbstractBinaryzationFunctionImpl(
 
 class BinaryzationFunctionImpl(
     x: AbstractQuadraticPolynomial<*>,
-    parent: QuadraticLogicFunctionSymbol,
+    parent: BinaryzationFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: BinaryzationFunction,
+            name: String,
+            displayName: String? = null
+        ): BinaryzationFunctionImpl {
+            return BinaryzationFunctionImpl(
+                x.toQuadraticPolynomial(),
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     override val polyY: AbstractQuadraticPolynomial<*> by lazy {
         x.copy()
     }
@@ -134,11 +169,32 @@ class BinaryzationFunctionImpl(
 
 class BinaryzationFunctionLinearImpl(
     x: AbstractQuadraticPolynomial<*>,
-    parent: QuadraticLogicFunctionSymbol,
+    parent: BinaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: BinaryzationFunction,
+            epsilon: Flt64,
+            name: String,
+            displayName: String? = null
+        ): BinaryzationFunctionLinearImpl {
+            return BinaryzationFunctionLinearImpl(
+                x.toQuadraticPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val linearX: LinearFunction by lazy {
         LinearFunction(x, "${name}_linear")
     }
@@ -227,17 +283,28 @@ class BinaryzationFunctionLinearImpl(
 class BinaryzationFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val epsilon: Flt64 = Flt64(1e-6),
-    impl: AbstractBinaryzationFunctionImpl? = null,
+    impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticLogicFunctionSymbol {
     private val logger = logger()
 
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
-        impl ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
-            BinaryzationFunctionImpl(x, this, name, displayName)
+        impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
+            BinaryzationFunctionImpl(
+                x,
+                this,
+                name,
+                displayName
+            )
         } else {
-            BinaryzationFunctionLinearImpl(x, this, epsilon, name, displayName)
+            BinaryzationFunctionLinearImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         }
     }
 
@@ -297,19 +364,32 @@ class BinaryzationFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
     }
 }

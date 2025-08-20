@@ -20,6 +20,27 @@ class IfThenFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    companion object {
+        operator fun <
+            T1 : ToLinearInequality,
+            T2 : ToLinearInequality
+        > invoke(
+            p: T1,
+            q: T2,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): IfThenFunction {
+            return IfThenFunction(
+                p.toLinearInequality(),
+                q.toLinearInequality(),
+                constraint,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val p by lazy { p.normalize() }
     private val q by lazy { q.normalize() }
 
@@ -264,7 +285,10 @@ class IfThenFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val pv = p.isTrue(tokenList, zeroIfNone) ?: return null
         val qv = q.isTrue(tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
@@ -274,7 +298,11 @@ class IfThenFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val pv = p.isTrue(results, tokenList, zeroIfNone) ?: return null
         val qv = q.isTrue(results, tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
@@ -284,7 +312,10 @@ class IfThenFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val pv = p.isTrue(tokenTable, zeroIfNone) ?: return null
         val qv = q.isTrue(tokenTable, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
@@ -294,7 +325,11 @@ class IfThenFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         val pv = p.isTrue(results, tokenTable, zeroIfNone) ?: return null
         val qv = q.isTrue(results, tokenTable, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {

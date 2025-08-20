@@ -19,6 +19,20 @@ class OrFunction(
 ) : LinearLogicFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            name: String,
+            displayName: String? = null
+        ): OrFunction {
+            return OrFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                name,
+                displayName
+            )
+        }
+    }
+
     private val y: BinVar by lazy {
         BinVar("${name}_y")
     }
@@ -174,7 +188,10 @@ class OrFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.any {
                 val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
                 thisValue neq Flt64.zero
@@ -185,7 +202,11 @@ class OrFunction(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.any {
                 val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
                 thisValue neq Flt64.zero
@@ -196,7 +217,10 @@ class OrFunction(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.any {
                 val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
                 thisValue neq Flt64.zero
@@ -207,7 +231,11 @@ class OrFunction(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.any {
                 val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
                 thisValue neq Flt64.zero

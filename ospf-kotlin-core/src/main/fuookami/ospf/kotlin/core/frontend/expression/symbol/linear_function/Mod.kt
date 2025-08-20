@@ -20,6 +20,60 @@ class ModFunction(
 ) : LinearFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Int,
+            name: String = "${x}_mod_${d}",
+            displayName: String? = "$x mod $d"
+        ): ModFunction {
+            return ModFunction(
+                x.toLinearPolynomial(),
+                Flt64(d.toDouble()),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Double,
+            name: String = "${x}_mod_${d}",
+            displayName: String? = "$x mod $d"
+        ): ModFunction {
+            return ModFunction(
+                x.toLinearPolynomial(),
+                Flt64(d),
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>,
+            T2 : RealNumber<T2>
+        > invoke(
+            x: T1,
+            d: T2,
+            name: String = "${x}_mod_${d}",
+            displayName: String? = "$x mod $d"
+        ): ModFunction {
+            return ModFunction(
+                x.toLinearPolynomial(),
+                d.toFlt64(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val q: IntVar by lazy {
         IntVar("${name}_q")
     }
@@ -134,19 +188,41 @@ class ModFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(tokenList, zeroIfNone)?.let { it % d }
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(tokenList, zeroIfNone)?.let {
+            it % d
+        }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let { it % d }
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+            it % d
+        }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(tokenTable, zeroIfNone)?.let { it % d }
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(tokenTable, zeroIfNone)?.let {
+            it % d
+        }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let { it % d }
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(results, tokenTable, zeroIfNone)?.let {
+            it % d
+        }
     }
 }

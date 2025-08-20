@@ -17,6 +17,23 @@ class LinearFunction(
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            polynomial: T,
+            name: String,
+            displayName: String? = null
+        ): LinearFunction {
+            return LinearFunction(
+                polynomial.toQuadraticPolynomial(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val y: RealVar by lazy {
         RealVar("${name}_y")
     }
@@ -112,19 +129,33 @@ class LinearFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(results, tokenTable, zeroIfNone)
     }
 }

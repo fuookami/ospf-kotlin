@@ -18,6 +18,20 @@ class FirstFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            name: String,
+            displayName: String? = null
+        ): FirstFunction {
+            return FirstFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                name,
+                displayName
+            )
+        }
+    }
+
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
             BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
@@ -220,7 +234,10 @@ class FirstFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
             val value = polynomial.evaluate(tokenList, zeroIfNone) ?: return null
             if (value neq Flt64.zero) {
@@ -230,7 +247,11 @@ class FirstFunction(
         return -Flt64.one
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
             val value = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
             if (value neq Flt64.zero) {
@@ -240,7 +261,10 @@ class FirstFunction(
         return -Flt64.one
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
             val value = polynomial.evaluate(tokenTable, zeroIfNone) ?: return null
             if (value neq Flt64.zero) {
@@ -250,7 +274,11 @@ class FirstFunction(
         return -Flt64.one
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
             val value = polynomial.evaluate(results, tokenTable, zeroIfNone) ?: return null
             if (value neq Flt64.zero) {

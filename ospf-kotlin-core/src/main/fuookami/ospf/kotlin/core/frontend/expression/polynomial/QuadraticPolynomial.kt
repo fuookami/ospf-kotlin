@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.inequality.*
 
 @JvmName("calculateQuadraticPolynomialCells")
 private fun cells(
@@ -31,8 +32,28 @@ private fun cells(
     return cells.map { QuadraticMonomialCell(it.value, it.key.first, it.key.second) } + QuadraticMonomialCell(totalConstant)
 }
 
-interface ToQuadraticPolynomial<Poly : AbstractQuadraticPolynomial<Poly>> {
+interface ToQuadraticPolynomial<Poly : AbstractQuadraticPolynomial<Poly>> : ToQuadraticInequality {
     fun toQuadraticPolynomial(): Poly
+
+    override fun toQuadraticInequality(): QuadraticInequality {
+        return this.toQuadraticPolynomial() eq true
+    }
+}
+
+@Throws(IllegalArgumentException::class)
+fun List<Any>.toQuadraticPolynomial(): List<AbstractQuadraticPolynomial<*>> {
+    return this.map {
+        when (it) {
+            is Int -> QuadraticPolynomial(it)
+            is Double -> QuadraticPolynomial(it)
+            is Boolean -> QuadraticPolynomial(it)
+            is Trivalent -> QuadraticPolynomial(it)
+            is BalancedTrivalent -> QuadraticPolynomial(it)
+            is RealNumber<*> -> QuadraticPolynomial(it.toFlt64())
+            is ToQuadraticPolynomial<*> -> it.toQuadraticPolynomial()
+            else -> throw IllegalArgumentException("Cannot convert $it to a quadratic polynomial")
+        }
+    }
 }
 
 sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self>> :

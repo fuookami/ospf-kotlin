@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class Sigmoid(
+class SigmoidFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val precision: Precision = Precision.All,
     private val decimalPrecision: Flt64 = Flt64(1e-5),
@@ -57,6 +57,25 @@ class Sigmoid(
 
         fun sigmoid(x: Flt64) = Flt64(1.0) / (Flt64.one + (-x).exp())
         fun x(y: Flt64) = -((Flt64(1.0) - y) / y).ln()!!
+
+        operator fun <
+            T : AbstractQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            x: T,
+            precision: Precision = Precision.All,
+            decimalPrecision: Flt64 = Flt64(1e-5),
+            name: String = "${x}_sigmoid",
+            displayName: String? = "Sigmoid($x)"
+        ): SigmoidFunction {
+            return SigmoidFunction(
+                x.toQuadraticPolynomial(),
+                precision,
+                decimalPrecision,
+                name,
+                displayName
+            )
+        }
     }
 
     private val impl = UnivariateLinearPiecewiseFunction(
@@ -132,27 +151,37 @@ class Sigmoid(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(tokenList, zeroIfNone)
-            ?: return null
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(tokenList, zeroIfNone) ?: return null
         return sigmoid(value)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone)
-            ?: return null
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(results, tokenList, zeroIfNone) ?: return null
         return sigmoid(value)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(tokenTable, zeroIfNone)
-            ?: return null
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(tokenTable, zeroIfNone) ?: return null
         return sigmoid(value)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone)
-            ?: return null
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return sigmoid(value)
     }
 }
