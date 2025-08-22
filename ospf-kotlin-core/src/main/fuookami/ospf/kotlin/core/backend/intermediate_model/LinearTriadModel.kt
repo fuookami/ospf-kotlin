@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
+
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
@@ -8,8 +9,14 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 
 data class LinearConstraintCell(
     override val rowIndex: Int,
@@ -195,18 +202,22 @@ data class LinearTriadModel(
     companion object {
         private val logger = logger()
 
-        suspend operator fun invoke(model: LinearMechanismModel, concurrent: Boolean? = null): LinearTriadModel {
+        suspend operator fun invoke(
+            model: LinearMechanismModel,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
+            concurrent: Boolean? = null
+        ): LinearTriadModel {
             logger.trace("Creating LinearTriadModel for $model")
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(model)
+                        dumpVariables(model, fixedVariables)
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(model)
+                        dumpConstraintsAsync(model, fixedVariables)
                     }
                     val objectivePromise = async(Dispatchers.Default) {
-                        dumpObjectives(model)
+                        dumpObjectives(model, fixedVariables)
                     }
 
                     LinearTriadModel(
@@ -221,11 +232,11 @@ data class LinearTriadModel(
             } else {
                 LinearTriadModel(
                     BasicLinearTriadModel(
-                        dumpVariables(model),
-                        dumpConstraints(model),
+                        dumpVariables(model, fixedVariables),
+                        dumpConstraints(model, fixedVariables),
                         model.name
                     ),
-                    dumpObjectives(model)
+                    dumpObjectives(model, fixedVariables)
                 )
             }
 
@@ -234,7 +245,10 @@ data class LinearTriadModel(
             return triadModel
         }
 
-        private fun dumpVariables(model: LinearMechanismModel): List<Variable> {
+        private fun dumpVariables(
+            model: LinearMechanismModel,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): List<Variable> {
             val tokens = model.tokens.tokens
             val tokenIndexes = model.tokens.tokenIndexMap
 
@@ -245,18 +259,22 @@ data class LinearTriadModel(
             for (token in tokens) {
                 val index = tokenIndexes[token]!!
                 variables[index] = Variable(
-                    index,
-                    token.lowerBound!!.value.unwrap(),
-                    token.upperBound!!.value.unwrap(),
-                    token.variable.type,
-                    token.variable.name,
-                    token.result
+                    index = index,
+                    lowerBound = token.lowerBound!!.value.unwrap(),
+                    upperBound = token.upperBound!!.value.unwrap(),
+                    type = token.variable.type,
+                    origin = token.variable,
+                    name = token.variable.name,
+                    initialResult = token.result
                 )
             }
             return variables.map { it!! }
         }
 
-        private fun dumpConstraints(model: LinearMechanismModel): LinearConstraint {
+        private fun dumpConstraints(
+            model: LinearMechanismModel,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): LinearConstraint {
             val tokenIndexes = model.tokens.tokenIndexMap
 
             val constraints = model.constraints.withIndex().map { (index, constraint) ->
@@ -295,7 +313,10 @@ data class LinearTriadModel(
             return LinearConstraint(lhs, signs, rhs, names)
         }
 
-        private suspend fun dumpConstraintsAsync(model: LinearMechanismModel): LinearConstraint {
+        private suspend fun dumpConstraintsAsync(
+            model: LinearMechanismModel,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): LinearConstraint {
             val tokenIndexes = model.tokens.tokenIndexMap
             return if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
                 val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
@@ -385,7 +406,10 @@ data class LinearTriadModel(
             }
         }
 
-        private fun dumpObjectives(model: LinearMechanismModel): LinearObjective {
+        private fun dumpObjectives(
+            model: LinearMechanismModel,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): LinearObjective {
             val tokens = model.tokens.tokens
             val tokenIndexes = model.tokens.tokenIndexMap
 
@@ -461,11 +485,12 @@ data class LinearTriadModel(
             }
 
             Variable(
-                it,
-                lowerBound,
-                upperBound,
-                Continuous,
-                "${this.constraints.names[it]}_dual"
+                index = it,
+                lowerBound = lowerBound,
+                upperBound = upperBound,
+                type = Continuous,
+                origin = null,
+                name = "${this.constraints.names[it]}_dual"
             )
         }
 
@@ -485,7 +510,7 @@ data class LinearTriadModel(
                     }
                 }
             }
-            constraintPromises.map { it.await() }
+            constraintPromises.awaitAll()
         }
         val signs = this.variables.map {
             if (it.lowerBound.isNegativeInfinity() && it.upperBound.isInfinity()) {
@@ -515,6 +540,44 @@ data class LinearTriadModel(
             ),
             LinearObjective(this.objective.category.reverse(), objective)
         )
+    }
+
+    fun generateFeasibleCut(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        objective: Flt64,
+        dualSolution: Solution,
+    ): List<LinearInequality> {
+        val rhs = MutableLinearPolynomial(objective)
+        for ((i, constraint) in constraints.lhs.withIndex()) {
+            for (cell in constraint) {
+                val variable = variables[cell.colIndex].origin ?: continue
+                if (variable in fixedVariables) {
+                    rhs += dualSolution[i] * cell.coefficient * variable
+                }
+            }
+        }
+        return listOf(objectVariable geq rhs)
+    }
+
+    fun generateInfeasibleCut(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualSolution: Solution,
+    ): List<LinearInequality> {
+        val rhs = MutableLinearPolynomial(
+            constraints.indices.sumOf {
+                farkasDualSolution[it] * constraints.rhs[it]
+            }
+        )
+        for ((i, constraint) in constraints.lhs.withIndex()) {
+            for (cell in constraint) {
+                val variable = variables[cell.colIndex].origin ?: continue
+                if (variable in fixedVariables) {
+                    rhs -= farkasDualSolution[i] * cell.coefficient * variable
+                }
+            }
+        }
+        return listOf(rhs leq Flt64.zero)
     }
 
     override fun exportLP(writer: FileWriter): Try {

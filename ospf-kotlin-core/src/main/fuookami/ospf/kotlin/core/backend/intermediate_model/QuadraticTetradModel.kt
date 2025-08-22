@@ -254,12 +254,13 @@ data class QuadraticTetradModel(
             for (token in tokens) {
                 val index = tokenIndexes[token]!!
                 variables[index] = Variable(
-                    index,
-                    token.lowerBound!!.value.unwrap(),
-                    token.upperBound!!.value.unwrap(),
-                    token.variable.type,
-                    token.variable.name,
-                    token.result
+                    index = index,
+                    lowerBound = token.lowerBound!!.value.unwrap(),
+                    upperBound = token.upperBound!!.value.unwrap(),
+                    type = token.variable.type,
+                    origin = token.variable,
+                    name = token.variable.name,
+                    initialResult = token.result
                 )
             }
             return variables.map { it!! }

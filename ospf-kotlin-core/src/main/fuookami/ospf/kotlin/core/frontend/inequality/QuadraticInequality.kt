@@ -99,6 +99,20 @@ class QuadraticInequality(
         )
     }
 
+    override fun normalizeToLessEqual(): QuadraticInequality {
+        return when (sign) {
+            Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
+
+            Sign.Greater, Sign.GreaterEqual -> QuadraticInequality(
+                lhs = QuadraticPolynomial(lhs.monomials.map { -it } + rhs.monomials.map { it.copy() }),
+                rhs = QuadraticPolynomial(lhs.constant - rhs.constant),
+                sign = sign.reverse,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     override fun toQuadraticInequality(): QuadraticInequality {
         return this
     }

@@ -85,6 +85,20 @@ class LinearInequality(
         )
     }
 
+    override fun normalizeToLessEqual(): LinearInequality {
+        return when (sign) {
+            Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
+
+            Sign.Greater, Sign.GreaterEqual -> LinearInequality(
+                lhs = LinearPolynomial(lhs.monomials.map { -it } + rhs.monomials.map { it.copy() }),
+                rhs = LinearPolynomial(lhs.constant - rhs.constant),
+                sign = sign.reverse,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     override fun toLinearInequality(): LinearInequality {
         return this
     }

@@ -8,7 +8,9 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 
 sealed interface MechanismModel {
     val name: String

@@ -59,6 +59,7 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
 
     abstract fun reverse(name: String? = null, displayName: String? = null): Self
     abstract fun normalize(): Self
+    abstract fun normalizeToLessEqual(): Self
 
     override fun toString(): String {
         return displayName ?: name

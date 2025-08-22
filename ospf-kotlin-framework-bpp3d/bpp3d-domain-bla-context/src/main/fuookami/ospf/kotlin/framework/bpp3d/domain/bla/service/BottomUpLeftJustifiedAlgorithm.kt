@@ -307,7 +307,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                                 )
                             }
                         }
-                        promises.map { it.await() }.flatten()
+                        promises.awaitAll().flatten()
                     })
                 }
 

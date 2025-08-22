@@ -15,6 +15,7 @@ class Variable(
     lowerBound: Flt64,
     upperBound: Flt64,
     type: VariableType<*>,
+    val origin: AbstractVariableItem<*, *>?,
     val name: String,
     val initialResult: Flt64? = null
 ) : Cloneable, Copyable<Variable> {
@@ -26,7 +27,7 @@ class Variable(
     val upperBound by ::_upperBound
     val type by ::_type
 
-    override fun copy() = Variable(index, lowerBound, upperBound, type, name, initialResult)
+    override fun copy() = Variable(index, lowerBound, upperBound, type, origin, name, initialResult)
     override fun clone() = copy()
 
     override fun toString() = name
