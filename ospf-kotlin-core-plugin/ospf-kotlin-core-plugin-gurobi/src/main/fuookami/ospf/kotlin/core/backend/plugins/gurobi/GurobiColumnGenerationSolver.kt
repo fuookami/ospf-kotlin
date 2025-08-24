@@ -39,7 +39,7 @@ class GurobiColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value)
+                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
@@ -94,7 +94,7 @@ class GurobiColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value)
+                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {

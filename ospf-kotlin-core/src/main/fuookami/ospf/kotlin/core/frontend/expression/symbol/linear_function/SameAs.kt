@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class SameAsFunction(
     inequalities: List<LinearInequality>,
     private val constraint: Boolean = true,
-    private val fixedValue: Boolean? = null,
+    private val fixed: Boolean? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -53,8 +53,8 @@ class SameAsFunction(
 
     private val y: BinVar by lazy {
         val y = BinVar("${name}_y")
-        if (fixedValue != null) {
-            y.range.eq(fixedValue)
+        if (fixed != null) {
+            y.range.eq(fixed)
         }
         y
     }

@@ -4,10 +4,9 @@ import java.util.*
 import kotlinx.coroutines.*
 import gurobi.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
@@ -20,6 +19,7 @@ class GurobiBendersDecompositionSolver(
 ) : BendersDecompositionSolver {
     override val name = "gurobi"
 
+    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel,
@@ -27,9 +27,53 @@ class GurobiBendersDecompositionSolver(
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        TODO("Not yet implemented")
+        val jobs = ArrayList<Job>()
+        if (toLogModel) {
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
+        }
+        val model = when (val result = LinearMechanismModel(
+            metaModel = metaModel,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpMechanismModelBlocking,
+            registrationStatusCallBack = registrationStatusCallBack
+        )) {
+            is Ok -> {
+                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
+            }
+
+            is Failed -> {
+                jobs.joinAll()
+                return Failed(result.error)
+            }
+        }
+        if (toLogModel) {
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
+        }
+
+        val solver = GurobiLinearSolver(
+            config = config,
+            callBack = callBack.copy()
+        )
+
+        return when (val result = solver(model, solvingStatusCallBack)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(result.value.solution)
+                jobs.joinAll()
+                Ok(result.value)
+            }
+
+            is Failed -> {
+                jobs.joinAll()
+                Failed(result.error)
+            }
+        }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel,
@@ -38,9 +82,78 @@ class GurobiBendersDecompositionSolver(
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<BendersDecompositionSolver.SubResult> {
-        TODO("Not yet implemented")
+        val jobs = ArrayList<Job>()
+        if (toLogModel) {
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
+        }
+        val model = when (val result = LinearMechanismModel(
+            metaModel = metaModel,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpMechanismModelBlocking,
+            registrationStatusCallBack = registrationStatusCallBack
+        )) {
+            is Ok -> {
+                LinearTriadModel(result.value)
+            }
+
+            is Failed -> {
+                jobs.joinAll()
+                return Failed(result.error)
+            }
+        }
+        model.linearRelax()
+        if (toLogModel) {
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
+        }
+        lateinit var dualSolution: List<Flt64>
+        lateinit var farkasSolution: List<Flt64>
+        val solver = GurobiLinearSolver(
+            config = config,
+            callBack = callBack.copy()
+                .configuration { model, _, _ ->
+                    model.set(GRB.IntParam.InfUnbdInfo, 1)
+                    ok
+                }
+                .analyzingSolution { _, _, constraints ->
+                    dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
+                    ok
+                }
+                .afterFailure { _, _, constraints ->
+                    farkasSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.FarkasDual)) }
+                    ok
+                }
+        )
+
+        return when (val result = solver(model, solvingStatusCallBack)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(result.value.solution)
+                jobs.joinAll()
+                Ok(BendersDecompositionSolver.FeasibleResult(
+                    result.value,
+                    dualSolution,
+                    null
+                ))
+            }
+
+            is Failed -> {
+                jobs.joinAll()
+                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                    Ok(BendersDecompositionSolver.InfeasibleResult(
+                        farkasSolution,
+                        null
+                    ))
+                } else {
+                    Failed(result.error)
+                }
+            }
+        }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel,
@@ -50,6 +163,74 @@ class GurobiBendersDecompositionSolver(
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<BendersDecompositionSolver.SubResult> {
-        TODO("Not yet implemented")
+        val jobs = ArrayList<Job>()
+        if (toLogModel) {
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
+        }
+        val model = when (val result = LinearMechanismModel(
+            metaModel = metaModel,
+            concurrent = config.dumpMechanismModelConcurrent,
+            blocking = config.dumpMechanismModelBlocking,
+            registrationStatusCallBack = registrationStatusCallBack
+        )) {
+            is Ok -> {
+                LinearTriadModel(result.value)
+            }
+
+            is Failed -> {
+                jobs.joinAll()
+                return Failed(result.error)
+            }
+        }
+        model.linearRelax()
+        if (toLogModel) {
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
+        }
+        lateinit var dualSolution: List<Flt64>
+        lateinit var farkasSolution: List<Flt64>
+        val solver = GurobiLinearSolver(
+            config = config,
+            callBack = callBack.copy()
+                .configuration { model, _, _ ->
+                    model.set(GRB.IntParam.InfUnbdInfo, 1)
+                    ok
+                }
+                .analyzingSolution { _, _, constraints ->
+                    dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
+                    ok
+                }
+                .afterFailure { _, _, constraints ->
+                    farkasSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.FarkasDual)) }
+                    ok
+                }
+        )
+
+        return when (val result = solver(model, solvingStatusCallBack)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(result.value.solution)
+                jobs.joinAll()
+                Ok(BendersDecompositionSolver.FeasibleResult(
+                    result.value,
+                    dualSolution,
+                    model.generateFeasibleCut(objectVariable, fixedVariables, result.value.obj, dualSolution)
+                ))
+            }
+
+            is Failed -> {
+                jobs.joinAll()
+                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                    Ok(BendersDecompositionSolver.InfeasibleResult(
+                        farkasSolution,
+                        model.generateInfeasibleCut(fixedVariables, farkasSolution)
+                    ))
+                } else {
+                    Failed(result.error)
+                }
+            }
+        }
     }
 }

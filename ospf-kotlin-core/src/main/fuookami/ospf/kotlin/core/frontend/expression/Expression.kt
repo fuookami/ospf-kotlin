@@ -131,6 +131,7 @@ interface Expression {
     val range: ExpressionRange<Flt64>
     val lowerBound get() = range.lowerBound?.toFlt64()
     val upperBound get() = range.upperBound?.toFlt64()
+    val fixedValue get() = range.fixedValue
 
     fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
