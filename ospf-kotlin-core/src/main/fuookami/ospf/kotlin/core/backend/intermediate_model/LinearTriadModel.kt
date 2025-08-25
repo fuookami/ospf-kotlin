@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
+import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
-import io.michaelrocks.bimap.BiMap
 
 data class LinearConstraintCell(
     override val rowIndex: Int,
