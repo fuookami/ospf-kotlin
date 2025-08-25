@@ -17,6 +17,8 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.utils.multi_array._a
+import io.michaelrocks.bimap.BiMap
 
 data class LinearConstraintCell(
     override val rowIndex: Int,
@@ -193,6 +195,7 @@ typealias LinearTriadModelView = ModelView<LinearConstraintCell, LinearObjective
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
+    private val tokenIndexMap: BiMap<Token, Int>,
     override val objective: LinearObjective,
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
     override val variables: List<Variable> by impl::variables
@@ -208,10 +211,15 @@ data class LinearTriadModel(
             concurrent: Boolean? = null
         ): LinearTriadModel {
             logger.trace("Creating LinearTriadModel for $model")
+            val tokenIndexMap = if (fixedVariables.isNullOrEmpty()) {
+                model.tokens.tokenIndexMap
+            } else {
+                model.tokens.tokenIndexMapWithout(fixedVariables.keys)
+            }
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(model, fixedVariables)
+                        dumpVariables(tokenIndexMap, fixedVariables)
                     }
                     val constraintPromise = async(Dispatchers.Default) {
                         dumpConstraintsAsync(model, fixedVariables)
@@ -246,20 +254,16 @@ data class LinearTriadModel(
         }
 
         private fun dumpVariables(
-            model: LinearMechanismModel,
+            tokenIndexMap: BiMap<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): List<Variable> {
-            val tokens = model.tokens.tokens
-            val tokenIndexes = model.tokens.tokenIndexMap
-
             val variables = ArrayList<Variable?>()
-            for (i in tokens.indices) {
+            for ((_, _) in tokenIndexMap) {
                 variables.add(null)
             }
-            for (token in tokens) {
-                val index = tokenIndexes[token]!!
-                variables[index] = Variable(
-                    index = index,
+            for ((token, i) in tokenIndexMap) {
+                variables[i] = Variable(
+                    index = i,
                     lowerBound = token.lowerBound!!.value.unwrap(),
                     upperBound = token.upperBound!!.value.unwrap(),
                     type = token.variable.type,
@@ -540,44 +544,6 @@ data class LinearTriadModel(
             ),
             LinearObjective(this.objective.category.reverse(), objective)
         )
-    }
-
-    fun generateFeasibleCut(
-        objectVariable: AbstractVariableItem<*, *>,
-        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        objective: Flt64,
-        dualSolution: Solution,
-    ): List<LinearInequality> {
-        val rhs = MutableLinearPolynomial(objective)
-        for ((i, constraint) in constraints.lhs.withIndex()) {
-            for (cell in constraint) {
-                val variable = variables[cell.colIndex].origin ?: continue
-                if (variable in fixedVariables) {
-                    rhs += dualSolution[i] * cell.coefficient * variable
-                }
-            }
-        }
-        return listOf(objectVariable geq rhs)
-    }
-
-    fun generateInfeasibleCut(
-        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualSolution: Solution,
-    ): List<LinearInequality> {
-        val rhs = MutableLinearPolynomial(
-            constraints.indices.sumOf {
-                farkasDualSolution[it] * constraints.rhs[it]
-            }
-        )
-        for ((i, constraint) in constraints.lhs.withIndex()) {
-            for (cell in constraint) {
-                val variable = variables[cell.colIndex].origin ?: continue
-                if (variable in fixedVariables) {
-                    rhs -= farkasDualSolution[i] * cell.coefficient * variable
-                }
-            }
-        }
-        return listOf(rhs leq Flt64.zero)
     }
 
     override fun exportLP(writer: FileWriter): Try {

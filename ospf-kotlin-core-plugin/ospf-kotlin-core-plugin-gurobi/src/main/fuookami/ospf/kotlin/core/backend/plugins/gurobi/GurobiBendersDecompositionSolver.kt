@@ -95,7 +95,7 @@ class GurobiBendersDecompositionSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value)
+                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
@@ -169,14 +169,14 @@ class GurobiBendersDecompositionSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        val (mechanismModel, model) = when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value)
+                result.value to LinearTriadModel(result.value, fixedVariables, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
@@ -204,7 +204,10 @@ class GurobiBendersDecompositionSolver(
                     ok
                 }
                 .afterFailure { _, _, constraints ->
-                    farkasSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.FarkasDual)) }
+                    farkasSolution = constraints.map {
+                        println(it.get(GRB.CharAttr.Sense))
+                        Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                    }
                     ok
                 }
         )
@@ -216,7 +219,7 @@ class GurobiBendersDecompositionSolver(
                 Ok(BendersDecompositionSolver.FeasibleResult(
                     result.value,
                     dualSolution,
-                    model.generateFeasibleCut(objectVariable, fixedVariables, result.value.obj, dualSolution)
+                    mechanismModel.generateFeasibleCut(objectVariable, fixedVariables, result.value.obj, dualSolution)
                 ))
             }
 
@@ -225,7 +228,7 @@ class GurobiBendersDecompositionSolver(
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
                     Ok(BendersDecompositionSolver.InfeasibleResult(
                         farkasSolution,
-                        model.generateInfeasibleCut(fixedVariables, farkasSolution)
+                        mechanismModel.generateInfeasibleCut(fixedVariables, farkasSolution)
                     ))
                 } else {
                     Failed(result.error)

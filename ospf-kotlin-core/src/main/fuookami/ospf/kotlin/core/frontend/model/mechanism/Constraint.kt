@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed class Constraint(
-    val lhs: List<Cell>,
+    open val lhs: List<Cell>,
     val sign: Sign,
     val rhs: Flt64,
     val name: String = ""
@@ -30,7 +30,7 @@ sealed class Constraint(
 }
 
 class LinearConstraint(
-    lhs: List<LinearCell>,
+    override val lhs: List<LinearCell>,
     sign: Sign,
     rhs: Flt64,
     name: String = ""
@@ -62,7 +62,7 @@ class LinearConstraint(
 }
 
 class QuadraticConstraint(
-    lhs: List<QuadraticCell>,
+    override val lhs: List<QuadraticCell>,
     sign: Sign,
     rhs: Flt64,
     name: String = ""
