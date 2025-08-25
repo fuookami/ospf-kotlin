@@ -52,6 +52,8 @@ class LinearMechanismModel(
     override val objectFunction: SingleObject,
     override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
+    private val logger = logger()
+
     companion object {
         private val logger = logger()
 
@@ -263,6 +265,10 @@ class LinearMechanismModel(
     ): List<LinearInequality> {
         val rhs = MutableLinearPolynomial(objective)
         for ((i, constraint) in constraints.withIndex()) {
+            if (dualSolution[i] eq Flt64.zero) {
+                continue
+            }
+
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
                 if (variable in fixedVariables) {
@@ -273,28 +279,38 @@ class LinearMechanismModel(
                 }
             }
         }
-        return listOf(objectVariable geq rhs)
+        return listOf((objectVariable geq rhs).normalize())
     }
 
     fun generateInfeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: Solution,
     ): List<LinearInequality> {
-        val lhs = MutableLinearPolynomial(
-            constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
-                acc + farkasDualSolution[i] * constraint.rhs
-            }
-        )
+        var value = Flt64.zero
+        val lhs = MutableLinearPolynomial()
         for ((i, constraint) in constraints.withIndex()) {
+            if (farkasDualSolution[i] eq Flt64.zero) {
+                continue
+            }
+
+            value += farkasDualSolution[i] * constraint.rhs
+            lhs += value
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
                 if (variable in fixedVariables) {
                     val coefficient = farkasDualSolution[i] * cell.coefficient
-                    lhs -= coefficient * variable
+                    if (coefficient neq Flt64.zero) {
+                        lhs -= coefficient * variable
+                    }
+                    value -= farkasDualSolution[i] * cell.coefficient * fixedVariables[variable]!!
                 }
             }
         }
-        return listOf(lhs leq Flt64.zero)
+        if (value ls Flt64.zero) {
+            logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
+            lhs *= -Flt64.one
+        }
+        return listOf((lhs leq Flt64.zero).normalize())
     }
 
     override fun toString(): String {

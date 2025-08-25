@@ -187,7 +187,9 @@ class GurobiColumnGenerationSolver(
             config = config,
             callBack = callBack.copy()
                 .analyzingSolution { _, _, constraints ->
-                    dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
+                    dualSolution = constraints.map {
+                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                    }
                     ok
                 }
         )

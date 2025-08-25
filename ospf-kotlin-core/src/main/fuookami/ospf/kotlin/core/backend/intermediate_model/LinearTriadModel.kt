@@ -9,15 +9,9 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
-import fuookami.ospf.kotlin.utils.multi_array._a
 import io.michaelrocks.bimap.BiMap
 
 data class LinearConstraintCell(
@@ -195,7 +189,7 @@ typealias LinearTriadModelView = ModelView<LinearConstraintCell, LinearObjective
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
-    private val tokenIndexMap: BiMap<Token, Int>,
+    val tokenIndexMap: BiMap<Token, Int>,
     override val objective: LinearObjective,
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
     override val variables: List<Variable> by impl::variables
@@ -219,32 +213,34 @@ data class LinearTriadModel(
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(tokenIndexMap, fixedVariables)
+                        dumpVariables(tokenIndexMap)
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(model, fixedVariables)
+                        dumpConstraintsAsync(model, tokenIndexMap, fixedVariables)
                     }
                     val objectivePromise = async(Dispatchers.Default) {
-                        dumpObjectives(model, fixedVariables)
+                        dumpObjectives(model, tokenIndexMap, fixedVariables)
                     }
 
                     LinearTriadModel(
-                        BasicLinearTriadModel(
+                        impl = BasicLinearTriadModel(
                             variablePromise.await(),
                             constraintPromise.await(),
                             model.name
                         ),
-                        objectivePromise.await()
+                        tokenIndexMap = tokenIndexMap,
+                        objective = objectivePromise.await()
                     )
                 }
             } else {
                 LinearTriadModel(
-                    BasicLinearTriadModel(
-                        dumpVariables(model, fixedVariables),
-                        dumpConstraints(model, fixedVariables),
+                    impl = BasicLinearTriadModel(
+                        dumpVariables(tokenIndexMap),
+                        dumpConstraints(model, tokenIndexMap, fixedVariables),
                         model.name
                     ),
-                    dumpObjectives(model, fixedVariables)
+                    tokenIndexMap = tokenIndexMap,
+                    objective = dumpObjectives(model, tokenIndexMap, fixedVariables)
                 )
             }
 
@@ -254,8 +250,7 @@ data class LinearTriadModel(
         }
 
         private fun dumpVariables(
-            tokenIndexMap: BiMap<Token, Int>,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+            tokenIndexMap: BiMap<Token, Int>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexMap) {
@@ -277,31 +272,34 @@ data class LinearTriadModel(
 
         private fun dumpConstraints(
             model: LinearMechanismModel,
+            tokenIndexes: BiMap<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
-            val tokenIndexes = model.tokens.tokenIndexMap
-
             val constraints = model.constraints.withIndex().map { (index, constraint) ->
                 val lhs = ArrayList<LinearConstraintCell>()
+                var rhs = constraint.rhs
                 for (cell in constraint.lhs) {
-                    val temp = cell as LinearCell
-                    lhs.add(
-                        LinearConstraintCell(
-                            index,
-                            tokenIndexes[temp.token]!!,
-                            temp.coefficient.let {
-                                if (it.isInfinity()) {
-                                    Flt64.decimalPrecision.reciprocal()
-                                } else if (it.isNegativeInfinity()) {
-                                    -Flt64.decimalPrecision.reciprocal()
-                                } else {
-                                    it
+                    if (tokenIndexes.containsKey(cell.token)) {
+                        lhs.add(
+                            LinearConstraintCell(
+                                index,
+                                tokenIndexes[cell.token]!!,
+                                cell.coefficient.let {
+                                    if (it.isInfinity()) {
+                                        Flt64.decimalPrecision.reciprocal()
+                                    } else if (it.isNegativeInfinity()) {
+                                        -Flt64.decimalPrecision.reciprocal()
+                                    } else {
+                                        it
+                                    }
                                 }
-                            }
+                            )
                         )
-                    )
+                    } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
+                        rhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                    }
                 }
-                lhs
+                lhs to rhs
             }
 
             val lhs = ArrayList<List<LinearConstraintCell>>()
@@ -309,9 +307,9 @@ data class LinearTriadModel(
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             for ((index, constraint) in model.constraints.withIndex()) {
-                lhs.add(constraints[index])
+                lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
-                rhs.add(constraint.rhs)
+                rhs.add(constraints[index].second)
                 names.add(constraint.name)
             }
             return LinearConstraint(lhs, signs, rhs, names)
@@ -319,9 +317,9 @@ data class LinearTriadModel(
 
         private suspend fun dumpConstraintsAsync(
             model: LinearMechanismModel,
+            tokenIndexes: BiMap<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
-            val tokenIndexes = model.tokens.tokenIndexMap
             return if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
                 val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                 val segment = if (factor >= 1) {
@@ -332,29 +330,33 @@ data class LinearTriadModel(
                 coroutineScope {
                     val constraintPromises = (0..(model.constraints.size / segment)).map {
                         async(Dispatchers.Default) {
-                            val constraints = ArrayList<List<LinearConstraintCell>>()
+                            val constraints = ArrayList<Pair<List<LinearConstraintCell>, Flt64>>()
                             for (i in (it * segment) until minOf(model.constraints.size, (it + 1) * segment)) {
                                 val constraint = model.constraints[i]
                                 val lhs = ArrayList<LinearConstraintCell>()
+                                var rhs = constraint.rhs
                                 for (cell in constraint.lhs) {
-                                    val temp = cell as LinearCell
-                                    lhs.add(
-                                        LinearConstraintCell(
-                                            rowIndex = i,
-                                            colIndex = tokenIndexes[temp.token]!!,
-                                            coefficient = temp.coefficient.let { coefficient ->
-                                                if (coefficient.isInfinity()) {
-                                                    Flt64.decimalPrecision.reciprocal()
-                                                } else if (coefficient.isNegativeInfinity()) {
-                                                    -Flt64.decimalPrecision.reciprocal()
-                                                } else {
-                                                    coefficient
+                                    if (tokenIndexes.containsKey(cell.token)) {
+                                        lhs.add(
+                                            LinearConstraintCell(
+                                                rowIndex = i,
+                                                colIndex = tokenIndexes[cell.token]!!,
+                                                coefficient = cell.coefficient.let { coefficient ->
+                                                    if (coefficient.isInfinity()) {
+                                                        Flt64.decimalPrecision.reciprocal()
+                                                    } else if (coefficient.isNegativeInfinity()) {
+                                                        -Flt64.decimalPrecision.reciprocal()
+                                                    } else {
+                                                        coefficient
+                                                    }
                                                 }
-                                            }
+                                            )
                                         )
-                                    )
+                                    } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
+                                        rhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                                    }
                                 }
-                                constraints.add(lhs)
+                                constraints.add(lhs to rhs)
                             }
                             if (memoryUseOver()) {
                                 System.gc()
@@ -368,9 +370,10 @@ data class LinearTriadModel(
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     for ((index, constraint) in model.constraints.withIndex()) {
-                        lhs.add(constraintPromises[index / segment].await()[index % segment])
+                        val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
+                        lhs.add(thisLhs)
                         signs.add(constraint.sign)
-                        rhs.add(constraint.rhs)
+                        rhs.add(thisRhs)
                         names.add(constraint.name)
                     }
                     LinearConstraint(lhs, signs, rhs, names)
@@ -382,27 +385,31 @@ data class LinearTriadModel(
                 val names = ArrayList<String>()
                 for ((index, constraint) in model.constraints.withIndex()) {
                     val thisLhs = ArrayList<LinearConstraintCell>()
+                    var thisRhs = constraint.rhs
                     for (cell in constraint.lhs) {
-                        val temp = cell as LinearCell
-                        thisLhs.add(
-                            LinearConstraintCell(
-                                rowIndex = index,
-                                colIndex = tokenIndexes[temp.token]!!,
-                                coefficient = temp.coefficient.let {
-                                    if (it.isInfinity()) {
-                                        Flt64.decimalPrecision.reciprocal()
-                                    } else if (it.isNegativeInfinity()) {
-                                        -Flt64.decimalPrecision.reciprocal()
-                                    } else {
-                                        it
+                        if (tokenIndexes.containsKey(cell.token)) {
+                            thisLhs.add(
+                                LinearConstraintCell(
+                                    rowIndex = index,
+                                    colIndex = tokenIndexes[cell.token]!!,
+                                    coefficient = cell.coefficient.let {
+                                        if (it.isInfinity()) {
+                                            Flt64.decimalPrecision.reciprocal()
+                                        } else if (it.isNegativeInfinity()) {
+                                            -Flt64.decimalPrecision.reciprocal()
+                                        } else {
+                                            it
+                                        }
                                     }
-                                }
+                                )
                             )
-                        )
+                        } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
+                            thisRhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                        }
                     }
                     lhs.add(thisLhs)
                     signs.add(constraint.sign)
-                    rhs.add(constraint.rhs)
+                    rhs.add(thisRhs)
                     names.add(constraint.name)
                 }
                 System.gc()
@@ -412,32 +419,32 @@ data class LinearTriadModel(
 
         private fun dumpObjectives(
             model: LinearMechanismModel,
+            tokenIndexes: BiMap<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearObjective {
-            val tokens = model.tokens.tokens
-            val tokenIndexes = model.tokens.tokenIndexMap
-
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
                 model.objectFunction.subObjects.first().category
             } else {
                 model.objectFunction.category
             }
-            val coefficient = tokens.indices.map { Flt64.zero }.toMutableList()
+            val coefficient = (0 until tokenIndexes.size).map { Flt64.zero }.toMutableList()
             for (subObject in model.objectFunction.subObjects) {
                 if (subObject.category == objectiveCategory) {
                     for (cell in subObject.cells) {
                         val temp = cell as LinearCell
-                        coefficient[tokenIndexes[temp.token]!!] = coefficient[tokenIndexes[temp.token]!!] + temp.coefficient
+                        val index = tokenIndexes[temp.token] ?: continue
+                        coefficient[index] = coefficient[index] + temp.coefficient
                     }
                 } else {
                     for (cell in subObject.cells) {
                         val temp = cell as LinearCell
-                        coefficient[tokenIndexes[temp.token]!!] = coefficient[tokenIndexes[temp.token]!!] - temp.coefficient
+                        val index = tokenIndexes[temp.token] ?: continue
+                        coefficient[index] = coefficient[index] - temp.coefficient
                     }
                 }
             }
             val objective = ArrayList<LinearObjectiveCell>()
-            for (i in tokens.indices) {
+            for ((token, i) in tokenIndexes) {
                 objective.add(
                     LinearObjectiveCell(
                         i,
@@ -457,7 +464,7 @@ data class LinearTriadModel(
         }
     }
 
-    override fun copy() = LinearTriadModel(impl.copy(), objective.copy())
+    override fun copy() = LinearTriadModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
     fun normalized() {
@@ -537,12 +544,13 @@ data class LinearTriadModel(
         }
 
         return LinearTriadModel(
-            BasicLinearTriadModel(
+            impl = BasicLinearTriadModel(
                 variables,
                 LinearConstraint(lhs, signs, rhs, names),
                 "$name-dual"
             ),
-            LinearObjective(this.objective.category.reverse(), objective)
+            tokenIndexMap = tokenIndexMap,
+            objective = LinearObjective(this.objective.category.reverse(), objective)
         )
     }
 

@@ -130,7 +130,9 @@ class GurobiBendersDecompositionSolver(
 
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
+                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
+                    token.variable to result.value.solution[index]
+                }.toMap())
                 jobs.joinAll()
                 Ok(BendersDecompositionSolver.FeasibleResult(
                     result.value,
@@ -200,12 +202,13 @@ class GurobiBendersDecompositionSolver(
                     ok
                 }
                 .analyzingSolution { _, _, constraints ->
-                    dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
+                    dualSolution = constraints.map {
+                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                    }
                     ok
                 }
                 .afterFailure { _, _, constraints ->
                     farkasSolution = constraints.map {
-                        println(it.get(GRB.CharAttr.Sense))
                         Flt64(it.get(GRB.DoubleAttr.FarkasDual))
                     }
                     ok
@@ -214,7 +217,9 @@ class GurobiBendersDecompositionSolver(
 
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
+                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
+                    token.variable to result.value.solution[index]
+                }.toMap())
                 jobs.joinAll()
                 Ok(BendersDecompositionSolver.FeasibleResult(
                     result.value,
