@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -61,12 +62,13 @@ class LinearMechanismModel(
             metaModel: LinearMetaModel,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<LinearMechanismModel> {
             logger.info { "Creating LinearMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens, registrationStatusCallBack)) {
+            val tokens = when (val result = unfold(metaModel.tokens, fixedVariables, registrationStatusCallBack)) {
                 is Ok -> {
                     result.value
                 }
@@ -109,7 +111,13 @@ class LinearMechanismModel(
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.register(model)
+                (symbol as? LinearFunctionSymbol)?.let {
+                    if (fixedVariables.isNullOrEmpty()) {
+                        it.register(model)
+                    } else {
+                        it.register(model, fixedVariables as Map<Symbol, Flt64>)
+                    }
+                }
             }
             logger.trace { "Symbols registered for $metaModel" }
 
@@ -213,12 +221,13 @@ class LinearMechanismModel(
 
         private suspend fun unfold(
             tokens: AbstractMutableTokenTable,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
         ): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -231,7 +240,7 @@ class LinearMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }
@@ -333,12 +342,13 @@ class QuadraticMechanismModel(
             metaModel: QuadraticMetaModel,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
+            fixedVariables: MutableMap<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<QuadraticMechanismModel> {
             logger.info { "Creating QuadraticMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens, registrationStatusCallBack)) {
+            val tokens = when (val result = unfold(metaModel.tokens, fixedVariables, registrationStatusCallBack)) {
                 is Ok -> {
                     result.value
                 }
@@ -381,8 +391,20 @@ class QuadraticMechanismModel(
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.register(model)
-                (symbol as? QuadraticFunctionSymbol)?.register(model)
+                (symbol as? LinearFunctionSymbol)?.let { symbol ->
+                    if (fixedVariables.isNullOrEmpty()) {
+                        symbol.register(model)
+                    } else {
+                        symbol.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                    }
+                }
+                (symbol as? QuadraticFunctionSymbol)?.let { symbol ->
+                    if (fixedVariables.isNullOrEmpty()) {
+                        symbol.register(model)
+                    } else {
+                        symbol.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                    }
+                }
             }
             logger.trace { "Symbols registered for $metaModel" }
 
@@ -480,12 +502,13 @@ class QuadraticMechanismModel(
 
         private suspend fun unfold(
             tokens: AbstractMutableTokenTable,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
         ): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -498,7 +521,7 @@ class QuadraticMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }

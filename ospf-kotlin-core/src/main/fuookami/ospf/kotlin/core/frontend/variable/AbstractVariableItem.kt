@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
@@ -50,14 +51,15 @@ data class VariableItemKey(
 
 abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     val type: Type,
-    var name: String,
+    override var name: String,
     val constants: RealNumberConstants<T>
-): ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial>
+): Symbol, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial>
         where T : RealNumber<T>, T : NumberField<T> {
     abstract val dimension: Int
     abstract val identifier: UInt64
     abstract val index: Int
     abstract val vectorView: IntArray
+    override val displayName get() = name
 
     val uindex get() = UInt64(index)
     val uvector by lazy { vectorView.map { UInt64(it) } }

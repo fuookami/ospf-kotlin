@@ -107,14 +107,22 @@ class ProductFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
             val values = polynomials.map {
-                it.evaluate(tokenTable) ?: return null
+                if (values.isNullOrEmpty()) {
+                    it.evaluate(tokenTable)
+                } else {
+                    it.evaluate(values, tokenTable)
+                } ?: return null
             }
 
             var yValue = values[0]
@@ -153,8 +161,8 @@ class ProductFunction(
         for (i in y.indices) {
             if (i == 0) {
                 when (val result = model.addConstraint(
-                    polynomials[i] * polynomials[i + 1] eq y[i],
-                    "${name}_$i"
+                    polynomials[0] * polynomials[1] eq y[0],
+                    "${name}_0"
                 )) {
                     is Ok -> {}
 
@@ -179,6 +187,85 @@ class ProductFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = polynomials.map {
+            it.evaluate(fixedValues, model.tokens) ?: return register(model)
+        }
+
+        var yValue = Flt64.one
+        for (i in y.indices) {
+            if (i == 0) {
+                yValue *= values[0] * values[1]
+
+                when (val result = model.addConstraint(
+                    polynomials[0] * polynomials[1] eq y[0],
+                    "${name}_$0"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
+                    y[0] eq yValue,
+                    "${name}_y_0"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                model.tokens.find(y[0])?.let { token ->
+                    token._result = yValue
+                }
+            } else {
+                yValue *= values[i + 1]
+
+                when (val result = model.addConstraint(
+                    y[i - 1] * polynomials[i + 1] eq y[i],
+                    "${name}_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
+                    y[i] eq yValue,
+                    "${name}_y_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                model.tokens.find(y[i])?.let { token ->
+                    token._result = yValue
+                }
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -196,8 +283,7 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(tokenList, zeroIfNone)
-                ?: return null
+            val thisValue = rhs.evaluate(tokenList, zeroIfNone) ?: return null
             lhs * thisValue
         }
     }
@@ -208,8 +294,18 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(results, tokenList, zeroIfNone)
-                ?: return null
+            val thisValue = rhs.evaluate(results, tokenList, zeroIfNone) ?: return null
+            lhs * thisValue
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.fold(Flt64.one) { lhs, rhs ->
+            val thisValue = rhs.evaluate(values, tokenList, zeroIfNone) ?: return null
             lhs * thisValue
         }
     }
@@ -219,8 +315,7 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(tokenTable, zeroIfNone)
-                ?: return null
+            val thisValue = rhs.evaluate(tokenTable, zeroIfNone) ?: return null
             lhs * thisValue
         }
     }
@@ -231,8 +326,18 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(results, tokenTable, zeroIfNone)
-                ?: return null
+            val thisValue = rhs.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            lhs * thisValue
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.fold(Flt64.one) { lhs, rhs ->
+            val thisValue = rhs.evaluate(values, tokenTable, zeroIfNone) ?: return null
             lhs * thisValue
         }
     }

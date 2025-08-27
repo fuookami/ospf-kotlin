@@ -78,88 +78,6 @@ class GurobiBendersDecompositionSolver(
         name: String,
         metaModel: LinearMetaModel,
         objectVariable: AbstractVariableItem<*, *>,
-        toLogModel: Boolean,
-        registrationStatusCallBack: RegistrationStatusCallBack?,
-        solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<BendersDecompositionSolver.SubResult> {
-        val jobs = ArrayList<Job>()
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                metaModel.export("$name.opm")
-            })
-        }
-        val model = when (val result = LinearMechanismModel(
-            metaModel = metaModel,
-            concurrent = config.dumpMechanismModelConcurrent,
-            blocking = config.dumpMechanismModelBlocking,
-            registrationStatusCallBack = registrationStatusCallBack
-        )) {
-            is Ok -> {
-                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
-            }
-
-            is Failed -> {
-                jobs.joinAll()
-                return Failed(result.error)
-            }
-        }
-        model.linearRelax()
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-        lateinit var dualSolution: List<Flt64>
-        lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
-                    ok
-                }
-                .analyzingSolution { _, _, constraints ->
-                    dualSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.Pi)) }
-                    ok
-                }
-                .afterFailure { _, _, constraints ->
-                    farkasSolution = constraints.map { Flt64(it.get(GRB.DoubleAttr.FarkasDual)) }
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
-                    token.variable to result.value.solution[index]
-                }.toMap())
-                jobs.joinAll()
-                Ok(BendersDecompositionSolver.FeasibleResult(
-                    result.value,
-                    dualSolution,
-                    null
-                ))
-            }
-
-            is Failed -> {
-                jobs.joinAll()
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    Ok(BendersDecompositionSolver.InfeasibleResult(
-                        farkasSolution,
-                        null
-                    ))
-                } else {
-                    Failed(result.error)
-                }
-            }
-        }
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    override suspend fun solveSub(
-        name: String,
-        metaModel: LinearMetaModel,
-        objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -175,6 +93,7 @@ class GurobiBendersDecompositionSolver(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
+            fixedVariables = fixedVariables,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {

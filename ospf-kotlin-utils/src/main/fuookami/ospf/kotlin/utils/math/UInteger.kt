@@ -527,6 +527,12 @@ data object UIntXSerializer : KSerializer<UIntX> {
     }
 }
 
+fun Boolean.toUInt64() = if (this) {
+    UInt64.one
+} else {
+    UInt64.zero
+}
+
 @JvmInline
 @Serializable(with = UIntXSerializer::class)
 value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {

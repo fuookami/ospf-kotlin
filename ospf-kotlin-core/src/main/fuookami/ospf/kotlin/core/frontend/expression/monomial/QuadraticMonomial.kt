@@ -337,7 +337,10 @@ data class QuadraticMonomialCell internal constructor(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
@@ -348,19 +351,11 @@ data class QuadraticMonomialCell internal constructor(
                             cell.value.coefficient * result
                         } else {
                             logger.trace { "Unknown result for ${cell.value.variable1}." }
-                            if (zeroIfNone) {
-                                Flt64.zero
-                            } else {
-                                null
-                            }
+                            null
                         }
                     } else {
                         logger.trace { "Unknown token for ${cell.value.variable1}." }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 } else {
                     val token1 = tokenList.find(cell.value.variable1)
@@ -374,35 +369,19 @@ data class QuadraticMonomialCell internal constructor(
                                     cell.value.coefficient * result1 * result2
                                 } else {
                                     logger.trace { "Unknown result for ${cell.value.variable1}." }
-                                    if (zeroIfNone) {
-                                        Flt64.zero
-                                    } else {
-                                        null
-                                    }
+                                    null
                                 }
                             } else {
                                 logger.trace { "Unknown result for ${cell.value.variable1}." }
-                                if (zeroIfNone) {
-                                    Flt64.zero
-                                } else {
-                                    null
-                                }
+                                null
                             }
                         } else {
                             logger.trace { "Unknown token for ${cell.value.variable1}." }
-                            if (zeroIfNone) {
-                                Flt64.zero
-                            } else {
-                                null
-                            }
+                            null
                         }
                     } else {
                         logger.trace { "Unknown token for ${cell.value.variable1}." }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 }
             }
@@ -417,7 +396,11 @@ data class QuadraticMonomialCell internal constructor(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
@@ -426,11 +409,7 @@ data class QuadraticMonomialCell internal constructor(
                         results[index]
                     } else {
                         logger.trace { "Unknown index for ${cell.value.variable1}." }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 } else {
                     val index = tokenList.indexOf(cell.value.variable1)
@@ -440,19 +419,95 @@ data class QuadraticMonomialCell internal constructor(
                             results[index] * results[index2]
                         } else {
                             logger.trace { "Unknown index for ${cell.value.variable2}." }
-                            if (zeroIfNone) {
-                                Flt64.zero
-                            } else {
-                                null
-                            }
+                            null
                         }
                     } else {
                         logger.trace { "Unknown index for ${cell.value.variable1}." }
-                        if (zeroIfNone) {
-                            Flt64.zero
+                        null
+                    }
+                }
+            }
+
+            is Either.Right -> {
+                cell.value
+            }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (cell) {
+            is Either.Left -> {
+                if (cell.value.variable2 == null) {
+                    if (values.containsKey(cell.value.variable1)) {
+                        values[cell.value.variable1]!!
+                    } else if (tokenList != null) {
+                        val token = tokenList.find(cell.value.variable1)
+                        if (token != null) {
+                            val result = token.result
+                            if (result != null) {
+                                cell.value.coefficient * result
+                            } else {
+                                logger.trace { "Unknown result for ${cell.value.variable1}" }
+                                null
+                            }
                         } else {
+                            logger.trace { "Unknown token for ${cell.value.variable1}" }
                             null
                         }
+                    } else {
+                        null
+                    }
+                } else {
+                    val value1 = if (values.containsKey(cell.value.variable1)) {
+                        values[cell.value.variable1]!!
+                    } else if (tokenList != null) {
+                        val token = tokenList.find(cell.value.variable1)
+                        if (token != null) {
+                            val result = token.result
+                            if (result != null) {
+                                cell.value.coefficient * result
+                            } else {
+                                logger.trace { "Unknown result for ${cell.value.variable1}" }
+                                null
+                            }
+                        } else {
+                            logger.trace { "Unknown token for ${cell.value.variable1}" }
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                    val value2 = if (values.containsKey(cell.value.variable2!!)) {
+                        values[cell.value.variable2!!]!!
+                    } else if (tokenList != null) {
+                        val token = tokenList.find(cell.value.variable2!!)
+                        if (token != null) {
+                            val result = token.result
+                            if (result != null) {
+                                result
+                            } else {
+                                logger.trace { "Unknown result for ${cell.value.variable2}" }
+                                null
+                            }
+                        } else {
+                            logger.trace { "Unknown token for ${cell.value.variable2}" }
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                    if (value1 != null && value2 != null) {
+                        value1 * value2
+                    } else {
+                        null
                     }
                 }
             }
@@ -725,7 +780,10 @@ data class QuadraticMonomialSymbol(
             }
         }
 
-        fun QuadraticMonomialSymbolUnit.value(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        fun QuadraticMonomialSymbolUnit.value(
+            tokenList: AbstractTokenList,
+            zeroIfNone: Boolean
+        ): Flt64? {
             return when (this) {
                 is Variant3.V1 -> {
                     val token = tokenList.find(this.value)
@@ -735,19 +793,11 @@ data class QuadraticMonomialSymbol(
                             result
                         } else {
                             logger.trace { "Unknown result for ${this.value}." }
-                            if (zeroIfNone) {
-                                Flt64.zero
-                            } else {
-                                null
-                            }
+                            null
                         }
                     } else {
                         logger.trace { "Unknown token for ${this.value}." }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 }
 
@@ -758,10 +808,53 @@ data class QuadraticMonomialSymbol(
                 is Variant3.V3 -> {
                     this.value.evaluate(tokenList, zeroIfNone)
                 }
+            } ?: if (zeroIfNone) {
+                Flt64.zero
+            } else {
+                null
             }
         }
 
-        fun QuadraticMonomialSymbolUnit.value(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        fun QuadraticMonomialSymbolUnit.value(
+            tokenTable: AbstractTokenTable,
+            zeroIfNone: Boolean
+        ): Flt64? {
+            return when (this) {
+                is Variant3.V1 -> {
+                    val token = tokenTable.find(this.value)
+                    if (token != null) {
+                        val result = token.result
+                        if (result != null) {
+                            result
+                        } else {
+                            logger.trace { "Unknown result for ${this.value}." }
+                            null
+                        }
+                    } else {
+                        logger.trace { "Unknown token for ${this.value}." }
+                        null
+                    }
+                }
+
+                is Variant3.V2 -> {
+                    this.value.evaluate(tokenTable, zeroIfNone)
+                }
+
+                is Variant3.V3 -> {
+                    this.value.evaluate(tokenTable, zeroIfNone)
+                }
+            } ?: if (zeroIfNone) {
+                Flt64.zero
+            } else {
+                null
+            }
+        }
+
+        fun QuadraticMonomialSymbolUnit.value(
+            results: List<Flt64>,
+            tokenList: AbstractTokenList,
+            zeroIfNone: Boolean
+        ): Flt64? {
             return when (this) {
                 is Variant3.V1 -> {
                     val index = tokenList.indexOf(this.value)
@@ -769,11 +862,7 @@ data class QuadraticMonomialSymbol(
                         results[index]
                     } else {
                         logger.trace { "Unknown token for ${this.value}." }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 }
 
@@ -784,29 +873,27 @@ data class QuadraticMonomialSymbol(
                 is Variant3.V3 -> {
                     this.value.evaluate(results, tokenList, zeroIfNone)
                 }
+            } ?: if (zeroIfNone) {
+                Flt64.zero
+            } else {
+                null
             }
         }
 
-        fun QuadraticMonomialSymbolUnit.value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        fun QuadraticMonomialSymbolUnit.value(
+            results: List<Flt64>,
+            tokenTable: AbstractTokenTable,
+            zeroIfNone: Boolean
+        ): Flt64? {
             return when (this) {
                 is Variant3.V1 -> {
-                    value(tokenTable.tokenList, zeroIfNone)
-                }
-
-                is Variant3.V2 -> {
-                    this.value.evaluate(tokenTable, zeroIfNone)
-                }
-
-                is Variant3.V3 -> {
-                    this.value.evaluate(tokenTable, zeroIfNone)
-                }
-            }
-        }
-
-        fun QuadraticMonomialSymbolUnit.value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-            return when (this) {
-                is Variant3.V1 -> {
-                    value(results, tokenTable.tokenList, zeroIfNone)
+                    val index = tokenTable.indexOf(this.value)
+                    if (index != null) {
+                        results[index]
+                    } else {
+                        logger.trace { "Unknown token for ${this.value}." }
+                        null
+                    }
                 }
 
                 is Variant3.V2 -> {
@@ -816,6 +903,94 @@ data class QuadraticMonomialSymbol(
                 is Variant3.V3 -> {
                     this.value.evaluate(results, tokenTable, zeroIfNone)
                 }
+            } ?: if (zeroIfNone) {
+                Flt64.zero
+            } else {
+                null
+            }
+        }
+
+        fun QuadraticMonomialSymbolUnit.value(
+            values: Map<Symbol, Flt64>,
+            tokenList: AbstractTokenList?,
+            zeroIfNone: Boolean
+        ): Flt64? {
+            return when (this) {
+                is Variant3.V1 -> {
+                    if (values.containsKey(this.value)) {
+                        values[this.value]
+                    } else if (tokenList != null) {
+                        val token = tokenList.find(this.value)
+                        if (token != null) {
+                            val result = token.result
+                            if (result != null) {
+                                result
+                            } else {
+                                logger.trace { "Unknown result for ${this.value}." }
+                                null
+                            }
+                        } else {
+                            logger.trace { "Unknown token for ${this.value}." }
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                is Variant3.V2 -> {
+                    values[this.value] ?: this.value.evaluate(values, tokenList, zeroIfNone)
+                }
+
+                is Variant3.V3 -> {
+                    values[this.value] ?: this.value.evaluate(values, tokenList, zeroIfNone)
+                }
+            } ?: if (zeroIfNone) {
+                Flt64.zero
+            } else {
+                null
+            }
+        }
+
+        fun QuadraticMonomialSymbolUnit.value(
+            values: Map<Symbol, Flt64>,
+            tokenTable: AbstractTokenTable?,
+            zeroIfNone: Boolean
+        ): Flt64? {
+            return when (this) {
+                is Variant3.V1 -> {
+                    if (values.containsKey(this.value)) {
+                        values[this.value]
+                    } else if (tokenTable != null) {
+                        val token = tokenTable.find(this.value)
+                        if (token != null) {
+                            val result = token.result
+                            if (result != null) {
+                                result
+                            } else {
+                                logger.trace { "Unknown result for ${this.value}." }
+                                null
+                            }
+                        } else {
+                            logger.trace { "Unknown token for ${this.value}." }
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                is Variant3.V2 -> {
+                    values[this.value] ?: this.value.evaluate(values, tokenTable, zeroIfNone)
+                }
+
+                is Variant3.V3 -> {
+                    values[this.value] ?: this.value.evaluate(values, tokenTable, zeroIfNone)
+                }
+            } ?: if (zeroIfNone) {
+                Flt64.zero
+            } else {
+                null
             }
         }
     }
@@ -923,7 +1098,10 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(tokenList, zeroIfNone)
         } else {
@@ -935,19 +1113,10 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return if (symbol2 == null) {
-            symbol1.value(results, tokenList, zeroIfNone)
-        } else {
-            symbol1.value(results, tokenList, zeroIfNone)?.let { value1 ->
-                symbol2.value(results, tokenList, zeroIfNone)?.let { value2 ->
-                    value1 * value2
-                }
-            }
-        }
-    }
-
-    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(tokenTable, zeroIfNone)
         } else {
@@ -959,12 +1128,64 @@ data class QuadraticMonomialSymbol(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (symbol2 == null) {
+            symbol1.value(results, tokenList, zeroIfNone)
+        } else {
+            symbol1.value(results, tokenList, zeroIfNone)?.let { value1 ->
+                symbol2.value(results, tokenList, zeroIfNone)?.let { value2 ->
+                    value1 * value2
+                }
+            }
+        }
+    }
+
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (symbol2 == null) {
             symbol1.value(results, tokenTable, zeroIfNone)
         } else {
             symbol1.value(results, tokenTable, zeroIfNone)?.let { value1 ->
                 symbol2.value(results, tokenTable, zeroIfNone)?.let { value2 ->
+                    value1 * value2
+                }
+            }
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (symbol2 == null) {
+            symbol1.value(values, tokenList, zeroIfNone)
+        } else {
+            symbol1.value(values, tokenList, zeroIfNone)?.let { value1 ->
+                symbol2.value(values, tokenList, zeroIfNone)?.let { value2 ->
+                    value1 * value2
+                }
+            }
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (symbol2 == null) {
+            symbol1.value(values, tokenTable, zeroIfNone)
+        } else {
+            symbol1.value(values, tokenTable, zeroIfNone)?.let { value1 ->
+                symbol2.value(values, tokenTable, zeroIfNone)?.let { value2 ->
                     value1 * value2
                 }
             }

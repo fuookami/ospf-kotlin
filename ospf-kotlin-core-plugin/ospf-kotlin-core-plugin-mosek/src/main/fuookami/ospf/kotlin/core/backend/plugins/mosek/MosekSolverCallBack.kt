@@ -32,7 +32,14 @@ class MosekSolverCallBack(
     }
 
     operator fun set(point: Point, function: Function): MosekSolverCallBack {
-        map[point] = function
+        if (map.containsKey(point)) {
+            map[point] = { model ->
+                val originFunction = map[point]!!
+                run({ originFunction(model) }, { function(model) })
+            }
+        } else {
+            map[point] = function
+        }
         return this
     }
 

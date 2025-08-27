@@ -129,25 +129,33 @@ class IfFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         inequality.lhs.cells
         inequality.rhs.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            inequality.isTrue(tokenTable)?.let { bin ->
-                val yValue = if (bin) {
-                    Flt64.one
-                } else {
-                    Flt64.zero
-                }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val bin = if (values.isNullOrEmpty()) {
+                inequality.isTrue(tokenTable)
+            } else {
+                inequality.isTrue(values, tokenTable)
+            } ?: return null
 
-                logger.trace { "Setting IfFunction ${name}.y to $bin" }
-                tokenTable.find(y)?.let { token ->
-                    token._result = yValue
-                }
-
-                yValue
+            val yValue = if (bin) {
+                Flt64.one
+            } else {
+                Flt64.zero
             }
+
+            logger.trace { "Setting IfFunction ${name}.y to $bin" }
+            tokenTable.find(y)?.let { token ->
+                token._result = yValue
+            }
+
+            yValue
         } else {
             null
         }
@@ -175,6 +183,28 @@ class IfFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = inequality.register(name, k, y, model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = inequality.register(name, k, y, model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {
@@ -236,6 +266,26 @@ class IfFunction(
         }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (inequality.isTrue(values, tokenList, zeroIfNone)) {
+            true -> {
+                Flt64.one
+            }
+
+            false -> {
+                Flt64.zero
+            }
+
+            null -> {
+                null
+            }
+        }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -261,6 +311,26 @@ class IfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return when (inequality.isTrue(results, tokenTable, zeroIfNone)) {
+            true -> {
+                Flt64.one
+            }
+
+            false -> {
+                Flt64.zero
+            }
+
+            null -> {
+                null
+            }
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (inequality.isTrue(values, tokenTable, zeroIfNone)) {
             true -> {
                 Flt64.one
             }

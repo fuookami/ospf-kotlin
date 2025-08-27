@@ -3,7 +3,9 @@ package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -34,7 +36,7 @@ sealed class AbstractMinFunction(
 
     private val y: AbstractQuadraticPolynomial<*> by lazy {
         val y = QuadraticPolynomial(maxmin, "${name}_y")
-        y.range.set(m)
+        y.range.set(possibleRange)
         y
     }
 
@@ -68,27 +70,37 @@ sealed class AbstractMinFunction(
         } else {
             ValueRange(Flt64.zero, Flt64.zero).value!!
         }
-    private var m = possibleRange
+    private var m = max(abs(possibleRange.lowerBound.value.unwrap()), abs(possibleRange.upperBound.value.unwrap()))
 
     override fun flush(force: Boolean) {
         for (polynomial in polynomials) {
             polynomial.flush(force)
         }
         y.flush(force)
-        val newM = possibleRange
+        val newM = max(abs(possibleRange.lowerBound.value.unwrap()), abs(possibleRange.upperBound.value.unwrap()))
         if (m neq newM) {
-            maxmin.range.set(m)
+            maxmin.range.set(possibleRange)
             m = newM
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val values = polynomials.map { it.evaluate(tokenTable) }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val values = polynomials.map {
+                if (values.isNullOrEmpty()) {
+                    it.evaluate(tokenTable)
+                } else {
+                    it.evaluate(values, tokenTable)
+                }
+            }
 
             return if (values.all { it != null }) {
                 val min = values.withIndex().minByOrNull { it.value!! } ?: return null
@@ -162,7 +174,7 @@ sealed class AbstractMinFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
-                    maxmin geq (polynomial - m.upperBound.value.unwrap() * (Flt64.one - u[i])),
+                    maxmin geq (polynomial - m * (Flt64.one - u[i])),
                     "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
                 )) {
                     is Ok -> {}
@@ -188,6 +200,119 @@ sealed class AbstractMinFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>,
+    ): Try {
+        when (val result = tokenTable.add(maxmin)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (exact) {
+            val values = polynomials.map {
+                it.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+            }
+            val i = values.withIndex().minBy { it.value }.index
+
+            when (val result = tokenTable.add(u[i])) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = polynomials.map {
+            it.evaluate(fixedValues, model.tokens) ?: return register(model)
+        }
+        val (index, minValue) = values.withIndex().minBy { it.value }
+
+        for ((i, polynomial) in polynomials.withIndex()) {
+            when (val result = model.addConstraint(
+                maxmin leq polynomial,
+                "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        when (val result = model.addConstraint(
+            maxmin eq minValue,
+            "${name}_min"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(maxmin)?.let { token ->
+            token._result = minValue
+        }
+
+        if (exact) {
+            for ((i, polynomial) in polynomials.withIndex()) {
+                if (i == index) {
+                    when (val result = model.addConstraint(
+                        maxmin geq polynomial,
+                        "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+
+                    when (val result = model.addConstraint(
+                        u[i] eq Flt64.one,
+                        "${name}_u_${polynomial.name.ifEmpty { "$i" }}"
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+
+                    model.tokens.find(u[i])?.let { token ->
+                        token._result = Flt64.one
+                    }
+                } else {
+                    when (val result = model.addConstraint(
+                        maxmin geq (polynomial - m),
+                        "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                }
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -196,8 +321,9 @@ sealed class AbstractMinFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomials.minOfOrNull { it.evaluate(tokenList, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+        return polynomials.minOfOrNull {
+            it.evaluate(tokenList, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 
     override fun evaluate(
@@ -205,16 +331,28 @@ sealed class AbstractMinFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomials.minOfOrNull { it.evaluate(results, tokenList, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+        return polynomials.minOfOrNull {
+            it.evaluate(results, tokenList, zeroIfNone) ?: return null
+        } ?: Flt64.zero
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.minOfOrNull {
+            it.evaluate(values, tokenList, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomials.minOfOrNull { it.evaluate(tokenTable, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+        return polynomials.minOfOrNull {
+            it.evaluate(tokenTable, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 
     override fun calculateValue(
@@ -222,8 +360,19 @@ sealed class AbstractMinFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomials.minOfOrNull { it.evaluate(results, tokenTable, zeroIfNone) ?: return null }
-            ?: Flt64.zero
+        return polynomials.minOfOrNull {
+            it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        } ?: Flt64.zero
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomials.minOfOrNull {
+            it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        } ?: Flt64.zero
     }
 }
 

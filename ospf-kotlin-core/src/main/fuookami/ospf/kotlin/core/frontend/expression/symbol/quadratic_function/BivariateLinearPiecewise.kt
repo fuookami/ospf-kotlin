@@ -4,6 +4,7 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -121,13 +122,25 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         polyZ.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         y.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return null
-            val yValue = y.evaluate(tokenTable) ?: return null
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty() ) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
+            val yValue = if (values.isNullOrEmpty()) {
+                y.evaluate(tokenTable)
+            } else {
+                y.evaluate(values, tokenTable)
+            } ?: return null
 
             var zValue: Flt64? = null
             for (i in indices) {
@@ -280,6 +293,184 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+        val yValue = y.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+        val index = indices.firstOrNull {
+            val triangle = triangles[it]
+            val (minX, maxX) = minMax(triangle.p1.x, triangle.p2.x, triangle.p3.x)
+            val (minY, maxY) = minMax(triangle.p1.y, triangle.p2.y, triangle.p3.y)
+            minX leq xValue && xValue leq maxX && minY leq yValue && yValue leq maxY
+        } ?: return register(tokenTable)
+
+        when (val result = tokenTable.add(listOf(u[index], v[index], w[index]))) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val yValue = y.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val index = indices.firstOrNull {
+            val triangle = triangles[it]
+            val (minX, maxX) = minMax(triangle.p1.x, triangle.p2.x, triangle.p3.x)
+            val (minY, maxY) = minMax(triangle.p1.y, triangle.p2.y, triangle.p3.y)
+            minX leq xValue && xValue leq maxX && minY leq yValue && yValue leq maxY
+        } ?: return register(model)
+
+        val m = calculateM()
+        val uValue = calculateU(index, xValue, yValue)
+        val vValue = calculateV(index, xValue, yValue)
+
+        for (i in indices) {
+            val uPoly = polyU(i)
+            val vPoly = polyV(i)
+            if (i == index) {
+                when (val result = model.addConstraint(
+                    (u[i] - m * w[i] + m) geq uPoly,
+                    "${name}_ul_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                when (val result = model.addConstraint(
+                    (u[i] - m * w[i] - m) leq uPoly,
+                    "${name}_ur_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                when (val result = model.addConstraint(
+                    u[i] eq uValue,
+                    "${name}_u_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                model.tokens.find(u[i])?.let { token ->
+                    token._result = uValue
+                }
+
+                when (val result = model.addConstraint(
+                    (v[i] - m * w[i] + m) geq vPoly,
+                    "${name}_vl_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                when (val result = model.addConstraint(
+                    (v[i] - m * w[i] - m) leq vPoly,
+                    "${name}_vr_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                when (val result = model.addConstraint(
+                    v[i] eq vValue,
+                    "${name}_v_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                model.tokens.find(v[i])?.let { token ->
+                    token._result = vValue
+                }
+
+                when (val result = model.addConstraint(
+                    w[i] eq Flt64.one,
+                    "${name}_w_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                model.tokens.find(w[i])?.let { token ->
+                    token._result = Flt64.one
+                }
+            } else {
+                when (val result = model.addConstraint(
+                    m geq uPoly,
+                    "${name}_ul_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                when (val result = model.addConstraint(
+                    -m leq uPoly,
+                    "${name}_ur_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
+                    m geq vPoly,
+                    "${name}_vl_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                when (val result = model.addConstraint(
+                    -m leq vPoly,
+                    "${name}_vr_$i"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        return ok
+    }
+
+
     private fun calculatePolyZ(): QuadraticPolynomial {
         val monomials = ArrayList<QuadraticMonomial>()
         for ((i, triangle) in triangles.withIndex()) {
@@ -410,6 +601,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         return z(thisX, thisY)
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val thisX = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val thisY = y.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return z(thisX, thisY)
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -426,6 +627,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     ): Flt64? {
         val thisX = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val thisY = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return z(thisX, thisY)
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val thisX = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val thisY = y.evaluate(values, tokenTable, zeroIfNone) ?: return null
         return z(thisX, thisY)
     }
 }

@@ -85,20 +85,24 @@ class SemiFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return null
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
 
             val bin = xValue gr Flt64.zero
             logger.trace { "Setting SemiFunction ${name}.u to $bin" }
             tokenTable.find(u)?.let { token ->
-                token._result = if (bin) {
-                    Flt64.one
-                } else {
-                    Flt64.zero
-                }
+                token._result = bin.toFlt64()
             }
 
             val yValue = max(Flt64.zero, xValue)
@@ -115,6 +119,14 @@ class SemiFunction(
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
         when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = tokenTable.add(u)) {
             is Ok -> {}
 
             is Failed -> {
@@ -160,6 +172,85 @@ class SemiFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val yValue = max(Flt64.zero, xValue)
+        val bin = xValue gr Flt64.zero
+
+        when (val result = model.addConstraint(
+            y geq x,
+            "${name}_lb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        when (val result = model.addConstraint(
+            y leq x + m * u,
+            "${name}_ub"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        when (val result = model.addConstraint(
+            y leq m * (Flt64.one - u),
+            "${name}_yu"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y eq yValue,
+            "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(y)?.let { token ->
+            token._result = yValue
+        }
+
+        when (val result = model.addConstraint(
+            u eq bin,
+            "${name}_u"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(u)?.let { token ->
+            token._result = bin.toFlt64()
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -189,6 +280,15 @@ class SemiFunction(
         return max(Flt64.zero, xValue)
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return max(Flt64.zero, xValue)
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -203,6 +303,15 @@ class SemiFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return max(Flt64.zero, xValue)
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
         return max(Flt64.zero, xValue)
     }
 }

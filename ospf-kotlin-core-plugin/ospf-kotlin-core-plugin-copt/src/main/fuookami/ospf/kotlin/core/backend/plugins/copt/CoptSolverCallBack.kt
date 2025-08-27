@@ -33,7 +33,14 @@ class CoptLinearSolverCallBack(
     }
 
     operator fun set(point: Point, function: LinearFunction): CoptLinearSolverCallBack {
-        map[point] = function
+        if (map.containsKey(point)) {
+            map[point] = { model, vars, cons ->
+                val originFunction = map[point]!!
+                run({ originFunction(model, vars, cons) }, { function(model, vars, cons) })
+            }
+        } else {
+            map[point] = function
+        }
         return this
     }
 
@@ -75,7 +82,14 @@ class CoptQuadraticSolverCallBack(
     }
 
     operator fun set(point: Point, function: QuadraticFunction): CoptQuadraticSolverCallBack {
-        map[point] = function
+        if (map.containsKey(point)) {
+            map[point] = { model, vars, cons ->
+                val originFunction = map[point]!!
+                run({ originFunction(model, vars, cons) }, { function(model, vars, cons) })
+            }
+        } else {
+            map[point] = function
+        }
         return this
     }
 

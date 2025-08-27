@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi
+package fuookami.ospf.kotlin.core.backend.plugins.copt
 
 import java.util.*
 import kotlinx.coroutines.*
-import gurobi.*
+import copt.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -13,11 +13,11 @@ import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
 
-class GurobiBendersDecompositionSolver(
+class CoptBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
-    private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
+    private val callBack: CoptLinearSolverCallBack = CoptLinearSolverCallBack()
 ) : BendersDecompositionSolver {
-    override val name = "gurobi"
+    override val name = "copt"
 
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
@@ -54,7 +54,7 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        val solver = GurobiLinearSolver(
+        val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
         )
@@ -113,22 +113,18 @@ class GurobiBendersDecompositionSolver(
         }
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiLinearSolver(
+        val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
-                    ok
-                }
                 .analyzingSolution { _, _, constraints ->
                     dualSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                        Flt64(it.get(COPT.DoubleInfo.Dual))
                     }
                     ok
                 }
                 .afterFailure { _, _, constraints ->
                     farkasSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                        Flt64(it.get(COPT.DoubleInfo.DualFarkas))
                     }
                     ok
                 }

@@ -92,15 +92,23 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (inequality in inequalities) {
             inequality.lhs.cells
             inequality.rhs.cells
         }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
             val count = inequalities.count {
-                it.isTrue(tokenTable) ?: return null
+                if (values.isNullOrEmpty()) {
+                    it.isTrue(tokenTable)
+                } else {
+                    it.isTrue(values, tokenTable)
+                }?: return null
             }
 
             val yValue = if (amount != null) {
@@ -222,6 +230,100 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = inequalities.map {
+            it.isTrue(fixedValues, model.tokens) ?: return register(model)
+        }
+        val amountValue = UInt64(values.count { it })
+
+        for ((i, inequality) in inequalities.withIndex()) {
+            when (val result = inequality.register(name, k[i, _a], u[i], model, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (amount != null) {
+            if (!constraint) {
+                when (val result = model.addConstraint(
+                    sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
+                    "${name}_lb"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
+                    sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
+                    "${name}_ub"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                val bin = amount!!.contains(amountValue)
+
+                when (val result = model.addConstraint(
+                    y eq bin,
+                    "${name}_y"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                model.tokens.find(y)?.let { token ->
+                    token._result = bin.toFlt64()
+                }
+            } else {
+                when (val result = model.addConstraint(
+                    sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    "${name}_lb"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+
+                when (val result = model.addConstraint(
+                    sum(u) leq amount!!.upperBound.value.unwrap(),
+                    "${name}_ub"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -283,6 +385,29 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        var counter = UInt64.zero
+        for (inequality in inequalities) {
+            val value = inequality.isTrue(values, tokenList, zeroIfNone) ?: return null
+            if (value) {
+                counter += UInt64.one
+            }
+        }
+        return if (amount != null) {
+            if (amount!!.contains(counter)) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+        } else {
+            counter.toFlt64()
+        }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -313,6 +438,29 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         var counter = UInt64.zero
         for (inequality in inequalities) {
             val value = inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null
+            if (value) {
+                counter += UInt64.one
+            }
+        }
+        return if (amount != null) {
+            if (amount!!.contains(counter)) {
+                Flt64.one
+            } else {
+                Flt64.zero
+            }
+        } else {
+            counter.toFlt64()
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        var counter = UInt64.zero
+        for (inequality in inequalities) {
+            val value = inequality.isTrue(values, tokenTable, zeroIfNone) ?: return null
             if (value) {
                 counter += UInt64.one
             }

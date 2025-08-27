@@ -19,7 +19,7 @@ sealed class AbstractOneOfFunction(
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
     data class Branch(
-        val condition: AbstractLinearPolynomial<*>?,
+        val condition: AbstractLinearPolynomial<*>? = null,
         val polynomial: AbstractLinearPolynomial<*>,
         val name: String
     ) {
@@ -53,7 +53,7 @@ sealed class AbstractOneOfFunction(
         }
     }
 
-    private val semis: LinearIntermediateSymbols1 by lazy {
+    private val masks: LinearIntermediateSymbols1 by lazy {
         LinearIntermediateSymbols1("${name}_semi", Shape1(branches.size)) { b, _ ->
             val branch = branches[b]
             MaskingFunction(
@@ -65,7 +65,7 @@ sealed class AbstractOneOfFunction(
     }
 
     private val y: AbstractLinearPolynomial<*> by lazy {
-        val y = sum(semis[_a])
+        val y = sum(masks[_a])
         y.range.set(possibleRange)
         y
     }
@@ -108,14 +108,18 @@ sealed class AbstractOneOfFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (branch in branches) {
             branch.polynomial.cells
             branch.condition?.cells
         }
         tokenTable.cache(
-            semis.mapNotNull {
-                val value = it.prepare(tokenTable)
+            masks.mapNotNull {
+                val value = if (values.isNullOrEmpty()) {
+                    it.prepare(null, tokenTable)
+                } else {
+                    it.prepare(values, tokenTable)
+                }
                 if (value != null) {
                     (it as IntermediateSymbol) to value
                 } else {
@@ -124,29 +128,37 @@ sealed class AbstractOneOfFunction(
             }.toMap()
         )
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
             val values = branches.mapIndexedNotNull { b, branch ->
-                val semi = semis[b]
-                semi.evaluate(tokenTable)?.let { value ->
-                    if (value neq Flt64.zero) {
-                        if (branch.condition == null) {
-                            val ui = u[b]!!
-                            logger.trace { "Setting SemiFunction ${name}.${branch.name}.u to true" }
-                            tokenTable.find(ui)?.let { token ->
-                                token._result = Flt64.one
-                            }
+                val semi = masks[b]
+                val value = if (values.isNullOrEmpty()) {
+                    semi.evaluate(tokenTable)
+                } else {
+                    semi.evaluate(values, tokenTable)
+                } ?: return@mapIndexedNotNull null
+
+                if (value neq Flt64.zero) {
+                    if (branch.condition == null) {
+                        val ui = u[b]!!
+                        logger.trace { "Setting SemiFunction ${name}.${branch.name}.u to true" }
+                        tokenTable.find(ui)?.let { token ->
+                            token._result = Flt64.one
                         }
-                        value
-                    } else {
-                        if (branch.condition == null) {
-                            val ui = u[b]!!
-                            logger.trace { "Setting SemiFunction ${name}.${branch.name}.u to false" }
-                            tokenTable.find(ui)?.let { token ->
-                                token._result = Flt64.one
-                            }
-                        }
-                        null
                     }
+                    value
+                } else {
+                    if (branch.condition == null) {
+                        val ui = u[b]!!
+                        logger.trace { "Setting SemiFunction ${name}.${branch.name}.u to false" }
+                        tokenTable.find(ui)?.let { token ->
+                            token._result = Flt64.one
+                        }
+                    }
+                    null
                 }
             }
 
@@ -171,7 +183,7 @@ sealed class AbstractOneOfFunction(
             }
         }
 
-        semis.forEach {
+        masks.forEach {
             when (val result = tokenTable.add(it)) {
                 is Ok -> {}
 
@@ -209,6 +221,54 @@ sealed class AbstractOneOfFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = branches.map { branch ->
+            val conditionValue = branch.condition?.evaluate(fixedValues, model.tokens) ?: return register(model)
+            val polynomialValue = branch.polynomial.evaluate(fixedValues, model.tokens) ?: return register(model)
+            (conditionValue gr Flt64.zero) to polynomialValue
+        }
+
+        when (val result = model.addConstraint(
+            sum(branches.mapIndexed { b, branch ->
+                branch.condition ?: LinearPolynomial(u[b]!!)
+            }) eq Flt64.one,
+            name = "${name}_condition"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        u.forEachIndexed { i, ui ->
+            if (ui != null) {
+                when (val result = model.addConstraint(
+                    ui eq values[i].first,
+                    name = "${name}_${branches[i].name}_u"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -218,7 +278,7 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = semis[b].evaluate(tokenList, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(tokenList, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }
@@ -232,7 +292,21 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = semis[b].evaluate(results, tokenList, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(results, tokenList, zeroIfNone) ?: continue
+            if (value neq Flt64.zero) {
+                return value
+            }
+        }
+        return null
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        for ((b, _) in branches.withIndex()) {
+            val value = masks[b].evaluate(values, tokenList, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }
@@ -245,7 +319,7 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = semis[b].evaluate(tokenTable, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(tokenTable, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }
@@ -259,7 +333,21 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = semis[b].evaluate(results, tokenTable, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(results, tokenTable, zeroIfNone) ?: continue
+            if (value neq Flt64.zero) {
+                return value
+            }
+        }
+        return null
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        for ((b, _) in branches.withIndex()) {
+            val value = masks[b].evaluate(values, tokenTable, zeroIfNone) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }

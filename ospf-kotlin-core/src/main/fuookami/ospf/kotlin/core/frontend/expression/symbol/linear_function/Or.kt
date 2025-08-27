@@ -38,7 +38,7 @@ class OrFunction(
     }
 
     private val polyY: AbstractLinearPolynomial<*> by lazy {
-        val poly = LinearPolynomial(y, y.name)
+        val poly = LinearPolynomial(y)
         poly.range.set(ValueRange(Flt64.zero, Flt64.one).value!!)
         poly
     }
@@ -84,14 +84,22 @@ class OrFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
             polynomials.forEach { polynomial ->
-                val value = polynomial.evaluate(tokenTable) ?: return null
+                val value = if (values.isNullOrEmpty()) {
+                    polynomial.evaluate(tokenTable)
+                } else {
+                    polynomial.evaluate(values, tokenTable)
+                } ?: return null
                 val bin = value gr Flt64.zero
 
                 if (bin) {
@@ -176,6 +184,75 @@ class OrFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = polynomials.map {
+            it.evaluate(fixedValues, model.tokens) ?: return register(model)
+        }
+        val bin = values.any {
+            it gr Flt64.zero
+        }
+
+        for ((i, polynomial) in polynomials.withIndex()) {
+            if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
+                when (val result = model.addConstraint(
+                    y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
+                    "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            } else {
+                when (val result = model.addConstraint(
+                    y geq polynomial,
+                    "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y leq sum(polynomials),
+            "${name}_ub"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y eq bin.toFlt64(),
+            "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -193,9 +270,9 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-                val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -208,9 +285,24 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-                val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (polynomials.any {
+            val thisValue = it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -222,9 +314,9 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-                val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -237,9 +329,24 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-                val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (polynomials.any {
+            val thisValue = it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero

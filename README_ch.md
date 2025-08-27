@@ -27,13 +27,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -43,13 +43,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp1d-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -59,13 +59,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp2d-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -75,13 +75,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-bpp3d-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -91,13 +91,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp1d-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -107,13 +107,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-csp2d-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -123,13 +123,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-gantt-scheduling-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 
@@ -139,13 +139,13 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
     <artifactId>ospf-kotlin-starter-network-scheduling-jdk8</artifactId>
-    <version>1.0.57</version>
+    <version>1.0.58</version>
 </dependency>
 ```
 

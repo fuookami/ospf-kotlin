@@ -131,6 +131,26 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
         }
         return ret
     }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        var ret = constant
+        for (monomial in monomials) {
+            val thisValue = monomial.evaluate(values, tokenList, zeroIfNone)
+                ?: return null
+            ret += thisValue
+        }
+        return ret
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        var ret = constant
+        for (monomial in monomials) {
+            val thisValue = monomial.evaluate(values, tokenTable, zeroIfNone)
+                ?: return null
+            ret += thisValue
+        }
+        return ret
+    }
 }
 
 sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>

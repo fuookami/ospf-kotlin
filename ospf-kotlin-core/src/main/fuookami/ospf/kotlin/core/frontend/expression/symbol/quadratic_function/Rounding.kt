@@ -173,22 +173,34 @@ class RoundingFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            x.evaluate(tokenTable)?.let { xValue ->
-                d.evaluate(tokenTable)?.let { dValue ->
-                    val qValue = (xValue / dValue).round()
-                    logger.trace { "Setting FloorFunction ${name}.q initial solution: $qValue" }
-                    tokenTable.find(q)?.let { token -> token._result = qValue }
-                    val rValue = xValue - qValue * dValue
-                    logger.trace { "Setting FloorFunction ${name}.r initial solution: $rValue" }
-                    tokenTable.find(r)?.let { token -> token._result = rValue }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
 
-                    qValue
-                }
-            }
+            val dValue = if (values.isNullOrEmpty()) {
+                d.evaluate(tokenTable)
+            } else {
+                d.evaluate(values, tokenTable)
+            } ?: return null
+
+            val qValue = (xValue / dValue).round()
+            logger.trace { "Setting FloorFunction ${name}.q initial solution: $qValue" }
+            tokenTable.find(q)?.let { token -> token._result = qValue }
+            val rValue = xValue - qValue * dValue
+            logger.trace { "Setting FloorFunction ${name}.r initial solution: $rValue" }
+            tokenTable.find(r)?.let { token -> token._result = rValue }
+
+            qValue
         } else {
             null
         }
@@ -233,13 +245,105 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             x eq (dLinear * q + r),
-            name = name
+            name
         )) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = dLinear.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = tokenTable.add(q)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = tokenTable.add(r)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val dValue = d.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val qValue = (xValue / dValue).round()
+        val rValue = xValue - qValue * dValue
+
+        when (val result = dLinear.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            x eq (dLinear * q + r),
+            name
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            q eq qValue,
+            "${name}_q"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(q)?.let { token ->
+            token._result = qValue
+        }
+
+        when (val result = model.addConstraint(
+            r eq rValue,
+            "${name}_r"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(r)?.let { token ->
+            token._result = rValue
         }
 
         return ok
@@ -261,11 +365,9 @@ class RoundingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(tokenList, zeroIfNone)?.let { xValue ->
-            d.evaluate(tokenList, zeroIfNone)?.let { dValue ->
-                (xValue / dValue).round()
-            }
-        }
+        val xValue = x.evaluate(tokenList, zeroIfNone) ?: return null
+        val dValue = d.evaluate(tokenList, zeroIfNone) ?: return null
+        return (xValue / dValue).round()
     }
 
     override fun evaluate(
@@ -273,22 +375,28 @@ class RoundingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let { xValue ->
-            d.evaluate(results, tokenList, zeroIfNone)?.let { dValue ->
-                (xValue / dValue).round()
-            }
-        }
+        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val dValue = d.evaluate(results, tokenList, zeroIfNone) ?: return null
+        return (xValue / dValue).round()
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val dValue = d.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return (xValue / dValue).round()
     }
 
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(tokenTable, zeroIfNone)?.let { xValue ->
-            d.evaluate(tokenTable, zeroIfNone)?.let { dValue ->
-                (xValue / dValue).round()
-            }
-        }
+        val xValue = x.evaluate(tokenTable, zeroIfNone) ?: return null
+        val dValue = d.evaluate(tokenTable, zeroIfNone) ?: return null
+        return (xValue / dValue).round()
     }
 
     override fun calculateValue(
@@ -296,10 +404,18 @@ class RoundingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let { xValue ->
-            d.evaluate(results, tokenTable, zeroIfNone)?.let { dValue ->
-                (xValue / dValue).round()
-            }
-        }
+        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val dValue = d.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return (xValue / dValue).round()
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val dValue = d.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        return (xValue / dValue).round()
     }
 }

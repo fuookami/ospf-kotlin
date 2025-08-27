@@ -33,7 +33,14 @@ class GurobiLinearSolverCallBack(
     }
 
     operator fun set(point: Point, function: LinearFunction): GurobiLinearSolverCallBack {
-        map[point] = function
+        if (map.containsKey(point)) {
+            map[point] = { model, vars, cons ->
+                val originFunction = map[point]!!
+                run({ originFunction(model, vars, cons) }, { function(model, vars, cons) })
+            }
+        } else {
+            map[point] = function
+        }
         return this
     }
 
@@ -75,7 +82,14 @@ class GurobiQuadraticSolverCallBack(
     }
 
     operator fun set(point: Point, function: QuadraticFunction): GurobiQuadraticSolverCallBack {
-        map[point] = function
+        if (map.containsKey(point)) {
+            map[point] = { model, vars, cons ->
+                val originFunction = map[point]!!
+                run({ originFunction(model, vars, cons) }, { function(model, vars, cons) })
+            }
+        } else {
+            map[point] = function
+        }
         return this
     }
 

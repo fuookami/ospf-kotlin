@@ -8,19 +8,15 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.variable.geq
+import fuookami.ospf.kotlin.core.frontend.variable.leq
 
 class SigmoidFunction(
     private val x: AbstractLinearPolynomial<*>,
-    private val precision: Precision = Precision.All,
-    private val decimalPrecision: Flt64 = Flt64(1e-5),
+    private val samplingPoint: List<Point2>,
     override var name: String = "${x}_sigmoid",
     override var displayName: String? = "Sigmoid($x)"
 ) : LinearFunctionSymbol {
-    init {
-        assert(decimalPrecision geq Flt64.zero)
-        assert(decimalPrecision leq Flt64(1e-2))
-    }
-
     companion object {
         enum class Precision {
             All,
@@ -58,6 +54,36 @@ class SigmoidFunction(
         fun sigmoid(x: Flt64) = Flt64(1.0) / (Flt64.one + (-x).exp())
         fun x(y: Flt64) = -((Flt64(1.0) - y) / y).ln()!!
 
+        fun samplingPoints(
+            precision: Precision = Precision.All,
+            decimalPrecision: Flt64 = Flt64(1e-5),
+        ): List<Point2> {
+            assert(decimalPrecision geq Flt64.zero)
+            assert(decimalPrecision leq Flt64(1e-2))
+
+            return when (precision) {
+                Precision.All -> fullPoints(decimalPrecision)
+                Precision.Half -> halfPoints(decimalPrecision)
+            }
+        }
+
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            samplingPoint: List<Point2>,
+            name: String = "${x}_sigmoid",
+            displayName: String? = "Sigmoid(${x})"
+        ): SigmoidFunction {
+            return SigmoidFunction(
+                x.toLinearPolynomial(),
+                samplingPoint,
+                name,
+                displayName
+            )
+        }
+
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
@@ -70,8 +96,7 @@ class SigmoidFunction(
         ): SigmoidFunction {
             return SigmoidFunction(
                 x.toLinearPolynomial(),
-                precision,
-                decimalPrecision,
+                samplingPoints(precision, decimalPrecision),
                 name,
                 displayName
             )
@@ -80,10 +105,7 @@ class SigmoidFunction(
 
     private val impl = UnivariateLinearPiecewiseFunction(
         x = x,
-        points = when (precision) {
-            Precision.All -> fullPoints(decimalPrecision)
-            Precision.Half -> halfPoints(decimalPrecision)
-        },
+        points = samplingPoint,
         name = name,
         displayName = displayName
     )
@@ -104,12 +126,24 @@ class SigmoidFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        impl.prepareAndCache(tokenTable)
+        if (values.isNullOrEmpty()) {
+            impl.prepareAndCache(null, tokenTable)
+        } else {
+            impl.prepareAndCache(values, tokenTable)
+        }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            impl.evaluate(tokenTable)
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        }== false) {
+            if (values.isNullOrEmpty()) {
+                impl.evaluate(tokenTable)
+            } else {
+                impl.evaluate(values, tokenTable)
+            }
         } else {
             null
         }
@@ -129,6 +163,36 @@ class SigmoidFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = impl.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = impl.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = impl.register(model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {
@@ -168,6 +232,15 @@ class SigmoidFunction(
         return sigmoid(value)
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return sigmoid(value)
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -182,6 +255,15 @@ class SigmoidFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         val value = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return sigmoid(value)
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
         return sigmoid(value)
     }
 }

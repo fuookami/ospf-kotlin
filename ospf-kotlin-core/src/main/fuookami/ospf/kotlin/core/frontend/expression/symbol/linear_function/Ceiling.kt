@@ -132,26 +132,34 @@ class CeilingFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            x.evaluate(tokenTable)?.let { xValue ->
-                val qValue = (xValue / d).let {
-                    if (it geq Flt64.zero) {
-                        it.ceil()
-                    } else {
-                        it.floor()
-                    }
-                }
-                logger.trace { "Setting CeilingFunction ${name}.q initial solution: $qValue" }
-                tokenTable.find(q)?.let { token -> token._result = qValue }
-                val rValue = qValue * d - xValue
-                logger.trace { "Setting CeilingFunction ${name}.r initial solution: $rValue" }
-                tokenTable.find(r)?.let { token -> token._result = rValue }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
 
-                qValue
+            val qValue = (xValue / d).let {
+                if (it geq Flt64.zero) {
+                    it.ceil()
+                } else {
+                    it.floor()
+                }
             }
+            logger.trace { "Setting CeilingFunction ${name}.q initial solution: $qValue" }
+            tokenTable.find(q)?.let { token -> token._result = qValue }
+            val rValue = qValue * d - xValue
+            logger.trace { "Setting CeilingFunction ${name}.r initial solution: $rValue" }
+            tokenTable.find(r)?.let { token -> token._result = rValue }
+
+            qValue
         } else {
             null
         }
@@ -192,6 +200,65 @@ class CeilingFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val qValue = (xValue / d).ceil()
+        val rValue = qValue * d - xValue
+
+        when (val result = model.addConstraint(
+            x eq (d * q - r),
+            name
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            q eq qValue,
+            "${name}_q"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(q)?.let { token ->
+            token._result = qValue
+        }
+
+        when (val result = model.addConstraint(
+            r eq rValue,
+            "${name}_r"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(r)?.let { token ->
+            token._result = rValue
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -223,12 +290,22 @@ class CeilingFunction(
         }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+            (it / d).ceil()
+        }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
         return x.evaluate(tokenTable, zeroIfNone)?.let {
-            (it / d).floor()
+            (it / d).ceil()
         }
     }
 
@@ -237,6 +314,18 @@ class CeilingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let { (it / d).ceil() }
+        return x.evaluate(results, tokenTable, zeroIfNone)?.let {
+            (it / d).ceil()
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(values, tokenTable, zeroIfNone)?.let {
+            (it / d).ceil()
+        }
     }
 }

@@ -188,13 +188,27 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         y.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return null
-            val yValue = y.evaluate(tokenTable) ?: return null
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
+
+            val yValue = if (values.isNullOrEmpty()) {
+                y.evaluate(tokenTable)
+            } else {
+                y.evaluate(values, tokenTable)
+            } ?: return null
+
             val negValue = max(Flt64.zero, yValue - xValue)
             val posValue = max(Flt64.zero, xValue - yValue)
 
@@ -284,6 +298,106 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val yValue = y.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val negSlack = if (xValue leq yValue) {
+            yValue - xValue
+        } else {
+            Flt64.zero
+        }
+        val posSlack = if (xValue geq yValue) {
+            xValue - yValue
+        } else {
+            Flt64.zero
+        }
+
+        if (constraint) {
+            if (threshold) {
+                if (withNegative) {
+                    when (val result = model.addConstraint(
+                        polyX geq y,
+                        name
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                } else if (withPositive) {
+                    when (val result = model.addConstraint(
+                        polyX leq y,
+                        name
+                    )) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                }
+            } else {
+                when (val result = model.addConstraint(
+                    polyX eq y,
+                    name
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        if (_neg != null) {
+            when (val result = model.addConstraint(
+                (_neg as AbstractVariableItem<*, *>) eq negSlack,
+                "${name}_neg"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            model.tokens.find(_neg!!)?.let { token ->
+                token._result = negSlack
+            }
+        }
+
+        if (_pos != null) {
+            when (val result = model.addConstraint(
+                (_pos as AbstractVariableItem<*, *>) eq posSlack,
+                "${name}_pos"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            model.tokens.find(_pos!!)?.let { token ->
+                token._result = posSlack
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -331,6 +445,24 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val yValue = y.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return if (withNegative && withPositive) {
+            abs(xValue - yValue)
+        } else if (withNegative) {
+            max(Flt64.zero, yValue - xValue)
+        } else if (withPositive) {
+            max(Flt64.zero, xValue - yValue)
+        } else {
+            Flt64.zero
+        }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -355,6 +487,24 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     ): Flt64? {
         val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val yValue = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return if (withNegative && withPositive) {
+            abs(xValue - yValue)
+        } else if (withNegative) {
+            max(Flt64.zero, yValue - xValue)
+        } else if (withPositive) {
+            max(Flt64.zero, xValue - yValue)
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val yValue = y.evaluate(values, tokenTable, zeroIfNone) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {

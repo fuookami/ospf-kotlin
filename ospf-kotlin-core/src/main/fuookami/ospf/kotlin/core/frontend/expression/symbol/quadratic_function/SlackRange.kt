@@ -111,15 +111,33 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         lb.cells
         ub.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return null
-            val lbValue = lb.evaluate(tokenTable) ?: return null
-            val ubValue = ub.evaluate(tokenTable) ?: return null
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            }  ?: return null
+
+            val lbValue = if (values.isNullOrEmpty()) {
+                lb.evaluate(tokenTable)
+            } else {
+                lb.evaluate(values, tokenTable)
+            } ?: return null
+
+            val ubValue = if (values.isNullOrEmpty()) {
+                ub.evaluate(tokenTable)
+            } else {
+                ub.evaluate(values, tokenTable)
+            } ?: return null
 
             val posValue = if (xValue geq ubValue) {
                 xValue - ubValue
@@ -204,6 +222,88 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val lbValue = lb.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val ubValue = ub.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val negSlack = if (xValue leq lbValue) {
+            lbValue - lbValue
+        } else {
+            Flt64.zero
+        }
+        val posSlack = if (xValue geq ubValue) {
+            xValue - ubValue
+        } else {
+            Flt64.zero
+        }
+
+        if (constraint) {
+            when (val result = model.addConstraint(
+                polyX leq ub,
+                "${name}_ub"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
+                polyX geq lb,
+                "${name}_lb"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        when (val result = model.addConstraint(
+            _neg eq negSlack,
+            "${name}_neg"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(_neg)?.let { token ->
+            token._result = negSlack
+        }
+
+        when (val result = model.addConstraint(
+            _pos eq posSlack,
+            "${name}_pos"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(_pos)?.let { token ->
+            token._result = posSlack
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -249,6 +349,23 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val ubValue = ub.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return if (xValue ls lbValue) {
+            lbValue - xValue
+        } else if (xValue gr ubValue) {
+            xValue - ubValue
+        } else {
+            Flt64.zero
+        }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -273,6 +390,23 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
         val ubValue = ub.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return if (xValue ls lbValue) {
+            lbValue - xValue
+        } else if (xValue gr ubValue) {
+            xValue - ubValue
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val ubValue = ub.evaluate(values, tokenTable, zeroIfNone) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {

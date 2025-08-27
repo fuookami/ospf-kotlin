@@ -86,17 +86,33 @@ class InStepRangeFunction(
         y.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         lb.cells
         ub.cells
-        q.prepareAndCache(tokenTable)
+        if (values.isNullOrEmpty()) {
+            q.prepareAndCache(null, tokenTable)
+        } else {
+            q.prepareAndCache(values, tokenTable)
+        }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            lb.evaluate(tokenTable)?.let { lbValue ->
-                q.evaluate(tokenTable)?.let { qValue ->
-                    lbValue + qValue * step
-                }
-            }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val lbValue = if (values.isNullOrEmpty()) {
+                lb.evaluate(tokenTable)
+            } else {
+                lb.evaluate(values, tokenTable)
+            } ?: return null
+
+            val qValue = if (values.isNullOrEmpty()) {
+                q.evaluate(tokenTable)
+            } else {
+                q.evaluate(values, tokenTable)
+            } ?: return null
+
+            lbValue + qValue * step
         } else {
             null
         }
@@ -126,6 +142,36 @@ class InStepRangeFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = q.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = q.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -142,11 +188,9 @@ class InStepRangeFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return lb.evaluate(tokenList, zeroIfNone)?.let { lbValue ->
-            q.evaluate(tokenList, zeroIfNone)?.let { qValue ->
-                lbValue + qValue * step
-            }
-        }
+        val lbValue = lb.evaluate(tokenList, zeroIfNone) ?: return null
+        val qValue = q.evaluate(tokenList, zeroIfNone) ?: return null
+        return lbValue + qValue * step
     }
 
     override fun evaluate(
@@ -154,22 +198,28 @@ class InStepRangeFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return lb.evaluate(results, tokenList, zeroIfNone)?.let { lbValue ->
-            q.evaluate(results, tokenList, zeroIfNone)?.let { qValue ->
-                lbValue + qValue * step
-            }
-        }
+        val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val qValue = q.evaluate(results, tokenList, zeroIfNone) ?: return null
+        return lbValue + qValue * step
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val lbValue = lb.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val qValue = q.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return lbValue + qValue * step
     }
 
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return lb.evaluate(tokenTable, zeroIfNone)?.let { lbValue ->
-            q.evaluate(tokenTable, zeroIfNone)?.let { qValue ->
-                lbValue + qValue * step
-            }
-        }
+        val lbValue = lb.evaluate(tokenTable, zeroIfNone) ?: return null
+        val qValue = q.evaluate(tokenTable, zeroIfNone) ?: return null
+        return lbValue + qValue * step
     }
 
     override fun calculateValue(
@@ -177,10 +227,18 @@ class InStepRangeFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return lb.evaluate(results, tokenTable, zeroIfNone)?.let { lbValue ->
-            q.evaluate(results, tokenTable, zeroIfNone)?.let { qValue ->
-                lbValue + qValue * step
-            }
-        }
+        val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val qValue = q.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return lbValue + qValue * step
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val lbValue = lb.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val qValue = q.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        return lbValue + qValue * step
     }
 }
