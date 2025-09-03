@@ -113,12 +113,13 @@ class MindOPTColumnGenerationSolver(
         val solver = MindOPTLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { mindopt, _, _ ->
+                .configuration { _, mindopt, _, _ ->
                     if (amount gr UInt64.one) {
                         mindopt.set(MDO.IntParam.MIP_SolutionPoolSize, amount.toInt())
                     }
                     ok
-                }.analyzingSolution { mindopt, variables, _ ->
+                }
+                .analyzingSolution { _, mindopt, variables, _ ->
                     for (i in 0 until kotlin.math.min(amount.toInt(), mindopt.get(MDO.IntAttr.SolCount))) {
                         mindopt.set(MDO.IntParam.MIP_SolutionNumber, i)
                         val thisResults = variables.map { Flt64(it.get(MDO.DoubleAttr.Xn)) }
@@ -185,7 +186,7 @@ class MindOPTColumnGenerationSolver(
         val solver = MindOPTLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .analyzingSolution { _, _, constraints ->
+                .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
                         Flt64(it.get(MDO.DoubleAttr.DualSoln))
                     }

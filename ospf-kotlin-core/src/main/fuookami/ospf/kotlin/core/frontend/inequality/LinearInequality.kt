@@ -77,7 +77,16 @@ class LinearInequality(
 
     override fun normalize(): LinearInequality {
         return LinearInequality(
-            lhs = LinearPolynomial(lhs.monomials.map { it.copy() } + rhs.monomials.map { -it }),
+            lhs = LinearPolynomial(
+                (lhs.monomials.map { it to true } + rhs.monomials.map { it to false })
+                    .groupBy { it.first.symbol }
+                    .map { (symbol, monomials) ->
+                        LinearMonomial(
+                            monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                            symbol
+                        )
+                    }
+            ),
             rhs = LinearPolynomial(-lhs.constant + rhs.constant),
             sign = sign,
             name = name,
@@ -90,7 +99,16 @@ class LinearInequality(
             Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
 
             Sign.Greater, Sign.GreaterEqual -> LinearInequality(
-                lhs = LinearPolynomial(lhs.monomials.map { -it } + rhs.monomials.map { it.copy() }),
+                lhs = LinearPolynomial(
+                    (lhs.monomials.map { it to false } + rhs.monomials.map { it to true })
+                        .groupBy { it.first.symbol }
+                        .map { (symbol, monomials) ->
+                            LinearMonomial(
+                                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                                symbol
+                            )
+                        }
+                ),
                 rhs = LinearPolynomial(lhs.constant - rhs.constant),
                 sign = sign.reverse,
                 name = name,

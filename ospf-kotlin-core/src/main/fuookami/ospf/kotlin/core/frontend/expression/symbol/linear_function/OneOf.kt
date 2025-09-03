@@ -53,8 +53,8 @@ sealed class AbstractOneOfFunction(
         }
     }
 
-    private val masks: LinearIntermediateSymbols1 by lazy {
-        LinearIntermediateSymbols1("${name}_semi", Shape1(branches.size)) { b, _ ->
+    private val masks: SymbolCombination<MaskingFunction, Shape1> by lazy {
+        SymbolCombination("${name}_semi", Shape1(branches.size)) { b, _ ->
             val branch = branches[b]
             MaskingFunction(
                 x = branch.polynomial,
@@ -184,7 +184,7 @@ sealed class AbstractOneOfFunction(
         }
 
         masks.forEach {
-            when (val result = tokenTable.add(it)) {
+            when (val result = it.register(tokenTable)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -201,6 +201,16 @@ sealed class AbstractOneOfFunction(
             if (branch.condition != null) {
                 if (branch.condition.lowerBound!!.value.unwrap() ls Flt64.zero || branch.condition.upperBound!!.value.unwrap() gr Flt64.one) {
                     return Failed(Err(ErrorCode.ApplicationFailed, "${branch.name}'s domain of definition unsatisfied: ${branch.condition}"))
+                }
+            }
+        }
+
+        masks.forEach {
+            when (val result = it.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
                 }
             }
         }
@@ -236,6 +246,16 @@ sealed class AbstractOneOfFunction(
             val conditionValue = branch.condition?.evaluate(fixedValues, model.tokens) ?: return register(model)
             val polynomialValue = branch.polynomial.evaluate(fixedValues, model.tokens) ?: return register(model)
             (conditionValue gr Flt64.zero) to polynomialValue
+        }
+
+        masks.forEach {
+            when (val result = it.register(model, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
         }
 
         when (val result = model.addConstraint(
@@ -382,17 +402,19 @@ class IfElseFunction(
         val polynomial: AbstractLinearPolynomial<*>,
         val name: String
     ) {
-        operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
-            polynomial: T,
-            name: String
-        ): Branch {
-            return Branch(
-                polynomial.toLinearPolynomial(),
-                name
-            )
+        companion object {
+            operator fun <
+                    T : ToLinearPolynomial<Poly>,
+                    Poly : AbstractLinearPolynomial<Poly>
+                    > invoke(
+                polynomial: T,
+                name: String
+            ): Branch {
+                return Branch(
+                    polynomial.toLinearPolynomial(),
+                    name
+                )
+            }
         }
     }
 

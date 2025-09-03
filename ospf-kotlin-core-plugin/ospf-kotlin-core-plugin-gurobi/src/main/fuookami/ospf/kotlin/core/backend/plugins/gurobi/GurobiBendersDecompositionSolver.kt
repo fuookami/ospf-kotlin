@@ -116,19 +116,21 @@ class GurobiBendersDecompositionSolver(
         val solver = GurobiLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { model, _, _ ->
+                .configuration { _, model, _, _ ->
                     model.set(GRB.IntParam.InfUnbdInfo, 1)
                     ok
                 }
-                .analyzingSolution { _, _, constraints ->
+                .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
                         Flt64(it.get(GRB.DoubleAttr.Pi))
                     }
                     ok
                 }
-                .afterFailure { _, _, constraints ->
-                    farkasSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                .afterFailure { status, _, _, constraints ->
+                    if (status == SolverStatus.Infeasible) {
+                        farkasSolution = constraints.map {
+                            Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                        }
                     }
                     ok
                 }

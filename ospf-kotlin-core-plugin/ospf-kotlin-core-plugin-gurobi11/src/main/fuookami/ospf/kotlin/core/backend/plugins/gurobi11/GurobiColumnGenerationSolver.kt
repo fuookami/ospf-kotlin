@@ -112,14 +112,15 @@ class GurobiColumnGenerationSolver(
         val solver = GurobiLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { gurobi, _, _ ->
+                .configuration { _, gurobi, _, _ ->
                     if (amount gr UInt64.one) {
                         gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
                         gurobi.set(GRB.IntParam.PoolSearchMode, 2);
                         gurobi.set(GRB.IntParam.PoolSolutions, amount.toInt())
                     }
                     ok
-                }.analyzingSolution { gurobi, variables, _ ->
+                }
+                .analyzingSolution { _, gurobi, variables, _ ->
                     for (i in 0 until gurobi.get(GRB.IntAttr.SolCount)) {
                         gurobi.set(GRB.IntParam.SolutionNumber, i)
                         val thisResults = variables.map { Flt64(it.get(GRB.DoubleAttr.Xn)) }
@@ -186,7 +187,7 @@ class GurobiColumnGenerationSolver(
         val solver = GurobiLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .analyzingSolution { _, _, constraints ->
+                .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
                         Flt64(it.get(GRB.DoubleAttr.Pi))
                     }

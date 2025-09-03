@@ -17,6 +17,7 @@ class IfThenFunction(
     p: LinearInequality,
     q: LinearInequality,
     private val constraint: Boolean = true,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -28,6 +29,7 @@ class IfThenFunction(
             p: T1,
             q: T2,
             constraint: Boolean = true,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): IfThenFunction {
@@ -35,6 +37,7 @@ class IfThenFunction(
                 p.toLinearInequality(),
                 q.toLinearInequality(),
                 constraint,
+                epsilon,
                 name,
                 displayName
             )
@@ -189,7 +192,7 @@ class IfThenFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(pk)) {
+        when (val result = p.register(name, pk, pu, tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -197,23 +200,7 @@ class IfThenFunction(
             }
         }
 
-        when (val result = tokenTable.add(pu)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(qk)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(qu)) {
+        when (val result = q.register(name, qk, qu, tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -243,7 +230,7 @@ class IfThenFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = p.register(name, pk, pu, model)) {
+        when (val result = p.register(name, pk, pu, epsilon, model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -251,7 +238,7 @@ class IfThenFunction(
             }
         }
 
-        when (val result = q.register(name, qk, qu, model)) {
+        when (val result = q.register(name, qk, qu, epsilon, model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -301,7 +288,7 @@ class IfThenFunction(
         val qValue = q.isTrue(fixedValues, model.tokens) ?: return register(model)
         val bin = !pValue || qValue
 
-        when (val result = p.register(name, pk, pu, model, fixedValues)) {
+        when (val result = p.register(name, pk, pu, epsilon, model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {
@@ -309,7 +296,7 @@ class IfThenFunction(
             }
         }
 
-        when (val result = q.register(name, qk, qu, model, fixedValues)) {
+        when (val result = q.register(name, qk, qu, epsilon, model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {

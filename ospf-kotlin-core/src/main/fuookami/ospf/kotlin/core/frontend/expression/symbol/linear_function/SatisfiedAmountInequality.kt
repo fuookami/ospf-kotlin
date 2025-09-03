@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 sealed class AbstractSatisfiedAmountInequalityFunction(
     inequalities: List<LinearInequality>,
     private val constraint: Boolean = false,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -139,19 +140,13 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(k)) {
-            is Ok -> {}
+        for ((i, inequality) in inequalities.withIndex()) {
+            when (val result = inequality.register("${name}_i", k[i, _a], u[i], tokenTable)) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(u)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
         }
 
@@ -170,7 +165,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register(name, k[i, _a], u[i], model)) {
+            when (val result = inequality.register("${name}_i", k[i, _a], u[i], epsilon, model)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -247,7 +242,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         val amountValue = UInt64(values.count { it })
 
         for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register(name, k[i, _a], u[i], model, fixedValues)) {
+            when (val result = inequality.register("${name}_i", k[i, _a], u[i], epsilon, model, fixedValues)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -639,11 +634,13 @@ class AtLeastInequalityFunction(
     inequalities: List<LinearInequality>,
     constraint: Boolean = true,
     amount: UInt64,
+    epsilon: Flt64 = Flt64(1e-6),
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
     inequalities,
     constraint,
+    epsilon,
     name,
     displayName
 ), LinearLogicFunctionSymbol {
@@ -685,11 +682,13 @@ class NumerableFunction(
     inequalities: List<LinearInequality>,
     override val amount: ValueRange<UInt64>,
     constraint: Boolean = true,
+    epsilon: Flt64 = Flt64(1e-6),
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
     inequalities,
     constraint,
+    epsilon,
     name,
     displayName
 ), LinearLogicFunctionSymbol {

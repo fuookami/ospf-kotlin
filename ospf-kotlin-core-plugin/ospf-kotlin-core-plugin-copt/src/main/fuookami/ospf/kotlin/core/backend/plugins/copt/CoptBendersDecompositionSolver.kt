@@ -116,15 +116,17 @@ class CoptBendersDecompositionSolver(
         val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .analyzingSolution { _, _, constraints ->
+                .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
                         Flt64(it.get(COPT.DoubleInfo.Dual))
                     }
                     ok
                 }
-                .afterFailure { _, _, constraints ->
-                    farkasSolution = constraints.map {
-                        Flt64(it.get(COPT.DoubleInfo.DualFarkas))
+                .afterFailure { status, _, _, constraints ->
+                    if (status == SolverStatus.Infeasible) {
+                        farkasSolution = constraints.map {
+                            Flt64(it.get(COPT.DoubleInfo.DualFarkas))
+                        }
                     }
                     ok
                 }

@@ -4,10 +4,11 @@ import java.util.*
 import com.hexaly.optimizer.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (HexalyOptimizer) -> Try
 typealias NativeCallBack = (HexalyOptimizer, HxCallbackType) -> Unit
-typealias Function = (HexalyOptimizer, List<HxExpression>, List<HxExpression>) -> Try
+typealias Function = (SolverStatus?, HexalyOptimizer, List<HxExpression>, List<HxExpression>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -19,7 +20,7 @@ enum class Point {
 class HexalySolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, Function> = EnumMap(Point::class.java)
+    private val map: MutableMap<Point, MutableList<Function>> = HashMap()
 ) : Copyable<HexalySolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallBack) {
@@ -32,14 +33,7 @@ class HexalySolverCallBack(
     }
 
     operator fun set(point: Point, function: Function): HexalySolverCallBack {
-        if (map.containsKey(point)) {
-            map[point] = { model, vars, cons ->
-                val originFunction = map[point]!!
-                run({ originFunction(model, vars, cons) }, { function(model, vars, cons) })
-            }
-        } else {
-            map[point] = function
-        }
+        map.getOrPut(point) { ArrayList() }.add(function)
         return this
     }
 
@@ -50,14 +44,20 @@ class HexalySolverCallBack(
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
     fun contain(point: Point) = map.containsKey(point)
-    fun get(point: Point): Function? = map[point]
+    fun get(point: Point): List<Function>? = map[point]
 
     fun execIfContain(env: HexalyOptimizer): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, hexaly: HexalyOptimizer, variables: List<HxExpression>, constraints: List<HxExpression>): Try? {
-        return map[point]?.invoke(hexaly, variables, constraints)
+    fun execIfContain(point: Point, status: SolverStatus?, hexaly: HexalyOptimizer, variables: List<HxExpression>, constraints: List<HxExpression>): Try? {
+        return if (!map[point].isNullOrEmpty()) {
+            run(map[point]!!.map {
+                { it(status, hexaly, variables, constraints) }
+            })
+        } else {
+            null
+        }
     }
 
     override fun copy(): HexalySolverCallBack {

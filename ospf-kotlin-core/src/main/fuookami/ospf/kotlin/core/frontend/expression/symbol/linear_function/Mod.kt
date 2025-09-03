@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class ModFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "${x}_mod_${d}",
     override var displayName: String? = "$x mod $d"
 ) : LinearFunctionSymbol {
@@ -27,12 +28,14 @@ class ModFunction(
         > invoke(
             x: T,
             d: Int,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
             return ModFunction(
                 x.toLinearPolynomial(),
-                Flt64(d.toDouble()),
+                Flt64(d),
+                epsilon,
                 name,
                 displayName
             )
@@ -44,12 +47,14 @@ class ModFunction(
         > invoke(
             x: T,
             d: Double,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
             return ModFunction(
                 x.toLinearPolynomial(),
                 Flt64(d),
+                epsilon,
                 name,
                 displayName
             )
@@ -62,12 +67,14 @@ class ModFunction(
         > invoke(
             x: T1,
             d: T2,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
             return ModFunction(
                 x.toLinearPolynomial(),
                 d.toFlt64(),
+                epsilon,
                 name,
                 displayName
             )
@@ -75,18 +82,25 @@ class ModFunction(
     }
 
     private val q: IntVar by lazy {
-        IntVar("${name}_q")
+        val q = IntVar("${name}_q")
+        q.range.set(
+            ValueRange(
+                possibleRange.lowerBound.value.unwrap().toInt64(),
+                possibleRange.upperBound.value.unwrap().toInt64()
+            ).value!!
+        )
+        q
     }
 
     private val r: URealVar by lazy {
         val r = URealVar("${name}_r")
-        r.range.leq(possibleUpperBound)
+        r.range.leq(d.abs() - epsilon)
         r
     }
 
     private val y: AbstractLinearPolynomial<*> by lazy {
         val y = LinearPolynomial(r, "${name}_y")
-        y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)
+        y.range.set(ValueRange(Flt64.zero, d.abs() - epsilon).value!!)
         y
     }
 
@@ -104,16 +118,18 @@ class ModFunction(
     override val cells get() = y.cells
     override val cached get() = y.cached
 
-    private val possibleUpperBound
-        get() = if (d geq Flt64.zero) {
-            d.floor()
-        } else {
-            d.ceil().abs()
-        }
+    private val possibleRange
+        get() = ValueRange(
+            (x.lowerBound!!.value.unwrap() / d).floor(),
+            (x.upperBound!!.value.unwrap() / d).floor()
+        ).value!!
 
     override fun flush(force: Boolean) {
         x.flush(force)
         y.flush(force)
+        q.range.set(ValueRange(possibleRange.lowerBound.value.unwrap().toInt64(), possibleRange.upperBound.value.unwrap().toInt64()).value!!)
+        r.range.set(ValueRange(Flt64.zero, d.abs() - epsilon).value!!)
+        y.range.set(ValueRange(Flt64.zero, d.abs() - epsilon).value!!)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -200,7 +216,7 @@ class ModFunction(
         val rValue = xValue - qValue * d
 
         when (val result = model.addConstraint(
-            x eq (d * q - r),
+            x eq (d * q + r),
             name
         )) {
             is Ok -> {}

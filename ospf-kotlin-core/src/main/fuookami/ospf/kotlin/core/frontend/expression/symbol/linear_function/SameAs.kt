@@ -16,6 +16,7 @@ class SameAsFunction(
     inequalities: List<LinearInequality>,
     private val constraint: Boolean = true,
     private val fixed: Boolean? = null,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -26,6 +27,7 @@ class SameAsFunction(
             inequalities: List<ToLinearInequality>,
             constraint: Boolean = true,
             fixedValue: Boolean? = null,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): SameAsFunction {
@@ -33,6 +35,7 @@ class SameAsFunction(
                 inequalities.map { it.toLinearInequality() },
                 constraint,
                 fixedValue,
+                epsilon,
                 name,
                 displayName
             )
@@ -149,20 +152,32 @@ class SameAsFunction(
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (!constraint && inequalities.size > 1) {
-            when (val result = tokenTable.add(u)) {
+            for ((i, inequality) in inequalities.withIndex()) {
+                when (val result = inequality.register("${name}_i", k[i, _a], u[i], tokenTable)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        } else {
+            for ((i, inequality) in inequalities.withIndex()) {
+                when (val result = inequality.register("${name}_i", k[i, _a], null, tokenTable)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+
+            when (val result = tokenTable.add(y)) {
                 is Ok -> {}
 
                 is Failed -> {
                     return Failed(result.error)
                 }
-            }
-        }
-
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
             }
         }
 
@@ -172,7 +187,7 @@ class SameAsFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         if (!constraint && inequalities.size > 1) {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], u[i], model)) {
+                when (val result = inequality.register("${name}_i", k[i, _a], u[i], epsilon, model)) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -204,7 +219,7 @@ class SameAsFunction(
             }
         } else {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], y, model)) {
+                when (val result = inequality.register(name, k[i, _a], y, epsilon, model)) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -239,7 +254,7 @@ class SameAsFunction(
             }
 
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], u[i], model)) {
+                when (val result = inequality.register(name, k[i, _a], u[i], epsilon, model)) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -286,7 +301,7 @@ class SameAsFunction(
             }
         } else {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], y, model, fixedValues)) {
+                when (val result = inequality.register(name, k[i, _a], y, epsilon, model, fixedValues)) {
                     is Ok -> {}
 
                     is Failed -> {

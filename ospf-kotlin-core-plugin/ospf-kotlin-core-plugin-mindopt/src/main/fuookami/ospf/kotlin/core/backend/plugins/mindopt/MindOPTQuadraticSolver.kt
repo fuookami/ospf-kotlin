@@ -47,12 +47,13 @@ class MindOPTQuadraticSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { MindOPTQuadraticSolverCallBack() }
-                    .configuration { mindopt, _, _ ->
+                    .configuration { _, mindopt, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             mindopt.set(MDO.IntParam.MIP_SolutionPoolSize, solutionAmount.toInt())
                         }
                         ok
-                    }.analyzingSolution { mindopt, variables, _ ->
+                    }
+                    .analyzingSolution { _, mindopt, variables, _ ->
                         for (i in 0 until min(solutionAmount.toInt(), mindopt.get(MDO.IntAttr.SolCount))) {
                             mindopt.set(MDO.IntParam.MIP_SolutionNumber, i)
                             val thisResults = variables.map { Flt64(it.get(MDO.DoubleAttr.Xn)) }
@@ -207,7 +208,7 @@ private class MindOPTQuadraticSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterModeling, null, mindoptModel, mindoptVars, mindoptConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -270,7 +271,7 @@ private class MindOPTQuadraticSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(Point.Configuration, null, mindoptModel, mindoptVars, mindoptConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -311,7 +312,7 @@ private class MindOPTQuadraticSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, mindoptModel, mindoptVars, mindoptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -320,7 +321,7 @@ private class MindOPTQuadraticSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, status, mindoptModel, mindoptVars, mindoptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

@@ -16,6 +16,7 @@ class IfInFunction(
     private val x: AbstractLinearPolynomial<*>,
     lowerBound: AbstractLinearPolynomial<*>,
     upperBound: AbstractLinearPolynomial<*>,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -29,6 +30,7 @@ class IfInFunction(
             x: T,
             lowerBound: Int,
             upperBound: Int,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -36,6 +38,7 @@ class IfInFunction(
                 x.toLinearPolynomial(),
                 LinearPolynomial(lowerBound),
                 LinearPolynomial(upperBound),
+                epsilon,
                 name,
                 displayName
             )
@@ -48,6 +51,7 @@ class IfInFunction(
             x: T,
             lowerBound: Double,
             upperBound: Double,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -55,6 +59,7 @@ class IfInFunction(
                 x.toLinearPolynomial(),
                 LinearPolynomial(lowerBound),
                 LinearPolynomial(upperBound),
+                epsilon,
                 name,
                 displayName
             )
@@ -69,6 +74,7 @@ class IfInFunction(
             x: T1,
             lowerBound: T2,
             upperBound: T3,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -76,6 +82,7 @@ class IfInFunction(
                 x.toLinearPolynomial(),
                 LinearPolynomial(lowerBound),
                 LinearPolynomial(upperBound),
+                epsilon,
                 name,
                 displayName
             )
@@ -92,6 +99,7 @@ class IfInFunction(
             x: T1,
             lowerBound: T2,
             upperBound: T3,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -99,6 +107,7 @@ class IfInFunction(
                 x.toLinearPolynomial(),
                 lowerBound.toLinearPolynomial(),
                 upperBound.toLinearPolynomial(),
+                epsilon,
                 name,
                 displayName
             )
@@ -228,7 +237,7 @@ class IfInFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(lby)) {
+        when (val result = lowerBoundInequality.register(name, lbk, lby, tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -236,7 +245,7 @@ class IfInFunction(
             }
         }
 
-        when (val result = tokenTable.add(uby)) {
+        when (val result = upperBoundInequality.register(name, ubk, uby, tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -256,7 +265,7 @@ class IfInFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = lowerBoundInequality.register(name, lbk, lby, model)) {
+        when (val result = lowerBoundInequality.register(name, lbk, lby, epsilon, model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -264,7 +273,7 @@ class IfInFunction(
             }
         }
 
-        when (val result = upperBoundInequality.register(name, ubk, uby, model)) {
+        when (val result = upperBoundInequality.register(name, ubk, uby, epsilon, model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -294,7 +303,7 @@ class IfInFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = lowerBoundInequality.register(name, lbk, lby, model, fixedValues)) {
+        when (val result = lowerBoundInequality.register(name, lbk, lby, epsilon, model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {
@@ -302,7 +311,7 @@ class IfInFunction(
             }
         }
 
-        when (val result = upperBoundInequality.register(name, ubk, uby, model, fixedValues)) {
+        when (val result = upperBoundInequality.register(name, ubk, uby, epsilon, model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {

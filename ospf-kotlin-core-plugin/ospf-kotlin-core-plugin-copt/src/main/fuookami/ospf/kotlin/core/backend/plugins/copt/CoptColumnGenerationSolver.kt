@@ -113,12 +113,13 @@ class CoptColumnGenerationSolver(
         val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { copt, _, _ ->
+                .configuration { _, copt, _, _ ->
                     if (amount gr UInt64.one) {
                         // todo: set copt parameter to limit number of solutions
                     }
                     ok
-                }.analyzingSolution { copt, variables, _ ->
+                }
+                .analyzingSolution { _, copt, variables, _ ->
                     for (i in 0 until min(amount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
                         val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
                         if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
@@ -184,7 +185,7 @@ class CoptColumnGenerationSolver(
         val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .analyzingSolution { _, _, constraints ->
+                .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
                         Flt64(it.get(COPT.DoubleInfo.Dual))
                     }

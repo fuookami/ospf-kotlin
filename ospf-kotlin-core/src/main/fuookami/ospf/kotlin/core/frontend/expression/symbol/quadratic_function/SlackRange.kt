@@ -186,15 +186,6 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     }
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
-        if ((x.range.range!! intersect ValueRange(lb.lowerBound!!.value.unwrap(), ub.upperBound!!.value.unwrap()).value!!) == null) {
-            return Failed(
-                Err(
-                    ErrorCode.ApplicationFailed,
-                    "$name's domain of definition unsatisfied: $x's domain is without intersection with $y's domain"
-                )
-            )
-        }
-
         if (constraint) {
             when (val result = model.addConstraint(
                 polyX leq ub,

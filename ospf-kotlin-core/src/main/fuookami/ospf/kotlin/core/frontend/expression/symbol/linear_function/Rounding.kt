@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class RoundingFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "round_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌉"
 ) : LinearFunctionSymbol {
@@ -26,13 +27,54 @@ class RoundingFunction(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            d: Flt64,
+            d: Int,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
                 x.toLinearPolynomial(),
-                d,
+                Flt64(d),
+                epsilon,
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            d: Double,
+            epsilon: Flt64 = Flt64(1e-6),
+            name: String = "round_${x}_${d}",
+            displayName: String? = "⌊$x/$d⌉"
+        ): RoundingFunction {
+            return RoundingFunction(
+                x.toLinearPolynomial(),
+                Flt64(d),
+                epsilon,
+                name,
+                displayName
+            )
+        }
+
+        operator fun <
+            T1 : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>,
+            T2 : RealNumber<T2>
+        > invoke(
+            x: T1,
+            d: T2,
+            epsilon: Flt64 = Flt64(1e-6),
+            name: String = "round_${x}_${d}",
+            displayName: String? = "⌊$x/$d⌉"
+        ): RoundingFunction {
+            return RoundingFunction(
+                x.toLinearPolynomial(),
+                d.toFlt64(),
+                epsilon,
                 name,
                 displayName
             )
@@ -52,7 +94,7 @@ class RoundingFunction(
 
     private val r: RealVar by lazy {
         val r = RealVar("${name}_r")
-        r.range.set(ValueRange(-possibleModUpperBound, possibleModUpperBound).value!!)
+        r.range.set(ValueRange(-d.abs() / Flt64.two, d.abs() / Flt64.two - epsilon).value!!)
         r
     }
 
@@ -82,18 +124,11 @@ class RoundingFunction(
             (x.upperBound!!.value.unwrap() / d).round()
         ).value!!
 
-    private val possibleModUpperBound
-        get() = if (d geq Flt64.zero) {
-            d / Flt64.two
-        } else {
-            d.abs() / Flt64.two
-        }
-
     override fun flush(force: Boolean) {
         x.flush(force)
         y.flush(force)
         q.range.set(ValueRange(possibleRange.lowerBound.value.unwrap().toInt64(), possibleRange.upperBound.value.unwrap().toInt64()).value!!)
-        r.range.set(ValueRange(Flt64.zero, possibleModUpperBound).value!!)
+        r.range.set(ValueRange(-d.abs() / Flt64.two, d.abs() / Flt64.two - epsilon).value!!)
         y.range.set(possibleRange)
     }
 

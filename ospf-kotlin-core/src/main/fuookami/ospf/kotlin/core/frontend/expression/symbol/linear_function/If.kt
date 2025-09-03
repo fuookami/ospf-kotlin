@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class IfFunction(
     inequality: LinearInequality,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -25,11 +26,13 @@ class IfFunction(
             T : ToLinearInequality
         > invoke(
             condition: T,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): IfFunction {
             return IfFunction(
                 condition.toLinearInequality(),
+                epsilon,
                 name,
                 displayName
             )
@@ -162,15 +165,7 @@ class IfFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(k)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(y)) {
+        when (val result = inequality.register(name, k, y, tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -182,7 +177,7 @@ class IfFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = inequality.register(name, k, y, model)) {
+        when (val result = inequality.register(name, k, y, epsilon, model)) {
             is Ok -> {}
 
             is Failed -> {
@@ -204,7 +199,7 @@ class IfFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = inequality.register(name, k, y, model, fixedValues)) {
+        when (val result = inequality.register(name, k, y, epsilon, model, fixedValues)) {
             is Ok -> {}
 
             is Failed -> {

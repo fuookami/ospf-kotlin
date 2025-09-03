@@ -55,7 +55,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             if (points[i + 1].x geq x) {
                 val dy = points[i + 1].y - points[i].y
                 val dx = points[i + 1].x - points[i].x
-                return dy / dx * (x - points[i].x)
+                return points[i].y + dy / dx * (x - points[i].x)
             }
         }
         return null
@@ -115,8 +115,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
                 if (points[i].x leq xValue && xValue leq points[i + 1].x) {
                     val dx = points[i + 1].x - points[i].x
-                    val lhs = (xValue - points[i].x) / dx
-                    val rhs = (points[i + 1].x - xValue) / dx
+                    val lhs = (points[i + 1].x - xValue) / dx
+                    val rhs = (xValue - points[i].x) / dx
                     yValue = points[i].y * lhs + points[i + 1].y * rhs
 
                     logger.trace { "Setting UnivariateLinearPiecewiseFunction ${name}.b[$i] initial solution: true" }
@@ -263,8 +263,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
 
         val dx = points[i + 1].x - points[i].x
-        val lhs = (xValue - points[i].x) / dx
-        val rhs = (points[i + 1].x - xValue) / dx
+        val lhs = (points[i + 1].x - xValue) / dx
+        val rhs = (xValue - points[i].x)/ dx
 
         when (val result = model.addConstraint(
             x eq points[i].x * k[i] + points[i + 1].x * k[i + 1],

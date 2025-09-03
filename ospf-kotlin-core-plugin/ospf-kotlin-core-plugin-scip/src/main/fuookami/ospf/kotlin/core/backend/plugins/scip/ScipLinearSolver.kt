@@ -32,9 +32,9 @@ class ScipLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = ScipLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = ScipLinearSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -43,7 +43,7 @@ class ScipLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -53,13 +53,13 @@ class ScipLinearSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { ScipSolverCallBack() }
-                    .configuration { scip, _, _ ->
+                    .configuration { _, scip, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             scip.setIntParam("heuristics/dins/solnum", solutionAmount.toInt())
                         }
                         ok
                     }
-                    .analyzingSolution { scip, variables, _ ->
+                    .analyzingSolution { _, scip, variables, _ ->
                         val bestSol = scip.bestSol
                         val sols = scip.sols
                         var i = UInt64.zero
@@ -80,7 +80,7 @@ class ScipLinearSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -269,7 +269,7 @@ private class ScipLinearSolverImpl(
             }
         }
 
-        when (val result = callBack?.execIfContain(Point.AfterModeling, scip, scipVars, scipConstraints)) {
+        when (val result = callBack?.execIfContain(Point.AfterModeling, null, scip, scipVars, scipConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -291,7 +291,7 @@ private class ScipLinearSolverImpl(
 
         scip.messagehdlr
 
-        when (val result = callBack?.execIfContain(Point.Configuration, scip, scipVars, scipConstraints)) {
+        when (val result = callBack?.execIfContain(Point.Configuration, null, scip, scipVars, scipConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -323,7 +323,7 @@ private class ScipLinearSolverImpl(
                 gap = gap
             )
 
-            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, scip, scipVars, scipConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, scip, scipVars, scipConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -332,7 +332,7 @@ private class ScipLinearSolverImpl(
             }
             return ok
         } else {
-            when (val result = callBack?.execIfContain(Point.AfterFailure, scip, scipVars, scipConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterFailure, status, scip, scipVars, scipConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }

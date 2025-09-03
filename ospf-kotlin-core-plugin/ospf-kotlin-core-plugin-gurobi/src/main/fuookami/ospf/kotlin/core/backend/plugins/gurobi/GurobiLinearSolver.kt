@@ -26,9 +26,9 @@ class GurobiLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = GurobiLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = GurobiLinearSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -37,7 +37,7 @@ class GurobiLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -47,7 +47,7 @@ class GurobiLinearSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { GurobiLinearSolverCallBack() }
-                    .configuration { gurobi, _, _ ->
+                    .configuration { _, gurobi, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
                             gurobi.set(GRB.IntParam.PoolSearchMode, 2);
@@ -55,7 +55,7 @@ class GurobiLinearSolver(
                         }
                         ok
                     }
-                    .analyzingSolution { gurobi, variables, _ ->
+                    .analyzingSolution { _, gurobi, variables, _ ->
                         for (i in 0 until min(solutionAmount.toInt(), gurobi.get(GRB.IntAttr.SolCount))) {
                             gurobi.set(GRB.IntParam.SolutionNumber, i)
                             val thisResults = variables.map { Flt64(it.get(GRB.DoubleAttr.Xn)) }
@@ -65,7 +65,7 @@ class GurobiLinearSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -209,7 +209,7 @@ private class GurobiLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterModeling, null, grbModel, grbVars, grbConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -272,7 +272,7 @@ private class GurobiLinearSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(Point.Configuration, null, grbModel, grbVars, grbConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -313,7 +313,7 @@ private class GurobiLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -322,7 +322,7 @@ private class GurobiLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, status, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

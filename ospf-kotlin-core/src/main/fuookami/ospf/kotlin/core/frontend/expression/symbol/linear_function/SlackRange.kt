@@ -186,15 +186,6 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        if ((x.range.range!! intersect ValueRange(lb.lowerBound!!.value.unwrap(), ub.upperBound!!.value.unwrap()).value!!) == null) {
-            return Failed(
-                Err(
-                    ErrorCode.ApplicationFailed,
-                    "$name's domain of definition unsatisfied: $x's domain is without intersection with $y's domain"
-                )
-            )
-        }
-
         if (constraint) {
             when (val result = model.addConstraint(
                 polyX leq ub,
@@ -459,7 +450,7 @@ object SlackRangeFunction {
         x: T,
         lb: Int,
         ub: Int,
-        type: VariableType<*>?,
+        type: VariableType<*>? = null,
         constraint: Boolean = true,
         name: String,
         displayName: String? = null,
@@ -487,7 +478,7 @@ object SlackRangeFunction {
         x: T,
         lb: Double,
         ub: Double,
-        type: VariableType<*>?,
+        type: VariableType<*>? = null,
         constraint: Boolean = true,
         name: String,
         displayName: String? = null
@@ -511,7 +502,7 @@ object SlackRangeFunction {
         x: T,
         lb: Trivalent,
         ub: Trivalent,
-        type: VariableType<*>?,
+        type: VariableType<*>? = null,
         constraint: Boolean = true,
         name: String,
         displayName: String? = null,
@@ -539,7 +530,7 @@ object SlackRangeFunction {
         x: T,
         lb: BalancedTrivalent,
         ub: BalancedTrivalent,
-        type: VariableType<*>?,
+        type: VariableType<*>? = null,
         constraint: Boolean = true,
         name: String,
         displayName: String? = null,
@@ -569,7 +560,7 @@ object SlackRangeFunction {
         x: T1,
         lb: T2,
         ub: T3,
-        type: VariableType<*>?,
+        type: VariableType<*>? = null,
         constraint: Boolean = true,
         name: String,
         displayName: String? = null,
@@ -601,7 +592,7 @@ object SlackRangeFunction {
         x: T1,
         lb: T2,
         ub: T3,
-        type: VariableType<*>?,
+        type: VariableType<*>? = null,
         constraint: Boolean = true,
         name: String,
         displayName: String? = null,

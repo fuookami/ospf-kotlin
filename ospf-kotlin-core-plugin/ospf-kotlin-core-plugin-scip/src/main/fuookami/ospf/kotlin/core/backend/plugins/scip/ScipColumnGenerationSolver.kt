@@ -2,15 +2,14 @@ package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import java.util.*
 import kotlinx.coroutines.*
+import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.framework.solver.*
 
 class ScipColumnGenerationSolver(
@@ -113,13 +112,13 @@ class ScipColumnGenerationSolver(
         val solver = ScipLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { scip, _, _ ->
+                .configuration { _, scip, _, _ ->
                     if (amount gr UInt64.one) {
                         scip.setIntParam("heuristics/dins/solnum", amount.toInt())
                     }
                     ok
                 }
-                .analyzingSolution { scip, variables, _ ->
+                .analyzingSolution { _, scip, variables, _ ->
                     val bestSol = scip.bestSol
                     val sols = scip.sols
                     var i = UInt64.zero
@@ -193,48 +192,36 @@ class ScipColumnGenerationSolver(
             })
         }
 
-        var error: Error? = null
-        return try {
-            coroutineScope {
-                val solver = ScipLinearSolver(
-                    config = config,
-                    callBack = callBack
-                )
-                val dualSolutionPromises = async(Dispatchers.Default) {
-                    val temp = model.copy()
-                    temp.normalize()
-                    val dualModel = temp.dual()
-                    solver(dualModel)
+        lateinit var dualSolution: Solution
+        val solver = ScipLinearSolver(
+            config = config.copy(
+                threadNum = UInt64.one
+            ),
+            callBack = callBack.copy()
+                .configuration { _, model, _, _ ->
+                    model.setPresolving(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
+                    model.setHeuristics(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
+                    ok
                 }
-                when (val result = solver(model, solvingStatusCallBack)) {
-                    is Ok -> {
-                        when (val dualResult = dualSolutionPromises.await()) {
-                            is Ok -> {
-                                metaModel.tokens.setSolution(result.value.solution)
-                                jobs.joinAll()
-                                Ok(ColumnGenerationSolver.LPResult(result.value, dualResult.value.solution))
-                            }
-
-                            is Failed -> {
-                                error = dualResult.error
-                                cancel()
-                                jobs.joinAll()
-                                Failed(dualResult.error)
-                            }
-                        }
+                .analyzingSolution { _, model, _, constraints ->
+                    dualSolution = constraints.map {
+                        Flt64(model.getDual(it))
                     }
-
-                    is Failed -> {
-                        error = result.error
-                        cancel()
-                        jobs.joinAll()
-                        Failed(result.error)
-                    }
+                    ok
                 }
+        )
+
+        return when (val result = solver(model, solvingStatusCallBack)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(result.value.solution)
+                jobs.joinAll()
+                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
             }
-        } catch (e: CancellationException) {
-            error?.let { Failed(it) }
-                ?: Failed(Err(ErrorCode.OREngineSolvingException))
+
+            is Failed -> {
+                jobs.joinAll()
+                Failed(result.error)
+            }
         }
     }
 }

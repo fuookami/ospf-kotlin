@@ -335,34 +335,12 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
 
         if (_neg != null) {
-            when (val result = model.addConstraint(
-                (_neg as AbstractVariableItem<*, *>) eq negSlack,
-                "${name}_neg"
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-
             model.tokens.find(_neg!!)?.let { token ->
                 token._result = negSlack
             }
         }
 
         if (_pos != null) {
-            when (val result = model.addConstraint(
-                (_pos as AbstractVariableItem<*, *>) eq posSlack,
-                "${name}_pos"
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-
             model.tokens.find(_pos!!)?.let { token ->
                 token._result = posSlack
             }

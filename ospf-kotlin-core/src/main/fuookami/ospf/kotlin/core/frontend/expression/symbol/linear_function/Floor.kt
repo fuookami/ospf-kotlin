@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class FloorFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
+    private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "floor_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌋"
 ) : LinearFunctionSymbol {
@@ -27,12 +28,14 @@ class FloorFunction(
         > invoke(
             x: T,
             d: Int,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
                 x.toLinearPolynomial(),
-                Flt64(d.toDouble()),
+                Flt64(d),
+                epsilon,
                 name,
                 displayName
             )
@@ -44,12 +47,14 @@ class FloorFunction(
         > invoke(
             x: T,
             d: Double,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
                 x.toLinearPolynomial(),
                 Flt64(d),
+                epsilon,
                 name,
                 displayName
             )
@@ -62,12 +67,14 @@ class FloorFunction(
         > invoke(
             x: T1,
             d: T2,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
                 x.toLinearPolynomial(),
                 d.toFlt64(),
+                epsilon,
                 name,
                 displayName
             )
@@ -87,7 +94,7 @@ class FloorFunction(
 
     private val r: URealVar by lazy {
         val r = URealVar("${name}_r")
-        r.range.leq(possibleModUpperBound)
+        r.range.leq(d.abs() - epsilon)
         r
     }
 
@@ -117,18 +124,11 @@ class FloorFunction(
             (x.upperBound!!.value.unwrap() / d).floor()
         ).value!!
 
-    private val possibleModUpperBound
-        get() = if (d geq Flt64.zero) {
-            d.floor()
-        } else {
-            d.ceil().abs()
-        }
-
     override fun flush(force: Boolean) {
         x.flush(force)
         y.flush(force)
         q.range.set(ValueRange(possibleRange.lowerBound.value.unwrap().toInt64(), possibleRange.upperBound.value.unwrap().toInt64()).value!!)
-        r.range.set(ValueRange(Flt64.zero, possibleModUpperBound).value!!)
+        r.range.set(ValueRange(Flt64.zero, d.abs() - epsilon).value!!)
         y.range.set(possibleRange)
     }
 

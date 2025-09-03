@@ -91,7 +91,16 @@ class QuadraticInequality(
 
     override fun normalize(): QuadraticInequality {
         return QuadraticInequality(
-            lhs = QuadraticPolynomial(lhs.monomials.map { it.copy() } + rhs.monomials.map { -it }),
+            lhs = QuadraticPolynomial(
+                (lhs.monomials.map { it to true } + rhs.monomials.map { it to false })
+                    .groupBy { it.first.symbol }
+                    .map { (symbol, monomials) ->
+                        QuadraticMonomial(
+                            monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                            symbol
+                        )
+                    }
+            ),
             rhs = QuadraticPolynomial(-lhs.constant + rhs.constant),
             sign = sign,
             name = name,
@@ -104,7 +113,16 @@ class QuadraticInequality(
             Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
 
             Sign.Greater, Sign.GreaterEqual -> QuadraticInequality(
-                lhs = QuadraticPolynomial(lhs.monomials.map { -it } + rhs.monomials.map { it.copy() }),
+                lhs = QuadraticPolynomial(
+                    (lhs.monomials.map { it to false } + rhs.monomials.map { it to true })
+                        .groupBy { it.first.symbol }
+                        .map { (symbol, monomials) ->
+                            QuadraticMonomial(
+                                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                                symbol
+                            )
+                        }
+                ),
                 rhs = QuadraticPolynomial(lhs.constant - rhs.constant),
                 sign = sign.reverse,
                 name = name,

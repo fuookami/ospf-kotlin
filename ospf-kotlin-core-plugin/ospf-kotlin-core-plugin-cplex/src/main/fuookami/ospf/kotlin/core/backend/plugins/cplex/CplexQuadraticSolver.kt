@@ -48,7 +48,7 @@ class CplexQuadraticSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { CplexSolverCallBack() }
-                    .configuration { cplex, _, _ ->
+                    .configuration { _, cplex, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
                             cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
@@ -57,7 +57,8 @@ class CplexQuadraticSolver(
                             cplex.setParam(IloCplex.Param.MIP.Limits.Populate, solutionAmount.cub().toInt())
                         }
                         ok
-                    }.solving { cplex, _, _ ->
+                    }
+                    .solving { _, cplex, _, _ ->
                         try {
                             cplex.populate()
                             ok
@@ -65,7 +66,7 @@ class CplexQuadraticSolver(
                             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                         }
                     }
-                    .analyzingSolution { cplex, variables, _ ->
+                    .analyzingSolution { _, cplex, variables, _ ->
                         for (i in 0 until min(solutionAmount.toInt(), cplex.solnPoolNsolns)) {
                             val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
                             if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
@@ -89,7 +90,7 @@ private class CplexQuadraticSolverImpl(
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : CplexSolver() {
     private lateinit var cplexVars: List<IloNumVar>
-    private lateinit var cplexConstraint: List<IloRange>
+    private lateinit var cplexConstraints: List<IloRange>
     private lateinit var output: SolverOutput
 
     private var bestObj: Flt64? = null
@@ -220,7 +221,7 @@ private class CplexQuadraticSolverImpl(
             }
         }
         System.gc()
-        cplexConstraint = constraints
+        cplexConstraints = constraints
 
         val objective = cplex.lqNumExpr()
         for (cell in model.objective.obj) {
@@ -240,7 +241,7 @@ private class CplexQuadraticSolverImpl(
             }
         }
 
-        when (val result = callBack?.execIfContain(Point.AfterModeling, cplex, cplexVars, cplexConstraint)) {
+        when (val result = callBack?.execIfContain(Point.AfterModeling, null, cplex, cplexVars, cplexConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -296,7 +297,7 @@ private class CplexQuadraticSolverImpl(
             })
         }
 
-        when (val result = callBack?.execIfContain(Point.Configuration, cplex, cplexVars, cplexConstraint)) {
+        when (val result = callBack?.execIfContain(Point.Configuration, null, cplex, cplexVars, cplexConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -307,7 +308,7 @@ private class CplexQuadraticSolverImpl(
     }
 
     private suspend fun solve(): Try {
-        when (val result = callBack?.execIfContain(Point.Solving, cplex, cplexVars, cplexConstraint)) {
+        when (val result = callBack?.execIfContain(Point.Solving, null, cplex, cplexVars, cplexConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -342,7 +343,7 @@ private class CplexQuadraticSolverImpl(
                 )
             )
 
-            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, cplex, cplexVars, cplexConstraint)) {
+            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, cplex, cplexVars, cplexConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -351,6 +352,13 @@ private class CplexQuadraticSolverImpl(
             }
             ok
         } else {
+            when (val result = callBack?.execIfContain(Point.AfterFailure, status, cplex, cplexVars, cplexConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             Failed(Err(status.errCode!!))
         }
     }

@@ -1,23 +1,23 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import java.util.*
 import kotlinx.coroutines.*
-import com.gurobi.gurobi.*
+import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
 
-class GurobiBendersDecompositionSolver(
+class ScipBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
-    private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
+    private val callBack: ScipSolverCallBack = ScipSolverCallBack()
 ) : BendersDecompositionSolver {
-    override val name = "gurobi"
+    override val name = "scip"
 
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
@@ -54,7 +54,7 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        val solver = GurobiLinearSolver(
+        val solver = ScipLinearSolver(
             config = config,
             callBack = callBack.copy()
         )
@@ -113,23 +113,26 @@ class GurobiBendersDecompositionSolver(
         }
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiLinearSolver(
-            config = config,
+        val solver = ScipLinearSolver(
+            config = config.copy(
+                threadNum = UInt64.one
+            ),
             callBack = callBack.copy()
                 .configuration { _, model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
+                    model.setPresolving(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
+                    model.setHeuristics(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
                     ok
                 }
-                .analyzingSolution { _, _, _, constraints ->
+                .analyzingSolution { _, model, _, constraints ->
                     dualSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                        Flt64(model.getDual(it))
                     }
                     ok
                 }
-                .afterFailure { status, _, _, constraints ->
+                .afterFailure { status, model, _, constraints ->
                     if (status == SolverStatus.Infeasible) {
                         farkasSolution = constraints.map {
-                            Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                            Flt64(model.getDualFarkasLinear(it))
                         }
                     }
                     ok

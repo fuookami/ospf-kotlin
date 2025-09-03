@@ -26,9 +26,9 @@ class HexalyQuadraticSolver(
 
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = HexalyQuadraticSolverImpl(config, callBack, statusCallBack)
+        val impl = HexalyQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -37,7 +37,7 @@ class HexalyQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -47,12 +47,13 @@ class HexalyQuadraticSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { HexalySolverCallBack() }
-                    .configuration { hexaly, _, _ ->
+                    .configuration { _, hexaly, _, _ ->
                         ok
-                    }.analyzingSolution { hexaly, variables, _ ->
+                    }
+                    .analyzingSolution { _, hexaly, variables, _ ->
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -229,7 +230,7 @@ private class HexalyQuadraticSolverImpl(
             }
             hexalyObjective = obj
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, optimizer, hexalyVars, hexalyConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterModeling, null, optimizer, hexalyVars, hexalyConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -291,7 +292,7 @@ private class HexalyQuadraticSolverImpl(
                 }
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, optimizer, hexalyVars, hexalyConstraints)) {
+            when (val result = callBack?.execIfContain(Point.Configuration, null, optimizer, hexalyVars, hexalyConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -321,7 +322,7 @@ private class HexalyQuadraticSolverImpl(
                     gap = Flt64(hexalySolution.getObjectiveGap(0))
                 )
 
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, optimizer, hexalyVars, hexalyConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, optimizer, hexalyVars, hexalyConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -330,7 +331,7 @@ private class HexalyQuadraticSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, optimizer, hexalyVars, hexalyConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, status, optimizer, hexalyVars, hexalyConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

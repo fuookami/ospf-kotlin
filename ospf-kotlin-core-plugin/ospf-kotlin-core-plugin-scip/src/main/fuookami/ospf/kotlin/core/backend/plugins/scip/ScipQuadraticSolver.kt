@@ -53,13 +53,13 @@ class ScipQuadraticSolver(
                 config = config,
                 callBack
                     .copyIfNotNullOr { ScipSolverCallBack() }
-                    .configuration { scip, _, _ ->
+                    .configuration { _, scip, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             scip.setIntParam("heuristics/dins/solnum", solutionAmount.toInt())
                         }
                         ok
                     }
-                    .analyzingSolution { scip, variables, _ ->
+                    .analyzingSolution { _, scip, variables, _ ->
                         val bestSol = scip.bestSol
                         val sols = scip.sols
                         var i = UInt64.zero
@@ -333,7 +333,7 @@ private class ScipQuadraticSolverImpl(
             }
         }
 
-        when (val result = callBack?.execIfContain(Point.AfterModeling, scip, scipVars, scipConstraints)) {
+        when (val result = callBack?.execIfContain(Point.AfterModeling, null, scip, scipVars, scipConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -353,7 +353,7 @@ private class ScipQuadraticSolverImpl(
             scip.setRealParam("limits/stallnodes", config.notImprovementTime!!.toDouble(DurationUnit.MILLISECONDS))
         }
 
-        when (val result = callBack?.execIfContain(Point.Configuration, scip, scipVars, scipConstraints)) {
+        when (val result = callBack?.execIfContain(Point.Configuration, null, scip, scipVars, scipConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -401,7 +401,7 @@ private class ScipQuadraticSolverImpl(
                 gap = gap
             )
 
-            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, scip, scipVars, scipConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, scip, scipVars, scipConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -410,6 +410,13 @@ private class ScipQuadraticSolverImpl(
             }
             return ok
         } else {
+            when (val result = callBack?.execIfContain(Point.AfterFailure, status, scip, scipVars, scipConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             Failed(Err(status.errCode!!))
         }
     }

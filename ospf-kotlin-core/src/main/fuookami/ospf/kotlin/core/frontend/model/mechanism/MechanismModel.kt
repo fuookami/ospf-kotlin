@@ -271,9 +271,10 @@ class LinearMechanismModel(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: Solution,
     ): List<LinearInequality> {
-        val rhs = MutableLinearPolynomial(constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
+        val constants = constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
             acc + dualSolution[i] * constraint.rhs
-        })
+        }
+        val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
         for ((i, constraint) in constraints.withIndex()) {
             if (dualSolution[i] eq Flt64.zero) {
                 continue
@@ -284,11 +285,12 @@ class LinearMechanismModel(
                 if (variable in fixedVariables) {
                     val coefficient = dualSolution[i] * cell.coefficient
                     if (coefficient neq Flt64.zero) {
-                        rhs -= coefficient * variable
+                        polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
                     }
                 }
             }
         }
+        val rhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
         return listOf((objectVariable geq rhs).normalize())
     }
 
@@ -297,20 +299,21 @@ class LinearMechanismModel(
         farkasDualSolution: Solution,
     ): List<LinearInequality> {
         var value = Flt64.zero
-        val lhs = MutableLinearPolynomial()
+        var constants = Flt64.zero
+        val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
         for ((i, constraint) in constraints.withIndex()) {
             if (farkasDualSolution[i] eq Flt64.zero) {
                 continue
             }
 
             value += farkasDualSolution[i] * constraint.rhs
-            lhs += farkasDualSolution[i] * constraint.rhs
+            constants += farkasDualSolution[i] * constraint.rhs
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
                 if (variable in fixedVariables) {
                     val coefficient = farkasDualSolution[i] * cell.coefficient
                     if (coefficient neq Flt64.zero) {
-                        lhs -= coefficient * variable
+                        polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
                     }
                     value -= farkasDualSolution[i] * cell.coefficient * fixedVariables[variable]!!
                 }
@@ -318,8 +321,10 @@ class LinearMechanismModel(
         }
         if (value ls Flt64.zero) {
             logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
-            lhs *= -Flt64.one
+            constants *= -Flt64.one
+            polynomials.replaceAll { _, v -> -v }
         }
+        val lhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
         return listOf((lhs leq Flt64.zero).normalize())
     }
 

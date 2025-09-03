@@ -116,7 +116,7 @@ class CplexColumnGenerationSolver(
         val solver = CplexLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { cplex, _, _ ->
+                .configuration { _, cplex, _, _ ->
                     if (amount gr UInt64.one) {
                         cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
                         cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
@@ -125,7 +125,8 @@ class CplexColumnGenerationSolver(
                         cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
                     }
                     ok
-                }.solving { cplex, _, _ ->
+                }
+                .solving { _, cplex, _, _ ->
                     try {
                         cplex.populate()
                         ok
@@ -133,7 +134,7 @@ class CplexColumnGenerationSolver(
                         Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                     }
                 }
-                .analyzingSolution { cplex, variables, _ ->
+                .analyzingSolution { _, cplex, variables, _ ->
                     val solutionAmount = cplex.solnPoolNsolns
                     for (i in 0 until solutionAmount) {
                         val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
@@ -200,11 +201,11 @@ class CplexColumnGenerationSolver(
         val solver = CplexLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { cplex, _, _ ->
+                .configuration { _, cplex, _, _ ->
                     cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
                     ok
                 }
-                .analyzingSolution { cplex, _, constraints ->
+                .analyzingSolution { _, cplex, _, constraints ->
                     dualSolution = constraints.map {
                         Flt64(cplex.getDual(it))
                     }

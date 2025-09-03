@@ -27,9 +27,9 @@ class CoptLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = CoptLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = CoptLinearSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -38,7 +38,7 @@ class CoptLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -48,13 +48,13 @@ class CoptLinearSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { CoptLinearSolverCallBack() }
-                    .configuration { copt, _, _ ->
+                    .configuration { _, copt, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             // todo: set copt parameter to limit number of solutions
                         }
                         ok
                     }
-                    .analyzingSolution { copt, variables, _ ->
+                    .analyzingSolution { _, copt, variables, _ ->
                         for (i in 0 until min(solutionAmount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
                             val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
                             if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
@@ -63,7 +63,7 @@ class CoptLinearSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -208,7 +208,7 @@ private class CoptLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, coptModel, coptVars, coptConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterModeling, null, coptModel, coptVars, coptConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -269,7 +269,7 @@ private class CoptLinearSolverImpl(
                 }, COPT.CALL_BACK_CONTEXT_MIP_NODE)
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, coptModel, coptVars, coptConstraints)) {
+            when (val result = callBack?.execIfContain(Point.Configuration, null, coptModel, coptVars, coptConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -314,7 +314,7 @@ private class CoptLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, coptModel, coptVars, coptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -323,7 +323,7 @@ private class CoptLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, status, coptModel, coptVars, coptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

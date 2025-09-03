@@ -112,9 +112,10 @@ class HexalyColumnGenerationSolver(
         val solver = HexalyLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { hexaly, _, _ ->
+                .configuration { _, hexaly, _, _ ->
                     ok
-                }.analyzingSolution { hexaly, variables, _ ->
+                }
+                .analyzingSolution { _, hexaly, variables, _ ->
                     ok
                 }
         )
