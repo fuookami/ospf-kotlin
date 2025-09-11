@@ -8,13 +8,17 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
+interface ToQuadraticInequality {
+    fun toQuadraticInequality(): QuadraticInequality
+}
+
 class QuadraticInequality(
     override val lhs: AbstractQuadraticPolynomial<*>,
     override val rhs: AbstractQuadraticPolynomial<*>,
     sign: Sign,
     name: String = "",
     displayName: String? = null
-) : Inequality<QuadraticInequality, QuadraticMonomialCell>(lhs, rhs, sign, name, displayName) {
+) : Inequality<QuadraticInequality, QuadraticMonomialCell>(lhs, rhs, sign, name, displayName), ToQuadraticInequality {
     companion object {
         operator fun invoke(inequality: LinearInequality): QuadraticInequality {
             return QuadraticInequality(
@@ -87,12 +91,48 @@ class QuadraticInequality(
 
     override fun normalize(): QuadraticInequality {
         return QuadraticInequality(
-            lhs = QuadraticPolynomial(lhs.monomials.map { it.copy() } + rhs.monomials.map { -it }),
+            lhs = QuadraticPolynomial(
+                (lhs.monomials.map { it to true } + rhs.monomials.map { it to false })
+                    .groupBy { it.first.symbol }
+                    .map { (symbol, monomials) ->
+                        QuadraticMonomial(
+                            monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                            symbol
+                        )
+                    }
+            ),
             rhs = QuadraticPolynomial(-lhs.constant + rhs.constant),
             sign = sign,
             name = name,
             displayName = displayName
         )
+    }
+
+    override fun normalizeToLessEqual(): QuadraticInequality {
+        return when (sign) {
+            Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
+
+            Sign.Greater, Sign.GreaterEqual -> QuadraticInequality(
+                lhs = QuadraticPolynomial(
+                    (lhs.monomials.map { it to false } + rhs.monomials.map { it to true })
+                        .groupBy { it.first.symbol }
+                        .map { (symbol, monomials) ->
+                            QuadraticMonomial(
+                                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                                symbol
+                            )
+                        }
+                ),
+                rhs = QuadraticPolynomial(lhs.constant - rhs.constant),
+                sign = sign.reverse,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
+    override fun toQuadraticInequality(): QuadraticInequality {
+        return this
     }
 }
 

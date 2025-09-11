@@ -28,9 +28,9 @@ class CplexLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = CplexLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = CplexLinearSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -39,7 +39,7 @@ class CplexLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -49,7 +49,7 @@ class CplexLinearSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { CplexSolverCallBack() }
-                    .configuration { cplex, _, _ ->
+                    .configuration { _, cplex, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
                             cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
@@ -58,7 +58,8 @@ class CplexLinearSolver(
                             cplex.setParam(IloCplex.Param.MIP.Limits.Populate, solutionAmount.cub().toInt())
                         }
                         ok
-                    }.solving { cplex, _, _ ->
+                    }
+                    .solving { _, cplex, _, _ ->
                         try {
                             cplex.populate()
                             ok
@@ -66,7 +67,7 @@ class CplexLinearSolver(
                             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
                         }
                     }
-                    .analyzingSolution { cplex, variables, _ ->
+                    .analyzingSolution { _, cplex, variables, _ ->
                         for (i in 0 until min(solutionAmount.toInt(), cplex.solnPoolNsolns)) {
                             val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
                             if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
@@ -75,7 +76,7 @@ class CplexLinearSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { Pair(it, results) }
             System.gc()
@@ -90,7 +91,7 @@ private class CplexLinearSolverImpl(
     private val statusCallBack: SolvingStatusCallBack?
 ) : CplexSolver() {
     private lateinit var cplexVars: List<IloNumVar>
-    private lateinit var cplexConstraint: List<IloRange>
+    private lateinit var cplexConstraints: List<IloRange>
     private lateinit var output: SolverOutput
 
     private var bestObj: Flt64? = null
@@ -217,7 +218,7 @@ private class CplexLinearSolverImpl(
             }
         }
         System.gc()
-        cplexConstraint = constraints
+        cplexConstraints = constraints
 
         val objective = cplex.linearNumExpr()
         for (cell in model.objective.obj) {
@@ -233,7 +234,7 @@ private class CplexLinearSolverImpl(
             }
         }
 
-        when (val result = callBack?.execIfContain(Point.AfterModeling, cplex, cplexVars, cplexConstraint)) {
+        when (val result = callBack?.execIfContain(Point.AfterModeling, null, cplex, cplexVars, cplexConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -290,7 +291,7 @@ private class CplexLinearSolverImpl(
             })
         }
 
-        when (val result = callBack?.execIfContain(Point.Configuration, cplex, cplexVars, cplexConstraint)) {
+        when (val result = callBack?.execIfContain(Point.Configuration, null, cplex, cplexVars, cplexConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -301,7 +302,7 @@ private class CplexLinearSolverImpl(
     }
 
     private suspend fun solve(): Try {
-        when (val result = callBack?.execIfContain(Point.Solving, cplex, cplexVars, cplexConstraint)) {
+        when (val result = callBack?.execIfContain(Point.Solving, null, cplex, cplexVars, cplexConstraints)) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -336,7 +337,7 @@ private class CplexLinearSolverImpl(
                 )
             )
 
-            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, cplex, cplexVars, cplexConstraint)) {
+            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, cplex, cplexVars, cplexConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -345,6 +346,13 @@ private class CplexLinearSolverImpl(
             }
             ok
         } else {
+            when (val result = callBack?.execIfContain(Point.AfterFailure, status, cplex, cplexVars, cplexConstraints)) {
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                else -> {}
+            }
             Failed(Err(status.errCode!!))
         }
     }

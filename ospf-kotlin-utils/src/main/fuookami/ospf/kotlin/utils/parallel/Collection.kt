@@ -2365,7 +2365,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
             })
         }
 
-        promises.map { it.await() }.maxBy { it.second }.first
+        promises.awaitAll().maxBy { it.second }.first
     }
 }
 
@@ -2673,7 +2673,7 @@ suspend inline fun <T> Iterable<T>.maxWithParallelly(
             })
         }
 
-        promises.map { it.await() }.maxWith(comparator)
+        promises.awaitAll().maxWith(comparator)
     }
 }
 
@@ -2702,7 +2702,7 @@ suspend inline fun <T> Iterable<T>.maxWithComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.maxWithComparator(comparator)
+        promises.awaitAll().maxWithComparator(comparator)
     }
 }
 
@@ -2731,7 +2731,7 @@ suspend inline fun <T> Iterable<T>.maxWithPartialComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.maxWithPartialComparator(comparator)
+        promises.awaitAll().maxWithPartialComparator(comparator)
     }
 }
 
@@ -2760,7 +2760,7 @@ suspend inline fun <T> Iterable<T>.maxWithThreeWayComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.maxWithThreeWayComparator(comparator)
+        promises.awaitAll().maxWithThreeWayComparator(comparator)
     }
 }
 
@@ -2789,7 +2789,7 @@ suspend inline fun <T> Iterable<T>.maxWithPartialThreeWayComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.maxWithPartialThreeWayComparator(comparator)
+        promises.awaitAll().maxWithPartialThreeWayComparator(comparator)
     }
 }
 
@@ -3841,7 +3841,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByParallelly(
             })
         }
 
-        promises.map { it.await() }.minBy { it.second }.first
+        promises.awaitAll().minBy { it.second }.first
     }
 }
 
@@ -4148,7 +4148,7 @@ suspend inline fun <T> Iterable<T>.minWithParallelly(
             })
         }
 
-        promises.map { it.await() }.minWith(comparator)
+        promises.awaitAll().minWith(comparator)
     }
 }
 
@@ -4177,7 +4177,7 @@ suspend inline fun <T> Iterable<T>.minWithComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.minWithComparator(comparator)
+        promises.awaitAll().minWithComparator(comparator)
     }
 }
 
@@ -4206,7 +4206,7 @@ suspend inline fun <T> Iterable<T>.minWithPartialComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.minWithPartialComparator(comparator)
+        promises.awaitAll().minWithPartialComparator(comparator)
     }
 }
 
@@ -4235,7 +4235,7 @@ suspend inline fun <T> Iterable<T>.minWithThreeWayComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.minWithThreeWayComparator(comparator)
+        promises.awaitAll().minWithThreeWayComparator(comparator)
     }
 }
 
@@ -4264,7 +4264,7 @@ suspend inline fun <T> Iterable<T>.minWithPartialThreeWayComparatorParallelly(
             })
         }
 
-        promises.map { it.await() }.minWithPartialThreeWayComparator(comparator)
+        promises.awaitAll().minWithPartialThreeWayComparator(comparator)
     }
 }
 
@@ -5282,7 +5282,7 @@ suspend inline fun <T : Comparable<T>> Iterable<T>.minMaxParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minBy { it.first } }
         val maxPromise = async { segmentResults.maxBy { it.second } }
         Pair(minPromise.await().first, maxPromise.await().second)
@@ -5347,7 +5347,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minBy { it.first.second } }
         val maxPromise = async { segmentResults.maxBy { it.second.second } }
         Pair(minPromise.await().first.first, maxPromise.await().second.first)
@@ -5394,7 +5394,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
                 })
             }
 
-            val segmentResults = promises.map { it.await() }
+            val segmentResults = promises.awaitAll()
             if (segmentResults.isEmpty()) {
                 return@coroutineScope Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the extractor."))
             }
@@ -5523,7 +5523,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxOfParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minBy { it.first } }
         val maxPromise = async { segmentResults.maxBy { it.second } }
         Pair(minPromise.await().first, maxPromise.await().second)
@@ -5570,7 +5570,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxOfParallelly(
                 })
             }
 
-            val segmentResults = promises.map { it.await() }
+            val segmentResults = promises.awaitAll()
             if (segmentResults.isEmpty()) {
                 return@coroutineScope Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the extractor."))
             }
@@ -5699,7 +5699,7 @@ suspend inline fun <T> Iterable<T>.minMaxWithParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWith(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWith(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -5731,7 +5731,7 @@ suspend inline fun <T> Iterable<T>.minMaxWithComparatorParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -5763,7 +5763,7 @@ suspend inline fun <T> Iterable<T>.minMaxWithPartialComparatorParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithPartialComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithPartialComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -5795,7 +5795,7 @@ suspend inline fun <T> Iterable<T>.minMaxWithThreeWayComparatorParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithThreeWayComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithThreeWayComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -5827,7 +5827,7 @@ suspend inline fun <T> Iterable<T>.minMaxWithPartialThreeWayComparatorParallelly
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithPartialThreeWayComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithPartialThreeWayComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -5874,7 +5874,7 @@ suspend inline fun <T> Iterable<T>.tryMinMaxWithComparatorParallelly(
                 })
             }
 
-            val segmentResults = promises.map { it.await() }
+            val segmentResults = promises.awaitAll()
             if (segmentResults.isEmpty()) {
                 return@coroutineScope Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the comparator."))
             }
@@ -5956,7 +5956,7 @@ suspend inline fun <T> Iterable<T>.tryMinMaxWithThreeWayComparatorParallelly(
                 })
             }
 
-            val segmentResults = promises.map { it.await() }
+            val segmentResults = promises.awaitAll()
             if (segmentResults.isEmpty()) {
                 return@coroutineScope Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the comparator."))
             }
@@ -6369,7 +6369,7 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWith(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWith(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -6403,7 +6403,7 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithComparatorParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -6437,7 +6437,7 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialComparatorParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithPartialComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithPartialComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -6471,7 +6471,7 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithThreeWayComparatorParallelly(
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithThreeWayComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithThreeWayComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())
@@ -6505,7 +6505,7 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialThreeWayComparatorParal
             })
         }
 
-        val segmentResults = promises.map { it.await() }
+        val segmentResults = promises.awaitAll()
         val minPromise = async { segmentResults.minOfWithPartialThreeWayComparator(comparator) { it.first } }
         val maxPromise = async { segmentResults.maxOfWithPartialThreeWayComparator(comparator) { it.second } }
         Pair(minPromise.await(), maxPromise.await())

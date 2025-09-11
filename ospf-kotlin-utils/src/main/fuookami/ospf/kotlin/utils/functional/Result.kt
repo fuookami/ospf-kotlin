@@ -106,8 +106,40 @@ fun run(
     return ok
 }
 
+fun run(
+    blocks: Iterable<() -> Try>
+): Try {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+    }
+    return ok
+}
+
 fun <T> run(
     vararg blocks: () -> Try,
+    lastBlock: () -> Ret<T>
+): Ret<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+    }
+
+    return lastBlock()
+}
+
+fun <T> run(
+    blocks: Iterable<() -> Try>,
     lastBlock: () -> Ret<T>
 ): Ret<T> {
     for (block in blocks) {

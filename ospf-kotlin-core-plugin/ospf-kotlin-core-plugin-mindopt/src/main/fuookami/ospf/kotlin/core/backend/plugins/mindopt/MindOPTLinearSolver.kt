@@ -26,9 +26,9 @@ class MindOPTLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = MindOPTLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = MindOPTLinearSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -37,7 +37,7 @@ class MindOPTLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -47,13 +47,13 @@ class MindOPTLinearSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { MindOPTLinearSolverCallBack() }
-                    .configuration { mindopt, _, _ ->
+                    .configuration { _, mindopt, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             mindopt.set(MDO.IntParam.MIP_SolutionPoolSize, solutionAmount.toInt())
                         }
                         ok
                     }
-                    .analyzingSolution { mindopt, variables, _ ->
+                    .analyzingSolution { _, mindopt, variables, _ ->
                         for (i in 0 until min(solutionAmount.toInt(), mindopt.get(MDO.IntAttr.SolCount))) {
                             mindopt.set(MDO.IntParam.MIP_SolutionNumber, i)
                             val thisResults = variables.map { Flt64(it.get(MDO.DoubleAttr.Xn)) }
@@ -63,7 +63,7 @@ class MindOPTLinearSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -200,7 +200,7 @@ private class MindOPTLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterModeling, null, mindoptModel, mindoptVars, mindoptConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -263,7 +263,7 @@ private class MindOPTLinearSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(Point.Configuration, null, mindoptModel, mindoptVars, mindoptConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -304,7 +304,7 @@ private class MindOPTLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, mindoptModel, mindoptVars, mindoptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -313,7 +313,7 @@ private class MindOPTLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, status, mindoptModel, mindoptVars, mindoptConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

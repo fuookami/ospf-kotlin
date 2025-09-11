@@ -30,7 +30,7 @@ internal fun Polynomial<*, *, *>.toTidyRawString(unfold: UInt64): String {
     }
 }
 
-interface IntermediateSymbol : Expression {
+interface IntermediateSymbol : Symbol, Expression {
     val category: Category
     val operationCategory: Category get() = category
 
@@ -38,10 +38,17 @@ interface IntermediateSymbol : Expression {
     val dependencies: Set<IntermediateSymbol>
 
     fun flush(force: Boolean = false)
-    fun prepare(tokenTable: AbstractTokenTable): Flt64?
-    fun prepareAndCache(tokenTable: AbstractTokenTable) {
-        prepare(tokenTable)?.let {
-            tokenTable.cache(this, null, it)
+
+    fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64?
+    fun prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable) {
+        if (values.isNullOrEmpty()) {
+            prepare(null, tokenTable)?.let {
+                tokenTable.cache(this, null, it)
+            }
+        } else {
+            prepare(values, tokenTable)?.let {
+                tokenTable.cache(this, values, it)
+            }
         }
     }
 
@@ -105,10 +112,6 @@ abstract class ExpressionSymbol(
         return polynomial.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return polynomial.evaluate(results, tokenList, zeroIfNone)
-    }
-
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {
             for (dependency in dependencies) {
@@ -123,10 +126,14 @@ abstract class ExpressionSymbol(
         }
     }
 
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return polynomial.evaluate(results, tokenList, zeroIfNone)
+    }
+
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cached(this, results) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this, results) == false) {
             for (dependency in dependencies) {
-                if (tokenTable.cached(dependency, results) == false) {
+                if (tokenTable.cachedSolution && tokenTable.cached(dependency, results) == false) {
                     dependency.evaluate(tokenTable, zeroIfNone)
                 }
             }
@@ -134,6 +141,35 @@ abstract class ExpressionSymbol(
             tokenTable.cache(this, results, value)
         } else {
             tokenTable.cachedValue(this, results)
+        }
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        return if (values.containsKey(this)) {
+            values[this]!!
+        } else {
+            polynomial.evaluate(values, tokenList, zeroIfNone)
+        }
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return if (values.containsKey(this)) {
+            tokenTable?.cache(this, values, values[this]!!)
+            values[this]!!
+        } else if (tokenTable != null) {
+            if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(this, values) == false) {
+                for (dependency in dependencies) {
+                    if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(dependency, values) == false) {
+                        dependency.evaluate(tokenTable, zeroIfNone)
+                    }
+                }
+                val value = polynomial.evaluate(values, tokenTable, zeroIfNone) ?: return null
+                tokenTable.cache(this, values, value)
+            } else {
+                tokenTable.cachedValue(this, values)
+            }
+        } else {
+            polynomial.evaluate(values, tokenTable as AbstractTokenTable?, zeroIfNone)
         }
     }
 
@@ -319,9 +355,13 @@ class LinearExpressionSymbol(
         return _polynomial
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         cells
-        return _polynomial.evaluate(tokenTable)
+        return if (values.isNullOrEmpty()) {
+            _polynomial.evaluate(tokenTable)
+        } else {
+            _polynomial.evaluate(values, tokenTable)
+        }
     }
 }
 
@@ -551,14 +591,24 @@ class QuadraticExpressionSymbol(
         return _polynomial
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         cells
-        return _polynomial.evaluate(tokenTable)
+        return if (values.isNullOrEmpty()) {
+            _polynomial.evaluate(tokenTable)
+        } else {
+            _polynomial.evaluate(values, tokenTable)
+        }
     }
 }
 
 interface FunctionSymbol : IntermediateSymbol {
     fun register(tokenTable: AbstractMutableTokenTable): Try
+    fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
 
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {
@@ -575,9 +625,9 @@ interface FunctionSymbol : IntermediateSymbol {
     }
 
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cached(this, results) == false) {
+        return if (tokenTable.cachedSolution && tokenTable.cached(this, results) == false) {
             for (dependency in dependencies) {
-                if (tokenTable.cached(dependency, results) == false) {
+                if (tokenTable.cachedSolution && tokenTable.cached(dependency, results) == false) {
                     dependency.evaluate(tokenTable, zeroIfNone)
                 }
             }
@@ -588,8 +638,30 @@ interface FunctionSymbol : IntermediateSymbol {
         }
     }
 
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return if (values.containsKey(this)) {
+            tokenTable?.cache(this, values, values[this]!!)
+            values[this]!!
+        } else if (tokenTable != null) {
+            if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(this, values) == false) {
+                for (dependency in dependencies) {
+                    if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(dependency, values) == false) {
+                        dependency.evaluate(tokenTable, zeroIfNone)
+                    }
+                }
+                val value = calculateValue(values, tokenTable, zeroIfNone) ?: return null
+                tokenTable.cache(this, values, value)
+            } else {
+                tokenTable.cachedValue(this, values)
+            }
+        } else {
+            calculateValue(values, tokenTable, zeroIfNone)
+        }
+    }
+
     fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64?
     fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64?
+    fun calculateValue(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64?
 }
 
 interface LogicFunctionSymbol : FunctionSymbol {
@@ -600,16 +672,32 @@ interface LogicFunctionSymbol : FunctionSymbol {
     fun isTrue(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Boolean? {
         return this.evaluate(results, tokenList, zeroIfNone)?.let { it eq Flt64.one }
     }
+
+    fun isTrue(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Boolean? {
+        return this.evaluate(values, tokenList, zeroIfNone)?.let { it eq Flt64.one }
+    }
 }
 
 interface LinearFunctionSymbol : LinearIntermediateSymbol, FunctionSymbol {
     fun register(model: AbstractLinearMechanismModel): Try
+    fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(model)
+    }
 }
 
 interface LinearLogicFunctionSymbol : LinearFunctionSymbol, LogicFunctionSymbol {}
 
 interface QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSymbol {
     fun register(model: AbstractQuadraticMechanismModel): Try
+    fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(model)
+    }
 }
 
 interface QuadraticLogicFunctionSymbol : QuadraticFunctionSymbol, LogicFunctionSymbol {}

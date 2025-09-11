@@ -17,6 +17,23 @@ class LinearFunction(
 ) : QuadraticFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            polynomial: T,
+            name: String,
+            displayName: String? = null
+        ): LinearFunction {
+            return LinearFunction(
+                polynomial.toQuadraticPolynomial(),
+                name,
+                displayName
+            )
+        }
+    }
+
     private val y: RealVar by lazy {
         RealVar("${name}_y")
     }
@@ -50,20 +67,28 @@ class LinearFunction(
         polyY.range.set(polynomial.range.valueRange!!)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         polynomial.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            polynomial.evaluate(tokenTable)?.let { yValue ->
-                if (polynomial.category != Linear) {
-                    logger.trace { "Setting LinearFunction ${name}.y initial solution: $yValue" }
-                    tokenTable.find(y)?.let { token ->
-                        token._result = yValue
-                    }
-                }
-
-                yValue
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val yValue = if (values.isNullOrEmpty()) {
+                polynomial.evaluate(tokenTable)
+            } else {
+                polynomial.evaluate(values, tokenTable)
             }
+
+            if (polynomial.category != Linear) {
+                logger.trace { "Setting LinearFunction ${name}.y initial solution: $yValue" }
+                tokenTable.find(y)?.let { token ->
+                    token._result = yValue
+                }
+            }
+
+            yValue
         } else {
             null
         }
@@ -100,6 +125,50 @@ class LinearFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractQuadraticMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = polynomial.evaluate(fixedValues, model.tokens) ?: return register(model)
+
+        if (polynomial.category != Linear) {
+            when (val result = model.addConstraint(
+                y eq polynomial,
+                name
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
+                y eq xValue,
+                name
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            model.tokens.find(y)?.let { token ->
+                token._result = xValue
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -112,19 +181,49 @@ class LinearFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomial.evaluate(values, tokenList, zeroIfNone)
+    }
+
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return polynomial.evaluate(results, tokenTable, zeroIfNone)
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return polynomial.evaluate(values, tokenTable, zeroIfNone)
     }
 }

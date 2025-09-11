@@ -454,7 +454,7 @@ data class ValueRange<T>(
         }
     }
 
-    infix fun contains(value: T): Boolean {
+    infix operator fun contains(value: T): Boolean {
         return if (lowerBound.value.isNegativeInfinity || upperBound.value.isInfinity) {
             true
         } else if (!lowerBound.value.isInfinityOrNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity) {
@@ -466,7 +466,7 @@ data class ValueRange<T>(
         }
     }
 
-    infix fun contains(valueRange: ValueRange<T>): Boolean {
+    infix operator fun contains(valueRange: ValueRange<T>): Boolean {
         return if (lowerBound.value.isNegativeInfinity || upperBound.value.isInfinity) {
             true
         } else if (!lowerBound.value.isInfinityOrNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity

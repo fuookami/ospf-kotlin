@@ -992,6 +992,61 @@ sealed class ProductivityCalendar<Q, P, T>(
             }
     }
 
+    fun actualStartTimeFrom(
+        material: T,
+        startTime: Instant,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Instant {
+        val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return Instant.DISTANT_FUTURE
+        }
+
+        var currentTime = startTime
+        for (calendar in productivityCalendar) {
+            val currentProductivity = calendar.capacityOf(material)
+                ?.let {
+                    Flt64.one / with(timeWindow) {
+                        it.value
+                    }
+                }
+                ?: continue
+
+            val validTimes = validTimes(
+                time = calendar.timeWindow.intersectionWith(TimeRange(start = currentTime)) ?: continue,
+                unavailableTimes = unavailableTimes,
+                beforeConnectionTime = beforeConnectionTime,
+                afterConnectionTime = afterConnectionTime,
+                beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+                afterConditionalConnectionTime = afterConditionalConnectionTime,
+                currentDuration = if (currentTime == startTime) { currentDuration } else { Duration.ZERO },
+                maxDuration = Duration.INFINITE,
+                breakTime = breakTime
+            )
+            for (produceTime in validTimes.times) {
+                val thisQuantity = with(timeWindow) {
+                    produceTime.duration.value * currentProductivity
+                }
+                if (thisQuantity gr constants.zero.toFlt64()) {
+                    return produceTime.start
+                }
+            }
+            currentTime = (
+                    validTimes.times.map { it.end } +
+                    validTimes.breakTimes.map { it.end } +
+                    validTimes.connectionTimes.map { it.end }
+            ).max()
+        }
+
+        return Instant.DISTANT_FUTURE
+    }
+
     fun actualTimeFrom(
         material: T,
         startTime: Instant,

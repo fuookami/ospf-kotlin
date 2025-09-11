@@ -13,9 +13,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias NotFunctionImplBuilder = (NotFunction) -> AbstractNotFunctionImpl
+
 abstract class AbstractNotFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
-    protected val parent: LinearFunctionSymbol
+    protected val parent: NotFunction
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -59,9 +61,11 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(tokenList, zeroIfNone)
-            ?: return null
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(tokenList, zeroIfNone) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -69,9 +73,12 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone)
-            ?: return null
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(results, tokenList, zeroIfNone) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -79,9 +86,12 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(tokenTable, zeroIfNone)
-            ?: return null
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(values, tokenList, zeroIfNone) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -89,9 +99,37 @@ abstract class AbstractNotFunctionImpl(
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone)
-            ?: return null
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(tokenTable, zeroIfNone) ?: return null
+        return if (value eq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        return if (value eq Flt64.zero) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val value = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -102,24 +140,51 @@ abstract class AbstractNotFunctionImpl(
 
 class NotFunctionImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionImpl {
+            return NotFunctionImpl(
+                x.toLinearPolynomial(),
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     override val polyY: AbstractLinearPolynomial<*> by lazy {
         Flt64.one - x
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.evaluate(tokenTable)?.let { xValue ->
-                if (xValue eq Flt64.zero) {
-                    Flt64.one
-                } else {
-                    Flt64.zero
-                }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
+
+            if (xValue eq Flt64.zero) {
+                Flt64.one
+            } else {
+                Flt64.zero
             }
         } else {
             null
@@ -137,11 +202,32 @@ class NotFunctionImpl(
 
 class NotFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            epsilon: Flt64,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionPiecewiseImpl {
+            return NotFunctionPiecewiseImpl(
+                x.toLinearPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
             x,
@@ -166,12 +252,24 @@ class NotFunctionPiecewiseImpl(
         piecewiseFunction.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        piecewiseFunction.prepareAndCache(tokenTable)
+        if (values.isNullOrEmpty()) {
+            piecewiseFunction.prepareAndCache(null, tokenTable)
+        } else {
+            piecewiseFunction.prepareAndCache(values, tokenTable)
+        }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            piecewiseFunction.evaluate(tokenTable)
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
+            if (values.isNullOrEmpty()) {
+                piecewiseFunction.evaluate(tokenTable)
+            } else {
+                piecewiseFunction.evaluate(values, tokenTable)
+            }
         } else {
             null
         }
@@ -200,16 +298,67 @@ class NotFunctionPiecewiseImpl(
 
         return ok
     }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = piecewiseFunction.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = piecewiseFunction.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
 }
 
 class NotFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            extract: Boolean,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionDiscreteImpl {
+            return NotFunctionDiscreteImpl(
+                x.toLinearPolynomial(),
+                parent,
+                extract,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val y: BinVar by lazy {
         val y = BinVar("${name}_y")
@@ -223,25 +372,33 @@ class NotFunctionDiscreteImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.evaluate(tokenTable)?.let { xValue ->
-                val bin = xValue eq Flt64.zero
-                val yValue = if (bin) {
-                    Flt64.one
-                } else {
-                    Flt64.zero
-                }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
 
-                logger.trace { "Setting BinaryzationFunction ${name}.y initial solution: $bin" }
-                tokenTable.find(y)?.let { token ->
-                    token._result = yValue
-                }
-
-                yValue
+            val bin = xValue eq Flt64.zero
+            val yValue = if (bin) {
+                Flt64.one
+            } else {
+                Flt64.zero
             }
+
+            logger.trace { "Setting BinaryzationFunction ${name}.y initial solution: $bin" }
+            tokenTable.find(y)?.let { token ->
+                token._result = yValue
+            }
+
+            yValue
         } else {
             null
         }
@@ -286,16 +443,89 @@ class NotFunctionDiscreteImpl(
 
         return ok
     }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val bin = xValue eq Flt64.zero
+
+        when (val result = model.addConstraint(
+            x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
+            "${name}_lb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        if (extract) {
+            when (val result = model.addConstraint(
+                (Flt64.one - y) leq x,
+                "${name}_ub"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y eq bin.toFlt64(),
+            "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
 }
 
 class NotFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: NotFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
 ) : AbstractNotFunctionImpl(x, parent) {
     private val logger = logger()
+
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: NotFunction,
+            epsilon: Flt64,
+            name: String,
+            displayName: String? = null,
+        ): NotFunctionExtractAndNotDiscreteImpl {
+            return NotFunctionExtractAndNotDiscreteImpl(
+                x.toLinearPolynomial(),
+                parent,
+                epsilon,
+                name,
+                displayName
+            )
+        }
+    }
 
     private val b: PctVar by lazy {
         PctVar("${name}_b")
@@ -313,30 +543,38 @@ class NotFunctionExtractAndNotDiscreteImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            x.evaluate(tokenTable)?.let { xValue ->
-                val pct = xValue / x.upperBound!!.value.unwrap()
-                val bin = xValue eq Flt64.zero
-                val yValue = if (bin) {
-                    Flt64.one
-                } else {
-                    Flt64.zero
-                }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
 
-                logger.trace { "Setting BinaryzationFunction ${name}.b initial solution: $pct" }
-                tokenTable.find(b)?.let { token ->
-                    token._result = pct
-                }
-                logger.trace { "Setting BinaryzationFunction ${name}.y initial solution: $bin" }
-                tokenTable.find(y)?.let { token ->
-                    token._result = yValue
-                }
-
-                yValue
+            val pct = xValue / x.upperBound!!.value.unwrap()
+            val bin = xValue eq Flt64.zero
+            val yValue = if (bin) {
+                Flt64.one
+            } else {
+                Flt64.zero
             }
+
+            logger.trace { "Setting BinaryzationFunction ${name}.b initial solution: $pct" }
+            tokenTable.find(b)?.let { token ->
+                token._result = pct
+            }
+            logger.trace { "Setting BinaryzationFunction ${name}.y initial solution: $bin" }
+            tokenTable.find(y)?.let { token ->
+                token._result = yValue
+            }
+
+            yValue
         } else {
             null
         }
@@ -398,6 +636,103 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         return ok
     }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = tokenTable.add(b)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val pct = xValue / x.upperBound!!.value.unwrap()
+        val bin = xValue eq Flt64.zero
+
+        when (val result = model.addConstraint(
+            x eq x.upperBound!!.value.unwrap() * b,
+            "${name}_xb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            (Flt64.one - y) geq b,
+            "${name}_lb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            (Flt64.one - y) leq (Flt64.one / epsilon) * b,
+            "${name}_ub"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            b eq pct,
+            "${name}_b"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(b)?.let { token ->
+            token._result = pct
+        }
+
+        when (val result = model.addConstraint(
+            y eq bin.toFlt64(),
+            "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(y)?.let { token ->
+            token._result = bin.toFlt64()
+        }
+
+        return ok
+    }
 }
 
 class NotFunction(
@@ -405,23 +740,69 @@ class NotFunction(
     private val extract: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     private val piecewise: Boolean = false,
-    impl: AbstractNotFunctionImpl? = null,
+    impl: NotFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
     companion object {
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
+
+        operator fun <
+           T : ToLinearPolynomial<Poly>,
+           Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            extract: Boolean = true,
+            epsilon: Flt64 = Flt64(1e-6),
+            piecewise: Boolean = false,
+            impl: NotFunctionImplBuilder? = null,
+            name: String,
+            displayName: String? = null,
+        ): NotFunction {
+            return NotFunction(
+                x.toLinearPolynomial(),
+                extract,
+                epsilon,
+                piecewise,
+                impl,
+                name,
+                displayName
+            )
+        }
     }
 
     private val impl: AbstractNotFunctionImpl by lazy {
-        impl ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
-            NotFunctionImpl(x, this, name, displayName)
+        impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
+            NotFunctionImpl(
+                x,
+                this,
+                name,
+                displayName
+            )
         } else if (x.discrete) {
-            NotFunctionDiscreteImpl(x, this, extract, name, displayName)
+            NotFunctionDiscreteImpl(
+                x,
+                this,
+                extract,
+                name,
+                displayName
+            )
         } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
-            NotFunctionPiecewiseImpl(x, this, epsilon, name, displayName)
+            NotFunctionPiecewiseImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         } else {
-            NotFunctionExtractAndNotDiscreteImpl(x, this, epsilon, name, displayName)
+            NotFunctionExtractAndNotDiscreteImpl(
+                x,
+                this,
+                epsilon,
+                name,
+                displayName
+            )
         }
     }
 
@@ -441,8 +822,8 @@ class NotFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
-        return impl.prepare(tokenTable)
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
+        return impl.prepare(values, tokenTable)
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
@@ -469,6 +850,36 @@ class NotFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = impl.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = impl.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -481,19 +892,49 @@ class NotFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return impl.evaluate(values, tokenList, zeroIfNone)
+    }
+
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return impl.calculateValue(values, tokenTable, zeroIfNone)
     }
 }

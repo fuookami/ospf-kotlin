@@ -224,7 +224,10 @@ data class LinearMonomialCell internal constructor(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 val token = tokenList.find(cell.value.variable)
@@ -234,19 +237,11 @@ data class LinearMonomialCell internal constructor(
                         cell.value.coefficient * result
                     } else {
                         logger.trace { "Unknown result for ${cell.value.variable}" }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 } else {
                     logger.trace { "Unknown token for ${cell.value.variable}" }
-                    if (zeroIfNone) {
-                        Flt64.zero
-                    } else {
-                        null
-                    }
+                    null
                 }
             }
 
@@ -260,7 +255,11 @@ data class LinearMonomialCell internal constructor(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (cell) {
             is Either.Left -> {
                 val index = tokenList.indexOf(cell.value.variable)
@@ -269,11 +268,45 @@ data class LinearMonomialCell internal constructor(
                     cell.value.coefficient * result
                 } else {
                     logger.trace { "Unknown result for ${cell.value.variable}" }
-                    if (zeroIfNone) {
-                        Flt64.zero
+                    null
+                }
+            }
+
+            is Either.Right -> {
+                cell.value
+            }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (cell) {
+            is Either.Left -> {
+                if (values.containsKey(cell.value.variable)) {
+                    values[cell.value.variable]!!
+                } else if (tokenList != null) {
+                    val token = tokenList.find(cell.value.variable)
+                    if (token != null) {
+                        val result = token.result
+                        if (result != null) {
+                            cell.value.coefficient * result
+                        } else {
+                            logger.trace { "Unknown result for ${cell.value.variable}" }
+                            null
+                        }
                     } else {
+                        logger.trace { "Unknown token for ${cell.value.variable}" }
                         null
                     }
+                } else {
+                    null
                 }
             }
 
@@ -465,7 +498,10 @@ data class LinearMonomialSymbol(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (symbol) {
             is Either.Left -> {
                 val token = tokenList.find(symbol.value)
@@ -475,29 +511,60 @@ data class LinearMonomialSymbol(
                         result
                     } else {
                         logger.trace { "Unknown result for ${symbol.value}" }
-                        if (zeroIfNone) {
-                            Flt64.zero
-                        } else {
-                            null
-                        }
+                        null
                     }
                 } else {
                     logger.trace { "Unknown token for ${symbol.value}" }
-                    if (zeroIfNone) {
-                        Flt64.zero
-                    } else {
-                        null
-                    }
+                    null
                 }
             }
 
             is Either.Right -> {
                 symbol.value.evaluate(tokenList, zeroIfNone)
             }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (symbol) {
+            is Either.Left -> {
+                val token = tokenTable.find(symbol.value)
+                if (token != null) {
+                    val result = token.result
+                    if (result != null) {
+                        result
+                    } else {
+                        logger.trace { "Unknown result for ${symbol.value}" }
+                        null
+                    }
+                } else {
+                    logger.trace { "Unknown token for ${symbol.value}" }
+                    null
+                }
+            }
+
+            is Either.Right -> {
+                symbol.value.evaluate(tokenTable, zeroIfNone)
+            }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
+        }
+    }
+
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (symbol) {
             is Either.Left -> {
                 val index = tokenList.indexOf(symbol.value)
@@ -505,41 +572,119 @@ data class LinearMonomialSymbol(
                     results[index]
                 } else {
                     logger.trace { "Unknown result for ${symbol.value}" }
-                    if (zeroIfNone) {
-                        Flt64.zero
-                    } else {
-                        null
-                    }
+                    null
                 }
             }
 
             is Either.Right -> {
                 symbol.value.evaluate(results, tokenList, zeroIfNone)
             }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
         }
     }
 
-    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return when (symbol) {
             is Either.Left -> {
-                evaluate(tokenTable.tokenList, zeroIfNone)
-            }
-
-            is Either.Right -> {
-                symbol.value.evaluate(tokenTable, zeroIfNone)
-            }
-        }
-    }
-
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is Either.Left -> {
-                evaluate(results, tokenTable.tokenList, zeroIfNone)
+                val index = tokenTable.indexOf(symbol.value)
+                if (index != null) {
+                    results[index]
+                } else {
+                    logger.trace { "Unknown result for ${symbol.value}" }
+                    null
+                }
             }
 
             is Either.Right -> {
                 symbol.value.evaluate(results, tokenTable, zeroIfNone)
             }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (symbol) {
+            is Either.Left -> {
+                if (values.containsKey(symbol.value)) {
+                    values[symbol.value]!!
+                } else if (tokenList != null) {
+                    val token = tokenList.find(symbol.value)
+                    if (token != null) {
+                        val result = token.result
+                        if (result != null) {
+                            result
+                        } else {
+                            logger.trace { "Unknown result for ${symbol.value}" }
+                            null
+                        }
+                    } else {
+                        logger.trace { "Unknown token for ${symbol.value}" }
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+
+            is Either.Right -> {
+                values[symbol.value] ?: symbol.value.evaluate(values, tokenList, zeroIfNone)
+            }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
+        }
+    }
+
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return when (symbol) {
+            is Either.Left -> {
+                if (values.containsKey(symbol.value)) {
+                    values[symbol.value]!!
+                } else if (tokenTable != null) {
+                    val token = tokenTable.find(symbol.value)
+                    if (token != null) {
+                        val result = token.result
+                        if (result != null) {
+                            result
+                        } else {
+                            logger.trace { "Unknown result for ${symbol.value}" }
+                            null
+                        }
+                    } else {
+                        logger.trace { "Unknown token for ${symbol.value}" }
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+
+            is Either.Right -> {
+                values[symbol.value] ?: symbol.value.evaluate(values, tokenTable, zeroIfNone)
+            }
+        } ?: if (zeroIfNone) {
+            Flt64.zero
+        } else {
+            null
         }
     }
 }

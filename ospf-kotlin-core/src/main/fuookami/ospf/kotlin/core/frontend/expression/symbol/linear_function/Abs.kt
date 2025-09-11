@@ -20,6 +20,8 @@ class AbsFunction(
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     companion object {
         operator fun <T : ToLinearPolynomial<Poly>, Poly : AbstractLinearPolynomial<Poly>> invoke(
             x: T,
@@ -35,8 +37,6 @@ class AbsFunction(
             )
         }
     }
-
-    private val logger = logger()
 
     private val neg: PctVar by lazy {
         PctVar("${name}_neg")
@@ -85,38 +85,42 @@ class AbsFunction(
         }
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            x.evaluate(tokenTable)?.let { xValue ->
-                val pValue = xValue geq Flt64.zero
-                val yValue = abs(xValue)
-                val posValue = if (pValue) {
-                    yValue / m
-                } else {
-                    Flt64.zero
-                }
-                val negValue = if (!pValue) {
-                    yValue / m
-                } else {
-                    Flt64.zero
-                }
-                logger.trace { "Setting AbsFunction ${name}.pos initial solution: $posValue" }
-                tokenTable.find(pos)?.let { token -> token._result = posValue }
-                logger.trace { "Setting AbsFunction ${name}.neg initial solution: $negValue" }
-                tokenTable.find(neg)?.let { token -> token._result = negValue }
-                logger.trace { "Setting AbsFunction ${name}.p initial solution: $pValue" }
-                tokenTable.find(p)?.let { token ->
-                    token._result = if (pValue) {
-                        Flt64.one
-                    } else {
-                        Flt64.zero
-                    }
-                }
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
+            } ?: return null
 
-                yValue
+            val pValue = xValue geq Flt64.zero
+            val yValue = abs(xValue)
+            val posValue = if (pValue) {
+                yValue / m
+            } else {
+                Flt64.zero
             }
+            val negValue = if (!pValue) {
+                yValue / m
+            } else {
+                Flt64.zero
+            }
+            logger.trace { "Setting AbsFunction ${name}.pos initial solution: $posValue" }
+            tokenTable.find(pos)?.let { token -> token._result = posValue }
+            logger.trace { "Setting AbsFunction ${name}.neg initial solution: $negValue" }
+            tokenTable.find(neg)?.let { token -> token._result = negValue }
+            logger.trace { "Setting AbsFunction ${name}.p initial solution: $pValue" }
+            tokenTable.find(p)?.let { token ->
+                token._result = pValue.toFlt64()
+            }
+
+            yValue
         } else {
             null
         }
@@ -204,6 +208,74 @@ class AbsFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+
+        if (xValue geq Flt64.zero) {
+            when (val result = tokenTable.add(pos)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        } else {
+            when (val result = tokenTable.add(neg)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+
+        if (xValue geq Flt64.zero) {
+            when (val result = model.addConstraint(
+                x eq m * pos,
+                name
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            model.tokens.find(pos)?.let { token ->
+                token._result = xValue / m
+            }
+        } else {
+            when (val result = model.addConstraint(
+                x eq -m * neg,
+                name
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            model.tokens.find(neg)?.let { token ->
+                token._result = -xValue / m
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -231,6 +303,14 @@ class AbsFunction(
         return x.evaluate(results, tokenList, zeroIfNone)?.let { abs(it) }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(values, tokenList, zeroIfNone)?.let { abs(it) }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -244,5 +324,13 @@ class AbsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return x.evaluate(results, tokenTable, zeroIfNone)?.let { abs(it) }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return x.evaluate(values, tokenTable, zeroIfNone)?.let { abs(it) }
     }
 }

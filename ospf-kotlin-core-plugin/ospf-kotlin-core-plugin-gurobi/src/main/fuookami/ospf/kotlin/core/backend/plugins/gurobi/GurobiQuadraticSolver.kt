@@ -46,7 +46,7 @@ class GurobiQuadraticSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { GurobiQuadraticSolverCallBack() }
-                    .configuration { gurobi, _, _ ->
+                    .configuration { _, gurobi, _, _ ->
                         if (solutionAmount gr UInt64.one) {
                             gurobi.set(GRB.DoubleParam.PoolGap, 1.0);
                             gurobi.set(GRB.IntParam.PoolSearchMode, 2);
@@ -54,7 +54,7 @@ class GurobiQuadraticSolver(
                         }
                         ok
                     }
-                    .analyzingSolution { gurobi, variables, _ ->
+                    .analyzingSolution { _, gurobi, variables, _ ->
                         for (i in 0 until kotlin.math.min(solutionAmount.toInt(), gurobi.get(GRB.IntAttr.SolCount))) {
                             gurobi.set(GRB.IntParam.SolutionNumber, i)
                             val thisResults = variables.map { Flt64(it.get(GRB.DoubleAttr.Xn)) }
@@ -219,7 +219,7 @@ private class GurobiQuadraticSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(Point.AfterModeling, null, grbModel, grbVars, grbConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -282,7 +282,7 @@ private class GurobiQuadraticSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(Point.Configuration, null, grbModel, grbVars, grbConstraints)) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -323,7 +323,7 @@ private class GurobiQuadraticSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -332,7 +332,7 @@ private class GurobiQuadraticSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(Point.AfterFailure, status, grbModel, grbVars, grbConstraints)) {
                     is Failed -> {
                         return Failed(result.error)
                     }

@@ -29,7 +29,9 @@ class CoptColumnGenerationSolver(
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
         }
         val model = when (val result = LinearMechanismModel(
             metaModel = metaModel,
@@ -42,12 +44,14 @@ class CoptColumnGenerationSolver(
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
         }
 
         val solver = CoptLinearSolver(
@@ -58,12 +62,12 @@ class CoptColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Ok(result.value)
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Failed(result.error)
             }
         }
@@ -80,7 +84,9 @@ class CoptColumnGenerationSolver(
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
         }
         val model = when (val result = LinearMechanismModel(
             metaModel = metaModel,
@@ -93,24 +99,27 @@ class CoptColumnGenerationSolver(
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 return Failed(result.error)
             }
         }
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
         }
 
         val results = ArrayList<Solution>()
         val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .configuration { copt, _, _ ->
+                .configuration { _, copt, _, _ ->
                     if (amount gr UInt64.one) {
                         // todo: set copt parameter to limit number of solutions
                     }
                     ok
-                }.analyzingSolution { copt, variables, _ ->
+                }
+                .analyzingSolution { _, copt, variables, _ ->
                     for (i in 0 until min(amount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
                         val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
                         if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
@@ -125,12 +134,12 @@ class CoptColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 results.add(0, result.value.solution)
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Ok(Pair(result.value, results))
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Failed(result.error)
             }
         }
@@ -146,7 +155,9 @@ class CoptColumnGenerationSolver(
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { metaModel.export("$name.opm") })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                metaModel.export("$name.opm")
+            })
         }
         val model = when (val result = LinearMechanismModel(
             metaModel = metaModel,
@@ -155,25 +166,29 @@ class CoptColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 return Failed(result.error)
             }
         }
         model.linearRelax()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) { model.export("$name.lp", ModelFileFormat.LP) })
+            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                model.export("$name.lp", ModelFileFormat.LP)
+            })
         }
 
         lateinit var dualSolution: Solution
         val solver = CoptLinearSolver(
             config = config,
             callBack = callBack.copy()
-                .analyzingSolution { _, _, constraints ->
-                    dualSolution = constraints.map { Flt64(it.get(COPT.DoubleInfo.Dual)) }
+                .analyzingSolution { _, _, _, constraints ->
+                    dualSolution = constraints.map {
+                        Flt64(it.get(COPT.DoubleInfo.Dual))
+                    }
                     ok
                 }
         )
@@ -181,12 +196,12 @@ class CoptColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
             }
 
             is Failed -> {
-                jobs.forEach { it.join() }
+                jobs.joinAll()
                 Failed(result.error)
             }
         }

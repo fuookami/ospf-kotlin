@@ -21,6 +21,22 @@ class XorFunction(
 ) : LinearLogicFunctionSymbol {
     private val logger = logger()
 
+    companion object {
+        operator fun invoke(
+            polynomials: List<AbstractLinearPolynomial<*>>,
+            extract: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): XorFunction {
+            return XorFunction(
+                polynomials,
+                extract,
+                name,
+                displayName
+            )
+        }
+    }
+
     init {
         assert(polynomials.size >= 2)
     }
@@ -102,14 +118,19 @@ class XorFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
+
         if (polynomials.size > 2) {
             tokenTable.cache(
                 (listOf(maxmin, minmax) + bins).mapNotNull {
-                    val value = it.prepare(tokenTable)
+                    val value = if (values.isNullOrEmpty()) {
+                        it.prepare(null, tokenTable)
+                    } else {
+                        it.prepare(values, tokenTable)
+                    }
                     if (value != null) {
                         (it as IntermediateSymbol) to value
                     } else {
@@ -120,7 +141,11 @@ class XorFunction(
         } else {
             tokenTable.cache(
                 bins.mapNotNull {
-                    val value = it.prepare(tokenTable)
+                    val value = if (values.isNullOrEmpty()) {
+                        it.prepare(null, tokenTable)
+                    } else {
+                        it.prepare(values, tokenTable)
+                    }
                     if (value != null) {
                         (it as IntermediateSymbol) to value
                     } else {
@@ -130,7 +155,7 @@ class XorFunction(
             )
         }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(this) == false) {
             var zero = false
             var one = false
             for (polynomial in polynomials) {
@@ -277,6 +302,139 @@ class XorFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        if (polynomials.size > 2) {
+            when (val result = minmax.register(tokenTable, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = maxmin.register(tokenTable, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            for (bin in bins) {
+                when (val result = bin.register(tokenTable, fixedValues)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        } else {
+            for (bin in bins) {
+                when (val result = bin.register(tokenTable, fixedValues)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        when (val result = tokenTable.add(y)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = polynomials.map {
+            it.evaluate(fixedValues, model.tokens) ?: return register(model)
+        }
+        val bin = !values.all { it gr Flt64.zero } || !values.all { it eq Flt64.one }
+
+        for (bin in bins) {
+            when (val result = bin.register(model, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        for ((i, bin) in bins.withIndex()) {
+            when (val result = model.addConstraint(
+                y geq bin - sum(bins.withIndex().mapNotNull {
+                    if (it.index == i) {
+                        null
+                    } else {
+                        it.value
+                    }
+                }),
+                "${name}_yb_$i"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        if (extract) {
+            when (val result = model.addConstraint(
+                y leq sum(bins),
+                "${name}_y_1"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
+                y leq Flt64(bins.size) - sum(bins),
+                "${name}_y_2"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y eq bin.toFlt64(),
+            "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(y)?.let { token ->
+            token._result = bin.toFlt64()
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -289,12 +447,14 @@ class XorFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(tokenList, zeroIfNone)
-                ?: return null
+            val result = polynomial.evaluate(tokenList, zeroIfNone) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -308,12 +468,15 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(results, tokenList, zeroIfNone)
-                ?: return null
+            val result = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -327,7 +490,32 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        var zero = false
+        var one = false
+        for (polynomial in polynomials) {
+            val result = polynomial.evaluate(values, tokenList, zeroIfNone) ?: return null
+            if (result eq Flt64.zero) {
+                zero = true
+            }
+            if (result eq Flt64.one) {
+                one = true
+            }
+            if (zero && one) {
+                return Flt64.one
+            }
+        }
+        return Flt64.zero
+    }
+
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
@@ -346,11 +534,38 @@ class XorFunction(
         return Flt64.zero
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         var zero = false
         var one = false
         for (polynomial in polynomials) {
             val result = polynomial.evaluate(results, tokenTable, zeroIfNone)
+                ?: return null
+            if (result eq Flt64.zero) {
+                zero = true
+            }
+            if (result eq Flt64.one) {
+                one = true
+            }
+            if (zero && one) {
+                return Flt64.one
+            }
+        }
+        return Flt64.zero
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        var zero = false
+        var one = false
+        for (polynomial in polynomials) {
+            val result = polynomial.evaluate(values, tokenTable, zeroIfNone)
                 ?: return null
             if (result eq Flt64.zero) {
                 zero = true

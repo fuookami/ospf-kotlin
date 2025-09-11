@@ -62,7 +62,7 @@ interface Shape {
                 }
 
                 is IntRange -> {
-                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last)).value!!))
+                    vector.add(DummyIndex(ValueRange(UInt64(index.first), UInt64(index.last + 1)).value!!))
                 }
 
                 is IntegerRange<*> -> {

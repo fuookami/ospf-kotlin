@@ -12,9 +12,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias AndFunctionImplBuilder = (AndFunction) -> AbstractAndFunctionImpl
+
 abstract class AbstractAndFunctionImpl(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    protected val parent: LinearLogicFunctionSymbol
+    protected val parent: AndFunction
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -68,44 +70,88 @@ abstract class AbstractAndFunctionImpl(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
         }
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
         }
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return if (polynomials.all {
-                val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
-                thisValue neq Flt64.zero
-            }) {
+            val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (polynomials.all {
+            val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
+            Flt64.one
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return if (polynomials.all {
+            val thisValue = it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            thisValue neq Flt64.zero
+        }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -113,12 +159,31 @@ abstract class AbstractAndFunctionImpl(
     }
 }
 
-private class AndFunctionOnePolynomialImpl(
+class AndFunctionOnePolynomialImpl(
     val polynomial: AbstractLinearPolynomial<*>,
-    parent: LinearLogicFunctionSymbol,
+    parent: AndFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(listOf(polynomial), parent) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            polynomial: T,
+            parent: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionOnePolynomialImpl {
+            return AndFunctionOnePolynomialImpl(
+                polynomial.toLinearPolynomial(),
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val bin: BinaryzationFunction by lazy {
         BinaryzationFunction(polynomial, name = "${name}_bin")
     }
@@ -134,12 +199,20 @@ private class AndFunctionOnePolynomialImpl(
         bin.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         polynomial.cells
-        bin.prepareAndCache(tokenTable)
+        bin.prepareAndCache(values, tokenTable)
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            bin.evaluate(tokenTable)
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
+            if (values.isNullOrEmpty()) {
+                bin.evaluate(tokenTable)
+            } else {
+                bin.evaluate(values, tokenTable)
+            }
         } else {
             null
         }
@@ -168,14 +241,60 @@ private class AndFunctionOnePolynomialImpl(
 
         return ok
     }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = bin.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = bin.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
 }
 
 private class AndFunctionMultiPolynomialImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: LinearLogicFunctionSymbol,
+    parent: AndFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(polynomials, parent) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            parent: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionMultiPolynomialImpl {
+            return AndFunctionMultiPolynomialImpl(
+                polynomials.map { it.toLinearPolynomial() },
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val maxmin: MaxMinFunction by lazy {
         MaxMinFunction(polynomials, "${name}_maxmin")
     }
@@ -196,15 +315,23 @@ private class AndFunctionMultiPolynomialImpl(
         bin.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
-        maxmin.prepareAndCache(tokenTable)
-        bin.prepareAndCache(tokenTable)
+        maxmin.prepareAndCache(values, tokenTable)
+        bin.prepareAndCache(values, tokenTable)
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
-            bin.evaluate(tokenTable)
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
+            if (values.isNullOrEmpty()) {
+                bin.evaluate(tokenTable)
+            } else {
+                bin.evaluate(values, tokenTable)
+            }
         } else {
             null
         }
@@ -249,14 +376,76 @@ private class AndFunctionMultiPolynomialImpl(
 
         return ok
     }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = maxmin.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = bin.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = maxmin.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = bin.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
 }
 
 private class AndFunctionMultiPolynomialBinaryImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: LinearLogicFunctionSymbol,
+    parent: AndFunction,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(polynomials, parent) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<AbstractLinearPolynomial<*>>,
+            parent: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionMultiPolynomialImpl {
+            return AndFunctionMultiPolynomialImpl(
+                polynomials.map { it.toLinearPolynomial() },
+                parent,
+                name,
+                displayName
+            )
+        }
+    }
+
     private val y: BinVar by lazy {
         BinVar("${name}_y")
     }
@@ -267,23 +456,27 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         polyY
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         for (polynomial in polynomials) {
             polynomial.cells
         }
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(parent) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(parent)
+        } else {
+            tokenTable.cached(parent, values)
+        } == false) {
             val yValue = polynomials.all { polynomial ->
-                val thisValue = polynomial.evaluate(tokenTable) ?: return null
+                val thisValue = if (values.isNullOrEmpty()) {
+                    polynomial.evaluate(tokenTable)
+                } else {
+                    polynomial.evaluate(values, tokenTable)
+                } ?: return null
                 thisValue eq Flt64.zero
             }
             logger.trace { "Setting AndFunction ${name}.y to $yValue" }
             tokenTable.find(y)?.let { token ->
-                token._result = if (yValue) {
-                    Flt64.one
-                } else {
-                    Flt64.zero
-                }
+                token._result = yValue.toFlt64()
             }
 
             if (yValue) {
@@ -336,21 +529,108 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
         return ok
     }
+
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val values = polynomials.map { it.evaluate(fixedValues, model.tokens) ?: return register(model) }
+        val bin = values.all { it gr Flt64.zero }
+
+        for ((i, polynomial) in polynomials.withIndex()) {
+            when (val result = model.addConstraint(
+                y leq polynomial,
+                "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
+            "${name}_lb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y eq bin,
+            "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(y)?.let { token ->
+            token._result = bin.toFlt64()
+        }
+
+        return ok
+    }
 }
 
 class AndFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override var name: String,
     override var displayName: String? = null,
-    impl: AbstractAndFunctionImpl? = null
+    impl: AndFunctionImplBuilder? = null
 ) : LinearLogicFunctionSymbol {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            name: String,
+            displayName: String? = null,
+            impl: AndFunctionImplBuilder? = null
+        ): AndFunction {
+            return AndFunction(
+                polynomials.map { it.toLinearPolynomial() },
+                name,
+                displayName,
+                impl
+            )
+        }
+    }
+
     private val impl: AbstractAndFunctionImpl by lazy {
-        impl ?: if (polynomials.size == 1) {
-            AndFunctionOnePolynomialImpl(polynomials[0], this, name, displayName)
+        impl?.invoke(this) ?: if (polynomials.size == 1) {
+            AndFunctionOnePolynomialImpl(
+                polynomials.first(),
+                this,
+                name,
+                displayName
+            )
         } else if (polynomials.all { it.discrete && it.upperBound!!.value.unwrap() leq Flt64.one }) {
-            AndFunctionMultiPolynomialBinaryImpl(polynomials, this, name, displayName)
+            AndFunctionMultiPolynomialBinaryImpl(
+                polynomials,
+                this,
+                name,
+                displayName
+            )
         } else {
-            AndFunctionMultiPolynomialImpl(polynomials, this, name, displayName)
+            AndFunctionMultiPolynomialImpl(
+                polynomials,
+                this,
+                name,
+                displayName
+            )
         }
     }
 
@@ -370,8 +650,8 @@ class AndFunction(
         impl.flush(force)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
-        return impl.prepare(tokenTable)
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
+        return impl.prepare(values, tokenTable)
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
@@ -405,6 +685,36 @@ class AndFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = impl.register(tokenTable, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        when (val result = impl.register(model, fixedValues)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -417,19 +727,49 @@ class AndFunction(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(tokenList, zeroIfNone)
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        results: List<Flt64>,
+        tokenList: AbstractTokenList,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.evaluate(results, tokenList, zeroIfNone)
     }
 
-    override fun calculateValue(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return impl.evaluate(values, tokenList, zeroIfNone)
+    }
+
+    override fun calculateValue(
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(tokenTable, zeroIfNone)
     }
 
-    override fun calculateValue(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun calculateValue(
+        results: List<Flt64>,
+        tokenTable: AbstractTokenTable,
+        zeroIfNone: Boolean
+    ): Flt64? {
         return impl.calculateValue(results, tokenTable, zeroIfNone)
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        return impl.calculateValue(values, tokenTable, zeroIfNone)
     }
 }

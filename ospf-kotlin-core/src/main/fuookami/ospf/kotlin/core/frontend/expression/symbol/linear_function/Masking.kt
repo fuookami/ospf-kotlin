@@ -20,41 +20,9 @@ class MaskingFunction(
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
+    private val logger = logger()
+
     companion object {
-        operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
-            x: T,
-            mask: AbstractLinearPolynomial<*>,
-            name: String,
-            displayName: String? = null
-        ): MaskingFunction {
-            return MaskingFunction(
-                x.toLinearPolynomial(),
-                mask,
-                name,
-                displayName
-            )
-        }
-
-        operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
-            x: AbstractLinearPolynomial<*>,
-            mask: T,
-            name: String,
-            displayName: String? = null
-        ): MaskingFunction {
-            return MaskingFunction(
-                x,
-                mask.toLinearPolynomial(),
-                name,
-                displayName
-            )
-        }
-
         operator fun <
             T1 : ToLinearPolynomial<Poly1>,
             T2 : ToLinearPolynomial<Poly2>,
@@ -74,8 +42,6 @@ class MaskingFunction(
             )
         }
     }
-
-    private val logger = logger()
 
     private val y: RealVar by lazy {
         val y = RealVar("${name}_y")
@@ -132,17 +98,28 @@ class MaskingFunction(
         polyY.range.set(possibleRange)
     }
 
-    override fun prepare(tokenTable: AbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
         mask.cells
 
-        return if (tokenTable.cachedSolution && tokenTable.cached(this) == false) {
-            val xValue = x.evaluate(tokenTable) ?: return null
-
-            val maskValue = mask?.evaluate(tokenTable)?.let {
-                it gr Flt64.zero
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+            tokenTable.cached(this)
+        } else {
+            tokenTable.cached(this, values)
+        } == false) {
+            val xValue = if (values.isNullOrEmpty()) {
+                x.evaluate(tokenTable)
+            } else {
+                x.evaluate(values, tokenTable)
             } ?: return null
 
+            val maskValue = if (values.isNullOrEmpty()) {
+                mask.evaluate(tokenTable)
+            } else {
+                mask.evaluate(values, tokenTable)
+            }?.let {
+                it gr Flt64.zero
+            } ?: return null
 
             val yValue = if (maskValue) {
                 xValue
@@ -222,6 +199,88 @@ class MaskingFunction(
         return ok
     }
 
+    override fun register(
+        tokenTable: AbstractMutableTokenTable,
+        fixedValues: Map<Symbol, Flt64>,
+    ): Try {
+        return register(tokenTable)
+    }
+
+    override fun register(
+        model: AbstractLinearMechanismModel,
+        fixedValues: Map<Symbol, Flt64>
+    ): Try {
+        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val maskValue = mask.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val maskBin = maskValue gr Flt64.zero
+
+        when (val result = model.addConstraint(
+            y leq x + m * (Flt64.one - mask),
+            name = "${name}_lb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        when (val result = model.addConstraint(
+            y geq x - m * (Flt64.one - mask),
+            name = "${name}_ub"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        when (val result = model.addConstraint(
+            y leq m * mask,
+            name = "${name}_ym_lb"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        when (val result = model.addConstraint(
+            y geq -m * mask,
+            name = "${name}_ym_ub"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        when (val result = model.addConstraint(
+            y eq if (maskBin) {
+                xValue
+            } else {
+                Flt64.zero
+            },
+            name = "${name}_y"
+        )) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+
+        model.tokens.find(y)?.let { token ->
+            token._result = if (maskBin) {
+                xValue
+            } else {
+                Flt64.zero
+            }
+        }
+
+        return ok
+    }
+
     override fun toString(): String {
         return displayName ?: name
     }
@@ -259,6 +318,19 @@ class MaskingFunction(
         }
     }
 
+    override fun evaluate(
+        values: Map<Symbol, Flt64>,
+        tokenList: AbstractTokenList?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val maskValue = mask.evaluate(values, tokenList, zeroIfNone) ?: return null
+        return if (maskValue neq Flt64.zero) {
+            x.evaluate(values, tokenList, zeroIfNone)
+        } else {
+            Flt64.zero
+        }
+    }
+
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
@@ -279,6 +351,19 @@ class MaskingFunction(
         val maskValue = mask.evaluate(results, tokenTable, zeroIfNone) ?: return null
         return if (maskValue neq Flt64.zero) {
             x.evaluate(results, tokenTable, zeroIfNone)
+        } else {
+            Flt64.zero
+        }
+    }
+
+    override fun calculateValue(
+        values: Map<Symbol, Flt64>,
+        tokenTable: AbstractTokenTable?,
+        zeroIfNone: Boolean
+    ): Flt64? {
+        val maskValue = mask.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        return if (maskValue neq Flt64.zero) {
+            x.evaluate(values, tokenTable, zeroIfNone)
         } else {
             Flt64.zero
         }

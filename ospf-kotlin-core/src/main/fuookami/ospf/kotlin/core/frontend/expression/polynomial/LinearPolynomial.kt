@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.inequality.*
 
 @JvmName("calculateLinearPolynomialCells")
 private fun cells(
@@ -30,8 +31,32 @@ private fun cells(
     return cells.map { LinearMonomialCell(it.value, it.key) } + LinearMonomialCell(totalConstant)
 }
 
+interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> : ToLinearInequality {
+    fun toLinearPolynomial(): Poly
+
+    override fun toLinearInequality(): LinearInequality {
+        return toLinearPolynomial() eq true
+    }
+}
+
+@Throws(IllegalArgumentException::class)
+fun List<Any>.toLinearPolynomials(): List<AbstractLinearPolynomial<*>> {
+    return this.map {
+        when (it) {
+            is Int -> LinearPolynomial(it)
+            is Double -> LinearPolynomial(it)
+            is Boolean -> LinearPolynomial(it)
+            is Trivalent -> LinearPolynomial(it)
+            is BalancedTrivalent -> LinearPolynomial(it)
+            is RealNumber<*> -> LinearPolynomial(it.toFlt64())
+            is ToLinearPolynomial<*> -> it.toLinearPolynomial()
+            else -> throw IllegalArgumentException("Cannot convert $it to a linear polynomial")
+        }
+    }
+}
+
 sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
-    Polynomial<Self, LinearMonomial, LinearMonomialCell> {
+    Polynomial<Self, LinearMonomial, LinearMonomialCell>, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
     abstract override val monomials: List<LinearMonomial>
     override val category get() = Linear
 
@@ -106,10 +131,6 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
                 }
             }
     }
-}
-
-interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> {
-    fun toLinearPolynomial(): Poly
 }
 
 class LinearPolynomial(
@@ -409,6 +430,14 @@ class LinearPolynomial(
             monomials = monomials.map { it / rhs },
             constant = constant
         )
+    }
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return this
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 }
 
@@ -788,6 +817,14 @@ class MutableLinearPolynomial(
     override fun divAssign(rhs: Flt64) {
         monomials = monomials.map { it / rhs }.toMutableList()
         constant /= rhs
+    }
+
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return LinearPolynomial(this)
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(this)
     }
 }
 

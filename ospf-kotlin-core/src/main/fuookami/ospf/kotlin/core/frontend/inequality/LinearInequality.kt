@@ -8,13 +8,17 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
+interface ToLinearInequality {
+    fun toLinearInequality(): LinearInequality
+}
+
 class LinearInequality(
     override val lhs: AbstractLinearPolynomial<*>,
     override val rhs: AbstractLinearPolynomial<*>,
     sign: Sign,
     name: String = "",
     displayName: String? = null
-) : Inequality<LinearInequality, LinearMonomialCell>(lhs, rhs, sign, name, displayName) {
+) : Inequality<LinearInequality, LinearMonomialCell>(lhs, rhs, sign, name, displayName), ToLinearInequality, ToQuadraticInequality {
     override val cells: List<LinearMonomialCell>
         get() {
             if (_cells.isEmpty()) {
@@ -73,12 +77,52 @@ class LinearInequality(
 
     override fun normalize(): LinearInequality {
         return LinearInequality(
-            lhs = LinearPolynomial(lhs.monomials.map { it.copy() } + rhs.monomials.map { -it }),
+            lhs = LinearPolynomial(
+                (lhs.monomials.map { it to true } + rhs.monomials.map { it to false })
+                    .groupBy { it.first.symbol }
+                    .map { (symbol, monomials) ->
+                        LinearMonomial(
+                            monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                            symbol
+                        )
+                    }
+            ),
             rhs = LinearPolynomial(-lhs.constant + rhs.constant),
             sign = sign,
             name = name,
             displayName = displayName
         )
+    }
+
+    override fun normalizeToLessEqual(): LinearInequality {
+        return when (sign) {
+            Sign.Less, Sign.LessEqual, Sign.Equal, Sign.Unequal -> this.normalize()
+
+            Sign.Greater, Sign.GreaterEqual -> LinearInequality(
+                lhs = LinearPolynomial(
+                    (lhs.monomials.map { it to false } + rhs.monomials.map { it to true })
+                        .groupBy { it.first.symbol }
+                        .map { (symbol, monomials) ->
+                            LinearMonomial(
+                                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
+                                symbol
+                            )
+                        }
+                ),
+                rhs = LinearPolynomial(lhs.constant - rhs.constant),
+                sign = sign.reverse,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
+    override fun toLinearInequality(): LinearInequality {
+        return this
+    }
+
+    override fun toQuadraticInequality(): QuadraticInequality {
+        return QuadraticInequality(this)
     }
 }
 

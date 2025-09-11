@@ -4,11 +4,15 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
+import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed interface MechanismModel {
     val name: String
@@ -49,6 +53,8 @@ class LinearMechanismModel(
     override val objectFunction: SingleObject,
     override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
+    private val logger = logger()
+
     companion object {
         private val logger = logger()
 
@@ -56,12 +62,13 @@ class LinearMechanismModel(
             metaModel: LinearMetaModel,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<LinearMechanismModel> {
             logger.info { "Creating LinearMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens, registrationStatusCallBack)) {
+            val tokens = when (val result = unfold(metaModel.tokens, fixedVariables, registrationStatusCallBack)) {
                 is Ok -> {
                     result.value
                 }
@@ -104,7 +111,13 @@ class LinearMechanismModel(
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.register(model)
+                (symbol as? LinearFunctionSymbol)?.let {
+                    if (fixedVariables.isNullOrEmpty()) {
+                        it.register(model)
+                    } else {
+                        it.register(model, fixedVariables as Map<Symbol, Flt64>)
+                    }
+                }
             }
             logger.trace { "Symbols registered for $metaModel" }
 
@@ -208,12 +221,13 @@ class LinearMechanismModel(
 
         private suspend fun unfold(
             tokens: AbstractMutableTokenTable,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
         ): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -226,7 +240,7 @@ class LinearMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }
@@ -252,6 +266,68 @@ class LinearMechanismModel(
         return ok
     }
 
+    fun generateFeasibleCut(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualSolution: Solution,
+    ): List<LinearInequality> {
+        val constants = constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
+            acc + dualSolution[i] * constraint.rhs
+        }
+        val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
+        for ((i, constraint) in constraints.withIndex()) {
+            if (dualSolution[i] eq Flt64.zero) {
+                continue
+            }
+
+            for (cell in constraint.lhs) {
+                val variable = cell.token.variable
+                if (variable in fixedVariables) {
+                    val coefficient = dualSolution[i] * cell.coefficient
+                    if (coefficient neq Flt64.zero) {
+                        polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
+                    }
+                }
+            }
+        }
+        val rhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
+        return listOf((objectVariable geq rhs).normalize())
+    }
+
+    fun generateInfeasibleCut(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualSolution: Solution,
+    ): List<LinearInequality> {
+        var value = Flt64.zero
+        var constants = Flt64.zero
+        val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
+        for ((i, constraint) in constraints.withIndex()) {
+            if (farkasDualSolution[i] eq Flt64.zero) {
+                continue
+            }
+
+            value += farkasDualSolution[i] * constraint.rhs
+            constants += farkasDualSolution[i] * constraint.rhs
+            for (cell in constraint.lhs) {
+                val variable = cell.token.variable
+                if (variable in fixedVariables) {
+                    val coefficient = farkasDualSolution[i] * cell.coefficient
+                    if (coefficient neq Flt64.zero) {
+                        polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
+                    }
+                    value -= farkasDualSolution[i] * cell.coefficient * fixedVariables[variable]!!
+                }
+            }
+        }
+        if (value ls Flt64.zero) {
+            logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
+            constants *= -Flt64.one
+            polynomials.replaceAll { _, v -> -v }
+        }
+        val lhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
+        return listOf((lhs leq Flt64.zero).normalize())
+    }
+
     override fun toString(): String {
         return name
     }
@@ -271,12 +347,13 @@ class QuadraticMechanismModel(
             metaModel: QuadraticMetaModel,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
+            fixedVariables: MutableMap<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<QuadraticMechanismModel> {
             logger.info { "Creating QuadraticMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens, registrationStatusCallBack)) {
+            val tokens = when (val result = unfold(metaModel.tokens, fixedVariables, registrationStatusCallBack)) {
                 is Ok -> {
                     result.value
                 }
@@ -319,8 +396,20 @@ class QuadraticMechanismModel(
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.register(model)
-                (symbol as? QuadraticFunctionSymbol)?.register(model)
+                (symbol as? LinearFunctionSymbol)?.let { symbol ->
+                    if (fixedVariables.isNullOrEmpty()) {
+                        symbol.register(model)
+                    } else {
+                        symbol.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                    }
+                }
+                (symbol as? QuadraticFunctionSymbol)?.let { symbol ->
+                    if (fixedVariables.isNullOrEmpty()) {
+                        symbol.register(model)
+                    } else {
+                        symbol.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                    }
+                }
             }
             logger.trace { "Symbols registered for $metaModel" }
 
@@ -418,12 +507,13 @@ class QuadraticMechanismModel(
 
         private suspend fun unfold(
             tokens: AbstractMutableTokenTable,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
         ): Ret<AbstractTokenTable> {
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -436,7 +526,7 @@ class QuadraticMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp, callBack)) {
+                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }

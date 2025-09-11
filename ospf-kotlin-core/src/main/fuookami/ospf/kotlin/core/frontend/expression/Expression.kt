@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.expression
 
 import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -131,9 +132,20 @@ interface Expression {
     val range: ExpressionRange<Flt64>
     val lowerBound get() = range.lowerBound?.toFlt64()
     val upperBound get() = range.upperBound?.toFlt64()
+    val fixedValue get() = range.fixedValue
 
     fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(tokenTable.tokenList, zeroIfNone)
+    }
+
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(results, tokenTable.tokenList, zeroIfNone)
+    }
+
+    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList? = null, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable? = null, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(values, tokenTable?.tokenList, zeroIfNone)
+    }
 }

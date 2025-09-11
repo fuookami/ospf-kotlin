@@ -591,6 +591,12 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
     override fun roundTo(precision: Int) = Flt64(round(value * 10.0.pow(precision)) / 10.0.pow(precision))
 }
 
+fun Boolean.toFlt64() = if (this) {
+    Flt64.one
+} else {
+    Flt64.zero
+}
+
 data object FltXSerializer : KSerializer<FltX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FltX", PrimitiveKind.STRING)
 

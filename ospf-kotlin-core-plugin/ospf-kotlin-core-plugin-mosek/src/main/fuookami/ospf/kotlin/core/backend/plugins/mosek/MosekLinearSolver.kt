@@ -1,8 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.mosek
 
-import kotlin.math.*
 import kotlin.time.*
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import mosek.*
 import fuookami.ospf.kotlin.utils.*
@@ -26,9 +24,9 @@ class MosekLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = MosekLinearSolverImpl(config, callBack, statusCallBack)
+        val impl = MosekLinearSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -37,7 +35,7 @@ class MosekLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -47,12 +45,13 @@ class MosekLinearSolver(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { MosekSolverCallBack() }
-                    .configuration { mosek ->
+                    .configuration { _, mosek ->
                         ok
-                    }.analyzingSolution { mosek ->
+                    }
+                    .analyzingSolution { _, mosek ->
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
