@@ -126,7 +126,7 @@ private class ScipQuadraticSolverImpl(
             ScipQuadraticSolverImpl::configure,
             { it.solve(config.threadNum) },
             ScipQuadraticSolverImpl::analyzeStatus,
-            ScipQuadraticSolverImpl::analyzeSolution
+            { it.analyzeSolution(model) }
         )
         for (process in processes) {
             when (val result = process(this)) {
@@ -379,17 +379,17 @@ private class ScipQuadraticSolverImpl(
         return ok
     }
 
-    private suspend fun analyzeSolution(): Try {
+    private suspend fun analyzeSolution(model: QuadraticTetradModelView): Try {
         return if (status.succeeded) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()
             for (scipVar in scipVars) {
                 results.add(Flt64(scip.getSolVal(solution, scipVar)))
             }
-            val obj = Flt64(scip.getSolOrigObj(solution))
-            val possibleBestObj = Flt64(scip.dualbound)
+            val obj = Flt64(scip.getSolOrigObj(solution)) + model.objective.constant
+            val possibleBestObj = Flt64(scip.dualbound) + model.objective.constant
             val gap = if (mip) {
-                (obj - possibleBestObj + Flt64.decimalPrecision) / (obj + Flt64.decimalPrecision)
+                gap(obj, possibleBestObj)
             } else {
                 Flt64.zero
             }

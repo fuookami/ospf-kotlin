@@ -88,4 +88,29 @@ interface BendersDecompositionSolver {
             return@future this@BendersDecompositionSolver.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
+
+    suspend fun solveSub(
+        name: String,
+        metaModel: QuadraticMetaModel,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<SubResult>
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveSubAsync(
+        name: String,
+        metaModel: QuadraticMetaModel,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<SubResult>> {
+        return GlobalScope.future {
+            return@future this@BendersDecompositionSolver.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+        }
+    }
 }

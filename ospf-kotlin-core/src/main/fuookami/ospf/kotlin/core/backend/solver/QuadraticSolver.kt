@@ -161,7 +161,7 @@ interface QuadraticSolver : AbstractQuadraticSolver {
     val config: SolverConfig
 
     override suspend fun dump(model: QuadraticMechanismModel): QuadraticTetradModel {
-        return QuadraticTetradModel(model, config.dumpIntermediateModelConcurrent)
+        return QuadraticTetradModel(model, null, config.dumpIntermediateModelConcurrent)
     }
 
     override suspend fun dump(

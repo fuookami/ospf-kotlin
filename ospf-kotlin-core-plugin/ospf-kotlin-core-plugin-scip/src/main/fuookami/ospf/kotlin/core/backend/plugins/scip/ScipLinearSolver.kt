@@ -118,7 +118,7 @@ private class ScipLinearSolverImpl(
             ScipLinearSolverImpl::configure,
             { it.solve(config.threadNum) },
             ScipLinearSolverImpl::analyzeStatus,
-            ScipLinearSolverImpl::analyzeSolution
+            { it.analyzeSolution(model) }
         )
         for (process in processes) {
             when (val result = process(this)) {
@@ -301,17 +301,17 @@ private class ScipLinearSolverImpl(
         return ok
     }
 
-    private suspend fun analyzeSolution(): Try {
+    private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val solution = scip.bestSol
             val results = ArrayList<Flt64>()
             for (scipVar in scipVars) {
                 results.add(Flt64(scip.getSolVal(solution, scipVar)))
             }
-            val obj = Flt64(scip.getSolOrigObj(solution))
-            val possibleBestObj = Flt64(scip.dualbound)
+            val obj = Flt64(scip.getSolOrigObj(solution)) + model.objective.constant
+            val possibleBestObj = Flt64(scip.dualbound) + model.objective.constant
             val gap = if (mip) {
-                (obj - possibleBestObj + Flt64.decimalPrecision) / (obj + Flt64.decimalPrecision)
+                gap(obj, possibleBestObj)
             } else {
                 Flt64.zero
             }

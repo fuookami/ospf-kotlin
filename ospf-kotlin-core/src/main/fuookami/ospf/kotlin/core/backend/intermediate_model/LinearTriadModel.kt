@@ -427,23 +427,32 @@ data class LinearTriadModel(
                 model.objectFunction.category
             }
             val coefficient = (0 until tokenIndexes.size).map { Flt64.zero }.toMutableList()
+            var constant = Flt64.zero
             for (subObject in model.objectFunction.subObjects) {
                 if (subObject.category == objectiveCategory) {
                     for (cell in subObject.cells) {
-                        val temp = cell as LinearCell
-                        val index = tokenIndexes[temp.token] ?: continue
-                        coefficient[index] = coefficient[index] + temp.coefficient
+                        if (fixedVariables?.containsKey(cell.token.variable) == true) {
+                            constant += cell.coefficient * fixedVariables[cell.token.variable]!!
+                        } else {
+                            val index = tokenIndexes[cell.token] ?: continue
+                            coefficient[index] = coefficient[index] + cell.coefficient
+                        }
                     }
+                    constant += subObject.constant
                 } else {
                     for (cell in subObject.cells) {
-                        val temp = cell as LinearCell
-                        val index = tokenIndexes[temp.token] ?: continue
-                        coefficient[index] = coefficient[index] - temp.coefficient
+                        if (fixedVariables?.containsKey(cell.token.variable) == true) {
+                            constant -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                        } else {
+                            val index = tokenIndexes[cell.token] ?: continue
+                            coefficient[index] = coefficient[index] - cell.coefficient
+                        }
                     }
+                    constant -= subObject.constant
                 }
             }
             val objective = ArrayList<LinearObjectiveCell>()
-            for ((token, i) in tokenIndexes) {
+            for ((_, i) in tokenIndexes) {
                 objective.add(
                     LinearObjectiveCell(
                         i,
@@ -459,7 +468,7 @@ data class LinearTriadModel(
                     )
                 )
             }
-            return LinearObjective(objectiveCategory, objective)
+            return LinearObjective(objectiveCategory, objective, constant)
         }
     }
 

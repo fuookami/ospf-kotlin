@@ -2,12 +2,12 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 sealed interface Object
 
-class SingleObject(
+class SingleObject<Obj: SubObject>(
     val category: ObjectCategory,
-    subObjects: List<SubObject>
+    subObjects: List<Obj>
 ) : Object {
-    internal val _subObjects: MutableList<SubObject> = subObjects.toMutableList()
-    val subObjects: List<SubObject> by ::_subObjects
+    internal val _subObjects: MutableList<Obj> = subObjects.toMutableList()
+    val subObjects: List<Obj> by ::_subObjects
 }
 
 class MultiObject {}

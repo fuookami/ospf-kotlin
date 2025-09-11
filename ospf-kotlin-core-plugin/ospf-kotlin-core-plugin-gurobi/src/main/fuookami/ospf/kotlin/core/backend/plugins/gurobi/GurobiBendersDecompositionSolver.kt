@@ -162,4 +162,16 @@ class GurobiBendersDecompositionSolver(
             }
         }
     }
+
+    override suspend fun solveSub(
+        name: String,
+        metaModel: QuadraticMetaModel,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean,
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<BendersDecompositionSolver.SubResult> {
+        TODO("Not yet implemented")
+    }
 }

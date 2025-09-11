@@ -104,7 +104,7 @@ private class CplexQuadraticSolverImpl(
             CplexQuadraticSolverImpl::configure,
             CplexQuadraticSolverImpl::solve,
             CplexQuadraticSolverImpl::analyzeStatus,
-            CplexQuadraticSolverImpl::analyzeSolution
+            { it.analyzeSolution(model) }
         )
         for (process in processes) {
             when (val result = process(this)) {
@@ -327,20 +327,20 @@ private class CplexQuadraticSolverImpl(
         return ok
     }
 
-    private suspend fun analyzeSolution(): Try {
+    private suspend fun analyzeSolution(model: QuadraticTetradModelView): Try {
         return if (status.succeeded) {
+            val obj = Flt64(cplex.objValue) + model.objective.constant
+            val possibleBestObj = Flt64(cplex.bestObjValue) + model.objective.constant
             output = SolverOutput(
-                obj = Flt64(cplex.objValue),
+                obj = obj,
                 solution = cplexVars.map { Flt64(cplex.getValue(it)) },
                 time = cplex.cplexTime.seconds,
-                possibleBestObj = Flt64(cplex.bestObjValue),
-                gap = Flt64(
-                    if (cplex.isMIP) {
-                        cplex.mipRelativeGap
-                    } else {
-                        0.0
-                    }
-                )
+                possibleBestObj = possibleBestObj,
+                gap = if (cplex.isMIP) {
+                    gap(obj, possibleBestObj)
+                } else {
+                    Flt64.zero
+                }
             )
 
             when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, cplex, cplexVars, cplexConstraints)) {

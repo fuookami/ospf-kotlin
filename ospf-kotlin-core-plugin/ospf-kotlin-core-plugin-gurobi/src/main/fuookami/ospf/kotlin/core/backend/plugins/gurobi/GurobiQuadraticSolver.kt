@@ -207,6 +207,7 @@ private class GurobiQuadraticSolverImpl(
                     obj.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1], grbVars[cell.colIndex2!!])
                 }
             }
+            obj.addConstant(model.objective.constant.toDouble())
             grbModel.setObjective(
                 obj, when (model.objective.category) {
                     ObjectCategory.Minimum -> {

@@ -196,6 +196,7 @@ private class GurobiLinearSolverImpl(
             for (cell in model.objective.obj) {
                 obj.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
             }
+            obj.addConstant(model.objective.constant.toDouble())
             grbModel.setObjective(
                 obj, when (model.objective.category) {
                     ObjectCategory.Minimum -> {
