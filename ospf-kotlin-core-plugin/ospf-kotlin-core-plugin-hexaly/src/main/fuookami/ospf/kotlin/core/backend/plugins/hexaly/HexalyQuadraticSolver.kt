@@ -219,6 +219,7 @@ private class HexalyQuadraticSolverImpl(
                     )
                 }
             }
+            obj.addOperand(model.objective.constant.toDouble())
             when (model.objective.category) {
                 ObjectCategory.Maximum -> {
                     hexalyModel.maximize(obj)

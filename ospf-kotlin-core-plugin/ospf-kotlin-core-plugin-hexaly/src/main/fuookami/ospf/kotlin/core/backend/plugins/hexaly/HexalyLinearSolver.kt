@@ -189,6 +189,7 @@ private class HexalyLinearSolverImpl(
             for (cell in model.objective.obj) {
                 obj.addOperands(hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex]))
             }
+            obj.addOperand(model.objective.constant.toDouble())
             when (model.objective.category) {
                 ObjectCategory.Maximum -> {
                     hexalyModel.maximize(obj)

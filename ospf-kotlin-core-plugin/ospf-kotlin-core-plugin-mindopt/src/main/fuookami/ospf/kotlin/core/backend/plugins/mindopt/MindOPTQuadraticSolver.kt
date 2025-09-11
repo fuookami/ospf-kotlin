@@ -195,6 +195,7 @@ private class MindOPTQuadraticSolverImpl(
                     obj.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1])
                 }
             }
+            obj.addConstant(model.objective.constant.toDouble())
             mindoptModel.setObjective(
                 obj,
                 when (model.objective.category) {

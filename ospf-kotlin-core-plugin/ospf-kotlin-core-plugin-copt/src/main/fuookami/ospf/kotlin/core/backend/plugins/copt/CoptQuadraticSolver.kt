@@ -206,6 +206,7 @@ private class CoptQuadraticSolverImpl(
                     obj.addTerm(coptVars[cell.colIndex1], cell.coefficient.toDouble())
                 }
             }
+            obj.addConstant(model.objective.constant.toDouble())
             coptModel.setQuadObjective(
                 obj,
                 when (model.objective.category) {

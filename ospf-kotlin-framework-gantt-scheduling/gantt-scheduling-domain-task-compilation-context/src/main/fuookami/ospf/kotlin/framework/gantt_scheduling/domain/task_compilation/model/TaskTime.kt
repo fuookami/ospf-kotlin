@@ -497,7 +497,7 @@ abstract class TaskTimeImpl<
                             else -> {
                                 IfFunction(
                                     estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
-                                    "on_last_end_time_${task}"
+                                    name = "on_last_end_time_${task}"
                                 )
                             }
                         }
@@ -531,7 +531,7 @@ abstract class TaskTimeImpl<
                             else -> {
                                 IfFunction(
                                     estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
-                                    "on_earliest_end_time_${task}"
+                                    name = "on_earliest_end_time_${task}"
                                 )
                             }
                         }
@@ -593,7 +593,7 @@ abstract class TaskTimeImpl<
                             else -> {
                                 IfFunction(
                                     estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
-                                    "not_on_last_end_time_${task}"
+                                    name = "not_on_last_end_time_${task}"
                                 )
                             }
                         }
@@ -627,7 +627,7 @@ abstract class TaskTimeImpl<
                             else -> {
                                 IfFunction(
                                     estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
-                                    "not_on_earliest_end_time_${task}"
+                                    name = "not_on_earliest_end_time_${task}"
                                 )
                             }
                         }

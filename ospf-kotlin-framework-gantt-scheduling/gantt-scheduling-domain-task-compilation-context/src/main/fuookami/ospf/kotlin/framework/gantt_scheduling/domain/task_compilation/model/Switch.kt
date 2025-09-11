@@ -49,7 +49,7 @@ class TaskSchedulingSwitch<
                     } else {
                         IfFunction(
                             taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
-                            "front_of_${task1}_$task2"
+                            name = "front_of_${task1}_$task2"
                         )
                     }
                 }

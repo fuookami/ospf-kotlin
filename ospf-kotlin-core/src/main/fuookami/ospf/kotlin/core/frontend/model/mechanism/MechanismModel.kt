@@ -43,14 +43,14 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
 }
 
 interface SingleObjectMechanismModel : MechanismModel {
-    override val objectFunction: SingleObject
+    override val objectFunction: SingleObject<*>
 }
 
 class LinearMechanismModel(
     internal val parent: LinearMetaModel,
     override var name: String,
     private val _constraints: MutableList<LinearConstraint>,
-    override val objectFunction: SingleObject,
+    override val objectFunction: SingleObject<LinearSubObject>,
     override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
     private val logger = logger()
@@ -337,7 +337,7 @@ class QuadraticMechanismModel(
     internal val parent: QuadraticMetaModel,
     override var name: String,
     private val _constraints: MutableList<QuadraticConstraint>,
-    override val objectFunction: SingleObject,
+    override val objectFunction: SingleObject<QuadraticSubObject>,
     override val tokens: AbstractTokenTable
 ) : AbstractQuadraticMechanismModel, SingleObjectMechanismModel {
     companion object {
@@ -550,5 +550,20 @@ class QuadraticMechanismModel(
         name?.let { constraint.name = it }
         _constraints.add(QuadraticConstraint(constraint, tokens))
         return ok
+    }
+
+    fun generateFeasibleCut(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualSolution: Solution,
+    ): List<LinearInequality> {
+        TODO("Not implemented yet")
+    }
+
+    fun generateInfeasibleCut(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualSolution: Solution,
+    ): List<LinearInequality> {
+        TODO("Not implemented yet")
     }
 }

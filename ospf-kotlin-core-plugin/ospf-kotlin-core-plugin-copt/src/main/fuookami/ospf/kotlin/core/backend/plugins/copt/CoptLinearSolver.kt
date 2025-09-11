@@ -195,6 +195,7 @@ private class CoptLinearSolverImpl(
             for (cell in model.objective.obj) {
                 obj.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
             }
+            obj.addConstant(model.objective.constant.toDouble())
             coptModel.setObjective(
                 obj,
                 when (model.objective.category) {
