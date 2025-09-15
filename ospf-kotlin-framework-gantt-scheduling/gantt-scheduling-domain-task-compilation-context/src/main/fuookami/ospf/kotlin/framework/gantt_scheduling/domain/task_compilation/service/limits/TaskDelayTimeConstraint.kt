@@ -79,13 +79,15 @@ class TaskDelayTimeConstraint<
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         val indices = model.indicesOfConstraintGroup(name) ?: model.constraints.indices
         val iterator = tasks.iterator()
         for (j in indices) {
             if (model.constraints[j].name.startsWith(name)) {
-                map.put(ShadowPrice(TaskDelayTimeShadowPriceKey(iterator.next()), shadowPrices[j]))
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    map.put(ShadowPrice(TaskDelayTimeShadowPriceKey(iterator.next()), price))
+                }
             }
 
             if (!iterator.hasNext()) {

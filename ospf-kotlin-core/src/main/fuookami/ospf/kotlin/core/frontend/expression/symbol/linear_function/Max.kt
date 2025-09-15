@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 sealed class AbstractMaxFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     private val exact: Boolean = true,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -159,7 +160,8 @@ sealed class AbstractMaxFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 minmax geq polynomial,
-                "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -173,7 +175,8 @@ sealed class AbstractMaxFunction(
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
                     minmax leq (polynomial + m * (Flt64.one - u[i])),
-                    "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                    name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -185,7 +188,8 @@ sealed class AbstractMaxFunction(
 
             when (val result = model.addConstraint(
                 sum(u) eq Flt64.one,
-                "${name}_u"
+                name = "${name}_u",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -240,7 +244,8 @@ sealed class AbstractMaxFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 minmax geq polynomial,
-                "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -252,7 +257,8 @@ sealed class AbstractMaxFunction(
 
         when (val result = model.addConstraint(
             minmax eq maxValue,
-            "${name}_max"
+            name = "${name}_max",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -270,7 +276,8 @@ sealed class AbstractMaxFunction(
                 if (i == index) {
                     when (val result = model.addConstraint(
                         minmax leq polynomial,
-                        "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                        name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -281,7 +288,8 @@ sealed class AbstractMaxFunction(
 
                     when (val result = model.addConstraint(
                         u[i] eq Flt64.one,
-                        "${name}_u_${polynomial.name.ifEmpty { "$i" }}"
+                        name = "${name}_u_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -296,7 +304,8 @@ sealed class AbstractMaxFunction(
                 } else {
                     when (val result = model.addConstraint(
                         minmax leq (polynomial + m),
-                        "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                        name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -376,19 +385,28 @@ sealed class AbstractMaxFunction(
 
 class MinMaxFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = name
-) : AbstractMaxFunction(polynomials, true, name, displayName) {
+) : AbstractMaxFunction(
+    polynomials = polynomials,
+    exact = true,
+    parent = parent,
+    name = name,
+    displayName = displayName
+) {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = name
         ): MinMaxFunction {
             return MinMaxFunction(
-                polynomials.map { it.toLinearPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -404,19 +422,28 @@ class MinMaxFunction(
 
 class MaxFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = name
-) : AbstractMaxFunction(polynomials, false, name, displayName) {
+) : AbstractMaxFunction(
+    polynomials = polynomials,
+    exact = false,
+    parent = parent,
+    name = name,
+    displayName = displayName
+ ) {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = name
         ): MaxFunction {
             return MaxFunction(
-                polynomials.map { it.toLinearPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }

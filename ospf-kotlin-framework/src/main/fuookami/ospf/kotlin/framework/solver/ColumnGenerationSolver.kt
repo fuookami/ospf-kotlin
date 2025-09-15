@@ -19,7 +19,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<SolverOutput>
+    ): Ret<FeasibleSolverOutput>
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPAsync(
@@ -28,7 +28,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<SolverOutput>> {
+    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
@@ -41,7 +41,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         return solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
             .map { Pair(it, listOf(it.solution)) }
     }
@@ -54,15 +54,15 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, amount, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
 
     data class LPResult(
-        val result: SolverOutput,
-        val dualSolution: Solution
+        val result: FeasibleSolverOutput,
+        val dualSolution: LinearDualSolution
     ) {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution

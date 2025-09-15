@@ -154,7 +154,7 @@ class ProduceQuantityConstraint<
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<P, Flt64>()
         val indices = model.indicesOfConstraintGroup(name)
@@ -164,12 +164,16 @@ class ProduceQuantityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val product = iteratorLb.next().first
-                thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + shadowPrices[j]
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price
+                }
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val product = iteratorUb.next().first
-                thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + shadowPrices[j]
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price
+                }
             }
 
             if (!iteratorLb.hasNext() && !iteratorUb.hasNext()) {

@@ -35,6 +35,7 @@ interface IntermediateSymbol : Symbol, Expression {
     val operationCategory: Category get() = category
 
     val cached: Boolean
+    val parent: IntermediateSymbol? get() = null
     val dependencies: Set<IntermediateSymbol>
 
     fun flush(force: Boolean = false)
@@ -78,6 +79,7 @@ interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomia
 abstract class ExpressionSymbol(
     open val _polynomial: MutablePolynomial<*, *, *>,
     override val category: Category = _polynomial.category,
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "",
     override var displayName: String? = null
 ) : IntermediateSymbol {
@@ -181,9 +183,10 @@ abstract class ExpressionSymbol(
 class LinearExpressionSymbol(
     override val _polynomial: MutableLinearPolynomial,
     category: Category = _polynomial.category,
+    parent: IntermediateSymbol? = null,
     name: String = "",
     displayName: String? = null
-) : LinearIntermediateSymbol, ExpressionSymbol(_polynomial, category, name, displayName) {
+) : LinearIntermediateSymbol, ExpressionSymbol(_polynomial, category, parent, name, displayName) {
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
@@ -368,9 +371,10 @@ class LinearExpressionSymbol(
 class QuadraticExpressionSymbol(
     override val _polynomial: MutableQuadraticPolynomial,
     category: Category = _polynomial.category,
+    parent: IntermediateSymbol? = null,
     name: String = "",
     displayName: String? = null
-) : QuadraticIntermediateSymbol, ExpressionSymbol(_polynomial, category, name, displayName) {
+) : QuadraticIntermediateSymbol, ExpressionSymbol(_polynomial, category, parent, name, displayName) {
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,

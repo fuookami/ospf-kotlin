@@ -2,13 +2,13 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 enum class ObjectCategory {
     Maximum {
-        override fun reverse() = Minimum
+        override val reverse get() = Minimum
         override fun toString() = "Maximum"
     },
     Minimum {
-        override fun reverse() = Maximum
+        override val reverse get() = Maximum
         override fun toString() = "Minimum"
     };
 
-    abstract fun reverse(): ObjectCategory
+    abstract val reverse: ObjectCategory
 }

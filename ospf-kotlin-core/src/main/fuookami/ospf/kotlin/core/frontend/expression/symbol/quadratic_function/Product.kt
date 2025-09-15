@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class ProductFunction(
     val polynomials: List<AbstractQuadraticPolynomial<*>>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String = polynomials.joinToString("*") { "$it" },
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -23,13 +24,15 @@ class ProductFunction(
     companion object {
         operator fun invoke(
             polynomials: List<ToQuadraticPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
             name: String = polynomials.joinToString("*") { "$it" },
             displayName: String? = null
         ): ProductFunction {
             return ProductFunction(
-                polynomials.map { it.toQuadraticPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toQuadraticPolynomial() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -41,13 +44,15 @@ class ProductFunction(
         > invoke(
             x: T1,
             y: T2,
+            parent: IntermediateSymbol? = null,
             name: String = "$x*$y",
             displayName: String? = null
         ): ProductFunction {
             return ProductFunction(
-                listOf(x.toQuadraticPolynomial(), y.toQuadraticPolynomial()),
-                name,
-                displayName
+                polynomials = listOf(x.toQuadraticPolynomial(), y.toQuadraticPolynomial()),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -55,9 +60,10 @@ class ProductFunction(
     constructor(
         x: AbstractQuadraticPolynomial<*>,
         y: AbstractQuadraticPolynomial<*>,
+        parent: IntermediateSymbol? = null,
         name: String = "$x*$y",
         displayName: String? = null
-    ) : this(listOf(x, y), name, displayName)
+    ) : this(listOf(x, y), parent, name, displayName)
 
     init {
         assert(polynomials.all { it.category != Quadratic })
@@ -162,7 +168,8 @@ class ProductFunction(
             if (i == 0) {
                 when (val result = model.addConstraint(
                     polynomials[0] * polynomials[1] eq y[0],
-                    "${name}_0"
+                    name = "${name}_0",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -173,7 +180,8 @@ class ProductFunction(
             } else {
                 when (val result = model.addConstraint(
                     y[i - 1] * polynomials[i + 1] eq y[i],
-                    "${name}_$i"
+                    name = "${name}_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -209,7 +217,8 @@ class ProductFunction(
 
                 when (val result = model.addConstraint(
                     polynomials[0] * polynomials[1] eq y[0],
-                    "${name}_$0"
+                    name = "${name}_$0",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -220,7 +229,8 @@ class ProductFunction(
 
                 when (val result = model.addConstraint(
                     y[0] eq yValue,
-                    "${name}_y_0"
+                    name = "${name}_y_0",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -237,7 +247,8 @@ class ProductFunction(
 
                 when (val result = model.addConstraint(
                     y[i - 1] * polynomials[i + 1] eq y[i],
-                    "${name}_$i"
+                    name = "${name}_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -248,7 +259,8 @@ class ProductFunction(
 
                 when (val result = model.addConstraint(
                     y[i] eq yValue,
-                    "${name}_y_$i"
+                    name  = "${name}_y_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 

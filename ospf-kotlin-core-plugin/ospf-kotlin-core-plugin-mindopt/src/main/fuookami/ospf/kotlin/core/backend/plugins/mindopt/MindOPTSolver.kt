@@ -64,14 +64,14 @@ abstract class MindOPTSolver {
                 }
 
                 MDO.Status.INF_OR_UBD -> {
-                    SolverStatus.SolvingException
+                    SolverStatus.InfeasibleOrUnbounded
                 }
 
                 else -> {
                     if (mindoptModel.get(MDO.IntAttr.SolCount) > 0) {
                         SolverStatus.Feasible
                     } else {
-                        SolverStatus.Infeasible
+                        SolverStatus.SolvingException
                     }
                 }
             }

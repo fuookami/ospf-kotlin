@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 class SerialCombinatorialQuadraticSolver(
     private val solvers: List<Lazy<AbstractQuadraticSolver>>,
-    private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+    private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
 ): AbstractQuadraticSolver {
     private val logger = logger()
 
@@ -19,7 +19,7 @@ class SerialCombinatorialQuadraticSolver(
         @JvmName("constructBySolvers")
         operator fun invoke(
             solvers: List<AbstractQuadraticSolver>,
-            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
         ): SerialCombinatorialQuadraticSolver {
             return SerialCombinatorialQuadraticSolver(solvers.map { lazy { it } }, stopErrorCode)
         }
@@ -27,7 +27,7 @@ class SerialCombinatorialQuadraticSolver(
         @JvmName("constructBySolverExtractors")
         operator fun invoke(
             solvers: List<() -> AbstractQuadraticSolver>,
-            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
         ): SerialCombinatorialQuadraticSolver {
             return SerialCombinatorialQuadraticSolver(solvers.map { lazy { it() } }, stopErrorCode)
         }
@@ -37,10 +37,10 @@ class SerialCombinatorialQuadraticSolver(
 
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<FeasibleSolverOutput> {
         for (solver in solvers) {
-            when (val result = solver.value.invoke(model, statusCallBack)) {
+            when (val result = solver.value.invoke(model, solvingStatusCallBack)) {
                 is Ok -> {
                     return Ok(result.value)
                 }
@@ -60,10 +60,10 @@ class SerialCombinatorialQuadraticSolver(
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         for (solver in solvers) {
-            when (val result = solver.value.invoke(model, solutionAmount, statusCallBack)) {
+            when (val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack)) {
                 is Ok -> {
                     return Ok(result.value)
                 }

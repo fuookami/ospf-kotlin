@@ -39,10 +39,10 @@ class ParallelCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: SolverOutput? = null
+                var result: FeasibleSolverOutput? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -63,7 +63,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
                             Ok(result!!)
                         } else {
@@ -157,7 +157,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
                             Ok(result!!)
                         } else {

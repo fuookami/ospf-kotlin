@@ -32,12 +32,16 @@ abstract class CplexSolver {
                 SolverStatus.Infeasible
             }
 
-            IloCplex.Status.InfeasibleOrUnbounded, IloCplex.Status.Error, IloCplex.Status.Unknown -> {
-                SolverStatus.SolvingException
+            IloCplex.Status.InfeasibleOrUnbounded -> {
+                SolverStatus.InfeasibleOrUnbounded
             }
 
             else -> {
-                SolverStatus.SolvingException
+                if (cplex.solnPoolNsolns > 0) {
+                    SolverStatus.Feasible
+                } else {
+                    SolverStatus.SolvingException
+                }
             }
         }
         return ok

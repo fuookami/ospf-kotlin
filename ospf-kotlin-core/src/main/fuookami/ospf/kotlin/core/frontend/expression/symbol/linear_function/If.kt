@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class IfFunction(
     inequality: LinearInequality,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -27,14 +28,16 @@ class IfFunction(
         > invoke(
             condition: T,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfFunction {
             return IfFunction(
-                condition.toLinearInequality(),
-                epsilon,
-                name,
-                displayName
+                inequality = condition.toLinearInequality(),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -165,7 +168,12 @@ class IfFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = inequality.register(name, k, y, tokenTable)) {
+        when (val result = inequality.register(
+            parentName = name,
+            k = k,
+            flag = y,
+            tokenTable = tokenTable
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -177,7 +185,14 @@ class IfFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = inequality.register(name, k, y, epsilon, model)) {
+        when (val result = inequality.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = k,
+            flag = y,
+            epsilon = epsilon,
+            model = model
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -199,7 +214,15 @@ class IfFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = inequality.register(name, k, y, epsilon, model, fixedValues)) {
+        when (val result = inequality.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = k,
+            flag = y,
+            epsilon = epsilon,
+            model = model,
+            fixedValues = fixedValues
+        )) {
             is Ok -> {}
 
             is Failed -> {

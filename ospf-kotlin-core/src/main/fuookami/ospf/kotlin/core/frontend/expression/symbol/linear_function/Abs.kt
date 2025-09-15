@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class AbsFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val extract: Boolean = true,
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol {
@@ -26,14 +27,16 @@ class AbsFunction(
         operator fun <T : ToLinearPolynomial<Poly>, Poly : AbstractLinearPolynomial<Poly>> invoke(
             x: T,
             extract: Boolean = true,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null,
         ): AbsFunction {
             return AbsFunction(
-                x.toLinearPolynomial(),
-                extract,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                extract = extract,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -161,7 +164,8 @@ class AbsFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq (-m * neg + m * pos),
-            name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -173,7 +177,8 @@ class AbsFunction(
         if (extract) {
             when (val result = model.addConstraint(
                 neg + pos leq Flt64.one,
-                "${name}_b"
+                name = "${name}_b",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -184,7 +189,8 @@ class AbsFunction(
 
             when (val result = model.addConstraint(
                 p geq pos,
-                "${name}_p"
+                name = "${name}_p",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -195,7 +201,8 @@ class AbsFunction(
 
             when (val result = model.addConstraint(
                 neg leq Flt64.one - p,
-                "${name}_n"
+                name = "${name}_n",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -244,7 +251,8 @@ class AbsFunction(
         if (xValue geq Flt64.zero) {
             when (val result = model.addConstraint(
                 x eq m * pos,
-                name
+                name = name,
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -259,7 +267,8 @@ class AbsFunction(
         } else {
             when (val result = model.addConstraint(
                 x eq -m * neg,
-                name
+                name = name,
+                from = parent ?: this
             )) {
                 is Ok -> {}
 

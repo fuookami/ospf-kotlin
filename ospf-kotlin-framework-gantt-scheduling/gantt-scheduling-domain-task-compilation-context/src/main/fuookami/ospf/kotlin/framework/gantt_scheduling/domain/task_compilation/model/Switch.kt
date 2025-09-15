@@ -79,7 +79,8 @@ class TaskSchedulingSwitch<
                             listOf(
                                 LinearPolynomial(frontOf[task1, task3]),
                                 LinearPolynomial(frontOf[task3, task2])
-                            ), "between_in_${task3}_${task1}_${task2}"
+                            ),
+                            name = "between_in_${task3}_${task1}_${task2}"
                         )
                     }
                 }
@@ -115,7 +116,10 @@ class TaskSchedulingSwitch<
                         }
                         conditions.add(Flt64.one - betweenIn[task3, task1, task2])
                     }
-                    AndFunction(conditions, "switch_${executor}_${task1}_${task2}")
+                    AndFunction(
+                        conditions,
+                        name = "switch_${executor}_${task1}_${task2}"
+                    )
                 } else {
                     if (task1.time!!.start < task2.time!!.start
                         && !tasks.any { task1.time!!.start < it.time!!.start && it.time!!.start < task2.time!!.start }
@@ -124,7 +128,8 @@ class TaskSchedulingSwitch<
                             listOf(
                                 LinearPolynomial(compilation.taskAssignment[executor, task1]),
                                 LinearPolynomial(compilation.taskAssignment[executor, task2])
-                            ), "switch_${executor}_${task1}_${task2}"
+                            ),
+                            name = "switch_${executor}_${task1}_${task2}"
                         )
                     } else {
                         LinearExpressionSymbol(LinearPolynomial(0), "switch_${executor}_${task1}_${task2}")

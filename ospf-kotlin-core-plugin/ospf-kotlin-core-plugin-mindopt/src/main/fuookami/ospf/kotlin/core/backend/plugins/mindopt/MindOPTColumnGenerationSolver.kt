@@ -4,7 +4,6 @@ import java.util.*
 import kotlinx.coroutines.*
 import com.alibaba.damo.mindopt.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -26,7 +25,7 @@ class MindOPTColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -81,7 +80,7 @@ class MindOPTColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -182,14 +181,14 @@ class MindOPTColumnGenerationSolver(
             })
         }
 
-        lateinit var dualSolution: Solution
+        lateinit var dualSolution: LinearDualSolution
         val solver = MindOPTLinearSolver(
             config = config,
             callBack = callBack.copy()
                 .analyzingSolution { _, _, _, constraints ->
-                    dualSolution = constraints.map {
+                    dualSolution = model.tidyDualSolution(constraints.map {
                         Flt64(it.get(MDO.DoubleAttr.DualSoln))
-                    }
+                    })
                     ok
                 }
         )
@@ -198,7 +197,12 @@ class MindOPTColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.joinAll()
-                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = result.value,
+                        dualSolution = dualSolution
+                    )
+                )
             }
 
             is Failed -> {

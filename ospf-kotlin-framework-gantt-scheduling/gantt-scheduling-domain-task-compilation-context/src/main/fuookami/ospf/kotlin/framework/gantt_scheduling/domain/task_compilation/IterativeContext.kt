@@ -83,7 +83,7 @@ interface IterativeTaskCompilationContext<
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         for (pipeline in pipelineList) {
             when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices)) {
@@ -174,7 +174,7 @@ interface ExtractIterativeTaskCompilationContext<
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try
 
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {

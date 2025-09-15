@@ -51,10 +51,10 @@ fun <Args : Any, Model : MetaModel, Map : AbstractShadowPriceMap<Args, Map>> ext
     shadowPriceMap: Map,
     pipelineList: CGPipelineList<Args, Model, Map>,
     model: Model,
-    shadowPrices: List<Flt64>
+    shadowPrices: LinearDualSolution
 ): Try {
     for (pipeline in pipelineList) {
-        when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices)) {
+        when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices.toMeta())) {
             is Ok -> {}
             is Failed -> {
                 return Failed(ret.error)

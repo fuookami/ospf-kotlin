@@ -16,6 +16,7 @@ class RoundingFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "round_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌉"
 ) : LinearFunctionSymbol {
@@ -29,15 +30,17 @@ class RoundingFunction(
             x: T,
             d: Int,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toLinearPolynomial(),
-                Flt64(d),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                d = Flt64(d),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -48,15 +51,17 @@ class RoundingFunction(
             x: T,
             d: Double,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toLinearPolynomial(),
-                Flt64(d),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                d = Flt64(d),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -68,15 +73,17 @@ class RoundingFunction(
             x: T1,
             d: T2,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toLinearPolynomial(),
-                d.toFlt64(),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                d = d.toFlt64(),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -182,7 +189,8 @@ class RoundingFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq (d * q + r),
-            name = name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -211,7 +219,8 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             x eq (d * q + r),
-            name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -222,7 +231,8 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             q eq qValue,
-            "${name}_q"
+            name = "${name}_q",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -237,7 +247,8 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             r eq rValue,
-            "${name}_r"
+            name = "${name}_r",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

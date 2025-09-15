@@ -16,7 +16,7 @@ typealias BinaryzationFunctionImplBuilder = (BinaryzationFunction) -> AbstractBi
 
 abstract class AbstractBinaryzationFunctionImpl(
     protected val x: AbstractQuadraticPolynomial<*>,
-    protected val parent: BinaryzationFunction
+    protected val self: BinaryzationFunction
 ) : QuadraticLogicFunctionSymbol {
     protected abstract val polyY: AbstractQuadraticPolynomial<*>
 
@@ -28,6 +28,7 @@ abstract class AbstractBinaryzationFunctionImpl(
 
     override val category = Linear
 
+    override val parent get() = self.parent
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -135,23 +136,23 @@ abstract class AbstractBinaryzationFunctionImpl(
 
 class BinaryzationFunctionImpl(
     x: AbstractQuadraticPolynomial<*>,
-    parent: BinaryzationFunction,
+    self: BinaryzationFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractBinaryzationFunctionImpl(x, parent) {
+) : AbstractBinaryzationFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToQuadraticPolynomial<Poly>,
             Poly : AbstractQuadraticPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BinaryzationFunction,
+            self: BinaryzationFunction,
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionImpl {
             return BinaryzationFunctionImpl(
-                x.toQuadraticPolynomial(),
-                parent,
+                x = x.toQuadraticPolynomial(),
+                self = self,
                 name,
                 displayName
             )
@@ -166,9 +167,9 @@ class BinaryzationFunctionImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -213,25 +214,27 @@ class BinaryzationFunctionImpl(
 
 class BinaryzationFunctionLinearImpl(
     x: AbstractQuadraticPolynomial<*>,
-    parent: BinaryzationFunction,
+    self: BinaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractBinaryzationFunctionImpl(x, parent) {
+) : AbstractBinaryzationFunctionImpl(x, self) {
+    private val logger = logger()
+
     companion object {
         operator fun <
             T : ToQuadraticPolynomial<Poly>,
             Poly : AbstractQuadraticPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BinaryzationFunction,
-            epsilon: Flt64,
+            self: BinaryzationFunction,
+            epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionLinearImpl {
             return BinaryzationFunctionLinearImpl(
                 x.toQuadraticPolynomial(),
-                parent,
+                self,
                 epsilon,
                 name,
                 displayName
@@ -240,7 +243,11 @@ class BinaryzationFunctionLinearImpl(
     }
 
     private val linearX: LinearFunction by lazy {
-        LinearFunction(x, "${name}_linear")
+        LinearFunction(
+            polynomial = x,
+            parent = parent ?: self,
+            name = "${name}_linear"
+        )
     }
 
     private val y: BinVar by lazy {
@@ -269,9 +276,9 @@ class BinaryzationFunctionLinearImpl(
         }
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 linearX.evaluate(tokenTable)
@@ -327,7 +334,8 @@ class BinaryzationFunctionLinearImpl(
 
         when (val result = model.addConstraint(
             (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -338,7 +346,8 @@ class BinaryzationFunctionLinearImpl(
 
         when (val result = model.addConstraint(
             x geq epsilon * y,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -390,7 +399,8 @@ class BinaryzationFunctionLinearImpl(
 
         when (val result = model.addConstraint(
             (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -401,7 +411,8 @@ class BinaryzationFunctionLinearImpl(
 
         when (val result = model.addConstraint(
             x geq epsilon * y,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -412,7 +423,8 @@ class BinaryzationFunctionLinearImpl(
 
         when (val result = model.addConstraint(
             y eq bin,
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -431,28 +443,50 @@ class BinaryzationFunctionLinearImpl(
 
 class BinaryzationFunction(
     private val x: AbstractQuadraticPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     private val epsilon: Flt64 = Flt64(1e-6),
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticLogicFunctionSymbol {
-    private val logger = logger()
+    companion object {
+        operator fun <
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
+            x: T,
+            parent: IntermediateSymbol? = null,
+            epsilon: Flt64 = Flt64(1e-6),
+            impl: BinaryzationFunctionImplBuilder? = null,
+            name: String,
+            displayName: String? = null
+        ): BinaryzationFunction {
+            return BinaryzationFunction(
+                x = x.toQuadraticPolynomial(),
+                parent = parent,
+                epsilon = epsilon,
+                impl = impl,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
 
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
         impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
             BinaryzationFunctionImpl(
-                x,
-                this,
-                name,
-                displayName
+                x = x,
+                self = this,
+                name = name,
+                displayName = displayName
             )
         } else {
             BinaryzationFunctionLinearImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }

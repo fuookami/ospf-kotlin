@@ -40,13 +40,13 @@ class ParallelCombinatorialLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: SolverOutput? = null
+                var result: FeasibleSolverOutput? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -89,7 +89,7 @@ class ParallelCombinatorialLinearSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
                             Ok(result!!)
                         } else {
@@ -180,13 +180,13 @@ class ParallelCombinatorialLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<SolverOutput, List<Solution>>? = null
+                var result: Pair<FeasibleSolverOutput, List<Solution>>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -229,7 +229,7 @@ class ParallelCombinatorialLinearSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
                             Ok(result!!)
                         } else {

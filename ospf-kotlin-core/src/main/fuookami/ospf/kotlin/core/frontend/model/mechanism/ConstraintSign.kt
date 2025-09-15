@@ -13,16 +13,18 @@ class InvalidConstraintSign(
 
 enum class Sign {
     LessEqual {
-        override fun toString() = "<="
+        override val reverse get() = GreaterEqual
         override fun <T : Ord<T>> operator() = InequalitySign.LessEqual.operator<T>()
+        override fun toString() = "<="
     },
     Equal {
-        override fun toString() = "="
         override fun <T : Ord<T>> operator() = InequalitySign.Equal.operator<T>()
+        override fun toString() = "="
     },
     GreaterEqual {
-        override fun toString() = ">="
+        override val reverse get() = LessEqual
         override fun <T : Ord<T>> operator() = InequalitySign.GreaterEqual.operator<T>()
+        override fun toString() = ">="
     };
 
     companion object {
@@ -37,6 +39,8 @@ enum class Sign {
         }
     }
 
-    abstract fun <T : Ord<T>> operator(): Comparator<T>;
+    open val reverse: Sign get() = this
+
+    abstract fun <T : Ord<T>> operator(): Comparator<T>
     operator fun <T : Ord<T>> invoke(lhs: T, rhs: T) = this.operator<T>()(lhs, rhs)
 }

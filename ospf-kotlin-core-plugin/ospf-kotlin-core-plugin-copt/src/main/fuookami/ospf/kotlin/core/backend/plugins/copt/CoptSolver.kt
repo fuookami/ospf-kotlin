@@ -106,14 +106,14 @@ abstract class CoptSolver {
                 }
 
                 COPT.Status.InfeasibleOrUnbounded.value -> {
-                    SolverStatus.Infeasible
+                    SolverStatus.InfeasibleOrUnbounded
                 }
 
                 else -> {
                     if (coptModel.get(COPT.IntAttr.PoolSols) > 0) {
                         SolverStatus.Feasible
                     } else {
-                        SolverStatus.Infeasible
+                        SolverStatus.SolvingException
                     }
                 }
             }

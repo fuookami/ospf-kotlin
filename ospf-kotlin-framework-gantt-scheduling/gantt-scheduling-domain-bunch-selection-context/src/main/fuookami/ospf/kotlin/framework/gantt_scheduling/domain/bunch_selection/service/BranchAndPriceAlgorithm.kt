@@ -472,7 +472,7 @@ class BranchAndPriceAlgorithm<
             }
         }
 
-        val shadowPriceMap = when (val ret = extractShadowPrice(model, lpRet.dualSolution)) {
+        val shadowPriceMap = when (val ret = extractShadowPrice(model, lpRet.dualSolution.toMeta())) {
             is Ok -> {
                 ret.value
             }
@@ -510,7 +510,7 @@ class BranchAndPriceAlgorithm<
 
     private fun extractShadowPrice(
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Ret<Map> {
         val map = policy.shadowPriceMap()
 
@@ -673,12 +673,12 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun refresh(lpResult: ColumnGenerationSolver.LPResult) {
+    private fun refresh(feasibleLpResult: ColumnGenerationSolver.LPResult) {
         mainProblemSolvingTimes += UInt64.one
-        mainProblemSolvingTime += lpResult.result.time
+        mainProblemSolvingTime += feasibleLpResult.result.time
     }
 
-    private fun refresh(ipResult: SolverOutput) {
+    private fun refresh(ipResult: FeasibleSolverOutput) {
         mainProblemSolvingTimes += UInt64.one
         mainProblemSolvingTime += ipResult.time
     }

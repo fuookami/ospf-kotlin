@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 
 interface Pipeline<in M : Model> {
     val name: String
@@ -16,6 +17,18 @@ interface Pipeline<in M : Model> {
     }
 
     operator fun invoke(model: M): Try
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("linearInfeasibleReasons")
+    fun infeasibleReasons(iis: LinearTriadModelView): List<String> {
+        return emptyList()
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("quadraticInfeasibleReasons")
+    fun infeasibleReasons(iis: QuadraticTetradModelView): List<String> {
+        return emptyList()
+    }
 }
 
 interface CGPipeline<
@@ -27,7 +40,7 @@ interface CGPipeline<
         return null
     }
 
-    fun refresh(map: Map, model: Model, shadowPrices: List<Flt64>): Try {
+    fun refresh(map: Map, model: Model, shadowPrices: MetaDualSolution): Try {
         return ok
     }
 }

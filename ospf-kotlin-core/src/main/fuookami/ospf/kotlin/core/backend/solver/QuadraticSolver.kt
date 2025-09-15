@@ -4,11 +4,13 @@ import java.util.concurrent.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
+import fuookami.ospf.kotlin.core.backend.solver.iis.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 interface AbstractQuadraticSolver {
@@ -17,15 +19,60 @@ interface AbstractQuadraticSolver {
     suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<SolverOutput>
+    ): Ret<FeasibleSolverOutput>
+
+    suspend operator fun invoke(
+        model: QuadraticTetradModelView,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig
+    ): Ret<SolverOutput> {
+        return when (val result = this(model, solvingStatusCallBack)) {
+            is Ok -> {
+                Ok(result.value)
+            }
+
+            is Failed -> {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
+                    when (val result = computeIIS(model, this, iisConfig)) {
+                        is Ok -> {
+                            Ok(QuadraticInfeasibleSolverOutput(result.value))
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                } else {
+                    Failed(result.error)
+                }
+            }
+        }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: QuadraticTetradModelView,
-        solvingStatusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+        return GlobalScope.future {
+            val result = this@AbstractQuadraticSolver.invoke(model, solvingStatusCallBack)
+            callBack?.invoke(result)
+            result
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveAsync(
+        model: QuadraticTetradModelView,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig,
+        callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@AbstractQuadraticSolver.invoke(model, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, solvingStatusCallBack, iisConfig)
+            callBack?.invoke(result)
+            result
         }
     }
 
@@ -33,34 +80,107 @@ interface AbstractQuadraticSolver {
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<SolverOutput, List<Solution>>>
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>>
+
+    suspend operator fun invoke(
+        model: QuadraticTetradModelView,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        return when (val result = this(model, solutionAmount, solvingStatusCallBack)) {
+            is Ok -> {
+                Ok(result.value)
+            }
+
+            is Failed -> {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
+                    when (val result = computeIIS(model, this, iisConfig)) {
+                        is Ok -> {
+                            Ok(QuadraticInfeasibleSolverOutput(result.value) to emptyList())
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                } else {
+                    Failed(result.error)
+                }
+            }
+        }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        solvingStatusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+        return GlobalScope.future {
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, solvingStatusCallBack)
+            callBack?.invoke(result)
+            result
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveAsync(
+        model: QuadraticTetradModelView,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig,
+        callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@AbstractQuadraticSolver.invoke(model, solutionAmount, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, solvingStatusCallBack, iisConfig)
+            callBack?.invoke(result)
+            result
         }
     }
 
     suspend operator fun invoke(
         model: QuadraticMechanismModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         val intermediateModel = dump(model)
         return this(intermediateModel, solvingStatusCallBack)
     }
 
+    suspend operator fun invoke(
+        model: QuadraticMechanismModel,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig
+    ): Ret<SolverOutput> {
+        val intermediateModel = dump(model)
+        return this(intermediateModel, solvingStatusCallBack, iisConfig)
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: QuadraticMechanismModel,
-        solvingStatusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+        return GlobalScope.future {
+            val result = this@AbstractQuadraticSolver.invoke(model, solvingStatusCallBack)
+            callBack?.invoke(result)
+            result
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveAsync(
+        model: QuadraticMechanismModel,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig,
+        callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@AbstractQuadraticSolver.invoke(model, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, solvingStatusCallBack, iisConfig)
+            callBack?.invoke(result)
+            result
         }
     }
 
@@ -68,19 +188,47 @@ interface AbstractQuadraticSolver {
         model: QuadraticMechanismModel,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         val intermediateModel = dump(model)
         return this(intermediateModel, solutionAmount, solvingStatusCallBack)
+    }
+
+    suspend operator fun invoke(
+        model: QuadraticMechanismModel,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        val intermediateModel = dump(model)
+        return this(intermediateModel, solutionAmount, solvingStatusCallBack, iisConfig)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: QuadraticMechanismModel,
         solutionAmount: UInt64,
-        solvingStatusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+        return GlobalScope.future {
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, solvingStatusCallBack)
+            callBack?.invoke(result)
+            result
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveAsync(
+        model: QuadraticMechanismModel,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig,
+        callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@AbstractQuadraticSolver.invoke(model, solutionAmount, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, solvingStatusCallBack, iisConfig)
+            callBack?.invoke(result)
+            result
         }
     }
 
@@ -88,7 +236,7 @@ interface AbstractQuadraticSolver {
         model: QuadraticMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
             is Ok -> {
                 result.value
@@ -101,14 +249,50 @@ interface AbstractQuadraticSolver {
         return this(mechanismModel, solvingStatusCallBack)
     }
 
+    suspend operator fun invoke(
+        model: QuadraticMetaModel,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig
+    ): Ret<SolverOutput> {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+            is Ok -> {
+                result.value
+            }
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        return this(mechanismModel, solvingStatusCallBack, iisConfig)
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: QuadraticMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        solvingStatusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+        return GlobalScope.future {
+            val result = this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack)
+            callBack?.invoke(result)
+            result
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveAsync(
+        model: QuadraticMetaModel,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig,
+        callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack, iisConfig)
+            callBack?.invoke(result)
+            result
         }
     }
 
@@ -117,7 +301,7 @@ interface AbstractQuadraticSolver {
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
             is Ok -> {
                 result.value
@@ -130,15 +314,53 @@ interface AbstractQuadraticSolver {
         return this(mechanismModel, solutionAmount, solvingStatusCallBack)
     }
 
+    suspend operator fun invoke(
+        model: QuadraticMetaModel,
+        solutionAmount: UInt64,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        iisConfig: IISConfig
+    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+            is Ok -> {
+                result.value
+            }
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+        return this(mechanismModel, solutionAmount, solvingStatusCallBack, iisConfig)
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: QuadraticMetaModel,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        registrationStatusCallBack: RegistrationStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+        return GlobalScope.future {
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack)
+            callBack?.invoke(result)
+            result
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveAsync(
+        model: QuadraticMetaModel,
+        solutionAmount: UInt64,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        iisConfig: IISConfig,
+        callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack, iisConfig)
+            callBack?.invoke(result)
+            result
         }
     }
 

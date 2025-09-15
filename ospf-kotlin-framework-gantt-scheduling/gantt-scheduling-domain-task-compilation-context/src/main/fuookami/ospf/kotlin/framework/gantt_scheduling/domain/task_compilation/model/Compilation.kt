@@ -175,7 +175,7 @@ class TaskCompilation<
                     if (withExecutorLeisure) {
                         val or = OrFunction(
                             tasks.map { LinearPolynomial(x[it, executors[i]]) },
-                            "executor_compilation_or_${executors[i]}"
+                            name = "executor_compilation_or_${executors[i]}"
                         )
                         when (val result = model.add(or)) {
                             is Ok -> {}
@@ -188,7 +188,7 @@ class TaskCompilation<
                     } else {
                         OrFunction(
                             tasks.map { LinearPolynomial(x[it, executors[i]]) },
-                            "executor_compilation_${executors[i]}"
+                            name = "executor_compilation_${executors[i]}"
                         )
                     }
                 }

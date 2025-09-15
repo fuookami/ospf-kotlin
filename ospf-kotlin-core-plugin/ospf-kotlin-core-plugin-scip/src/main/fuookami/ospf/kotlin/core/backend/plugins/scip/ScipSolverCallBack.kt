@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-typealias Function = (SolverStatus?, Scip, List<Variable>, List<Constraint>) -> Try
+typealias Function = suspend (SolverStatus?, Scip, List<Variable>, List<Constraint>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -28,12 +28,12 @@ class ScipSolverCallBack(
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<Function>? = map[point]
 
-    fun execIfContain(point: Point, status: SolverStatus?, scip: Scip, variables: List<Variable>, constraints: List<Constraint>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, scip: Scip, variables: List<Variable>, constraints: List<Constraint>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, scip, variables, constraints) }
             })
         } else {
