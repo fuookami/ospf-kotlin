@@ -196,6 +196,7 @@ typealias QuadraticTetradModelView = ModelView<QuadraticConstraintCell, Quadrati
 
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
+    val tokenIndexMap: BiMap<Token, Int>,
     override val objective: QuadraticObjective,
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
     override val variables: List<Variable> by impl::variables
@@ -234,6 +235,7 @@ data class QuadraticTetradModel(
                             constraintPromise.await(),
                             model.name
                         ),
+                        tokenIndexMap,
                         objectivePromise.await()
                     )
                 }
@@ -244,6 +246,7 @@ data class QuadraticTetradModel(
                         dumpConstraints(model, tokenIndexMap, fixedVariables),
                         model.name
                     ),
+                    tokenIndexMap,
                     dumpObjectives(model, tokenIndexMap, fixedVariables)
                 )
             }
@@ -382,14 +385,14 @@ data class QuadraticTetradModel(
                                             QuadraticConstraintCell(
                                                 i,
                                                 tokenIndexes[cell.token1]!!,
-                                                cell.token2?.let { tokenIndexes[it]!! },
-                                                cell.coefficient.let {
-                                                    if (it.isInfinity()) {
+                                                cell.token2?.let { token -> tokenIndexes[token]!! },
+                                                cell.coefficient.let { coefficient ->
+                                                    if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
-                                                    } else if (it.isNegativeInfinity()) {
+                                                    } else if (coefficient.isNegativeInfinity()) {
                                                         -Flt64.decimalPrecision.reciprocal()
                                                     } else {
-                                                        it
+                                                        coefficient
                                                     }
                                                 }
                                             )
@@ -401,13 +404,13 @@ data class QuadraticTetradModel(
                                                 i,
                                                 tokenIndexes[cell.token1]!!,
                                                 null,
-                                                cell.coefficient.let {
-                                                    if (it.isInfinity()) {
+                                                cell.coefficient.let { coefficient ->
+                                                    if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
-                                                    } else if (it.isNegativeInfinity()) {
+                                                    } else if (coefficient.isNegativeInfinity()) {
                                                         -Flt64.decimalPrecision.reciprocal()
                                                     } else {
-                                                        it
+                                                        coefficient
                                                     }
                                                 } * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
                                             )
@@ -419,13 +422,13 @@ data class QuadraticTetradModel(
                                                 i,
                                                 tokenIndexes[cell.token2]!!,
                                                 null,
-                                                cell.coefficient.let {
-                                                    if (it.isInfinity()) {
+                                                cell.coefficient.let { coefficient ->
+                                                    if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
-                                                    } else if (it.isNegativeInfinity()) {
+                                                    } else if (coefficient.isNegativeInfinity()) {
                                                         -Flt64.decimalPrecision.reciprocal()
                                                     } else {
-                                                        it
+                                                        coefficient
                                                     }
                                                 } * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
                                             )
@@ -578,7 +581,7 @@ data class QuadraticTetradModel(
         }
     }
 
-    override fun copy() = QuadraticTetradModel(impl.copy(), objective.copy())
+    override fun copy() = QuadraticTetradModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
     fun normalized() {

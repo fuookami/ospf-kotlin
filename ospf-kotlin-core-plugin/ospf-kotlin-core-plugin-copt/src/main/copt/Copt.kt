@@ -277,3 +277,7 @@ fun Var.get(key: COPT.DoubleInfo): Double {
 fun Constraint.get(key: COPT.DoubleInfo): Double {
     return this.get(key.key)
 }
+
+fun QConstraint.get(key: COPT.DoubleInfo): Double {
+    return this.get(key.key)
+}

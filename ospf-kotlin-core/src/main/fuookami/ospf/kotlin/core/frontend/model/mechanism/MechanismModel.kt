@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
+import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
@@ -347,7 +348,7 @@ class QuadraticMechanismModel(
             metaModel: QuadraticMetaModel,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
-            fixedVariables: MutableMap<AbstractVariableItem<*, *>, Flt64>? = null,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null
         ): Ret<QuadraticMechanismModel> {
             logger.info { "Creating QuadraticMechanismModel for $metaModel" }
@@ -553,17 +554,20 @@ class QuadraticMechanismModel(
     }
 
     fun generateFeasibleCut(
+        tokenIndex: BiMap<Token, Int>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        qpiSolution: Solution,
         dualSolution: Solution,
-    ): List<LinearInequality> {
-        TODO("Not implemented yet")
+    ): List<Inequality<*, *>> {
+        TODO("not implemented yet")
     }
 
     fun generateInfeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        qpiSolution: Solution,
         farkasDualSolution: Solution,
-    ): List<LinearInequality> {
-        TODO("Not implemented yet")
+    ): List<Inequality<*, *>> {
+        TODO("not implemented yet")
     }
 }

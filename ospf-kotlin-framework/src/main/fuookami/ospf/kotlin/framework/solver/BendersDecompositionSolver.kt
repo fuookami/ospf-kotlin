@@ -36,6 +36,27 @@ interface BendersDecompositionSolver {
         }
     }
 
+    suspend fun solveMaster(
+        name: String,
+        metaModel: QuadraticMetaModel,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<SolverOutput>
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun solveMasterAsync(
+        name: String,
+        metaModel: QuadraticMetaModel,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<SolverOutput>> {
+        return GlobalScope.future {
+            return@future this@BendersDecompositionSolver.solveMaster(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+        }
+    }
+
     /**
      * Sub Problem Solving Result (with cuts if fixed variables are provided)
      *
@@ -43,15 +64,15 @@ interface BendersDecompositionSolver {
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      *
      */
-    sealed interface SubResult {
+    sealed interface LinearSubResult {
         val cuts: List<LinearInequality>?
     }
 
-    data class FeasibleResult(
+    data class LinearFeasibleResult(
         val result: SolverOutput,
         val dualSolution: Solution,
         override val cuts: List<LinearInequality>?
-    ) : SubResult {
+    ) : LinearSubResult {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution
         val time: Duration by result::time
@@ -59,10 +80,10 @@ interface BendersDecompositionSolver {
         val gap: Flt64 by result::gap
     }
 
-    data class InfeasibleResult(
+    data class LinearInfeasibleResult(
         val farkasDualSolution: Solution,
         override val cuts: List<LinearInequality>?
-    ) : SubResult
+    ) : LinearSubResult
 
     suspend fun solveSub(
         name: String,
@@ -72,7 +93,7 @@ interface BendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<SubResult>
+    ): Ret<LinearSubResult>
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
@@ -83,12 +104,38 @@ interface BendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<SubResult>> {
+    ): CompletableFuture<Ret<LinearSubResult>> {
         return GlobalScope.future {
             return@future this@BendersDecompositionSolver.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
     }
 
+    sealed interface QuadraticSubResult {
+        val linearCuts: List<LinearInequality>?
+        val quadraticCuts: List<QuadraticInequality>?
+    }
+
+    data class QuadraticFeasibleResult(
+        val result: SolverOutput,
+        val qpiSolution: Solution,
+        val dualSolution: Solution,
+        override val linearCuts: List<LinearInequality>?,
+        override val quadraticCuts: List<QuadraticInequality>?,
+    ) : QuadraticSubResult {
+        val obj: Flt64 by result::obj
+        val solution: Solution by result::solution
+        val time: Duration by result::time
+        val possibleBestObj by result::possibleBestObj
+        val gap: Flt64 by result::gap
+    }
+
+    data class QuadraticInfeasibleResult(
+        val qpiSolution: Solution,
+        val farkasDualSolution: Solution,
+        override val linearCuts: List<LinearInequality>?,
+        override val quadraticCuts: List<QuadraticInequality>?,
+    ) : QuadraticSubResult
+
     suspend fun solveSub(
         name: String,
         metaModel: QuadraticMetaModel,
@@ -97,7 +144,7 @@ interface BendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<SubResult>
+    ): Ret<QuadraticSubResult>
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
@@ -108,7 +155,7 @@ interface BendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<SubResult>> {
+    ): CompletableFuture<Ret<QuadraticSubResult>> {
         return GlobalScope.future {
             return@future this@BendersDecompositionSolver.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }
