@@ -103,7 +103,7 @@ interface MongoPersistenceApiController {
 //                    MongoDB()
 //                }
 //                    ?.getDatabase(annotation.dataBase)
-//                    ?.insertRequest("hztv_offline", "", "", serializer, request)
+//                    ?.insertRequest("", "", "", serializer, request)
 //            }
 //        }
 //        val response = point.proceed(args)
@@ -121,7 +121,7 @@ interface MongoPersistenceApiController {
 //                    MongoDB()
 //                }
 //                    ?.getDatabase(annotation.dataBase)
-//                    ?.insertResponse("hztv_offline", "", serializer, response as Rep)
+//                    ?.insertResponse("", "", serializer, response as Rep)
 //            }
 //        }
 //        return response
@@ -146,8 +146,8 @@ interface MongoPersistenceApiController {
 //                } else {
 //                    MongoDB()
 //                }
-//                    ?.getDatabase("bpp3d")
-//                    ?.insertRequest("hztv_scm", "", "", serializer, request)
+//                    ?.getDatabase("")
+//                    ?.insertRequest("", "", "", serializer, request)
 //            }
 //        }
 //        GlobalScope.launch {
@@ -165,8 +165,8 @@ interface MongoPersistenceApiController {
 //                } else {
 //                    MongoDB()
 //                }
-//                    ?.getDatabase("bpp3d")
-//                    ?.insertResponse("hztv_scm", "", serializer, response)
+//                    ?.getDatabase("")
+//                    ?.insertResponse("", "", serializer, response)
 //                annotation.response(response)
 //            }
 //        }

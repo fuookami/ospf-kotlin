@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (MDOEnv) -> Try
 typealias NativeCallback = MDOCallback.() -> Unit
-typealias LinearFunction = (SolverStatus?, MDOModel, List<MDOVar>, List<MDOConstr>) -> Try
-typealias QuadraticFunction = (SolverStatus?, MDOModel, List<MDOVar>, List<MDOQConstr>) -> Try
+typealias LinearFunction = suspend (SolverStatus?, MDOModel, List<MDOVar>, List<MDOConstr>) -> Try
+typealias QuadraticFunction = suspend (SolverStatus?, MDOModel, List<MDOVar>, List<MDOQConstr>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -51,9 +51,9 @@ class MindOPTLinearSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOConstr>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOConstr>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, mindopt, variables, constraints) }
             })
         } else {
@@ -99,9 +99,9 @@ class MindOPTQuadraticSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOQConstr>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOQConstr>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, mindopt, variables, constraints) }
             })
         } else {

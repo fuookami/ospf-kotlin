@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (HexalyOptimizer) -> Try
 typealias NativeCallBack = (HexalyOptimizer, HxCallbackType) -> Unit
-typealias Function = (SolverStatus?, HexalyOptimizer, List<HxExpression>, List<HxExpression>) -> Try
+typealias Function = suspend (SolverStatus?, HexalyOptimizer, List<HxExpression>, List<HxExpression>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -50,9 +50,9 @@ class HexalySolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, hexaly: HexalyOptimizer, variables: List<HxExpression>, constraints: List<HxExpression>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, hexaly: HexalyOptimizer, variables: List<HxExpression>, constraints: List<HxExpression>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, hexaly, variables, constraints) }
             })
         } else {

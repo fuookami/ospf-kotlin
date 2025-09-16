@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
-import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
@@ -267,7 +266,7 @@ class LinearMechanismModel(
         return ok
     }
 
-    fun generateFeasibleCut(
+    fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: Solution,
@@ -295,7 +294,7 @@ class LinearMechanismModel(
         return listOf((objectVariable geq rhs).normalize())
     }
 
-    fun generateInfeasibleCut(
+    fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: Solution,
     ): List<LinearInequality> {
@@ -553,21 +552,19 @@ class QuadraticMechanismModel(
         return ok
     }
 
-    fun generateFeasibleCut(
-        tokenIndex: BiMap<Token, Int>,
+    fun generateOptimalCut(
+        objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        qpiSolution: Solution,
         dualSolution: Solution,
-    ): List<Inequality<*, *>> {
+    ): Ret<List<Inequality<*, *>>> {
         TODO("not implemented yet")
     }
 
-    fun generateInfeasibleCut(
+    fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        qpiSolution: Solution,
         farkasDualSolution: Solution,
-    ): List<Inequality<*, *>> {
+    ): Ret<List<Inequality<*, *>>> {
         TODO("not implemented yet")
     }
 }

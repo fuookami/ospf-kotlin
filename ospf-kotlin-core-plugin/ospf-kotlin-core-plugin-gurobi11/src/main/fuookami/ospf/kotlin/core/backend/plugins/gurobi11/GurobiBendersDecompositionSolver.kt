@@ -201,7 +201,7 @@ class GurobiBendersDecompositionSolver(
                 Ok(BendersDecompositionSolver.LinearFeasibleResult(
                     result.value,
                     dualSolution,
-                    mechanismModel.generateFeasibleCut(objectVariable, fixedVariables, dualSolution)
+                    mechanismModel.generateOptimalCut(objectVariable, fixedVariables, dualSolution)
                 ))
             }
 
@@ -210,7 +210,7 @@ class GurobiBendersDecompositionSolver(
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
                     Ok(BendersDecompositionSolver.LinearInfeasibleResult(
                         farkasSolution,
-                        mechanismModel.generateInfeasibleCut(fixedVariables, farkasSolution)
+                        mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)
                     ))
                 } else {
                     Failed(result.error)
@@ -257,7 +257,6 @@ class GurobiBendersDecompositionSolver(
                 model.export("$name.lp", ModelFileFormat.LP)
             })
         }
-        lateinit var qpiSolution: List<Flt64>
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
         val solver = GurobiQuadraticSolver(
@@ -268,9 +267,6 @@ class GurobiBendersDecompositionSolver(
                     ok
                 }
                 .analyzingSolution { _, _, _, constraints ->
-                    qpiSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.QCPi))
-                    }
                     dualSolution = constraints.map {
                         Flt64(it.get(GRB.DoubleAttr.Pi))
                     }
@@ -278,9 +274,6 @@ class GurobiBendersDecompositionSolver(
                 }
                 .afterFailure { status, _, _, constraints ->
                     if (status == SolverStatus.Infeasible) {
-                        qpiSolution = constraints.map {
-                            Flt64(it.get(GRB.DoubleAttr.QCPi))
-                        }
                         farkasSolution = constraints.map {
                             Flt64(it.get(GRB.DoubleAttr.FarkasDual))
                         }
@@ -295,10 +288,17 @@ class GurobiBendersDecompositionSolver(
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
-                val cuts = mechanismModel.generateFeasibleCut(model.tokenIndexMap, objectVariable, fixedVariables, qpiSolution, dualSolution)
+                val cuts = when (val result = mechanismModel.generateOptimalCut(result.value.obj, objectVariable, fixedVariables, dualSolution)) {
+                    is Ok -> {
+                        result.value
+                    }
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
                 Ok(BendersDecompositionSolver.QuadraticFeasibleResult(
                     result.value,
-                    qpiSolution,
                     dualSolution,
                     cuts.filterIsInstance<LinearInequality>(),
                     cuts.filterIsInstance<QuadraticInequality>()
@@ -308,9 +308,16 @@ class GurobiBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    val cuts = mechanismModel.generateInfeasibleCut(fixedVariables, qpiSolution, farkasSolution)
+                    val cuts = when (val result = mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)) {
+                        is Ok -> {
+                            result.value
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     Ok(BendersDecompositionSolver.QuadraticInfeasibleResult(
-                        qpiSolution,
                         farkasSolution,
                         cuts.filterIsInstance<LinearInequality>(),
                         cuts.filterIsInstance<QuadraticInequality>()

@@ -117,7 +117,6 @@ interface BendersDecompositionSolver {
 
     data class QuadraticFeasibleResult(
         val result: SolverOutput,
-        val qpiSolution: Solution,
         val dualSolution: Solution,
         override val linearCuts: List<LinearInequality>?,
         override val quadraticCuts: List<QuadraticInequality>?,
@@ -130,7 +129,6 @@ interface BendersDecompositionSolver {
     }
 
     data class QuadraticInfeasibleResult(
-        val qpiSolution: Solution,
         val farkasDualSolution: Solution,
         override val linearCuts: List<LinearInequality>?,
         override val quadraticCuts: List<QuadraticInequality>?,

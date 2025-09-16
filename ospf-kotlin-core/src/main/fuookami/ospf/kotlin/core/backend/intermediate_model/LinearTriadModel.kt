@@ -475,19 +475,22 @@ data class LinearTriadModel(
     override fun copy() = LinearTriadModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
-    fun normalized() {
-        impl.normalized()
+    fun normalized(): Boolean {
+        return impl.normalized()
     }
 
-    fun linearRelax() {
+    fun linearRelax(): LinearTriadModel {
         impl.linearRelax()
+        return this
     }
 
-    fun normalize() {
+    fun normalize(): LinearTriadModel {
         impl.normalize()
+        return this
     }
 
     suspend fun dual(): LinearTriadModel {
+        assert(normalized())
         val variables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
             var upperBound = Flt64.infinity
@@ -559,6 +562,121 @@ data class LinearTriadModel(
             ),
             tokenIndexMap = tokenIndexMap,
             objective = LinearObjective(this.objective.category.reverse(), objective)
+        )
+    }
+
+    fun feasibility(): LinearTriadModel {
+        assert(normalized())
+        var colIndex = this.variables.size
+        val slackVariables = ArrayList<Variable>()
+        val artifactVariables = ArrayList<Variable>()
+        val constraints = LinearConstraint(
+            lhs = this.constraints.indices.map {
+                when (this.constraints.signs[it]) {
+                    Sign.LessEqual -> {
+                        val slack = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_slack"
+                        )
+                        colIndex += 1
+
+                        slackVariables.add(slack)
+                        this.constraints.lhs[it] + listOf(
+                            LinearConstraintCell(
+                                it,
+                                slack.index,
+                                Flt64.one
+                            )
+                        )
+                    }
+
+                    Sign.GreaterEqual -> {
+                        val slack = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_slack"
+                        )
+                        colIndex += 1
+                        val artifact = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_artifact"
+                        )
+                        colIndex += 1
+
+                        slackVariables.add(slack)
+                        artifactVariables.add(artifact)
+                        this.constraints.lhs[it] + listOf(
+                            LinearConstraintCell(
+                                it,
+                                slack.index,
+                                -Flt64.one
+                            ),
+                            LinearConstraintCell(
+                                it,
+                                artifact.index,
+                                Flt64.one
+                            )
+                        )
+                    }
+
+                    Sign.Equal -> {
+                        val artifact = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_artifact"
+                        )
+                        colIndex += 1
+
+                        artifactVariables.add(artifact)
+                        this.constraints.lhs[it] + listOf(
+                            LinearConstraintCell(
+                                it,
+                                artifact.index,
+                                Flt64.one
+                            )
+                        )
+                    }
+                }
+            },
+            signs = this.constraints.indices.map {
+                Sign.Equal
+            },
+            rhs = this.constraints.indices.map {
+                this.constraints.rhs[it]
+            },
+            names = this.constraints.indices.map {
+                this.constraints.names[it]
+            }
+        )
+        val objective = artifactVariables.map {
+            LinearObjectiveCell(
+                it.index,
+                Flt64.one
+            )
+        }
+
+        return LinearTriadModel(
+            impl = BasicLinearTriadModel(
+                variables = this.variables + slackVariables + artifactVariables,
+                constraints = constraints,
+                name = "$name-feasibility"
+            ),
+            tokenIndexMap = tokenIndexMap,
+            objective = LinearObjective(this.objective.category, objective)
         )
     }
 

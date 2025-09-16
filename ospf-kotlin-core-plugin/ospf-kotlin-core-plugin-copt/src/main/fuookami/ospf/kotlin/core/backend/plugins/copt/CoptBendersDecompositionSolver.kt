@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
@@ -198,7 +197,7 @@ class CoptBendersDecompositionSolver(
                 Ok(BendersDecompositionSolver.LinearFeasibleResult(
                     result.value,
                     dualSolution,
-                    mechanismModel.generateFeasibleCut(objectVariable, fixedVariables, dualSolution)
+                    mechanismModel.generateOptimalCut(objectVariable, fixedVariables, dualSolution)
                 ))
             }
 
@@ -207,7 +206,7 @@ class CoptBendersDecompositionSolver(
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
                     Ok(BendersDecompositionSolver.LinearInfeasibleResult(
                         farkasSolution,
-                        mechanismModel.generateInfeasibleCut(fixedVariables, farkasSolution)
+                        mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)
                     ))
                 } else {
                     Failed(result.error)
@@ -254,14 +253,12 @@ class CoptBendersDecompositionSolver(
                 model.export("$name.lp", ModelFileFormat.LP)
             })
         }
-        lateinit var qpiSolution: Solution
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
         val solver = CoptQuadraticSolver(
             config = config,
             callBack = quadraticCallBack.copy()
                 .analyzingSolution { _, _, _, constraints ->
-                    // tdo: get qpi solution
                     dualSolution = constraints.map {
                         Flt64(it.get(COPT.DoubleInfo.Dual))
                     }
@@ -269,7 +266,6 @@ class CoptBendersDecompositionSolver(
                 }
                 .afterFailure { status, _, _, constraints ->
                     if (status == SolverStatus.Infeasible) {
-                        // tdo: get qpi solution
                         farkasSolution = constraints.map {
                             Flt64(it.get(COPT.DoubleInfo.DualFarkas))
                         }
@@ -284,10 +280,17 @@ class CoptBendersDecompositionSolver(
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
-                val cuts = mechanismModel.generateFeasibleCut(model.tokenIndexMap, objectVariable, fixedVariables, qpiSolution, dualSolution)
+                val cuts = when (val result = mechanismModel.generateOptimalCut(result.value.obj, objectVariable, fixedVariables, dualSolution)) {
+                    is Ok -> {
+                        result.value
+                    }
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
                 Ok(BendersDecompositionSolver.QuadraticFeasibleResult(
                     result.value,
-                    qpiSolution,
                     dualSolution,
                     cuts.filterIsInstance<LinearInequality>(),
                     cuts.filterIsInstance<QuadraticInequality>()
@@ -297,9 +300,16 @@ class CoptBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    val cuts = mechanismModel.generateInfeasibleCut(fixedVariables, qpiSolution, farkasSolution)
+                    val cuts = when (val result = mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)) {
+                        is Ok -> {
+                            result.value
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
                     Ok(BendersDecompositionSolver.QuadraticInfeasibleResult(
-                        qpiSolution,
                         farkasSolution,
                         cuts.filterIsInstance<LinearInequality>(),
                         cuts.filterIsInstance<QuadraticInequality>()

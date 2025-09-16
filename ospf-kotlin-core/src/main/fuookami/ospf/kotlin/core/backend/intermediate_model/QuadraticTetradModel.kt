@@ -584,16 +584,138 @@ data class QuadraticTetradModel(
     override fun copy() = QuadraticTetradModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
-    fun normalized() {
-        impl.normalized()
+    fun normalized(): Boolean {
+        return impl.normalized()
     }
 
-    fun linearRelax() {
+    fun linearRelax(): QuadraticTetradModel {
         impl.linearRelax()
+        return this
     }
 
-    fun normalize() {
+    fun normalize(): QuadraticTetradModel {
         impl.normalize()
+        return this
+    }
+
+    fun feasibility(): QuadraticTetradModel {
+        assert(normalized())
+        var colIndex = this.variables.size
+        val slackVariables = ArrayList<Variable>()
+        val artifactVariables = ArrayList<Variable>()
+        val constraints = QuadraticConstraint(
+            lhs = this.constraints.indices.map {
+                when (this.constraints.signs[it]) {
+                    Sign.LessEqual -> {
+                        val slack = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_slack"
+                        )
+                        colIndex += 1
+
+                        slackVariables.add(slack)
+                        this.constraints.lhs[it] + listOf(
+                            QuadraticConstraintCell(
+                                it,
+                                slack.index,
+                                null,
+                                Flt64.one
+                            )
+                        )
+                    }
+
+                    Sign.GreaterEqual -> {
+                        val slack = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_slack"
+                        )
+                        colIndex += 1
+                        val artifact = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_artifact"
+                        )
+                        colIndex += 1
+
+                        slackVariables.add(slack)
+                        artifactVariables.add(artifact)
+                        this.constraints.lhs[it] + listOf(
+                            QuadraticConstraintCell(
+                                it,
+                                slack.index,
+                                null,
+                                -Flt64.one
+                            ),
+                            QuadraticConstraintCell(
+                                it,
+                                artifact.index,
+                                null,
+                                Flt64.one
+                            )
+                        )
+                    }
+
+                    Sign.Equal -> {
+                        val artifact = Variable(
+                            colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${this.constraints.names[it]}_artifact"
+                        )
+                        colIndex += 1
+
+                        artifactVariables.add(artifact)
+                        this.constraints.lhs[it] + listOf(
+                            QuadraticConstraintCell(
+                                it,
+                                artifact.index,
+                                null,
+                                Flt64.one
+                            )
+                        )
+                    }
+                }
+            },
+            signs = this.constraints.indices.map {
+                Sign.Equal
+            },
+            rhs = this.constraints.indices.map {
+                this.constraints.rhs[it]
+            },
+            names = this.constraints.indices.map {
+                this.constraints.names[it]
+            }
+        )
+        val objective = artifactVariables.map {
+            QuadraticObjectiveCell(
+                it.index,
+                null,
+                Flt64.one
+            )
+        }
+
+        return QuadraticTetradModel(
+            impl = BasicQuadraticTetradModel(
+                variables = this.variables + slackVariables + artifactVariables,
+                constraints = constraints,
+                name = "$name-feasibility"
+            ),
+            tokenIndexMap = tokenIndexMap,
+            objective = QuadraticObjective(this.objective.category, objective)
+        )
     }
 
     override fun exportLP(writer: FileWriter): Try {

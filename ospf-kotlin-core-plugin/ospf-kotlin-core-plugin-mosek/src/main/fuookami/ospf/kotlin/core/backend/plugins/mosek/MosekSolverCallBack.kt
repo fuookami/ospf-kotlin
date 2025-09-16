@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (Task) -> Try
 typealias NativeCallBack = (Task, Callback) -> Unit
-typealias Function = (SolverStatus?, Task) -> Try
+typealias Function = suspend (SolverStatus?, Task) -> Try
 
 enum class Point {
     AfterModeling,
@@ -50,9 +50,9 @@ class MosekSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, mosekModel: Task): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, mosekModel: Task): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, mosekModel) }
             })
         } else {
