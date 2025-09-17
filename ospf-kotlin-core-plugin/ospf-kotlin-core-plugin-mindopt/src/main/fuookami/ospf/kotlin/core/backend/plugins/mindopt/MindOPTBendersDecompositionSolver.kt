@@ -1,25 +1,26 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi
+package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
 import java.util.*
 import kotlinx.coroutines.*
-import gurobi.*
+import com.alibaba.damo.mindopt.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
 
-class GurobiBendersDecompositionSolver(
+class MindOPTBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
-    private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack(),
-    private val quadraticCallBack: GurobiQuadraticSolverCallBack = GurobiQuadraticSolverCallBack()
+    private val linearCallBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack(),
+    private val quadraticCallBack: MindOPTQuadraticSolverCallBack = MindOPTQuadraticSolverCallBack(),
 ) : BendersDecompositionSolver {
-    override val name = "gurobi"
+    override val name = "mindopt"
 
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
@@ -42,7 +43,7 @@ class GurobiBendersDecompositionSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(result.value)
             }
 
             is Failed -> {
@@ -56,7 +57,7 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        val solver = GurobiLinearSolver(
+        val solver = MindOPTLinearSolver(
             config = config,
             callBack = linearCallBack.copy()
         )
@@ -110,7 +111,7 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        val solver = GurobiQuadraticSolver(
+        val solver = MindOPTQuadraticSolver(
             config = config,
             callBack = quadraticCallBack.copy()
         )
@@ -170,23 +171,25 @@ class GurobiBendersDecompositionSolver(
 
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiLinearSolver(
+        val solver = MindOPTLinearSolver(
             config = config,
             callBack = linearCallBack.copy()
-                .configuration { _, model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
-                    ok
-                }
                 .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                        Flt64(it.get(MDO.DoubleAttr.DualSoln))
                     }
                     ok
                 }
-                .afterFailure { status, _, _, constraints ->
+                .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        farkasSolution = constraints.map {
-                            Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                        when (val result = solveFeasibilityProblem(model)) {
+                            is Ok -> {
+                                farkasSolution = result.value
+                            }
+
+                            is Failed -> {
+                                return@afterFailure Failed(result.error)
+                            }
                         }
                     }
                     ok
@@ -261,23 +264,25 @@ class GurobiBendersDecompositionSolver(
 
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiQuadraticSolver(
+        val solver = MindOPTQuadraticSolver(
             config = config,
             callBack = quadraticCallBack.copy()
-                .configuration { _, model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
-                    ok
-                }
                 .analyzingSolution { _, _, _, constraints ->
                     dualSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                        Flt64(it.get(MDO.DoubleAttr.DualSoln))
                     }
                     ok
                 }
-                .afterFailure { status, _, _, constraints ->
+                .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        farkasSolution = constraints.map {
-                            Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                        when (val result = solveFeasibilityProblem(model)) {
+                            is Ok -> {
+                                farkasSolution = result.value
+                            }
+
+                            is Failed -> {
+                                return@afterFailure Failed(result.error)
+                            }
                         }
                     }
                     ok
@@ -327,6 +332,62 @@ class GurobiBendersDecompositionSolver(
                 } else {
                     Failed(result.error)
                 }
+            }
+        }
+    }
+
+    private suspend fun solveFeasibilityProblem(
+        model: LinearTriadModel
+    ): Ret<Solution> {
+        val feasibilityModel = model.normalize().feasibility()
+
+        lateinit var dualSolution: Solution
+        val solver = MindOPTLinearSolver(
+            config = config,
+            callBack = linearCallBack.copy()
+                .analyzingSolution { _, _, _, constraints ->
+                    dualSolution = constraints.map {
+                        Flt64(it.get(MDO.DoubleAttr.DualSoln))
+                    }
+                    ok
+                }
+        )
+
+        return when (val result = solver(feasibilityModel)) {
+            is Ok -> {
+                Ok(dualSolution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+        }
+    }
+
+    private suspend fun solveFeasibilityProblem(
+        model: QuadraticTetradModel
+    ): Ret<Solution> {
+        val feasibilityModel = model.normalize().feasibility()
+
+        lateinit var dualSolution: Solution
+        val solver = MindOPTQuadraticSolver(
+            config = config,
+            callBack = quadraticCallBack.copy()
+                .analyzingSolution { _, _, _, constraints ->
+                    dualSolution = constraints.map {
+                        Flt64(it.get(MDO.DoubleAttr.DualSoln))
+                    }
+                    ok
+                }
+        )
+
+        return when (val result = solver(feasibilityModel)) {
+            is Ok -> {
+                Ok(dualSolution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
             }
         }
     }

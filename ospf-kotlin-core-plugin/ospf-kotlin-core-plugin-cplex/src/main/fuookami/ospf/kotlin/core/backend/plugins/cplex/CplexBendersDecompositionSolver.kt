@@ -1,25 +1,25 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi
+package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
 import java.util.*
 import kotlinx.coroutines.*
-import gurobi.*
+import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
 
-class GurobiBendersDecompositionSolver(
+class CplexBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
-    private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack(),
-    private val quadraticCallBack: GurobiQuadraticSolverCallBack = GurobiQuadraticSolverCallBack()
+    private val callBack: CplexSolverCallBack = CplexSolverCallBack()
 ) : BendersDecompositionSolver {
-    override val name = "gurobi"
+    override val name = "cplex"
 
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
@@ -56,9 +56,9 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        val solver = GurobiLinearSolver(
+        val solver = CplexLinearSolver(
             config = config,
-            callBack = linearCallBack.copy()
+            callBack = callBack.copy()
         )
 
         return when (val result = solver(model, solvingStatusCallBack)) {
@@ -110,9 +110,9 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        val solver = GurobiQuadraticSolver(
+        val solver = CplexQuadraticSolver(
             config = config,
-            callBack = quadraticCallBack.copy()
+            callBack = callBack.copy()
         )
 
         return when (val result = solver(model, solvingStatusCallBack)) {
@@ -170,23 +170,29 @@ class GurobiBendersDecompositionSolver(
 
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiLinearSolver(
+        val solver = CplexLinearSolver(
             config = config,
-            callBack = linearCallBack.copy()
-                .configuration { _, model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
+            callBack = callBack.copy()
+                .configuration { _, cplex, _, _ ->
+                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
                     ok
                 }
-                .analyzingSolution { _, _, _, constraints ->
+                .analyzingSolution { _, cplex, _, constraints ->
                     dualSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                        Flt64(cplex.getDual(it))
                     }
                     ok
                 }
-                .afterFailure { status, _, _, constraints ->
+                .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        farkasSolution = constraints.map {
-                            Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                        when (val result = solveFeasibilityProblem(model)) {
+                            is Ok -> {
+                                farkasSolution = result.value
+                            }
+
+                            is Failed -> {
+                                return@afterFailure Failed(result.error)
+                            }
                         }
                     }
                     ok
@@ -259,25 +265,31 @@ class GurobiBendersDecompositionSolver(
             })
         }
 
-        lateinit var dualSolution: List<Flt64>
-        lateinit var farkasSolution: List<Flt64>
-        val solver = GurobiQuadraticSolver(
+        lateinit var dualSolution: Solution
+        lateinit var farkasSolution: Solution
+        val solver = CplexQuadraticSolver(
             config = config,
-            callBack = quadraticCallBack.copy()
-                .configuration { _, model, _, _ ->
-                    model.set(GRB.IntParam.InfUnbdInfo, 1)
+            callBack = callBack.copy()
+                .configuration { _, cplex, _, _ ->
+                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
                     ok
                 }
-                .analyzingSolution { _, _, _, constraints ->
+                .analyzingSolution { _, cplex, _, constraints ->
                     dualSolution = constraints.map {
-                        Flt64(it.get(GRB.DoubleAttr.Pi))
+                        Flt64(cplex.getDual(it))
                     }
                     ok
                 }
-                .afterFailure { status, _, _, constraints ->
+                .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        farkasSolution = constraints.map {
-                            Flt64(it.get(GRB.DoubleAttr.FarkasDual))
+                        when (val result = solveFeasibilityProblem(model)) {
+                            is Ok -> {
+                                farkasSolution = result.value
+                            }
+
+                            is Failed -> {
+                                return@afterFailure Failed(result.error)
+                            }
                         }
                     }
                     ok
@@ -327,6 +339,70 @@ class GurobiBendersDecompositionSolver(
                 } else {
                     Failed(result.error)
                 }
+            }
+        }
+    }
+
+    private suspend fun solveFeasibilityProblem(
+        model: LinearTriadModel
+    ): Ret<Solution> {
+        val feasibilityModel = model.normalize().feasibility()
+
+        lateinit var dualSolution: Solution
+        val solver = CplexLinearSolver(
+            config = config,
+            callBack = callBack.copy()
+                .configuration { _, cplex, _, _ ->
+                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
+                    ok
+                }
+                .analyzingSolution { _, cplex, _, constraints ->
+                    dualSolution = constraints.map {
+                        Flt64(cplex.getDual(it))
+                    }
+                    ok
+                }
+        )
+
+        return when (val result = solver(feasibilityModel)) {
+            is Ok -> {
+                Ok(dualSolution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+        }
+    }
+
+    private suspend fun solveFeasibilityProblem(
+        model: QuadraticTetradModel
+    ): Ret<Solution> {
+        val feasibilityModel = model.normalize().feasibility()
+
+        lateinit var dualSolution: Solution
+        val solver = CplexQuadraticSolver(
+            config = config,
+            callBack = callBack.copy()
+                .configuration { _, cplex, _, _ ->
+                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
+                    ok
+                }
+                .analyzingSolution { _, cplex, _, constraints ->
+                    dualSolution = constraints.map {
+                        Flt64(cplex.getDual(it))
+                    }
+                    ok
+                }
+        )
+
+        return when (val result = solver(feasibilityModel)) {
+            is Ok -> {
+                Ok(dualSolution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
             }
         }
     }

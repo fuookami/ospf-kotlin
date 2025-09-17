@@ -16,8 +16,10 @@ data class QuadraticConstraintCell(
     override val rowIndex: Int,
     val colIndex1: Int,
     val colIndex2: Int?,
-    override val coefficient: Flt64
+    internal var _coefficient: Flt64
 ) : ConstraintCell, Cloneable, Copyable<QuadraticConstraintCell> {
+    override val coefficient by ::_coefficient
+
     override fun copy() = QuadraticConstraintCell(rowIndex, colIndex1, colIndex2, coefficient.copy())
     override fun clone() = copy()
 }
@@ -27,8 +29,10 @@ typealias QuadraticConstraint = Constraint<QuadraticConstraintCell>
 data class QuadraticObjectiveCell(
     val colIndex1: Int,
     val colIndex2: Int?,
-    override val coefficient: Flt64
+    internal var _coefficient: Flt64
 ) : Cell, Cloneable, Copyable<QuadraticObjectiveCell> {
+    override val coefficient by ::_coefficient
+
     override fun copy() = QuadraticObjectiveCell(colIndex1, colIndex2, coefficient.copy())
     override fun clone() = copy()
 }
@@ -108,6 +112,15 @@ class BasicQuadraticTetradModel(
                 constraints._rhs.add(variable.upperBound)
                 constraints._names.add("${variable.name}_ub")
                 variable._upperBound = Flt64.infinity
+            }
+        }
+        for (i in constraints.indices) {
+            if (constraints.rhs[i] ls Flt64.zero) {
+                constraints._rhs[i] = -constraints.rhs[i]
+                constraints._signs[i] = constraints.signs[i].reverse
+                for (cell in constraints._lhs[i]) {
+                    cell._coefficient = -cell.coefficient
+                }
             }
         }
     }
@@ -474,7 +487,7 @@ data class QuadraticTetradModel(
                                 rowIndex = index,
                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                 colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
-                                coefficient = cell.coefficient.let {
+                                _coefficient = cell.coefficient.let {
                                     if (it.isInfinity()) {
                                         Flt64.decimalPrecision.reciprocal()
                                     } else if (it.isNegativeInfinity()) {
@@ -714,7 +727,7 @@ data class QuadraticTetradModel(
                 name = "$name-feasibility"
             ),
             tokenIndexMap = tokenIndexMap,
-            objective = QuadraticObjective(this.objective.category, objective)
+            objective = QuadraticObjective(ObjectCategory.Minimum, objective)
         )
     }
 

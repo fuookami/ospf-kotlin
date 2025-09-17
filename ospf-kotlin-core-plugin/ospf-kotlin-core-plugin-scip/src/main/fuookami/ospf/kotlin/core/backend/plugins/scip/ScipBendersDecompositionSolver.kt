@@ -167,6 +167,7 @@ class ScipBendersDecompositionSolver(
                 model.export("$name.lp", ModelFileFormat.LP)
             })
         }
+
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
         val solver = ScipLinearSolver(
@@ -266,6 +267,7 @@ class ScipBendersDecompositionSolver(
                 model.export("$name.lp", ModelFileFormat.LP)
             })
         }
+
         lateinit var dualSolution: Solution
         lateinit var farkasSolution: Solution
         val solver = ScipQuadraticSolver(
@@ -351,6 +353,7 @@ class ScipBendersDecompositionSolver(
         model: LinearTriadModel
     ): Ret<Solution> {
         val feasibilityModel = model.normalize().feasibility()
+
         lateinit var dualSolution: Solution
         val solver = ScipLinearSolver(
             config = config.copy(
@@ -385,6 +388,7 @@ class ScipBendersDecompositionSolver(
         model: QuadraticTetradModel
     ): Ret<Solution> {
         val feasibilityModel = model.normalize().feasibility()
+
         lateinit var dualSolution: Solution
         val solver = ScipQuadraticSolver(
             config = config.copy(

@@ -6,6 +6,7 @@ import org.apache.logging.log4j.kotlin.*
 import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -16,8 +17,10 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 data class LinearConstraintCell(
     override val rowIndex: Int,
     val colIndex: Int,
-    override val coefficient: Flt64
+    internal var _coefficient: Flt64
 ) : ConstraintCell, Cloneable, Copyable<LinearConstraintCell> {
+    override val coefficient by ::_coefficient
+
     override fun copy() = LinearConstraintCell(rowIndex, colIndex, coefficient.copy())
     override fun clone() = copy()
 }
@@ -26,8 +29,10 @@ typealias LinearConstraint = Constraint<LinearConstraintCell>
 
 data class LinearObjectiveCell(
     val colIndex: Int,
-    override val coefficient: Flt64
+    internal var _coefficient: Flt64
 ) : Cell, Cloneable, Copyable<LinearObjectiveCell> {
+    override val coefficient by ::_coefficient
+
     override fun copy() = LinearObjectiveCell(colIndex, coefficient.copy())
     override fun clone() = copy()
 }
@@ -50,6 +55,8 @@ class BasicLinearTriadModel(
     fun normalized(): Boolean {
         return variables.all {
             (it.lowerBound.isNegativeInfinity() || it.lowerBound eq Flt64.zero) && (it.upperBound.isInfinity() || it.upperBound eq Flt64.zero)
+        } && constraints.rhs.all {
+            it geq Flt64.zero
         }
     }
 
@@ -104,6 +111,15 @@ class BasicLinearTriadModel(
                 constraints._rhs.add(variable.upperBound)
                 constraints._names.add("${variable.name}_ub")
                 variable._upperBound = Flt64.infinity
+            }
+        }
+        for (i in constraints.indices) {
+            if (constraints.rhs[i] ls Flt64.zero) {
+                constraints._rhs[i] = -constraints.rhs[i]
+                constraints._signs[i] = constraints.signs[i].reverse
+                for (cell in constraints._lhs[i]) {
+                    cell._coefficient = -cell.coefficient
+                }
             }
         }
     }
@@ -340,7 +356,7 @@ data class LinearTriadModel(
                                             LinearConstraintCell(
                                                 rowIndex = i,
                                                 colIndex = tokenIndexes[cell.token]!!,
-                                                coefficient = cell.coefficient.let { coefficient ->
+                                                _coefficient = cell.coefficient.let { coefficient ->
                                                     if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
                                                     } else if (coefficient.isNegativeInfinity()) {
@@ -391,7 +407,7 @@ data class LinearTriadModel(
                                 LinearConstraintCell(
                                     rowIndex = index,
                                     colIndex = tokenIndexes[cell.token]!!,
-                                    coefficient = cell.coefficient.let {
+                                    _coefficient = cell.coefficient.let {
                                         if (it.isInfinity()) {
                                             Flt64.decimalPrecision.reciprocal()
                                         } else if (it.isNegativeInfinity()) {
@@ -676,7 +692,7 @@ data class LinearTriadModel(
                 name = "$name-feasibility"
             ),
             tokenIndexMap = tokenIndexMap,
-            objective = LinearObjective(this.objective.category, objective)
+            objective = LinearObjective(ObjectCategory.Minimum, objective)
         )
     }
 

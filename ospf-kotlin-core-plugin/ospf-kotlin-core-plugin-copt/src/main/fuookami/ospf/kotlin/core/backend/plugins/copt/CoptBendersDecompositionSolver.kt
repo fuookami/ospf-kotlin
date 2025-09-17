@@ -167,6 +167,7 @@ class CoptBendersDecompositionSolver(
                 model.export("$name.lp", ModelFileFormat.LP)
             })
         }
+
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
         val solver = CoptLinearSolver(
@@ -253,6 +254,7 @@ class CoptBendersDecompositionSolver(
                 model.export("$name.lp", ModelFileFormat.LP)
             })
         }
+
         lateinit var dualSolution: List<Flt64>
         lateinit var farkasSolution: List<Flt64>
         val solver = CoptQuadraticSolver(
