@@ -4,6 +4,7 @@ import java.util.*
 import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -214,12 +215,45 @@ class ScipColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                if (abs(dualSolution.sum() - result.value.obj) gr Flt64(1e-6)) {
+                    // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                    when (val result = solveDual(model)) {
+                        is Ok -> {
+                            dualSolution = result.value
+                        }
+
+                        is Failed -> {
+                            jobs.joinAll()
+                            return Failed(result.error)
+                        }
+                    }
+                }
                 jobs.joinAll()
                 Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
             }
 
             is Failed -> {
                 jobs.joinAll()
+                Failed(result.error)
+            }
+        }
+    }
+
+    private suspend fun solveDual(
+        model: LinearTriadModel
+    ): Ret<Solution> {
+        val dualModel = model.normalize().dual()
+
+        val solver = ScipLinearSolver(
+            config = config
+        )
+
+        return when (val result = solver(dualModel)) {
+            is Ok -> {
+                Ok(result.value.solution)
+            }
+
+            is Failed -> {
                 Failed(result.error)
             }
         }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
@@ -207,6 +208,19 @@ class ScipBendersDecompositionSolver(
                 metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
+                if (abs(dualSolution.withIndex().sumOf { (i, value) -> model.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                    // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                    when (val result = solveDual(model)) {
+                        is Ok -> {
+                            dualSolution = result.value
+                        }
+
+                        is Failed -> {
+                            jobs.joinAll()
+                            return Failed(result.error)
+                        }
+                    }
+                }
                 jobs.joinAll()
                 Ok(BendersDecompositionSolver.LinearFeasibleResult(
                     result.value,
@@ -307,6 +321,19 @@ class ScipBendersDecompositionSolver(
                 metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
+                if (abs(dualSolution.withIndex().sumOf { (i, value) -> model.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                    // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                    when (val result = solveDual(model)) {
+                        is Ok -> {
+                            dualSolution = result.value
+                        }
+
+                        is Failed -> {
+                            jobs.joinAll()
+                            return Failed(result.error)
+                        }
+                    }
+                }
                 jobs.joinAll()
                 val cuts = when (val result = mechanismModel.generateOptimalCut(result.value.obj, objectVariable, fixedVariables, dualSolution)) {
                     is Ok -> {
@@ -349,6 +376,41 @@ class ScipBendersDecompositionSolver(
         }
     }
 
+
+    private suspend fun solveDual(
+        model: LinearTriadModel
+    ): Ret<Solution> {
+        val dualModel = model.normalize().dual()
+
+        val solver = ScipLinearSolver(config)
+        return when (val result = solver(dualModel)) {
+            is Ok -> {
+                Ok(result.value.solution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+        }
+    }
+
+    private suspend fun solveDual(
+        model: QuadraticTetradModel
+    ): Ret<Solution> {
+        val dualModel = model.normalize().dual()
+
+        val solver = ScipQuadraticSolver(config)
+        return when (val result = solver(dualModel)) {
+            is Ok -> {
+                Ok(result.value.solution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+        }
+    }
+
     private suspend fun solveFeasibilityProblem(
         model: LinearTriadModel
     ): Ret<Solution> {
@@ -375,6 +437,18 @@ class ScipBendersDecompositionSolver(
 
         return when (val result = solver(feasibilityModel)) {
             is Ok -> {
+                if (abs(dualSolution.withIndex().sumOf { (i, value) -> feasibilityModel.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                    // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                    when (val result = solveDual(feasibilityModel)) {
+                        is Ok -> {
+                            dualSolution = result.value
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                }
                 Ok(dualSolution)
             }
 
@@ -410,6 +484,18 @@ class ScipBendersDecompositionSolver(
 
         return when (val result = solver(feasibilityModel)) {
             is Ok -> {
+                if (abs(dualSolution.withIndex().sumOf { (i, value) -> feasibilityModel.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                    // sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                    when (val result = solveDual(feasibilityModel)) {
+                        is Ok -> {
+                            dualSolution = result.value
+                        }
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+                    }
+                }
                 Ok(dualSolution)
             }
 

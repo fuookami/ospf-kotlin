@@ -82,7 +82,7 @@ class BasicLinearTriadModel(
 
     fun normalize() {
         for (variable in variables) {
-            if (!(variable.lowerBound.isNegativeInfinity() || (variable.lowerBound eq Flt64.zero))) {
+            if (!(variable.lowerBound.isNegativeInfinity() || variable.lowerBound leq -Flt64.decimalPrecision.reciprocal() || variable.lowerBound eq Flt64.zero)) {
                 constraints._lhs.add(
                     listOf(
                         LinearConstraintCell(
@@ -97,7 +97,7 @@ class BasicLinearTriadModel(
                 constraints._names.add("${variable.name}_lb")
                 variable._lowerBound = Flt64.negativeInfinity
             }
-            if (!(variable.upperBound.isInfinity() || (variable.upperBound eq Flt64.zero))) {
+            if (!(variable.upperBound.isInfinity() || variable.upperBound geq Flt64.decimalPrecision.reciprocal() || variable.upperBound eq Flt64.zero)) {
                 constraints._lhs.add(
                     listOf(
                         LinearConstraintCell(
@@ -512,11 +512,13 @@ data class LinearTriadModel(
             var upperBound = Flt64.infinity
             when (this.constraints.signs[it]) {
                 Sign.LessEqual -> {
-                    upperBound = Flt64.zero
+                    // ≤ => y ≥ 0
+                    lowerBound = Flt64.zero
                 }
 
                 Sign.GreaterEqual -> {
-                    lowerBound = Flt64.zero
+                    // ≥ => y ≤ 0
+                    upperBound = Flt64.zero
                 }
 
                 else -> {}
@@ -533,7 +535,7 @@ data class LinearTriadModel(
         }
 
         val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex }
-        val coefficients = this.constraints.indices.map {
+        val coefficients = this@LinearTriadModel.variables.indices.map {
             cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
         }
         val lhs = coroutineScope {
@@ -543,7 +545,15 @@ data class LinearTriadModel(
                         LinearConstraintCell(
                             it,
                             cell.first,
-                            cell.second
+                            when (this@LinearTriadModel.constraints.signs[cell.first]) {
+                                Sign.LessEqual, Sign.Equal -> {
+                                    cell.second
+                                }
+
+                                Sign.GreaterEqual -> {
+                                    -cell.second
+                                }
+                            }
                         )
                     }
                 }
@@ -551,22 +561,31 @@ data class LinearTriadModel(
             constraintPromises.awaitAll()
         }
         val signs = this.variables.map {
-            if (it.lowerBound.isNegativeInfinity() && it.upperBound.isInfinity()) {
+            if ((it.lowerBound.isNegativeInfinity() || it.lowerBound leq -Flt64.decimalPrecision.reciprocal()) && (it.upperBound.isInfinity() || it.upperBound geq Flt64.decimalPrecision.reciprocal())) {
                 Sign.Equal
-            } else if (it.lowerBound.isNegativeInfinity()) {
-                Sign.GreaterEqual
-            } else if (it.upperBound.isInfinity()) {
+            } else if (it.lowerBound.isNegativeInfinity() || it.lowerBound leq -Flt64.decimalPrecision.reciprocal()) {
+                // ≤ 0
                 Sign.LessEqual
+            } else if (it.upperBound.isInfinity() || it.upperBound geq Flt64.decimalPrecision.reciprocal()) {
+                // ≥ 0
+                Sign.GreaterEqual
             } else {
                 Sign.Equal
             }
         }
-        val rhs = this.variables.map { this.objective.obj[it.index].coefficient }
+        val rhs = this.variables.map { col -> this.objective.obj.find { it.colIndex == col.index }?.coefficient ?: Flt64.zero }
         val names = this.variables.map { "${it.name}_dual" }
-        val objective = this.constraints.indices.map {
+        val objective = constraints.indices.map {
             LinearObjectiveCell(
                 it,
-                this.constraints.rhs[it]
+                when (this.constraints.signs[it]) {
+                    Sign.LessEqual, Sign.Equal -> {
+                        this.constraints.rhs[it]
+                    }
+                    Sign.GreaterEqual -> {
+                        -this.constraints.rhs[it]
+                    }
+                }
             )
         }
 
@@ -687,7 +706,7 @@ data class LinearTriadModel(
 
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
-                variables = this.variables + slackVariables + artifactVariables,
+                variables = this.variables + (slackVariables + artifactVariables).sortedBy { it.index },
                 constraints = constraints,
                 name = "$name-feasibility"
             ),

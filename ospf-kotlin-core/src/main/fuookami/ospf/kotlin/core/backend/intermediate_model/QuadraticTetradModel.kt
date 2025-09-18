@@ -611,6 +611,10 @@ data class QuadraticTetradModel(
         return this
     }
 
+    fun dual(): QuadraticTetradModel {
+        TODO("not implemented yet")
+    }
+
     fun feasibility(): QuadraticTetradModel {
         assert(normalized())
         var colIndex = this.variables.size
@@ -722,7 +726,7 @@ data class QuadraticTetradModel(
 
         return QuadraticTetradModel(
             impl = BasicQuadraticTetradModel(
-                variables = this.variables + slackVariables + artifactVariables,
+                variables = this.variables + (slackVariables + artifactVariables).sortedBy { it.index },
                 constraints = constraints,
                 name = "$name-feasibility"
             ),
