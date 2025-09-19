@@ -32,11 +32,13 @@ class Variable(
     override fun toString() = name
 }
 
-interface Cell {
+interface Cell<Self: Cell<Self>> {
     val coefficient: Flt64
+
+    operator fun unaryMinus(): Self
 }
 
-interface ConstraintCell : Cell {
+interface ConstraintCell<Self: ConstraintCell<Self>> : Cell<Self> {
     val rowIndex: Int
 }
 
@@ -46,7 +48,7 @@ class Constraint<Cell>(
     rhs: List<Flt64>,
     names: List<String>
 ) : Cloneable, Copyable<Constraint<Cell>>
-        where Cell : ConstraintCell, Cell : Copyable<Cell> {
+        where Cell : ConstraintCell<Cell>, Cell : Copyable<Cell> {
     internal val _lhs = lhs.toMutableList()
     internal val _signs = signs.toMutableList()
     internal val _rhs = rhs.toMutableList()
@@ -80,7 +82,7 @@ class Objective<Cell : Copyable<Cell>>(
 }
 
 interface BasicModelView<ConCell>
-        where ConCell : ConstraintCell, ConCell : Copyable<ConCell> {
+        where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell> {
     val variables: List<Variable>
     val constraints: Constraint<ConCell>
     val name: String
@@ -109,7 +111,7 @@ interface BasicModelView<ConCell>
 }
 
 interface ModelView<ConCell, ObjCell>
-        where ConCell : ConstraintCell, ConCell : Copyable<ConCell>, ObjCell : Cell, ObjCell : Copyable<ObjCell> {
+        where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell>, ObjCell : Cell<ObjCell>, ObjCell : Copyable<ObjCell> {
     val variables: List<Variable>
     val constraints: Constraint<ConCell>
     val objective: Objective<ObjCell>

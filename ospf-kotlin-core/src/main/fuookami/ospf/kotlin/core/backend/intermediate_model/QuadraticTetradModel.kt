@@ -17,8 +17,12 @@ data class QuadraticConstraintCell(
     val colIndex1: Int,
     val colIndex2: Int?,
     internal var _coefficient: Flt64
-) : ConstraintCell, Cloneable, Copyable<QuadraticConstraintCell> {
+) : ConstraintCell<QuadraticConstraintCell>, Cloneable, Copyable<QuadraticConstraintCell> {
     override val coefficient by ::_coefficient
+
+    override fun unaryMinus(): QuadraticConstraintCell {
+        return QuadraticConstraintCell(rowIndex, colIndex1, colIndex2, -coefficient)
+    }
 
     override fun copy() = QuadraticConstraintCell(rowIndex, colIndex1, colIndex2, coefficient.copy())
     override fun clone() = copy()
@@ -30,8 +34,12 @@ data class QuadraticObjectiveCell(
     val colIndex1: Int,
     val colIndex2: Int?,
     internal var _coefficient: Flt64
-) : Cell, Cloneable, Copyable<QuadraticObjectiveCell> {
+) : Cell<QuadraticObjectiveCell>, Cloneable, Copyable<QuadraticObjectiveCell> {
     override val coefficient by ::_coefficient
+
+    override fun unaryMinus(): QuadraticObjectiveCell {
+        return QuadraticObjectiveCell(colIndex1, colIndex2, -coefficient)
+    }
 
     override fun copy() = QuadraticObjectiveCell(colIndex1, colIndex2, coefficient.copy())
     override fun clone() = copy()
@@ -112,15 +120,6 @@ class BasicQuadraticTetradModel(
                 constraints._rhs.add(variable.upperBound)
                 constraints._names.add("${variable.name}_ub")
                 variable._upperBound = Flt64.infinity
-            }
-        }
-        for (i in constraints.indices) {
-            if (constraints.rhs[i] ls Flt64.zero) {
-                constraints._rhs[i] = -constraints.rhs[i]
-                constraints._signs[i] = constraints.signs[i].reverse
-                for (cell in constraints._lhs[i]) {
-                    cell._coefficient = -cell.coefficient
-                }
             }
         }
     }
@@ -622,7 +621,11 @@ data class QuadraticTetradModel(
         val artifactVariables = ArrayList<Variable>()
         val constraints = QuadraticConstraint(
             lhs = this.constraints.indices.map {
-                when (this.constraints.signs[it]) {
+                when (if (this.constraints.rhs[it] ls Flt64.zero) {
+                    this.constraints.signs[it].reverse
+                } else {
+                    this.constraints.signs[it]
+                }) {
                     Sign.LessEqual -> {
                         val slack = Variable(
                             colIndex,
@@ -635,7 +638,11 @@ data class QuadraticTetradModel(
                         colIndex += 1
 
                         slackVariables.add(slack)
-                        this.constraints.lhs[it] + listOf(
+                        if (this.constraints.rhs[it] ls Flt64.zero) {
+                            this.constraints.lhs[it].map { cell -> -cell }
+                        } else {
+                            this.constraints.lhs[it]
+                        } + listOf(
                             QuadraticConstraintCell(
                                 it,
                                 slack.index,
@@ -667,7 +674,11 @@ data class QuadraticTetradModel(
 
                         slackVariables.add(slack)
                         artifactVariables.add(artifact)
-                        this.constraints.lhs[it] + listOf(
+                        if (this.constraints.rhs[it] ls Flt64.zero) {
+                            this.constraints.lhs[it].map { cell -> -cell }
+                        } else {
+                            this.constraints.lhs[it]
+                        } + listOf(
                             QuadraticConstraintCell(
                                 it,
                                 slack.index,
@@ -695,7 +706,11 @@ data class QuadraticTetradModel(
                         colIndex += 1
 
                         artifactVariables.add(artifact)
-                        this.constraints.lhs[it] + listOf(
+                        if (this.constraints.rhs[it] ls Flt64.zero) {
+                            this.constraints.lhs[it].map { cell -> -cell }
+                        } else {
+                            this.constraints.lhs[it]
+                        } + listOf(
                             QuadraticConstraintCell(
                                 it,
                                 artifact.index,

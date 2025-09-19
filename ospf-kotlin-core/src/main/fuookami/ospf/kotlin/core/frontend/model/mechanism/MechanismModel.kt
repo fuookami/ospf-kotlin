@@ -291,7 +291,15 @@ class LinearMechanismModel(
             }
         }
         val rhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
-        return listOf((objectVariable geq rhs).normalize())
+        return when (this.objectFunction.category) {
+            ObjectCategory.Maximum -> {
+                listOf((objectVariable leq rhs).normalize())
+            }
+
+            ObjectCategory.Minimum -> {
+                listOf((objectVariable geq rhs).normalize())
+            }
+        }
     }
 
     fun generateFeasibleCut(

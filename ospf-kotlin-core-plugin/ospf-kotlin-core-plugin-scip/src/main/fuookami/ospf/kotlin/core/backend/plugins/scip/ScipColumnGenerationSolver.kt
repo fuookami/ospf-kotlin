@@ -215,7 +215,10 @@ class ScipColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
-                if (abs(dualSolution.sum() - result.value.obj) gr Flt64(1e-6)) {
+                val dualObject = dualSolution.withIndex().sumOf { (i, value) ->
+                    model.constraints.rhs[i] * value
+                }
+                if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                     // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
                     when (val result = solveDual(model)) {
                         is Ok -> {

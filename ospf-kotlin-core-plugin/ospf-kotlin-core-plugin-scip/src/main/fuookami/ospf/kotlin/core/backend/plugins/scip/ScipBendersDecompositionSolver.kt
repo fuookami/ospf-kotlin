@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
@@ -208,7 +209,10 @@ class ScipBendersDecompositionSolver(
                 metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
-                if (abs(dualSolution.withIndex().sumOf { (i, value) -> model.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                val dualObject = dualSolution.withIndex().sumOf { (i, value) ->
+                    model.constraints.rhs[i] * value
+                }
+                if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                     // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
                     when (val result = solveDual(model)) {
                         is Ok -> {
@@ -321,7 +325,10 @@ class ScipBendersDecompositionSolver(
                 metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
-                if (abs(dualSolution.withIndex().sumOf { (i, value) -> model.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                val dualObject = dualSolution.withIndex().sumOf { (i, value) ->
+                    model.constraints.rhs[i] * value
+                }
+                if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                     // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
                     when (val result = solveDual(model)) {
                         is Ok -> {
@@ -437,7 +444,10 @@ class ScipBendersDecompositionSolver(
 
         return when (val result = solver(feasibilityModel)) {
             is Ok -> {
-                if (abs(dualSolution.withIndex().sumOf { (i, value) -> feasibilityModel.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                val dualObject = dualSolution.withIndex().sumOf { (i, value) ->
+                    feasibilityModel.constraints.rhs[i] * value
+                }
+                if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                     // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
                     when (val result = solveDual(feasibilityModel)) {
                         is Ok -> {
@@ -484,7 +494,10 @@ class ScipBendersDecompositionSolver(
 
         return when (val result = solver(feasibilityModel)) {
             is Ok -> {
-                if (abs(dualSolution.withIndex().sumOf { (i, value) -> feasibilityModel.constraints.rhs[i] * value } - result.value.obj) gr Flt64(1e-6)) {
+                val dualObject = dualSolution.withIndex().sumOf { (i, value) ->
+                    feasibilityModel.constraints.rhs[i] * value
+                }
+                if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                     // sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
                     when (val result = solveDual(feasibilityModel)) {
                         is Ok -> {
