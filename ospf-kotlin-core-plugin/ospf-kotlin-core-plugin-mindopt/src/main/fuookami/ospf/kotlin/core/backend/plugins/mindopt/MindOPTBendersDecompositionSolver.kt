@@ -202,20 +202,33 @@ class MindOPTBendersDecompositionSolver(
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
-                Ok(BendersDecompositionSolver.LinearFeasibleResult(
-                    result.value,
-                    dualSolution,
-                    mechanismModel.generateOptimalCut(objectVariable, fixedVariables, dualSolution)
-                ))
+                Ok(
+                    BendersDecompositionSolver.LinearFeasibleResult(
+                        result = result.value,
+                        dualSolution = dualSolution,
+                        cuts = mechanismModel.generateOptimalCut(
+                            constants = Flt64.zero,
+                            objectVariable = objectVariable,
+                            fixedVariables = fixedVariables,
+                            dualSolution = dualSolution
+                        )
+                    )
+                )
             }
 
             is Failed -> {
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    Ok(BendersDecompositionSolver.LinearInfeasibleResult(
-                        farkasSolution,
-                        mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)
-                    ))
+                    Ok(
+                        BendersDecompositionSolver.LinearInfeasibleResult(
+                            farkasDualSolution = farkasSolution,
+                            cuts = mechanismModel.generateFeasibleCut(
+                                constants = Flt64.zero,
+                                fixedVariables = fixedVariables,
+                                farkasDualSolution = farkasSolution
+                            )
+                        )
+                    )
                 } else {
                     Failed(result.error)
                 }
@@ -295,7 +308,13 @@ class MindOPTBendersDecompositionSolver(
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
-                val cuts = when (val result = mechanismModel.generateOptimalCut(result.value.obj, objectVariable, fixedVariables, dualSolution)) {
+                val cuts = when (val result = mechanismModel.generateOptimalCut(
+                    constants = Flt64.zero,
+                    objective = result.value.obj,
+                    objectVariable = objectVariable,
+                    fixedVariables = fixedVariables,
+                    dualSolution = dualSolution
+                )) {
                     is Ok -> {
                         result.value
                     }
@@ -304,18 +323,24 @@ class MindOPTBendersDecompositionSolver(
                         return Failed(result.error)
                     }
                 }
-                Ok(BendersDecompositionSolver.QuadraticFeasibleResult(
-                    result.value,
-                    dualSolution,
-                    cuts.filterIsInstance<LinearInequality>(),
-                    cuts.filterIsInstance<QuadraticInequality>()
-                ))
+                Ok(
+                    BendersDecompositionSolver.QuadraticFeasibleResult(
+                        result = result.value,
+                        dualSolution = dualSolution,
+                        linearCuts = cuts.filterIsInstance<LinearInequality>(),
+                        quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                    )
+                )
             }
 
             is Failed -> {
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    val cuts = when (val result = mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)) {
+                    val cuts = when (val result = mechanismModel.generateFeasibleCut(
+                        constants = Flt64.zero,
+                        fixedVariables = fixedVariables,
+                        farkasDualSolution = farkasSolution
+                    )) {
                         is Ok -> {
                             result.value
                         }
@@ -324,11 +349,13 @@ class MindOPTBendersDecompositionSolver(
                             return Failed(result.error)
                         }
                     }
-                    Ok(BendersDecompositionSolver.QuadraticInfeasibleResult(
-                        farkasSolution,
-                        cuts.filterIsInstance<LinearInequality>(),
-                        cuts.filterIsInstance<QuadraticInequality>()
-                    ))
+                    Ok(
+                        BendersDecompositionSolver.QuadraticInfeasibleResult(
+                            farkasDualSolution = farkasSolution,
+                            linearCuts = cuts.filterIsInstance<LinearInequality>(),
+                            quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                        )
+                    )
                 } else {
                     Failed(result.error)
                 }

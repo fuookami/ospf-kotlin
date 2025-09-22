@@ -12,12 +12,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 
-data class QuadraticConstraintCell(
+class QuadraticConstraintCell(
     override val rowIndex: Int,
     val colIndex1: Int,
     val colIndex2: Int?,
-    internal var _coefficient: Flt64
+    coefficient: Flt64
 ) : ConstraintCell<QuadraticConstraintCell>, Cloneable, Copyable<QuadraticConstraintCell> {
+    internal var _coefficient = coefficient
     override val coefficient by ::_coefficient
 
     override fun unaryMinus(): QuadraticConstraintCell {
@@ -30,11 +31,12 @@ data class QuadraticConstraintCell(
 
 typealias QuadraticConstraint = Constraint<QuadraticConstraintCell>
 
-data class QuadraticObjectiveCell(
+class QuadraticObjectiveCell(
     val colIndex1: Int,
     val colIndex2: Int?,
-    internal var _coefficient: Flt64
+    coefficient: Flt64
 ) : Cell<QuadraticObjectiveCell>, Cloneable, Copyable<QuadraticObjectiveCell> {
+    internal var _coefficient = coefficient
     override val coefficient by ::_coefficient
 
     override fun unaryMinus(): QuadraticObjectiveCell {
@@ -93,10 +95,10 @@ class BasicQuadraticTetradModel(
                 constraints._lhs.add(
                     listOf(
                         QuadraticConstraintCell(
-                            constraints.size,
-                            variable.index,
-                            null,
-                            Flt64.one
+                            rowIndex = constraints.size,
+                            colIndex1 = variable.index,
+                            colIndex2 = null,
+                            coefficient = Flt64.one
                         )
                     )
                 )
@@ -109,10 +111,10 @@ class BasicQuadraticTetradModel(
                 constraints._lhs.add(
                     listOf(
                         QuadraticConstraintCell(
-                            constraints.size,
-                            variable.index,
-                            null,
-                            Flt64.one
+                            rowIndex = constraints.size,
+                            colIndex1 = variable.index,
+                            colIndex2 = null,
+                            coefficient = Flt64.one
                         )
                     )
                 )
@@ -301,10 +303,10 @@ data class QuadraticTetradModel(
                     if (tokenIndexes.containsKey(cell.token1) && (cell.token2 == null || tokenIndexes.containsKey(cell.token2))) {
                         lhs.add(
                             QuadraticConstraintCell(
-                                index,
-                                tokenIndexes[cell.token1]!!,
-                                cell.token2?.let { tokenIndexes[it]!! },
-                                cell.coefficient.let {
+                                rowIndex = index,
+                                colIndex1 = tokenIndexes[cell.token1]!!,
+                                colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
+                                coefficient = cell.coefficient.let {
                                     if (it.isInfinity()) {
                                         Flt64.decimalPrecision.reciprocal()
                                     } else if (it.isNegativeInfinity()) {
@@ -319,10 +321,10 @@ data class QuadraticTetradModel(
                         assert(cell.token2 != null)
                         lhs.add(
                             QuadraticConstraintCell(
-                                index,
-                                tokenIndexes[cell.token1]!!,
-                                null,
-                                cell.coefficient.let {
+                                rowIndex = index,
+                                colIndex1 = tokenIndexes[cell.token1]!!,
+                                colIndex2 = null,
+                                coefficient = cell.coefficient.let {
                                     if (it.isInfinity()) {
                                         Flt64.decimalPrecision.reciprocal()
                                     } else if (it.isNegativeInfinity()) {
@@ -337,10 +339,10 @@ data class QuadraticTetradModel(
                         assert(cell.token2 != null)
                         lhs.add(
                             QuadraticConstraintCell(
-                                index,
-                                tokenIndexes[cell.token2]!!,
-                                null,
-                                cell.coefficient.let {
+                                rowIndex = index,
+                                colIndex1 = tokenIndexes[cell.token2]!!,
+                                colIndex2 = null,
+                                coefficient = cell.coefficient.let {
                                     if (it.isInfinity()) {
                                         Flt64.decimalPrecision.reciprocal()
                                     } else if (it.isNegativeInfinity()) {
@@ -362,13 +364,15 @@ data class QuadraticTetradModel(
             val signs = ArrayList<Sign>()
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
+            val sources = ArrayList<ConstraintSource>()
             for ((index, constraint) in model.constraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
                 rhs.add(constraints[index].second)
                 names.add(constraint.name)
+                sources.add(ConstraintSource.Origin)
             }
-            return QuadraticConstraint(lhs, signs, rhs, names)
+            return QuadraticConstraint(lhs, signs, rhs, names, sources)
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -395,10 +399,10 @@ data class QuadraticTetradModel(
                                     if (tokenIndexes.containsKey(cell.token1) && (cell.token2 == null || tokenIndexes.containsKey(cell.token2))) {
                                         lhs.add(
                                             QuadraticConstraintCell(
-                                                i,
-                                                tokenIndexes[cell.token1]!!,
-                                                cell.token2?.let { token -> tokenIndexes[token]!! },
-                                                cell.coefficient.let { coefficient ->
+                                                rowIndex = i,
+                                                colIndex1 = tokenIndexes[cell.token1]!!,
+                                                colIndex2 = cell.token2?.let { token -> tokenIndexes[token]!! },
+                                                coefficient = cell.coefficient.let { coefficient ->
                                                     if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
                                                     } else if (coefficient.isNegativeInfinity()) {
@@ -413,10 +417,10 @@ data class QuadraticTetradModel(
                                         assert(cell.token2 != null)
                                         lhs.add(
                                             QuadraticConstraintCell(
-                                                i,
-                                                tokenIndexes[cell.token1]!!,
-                                                null,
-                                                cell.coefficient.let { coefficient ->
+                                                rowIndex = i,
+                                                colIndex1 = tokenIndexes[cell.token1]!!,
+                                                colIndex2 = null,
+                                                coefficient = cell.coefficient.let { coefficient ->
                                                     if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
                                                     } else if (coefficient.isNegativeInfinity()) {
@@ -431,10 +435,10 @@ data class QuadraticTetradModel(
                                         assert(cell.token2 != null)
                                         lhs.add(
                                             QuadraticConstraintCell(
-                                                i,
-                                                tokenIndexes[cell.token2]!!,
-                                                null,
-                                                cell.coefficient.let { coefficient ->
+                                                rowIndex = i,
+                                                colIndex1 = tokenIndexes[cell.token2]!!,
+                                                colIndex2 = null,
+                                                coefficient = cell.coefficient.let { coefficient ->
                                                     if (coefficient.isInfinity()) {
                                                         Flt64.decimalPrecision.reciprocal()
                                                     } else if (coefficient.isNegativeInfinity()) {
@@ -462,22 +466,24 @@ data class QuadraticTetradModel(
                     val signs = ArrayList<Sign>()
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
+                    val sources = ArrayList<ConstraintSource>()
                     for ((index, constraint) in model.constraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
                         signs.add(constraint.sign)
                         rhs.add(thisRhs)
                         names.add(constraint.name)
+                        sources.add(ConstraintSource.Origin)
                     }
                     System.gc()
-                    QuadraticConstraint(lhs, signs, rhs, names)
+                    QuadraticConstraint(lhs, signs, rhs, names, sources)
                 }
             } else {
                 val lhs = ArrayList<List<QuadraticConstraintCell>>()
                 val signs = ArrayList<Sign>()
                 val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
-
+                val sources = ArrayList<ConstraintSource>()
                 for ((index, constraint) in model.constraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
                     for (cell in constraint.lhs) {
@@ -486,7 +492,7 @@ data class QuadraticTetradModel(
                                 rowIndex = index,
                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                 colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
-                                _coefficient = cell.coefficient.let {
+                                coefficient = cell.coefficient.let {
                                     if (it.isInfinity()) {
                                         Flt64.decimalPrecision.reciprocal()
                                     } else if (it.isNegativeInfinity()) {
@@ -502,9 +508,10 @@ data class QuadraticTetradModel(
                     signs.add(constraint.sign)
                     rhs.add(constraint.rhs)
                     names.add(constraint.name)
+                    sources.add(ConstraintSource.Origin)
                 }
                 System.gc()
-                QuadraticConstraint(lhs, signs, rhs, names)
+                QuadraticConstraint(lhs, signs, rhs, names, sources)
             }
         }
 
@@ -574,9 +581,9 @@ data class QuadraticTetradModel(
                 for ((j, value) in coefficient[i]) {
                     objective.add(
                         QuadraticObjectiveCell(
-                            i,
-                            j,
-                            value.let {
+                            colIndex1 = i,
+                            colIndex2 = j,
+                            coefficient = value.let {
                                 if (it.isInfinity()) {
                                     Flt64.decimalPrecision.reciprocal()
                                 } else if (it.isNegativeInfinity()) {
@@ -610,11 +617,15 @@ data class QuadraticTetradModel(
         return this
     }
 
-    fun dual(): QuadraticTetradModel {
+    suspend fun dual(lambda: Flt64 = Flt64.zero): QuadraticTetradModel {
         TODO("not implemented yet")
     }
 
-    fun feasibility(): QuadraticTetradModel {
+    suspend fun farkasDual(): QuadraticTetradModel {
+        TODO("not implemented yet")
+    }
+
+    suspend fun feasibility(): QuadraticTetradModel {
         assert(normalized())
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
@@ -644,10 +655,10 @@ data class QuadraticTetradModel(
                             this.constraints.lhs[it]
                         } + listOf(
                             QuadraticConstraintCell(
-                                it,
-                                slack.index,
-                                null,
-                                Flt64.one
+                                rowIndex = it,
+                                colIndex1 = slack.index,
+                                colIndex2 = null,
+                                coefficient = Flt64.one
                             )
                         )
                     }
@@ -680,16 +691,16 @@ data class QuadraticTetradModel(
                             this.constraints.lhs[it]
                         } + listOf(
                             QuadraticConstraintCell(
-                                it,
-                                slack.index,
-                                null,
-                                -Flt64.one
+                                rowIndex = it,
+                                colIndex1 = slack.index,
+                                colIndex2 = null,
+                                coefficient = -Flt64.one
                             ),
                             QuadraticConstraintCell(
-                                it,
-                                artifact.index,
-                                null,
-                                Flt64.one
+                                rowIndex = it,
+                                colIndex1 = artifact.index,
+                                colIndex2 = null,
+                                coefficient = Flt64.one
                             )
                         )
                     }
@@ -712,10 +723,10 @@ data class QuadraticTetradModel(
                             this.constraints.lhs[it]
                         } + listOf(
                             QuadraticConstraintCell(
-                                it,
-                                artifact.index,
-                                null,
-                                Flt64.one
+                                rowIndex = it,
+                                colIndex1 = artifact.index,
+                                colIndex2 = null,
+                                coefficient = Flt64.one
                             )
                         )
                     }
@@ -729,13 +740,16 @@ data class QuadraticTetradModel(
             },
             names = this.constraints.indices.map {
                 this.constraints.names[it]
+            },
+            sources = this.constraints.indices.map {
+                ConstraintSource.Feasibility
             }
         )
         val objective = artifactVariables.map {
             QuadraticObjectiveCell(
-                it.index,
-                null,
-                Flt64.one
+                colIndex1 = it.index,
+                colIndex2 = null,
+                coefficient = Flt64.one
             )
         }
 

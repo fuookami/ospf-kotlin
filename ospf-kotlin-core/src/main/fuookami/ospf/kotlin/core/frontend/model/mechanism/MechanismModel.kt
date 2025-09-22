@@ -267,11 +267,12 @@ class LinearMechanismModel(
     }
 
     fun generateOptimalCut(
+        constants: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: Solution,
     ): List<LinearInequality> {
-        val constants = constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
+        val constants = constants + constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
             acc + dualSolution[i] * constraint.rhs
         }
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -303,11 +304,12 @@ class LinearMechanismModel(
     }
 
     fun generateFeasibleCut(
+        constants: Flt64,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: Solution,
     ): List<LinearInequality> {
         var value = Flt64.zero
-        var constants = Flt64.zero
+        var constants = constants
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
         for ((i, constraint) in constraints.withIndex()) {
             if (farkasDualSolution[i] eq Flt64.zero) {
@@ -561,6 +563,7 @@ class QuadraticMechanismModel(
     }
 
     fun generateOptimalCut(
+        constants: Flt64,
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -570,6 +573,7 @@ class QuadraticMechanismModel(
     }
 
     fun generateFeasibleCut(
+        constants: Flt64,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: Solution,
     ): Ret<List<Inequality<*, *>>> {

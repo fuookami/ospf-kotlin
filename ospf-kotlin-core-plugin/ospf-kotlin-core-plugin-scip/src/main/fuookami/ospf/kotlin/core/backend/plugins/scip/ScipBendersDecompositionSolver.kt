@@ -190,7 +190,16 @@ class ScipBendersDecompositionSolver(
                 }
                 .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        when (val result = solveFeasibilityProblem(model)) {
+//                        when (val result = solveFarkasByFeasibilityProblem(model)) {
+//                            is Ok -> {
+//                                farkasSolution = result.value
+//                            }
+//
+//                            is Failed -> {
+//                                return@afterFailure Failed(result.error)
+//                            }
+//                        }
+                        when (val result = solveFarkasDual(model)) {
                             is Ok -> {
                                 farkasSolution = result.value
                             }
@@ -226,20 +235,33 @@ class ScipBendersDecompositionSolver(
                     }
                 }
                 jobs.joinAll()
-                Ok(BendersDecompositionSolver.LinearFeasibleResult(
-                    result.value,
-                    dualSolution,
-                    mechanismModel.generateOptimalCut(objectVariable, fixedVariables, dualSolution)
-                ))
+                Ok(
+                    BendersDecompositionSolver.LinearFeasibleResult(
+                        result = result.value,
+                        dualSolution = dualSolution,
+                        cuts = mechanismModel.generateOptimalCut(
+                            constants = Flt64.zero,
+                            objectVariable = objectVariable,
+                            fixedVariables = fixedVariables,
+                            dualSolution = dualSolution
+                        )
+                    )
+                )
             }
 
             is Failed -> {
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    Ok(BendersDecompositionSolver.LinearInfeasibleResult(
-                        farkasSolution,
-                        mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)
-                    ))
+                    Ok(
+                        BendersDecompositionSolver.LinearInfeasibleResult(
+                            farkasDualSolution = farkasSolution,
+                            cuts = mechanismModel.generateFeasibleCut(
+                                constants = Flt64.zero,
+                                fixedVariables = fixedVariables,
+                                farkasDualSolution = farkasSolution
+                            )
+                        )
+                    )
                 } else {
                     Failed(result.error)
                 }
@@ -306,7 +328,16 @@ class ScipBendersDecompositionSolver(
                 }
                 .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        when (val result = solveFeasibilityProblem(model)) {
+//                        when (val result = solveFarkasByFeasibilityProblem(model)) {
+//                            is Ok -> {
+//                                farkasSolution = result.value
+//                            }
+//
+//                            is Failed -> {
+//                                return@afterFailure Failed(result.error)
+//                            }
+//                        }
+                        when (val result = solveFarkasDual(model)) {
                             is Ok -> {
                                 farkasSolution = result.value
                             }
@@ -342,7 +373,13 @@ class ScipBendersDecompositionSolver(
                     }
                 }
                 jobs.joinAll()
-                val cuts = when (val result = mechanismModel.generateOptimalCut(result.value.obj, objectVariable, fixedVariables, dualSolution)) {
+                val cuts = when (val result = mechanismModel.generateOptimalCut(
+                    constants = Flt64.zero,
+                    objective = result.value.obj,
+                    objectVariable = objectVariable,
+                    fixedVariables = fixedVariables,
+                    dualSolution = dualSolution
+                )) {
                     is Ok -> {
                         result.value
                     }
@@ -351,18 +388,24 @@ class ScipBendersDecompositionSolver(
                         return Failed(result.error)
                     }
                 }
-                Ok(BendersDecompositionSolver.QuadraticFeasibleResult(
-                    result.value,
-                    dualSolution,
-                    cuts.filterIsInstance<LinearInequality>(),
-                    cuts.filterIsInstance<QuadraticInequality>()
-                ))
+                Ok(
+                    BendersDecompositionSolver.QuadraticFeasibleResult(
+                        result = result.value,
+                        dualSolution = dualSolution,
+                        linearCuts = cuts.filterIsInstance<LinearInequality>(),
+                        quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                    )
+                )
             }
 
             is Failed -> {
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
-                    val cuts = when (val result = mechanismModel.generateFeasibleCut(fixedVariables, farkasSolution)) {
+                    val cuts = when (val result = mechanismModel.generateFeasibleCut(
+                        constants = Flt64.zero,
+                        fixedVariables = fixedVariables,
+                        farkasDualSolution = farkasSolution
+                    )) {
                         is Ok -> {
                             result.value
                         }
@@ -371,11 +414,13 @@ class ScipBendersDecompositionSolver(
                             return Failed(result.error)
                         }
                     }
-                    Ok(BendersDecompositionSolver.QuadraticInfeasibleResult(
-                        farkasSolution,
-                        cuts.filterIsInstance<LinearInequality>(),
-                        cuts.filterIsInstance<QuadraticInequality>()
-                    ))
+                    Ok(
+                        BendersDecompositionSolver.QuadraticInfeasibleResult(
+                            farkasDualSolution = farkasSolution,
+                            linearCuts = cuts.filterIsInstance<LinearInequality>(),
+                            quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                        )
+                    )
                 } else {
                     Failed(result.error)
                 }
@@ -383,11 +428,10 @@ class ScipBendersDecompositionSolver(
         }
     }
 
-
     private suspend fun solveDual(
         model: LinearTriadModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().dual()
+        val dualModel = model.normalize().dual(Flt64(1e-6))
 
         val solver = ScipLinearSolver(config)
         return when (val result = solver(dualModel)) {
@@ -404,7 +448,7 @@ class ScipBendersDecompositionSolver(
     private suspend fun solveDual(
         model: QuadraticTetradModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().dual()
+        val dualModel = model.normalize().dual(Flt64(1e-6))
 
         val solver = ScipQuadraticSolver(config)
         return when (val result = solver(dualModel)) {
@@ -418,7 +462,41 @@ class ScipBendersDecompositionSolver(
         }
     }
 
-    private suspend fun solveFeasibilityProblem(
+    private suspend fun solveFarkasDual(
+        model: LinearTriadModel
+    ): Ret<Solution> {
+        val dualModel = model.normalize().farkasDual()
+
+        val solver = ScipLinearSolver(config)
+        return when (val result = solver(dualModel)) {
+            is Ok -> {
+                Ok(result.value.solution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+        }
+    }
+
+    private suspend fun solveFarkasDual(
+        model: QuadraticTetradModel
+    ): Ret<Solution> {
+        val dualModel = model.normalize().farkasDual()
+
+        val solver = ScipQuadraticSolver(config)
+        return when (val result = solver(dualModel)) {
+            is Ok -> {
+                Ok(result.value.solution)
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+        }
+    }
+
+    private suspend fun solveFarkasByFeasibilityProblem(
         model: LinearTriadModel
     ): Ret<Solution> {
         val feasibilityModel = model.normalize().feasibility()
@@ -459,7 +537,17 @@ class ScipBendersDecompositionSolver(
                         }
                     }
                 }
-                Ok(dualSolution)
+                Ok(model.constraints.indices.map {
+                    when (model.constraints.signs[it]) {
+                        Sign.LessEqual, Sign.Equal -> {
+                            dualSolution[it]
+                        }
+
+                        Sign.GreaterEqual -> {
+                            dualSolution[it]
+                        }
+                    }
+                })
             }
 
             is Failed -> {
@@ -468,7 +556,7 @@ class ScipBendersDecompositionSolver(
         }
     }
 
-    private suspend fun solveFeasibilityProblem(
+    private suspend fun solveFarkasByFeasibilityProblem(
         model: QuadraticTetradModel
     ): Ret<Solution> {
         val feasibilityModel = model.normalize().feasibility()
@@ -509,7 +597,17 @@ class ScipBendersDecompositionSolver(
                         }
                     }
                 }
-                Ok(dualSolution)
+                Ok(model.constraints.indices.map {
+                    when (model.constraints.signs[it]) {
+                        Sign.LessEqual, Sign.Equal -> {
+                            dualSolution[it]
+                        }
+
+                        Sign.GreaterEqual -> {
+                            dualSolution[it]
+                        }
+                    }
+                })
             }
 
             is Failed -> {

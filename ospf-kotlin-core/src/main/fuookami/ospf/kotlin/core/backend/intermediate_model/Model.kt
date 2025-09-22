@@ -42,22 +42,34 @@ interface ConstraintCell<Self: ConstraintCell<Self>> : Cell<Self> {
     val rowIndex: Int
 }
 
+enum class ConstraintSource {
+    Origin,
+    Dual,
+    FarkasDual,
+    Feasibility,
+    NormalizationLowerBound,
+    NormalizationUpperBound
+}
+
 class Constraint<Cell>(
     lhs: List<List<Cell>>,
     signs: List<Sign>,
     rhs: List<Flt64>,
-    names: List<String>
+    names: List<String>,
+    sources: List<ConstraintSource>
 ) : Cloneable, Copyable<Constraint<Cell>>
         where Cell : ConstraintCell<Cell>, Cell : Copyable<Cell> {
     internal val _lhs = lhs.toMutableList()
     internal val _signs = signs.toMutableList()
     internal val _rhs = rhs.toMutableList()
     internal val _names = names.toMutableList()
+    internal val _sources = sources.toMutableList()
 
     val lhs: List<List<Cell>> by ::_lhs
     val signs: List<Sign> by ::_signs
     val rhs: List<Flt64> by ::_rhs
     val names: List<String> by ::_names
+    val sources: List<ConstraintSource> by ::_sources
 
     val size: Int get() = rhs.size
     val indices: IntRange get() = rhs.indices
@@ -66,7 +78,8 @@ class Constraint<Cell>(
         lhs.map { line -> line.map { it.copy() } },
         signs.toList(),
         rhs.map { it.copy() },
-        names.toList()
+        names.toList(),
+        sources.toList()
     )
 
     override fun clone() = copy()
