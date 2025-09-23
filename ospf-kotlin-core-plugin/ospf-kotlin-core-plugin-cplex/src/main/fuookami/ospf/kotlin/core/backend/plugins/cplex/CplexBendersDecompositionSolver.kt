@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
@@ -185,7 +186,7 @@ class CplexBendersDecompositionSolver(
                 }
                 .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        when (val result = solveFeasibilityProblem(model)) {
+                        when (val result = solveFarkasDual(model)) {
                             is Ok -> {
                                 farkasSolution = result.value
                             }
@@ -210,7 +211,6 @@ class CplexBendersDecompositionSolver(
                         result = result.value,
                         dualSolution = dualSolution,
                         cuts = mechanismModel.generateOptimalCut(
-                            constants = Flt64.zero,
                             objectVariable = objectVariable,
                             fixedVariables = fixedVariables,
                             dualSolution = dualSolution
@@ -226,7 +226,6 @@ class CplexBendersDecompositionSolver(
                         BendersDecompositionSolver.LinearInfeasibleResult(
                             farkasDualSolution = farkasSolution,
                             cuts = mechanismModel.generateFeasibleCut(
-                                constants = Flt64.zero,
                                 fixedVariables = fixedVariables,
                                 farkasDualSolution = farkasSolution
                             )
@@ -295,7 +294,7 @@ class CplexBendersDecompositionSolver(
                 }
                 .afterFailure { status, _, _, _ ->
                     if (status == SolverStatus.Infeasible) {
-                        when (val result = solveFeasibilityProblem(model)) {
+                        when (val result = solveFarkasDual(model)) {
                             is Ok -> {
                                 farkasSolution = result.value
                             }
@@ -316,7 +315,6 @@ class CplexBendersDecompositionSolver(
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
                 val cuts = when (val result = mechanismModel.generateOptimalCut(
-                    constants = Flt64.zero,
                     objective = result.value.obj,
                     objectVariable = objectVariable,
                     fixedVariables = fixedVariables,
@@ -344,7 +342,6 @@ class CplexBendersDecompositionSolver(
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
                     val cuts = when (val result = mechanismModel.generateFeasibleCut(
-                        constants = Flt64.zero,
                         fixedVariables = fixedVariables,
                         farkasDualSolution = farkasSolution
                     )) {
@@ -370,30 +367,25 @@ class CplexBendersDecompositionSolver(
         }
     }
 
-    private suspend fun solveFeasibilityProblem(
+    private suspend fun solveFarkasDual(
         model: LinearTriadModel
     ): Ret<Solution> {
-        val feasibilityModel = model.normalize().feasibility()
+        val dualModel = model.normalize().farkasDual()
 
-        lateinit var dualSolution: Solution
-        val solver = CplexLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, cplex, _, _ ->
-                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                    ok
-                }
-                .analyzingSolution { _, cplex, _, constraints ->
-                    dualSolution = constraints.map {
-                        Flt64(cplex.getDual(it))
-                    }
-                    ok
-                }
-        )
-
-        return when (val result = solver(feasibilityModel)) {
+        val solver = CplexLinearSolver(config)
+        return when (val result = solver(dualModel)) {
             is Ok -> {
-                Ok(dualSolution)
+                Ok(model.constraints.indices.map {
+                    when (model.constraints.signs[it]) {
+                        Sign.LessEqual, Sign.Equal -> {
+                            result.value.solution[it]
+                        }
+
+                        Sign.GreaterEqual -> {
+                            -result.value.solution[it]
+                        }
+                    }
+                })
             }
 
             is Failed -> {
@@ -402,30 +394,25 @@ class CplexBendersDecompositionSolver(
         }
     }
 
-    private suspend fun solveFeasibilityProblem(
+    private suspend fun solveFarkasDual(
         model: QuadraticTetradModel
     ): Ret<Solution> {
-        val feasibilityModel = model.normalize().feasibility()
+        val dualModel = model.normalize().farkasDual()
 
-        lateinit var dualSolution: Solution
-        val solver = CplexQuadraticSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, cplex, _, _ ->
-                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                    ok
-                }
-                .analyzingSolution { _, cplex, _, constraints ->
-                    dualSolution = constraints.map {
-                        Flt64(cplex.getDual(it))
-                    }
-                    ok
-                }
-        )
-
-        return when (val result = solver(feasibilityModel)) {
+        val solver = CplexQuadraticSolver(config)
+        return when (val result = solver(dualModel)) {
             is Ok -> {
-                Ok(dualSolution)
+                Ok(model.constraints.indices.map {
+                    when (model.constraints.signs[it]) {
+                        Sign.LessEqual, Sign.Equal -> {
+                            result.value.solution[it]
+                        }
+
+                        Sign.GreaterEqual -> {
+                            -result.value.solution[it]
+                        }
+                    }
+                })
             }
 
             is Failed -> {

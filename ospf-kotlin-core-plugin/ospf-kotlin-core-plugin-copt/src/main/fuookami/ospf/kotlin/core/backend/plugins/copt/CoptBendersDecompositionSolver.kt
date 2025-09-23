@@ -200,7 +200,6 @@ class CoptBendersDecompositionSolver(
                         result = result.value,
                         dualSolution = dualSolution,
                         cuts = mechanismModel.generateOptimalCut(
-                            constants = Flt64.zero,
                             objectVariable = objectVariable,
                             fixedVariables = fixedVariables,
                             dualSolution = dualSolution
@@ -216,7 +215,6 @@ class CoptBendersDecompositionSolver(
                         BendersDecompositionSolver.LinearInfeasibleResult(
                             farkasDualSolution = farkasSolution,
                             cuts = mechanismModel.generateFeasibleCut(
-                                constants = Flt64.zero,
                                 fixedVariables = fixedVariables,
                                 farkasDualSolution = farkasSolution
                             )
@@ -296,7 +294,6 @@ class CoptBendersDecompositionSolver(
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
                 val cuts = when (val result = mechanismModel.generateOptimalCut(
-                    constants = Flt64.zero,
                     objective = result.value.obj,
                     objectVariable = objectVariable,
                     fixedVariables = fixedVariables,
@@ -324,7 +321,6 @@ class CoptBendersDecompositionSolver(
                 jobs.joinAll()
                 if (result.error.code == ErrorCode.ORModelNoSolution) {
                     val cuts = when (val result = mechanismModel.generateFeasibleCut(
-                        constants = Flt64.zero,
                         fixedVariables = fixedVariables,
                         farkasDualSolution = farkasSolution
                     )) {

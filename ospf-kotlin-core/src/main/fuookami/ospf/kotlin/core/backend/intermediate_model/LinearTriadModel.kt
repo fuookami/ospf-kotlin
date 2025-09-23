@@ -10,11 +10,10 @@ import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
-import kotlin.collections.plus
-import kotlin.collections.sortedBy
 
 class LinearConstraintCell(
     override val rowIndex: Int,
@@ -135,7 +134,11 @@ class BasicLinearTriadModel(
             writer.append(" ${constraints.names[i]}: ")
             var flag = false
             for (j in constraints.lhs[i].indices) {
-                val coefficient = if (j != 0) {
+                if (constraints.lhs[i][j].coefficient eq Flt64.zero) {
+                    continue
+                }
+
+                val coefficient = if (flag) {
                     if (constraints.lhs[i][j].coefficient leq Flt64.zero) {
                         writer.append(" - ")
                     } else {
@@ -233,7 +236,7 @@ data class LinearTriadModel(
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(tokenIndexMap)
+                        dumpVariables(model, tokenIndexMap)
                     }
                     val constraintPromise = async(Dispatchers.Default) {
                         dumpConstraintsAsync(model, tokenIndexMap, fixedVariables)
@@ -255,7 +258,7 @@ data class LinearTriadModel(
             } else {
                 LinearTriadModel(
                     impl = BasicLinearTriadModel(
-                        dumpVariables(tokenIndexMap),
+                        dumpVariables(model, tokenIndexMap),
                         dumpConstraints(model, tokenIndexMap, fixedVariables),
                         model.name
                     ),
@@ -270,6 +273,7 @@ data class LinearTriadModel(
         }
 
         private fun dumpVariables(
+            model: LinearMechanismModel,
             tokenIndexMap: BiMap<Token, Int>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
@@ -277,10 +281,45 @@ data class LinearTriadModel(
                 variables.add(null)
             }
             for ((token, i) in tokenIndexMap) {
+                val bounds = model.constraints.filter {
+                    it.lhs.all { cell -> cell.token == token }
+                }
+                val lb = bounds
+                    .filter { it.sign == Sign.GreaterEqual || it.sign == Sign.Equal }
+                    .maxOfOrNull {
+                        val lhs = it.lhs.sumOf { cell -> cell.coefficient }
+                        if (lhs neq Flt64.zero) {
+                            it.rhs / lhs
+                        } else if (it.rhs gr Flt64.zero) {
+                            Flt64.infinity
+                        } else {
+                            Flt64.negativeInfinity
+                        }
+                    }
+                val ub = bounds
+                    .filter { it.sign == Sign.LessEqual || it.sign == Sign.Equal }
+                    .minOfOrNull {
+                        val lhs = it.lhs.sumOf { cell -> cell.coefficient }
+                        if (lhs neq Flt64.zero) {
+                            it.rhs / lhs
+                        } else if (it.rhs gr Flt64.zero) {
+                            Flt64.infinity
+                        } else {
+                            Flt64.negativeInfinity
+                        }
+                    }
                 variables[i] = Variable(
                     index = i,
-                    lowerBound = token.lowerBound!!.value.unwrap(),
-                    upperBound = token.upperBound!!.value.unwrap(),
+                    lowerBound = if (lb != null) {
+                        max(lb, token.lowerBound!!.value.unwrap())
+                    } else {
+                        token.lowerBound!!.value.unwrap()
+                    },
+                    upperBound = if (ub != null) {
+                        min(ub, token.upperBound!!.value.unwrap())
+                    } else {
+                        token.upperBound!!.value.unwrap()
+                    },
                     type = token.variable.type,
                     origin = token.variable,
                     name = token.variable.name,
@@ -295,7 +334,11 @@ data class LinearTriadModel(
             tokenIndexes: BiMap<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
-            val constraints = model.constraints.withIndex().map { (index, constraint) ->
+            val notBoundConstraints = model.constraints.filter {
+                it.lhs.isEmpty() || it.lhs.any { cell -> cell.token != it.lhs.first().token }
+            }
+
+            val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
                 val lhs = ArrayList<LinearConstraintCell>()
                 var rhs = constraint.rhs
                 for (cell in constraint.lhs) {
@@ -327,7 +370,7 @@ data class LinearTriadModel(
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
-            for ((index, constraint) in model.constraints.withIndex()) {
+            for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
                 rhs.add(constraints[index].second)
@@ -342,19 +385,23 @@ data class LinearTriadModel(
             tokenIndexes: BiMap<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
-            return if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+            val notBoundConstraints = model.constraints.filter {
+                it.lhs.isEmpty() || it.lhs.any { cell -> cell.token != it.lhs.first().token }
+            }
+
+            return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
+                val factor = Flt64(notBoundConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
                 val segment = if (factor >= 1) {
                     pow(UInt64.ten, factor).toInt()
                 } else {
                     10
                 }
                 coroutineScope {
-                    val constraintPromises = (0..(model.constraints.size / segment)).map {
+                    val constraintPromises = (0..(notBoundConstraints.size / segment)).map {
                         async(Dispatchers.Default) {
                             val constraints = ArrayList<Pair<List<LinearConstraintCell>, Flt64>>()
-                            for (i in (it * segment) until minOf(model.constraints.size, (it + 1) * segment)) {
-                                val constraint = model.constraints[i]
+                            for (i in (it * segment) until minOf(notBoundConstraints.size, (it + 1) * segment)) {
+                                val constraint = notBoundConstraints[i]
                                 val lhs = ArrayList<LinearConstraintCell>()
                                 var rhs = constraint.rhs
                                 for (cell in constraint.lhs) {
@@ -392,7 +439,7 @@ data class LinearTriadModel(
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
-                    for ((index, constraint) in model.constraints.withIndex()) {
+                    for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
                         signs.add(constraint.sign)
@@ -408,7 +455,7 @@ data class LinearTriadModel(
                 val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
-                for ((index, constraint) in model.constraints.withIndex()) {
+                for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<LinearConstraintCell>()
                     var thisRhs = constraint.rhs
                     for (cell in constraint.lhs) {
@@ -516,7 +563,7 @@ data class LinearTriadModel(
         return this
     }
 
-    suspend fun dual(lambda: Flt64 = Flt64.zero): LinearTriadModel {
+    suspend fun dual(): LinearTriadModel {
         assert(normalized())
         val variables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
@@ -561,7 +608,7 @@ data class LinearTriadModel(
                 upperBound = upperBound,
                 type = Continuous,
                 origin = null,
-                name = "${this.constraints.names[it]}_dual",
+                name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_dual",
                 initialResult = Flt64.zero
             )
         }
@@ -626,19 +673,7 @@ data class LinearTriadModel(
         val objective = constraints.indices.map {
             LinearObjectiveCell(
                 colIndex = it,
-                coefficient = if (this.constraints.rhs[it] eq Flt64.zero) {
-                    when (this.objective.category) {
-                        ObjectCategory.Maximum -> {
-                            -lambda
-                        }
-
-                        ObjectCategory.Minimum -> {
-                            lambda
-                        }
-                    }
-                } else {
-                    this.constraints.rhs[it]
-                }
+                coefficient = this.constraints.rhs[it]
             )
         }
 
@@ -669,7 +704,7 @@ data class LinearTriadModel(
                         upperBound = Flt64.infinity,
                         type = Continuous,
                         origin = null,
-                        name = "${this.constraints.names[i]}_farkas",
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
                         initialResult = Flt64.zero
                     )
                     farkasVariables.add(variable)
@@ -683,7 +718,7 @@ data class LinearTriadModel(
                         upperBound = Flt64.zero,
                         type = Continuous,
                         origin = null,
-                        name = "${this.constraints.names[i]}_farkas",
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
                         initialResult = Flt64.zero
                     )
                     farkasVariables.add(variable)
@@ -697,7 +732,7 @@ data class LinearTriadModel(
                         upperBound = Flt64.infinity,
                         type = Continuous,
                         origin = null,
-                        name = "${this.constraints.names[i]}_farkas",
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
                         initialResult = Flt64.zero
                     )
                     farkasVariables.add(variable)
@@ -708,7 +743,7 @@ data class LinearTriadModel(
                         upperBound = Flt64.infinity,
                         type = Continuous,
                         origin = null,
-                        name = "${this.constraints.names[i]}_pos_slack",
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_pos_slack",
                         initialResult = Flt64.zero
                     )
                     colIndex += 1
@@ -719,7 +754,7 @@ data class LinearTriadModel(
                         upperBound = Flt64.infinity,
                         type = Continuous,
                         origin = null,
-                        name = "${this.constraints.names[i]}_neg_slack",
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_neg_slack",
                         initialResult = Flt64.zero
                     )
                     colIndex += 1
@@ -792,7 +827,7 @@ data class LinearTriadModel(
             constraintPromises.awaitAll() + slackConstraintPromises.await()
         }
 
-        val signs = this.variables.indices.map { Sign.LessEqual } + listOf(Sign.Equal) + this.constraints.indices.mapNotNull {
+        val signs = this.variables.indices.map { Sign.GreaterEqual } + listOf(Sign.Equal) + this.constraints.indices.mapNotNull {
             when (this.constraints.signs[it]) {
                 Sign.LessEqual, Sign.GreaterEqual -> {
                     null
@@ -803,7 +838,7 @@ data class LinearTriadModel(
                 }
             }
         }
-        val rhs = this.variables.indices.map { Flt64.zero } + listOf(Flt64.one) + this.constraints.indices.mapNotNull {
+        val rhs = this.variables.indices.map { Flt64.zero } + listOf(-Flt64.one) + this.constraints.indices.mapNotNull {
             when (this.constraints.signs[it]) {
                 Sign.LessEqual, Sign.GreaterEqual -> {
                     null
@@ -821,7 +856,7 @@ data class LinearTriadModel(
                 }
 
                 Sign.Equal -> {
-                    "${this.constraints.names[it]}_abs"
+                    "${this.constraints.names[it].ifEmpty { "cons${it}" }}_abs"
                 }
             }
         }
@@ -884,7 +919,7 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it]}_slack"
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack"
                         )
                         colIndex += 1
 
@@ -909,7 +944,7 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it]}_slack"
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack"
                         )
                         colIndex += 1
                         val artifact = Variable(
@@ -918,7 +953,7 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it]}_artifact"
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact"
                         )
                         colIndex += 1
 
@@ -949,7 +984,7 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it]}_artifact"
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact"
                         )
                         colIndex += 1
 
@@ -975,7 +1010,7 @@ data class LinearTriadModel(
                 abs(this.constraints.rhs[it])
             },
             names = this.constraints.indices.map {
-                this.constraints.names[it]
+                this.constraints.names[it].ifEmpty { "cons${it}" }
             },
             sources = this.constraints.indices.map {
                 ConstraintSource.Feasibility
