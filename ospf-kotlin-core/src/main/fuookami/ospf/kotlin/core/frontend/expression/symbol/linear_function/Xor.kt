@@ -23,13 +23,13 @@ class XorFunction(
 
     companion object {
         operator fun invoke(
-            polynomials: List<AbstractLinearPolynomial<*>>,
+            polynomials: List<ToLinearPolynomial<*>>,
             extract: Boolean = true,
             name: String,
             displayName: String? = null
         ): XorFunction {
             return XorFunction(
-                polynomials,
+                polynomials.map { it.toLinearPolynomial() },
                 extract,
                 name,
                 displayName
@@ -212,24 +212,14 @@ class XorFunction(
                     return Failed(result.error)
                 }
             }
+        }
 
-            for (bin in bins) {
-                when (val result = bin.register(tokenTable)) {
-                    is Ok -> {}
+        for (bin in bins) {
+            when (val result = bin.register(tokenTable)) {
+                is Ok -> {}
 
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                }
-            }
-        } else {
-            for (bin in bins) {
-                when (val result = bin.register(tokenTable)) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
+                is Failed -> {
+                    return Failed(result.error)
                 }
             }
         }
@@ -246,6 +236,24 @@ class XorFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
+        if (polynomials.size > 2) {
+            when (val result = minmax.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = maxmin.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
         for (bin in bins) {
             when (val result = bin.register(model)) {
                 is Ok -> {}
@@ -322,24 +330,14 @@ class XorFunction(
                     return Failed(result.error)
                 }
             }
+        }
 
-            for (bin in bins) {
-                when (val result = bin.register(tokenTable, fixedValues)) {
-                    is Ok -> {}
+        for (bin in bins) {
+            when (val result = bin.register(tokenTable, fixedValues)) {
+                is Ok -> {}
 
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                }
-            }
-        } else {
-            for (bin in bins) {
-                when (val result = bin.register(tokenTable, fixedValues)) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
+                is Failed -> {
+                    return Failed(result.error)
                 }
             }
         }
@@ -363,6 +361,24 @@ class XorFunction(
             it.evaluate(fixedValues, model.tokens) ?: return register(model)
         }
         val bin = !values.all { it gr Flt64.zero } || !values.all { it eq Flt64.one }
+
+        if (polynomials.size > 2) {
+            when (val result = minmax.register(model, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = maxmin.register(model, fixedValues)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
 
         for (bin in bins) {
             when (val result = bin.register(model, fixedValues)) {

@@ -42,7 +42,7 @@ abstract class MosekSolver {
                 }
 
                 else -> {
-                    SolverStatus.Infeasible
+                    SolverStatus.SolvingException
                 }
             }
 

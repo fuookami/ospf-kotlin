@@ -44,7 +44,7 @@ class CoptLinearSolverCallBack(
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<LinearFunction>? = map[point]
 
     fun execIfContain(env: EnvrConfig): Try? {
@@ -92,7 +92,7 @@ class CoptQuadraticSolverCallBack(
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
     fun execIfContain(env: EnvrConfig): Try? {

@@ -106,7 +106,7 @@ abstract class CoptSolver {
                 }
 
                 COPT.Status.InfeasibleOrUnbounded.value -> {
-                    SolverStatus.Infeasible
+                    SolverStatus.SolvingException
                 }
 
                 else -> {

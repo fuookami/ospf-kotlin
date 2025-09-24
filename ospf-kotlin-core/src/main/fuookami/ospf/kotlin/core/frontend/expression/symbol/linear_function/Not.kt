@@ -35,12 +35,12 @@ abstract class AbstractNotFunctionImpl(
 
     protected val possibleRange
         get() = ValueRange(
-            if (x.lowerBound!!.value.unwrap() eq Flt64.zero) {
+            if (x.upperBound!!.value.unwrap() eq Flt64.zero) {
                 UInt8.one
             } else {
                 UInt8.zero
             },
-            if (x.upperBound!!.value.unwrap() eq Flt64.zero) {
+            if (x.lowerBound!!.value.unwrap() eq Flt64.zero) {
                 UInt8.one
             } else {
                 UInt8.zero

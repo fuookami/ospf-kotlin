@@ -99,7 +99,7 @@ abstract class GurobiSolver {
                 }
 
                 GRB.INF_OR_UNBD -> {
-                    SolverStatus.Infeasible
+                    SolverStatus.SolvingException
                 }
 
                 else -> {

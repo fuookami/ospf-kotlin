@@ -768,6 +768,10 @@ infix fun LinearIntermediateSymbol.eq(rhs: Boolean): LinearInequality {
     }
 }
 
+operator fun LinearFunctionSymbol.not(): LinearInequality {
+    return this.eq(false)
+}
+
 infix fun LinearIntermediateSymbol.eq(rhs: Trivalent): LinearInequality {
     return this.eq(rhs.value)
 }
