@@ -26,19 +26,49 @@ class Variable(
     val upperBound by ::_upperBound
     val type by ::_type
 
+    val free: Boolean
+        get() {
+            return negativeFree || positiveFree
+        }
+
+    val normalized: Boolean
+        get() {
+            return negativeNormalized || positiveNormalized
+        }
+
+    val negativeNormalized: Boolean
+        get() {
+            return negativeFree && upperBound eq Flt64.zero
+        }
+
+    val negativeFree: Boolean
+        get() {
+            return (lowerBound eq Flt64.negativeInfinity || lowerBound leq -Flt64.decimalPrecision.reciprocal())
+        }
+
+    val positiveNormalized: Boolean
+        get() {
+            return positiveFree && lowerBound eq Flt64.zero
+        }
+
+    val positiveFree: Boolean
+        get() {
+            return (upperBound eq Flt64.negativeInfinity || upperBound leq Flt64.decimalPrecision.reciprocal())
+        }
+
     override fun copy() = Variable(index, lowerBound, upperBound, type, origin, name, initialResult)
     override fun clone() = copy()
 
     override fun toString() = name
 }
 
-interface Cell<Self: Cell<Self>> {
+interface Cell<Self : Cell<Self>> {
     val coefficient: Flt64
 
     operator fun unaryMinus(): Self
 }
 
-interface ConstraintCell<Self: ConstraintCell<Self>> : Cell<Self> {
+interface ConstraintCell<Self : ConstraintCell<Self>> : Cell<Self> {
     val rowIndex: Int
 }
 
@@ -46,12 +76,10 @@ enum class ConstraintSource {
     Origin,
     Dual,
     FarkasDual,
-    Feasibility,
-    NormalizationLowerBound,
-    NormalizationUpperBound
+    Feasibility
 }
 
-class Constraint<Cell>(
+abstract class Constraint<Cell>(
     lhs: List<List<Cell>>,
     signs: List<Sign>,
     rhs: List<Flt64>,
@@ -73,14 +101,6 @@ class Constraint<Cell>(
 
     val size: Int get() = rhs.size
     val indices: IntRange get() = rhs.indices
-
-    override fun copy() = Constraint(
-        lhs.map { line -> line.map { it.copy() } },
-        signs.toList(),
-        rhs.map { it.copy() },
-        names.toList(),
-        sources.toList()
-    )
 
     override fun clone() = copy()
 }

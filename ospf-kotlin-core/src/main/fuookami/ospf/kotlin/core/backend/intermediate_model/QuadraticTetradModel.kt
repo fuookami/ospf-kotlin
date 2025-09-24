@@ -14,6 +14,8 @@ import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
+
 class QuadraticConstraintCell(
     override val rowIndex: Int,
     val colIndex1: Int,
@@ -31,7 +33,23 @@ class QuadraticConstraintCell(
     override fun clone() = copy()
 }
 
-typealias QuadraticConstraint = Constraint<QuadraticConstraintCell>
+class QuadraticConstraint(
+    lhs: List<List<QuadraticConstraintCell>>,
+    signs: List<Sign>,
+    rhs: List<Flt64>,
+    names: List<String>,
+    sources: List<ConstraintSource>,
+    val origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null }
+) : Constraint<QuadraticConstraintCell>(lhs, signs, rhs, names, sources) {
+    override fun copy() = QuadraticConstraint(
+        lhs.map { line -> line.map { it.copy() } },
+        signs.toList(),
+        rhs.map { it.copy() },
+        names.toList(),
+        sources.toList(),
+        origins.toList()
+    )
+}
 
 class QuadraticObjectiveCell(
     val colIndex1: Int,
@@ -64,13 +82,6 @@ class BasicQuadraticTetradModel(
 
     override fun clone() = copy()
 
-    fun normalized(): Boolean {
-        return variables.any {
-            !(it.lowerBound.isNegativeInfinity() || (it.lowerBound eq Flt64.zero))
-                    || !(it.upperBound.isInfinity() || (it.upperBound eq Flt64.zero))
-        }
-    }
-
     fun linearRelax() {
         variables.forEach {
             when (it.type) {
@@ -87,43 +98,6 @@ class BasicQuadraticTetradModel(
                 }
 
                 else -> {}
-            }
-        }
-    }
-
-    fun normalize() {
-        for (variable in variables) {
-            if (!(variable.lowerBound.isNegativeInfinity() || (variable.lowerBound eq Flt64.zero))) {
-                constraints._lhs.add(
-                    listOf(
-                        QuadraticConstraintCell(
-                            rowIndex = constraints.size,
-                            colIndex1 = variable.index,
-                            colIndex2 = null,
-                            coefficient = Flt64.one
-                        )
-                    )
-                )
-                constraints._signs.add(Sign.GreaterEqual)
-                constraints._rhs.add(variable.lowerBound)
-                constraints._names.add("${variable.name}_lb")
-                variable._lowerBound = Flt64.negativeInfinity
-            }
-            if (!(variable.upperBound.isInfinity() || (variable.upperBound eq Flt64.zero))) {
-                constraints._lhs.add(
-                    listOf(
-                        QuadraticConstraintCell(
-                            rowIndex = constraints.size,
-                            colIndex1 = variable.index,
-                            colIndex2 = null,
-                            coefficient = Flt64.one
-                        )
-                    )
-                )
-                constraints._signs.add(Sign.LessEqual)
-                constraints._rhs.add(variable.upperBound)
-                constraints._names.add("${variable.name}_ub")
-                variable._upperBound = Flt64.infinity
             }
         }
     }
@@ -251,9 +225,9 @@ data class QuadraticTetradModel(
 
                     QuadraticTetradModel(
                         BasicQuadraticTetradModel(
-                            variablePromise.await(),
-                            constraintPromise.await(),
-                            model.name
+                            variables = variablePromise.await(),
+                            constraints = constraintPromise.await(),
+                            name = model.name
                         ),
                         tokenIndexMap,
                         objectivePromise.await()
@@ -262,9 +236,9 @@ data class QuadraticTetradModel(
             } else {
                 QuadraticTetradModel(
                     BasicQuadraticTetradModel(
-                        dumpVariables(model, tokenIndexMap),
-                        dumpConstraints(model, tokenIndexMap, fixedVariables),
-                        model.name
+                        variables = dumpVariables(model, tokenIndexMap),
+                        constraints = dumpConstraints(model, tokenIndexMap, fixedVariables),
+                        name = model.name
                     ),
                     tokenIndexMap,
                     dumpObjectives(model, tokenIndexMap, fixedVariables)
@@ -411,14 +385,16 @@ data class QuadraticTetradModel(
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
+            val origins = ArrayList<OriginQuadraticConstraint>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
                 rhs.add(constraints[index].second)
                 names.add(constraint.name)
                 sources.add(ConstraintSource.Origin)
+                origins.add(constraint)
             }
-            return QuadraticConstraint(lhs, signs, rhs, names, sources)
+            return QuadraticConstraint(lhs, signs, rhs, names, sources, origins)
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -500,7 +476,8 @@ data class QuadraticTetradModel(
                                             )
                                         )
                                     } else {
-                                        rhs -= cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one) * (fixedVariables?.get(cell.token2?.variable) ?: Flt64.one)
+                                        rhs -= cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one) * (fixedVariables?.get(cell.token2?.variable)
+                                            ?: Flt64.one)
                                     }
                                 }
                                 constraints.add(lhs to rhs)
@@ -517,6 +494,7 @@ data class QuadraticTetradModel(
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
+                    val origins = ArrayList<OriginQuadraticConstraint>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -524,9 +502,10 @@ data class QuadraticTetradModel(
                         rhs.add(thisRhs)
                         names.add(constraint.name)
                         sources.add(ConstraintSource.Origin)
+                        origins.add(constraint)
                     }
                     System.gc()
-                    QuadraticConstraint(lhs, signs, rhs, names, sources)
+                    QuadraticConstraint(lhs, signs, rhs, names, sources, origins)
                 }
             } else {
                 val lhs = ArrayList<List<QuadraticConstraintCell>>()
@@ -534,6 +513,7 @@ data class QuadraticTetradModel(
                 val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
+                val origins = ArrayList<OriginQuadraticConstraint>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
                     for (cell in constraint.lhs) {
@@ -559,9 +539,10 @@ data class QuadraticTetradModel(
                     rhs.add(constraint.rhs)
                     names.add(constraint.name)
                     sources.add(ConstraintSource.Origin)
+                    origins.add(constraint)
                 }
                 System.gc()
-                QuadraticConstraint(lhs, signs, rhs, names, sources)
+                QuadraticConstraint(lhs, signs, rhs, names, sources, origins)
             }
         }
 
@@ -653,17 +634,8 @@ data class QuadraticTetradModel(
     override fun copy() = QuadraticTetradModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
-    fun normalized(): Boolean {
-        return impl.normalized()
-    }
-
     fun linearRelax(): QuadraticTetradModel {
         impl.linearRelax()
-        return this
-    }
-
-    fun normalize(): QuadraticTetradModel {
-        impl.normalize()
         return this
     }
 
@@ -676,7 +648,6 @@ data class QuadraticTetradModel(
     }
 
     suspend fun feasibility(): QuadraticTetradModel {
-        assert(normalized())
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()

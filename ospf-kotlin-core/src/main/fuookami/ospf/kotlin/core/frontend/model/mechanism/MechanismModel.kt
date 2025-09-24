@@ -49,7 +49,7 @@ interface SingleObjectMechanismModel : MechanismModel {
 class LinearMechanismModel(
     internal val parent: LinearMetaModel,
     override var name: String,
-    private val _constraints: MutableList<LinearConstraint>,
+    constraints: List<LinearConstraint>,
     override val objectFunction: SingleObject<LinearSubObject>,
     override val tokens: AbstractTokenTable
 ) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
@@ -91,20 +91,24 @@ class LinearMechanismModel(
                 }
             } else {
                 LinearMechanismModel(
-                    metaModel,
-                    metaModel.name,
-                    metaModel._constraints.map {
-                        LinearConstraint(it, tokens)
+                    parent = metaModel,
+                    name = metaModel.name,
+                    constraints = metaModel._constraints.map {
+                        LinearConstraint(
+                            inequality = it,
+                            tokens = tokens,
+                            origin = true
+                        )
                     }.toMutableList(),
-                    SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
+                    objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
-                            it.category,
-                            it.polynomial,
-                            tokens,
-                            it.name
+                            category = it.category,
+                            poly = it.polynomial,
+                            tokens = tokens,
+                            name = it.name
                         )
                     }),
-                    tokens
+                    tokens = tokens
                 )
             }
             System.gc()
@@ -143,7 +147,8 @@ class LinearMechanismModel(
                             ).map {
                                 LinearConstraint(
                                     inequality = it,
-                                    tokens = tokens
+                                    tokens = tokens,
+                                    origin = true
                                 )
                             }
                         if (memoryUseOver()) {
@@ -158,7 +163,8 @@ class LinearMechanismModel(
                         val result = listOf(
                             LinearConstraint(
                                 inequality = it,
-                                tokens = tokens
+                                tokens = tokens,
+                                origin = true
                             )
                         )
                         if (memoryUseOver()) {
@@ -211,11 +217,11 @@ class LinearMechanismModel(
             }
 
             return LinearMechanismModel(
-                metaModel,
-                metaModel.name,
-                constraints.flatMap { it.await() }.toMutableList(),
-                SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
-                tokens
+                parent = metaModel,
+                name = metaModel.name,
+                constraints = constraints.flatMap { it.await() }.toMutableList(),
+                objectFunction = SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
+                tokens = tokens
             )
         }
 
@@ -254,6 +260,7 @@ class LinearMechanismModel(
         }
     }
 
+    private val _constraints = constraints.toMutableList()
     internal val concurrent by parent::concurrent
     override val constraints by ::_constraints
 
@@ -269,21 +276,22 @@ class LinearMechanismModel(
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualSolution: Solution,
+        dualSolution: LinearDualSolution
     ): List<LinearInequality> {
         val constants = constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
-            acc + dualSolution[i] * constraint.rhs
+            acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for ((i, constraint) in constraints.withIndex()) {
-            if (dualSolution[i] eq Flt64.zero) {
+        for (constraint in constraints) {
+            val dual = dualSolution[constraint] ?: continue
+            if (dual eq Flt64.zero) {
                 continue
             }
 
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
                 if (variable in fixedVariables) {
-                    val coefficient = dualSolution[i] * cell.coefficient
+                    val coefficient = (dualSolution[constraint] ?: Flt64.zero) * cell.coefficient
                     if (coefficient neq Flt64.zero) {
                         polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
                     }
@@ -304,26 +312,27 @@ class LinearMechanismModel(
 
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualSolution: Solution,
+        farkasDualSolution: LinearDualSolution
     ): List<LinearInequality> {
         var value = Flt64.zero
         var constants = Flt64.zero
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for ((i, constraint) in constraints.withIndex()) {
-            if (farkasDualSolution[i] eq Flt64.zero) {
+        for (constraint in constraints) {
+            val dual = farkasDualSolution[constraint] ?: continue
+            if (dual eq Flt64.zero) {
                 continue
             }
 
-            value += farkasDualSolution[i] * constraint.rhs
-            constants += farkasDualSolution[i] * constraint.rhs
+            value += dual * constraint.rhs
+            constants += dual * constraint.rhs
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
                 if (variable in fixedVariables) {
-                    val coefficient = farkasDualSolution[i] * cell.coefficient
+                    val coefficient = dual * cell.coefficient
                     if (coefficient neq Flt64.zero) {
                         polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
                     }
-                    value -= farkasDualSolution[i] * cell.coefficient * fixedVariables[variable]!!
+                    value -= dual * cell.coefficient * fixedVariables[variable]!!
                 }
             }
         }
@@ -344,10 +353,12 @@ class LinearMechanismModel(
 class QuadraticMechanismModel(
     internal val parent: QuadraticMetaModel,
     override var name: String,
-    private val _constraints: MutableList<QuadraticConstraint>,
+    constraints: List<QuadraticConstraint>,
     override val objectFunction: SingleObject<QuadraticSubObject>,
     override val tokens: AbstractTokenTable
 ) : AbstractQuadraticMechanismModel, SingleObjectMechanismModel {
+    private val logger = logger()
+
     companion object {
         private val logger = logger()
 
@@ -384,20 +395,24 @@ class QuadraticMechanismModel(
                 }
             } else {
                 QuadraticMechanismModel(
-                    metaModel,
-                    metaModel.name,
-                    metaModel._constraints.map {
-                        QuadraticConstraint(it, tokens)
+                    parent = metaModel,
+                    name = metaModel.name,
+                    constraints = metaModel._constraints.map {
+                        QuadraticConstraint(
+                            inequality = it,
+                            tokens = tokens,
+                            origin = true
+                        )
                     }.toMutableList(),
-                    SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
+                    objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
-                            it.category,
-                            it.polynomial,
-                            tokens,
-                            it.name
+                            category = it.category,
+                            poly = it.polynomial,
+                            tokens = tokens,
+                            name = it.name
                         )
                     }),
-                    tokens
+                    tokens = tokens
                 )
             }
             System.gc()
@@ -443,7 +458,8 @@ class QuadraticMechanismModel(
                             ).map {
                                 QuadraticConstraint(
                                     inequality = it,
-                                    tokens = tokens
+                                    tokens = tokens,
+                                    origin = true
                                 )
                             }
                         if (memoryUseOver()) {
@@ -458,7 +474,8 @@ class QuadraticMechanismModel(
                         val result = listOf(
                             QuadraticConstraint(
                                 inequality = it,
-                                tokens = tokens
+                                tokens = tokens,
+                                origin = true
                             )
                         )
                         result
@@ -505,11 +522,11 @@ class QuadraticMechanismModel(
             }
 
             return QuadraticMechanismModel(
-                metaModel,
-                metaModel.name,
-                constraints.flatMap { it.await() }.toMutableList(),
-                SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
-                tokens
+                parent = metaModel,
+                name = metaModel.name,
+                constraints = constraints.flatMap { it.await() }.toMutableList(),
+                objectFunction = SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
+                tokens = tokens
             )
         }
 
@@ -548,6 +565,7 @@ class QuadraticMechanismModel(
         }
     }
 
+    private val _constraints = constraints.toMutableList()
     internal val concurrent by parent::concurrent
     override val constraints by ::_constraints
 
@@ -564,14 +582,14 @@ class QuadraticMechanismModel(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualSolution: Solution,
+        dualSolution: QuadraticDualSolution,
     ): Ret<List<Inequality<*, *>>> {
         TODO("not implemented yet")
     }
 
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualSolution: Solution,
+        farkasDualSolution: QuadraticDualSolution,
     ): Ret<List<Inequality<*, *>>> {
         TODO("not implemented yet")
     }

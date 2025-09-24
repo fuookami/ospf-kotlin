@@ -410,7 +410,7 @@ class ScipBendersDecompositionSolver(
         model: LinearTriadModel
     ): Ret<Solution> {
         model.export(ModelFileFormat.LP)
-        val dualModel = model.normalize().dual()
+        val dualModel = model.dual()
         dualModel.export(ModelFileFormat.LP)
 
         val solver = ScipLinearSolver(config)
@@ -428,7 +428,7 @@ class ScipBendersDecompositionSolver(
     private suspend fun solveDual(
         model: QuadraticTetradModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().dual()
+        val dualModel = model.dual()
 
         val solver = ScipQuadraticSolver(config)
         return when (val result = solver(dualModel)) {
@@ -445,7 +445,7 @@ class ScipBendersDecompositionSolver(
     private suspend fun solveFarkasDual(
         model: LinearTriadModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().farkasDual()
+        val dualModel = model.farkasDual()
 
         val solver = ScipLinearSolver(config)
         return when (val result = solver(dualModel)) {
@@ -472,7 +472,7 @@ class ScipBendersDecompositionSolver(
     private suspend fun solveFarkasDual(
         model: QuadraticTetradModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().farkasDual()
+        val dualModel = model.farkasDual()
 
         val solver = ScipQuadraticSolver(config)
         return when (val result = solver(dualModel)) {

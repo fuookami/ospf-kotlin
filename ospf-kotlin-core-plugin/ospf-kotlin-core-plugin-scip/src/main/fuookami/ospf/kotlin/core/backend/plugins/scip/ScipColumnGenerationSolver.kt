@@ -245,7 +245,7 @@ class ScipColumnGenerationSolver(
     private suspend fun solveDual(
         model: LinearTriadModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().dual()
+        val dualModel = model.dual()
 
         val solver = ScipLinearSolver(
             config = config

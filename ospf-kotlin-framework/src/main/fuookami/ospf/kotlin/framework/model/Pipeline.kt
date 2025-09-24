@@ -27,7 +27,7 @@ interface CGPipeline<
         return null
     }
 
-    fun refresh(map: Map, model: Model, shadowPrices: List<Flt64>): Try {
+    fun refresh(map: Map, model: Model, shadowPrices: MetaDualSolution): Try {
         return ok
     }
 }

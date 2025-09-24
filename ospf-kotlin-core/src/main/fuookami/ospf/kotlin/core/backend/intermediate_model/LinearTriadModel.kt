@@ -15,6 +15,8 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 
+typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraint
+
 class LinearConstraintCell(
     override val rowIndex: Int,
     val colIndex: Int,
@@ -31,7 +33,23 @@ class LinearConstraintCell(
     override fun clone() = copy()
 }
 
-typealias LinearConstraint = Constraint<LinearConstraintCell>
+class LinearConstraint(
+    lhs: List<List<LinearConstraintCell>>,
+    signs: List<Sign>,
+    rhs: List<Flt64>,
+    names: List<String>,
+    sources: List<ConstraintSource>,
+    val origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null }
+) : Constraint<LinearConstraintCell>(lhs, signs, rhs, names, sources) {
+    override fun copy() = LinearConstraint(
+        lhs.map { line -> line.map { it.copy() } },
+        signs.toList(),
+        rhs.map { it.copy() },
+        names.toList(),
+        sources.toList(),
+        origins.toList()
+    )
+}
 
 class LinearObjectiveCell(
     val colIndex: Int,
@@ -63,14 +81,6 @@ class BasicLinearTriadModel(
 
     override fun clone() = copy()
 
-    fun normalized(): Boolean {
-        return variables.all {
-            (it.lowerBound.isNegativeInfinity() || it.lowerBound eq Flt64.zero) && (it.upperBound.isInfinity() || it.upperBound eq Flt64.zero)
-        } && constraints.rhs.all {
-            it geq Flt64.zero
-        }
-    }
-
     fun linearRelax() {
         variables.forEach {
             when (it.type) {
@@ -87,43 +97,6 @@ class BasicLinearTriadModel(
                 }
 
                 else -> {}
-            }
-        }
-    }
-
-    fun normalize() {
-        for (variable in variables) {
-            if (!(variable.lowerBound.isNegativeInfinity() || variable.lowerBound leq -Flt64.decimalPrecision.reciprocal() || variable.lowerBound eq Flt64.zero)) {
-                constraints._lhs.add(
-                    listOf(
-                        LinearConstraintCell(
-                            rowIndex = constraints.size,
-                            colIndex = variable.index,
-                            coefficient = Flt64.one
-                        )
-                    )
-                )
-                constraints._signs.add(Sign.GreaterEqual)
-                constraints._rhs.add(variable.lowerBound)
-                constraints._names.add("${variable.name}_lb")
-                constraints._sources.add(ConstraintSource.NormalizationLowerBound)
-                variable._lowerBound = Flt64.negativeInfinity
-            }
-            if (!(variable.upperBound.isInfinity() || variable.upperBound geq Flt64.decimalPrecision.reciprocal() || variable.upperBound eq Flt64.zero)) {
-                constraints._lhs.add(
-                    listOf(
-                        LinearConstraintCell(
-                            rowIndex = constraints.size,
-                            colIndex = variable.index,
-                            coefficient = Flt64.one
-                        )
-                    )
-                )
-                constraints._signs.add(Sign.LessEqual)
-                constraints._rhs.add(variable.upperBound)
-                constraints._names.add("${variable.name}_ub")
-                constraints._sources.add(ConstraintSource.NormalizationUpperBound)
-                variable._upperBound = Flt64.infinity
             }
         }
     }
@@ -247,9 +220,9 @@ data class LinearTriadModel(
 
                     LinearTriadModel(
                         impl = BasicLinearTriadModel(
-                            variablePromise.await(),
-                            constraintPromise.await(),
-                            model.name
+                            variables = variablePromise.await(),
+                            constraints = constraintPromise.await(),
+                            name = model.name
                         ),
                         tokenIndexMap = tokenIndexMap,
                         objective = objectivePromise.await()
@@ -258,9 +231,9 @@ data class LinearTriadModel(
             } else {
                 LinearTriadModel(
                     impl = BasicLinearTriadModel(
-                        dumpVariables(model, tokenIndexMap),
-                        dumpConstraints(model, tokenIndexMap, fixedVariables),
-                        model.name
+                        variables = dumpVariables(model, tokenIndexMap),
+                        constraints = dumpConstraints(model, tokenIndexMap, fixedVariables),
+                        name = model.name
                     ),
                     tokenIndexMap = tokenIndexMap,
                     objective = dumpObjectives(model, tokenIndexMap, fixedVariables)
@@ -370,14 +343,16 @@ data class LinearTriadModel(
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
+            val origins = ArrayList<OriginLinearConstraint>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
                 rhs.add(constraints[index].second)
                 names.add(constraint.name)
                 sources.add(ConstraintSource.Origin)
+                origins.add(constraint)
             }
-            return LinearConstraint(lhs, signs, rhs, names, sources)
+            return LinearConstraint(lhs, signs, rhs, names, sources, origins)
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -439,6 +414,7 @@ data class LinearTriadModel(
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
+                    val origins = ArrayList<OriginLinearConstraint>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -446,8 +422,9 @@ data class LinearTriadModel(
                         rhs.add(thisRhs)
                         names.add(constraint.name)
                         sources.add(ConstraintSource.Origin)
+                        origins.add(constraint)
                     }
-                    LinearConstraint(lhs, signs, rhs, names, sources)
+                    LinearConstraint(lhs, signs, rhs, names, sources, origins)
                 }
             } else {
                 val lhs = ArrayList<List<LinearConstraintCell>>()
@@ -455,6 +432,7 @@ data class LinearTriadModel(
                 val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
+                val origins = ArrayList<OriginLinearConstraint>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<LinearConstraintCell>()
                     var thisRhs = constraint.rhs
@@ -484,9 +462,10 @@ data class LinearTriadModel(
                     rhs.add(thisRhs)
                     names.add(constraint.name)
                     sources.add(ConstraintSource.Origin)
+                    origins.add(constraint)
                 }
                 System.gc()
-                LinearConstraint(lhs, signs, rhs, names, sources)
+                LinearConstraint(lhs, signs, rhs, names, sources, origins)
             }
         }
 
@@ -549,27 +528,17 @@ data class LinearTriadModel(
     override fun copy() = LinearTriadModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
-    fun normalized(): Boolean {
-        return impl.normalized()
-    }
-
     fun linearRelax(): LinearTriadModel {
         impl.linearRelax()
         return this
     }
 
-    fun normalize(): LinearTriadModel {
-        impl.normalize()
-        return this
-    }
-
     suspend fun dual(): LinearTriadModel {
-        assert(normalized())
-        val variables = this.constraints.indices.map {
+        val dualVariables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
             var upperBound = Flt64.infinity
             when (this.objective.category) {
-                ObjectCategory.Maximum ->  {
+                ObjectCategory.Maximum -> {
                     when (this.constraints.signs[it]) {
                         Sign.LessEqual -> {
                             // ≤ => y ≥ 0
@@ -612,19 +581,139 @@ data class LinearTriadModel(
                 initialResult = Flt64.zero
             )
         }
+        var colIndex = this.constraints.size
+        val boundDualVariables = this.variables.map {
+            when (this.objective.category) {
+                ObjectCategory.Maximum -> {
+                    if (it.negativeNormalized || it.positiveNormalized || it.free) {
+                        null to null
+                    } else if (it.positiveFree) {
+                        // x ≥ lb => λ ≤ 0
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable to null
+                    } else if (it.negativeFree) {
+                        // x ≤ ub => λ ≥ 0
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        null to variable
+                    } else {
+                        // lb ≤ x ≤ ub => λ ≤ 0, λ' ≥ 0
+                        val variable1 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        val variable2 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable1 to variable2
+                    }
+                }
+
+                ObjectCategory.Minimum -> {
+                    if (it.negativeNormalized || it.positiveNormalized || it.free) {
+                        null to null
+                    } else if (it.positiveFree) {
+                        // x ≥ lb => λ ≥ 0
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable to null
+                    } else if (it.negativeFree) {
+                        // x ≤ ub => λ ≤ 0
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        null to variable
+                    } else {
+                        // lb ≤ x ≤ ub => λ ≥ 0, λ' ≤ 0
+                        val variable1 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        val variable2 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable1 to variable2
+                    }
+                }
+            }
+        }
 
         val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex }
         val coefficients = this@LinearTriadModel.variables.indices.map {
             cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
         }
         val lhs = coroutineScope {
-            val constraintPromises = this@LinearTriadModel.variables.indices.map {
+            val constraintPromises = this@LinearTriadModel.variables.indices.map { col ->
                 async(Dispatchers.Default) {
-                    coefficients[it].map { cell ->
+                    coefficients[col].map { cell ->
                         LinearConstraintCell(
-                            rowIndex = it,
+                            rowIndex = col,
                             colIndex = cell.first,
                             coefficient = cell.second
+                        )
+                    } + listOfNotNull(boundDualVariables[col].first, boundDualVariables[col].second).map {
+                        LinearConstraintCell(
+                            rowIndex = col,
+                            colIndex = it.index,
+                            coefficient = Flt64.one
                         )
                     }
                 }
@@ -632,10 +721,9 @@ data class LinearTriadModel(
             constraintPromises.awaitAll()
         }
         val signs = this.variables.map {
-            if ((it.lowerBound.isNegativeInfinity() || it.lowerBound leq -Flt64.decimalPrecision.reciprocal()) && (it.upperBound.isInfinity() || it.upperBound geq Flt64.decimalPrecision.reciprocal())) {
+            if (!it.normalized) {
                 Sign.Equal
-            } else if (it.lowerBound.isNegativeInfinity() || it.lowerBound leq -Flt64.decimalPrecision.reciprocal()) {
-                // ≤ 0
+            } else if (it.negativeNormalized) {
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
                         // ≤ 0 => ≤
@@ -647,7 +735,7 @@ data class LinearTriadModel(
                         Sign.GreaterEqual
                     }
                 }
-            } else if (it.upperBound.isInfinity() || it.upperBound geq Flt64.decimalPrecision.reciprocal()) {
+            } else if (it.positiveNormalized) {
                 // ≥ 0
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
@@ -679,9 +767,9 @@ data class LinearTriadModel(
 
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
-                variables,
-                LinearConstraint(lhs, signs, rhs, names, sources),
-                "$name-dual"
+                variables = dualVariables + boundDualVariables.flatMapNotNull { listOf(it.first, it.second) },
+                constraints = LinearConstraint(lhs, signs, rhs, names, sources),
+                name = "$name-dual"
             ),
             tokenIndexMap = tokenIndexMap,
             objective = LinearObjective(this.objective.category.reverse, objective)
@@ -689,7 +777,6 @@ data class LinearTriadModel(
     }
 
     suspend fun farkasDual(): LinearTriadModel {
-        assert(normalized())
         var colIndex = this.constraints.size
         val farkasVariables = ArrayList<Variable>()
         val posFarkasVariables = ArrayList<Variable>()
@@ -764,6 +851,60 @@ data class LinearTriadModel(
                 }
             }
         }
+        val boundVariables = this.variables.map {
+            if (it.free) {
+                null to null
+            } else if (it.positiveFree) {
+                // x ≥ lb => λ ≤ 0
+                val variable = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.negativeInfinity,
+                    upperBound = Flt64.zero,
+                    type = Continuous,
+                    origin = null,
+                    name = "${it.name}_lb_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                variable to null
+            } else if (it.negativeFree) {
+                // x ≤ ub => λ ≥ 0
+                val variable = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.zero,
+                    upperBound = Flt64.infinity,
+                    type = Continuous,
+                    origin = null,
+                    name = "${it.name}_ub_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                null to variable
+            } else {
+                // lb ≤ x ≤ ub => λ ≤ 0, λ' ≥ 0
+                val variable1 = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.negativeInfinity,
+                    upperBound = Flt64.zero,
+                    type = Continuous,
+                    origin = null,
+                    name = "${it.name}_lb_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                val variable2 = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.zero,
+                    upperBound = Flt64.infinity,
+                    type = Continuous,
+                    origin = null,
+                    name = "${it.name}_ub_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                variable1 to variable2
+            }
+        }
 
         val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex }
         val coefficients = this@LinearTriadModel.variables.indices.map {
@@ -771,13 +912,19 @@ data class LinearTriadModel(
         }
 
         val lhs = coroutineScope {
-            val constraintPromises = this@LinearTriadModel.variables.indices.map {
+            val constraintPromises = this@LinearTriadModel.variables.indices.map { col ->
                 async(Dispatchers.Default) {
-                    coefficients[it].map { cell ->
+                    coefficients[col].map { cell ->
                         LinearConstraintCell(
-                            rowIndex = it,
+                            rowIndex = col,
                             colIndex = cell.first,
                             coefficient = cell.second
+                        )
+                    } + listOfNotNull(boundVariables[col].first, boundVariables[col].second).map {
+                        LinearConstraintCell(
+                            rowIndex = col,
+                            colIndex = it.index,
+                            coefficient = Flt64.one
                         )
                     }
                 }
@@ -787,6 +934,23 @@ data class LinearTriadModel(
                         rowIndex = this@LinearTriadModel.variables.size,
                         colIndex = farkasVariables[it].index,
                         coefficient = this@LinearTriadModel.constraints.rhs[it]
+                    )
+                } + this@LinearTriadModel.variables.flatMapIndexed { col, variable ->
+                    listOfNotNull(
+                        boundVariables[col].first?.let {
+                            LinearConstraintCell(
+                                rowIndex = this@LinearTriadModel.variables.size,
+                                colIndex = it.index,
+                                coefficient = variable.lowerBound
+                            )
+                        },
+                        boundVariables[col].second?.let {
+                            LinearConstraintCell(
+                                rowIndex = this@LinearTriadModel.variables.size,
+                                colIndex = it.index,
+                                coefficient = variable.upperBound
+                            )
+                        }
                     )
                 }
             })
@@ -827,7 +991,7 @@ data class LinearTriadModel(
             constraintPromises.awaitAll() + slackConstraintPromises.await()
         }
 
-        val signs = this.variables.indices.map { Sign.GreaterEqual } + listOf(Sign.Equal) + this.constraints.indices.mapNotNull {
+        val signs = this.variables.indices.map { Sign.Equal } + listOf(Sign.Equal) + this.constraints.indices.mapNotNull {
             when (this.constraints.signs[it]) {
                 Sign.LessEqual, Sign.GreaterEqual -> {
                     null
@@ -901,7 +1065,6 @@ data class LinearTriadModel(
     }
 
     fun feasibility(): LinearTriadModel {
-        assert(normalized())
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()

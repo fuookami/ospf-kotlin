@@ -363,7 +363,7 @@ class MindOPTBendersDecompositionSolver(
     private suspend fun solveFarkasDual(
         model: LinearTriadModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().farkasDual()
+        val dualModel = model.farkasDual()
 
         val solver = MindOPTLinearSolver(config)
         return when (val result = solver(dualModel)) {
@@ -390,7 +390,7 @@ class MindOPTBendersDecompositionSolver(
     private suspend fun solveFarkasDual(
         model: QuadraticTetradModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().farkasDual()
+        val dualModel = model.farkasDual()
 
         val solver = MindOPTQuadraticSolver(config)
         return when (val result = solver(dualModel)) {

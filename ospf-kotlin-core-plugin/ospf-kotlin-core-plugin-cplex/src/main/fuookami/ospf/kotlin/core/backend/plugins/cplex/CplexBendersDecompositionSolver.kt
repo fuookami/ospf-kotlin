@@ -370,7 +370,7 @@ class CplexBendersDecompositionSolver(
     private suspend fun solveFarkasDual(
         model: LinearTriadModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().farkasDual()
+        val dualModel = model.farkasDual()
 
         val solver = CplexLinearSolver(config)
         return when (val result = solver(dualModel)) {
@@ -397,7 +397,7 @@ class CplexBendersDecompositionSolver(
     private suspend fun solveFarkasDual(
         model: QuadraticTetradModel
     ): Ret<Solution> {
-        val dualModel = model.normalize().farkasDual()
+        val dualModel = model.farkasDual()
 
         val solver = CplexQuadraticSolver(config)
         return when (val result = solver(dualModel)) {

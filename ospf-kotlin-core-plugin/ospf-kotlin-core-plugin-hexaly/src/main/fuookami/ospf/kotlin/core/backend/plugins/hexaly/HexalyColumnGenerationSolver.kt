@@ -179,9 +179,7 @@ class HexalyColumnGenerationSolver(
                     callBack = callBack
                 )
                 val dualSolutionPromises = async(Dispatchers.Default) {
-                    val temp = model.copy()
-                    temp.normalize()
-                    val dualModel = temp.dual()
+                    val dualModel = model.dual()
                     solver(dualModel)
                 }
                 when (val result = solver(model, solvingStatusCallBack)) {

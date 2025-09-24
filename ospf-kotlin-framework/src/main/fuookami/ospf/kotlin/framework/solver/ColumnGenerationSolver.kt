@@ -62,7 +62,7 @@ interface ColumnGenerationSolver {
 
     data class LPResult(
         val result: SolverOutput,
-        val dualSolution: Solution
+        val dualSolution: LinearDualSolution
     ) {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution
