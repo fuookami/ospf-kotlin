@@ -74,7 +74,7 @@ abstract class HexalySolver {
                 }
 
                 else -> {
-                    SolverStatus.Infeasible
+                    SolverStatus.SolvingException
                 }
             }
 

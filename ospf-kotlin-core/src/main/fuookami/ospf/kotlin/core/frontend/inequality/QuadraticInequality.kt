@@ -210,6 +210,10 @@ infix fun QuadraticIntermediateSymbol.eq(rhs: Boolean): QuadraticInequality {
     }
 }
 
+operator fun QuadraticFunctionSymbol.not(): QuadraticInequality {
+    return this.eq(false)
+}
+
 infix fun QuadraticIntermediateSymbol.eq(rhs: Trivalent): QuadraticInequality {
     return this.eq(rhs.value)
 }

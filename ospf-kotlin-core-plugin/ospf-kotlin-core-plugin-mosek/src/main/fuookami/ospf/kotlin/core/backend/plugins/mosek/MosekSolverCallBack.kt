@@ -43,7 +43,7 @@ class MosekSolverCallBack(
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<Function>? = map[point]
 
     fun execIfContain(env: Task): Try? {

@@ -37,7 +37,7 @@ class CplexSolverCallBack(
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<Function>? = map[point]
 
     suspend fun execIfContain(point: Point, status: SolverStatus?, cplex: IloCplex, variables: List<IloNumVar>, constraints: List<IloRange>): Try? {
