@@ -9,12 +9,15 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
+typealias OriginConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.Constraint
+
 class Variable(
     val index: Int,
     lowerBound: Flt64,
     upperBound: Flt64,
     type: VariableType<*>,
     val origin: AbstractVariableItem<*, *>?,
+    val dualOrigin: OriginConstraint? = null,
     val name: String,
     val initialResult: Flt64? = null
 ) : Cloneable, Copyable<Variable> {
@@ -53,10 +56,10 @@ class Variable(
 
     val positiveFree: Boolean
         get() {
-            return (upperBound eq Flt64.negativeInfinity || upperBound leq Flt64.decimalPrecision.reciprocal())
+            return (upperBound eq Flt64.negativeInfinity || upperBound geq Flt64.decimalPrecision.reciprocal())
         }
 
-    override fun copy() = Variable(index, lowerBound, upperBound, type, origin, name, initialResult)
+    override fun copy() = Variable(index, lowerBound, upperBound, type, origin, dualOrigin, name, initialResult)
     override fun clone() = copy()
 
     override fun toString() = name

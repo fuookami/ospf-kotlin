@@ -155,7 +155,7 @@ class ConsumptionQuantityConstraint<
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<C, Flt64>()
         val indices = model.indicesOfConstraintGroup(name)
@@ -165,12 +165,16 @@ class ConsumptionQuantityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val material = iteratorLb.next().first
-                thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + shadowPrices[j]
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
+                }
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val material = iterableUb.next().first
-                thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + shadowPrices[j]
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
+                }
             }
 
             if (!iteratorLb.hasNext() && !iterableUb.hasNext()) {

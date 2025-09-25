@@ -193,7 +193,7 @@ class ScipColumnGenerationSolver(
             })
         }
 
-        lateinit var dualSolution: Solution
+        lateinit var dualSolution: LinearDualSolution
         val solver = ScipLinearSolver(
             config = config.copy(
                 threadNum = UInt64.one
@@ -204,10 +204,10 @@ class ScipColumnGenerationSolver(
                     model.setHeuristics(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
                     ok
                 }
-                .analyzingSolution { _, model, _, constraints ->
-                    dualSolution = constraints.map {
-                        Flt64(model.getDual(it))
-                    }
+                .analyzingSolution { _, scipModel, _, constraints ->
+                    dualSolution = model.tidyDualSolution(constraints.map {
+                        Flt64(scipModel.getDual(it))
+                    })
                     ok
                 }
         )
@@ -215,12 +215,12 @@ class ScipColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
-                val dualObject = dualSolution.withIndex().sumOf { (i, value) ->
-                    model.constraints.rhs[i] * value
+                val dualObject = dualSolution.sumOf { (constraint, value) ->
+                    constraint.rhs * value
                 }
                 if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                     // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
-                    when (val result = solveDual(model)) {
+                    when (val result = solveDual(model, ScipLinearSolver(config))) {
                         is Ok -> {
                             dualSolution = result.value
                         }
@@ -232,31 +232,16 @@ class ScipColumnGenerationSolver(
                     }
                 }
                 jobs.joinAll()
-                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = result.value,
+                        dualSolution = dualSolution
+                    )
+                )
             }
 
             is Failed -> {
                 jobs.joinAll()
-                Failed(result.error)
-            }
-        }
-    }
-
-    private suspend fun solveDual(
-        model: LinearTriadModel
-    ): Ret<Solution> {
-        val dualModel = model.dual()
-
-        val solver = ScipLinearSolver(
-            config = config
-        )
-
-        return when (val result = solver(dualModel)) {
-            is Ok -> {
-                Ok(result.value.solution)
-            }
-
-            is Failed -> {
                 Failed(result.error)
             }
         }

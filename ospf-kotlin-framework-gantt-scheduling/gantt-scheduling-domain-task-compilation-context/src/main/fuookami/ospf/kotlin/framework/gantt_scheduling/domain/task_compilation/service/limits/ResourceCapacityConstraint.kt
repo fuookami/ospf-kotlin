@@ -146,7 +146,7 @@ class ResourceCapacityConstraint<
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<ResourceTimeSlot<R, C>, Flt64>()
         val indices = model.indicesOfConstraintGroup(name)
@@ -156,12 +156,16 @@ class ResourceCapacityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val slot = iteratorLb.next()
-                thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + shadowPrices[j]
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
+                }
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val slot = iteratorUb.next()
-                thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + shadowPrices[j]
+                shadowPrices[model.constraints[j]]?.let { price ->
+                    thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
+                }
             }
 
             if (!iteratorLb.hasNext() && !iteratorUb.hasNext()) {

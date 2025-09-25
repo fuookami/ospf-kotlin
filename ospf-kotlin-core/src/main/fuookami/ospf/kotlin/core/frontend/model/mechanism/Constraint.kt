@@ -11,10 +11,12 @@ typealias LinearDualSolution = Map<LinearConstraint, Flt64>
 typealias QuadraticDualSolution = Map<QuadraticConstraint, Flt64>
 typealias MetaDualSolution = Map<Inequality<*, *>, Flt64>
 
+@JvmName("linearDualSolutionToMetaDualSolution")
 fun LinearDualSolution.toMeta(): MetaDualSolution {
     return this.filterKeys { it.origin != null }.mapKeys { it.key.origin!! }
 }
 
+@JvmName("quadraticDualSolutionToMetaDualSolution")
 fun QuadraticDualSolution.toMeta(): MetaDualSolution {
     return this.filterKeys { it.origin != null }.mapKeys { it.key.origin!! }
 }

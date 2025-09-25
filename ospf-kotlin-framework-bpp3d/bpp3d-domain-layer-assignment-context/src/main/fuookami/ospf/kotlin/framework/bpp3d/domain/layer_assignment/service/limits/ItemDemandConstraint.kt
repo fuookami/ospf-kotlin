@@ -119,7 +119,7 @@ class ItemDemandConstraint<
     override fun refresh(
         map: AbstractBPP3DShadowPriceMap<Args, T>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         TODO("Not yet implemented")
     }

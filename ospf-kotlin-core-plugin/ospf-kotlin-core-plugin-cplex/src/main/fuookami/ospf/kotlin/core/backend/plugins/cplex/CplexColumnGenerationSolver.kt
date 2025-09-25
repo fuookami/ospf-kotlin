@@ -195,7 +195,7 @@ class CplexColumnGenerationSolver(
             })
         }
 
-        lateinit var dualSolution: Solution
+        lateinit var dualSolution: LinearDualSolution
         val solver = CplexLinearSolver(
             config = config,
             callBack = callBack.copy()
@@ -204,9 +204,9 @@ class CplexColumnGenerationSolver(
                     ok
                 }
                 .analyzingSolution { _, cplex, _, constraints ->
-                    dualSolution = constraints.map {
+                    dualSolution = model.tidyDualSolution(constraints.map {
                         Flt64(cplex.getDual(it))
-                    }
+                    })
                     ok
                 }
         )

@@ -183,14 +183,14 @@ class GurobiColumnGenerationSolver(
             })
         }
 
-        lateinit var dualSolution: Solution
+        lateinit var dualSolution: LinearDualSolution
         val solver = GurobiLinearSolver(
             config = config,
             callBack = callBack.copy()
                 .analyzingSolution { _, _, _, constraints ->
-                    dualSolution = constraints.map {
+                    dualSolution = model.tidyDualSolution(constraints.map {
                         Flt64(it.get(GRB.DoubleAttr.Pi))
-                    }
+                    })
                     ok
                 }
         )

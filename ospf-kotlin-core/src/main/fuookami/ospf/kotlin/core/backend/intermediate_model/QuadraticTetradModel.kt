@@ -1,5 +1,8 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
+import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.frontend.model.Solution
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
@@ -192,10 +195,12 @@ data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
     val tokenIndexMap: BiMap<Token, Int>,
     override val objective: QuadraticObjective,
+    internal val dualOrigin: QuadraticTetradModelView? = null
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
     override val variables: List<Variable> by impl::variables
     override val constraints: QuadraticConstraint by impl::constraints
     override val name: String by impl::name
+    val dual get() = dualOrigin != null
 
     companion object {
         private val logger = logger()
@@ -260,7 +265,7 @@ data class QuadraticTetradModel(
             }
             for ((token, i) in tokenIndexMap) {
                 val bounds = model.constraints.filter {
-                    it.lhs.all { cell -> cell.token1 == token && cell.token2 == null }
+                    it.lhs.size == 1 && it.lhs.first().coefficient eq Flt64.one && it.lhs.first().token1 == token && it.lhs.first().token2 == null
                 }
                 val lb = bounds
                     .filter { it.sign == Sign.GreaterEqual || it.sign == Sign.Equal }
@@ -313,7 +318,7 @@ data class QuadraticTetradModel(
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraint {
             val notBoundConstraints = model.constraints.filter {
-                it.lhs.isEmpty() || it.lhs.any { cell -> cell.token2 != null || cell.token1 != it.lhs.first().token1 }
+                it.lhs.isEmpty() || it.lhs.size >= 2 || it.lhs.any { cell -> cell.coefficient neq Flt64.one || cell.token2 != null || cell.token1 != it.lhs.first().token1 }
             }
 
             val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
@@ -326,13 +331,13 @@ data class QuadraticTetradModel(
                                 rowIndex = index,
                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                 colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
-                                coefficient = cell.coefficient.let {
-                                    if (it.isInfinity()) {
+                                coefficient = cell.coefficient.let { coefficient ->
+                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                         Flt64.decimalPrecision.reciprocal()
-                                    } else if (it.isNegativeInfinity()) {
+                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                         -Flt64.decimalPrecision.reciprocal()
                                     } else {
-                                        it
+                                        coefficient
                                     }
                                 }
                             )
@@ -345,14 +350,15 @@ data class QuadraticTetradModel(
                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                 colIndex2 = null,
                                 coefficient = cell.coefficient.let {
-                                    if (it.isInfinity()) {
+                                    val coefficient = it * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
+                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                         Flt64.decimalPrecision.reciprocal()
-                                    } else if (it.isNegativeInfinity()) {
+                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                         -Flt64.decimalPrecision.reciprocal()
                                     } else {
-                                        it
+                                        coefficient
                                     }
-                                } * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
+                                }
                             )
                         )
                     } else if (tokenIndexes.containsKey(cell.token2)) {
@@ -363,14 +369,15 @@ data class QuadraticTetradModel(
                                 colIndex1 = tokenIndexes[cell.token2]!!,
                                 colIndex2 = null,
                                 coefficient = cell.coefficient.let {
-                                    if (it.isInfinity()) {
+                                    val coefficient = it * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
+                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                         Flt64.decimalPrecision.reciprocal()
-                                    } else if (it.isNegativeInfinity()) {
+                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                         -Flt64.decimalPrecision.reciprocal()
                                     } else {
-                                        it
+                                        coefficient
                                     }
-                                } * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
+                                }
                             )
                         )
                     } else {
@@ -403,7 +410,7 @@ data class QuadraticTetradModel(
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraint {
             val notBoundConstraints = model.constraints.filter {
-                it.lhs.isEmpty() || it.lhs.any { cell -> cell.token2 != null || cell.token1 != it.lhs.first().token1 }
+                it.lhs.isEmpty() || it.lhs.size >= 2 || it.lhs.any { cell -> cell.coefficient neq Flt64.one || cell.token2 != null || cell.token1 != it.lhs.first().token1 }
             }
 
             return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
@@ -429,9 +436,9 @@ data class QuadraticTetradModel(
                                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                                 colIndex2 = cell.token2?.let { token -> tokenIndexes[token]!! },
                                                 coefficient = cell.coefficient.let { coefficient ->
-                                                    if (coefficient.isInfinity()) {
+                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                                         Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity()) {
+                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                                         -Flt64.decimalPrecision.reciprocal()
                                                     } else {
                                                         coefficient
@@ -446,15 +453,16 @@ data class QuadraticTetradModel(
                                                 rowIndex = i,
                                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                                 colIndex2 = null,
-                                                coefficient = cell.coefficient.let { coefficient ->
-                                                    if (coefficient.isInfinity()) {
+                                                coefficient = cell.coefficient.let { originCoefficient ->
+                                                    val coefficient = originCoefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
+                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                                         Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity()) {
+                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                                         -Flt64.decimalPrecision.reciprocal()
                                                     } else {
                                                         coefficient
                                                     }
-                                                } * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
+                                                }
                                             )
                                         )
                                     } else if (tokenIndexes.containsKey(cell.token2)) {
@@ -464,15 +472,16 @@ data class QuadraticTetradModel(
                                                 rowIndex = i,
                                                 colIndex1 = tokenIndexes[cell.token2]!!,
                                                 colIndex2 = null,
-                                                coefficient = cell.coefficient.let { coefficient ->
-                                                    if (coefficient.isInfinity()) {
+                                                coefficient = cell.coefficient.let { originCoefficient ->
+                                                    val coefficient = originCoefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
+                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                                         Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity()) {
+                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                                         -Flt64.decimalPrecision.reciprocal()
                                                     } else {
                                                         coefficient
                                                     }
-                                                } * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
+                                                }
                                             )
                                         )
                                     } else {
@@ -517,22 +526,65 @@ data class QuadraticTetradModel(
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
                     for (cell in constraint.lhs) {
-                        thisLhs.add(
-                            QuadraticConstraintCell(
-                                rowIndex = index,
-                                colIndex1 = tokenIndexes[cell.token1]!!,
-                                colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
-                                coefficient = cell.coefficient.let {
-                                    if (it.isInfinity()) {
-                                        Flt64.decimalPrecision.reciprocal()
-                                    } else if (it.isNegativeInfinity()) {
-                                        -Flt64.decimalPrecision.reciprocal()
-                                    } else {
-                                        it
+                        if (tokenIndexes.containsKey(cell.token1) && (cell.token2 == null || tokenIndexes.containsKey(cell.token2))) {
+                            thisLhs.add(
+                                QuadraticConstraintCell(
+                                    rowIndex = index,
+                                    colIndex1 = tokenIndexes[cell.token1]!!,
+                                    colIndex2 = cell.token2?.let { token -> tokenIndexes[token]!! },
+                                    coefficient = cell.coefficient.let { coefficient ->
+                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
+                                            Flt64.decimalPrecision.reciprocal()
+                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
+                                            -Flt64.decimalPrecision.reciprocal()
+                                        } else {
+                                            coefficient
+                                        }
                                     }
-                                }
+                                )
                             )
-                        )
+                        } else if (tokenIndexes.containsKey(cell.token1)) {
+                            assert(cell.token2 != null)
+                            thisLhs.add(
+                                QuadraticConstraintCell(
+                                    rowIndex = index,
+                                    colIndex1 = tokenIndexes[cell.token1]!!,
+                                    colIndex2 = null,
+                                    coefficient = cell.coefficient.let { originCoefficient ->
+                                        val coefficient = originCoefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
+                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
+                                            Flt64.decimalPrecision.reciprocal()
+                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
+                                            -Flt64.decimalPrecision.reciprocal()
+                                        } else {
+                                            coefficient
+                                        }
+                                    }
+                                )
+                            )
+                        } else if (tokenIndexes.containsKey(cell.token2)) {
+                            assert(cell.token2 != null)
+                            thisLhs.add(
+                                QuadraticConstraintCell(
+                                    rowIndex = index,
+                                    colIndex1 = tokenIndexes[cell.token2]!!,
+                                    colIndex2 = null,
+                                    coefficient = cell.coefficient.let { originCoefficient ->
+                                        val coefficient = originCoefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
+                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
+                                            Flt64.decimalPrecision.reciprocal()
+                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
+                                            -Flt64.decimalPrecision.reciprocal()
+                                        } else {
+                                            coefficient
+                                        }
+                                    }
+                                )
+                            )
+                        } else {
+                            rhs -= cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one) * (fixedVariables?.get(cell.token2?.variable)
+                                ?: Flt64.one)
+                        }
                     }
                     lhs.add(thisLhs)
                     signs.add(constraint.sign)
@@ -614,13 +666,13 @@ data class QuadraticTetradModel(
                         QuadraticObjectiveCell(
                             colIndex1 = i,
                             colIndex2 = j,
-                            coefficient = value.let {
-                                if (it.isInfinity()) {
+                            coefficient = value.let { coefficient ->
+                                if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
                                     Flt64.decimalPrecision.reciprocal()
-                                } else if (it.isNegativeInfinity()) {
+                                } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
                                     -Flt64.decimalPrecision.reciprocal()
                                 } else {
-                                    it
+                                    coefficient
                                 }
                             }
                         )
@@ -785,6 +837,26 @@ data class QuadraticTetradModel(
         )
     }
 
+    fun tidyDualSolution(solution: Solution): QuadraticDualSolution {
+        return if (dual) {
+            variables.associateNotNull {
+                if (it.dualOrigin != null && solution.size > it.index) {
+                    (it.dualOrigin as OriginQuadraticConstraint) to solution[it.index]
+                } else {
+                    null
+                }
+            }
+        } else {
+            constraints.indices.associateNotNull {
+                if (constraints.origins[it] != null && solution.size > it) {
+                    constraints.origins[it]!! to solution[it]
+                } else {
+                    null
+                }
+            }
+        }
+    }
+
     override fun exportLP(writer: FileWriter): Try {
         writer.write("${objective.category}\n")
         var i = 0
@@ -824,6 +896,40 @@ data class QuadraticTetradModel(
             is Ok -> {
                 ok
             }
+        }
+    }
+}
+
+suspend fun solveDual(
+    model: QuadraticTetradModel,
+    solver: QuadraticSolver
+): Ret<QuadraticDualSolution> {
+    val dualModel = model.dual()
+
+    return when (val result = solver(dualModel)) {
+        is Ok -> {
+            Ok(dualModel.tidyDualSolution(result.value.solution))
+        }
+
+        is Failed -> {
+            Failed(result.error)
+        }
+    }
+}
+
+suspend fun solveFarkasDual(
+    model: QuadraticTetradModel,
+    solver: QuadraticSolver
+): Ret<QuadraticDualSolution> {
+    val dualModel = model.farkasDual()
+
+    return when (val result = solver(dualModel)) {
+        is Ok -> {
+            Ok(dualModel.tidyDualSolution(result.value.solution))
+        }
+
+        is Failed -> {
+            Failed(result.error)
         }
     }
 }

@@ -45,7 +45,7 @@ class TaskStepConflictConstraint<
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Try {
         TODO("not implement yet")
     }

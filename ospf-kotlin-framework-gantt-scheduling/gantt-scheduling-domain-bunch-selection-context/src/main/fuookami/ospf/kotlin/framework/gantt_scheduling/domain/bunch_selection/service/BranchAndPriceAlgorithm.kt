@@ -472,7 +472,7 @@ class BranchAndPriceAlgorithm<
             }
         }
 
-        val shadowPriceMap = when (val ret = extractShadowPrice(model, lpRet.dualSolution)) {
+        val shadowPriceMap = when (val ret = extractShadowPrice(model, lpRet.dualSolution.toMeta())) {
             is Ok -> {
                 ret.value
             }
@@ -510,7 +510,7 @@ class BranchAndPriceAlgorithm<
 
     private fun extractShadowPrice(
         model: AbstractLinearMetaModel,
-        shadowPrices: List<Flt64>
+        shadowPrices: MetaDualSolution
     ): Ret<Map> {
         val map = policy.shadowPriceMap()
 

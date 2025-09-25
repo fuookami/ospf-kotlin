@@ -188,7 +188,12 @@ class HexalyColumnGenerationSolver(
                             is Ok -> {
                                 metaModel.tokens.setSolution(result.value.solution)
                                 jobs.joinAll()
-                                Ok(ColumnGenerationSolver.LPResult(result.value, dualResult.value.solution))
+                                Ok(
+                                    ColumnGenerationSolver.LPResult(
+                                        result = result.value,
+                                        dualSolution = model.tidyDualSolution(dualResult.value.solution)
+                                    )
+                                )
                             }
 
                             is Failed -> {
