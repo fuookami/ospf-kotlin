@@ -1,8 +1,5 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
-import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
-import fuookami.ospf.kotlin.core.frontend.model.Solution
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
@@ -15,7 +12,9 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.solver.*
 
 typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
 
