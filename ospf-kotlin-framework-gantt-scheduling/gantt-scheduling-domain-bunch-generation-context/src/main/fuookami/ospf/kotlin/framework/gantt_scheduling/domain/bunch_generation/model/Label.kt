@@ -99,7 +99,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     init {
         assert(
             when (node) {
-                is TaskNode<*, *> -> {
+                is TaskNode<*, *, *, *> -> {
                     task != null && task is AbstractPlannedTask<*, *, *>
                 }
 
@@ -119,7 +119,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
 
         val trace = prevLabel?.trace?.toMutableList() ?: ArrayList()
         when (node) {
-            is TaskNode<*, *> -> {
+            is TaskNode<*, *, *, *> -> {
                 trace.add(node.index)
             }
 
@@ -134,7 +134,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
                 false
             }
 
-            is TaskNode<*, *> -> {
+            is TaskNode<*, *, *, *> -> {
                 return trace.contains(node.index)
             }
         }

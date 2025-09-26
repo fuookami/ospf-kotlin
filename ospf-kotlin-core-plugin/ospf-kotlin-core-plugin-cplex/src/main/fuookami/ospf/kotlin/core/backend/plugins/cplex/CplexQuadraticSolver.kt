@@ -331,7 +331,7 @@ private class CplexQuadraticSolverImpl(
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant
             val possibleBestObj = Flt64(cplex.bestObjValue) + model.objective.constant
-            output = SolverOutput(
+            output = FeasibilitySolverOutput(
                 obj = obj,
                 solution = cplexVars.map { Flt64(cplex.getValue(it)) },
                 time = cplex.cplexTime.seconds,

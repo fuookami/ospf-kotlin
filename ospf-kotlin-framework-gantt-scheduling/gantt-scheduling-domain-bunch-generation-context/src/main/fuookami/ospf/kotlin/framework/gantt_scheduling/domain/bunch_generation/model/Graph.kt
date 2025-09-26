@@ -25,8 +25,8 @@ object EndNode : Node(end) {
     override fun toString() = "End"
 }
 
-class TaskNode<E : Executor, Arg>(
-    val task: AbstractTaskPlan<E>,
+class TaskNode<T: AbstractTask<E, A>, E : Executor, A: AssignmentPolicy<E>, Arg>(
+    val task: T,
     val arg: Arg,
     override val time: Instant,
     index: UInt64

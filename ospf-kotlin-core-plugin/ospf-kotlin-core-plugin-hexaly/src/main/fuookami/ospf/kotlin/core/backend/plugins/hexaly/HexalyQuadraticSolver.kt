@@ -315,7 +315,7 @@ private class HexalyQuadraticSolverImpl(
                 for (hexalyVar in hexalyVars) {
                     results.add(Flt64(hexalyVar.doubleValue))
                 }
-                output = SolverOutput(
+                output = FeasibilitySolverOutput(
                     obj = Flt64(hexalyObjective.doubleValue),
                     solution = results,
                     time = solvingTime!!,

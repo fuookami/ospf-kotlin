@@ -26,9 +26,9 @@ class GurobiQuadraticSolver(
 
     override suspend fun invoke(
         model: QuadraticTetradModelView,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        val impl = GurobiQuadraticSolverImpl(config, callBack, statusCallBack)
+        val impl = GurobiQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -37,7 +37,7 @@ class GurobiQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
+        solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
@@ -65,7 +65,7 @@ class GurobiQuadraticSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -306,7 +306,7 @@ private class GurobiQuadraticSolverImpl(
                 for (grbVar in grbVars) {
                     results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
                 }
-                output = SolverOutput(
+                output = FeasibilitySolverOutput(
                     obj = Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
                     solution = results,
                     time = grbModel.get(GRB.DoubleAttr.Runtime).seconds,
