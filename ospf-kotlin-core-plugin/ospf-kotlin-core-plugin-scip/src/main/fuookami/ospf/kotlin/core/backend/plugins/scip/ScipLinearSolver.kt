@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import kotlin.time.*
-import kotlinx.datetime.*
 import kotlinx.coroutines.*
-import jscip.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -315,7 +313,7 @@ private class ScipLinearSolverImpl(
             } else {
                 Flt64.zero
             }
-            output = FeasibilitySolverOutput(
+            output = FeasibleSolverOutput(
                 obj = obj,
                 solution = results,
                 time = solvingTime!!,

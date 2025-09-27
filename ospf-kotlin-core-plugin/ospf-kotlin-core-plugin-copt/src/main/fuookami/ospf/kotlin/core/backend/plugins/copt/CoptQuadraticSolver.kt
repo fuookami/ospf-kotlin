@@ -303,7 +303,7 @@ private class CoptQuadraticSolverImpl(
                 for (coptVar in coptVars) {
                     results.add(Flt64(coptVar.get(COPT.DoubleInfo.Value)))
                 }
-                output = FeasibilitySolverOutput(
+                output = FeasibleSolverOutput(
                     obj = if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
                         Flt64(coptModel.get(COPT.DoubleAttr.BestObj))
                     } else {

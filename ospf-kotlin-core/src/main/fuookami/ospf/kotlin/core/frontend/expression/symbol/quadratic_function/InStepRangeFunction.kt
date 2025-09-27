@@ -14,6 +14,7 @@ class InStepRangeFunction(
     lowerBound: AbstractQuadraticPolynomial<*>,
     upperBound: AbstractQuadraticPolynomial<*>,
     private val step: AbstractQuadraticPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -30,15 +31,17 @@ class InStepRangeFunction(
             lowerBound: T1,
             upperBound: T2,
             step: Int,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): InStepRangeFunction {
             return InStepRangeFunction(
-                lowerBound.toQuadraticPolynomial(),
-                upperBound.toQuadraticPolynomial(),
-                QuadraticPolynomial(step),
-                name,
-                displayName
+                lowerBound = lowerBound.toQuadraticPolynomial(),
+                upperBound = upperBound.toQuadraticPolynomial(),
+                step = QuadraticPolynomial(step),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -51,15 +54,17 @@ class InStepRangeFunction(
             lowerBound: T1,
             upperBound: T2,
             step: Double,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): InStepRangeFunction {
             return InStepRangeFunction(
-                lowerBound.toQuadraticPolynomial(),
-                upperBound.toQuadraticPolynomial(),
-                QuadraticPolynomial(step),
-                name,
-                displayName
+                lowerBound = lowerBound.toQuadraticPolynomial(),
+                upperBound = upperBound.toQuadraticPolynomial(),
+                step = QuadraticPolynomial(step),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -73,15 +78,17 @@ class InStepRangeFunction(
             lowerBound: T1,
             upperBound: T2,
             step: T3,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): InStepRangeFunction {
             return InStepRangeFunction(
-                lowerBound.toQuadraticPolynomial(),
-                upperBound.toQuadraticPolynomial(),
-                QuadraticPolynomial(step),
-                name,
-                displayName
+                lowerBound = lowerBound.toQuadraticPolynomial(),
+                upperBound = upperBound.toQuadraticPolynomial(),
+                step = QuadraticPolynomial(step),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -96,15 +103,17 @@ class InStepRangeFunction(
             lowerBound: T1,
             upperBound: T2,
             step: T3,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): InStepRangeFunction {
             return InStepRangeFunction(
-                lowerBound.toQuadraticPolynomial(),
-                upperBound.toQuadraticPolynomial(),
-                step.toQuadraticPolynomial(),
-                name,
-                displayName
+                lowerBound = lowerBound.toQuadraticPolynomial(),
+                upperBound = upperBound.toQuadraticPolynomial(),
+                step = step.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -112,14 +121,16 @@ class InStepRangeFunction(
     private val stepLinear: LinearFunction by lazy {
         LinearFunction(
             step,
+            parent = parent ?: this,
             name = "${name}_step"
         )
     }
 
     private val q: FloorFunction by lazy {
         FloorFunction(
-            upperBound - lowerBound,
-            step,
+            x = upperBound - lowerBound,
+            d = step,
+            parent = parent ?: this,
             name = "${name}_intDiv_$step"
         )
     }

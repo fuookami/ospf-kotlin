@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
-import kotlin.math.*
 import kotlin.time.*
 import kotlinx.datetime.*
 import kotlinx.coroutines.*
@@ -315,7 +314,7 @@ private class HexalyQuadraticSolverImpl(
                 for (hexalyVar in hexalyVars) {
                     results.add(Flt64(hexalyVar.doubleValue))
                 }
-                output = FeasibilitySolverOutput(
+                output = FeasibleSolverOutput(
                     obj = Flt64(hexalyObjective.doubleValue),
                     solution = results,
                     time = solvingTime!!,

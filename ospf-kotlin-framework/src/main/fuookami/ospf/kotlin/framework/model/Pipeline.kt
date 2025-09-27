@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 
 interface Pipeline<in M : Model> {
     val name: String
@@ -16,6 +17,14 @@ interface Pipeline<in M : Model> {
     }
 
     operator fun invoke(model: M): Try
+
+    fun infeasibleReasons(iis: LinearTriadModelView): List<String> {
+        return emptyList()
+    }
+
+    fun infeasibleReasons(iis: QuadraticTetradModelView): List<String> {
+        return emptyList()
+    }
 }
 
 interface CGPipeline<

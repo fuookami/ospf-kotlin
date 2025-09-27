@@ -286,7 +286,7 @@ private class MindOPTLinearSolverImpl(
                 for (mindoptVar in mindoptVars) {
                     results.add(Flt64(mindoptVar.get(MDO.DoubleAttr.X)))
                 }
-                output = FeasibilitySolverOutput(
+                output = FeasibleSolverOutput(
                     obj = Flt64(mindoptModel.get(MDO.DoubleAttr.ObjVal)),
                     solution = results,
                     time = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds,

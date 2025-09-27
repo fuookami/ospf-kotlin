@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class LinearFunction(
     val polynomial: AbstractQuadraticPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -23,13 +24,15 @@ class LinearFunction(
             Poly : AbstractQuadraticPolynomial<Poly>
         > invoke(
             polynomial: T,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): LinearFunction {
             return LinearFunction(
-                polynomial.toQuadraticPolynomial(),
-                name,
-                displayName
+                polynomial = polynomial.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -112,7 +115,8 @@ class LinearFunction(
         if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
                 y eq polynomial,
-                name
+                name = name,
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -141,7 +145,8 @@ class LinearFunction(
         if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
                 y eq polynomial,
-                name
+                name = name,
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -152,7 +157,8 @@ class LinearFunction(
 
             when (val result = model.addConstraint(
                 y eq xValue,
-                name
+                name = name,
+                from = parent ?: this
             )) {
                 is Ok -> {}
 

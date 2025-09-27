@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.solver.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 
 typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
 
@@ -41,7 +42,8 @@ class QuadraticConstraint(
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    val origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null }
+    val origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null },
+    val froms: List<IntermediateSymbol?> = (0 until lhs.size).map { null }
 ) : Constraint<QuadraticConstraintCell>(lhs, signs, rhs, names, sources) {
     override fun copy() = QuadraticConstraint(
         lhs.map { line -> line.map { it.copy() } },
@@ -49,7 +51,8 @@ class QuadraticConstraint(
         rhs.map { it.copy() },
         names.toList(),
         sources.toList(),
-        origins.toList()
+        origins.toList(),
+        froms.toList()
     )
 }
 
@@ -392,6 +395,7 @@ data class QuadraticTetradModel(
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginQuadraticConstraint>()
+            val froms = ArrayList<IntermediateSymbol?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
@@ -399,8 +403,9 @@ data class QuadraticTetradModel(
                 names.add(constraint.name)
                 sources.add(ConstraintSource.Origin)
                 origins.add(constraint)
+                froms.add(constraint.from)
             }
-            return QuadraticConstraint(lhs, signs, rhs, names, sources, origins)
+            return QuadraticConstraint(lhs, signs, rhs, names, sources, origins, froms)
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -503,6 +508,7 @@ data class QuadraticTetradModel(
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginQuadraticConstraint>()
+                    val froms = ArrayList<IntermediateSymbol?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -511,9 +517,10 @@ data class QuadraticTetradModel(
                         names.add(constraint.name)
                         sources.add(ConstraintSource.Origin)
                         origins.add(constraint)
+                        froms.add(constraint.from)
                     }
                     System.gc()
-                    QuadraticConstraint(lhs, signs, rhs, names, sources, origins)
+                    QuadraticConstraint(lhs, signs, rhs, names, sources, origins, froms)
                 }
             } else {
                 val lhs = ArrayList<List<QuadraticConstraintCell>>()
@@ -522,6 +529,7 @@ data class QuadraticTetradModel(
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginQuadraticConstraint>()
+                val froms = ArrayList<IntermediateSymbol?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
                     for (cell in constraint.lhs) {
@@ -591,9 +599,10 @@ data class QuadraticTetradModel(
                     names.add(constraint.name)
                     sources.add(ConstraintSource.Origin)
                     origins.add(constraint)
+                    froms.add(constraint.from)
                 }
                 System.gc()
-                QuadraticConstraint(lhs, signs, rhs, names, sources, origins)
+                QuadraticConstraint(lhs, signs, rhs, names, sources, origins, froms)
             }
         }
 
@@ -815,6 +824,12 @@ data class QuadraticTetradModel(
             },
             sources = this.constraints.indices.map {
                 ConstraintSource.Feasibility
+            },
+            origins = this.constraints.indices.map {
+                this.constraints.origins[it]
+            },
+            froms = this.constraints.indices.map {
+                this.constraints.froms[it]
             }
         )
         val objective = artifactVariables.map {

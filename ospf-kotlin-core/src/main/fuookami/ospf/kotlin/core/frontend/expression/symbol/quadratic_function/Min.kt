@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 sealed class AbstractMinFunction(
     protected val polynomials: List<AbstractQuadraticPolynomial<*>>,
     private val exact: Boolean = true,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -161,7 +162,8 @@ sealed class AbstractMinFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 maxmin leq polynomial,
-                "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -175,7 +177,8 @@ sealed class AbstractMinFunction(
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
                     maxmin geq (polynomial - m * (Flt64.one - u[i])),
-                    "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                    name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -187,7 +190,8 @@ sealed class AbstractMinFunction(
 
             when (val result = model.addConstraint(
                 sum(u) eq Flt64.one,
-                "${name}_u"
+                name = "${name}_u",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -242,7 +246,8 @@ sealed class AbstractMinFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 maxmin leq polynomial,
-                "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -254,7 +259,8 @@ sealed class AbstractMinFunction(
 
         when (val result = model.addConstraint(
             maxmin eq minValue,
-            "${name}_min"
+            name = "${name}_min",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -272,7 +278,8 @@ sealed class AbstractMinFunction(
                 if (i == index) {
                     when (val result = model.addConstraint(
                         maxmin geq polynomial,
-                        "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                        name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -283,7 +290,8 @@ sealed class AbstractMinFunction(
 
                     when (val result = model.addConstraint(
                         u[i] eq Flt64.one,
-                        "${name}_u_${polynomial.name.ifEmpty { "$i" }}"
+                        name = "${name}_u_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -298,7 +306,8 @@ sealed class AbstractMinFunction(
                 } else {
                     when (val result = model.addConstraint(
                         maxmin geq (polynomial - m),
-                        "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                        name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -378,13 +387,15 @@ sealed class AbstractMinFunction(
 
 class MaxMinFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(
-    polynomials,
-    true,
-    name,
-    displayName
+    polynomials = polynomials,
+    exact = true,
+    parent = parent,
+    name = name,
+    displayName = displayName
 ) {
     companion object {
         operator fun invoke(
@@ -411,13 +422,15 @@ class MaxMinFunction(
 
 class MinFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(
-    polynomials,
-    false,
-    name,
-    displayName
+    polynomials = polynomials,
+    exact = false,
+    parent = parent,
+    name = name,
+    displayName = displayName
 ) {
     companion object {
         operator fun invoke(

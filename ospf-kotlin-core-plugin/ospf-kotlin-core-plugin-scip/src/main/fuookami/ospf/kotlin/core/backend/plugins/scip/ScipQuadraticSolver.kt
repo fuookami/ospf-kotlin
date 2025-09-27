@@ -393,7 +393,7 @@ private class ScipQuadraticSolverImpl(
             } else {
                 Flt64.zero
             }
-            output = FeasibilitySolverOutput(
+            output = FeasibleSolverOutput(
                 obj = obj,
                 solution = results,
                 time = solvingTime!!,

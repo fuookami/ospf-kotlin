@@ -325,7 +325,7 @@ private class CplexLinearSolverImpl(
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant
             val possibleBestObj = Flt64(cplex.bestObjValue) + model.objective.constant
-            output = FeasibilitySolverOutput(
+            output = FeasibleSolverOutput(
                 obj = obj,
                 solution = cplexVars.map { Flt64(cplex.getValue(it)) },
                 time = cplex.cplexTime.seconds,

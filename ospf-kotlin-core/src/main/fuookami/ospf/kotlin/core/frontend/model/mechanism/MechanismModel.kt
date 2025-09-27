@@ -24,21 +24,24 @@ sealed interface MechanismModel {
 interface AbstractLinearMechanismModel : MechanismModel {
     fun addConstraint(
         constraint: LinearInequality,
-        name: String? = null
+        name: String? = null,
+        from: IntermediateSymbol? = null,
     ): Try
 }
 
 interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
     override fun addConstraint(
         constraint: LinearInequality,
-        name: String?
+        name: String?,
+        from: IntermediateSymbol?
     ): Try {
-        return addConstraint(QuadraticInequality(constraint), name)
+        return addConstraint(QuadraticInequality(constraint), name, from)
     }
 
     fun addConstraint(
         constraint: QuadraticInequality,
-        name: String? = null
+        name: String? = null,
+        from: IntermediateSymbol? = null
     ): Try
 }
 
@@ -266,10 +269,11 @@ class LinearMechanismModel(
 
     override fun addConstraint(
         constraint: LinearInequality,
-        name: String?
+        name: String?,
+        from: IntermediateSymbol?
     ): Try {
         name?.let { constraint.name = it }
-        _constraints.add(LinearConstraint(constraint, tokens))
+        _constraints.add(LinearConstraint(constraint, tokens, from = from))
         return ok
     }
 
@@ -571,10 +575,11 @@ class QuadraticMechanismModel(
 
     override fun addConstraint(
         constraint: QuadraticInequality,
-        name: String?
+        name: String?,
+        from: IntermediateSymbol?
     ): Try {
         name?.let { constraint.name = it }
-        _constraints.add(QuadraticConstraint(constraint, tokens))
+        _constraints.add(QuadraticConstraint(constraint, tokens, from = from))
         return ok
     }
 

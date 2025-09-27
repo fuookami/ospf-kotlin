@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -41,7 +42,8 @@ class LinearConstraint(
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    val origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null }
+    val origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null },
+    val froms: List<IntermediateSymbol?> = (0 until lhs.size).map { null }
 ) : Constraint<LinearConstraintCell>(lhs, signs, rhs, names, sources) {
     override fun copy() = LinearConstraint(
         lhs.map { line -> line.map { it.copy() } },
@@ -49,7 +51,8 @@ class LinearConstraint(
         rhs.map { it.copy() },
         names.toList(),
         sources.toList(),
-        origins.toList()
+        origins.toList(),
+        froms.toList()
     )
 }
 
@@ -101,6 +104,36 @@ class BasicLinearTriadModel(
                 else -> {}
             }
         }
+    }
+
+    fun linearRelaxed(): BasicLinearTriadModel {
+        return BasicLinearTriadModel(
+            variables.map {
+                when (it.type) {
+                    is Binary -> {
+                        val ret = it.copy()
+                        ret._type = Percentage
+                        ret
+                    }
+
+                    is Ternary, is UInteger -> {
+                        val ret = it.copy()
+                        ret._type = UContinuous
+                        ret
+                    }
+
+                    is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer -> {
+                        val ret = it.copy()
+                        ret._type = Continuous
+                        ret
+                    }
+
+                    else -> it.copy()
+                }
+            },
+            constraints,
+            name
+        )
     }
 
     override fun exportLP(writer: OutputStreamWriter): Try {
@@ -348,6 +381,7 @@ data class LinearTriadModel(
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginLinearConstraint>()
+            val froms = ArrayList<IntermediateSymbol?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
@@ -355,8 +389,9 @@ data class LinearTriadModel(
                 names.add(constraint.name)
                 sources.add(ConstraintSource.Origin)
                 origins.add(constraint)
+                froms.add(constraint.from)
             }
-            return LinearConstraint(lhs, signs, rhs, names, sources, origins)
+            return LinearConstraint(lhs, signs, rhs, names, sources, origins, froms)
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -419,6 +454,7 @@ data class LinearTriadModel(
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginLinearConstraint>()
+                    val froms = ArrayList<IntermediateSymbol?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -427,8 +463,9 @@ data class LinearTriadModel(
                         names.add(constraint.name)
                         sources.add(ConstraintSource.Origin)
                         origins.add(constraint)
+                        froms.add(constraint.from)
                     }
-                    LinearConstraint(lhs, signs, rhs, names, sources, origins)
+                    LinearConstraint(lhs, signs, rhs, names, sources, origins, froms)
                 }
             } else {
                 val lhs = ArrayList<List<LinearConstraintCell>>()
@@ -437,6 +474,7 @@ data class LinearTriadModel(
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginLinearConstraint>()
+                val froms = ArrayList<IntermediateSymbol?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<LinearConstraintCell>()
                     var thisRhs = constraint.rhs
@@ -467,9 +505,10 @@ data class LinearTriadModel(
                     names.add(constraint.name)
                     sources.add(ConstraintSource.Origin)
                     origins.add(constraint)
+                    froms.add(constraint.from)
                 }
                 System.gc()
-                LinearConstraint(lhs, signs, rhs, names, sources, origins)
+                LinearConstraint(lhs, signs, rhs, names, sources, origins, froms)
             }
         }
 
@@ -535,6 +574,10 @@ data class LinearTriadModel(
     fun linearRelax(): LinearTriadModel {
         impl.linearRelax()
         return this
+    }
+
+    fun linearRelaxed(): LinearTriadModel {
+        return LinearTriadModel(impl.linearRelaxed(), tokenIndexMap, objective.copy())
     }
 
     suspend fun dual(): LinearTriadModel {
@@ -1198,10 +1241,16 @@ data class LinearTriadModel(
                 abs(this.constraints.rhs[it])
             },
             names = this.constraints.indices.map {
-                this.constraints.names[it].ifEmpty { "cons${it}" }
+                "${this.constraints.names[it].ifEmpty { "cons${it}" }}_feasibility"
             },
             sources = this.constraints.indices.map {
                 ConstraintSource.Feasibility
+            },
+            origins = this.constraints.indices.map {
+                this.constraints.origins[it]
+            },
+            froms = this.constraints.indices.map {
+                this.constraints.froms[it]
             }
         )
 

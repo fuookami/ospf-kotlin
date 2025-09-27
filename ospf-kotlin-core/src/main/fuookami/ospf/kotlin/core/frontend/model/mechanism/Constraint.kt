@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 
@@ -26,7 +27,8 @@ sealed class Constraint(
     val sign: Sign,
     val rhs: Flt64,
     val name: String = "",
-    open val origin: Inequality<*, *>? = null
+    open val origin: Inequality<*, *>? = null,
+    open val from: IntermediateSymbol? = null
 ) {
     fun isTrue(): Boolean? {
         var lhsValue = Flt64.zero
@@ -50,13 +52,15 @@ class LinearConstraint(
     sign: Sign,
     rhs: Flt64,
     name: String = "",
-    origin: Inequality<*, *>? = null
+    origin: Inequality<*, *>? = null,
+    from: IntermediateSymbol? = null,
 ) : Constraint(lhs, sign, rhs, name, origin) {
     companion object {
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
             tokens: AbstractTokenTable,
-            origin: Boolean = false
+            origin: Boolean = false,
+            from: IntermediateSymbol? = null,
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
             var rhs = Flt64.zero
@@ -74,7 +78,7 @@ class LinearConstraint(
                     }
                 }
             }
-            return LinearConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name, if (origin) { inequality } else { null })
+            return LinearConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name, if (origin) { inequality } else { null }, from)
         }
     }
 }
@@ -84,14 +88,16 @@ class QuadraticConstraint(
     sign: Sign,
     rhs: Flt64,
     name: String = "",
-    origin: Inequality<*, *>? = null
+    origin: Inequality<*, *>? = null,
+    from: IntermediateSymbol? = null
 ) : Constraint(lhs, sign, rhs, name, origin) {
     companion object {
         @JvmName("constructByLinearInequality")
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
             tokens: AbstractTokenTable,
-            origin: Boolean = false
+            origin: Boolean = false,
+            from: IntermediateSymbol? = null
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero
@@ -109,14 +115,15 @@ class QuadraticConstraint(
                     }
                 }
             }
-            return QuadraticConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name, if (origin) { inequality } else { null })
+            return QuadraticConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name, if (origin) { inequality } else { null }, from)
         }
 
         @JvmName("constructByQuadraticInequality")
         operator fun invoke(
             inequality: Inequality<*, QuadraticMonomialCell>,
             tokens: AbstractTokenTable,
-            origin: Boolean = false
+            origin: Boolean = false,
+            from: IntermediateSymbol? = null
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero
@@ -139,7 +146,7 @@ class QuadraticConstraint(
                     }
                 }
             }
-            return QuadraticConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name, if (origin) { inequality } else { null })
+            return QuadraticConstraint(lhs, Sign(inequality.sign), -rhs, inequality.name, if (origin) { inequality } else { null }, from)
         }
     }
 }

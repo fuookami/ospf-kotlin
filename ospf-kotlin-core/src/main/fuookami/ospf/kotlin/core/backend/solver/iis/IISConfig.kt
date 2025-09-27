@@ -1,10 +1,10 @@
-package fuookami.ospf.kotlin.core.backend.solver.config
+package fuookami.ospf.kotlin.core.backend.solver.iis
 
 import kotlin.time.*
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.utils.math.*
 
-data class SolverConfig(
+data class IISConfig(
     val time: Duration = 30.seconds,
     val threadNum: UInt64 = if (Runtime.getRuntime().availableProcessors() <= 16) {
         UInt64(Runtime.getRuntime().availableProcessors())
@@ -15,10 +15,7 @@ data class SolverConfig(
     } else {
         UInt64(32)
     },
-    val gap: Flt64 = Flt64.zero,
     val notImprovementTime: Duration? = null,
-    val dumpMechanismModelConcurrent: Boolean? = null,
-    val dumpMechanismModelBlocking: Boolean? = null,
-    val dumpIntermediateModelConcurrent: Boolean? = null,
+    val computingStatusCallBack: IISComputingStatusCallBack? = null,
     val extraConfig: Any? = null
 )

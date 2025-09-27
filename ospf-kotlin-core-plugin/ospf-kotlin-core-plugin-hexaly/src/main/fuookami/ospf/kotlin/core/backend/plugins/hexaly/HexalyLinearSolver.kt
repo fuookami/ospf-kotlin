@@ -285,7 +285,7 @@ private class HexalyLinearSolverImpl(
                 for (hexalyVar in hexalyVars) {
                     results.add(Flt64(hexalyVar.doubleValue))
                 }
-                output = FeasibilitySolverOutput(
+                output = FeasibleSolverOutput(
                     obj = Flt64(hexalyObjective.doubleValue),
                     solution = results,
                     time = solvingTime!!,

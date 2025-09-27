@@ -9,7 +9,7 @@ sealed interface SolverOutput {}
 sealed interface LinearSolverOutput : SolverOutput {}
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
-data class FeasibilitySolverOutput(
+data class FeasibleSolverOutput(
     val obj: Flt64,
     val solution: Solution,
     val time: Duration,
@@ -17,10 +17,10 @@ data class FeasibilitySolverOutput(
     val gap: Flt64
 ) : LinearSolverOutput, QuadraticSolverOutput
 
-data class LinearInfeasibilitySolverOutput(
+data class LinearInfeasibleSolverOutput(
     val iis: LinearTriadModelView
 ) : LinearSolverOutput
 
-data class QuadraticInfeasibilitySolverOutput(
+data class QuadraticInfeasibleSolverOutput(
     val iis: QuadraticTetradModelView
 ) : QuadraticSolverOutput
