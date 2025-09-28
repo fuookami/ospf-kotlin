@@ -17,7 +17,7 @@ typealias NotFunctionImplBuilder = (NotFunction) -> AbstractNotFunctionImpl
 
 abstract class AbstractNotFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
-    protected val parent: NotFunction
+    protected val self: NotFunction
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -29,6 +29,7 @@ abstract class AbstractNotFunctionImpl(
 
     override val category = Linear
 
+    override val parent get() = self.parent
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -171,9 +172,9 @@ class NotFunctionImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -261,9 +262,9 @@ class NotFunctionPiecewiseImpl(
         }
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             if (values.isNullOrEmpty()) {
                 piecewiseFunction.evaluate(tokenTable)
@@ -376,9 +377,9 @@ class NotFunctionDiscreteImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -547,9 +548,9 @@ class NotFunctionExtractAndNotDiscreteImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)

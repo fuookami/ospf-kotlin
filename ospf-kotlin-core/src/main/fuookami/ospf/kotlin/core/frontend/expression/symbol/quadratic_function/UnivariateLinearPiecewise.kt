@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 sealed class AbstractUnivariateLinearPiecewiseFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     val points: List<Point2>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -174,7 +175,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
-            "${name}_x"
+            name = "${name}_x",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -185,7 +187,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
         when (val result = model.addConstraint(
             sum(k) eq Flt64.one,
-            "${name}_k"
+            name = "${name}_k",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -195,7 +198,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
         when (val result = model.addConstraint(
             sum(b) eq Flt64.one,
-            "${name}_b"
+            name = "${name}_b",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -214,7 +218,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             }
             when (val result = model.addConstraint(
                 k[i] leq poly,
-                "${name}_kb_i"
+                name = "${name}_kb_i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -268,7 +273,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
         when (val result = model.addConstraint(
             x eq points[i].x * k[i] + points[i + 1].x * k[i + 1],
-            "${name}_x"
+            name = "${name}_x",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -279,7 +285,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
         when (val result = model.addConstraint(
             k[i] + k[i + 1] eq Flt64.one,
-            "${name}_k"
+            name = "${name}_k",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -297,7 +304,8 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
         when (val result = model.addConstraint(
             b[i] eq Flt64.one,
-            "${name}_b"
+            name = "${name}_b",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -387,13 +395,15 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 open class UnivariateLinearPiecewiseFunction(
     x: AbstractQuadraticPolynomial<*>,
     points: List<Point2>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractUnivariateLinearPiecewiseFunction(
-    x,
-    points.sortedBy { it.x },
-    name,
-    displayName
+    x = x,
+    points = points.sortedBy { it.x },
+    parent = parent,
+    name = name,
+    displayName = displayName
 ) {
     companion object {
         operator fun <
@@ -402,14 +412,16 @@ open class UnivariateLinearPiecewiseFunction(
         > invoke(
             x: T,
             points: List<Point2>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): UnivariateLinearPiecewiseFunction {
             return UnivariateLinearPiecewiseFunction(
-                x.toQuadraticPolynomial(),
-                points,
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                points = points,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -418,13 +430,15 @@ open class UnivariateLinearPiecewiseFunction(
 open class MonotoneUnivariateLinearPiecewiseFunction(
     x: AbstractQuadraticPolynomial<*>,
     points: List<Point2>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractUnivariateLinearPiecewiseFunction(
-    x,
-    points.sortedBy { it.x },
-    name,
-    displayName
+    x = x,
+    points = points.sortedBy { it.x },
+    parent = parent,
+    name = name,
+    displayName = displayName
 ) {
     companion object {
         operator fun <
@@ -433,14 +447,16 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
         > invoke(
             x: T,
             points: List<Point2>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): MonotoneUnivariateLinearPiecewiseFunction {
             return MonotoneUnivariateLinearPiecewiseFunction(
-                x.toQuadraticPolynomial(),
-                points,
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                points = points,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }

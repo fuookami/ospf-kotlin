@@ -17,7 +17,7 @@ typealias BinaryzationFunctionImplBuilder = (BinaryzationFunction) -> AbstractBi
 
 abstract class AbstractBinaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
-    protected val parent: BinaryzationFunction,
+    protected val self: BinaryzationFunction,
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -29,6 +29,7 @@ abstract class AbstractBinaryzationFunctionImpl(
 
     override val category = Linear
 
+    override val parent get() = self.parent
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -146,25 +147,25 @@ abstract class AbstractBinaryzationFunctionImpl(
 
 class BinaryzationFunctionImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BinaryzationFunction,
+    self: BinaryzationFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractBinaryzationFunctionImpl(x, parent) {
+) : AbstractBinaryzationFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BinaryzationFunction,
+            self: BinaryzationFunction,
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionImpl {
             return BinaryzationFunctionImpl(
-                x.toLinearPolynomial(),
-                parent,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -177,9 +178,9 @@ class BinaryzationFunctionImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -222,42 +223,43 @@ class BinaryzationFunctionImpl(
 
 class BinaryzationFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BinaryzationFunction,
+    self: BinaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractBinaryzationFunctionImpl(x, parent) {
+) : AbstractBinaryzationFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BinaryzationFunction,
+            self: BinaryzationFunction,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionPiecewiseImpl {
             return BinaryzationFunctionPiecewiseImpl(
-                x.toLinearPolynomial(),
-                parent,
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
-            x,
-            listOf(
+            x = x,
+            points = listOf(
                 Point2(Flt64.zero, Flt64.zero),
                 Point2(epsilon - Flt32.decimalPrecision.toFlt64(), Flt64.zero),
                 Point2(epsilon, Flt64.one),
                 Point2(Flt64.one, Flt64.one)
             ),
-            "${name}_piecewise"
+            parent = parent ?: self,
+            name = "${name}_piecewise"
         )
     }
 
@@ -277,9 +279,9 @@ class BinaryzationFunctionPiecewiseImpl(
         piecewiseFunction.prepareAndCache(values, tokenTable)
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             if (values.isNullOrEmpty()) {
                 piecewiseFunction.evaluate(tokenTable)
@@ -348,11 +350,11 @@ class BinaryzationFunctionPiecewiseImpl(
 
 class BinaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BinaryzationFunction,
+    self: BinaryzationFunction,
     private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
-) : AbstractBinaryzationFunctionImpl(x, parent) {
+) : AbstractBinaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
     companion object {
@@ -361,14 +363,14 @@ class BinaryzationFunctionDiscreteImpl(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
            x: T,
-           parent: BinaryzationFunction,
+           self: BinaryzationFunction,
            extract: Boolean = true,
            name: String,
            displayName: String? = null
         ): BinaryzationFunctionDiscreteImpl {
             return BinaryzationFunctionDiscreteImpl(
                 x.toLinearPolynomial(),
-                parent,
+                self,
                 extract,
                 name,
                 displayName
@@ -394,9 +396,9 @@ class BinaryzationFunctionDiscreteImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -437,7 +439,8 @@ class BinaryzationFunctionDiscreteImpl(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             m * y geq x,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -449,7 +452,8 @@ class BinaryzationFunctionDiscreteImpl(
         if (extract) {
             when (val result = model.addConstraint(
                 y leq x,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -500,7 +504,8 @@ class BinaryzationFunctionDiscreteImpl(
         if (bin eq Flt64.one) {
             when (val result = model.addConstraint(
                 m * y geq x,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -511,7 +516,8 @@ class BinaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 y leq x,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -522,7 +528,8 @@ class BinaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 y eq bin,
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -537,7 +544,8 @@ class BinaryzationFunctionDiscreteImpl(
         } else {
             when (val result = model.addConstraint(
                 Flt64.zero geq x,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -548,7 +556,8 @@ class BinaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 Flt64.zero leq x,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -564,11 +573,11 @@ class BinaryzationFunctionDiscreteImpl(
 
 class BinaryzationFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BinaryzationFunction,
+    self: BinaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractBinaryzationFunctionImpl(x, parent) {
+) : AbstractBinaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
     companion object {
@@ -577,17 +586,17 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BinaryzationFunction,
+            self: BinaryzationFunction,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionExtractAndNotDiscreteImpl {
             return BinaryzationFunctionExtractAndNotDiscreteImpl(
-                x.toLinearPolynomial(),
-                parent,
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -614,9 +623,9 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -670,7 +679,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq m * b,
-            "${name}_xb"
+            name = "${name}_xb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -681,7 +691,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y geq b,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -692,7 +703,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y leq (Flt64.one / epsilon) * b,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -751,7 +763,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         if (bin eq Flt64.zero) {
             when (val result = model.addConstraint(
                 x eq m * b,
-                "${name}_xb"
+                name = "${name}_xb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -762,7 +775,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
             when (val result = model.addConstraint(
                 y eq bin,
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -777,7 +791,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
             when (val result = model.addConstraint(
                 b eq pct,
-                "${name}_b"
+                name = "${name}_b",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -792,7 +807,8 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         } else {
             when (val result = model.addConstraint(
                 x eq Flt64.zero,
-                "${name}_x"
+                name = "${name}_x",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -811,6 +827,7 @@ class BinaryzationFunction(
     private val extract: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     private val piecewise: Boolean = false,
+    override val parent: IntermediateSymbol? = null,
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -826,18 +843,20 @@ class BinaryzationFunction(
             extract: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
+            parent: IntermediateSymbol? = null,
             impl: BinaryzationFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
         ): BinaryzationFunction {
             return BinaryzationFunction(
-                x.toLinearPolynomial(),
-                extract,
-                epsilon,
-                piecewise,
-                impl,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                extract = extract,
+                epsilon = epsilon,
+                piecewise = piecewise,
+                parent = parent,
+                impl = impl,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -845,34 +864,34 @@ class BinaryzationFunction(
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
         impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
             BinaryzationFunctionImpl(
-                x,
-                this,
-                name,
-                displayName
+                x = x,
+                self = this,
+                name = name,
+                displayName = displayName
             )
         } else if (x.discrete || !extract) {
             BinaryzationFunctionDiscreteImpl(
-                x,
-                this,
-                extract,
-                name,
-                displayName
+                x = x,
+                self = this,
+                extract = extract,
+                name = name,
+                displayName = displayName
             )
         } else if (!x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
             BinaryzationFunctionPiecewiseImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         } else {
             BinaryzationFunctionExtractAndNotDiscreteImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }

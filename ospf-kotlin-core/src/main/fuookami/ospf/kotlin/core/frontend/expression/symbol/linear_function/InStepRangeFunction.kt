@@ -14,6 +14,7 @@ class InStepRangeFunction(
     lowerBound: AbstractLinearPolynomial<*>,
     upperBound: AbstractLinearPolynomial<*>,
     private val step: Flt64,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -27,15 +28,17 @@ class InStepRangeFunction(
             lowerBound: T1,
             upperBound: T2,
             step: Flt64,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): InStepRangeFunction {
             return InStepRangeFunction(
-                lowerBound.toLinearPolynomial(),
-                upperBound.toLinearPolynomial(),
-                step,
-                name,
-                displayName
+                lowerBound = lowerBound.toLinearPolynomial(),
+                upperBound = upperBound.toLinearPolynomial(),
+                step = step,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -45,8 +48,9 @@ class InStepRangeFunction(
 
     private val q: FloorFunction by lazy {
         FloorFunction(
-            upperBound - lowerBound,
-            step,
+            x = upperBound - lowerBound,
+            d = step,
+            parent = parent ?: this,
             name = "${name}_intDiv_$step"
         )
     }

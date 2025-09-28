@@ -166,7 +166,7 @@ class CplexColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<ColumnGenerationSolver.LPResult> {
+    ): Ret<ColumnGenerationSolver.FeasibleLPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -215,7 +215,7 @@ class CplexColumnGenerationSolver(
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.joinAll()
-                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                Ok(ColumnGenerationSolver.FeasibleLPResult(result.value, dualSolution))
             }
 
             is Failed -> {

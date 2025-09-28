@@ -164,7 +164,7 @@ class ScipColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<ColumnGenerationSolver.LPResult> {
+    ): Ret<ColumnGenerationSolver.FeasibleLPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -233,7 +233,7 @@ class ScipColumnGenerationSolver(
                 }
                 jobs.joinAll()
                 Ok(
-                    ColumnGenerationSolver.LPResult(
+                    ColumnGenerationSolver.FeasibleLPResult(
                         result = result.value,
                         dualSolution = dualSolution
                     )

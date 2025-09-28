@@ -15,26 +15,29 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class FirstFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): FirstFunction {
             return FirstFunction(
-                polynomials.map { it.toLinearPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
-            BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
+            BinaryzationFunction(polynomials[i], parent = parent ?: this, name = "${name}_bin_$i")
         }
     }
 
@@ -197,7 +200,8 @@ class FirstFunction(
         for (i in polynomials.indices) {
             when (val result = model.addConstraint(
                 y[i] leq bins[i],
-                "${name}_ub1_$i"
+                name = "${name}_ub1_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -209,7 +213,8 @@ class FirstFunction(
             if (i == 0) {
                 when (val result = model.addConstraint(
                     y[i] geq bins[i],
-                    "${name}_lb_0"
+                    name = "${name}_lb_0",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -220,7 +225,8 @@ class FirstFunction(
             } else {
                 when (val result = model.addConstraint(
                     y[i] geq bins[i] - sum((0 until i).map { y[it] }),
-                    "${name}_lb_$i"
+                    name = "${name}_lb_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -230,7 +236,8 @@ class FirstFunction(
                 }
                 when (val result = model.addConstraint(
                     y[i] leq y[i - 1],
-                    "${name}_y_$i"
+                    name = "${name}_y_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -293,7 +300,8 @@ class FirstFunction(
             if (i == 0) {
                 when (val result = model.addConstraint(
                     y[i] geq bins[i],
-                    "${name}_lb_0"
+                    name = "${name}_lb_0",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -304,7 +312,8 @@ class FirstFunction(
             } else if (i < first) {
                 when (val result = model.addConstraint(
                     y[i] geq bins[i] - sum((0 until i).map { y[it] }),
-                    "${name}_lb_$i"
+                    name = "${name}_lb_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -316,7 +325,8 @@ class FirstFunction(
 
             when (val result = model.addConstraint(
                 y[i] eq (i == first),
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 

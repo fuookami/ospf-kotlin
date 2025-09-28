@@ -28,6 +28,7 @@ abstract class AbstractBinaryzationFunctionImpl(
 
     override val category = Linear
 
+    override val parent get() = self.parent
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -214,7 +215,6 @@ class BinaryzationFunctionImpl(
 class BinaryzationFunctionLinearImpl(
     x: AbstractQuadraticPolynomial<*>,
     self: BinaryzationFunction,
-    parent: IntermediateSymbol? = null,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
@@ -228,7 +228,6 @@ class BinaryzationFunctionLinearImpl(
         > invoke(
             x: T,
             self: BinaryzationFunction,
-            parent: IntermediateSymbol? = null,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
@@ -236,7 +235,6 @@ class BinaryzationFunctionLinearImpl(
             return BinaryzationFunctionLinearImpl(
                 x.toQuadraticPolynomial(),
                 self,
-                parent,
                 epsilon,
                 name,
                 displayName
@@ -486,7 +484,6 @@ class BinaryzationFunction(
             BinaryzationFunctionLinearImpl(
                 x = x,
                 self = this,
-                parent = parent,
                 epsilon = epsilon,
                 name = name,
                 displayName = displayName

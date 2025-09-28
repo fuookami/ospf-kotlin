@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class MaskingFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val mask: AbstractLinearPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -31,14 +32,16 @@ class MaskingFunction(
         > invoke(
             x: T1,
             mask: T2,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
             return MaskingFunction(
-                x.toLinearPolynomial(),
-                mask.toLinearPolynomial(),
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                mask = mask.toLinearPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -157,7 +160,8 @@ class MaskingFunction(
 
         when (val result = model.addConstraint(
             y leq x + m * (Flt64.one - mask),
-            name = "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -167,7 +171,8 @@ class MaskingFunction(
         }
         when (val result = model.addConstraint(
             y geq x - m * (Flt64.one - mask),
-            name = "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -177,7 +182,8 @@ class MaskingFunction(
         }
         when (val result = model.addConstraint(
             y leq m * mask,
-            name = "${name}_ym_lb"
+            name = "${name}_ym_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -187,7 +193,8 @@ class MaskingFunction(
         }
         when (val result = model.addConstraint(
             y geq -m * mask,
-            name = "${name}_ym_ub"
+            name = "${name}_ym_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -216,7 +223,8 @@ class MaskingFunction(
 
         when (val result = model.addConstraint(
             y leq x + m * (Flt64.one - mask),
-            name = "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -226,7 +234,8 @@ class MaskingFunction(
         }
         when (val result = model.addConstraint(
             y geq x - m * (Flt64.one - mask),
-            name = "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -236,7 +245,8 @@ class MaskingFunction(
         }
         when (val result = model.addConstraint(
             y leq m * mask,
-            name = "${name}_ym_lb"
+            name = "${name}_ym_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -246,7 +256,8 @@ class MaskingFunction(
         }
         when (val result = model.addConstraint(
             y geq -m * mask,
-            name = "${name}_ym_ub"
+            name = "${name}_ym_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -261,7 +272,8 @@ class MaskingFunction(
             } else {
                 Flt64.zero
             },
-            name = "${name}_y"
+            name = "${name}_y",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

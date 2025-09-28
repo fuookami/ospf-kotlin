@@ -20,7 +20,7 @@ typealias BalanceTernaryzationFunctionImplBuilder = (BalanceTernaryzationFunctio
 
 abstract class AbstractBalanceTernaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
-    protected val parent: BalanceTernaryzationFunction
+    protected val self: BalanceTernaryzationFunction
 ) : LinearFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -32,6 +32,7 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
 
     override val category = Linear
 
+    override val parent get() = self.parent
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -165,25 +166,25 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
 
 class BalanceTernaryzationFunctionImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BalanceTernaryzationFunction,
+    self: BalanceTernaryzationFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
+) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<*>
         > invoke(
             x: T,
-            parent: BalanceTernaryzationFunction,
+            self: BalanceTernaryzationFunction,
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionImpl {
             return BalanceTernaryzationFunctionImpl(
-                x.toLinearPolynomial(),
-                parent,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -196,9 +197,9 @@ class BalanceTernaryzationFunctionImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -247,36 +248,36 @@ class BalanceTernaryzationFunctionImpl(
 
 class BalanceTernaryzationFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BalanceTernaryzationFunction,
+    self: BalanceTernaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
+) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<*>
         > invoke(
             x: T,
-            parent: BalanceTernaryzationFunction,
+            self: BalanceTernaryzationFunction,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionPiecewiseImpl {
             return BalanceTernaryzationFunctionPiecewiseImpl(
-                x.toLinearPolynomial(),
-                parent,
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
-            x,
-            listOf(
+            x = x,
+            points = listOf(
                 Point2(x.lowerBound!!.value.unwrap(), -Flt64.one),
                 Point2(-epsilon, -Flt64.one),
                 Point2(-epsilon + Flt32.decimalPrecision.toFlt64(), Flt64.zero),
@@ -284,7 +285,8 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
                 Point2(epsilon, Flt64.one),
                 Point2(x.upperBound!!.value.unwrap(), Flt64.one)
             ),
-            "${name}_piecewise"
+            parent = parent ?: self,
+            name = "${name}_piecewise"
         )
     }
 
@@ -304,9 +306,9 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         piecewiseFunction.prepareAndCache(values, tokenTable)
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             if (values.isNullOrEmpty()) {
                 piecewiseFunction.evaluate(tokenTable)
@@ -375,11 +377,11 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 
 class BalanceTernaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BalanceTernaryzationFunction,
+    self: BalanceTernaryzationFunction,
     private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
-) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
+) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
     companion object {
@@ -388,14 +390,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BalanceTernaryzationFunction,
+            self: BalanceTernaryzationFunction,
             extract: Boolean = true,
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionDiscreteImpl {
             return BalanceTernaryzationFunctionDiscreteImpl(
                 x = x.toLinearPolynomial(),
-                parent = parent,
+                self = self,
                 extract = extract,
                 name = name,
                 displayName = displayName
@@ -422,9 +424,9 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -470,7 +472,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             m * y[1] geq x,
-            "${name}_pub"
+            name = "${name}_pub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -481,7 +484,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
         when (val result = model.addConstraint(
             -m * y[0] leq x,
-            "${name}_nlb"
+            name = "${name}_nlb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -493,7 +497,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         if (extract) {
             when (val result = model.addConstraint(
                 x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
-                "${name}_plb"
+                name = "${name}_plb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -504,7 +509,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
-                "${name}_nub"
+                name = "${name}_nub",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -515,7 +521,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 sum(y) leq Flt64.one,
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -578,7 +585,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         if (ter eq Flt64.one) {
             when (val result = model.addConstraint(
                 m * y[1] geq x,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -589,7 +597,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 y[1] eq Flt64.one,
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -604,7 +613,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         } else if (ter eq -Flt64.one) {
             when (val result = model.addConstraint(
                 -m * y[0] leq x,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -615,7 +625,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
             when (val result = model.addConstraint(
                 y[0] eq Flt64.one,
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -635,11 +646,11 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
 class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: BalanceTernaryzationFunction,
+    self: BalanceTernaryzationFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractBalanceTernaryzationFunctionImpl(x, parent) {
+) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
     companion object {
@@ -648,17 +659,17 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: BalanceTernaryzationFunction,
+            self: BalanceTernaryzationFunction,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionExtractAndNotDiscreteImpl {
             return BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
-                x.toLinearPolynomial(),
-                parent,
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -684,9 +695,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         x.cells
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val xValue =  if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -758,7 +769,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
-            "${name}_xb"
+            name = "${name}_xb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -769,7 +781,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y[1] geq b[1],
-            "${name}_yb_pos_lb"
+            name = "${name}_yb_pos_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -780,7 +793,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y[1] leq (Flt64.one / epsilon) * b[1],
-            "${name}_yb_pos_ub"
+            name = "${name}_yb_pos_ub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -791,7 +805,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y[0] geq b[0],
-            "${name}_yb_neg_lb"
+            name = "${name}_yb_neg_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -802,7 +817,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y[0] leq (Flt64.one / epsilon) * b[0],
-            "${name}_yb_neg_ub"
+            name = "${name}_yb_neg_ub",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -813,7 +829,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             b[0] + y[1] leq Flt64.one,
-            "${name}_yb_pos"
+            name = "${name}_yb_pos",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -824,7 +841,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             b[1] + y[0] leq Flt64.one,
-            "${name}_yb_neg"
+            name = "${name}_yb_neg",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -989,6 +1007,7 @@ class BalanceTernaryzationFunction(
     private val extract: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     private val piecewise: Boolean = false,
+    override val parent: IntermediateSymbol? = null,
     impl: BalanceTernaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -1004,18 +1023,20 @@ class BalanceTernaryzationFunction(
             extract: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
+            parent: IntermediateSymbol? = null,
             impl: BalanceTernaryzationFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
         ): BalanceTernaryzationFunction {
             return BalanceTernaryzationFunction(
-                x.toLinearPolynomial(),
-                extract,
-                epsilon,
-                piecewise,
-                impl,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                extract = extract,
+                epsilon = epsilon,
+                piecewise = piecewise,
+                parent = parent,
+                impl = impl,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -1023,34 +1044,34 @@ class BalanceTernaryzationFunction(
     private val impl: AbstractBalanceTernaryzationFunctionImpl by lazy {
         impl?.invoke(this) ?: if (x.discrete && ValueRange(-Flt64.one, Flt64.one).value!! contains x.range.range!!) {
             BalanceTernaryzationFunctionImpl(
-                x,
-                this,
-                name,
-                displayName
+                x = x,
+                self = this,
+                name = name,
+                displayName = displayName
             )
         } else if (x.discrete) {
             BalanceTernaryzationFunctionDiscreteImpl(
-                x,
-                this,
-                extract,
-                name,
-                displayName
+                x = x,
+                self = this,
+                extract = extract,
+                name = name,
+                displayName = displayName
             )
         } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
             BalanceTernaryzationFunctionPiecewiseImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         } else {
             BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }

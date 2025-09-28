@@ -152,7 +152,7 @@ class MindOPTColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<ColumnGenerationSolver.LPResult> {
+    ): Ret<ColumnGenerationSolver.FeasibleLPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -198,7 +198,7 @@ class MindOPTColumnGenerationSolver(
                 metaModel.tokens.setSolution(result.value.solution)
                 jobs.joinAll()
                 Ok(
-                    ColumnGenerationSolver.LPResult(
+                    ColumnGenerationSolver.FeasibleLPResult(
                         result = result.value,
                         dualSolution = dualSolution
                     )

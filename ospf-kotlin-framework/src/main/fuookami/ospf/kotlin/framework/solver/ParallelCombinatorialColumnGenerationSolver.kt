@@ -63,16 +63,16 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
-                            Ok(result!!)
+                            Ok(result)
                         } else {
                             Failed(ErrorCode.SolverNotFound, "No solver valid.")
                         }
                     }
                 } catch (e: Exception) {
                     if (result != null) {
-                        Ok(result!!)
+                        Ok(result)
                     } else {
                         Failed(ErrorCode.OREngineSolvingException)
                     }
@@ -133,10 +133,10 @@ class ParallelCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<ColumnGenerationSolver.LPResult> {
+    ): Ret<ColumnGenerationSolver.FeasibleLPResult> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: ColumnGenerationSolver.LPResult? = null
+                var result: ColumnGenerationSolver.FeasibleLPResult? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -157,16 +157,16 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
-                            Ok(result!!)
+                            Ok(result)
                         } else {
                             Failed(ErrorCode.SolverNotFound, "No solver valid.")
                         }
                     }
                 } catch (e: Exception) {
                     if (result != null) {
-                        Ok(result!!)
+                        Ok(result)
                     } else {
                         Failed(ErrorCode.OREngineSolvingException)
                     }

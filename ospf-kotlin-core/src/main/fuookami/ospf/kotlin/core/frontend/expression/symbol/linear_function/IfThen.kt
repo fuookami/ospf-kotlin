@@ -18,6 +18,7 @@ class IfThenFunction(
     q: LinearInequality,
     private val constraint: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -30,16 +31,18 @@ class IfThenFunction(
             q: T2,
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfThenFunction {
             return IfThenFunction(
-                p.toLinearInequality(),
-                q.toLinearInequality(),
-                constraint,
-                epsilon,
-                name,
-                displayName
+                p = p.toLinearInequality(),
+                q = q.toLinearInequality(),
+                constraint = constraint,
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -84,6 +87,7 @@ class IfThenFunction(
     private val y: BinaryzationFunction by lazy {
         BinaryzationFunction(
             x = LinearPolynomial(Flt64.two * u),
+            parent = parent ?: this,
             name = "${name}_y"
         )
     }
@@ -192,7 +196,12 @@ class IfThenFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = p.register(name, pk, pu, tokenTable)) {
+        when (val result = p.register(
+            parentName = name,
+            k = pk,
+            flag = pu,
+            tokenTable = tokenTable
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -200,7 +209,12 @@ class IfThenFunction(
             }
         }
 
-        when (val result = q.register(name, qk, qu, tokenTable)) {
+        when (val result = q.register(
+            parentName = name,
+            k = qk,
+            flag = qu,
+            tokenTable = tokenTable
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -230,7 +244,14 @@ class IfThenFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = p.register(name, pk, pu, epsilon, model)) {
+        when (val result = p.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = pk,
+            flag = pu,
+            epsilon = epsilon,
+            model = model
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -238,7 +259,14 @@ class IfThenFunction(
             }
         }
 
-        when (val result = q.register(name, qk, qu, epsilon, model)) {
+        when (val result = q.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = qk,
+            flag = qu,
+            epsilon = epsilon,
+            model = model
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -249,7 +277,8 @@ class IfThenFunction(
         if (constraint) {
             when (val result = model.addConstraint(
                 pu leq qu,
-                "${name}_u"
+                name = "${name}_u",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -260,7 +289,8 @@ class IfThenFunction(
         } else {
             when (val result = model.addConstraint(
                 u eq (qu - pu + Flt64.one),
-                "${name}_u"
+                name = "${name}_u",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -288,7 +318,15 @@ class IfThenFunction(
         val qValue = q.isTrue(fixedValues, model.tokens) ?: return register(model)
         val bin = !pValue || qValue
 
-        when (val result = p.register(name, pk, pu, epsilon, model, fixedValues)) {
+        when (val result = p.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = pk,
+            flag = pu,
+            epsilon = epsilon,
+            model = model,
+            fixedValues = fixedValues
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -296,7 +334,15 @@ class IfThenFunction(
             }
         }
 
-        when (val result = q.register(name, qk, qu, epsilon, model, fixedValues)) {
+        when (val result = q.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = qk,
+            flag = qu,
+            epsilon = epsilon,
+            model = model,
+            fixedValues = fixedValues
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -307,7 +353,8 @@ class IfThenFunction(
         if (constraint) {
             when (val result = model.addConstraint(
                 pu leq qu,
-                "${name}_u"
+                name = "${name}_u",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -318,7 +365,8 @@ class IfThenFunction(
         } else {
             when (val result = model.addConstraint(
                 u eq (qu - pu + Flt64.one),
-                "${name}_u"
+                name = "${name}_u",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -329,7 +377,8 @@ class IfThenFunction(
 
             when (val result = model.addConstraint(
                 u eq bin,
-                "${name}_uv"
+                name = "${name}_uv",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 

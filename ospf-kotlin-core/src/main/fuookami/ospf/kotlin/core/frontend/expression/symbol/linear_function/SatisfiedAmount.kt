@@ -17,7 +17,7 @@ typealias SatisfiedAmountPolynomialFunctionImplBuilder = (AbstractSatisfiedAmoun
 abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     protected val amount: UInt64? = null,
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    protected val parent: AbstractSatisfiedAmountPolynomialFunction
+    protected val self: AbstractSatisfiedAmountPolynomialFunction
 ) : LinearFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -29,6 +29,7 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
 
     override val category get() = Linear
 
+    override val parent get() = self.parent
     override val dependencies: Set<IntermediateSymbol>
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
@@ -269,9 +270,9 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
         }
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val bin = if (values.isNullOrEmpty()) {
                 or.evaluate(tokenTable)
@@ -391,9 +392,9 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
         }
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val bin = if (values.isNullOrEmpty()) {
                 and.evaluate(tokenTable)
@@ -546,7 +547,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
             }.toMap()
         )
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(parent) == false) {
+        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(self) == false) {
             val count = bins.count {
                 val value = it.evaluate(tokenTable) ?: return null
                 value eq Flt64.one
