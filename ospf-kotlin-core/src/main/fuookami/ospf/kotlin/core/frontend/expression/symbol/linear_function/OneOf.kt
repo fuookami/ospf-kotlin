@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed class AbstractOneOfFunction(
     protected val branches: List<Branch>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -59,6 +60,7 @@ sealed class AbstractOneOfFunction(
             MaskingFunction(
                 x = branch.polynomial,
                 mask = branch.condition ?: LinearPolynomial(u[b]!!),
+                parent = parent ?: this,
                 name = "${name}_${branch.name}_semi"
             )
         }
@@ -219,7 +221,8 @@ sealed class AbstractOneOfFunction(
             sum(branches.mapIndexed { b, branch ->
                 branch.condition ?: LinearPolynomial(u[b]!!)
             }) eq Flt64.one,
-            name = "${name}_condition"
+            name = "${name}_condition",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -262,7 +265,8 @@ sealed class AbstractOneOfFunction(
             sum(branches.mapIndexed { b, branch ->
                 branch.condition ?: LinearPolynomial(u[b]!!)
             }) eq Flt64.one,
-            name = "${name}_condition"
+            name = "${name}_condition",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -275,7 +279,8 @@ sealed class AbstractOneOfFunction(
             if (ui != null) {
                 when (val result = model.addConstraint(
                     ui eq values[i].first,
-                    name = "${name}_${branches[i].name}_u"
+                    name = "${name}_${branches[i].name}_u",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -380,10 +385,11 @@ class IfElseFunction(
     private val branch: Branch,
     private val elseBranch: Branch,
     private val condition: AbstractLinearPolynomial<*>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractOneOfFunction(
-    listOf(
+    branches = listOf(
         Branch(
             condition = condition,
             polynomial = branch.polynomial,
@@ -395,6 +401,7 @@ class IfElseFunction(
             name = elseBranch.name
         )
     ),
+    parent = parent,
     name = name,
     displayName = displayName
 ) {
@@ -404,9 +411,9 @@ class IfElseFunction(
     ) {
         companion object {
             operator fun <
-                    T : ToLinearPolynomial<Poly>,
-                    Poly : AbstractLinearPolynomial<Poly>
-                    > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+            > invoke(
                 polynomial: T,
                 name: String
             ): Branch {
@@ -426,6 +433,7 @@ class IfElseFunction(
             branch: Branch,
             elseBranch: Branch,
             condition: T,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfElseFunction {
@@ -433,6 +441,7 @@ class IfElseFunction(
                 branch = branch,
                 elseBranch = elseBranch,
                 condition = condition.toLinearPolynomial(),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -450,9 +459,15 @@ class IfElseFunction(
 
 class OneOfFunction(
     branches: List<Branch>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
-) : AbstractOneOfFunction(branches, name, displayName) {
+) : AbstractOneOfFunction(
+    branches = branches,
+    parent = parent,
+    name = name,
+    displayName = displayName
+) {
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name

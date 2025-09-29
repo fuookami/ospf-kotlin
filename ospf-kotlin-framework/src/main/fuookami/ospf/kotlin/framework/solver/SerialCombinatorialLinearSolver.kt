@@ -37,10 +37,10 @@ class SerialCombinatorialLinearSolver(
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<FeasibleSolverOutput> {
         for (solver in solvers) {
-            when (val result = solver.value.invoke(model, statusCallBack)) {
+            when (val result = solver.value.invoke(model, solvingStatusCallBack)) {
                 is Ok -> {
                     return Ok(result.value)
                 }
@@ -60,10 +60,10 @@ class SerialCombinatorialLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         for (solver in solvers) {
-            when (val result = solver.value.invoke(model, solutionAmount, statusCallBack)) {
+            when (val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack)) {
                 is Ok -> {
                     return Ok(result.value)
                 }

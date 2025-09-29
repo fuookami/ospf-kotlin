@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class XorFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     private val extract: Boolean = true,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -25,14 +26,16 @@ class XorFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             extract: Boolean = true,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): XorFunction {
             return XorFunction(
-                polynomials.map { it.toLinearPolynomial() },
-                extract,
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                extract = extract,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -42,25 +45,45 @@ class XorFunction(
     }
 
     private val maxmin: MaxMinFunction by lazy {
-        MaxMinFunction(polynomials, "${name}_maxmin")
+        MaxMinFunction(
+            polynomials = polynomials,
+            parent = parent ?: this,
+            name = "${name}_maxmin"
+        )
     }
 
     private val minmax: MinMaxFunction by lazy {
-        MinMaxFunction(polynomials, "${name}_minmax")
+        MinMaxFunction(
+            polynomials = polynomials,
+            parent = parent ?: this,
+            name = "${name}_minmax"
+        )
     }
 
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         if (polynomials.size > 2) {
             SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
                 if (i == 0) {
-                    BinaryzationFunction(LinearPolynomial(minmax), name = "${name}_bin_$i")
+                    BinaryzationFunction(
+                        x = LinearPolynomial(minmax),
+                        parent = parent ?: this,
+                        name = "${name}_bin_$i"
+                    )
                 } else {
-                    BinaryzationFunction(LinearPolynomial(maxmin), name = "${name}_bin_$i")
+                    BinaryzationFunction(
+                        x = LinearPolynomial(maxmin),
+                        parent = parent ?: this,
+                        name = "${name}_bin_$i"
+                    )
                 }
             }
         } else {
             SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
-                BinaryzationFunction(polynomials[i], name = "${name}_bin_$i")
+                BinaryzationFunction(
+                    x = polynomials[i],
+                    parent = parent ?: this,
+                    name = "${name}_bin_$i"
+                )
             }
         }
     }
@@ -273,7 +296,8 @@ class XorFunction(
                         it.value
                     }
                 }),
-                "${name}_yb_$i"
+                name = "${name}_yb_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -286,7 +310,8 @@ class XorFunction(
         if (extract) {
             when (val result = model.addConstraint(
                 y leq sum(bins),
-                "${name}_y_1"
+                name = "${name}_y_1",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -297,7 +322,8 @@ class XorFunction(
 
             when (val result = model.addConstraint(
                 y leq Flt64(bins.size) - sum(bins),
-                "${name}_y_2"
+                name = "${name}_y_2",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -399,7 +425,8 @@ class XorFunction(
                         it.value
                     }
                 }),
-                "${name}_yb_$i"
+                name = "${name}_yb_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -412,7 +439,8 @@ class XorFunction(
         if (extract) {
             when (val result = model.addConstraint(
                 y leq sum(bins),
-                "${name}_y_1"
+                name = "${name}_y_1",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -423,7 +451,8 @@ class XorFunction(
 
             when (val result = model.addConstraint(
                 y leq Flt64(bins.size) - sum(bins),
-                "${name}_y_2"
+                name = "${name}_y_2",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -435,7 +464,8 @@ class XorFunction(
 
         when (val result = model.addConstraint(
             y eq bin.toFlt64(),
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

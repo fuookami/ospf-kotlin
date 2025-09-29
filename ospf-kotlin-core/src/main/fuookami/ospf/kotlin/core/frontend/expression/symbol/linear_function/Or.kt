@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class OrFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -22,13 +23,15 @@ class OrFunction(
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): OrFunction {
             return OrFunction(
-                polynomials.map { it.toLinearPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -147,7 +150,8 @@ class OrFunction(
             if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
                 when (val result = model.addConstraint(
                     y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
-                    "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                    name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -172,7 +176,8 @@ class OrFunction(
         // if all polynomials are zero, y will be zero
         when (val result = model.addConstraint(
             y leq sum(polynomials),
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -206,7 +211,8 @@ class OrFunction(
             if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
                 when (val result = model.addConstraint(
                     y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
-                    "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                    name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -217,7 +223,8 @@ class OrFunction(
             } else {
                 when (val result = model.addConstraint(
                     y geq polynomial,
-                    "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                    name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -230,7 +237,8 @@ class OrFunction(
 
         when (val result = model.addConstraint(
             y leq sum(polynomials),
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -241,7 +249,8 @@ class OrFunction(
 
         when (val result = model.addConstraint(
             y eq bin.toFlt64(),
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

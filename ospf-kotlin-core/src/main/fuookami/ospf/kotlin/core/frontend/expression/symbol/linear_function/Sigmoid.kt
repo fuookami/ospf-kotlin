@@ -8,18 +8,17 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.variable.geq
-import fuookami.ospf.kotlin.core.frontend.variable.leq
 
 class SigmoidFunction(
     private val x: AbstractLinearPolynomial<*>,
-    private val samplingPoint: List<Point2>,
+    private val samplingPoints: List<Point2>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_sigmoid",
     override var displayName: String? = "Sigmoid($x)"
 ) : LinearFunctionSymbol {
     companion object {
         enum class Precision {
-            All,
+            Full,
             Half
         }
 
@@ -55,14 +54,14 @@ class SigmoidFunction(
         fun x(y: Flt64) = -((Flt64(1.0) - y) / y).ln()!!
 
         fun samplingPoints(
-            precision: Precision = Precision.All,
+            precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
         ): List<Point2> {
             assert(decimalPrecision geq Flt64.zero)
             assert(decimalPrecision leq Flt64(1e-2))
 
             return when (precision) {
-                Precision.All -> fullPoints(decimalPrecision)
+                Precision.Full -> fullPoints(decimalPrecision)
                 Precision.Half -> halfPoints(decimalPrecision)
             }
         }
@@ -72,15 +71,17 @@ class SigmoidFunction(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            samplingPoint: List<Point2>,
+            samplingPoints: List<Point2>,
+            parent: IntermediateSymbol? = null,
             name: String = "${x}_sigmoid",
             displayName: String? = "Sigmoid(${x})"
         ): SigmoidFunction {
             return SigmoidFunction(
-                x.toLinearPolynomial(),
-                samplingPoint,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                samplingPoints = samplingPoints,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -89,23 +90,26 @@ class SigmoidFunction(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            precision: Precision = Precision.All,
+            precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
+            parent: IntermediateSymbol? = null,
             name: String = "${x.toLinearPolynomial()}_sigmoid",
             displayName: String? = "Sigmoid(${x.toLinearPolynomial()})"
         ): SigmoidFunction {
             return SigmoidFunction(
-                x.toLinearPolynomial(),
-                samplingPoints(precision, decimalPrecision),
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                samplingPoints = samplingPoints(precision, decimalPrecision),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val impl = UnivariateLinearPiecewiseFunction(
         x = x,
-        points = samplingPoint,
+        points = samplingPoints,
+        parent = parent,
         name = name,
         displayName = displayName
     )

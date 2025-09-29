@@ -60,7 +60,7 @@ interface ColumnGenerationSolver {
         }
     }
 
-    data class FeasibleLPResult(
+    data class LPResult(
         val result: FeasibleSolverOutput,
         val dualSolution: LinearDualSolution
     ) {
@@ -77,7 +77,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<FeasibleLPResult>
+    ): Ret<LPResult>
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveLPAsync(
@@ -86,7 +86,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<FeasibleLPResult>> {
+    ): CompletableFuture<Ret<LPResult>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveLP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
         }

@@ -39,7 +39,7 @@ class SerialCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         for ((i, solver) in solvers.withIndex()) {
             when (val result = solver.value.solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack?.let {
                 { status: SolvingStatus -> it(status.copy(solver = solver.value.name, solverIndex = UInt64(i))) }
@@ -66,7 +66,7 @@ class SerialCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<ColumnGenerationSolver.FeasibleLPResult> {
+    ): Ret<ColumnGenerationSolver.LPResult> {
         for ((i, solver) in solvers.withIndex()) {
             when (val result = solver.value.solveLP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack?.let {
                 { status: SolvingStatus -> it(status.copy(solver = solver.value.name, solverIndex = UInt64(i))) }

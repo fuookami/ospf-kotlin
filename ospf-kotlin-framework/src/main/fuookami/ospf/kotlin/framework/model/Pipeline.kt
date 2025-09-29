@@ -18,10 +18,14 @@ interface Pipeline<in M : Model> {
 
     operator fun invoke(model: M): Try
 
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("linearInfeasibleReasons")
     fun infeasibleReasons(iis: LinearTriadModelView): List<String> {
         return emptyList()
     }
 
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("quadraticInfeasibleReasons")
     fun infeasibleReasons(iis: QuadraticTetradModelView): List<String> {
         return emptyList()
     }

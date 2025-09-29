@@ -47,7 +47,7 @@ interface LinearBendersDecompositionSolver {
     }
 
     data class LinearFeasibleResult(
-        val result: SolverOutput,
+        val result: FeasibleSolverOutput,
         val dualSolution: LinearDualSolution,
         override val cuts: List<LinearInequality>?
     ) : LinearSubResult {
@@ -124,7 +124,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     data class QuadraticFeasibleResult(
-        val result: SolverOutput,
+        val result: FeasibleSolverOutput,
         val dualSolution: QuadraticDualSolution,
         override val linearCuts: List<LinearInequality>?,
         override val quadraticCuts: List<QuadraticInequality>?,

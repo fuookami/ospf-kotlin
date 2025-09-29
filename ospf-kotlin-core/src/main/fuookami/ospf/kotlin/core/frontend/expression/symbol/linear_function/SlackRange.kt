@@ -18,6 +18,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     private val lb: AbstractLinearPolynomial<*>,
     private val ub: AbstractLinearPolynomial<*>,
     private val constraint: Boolean = true,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
@@ -189,7 +190,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         if (constraint) {
             when (val result = model.addConstraint(
                 polyX leq ub,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -200,7 +202,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
             when (val result = model.addConstraint(
                 polyX geq lb,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -241,7 +244,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         if (constraint) {
             when (val result = model.addConstraint(
                 polyX leq ub,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -252,7 +256,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
             when (val result = model.addConstraint(
                 polyX geq lb,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -264,7 +269,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
         when (val result = model.addConstraint(
             _neg eq negSlack,
-            "${name}_neg"
+            name = "${name}_neg",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -279,7 +285,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
         when (val result = model.addConstraint(
             _pos eq posSlack,
-            "${name}_pos"
+            name = "${name}_pos",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -419,26 +426,29 @@ object SlackRangeFunction {
             UContinuous
         },
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         return if (type.isIntegerType) {
             UIntegerSlackRangeFunction(
-                x,
-                lb,
-                ub,
-                constraint,
-                name,
-                displayName
+                x = x,
+                lb = lb,
+                ub = ub,
+                constraint = constraint,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         } else {
             URealSlackRangeFunction(
-                x,
-                lb,
-                ub,
-                constraint,
-                name,
-                displayName
+                x = x,
+                lb = lb,
+                ub = ub,
+                constraint = constraint,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -452,22 +462,24 @@ object SlackRangeFunction {
         ub: Int,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toLinearPolynomial()
         return invoke(
-            xPoly,
-            LinearPolynomial(lb),
-            LinearPolynomial(ub),
+            x = xPoly,
+            lb = LinearPolynomial(lb),
+            ub = LinearPolynomial(ub),
             type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -480,18 +492,20 @@ object SlackRangeFunction {
         ub: Double,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toLinearPolynomial()
         return invoke(
-            xPoly,
-            LinearPolynomial(lb),
-            LinearPolynomial(ub),
-            type ?: UContinuous,
-            constraint,
-            name,
-            displayName
+            x = xPoly,
+            lb = LinearPolynomial(lb),
+            ub = LinearPolynomial(ub),
+            type = type ?: UContinuous,
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -504,22 +518,24 @@ object SlackRangeFunction {
         ub: Trivalent,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toLinearPolynomial()
         return invoke(
-            xPoly,
-            LinearPolynomial(lb),
-            LinearPolynomial(ub),
-            type ?: if (xPoly.discrete) {
+            x = xPoly,
+            lb = LinearPolynomial(lb),
+            ub = LinearPolynomial(ub),
+            type = type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -532,22 +548,24 @@ object SlackRangeFunction {
         ub: BalancedTrivalent,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toLinearPolynomial()
         return invoke(
-            xPoly,
-            LinearPolynomial(lb),
-            LinearPolynomial(ub),
-            type ?: if (xPoly.discrete) {
+            x = xPoly,
+            lb = LinearPolynomial(lb),
+            ub = LinearPolynomial(ub),
+            type = type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -562,22 +580,24 @@ object SlackRangeFunction {
         ub: T3,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toLinearPolynomial()
         return invoke(
-            xPoly,
-            LinearPolynomial(lb),
-            LinearPolynomial(ub),
-            type ?: if (xPoly.discrete) {
+            x = xPoly,
+            lb = LinearPolynomial(lb),
+            ub = LinearPolynomial(ub),
+            type = type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -594,6 +614,7 @@ object SlackRangeFunction {
         ub: T3,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -601,17 +622,18 @@ object SlackRangeFunction {
         val lbPoly = lb.toLinearPolynomial()
         val ubPoly = ub.toLinearPolynomial()
         return invoke(
-            x.toLinearPolynomial(),
-            lbPoly,
-            ubPoly,
-            type ?: if (xPoly.discrete && lbPoly.discrete && ubPoly.discrete) {
+            x = x.toLinearPolynomial(),
+            lb = lbPoly,
+            ub = ubPoly,
+            type = type ?: if (xPoly.discrete && lbPoly.discrete && ubPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 }
@@ -621,16 +643,18 @@ class UIntegerSlackRangeFunction(
     lb: AbstractLinearPolynomial<*>,
     ub: AbstractLinearPolynomial<*>,
     constraint: Boolean = true,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null,
 ) : AbstractSlackRangeFunction<UIntVar>(
-    x,
-    lb,
-    ub,
-    constraint,
-    name,
-    displayName,
-    { UIntVar(it) }
+    x = x,
+    lb = lb,
+    ub = ub,
+    constraint = constraint,
+    parent = parent,
+    name = name,
+    displayName = displayName,
+    ctor = { UIntVar(it) }
 ) {
     override val discrete = true
 }
@@ -640,14 +664,16 @@ class URealSlackRangeFunction(
     lb: AbstractLinearPolynomial<*>,
     ub: AbstractLinearPolynomial<*>,
     constraint: Boolean = true,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null,
 ) : AbstractSlackRangeFunction<URealVar>(
-    x,
-    lb,
-    ub,
-    constraint,
-    name,
-    displayName,
-    { URealVar(it) }
+    x = x,
+    lb = lb,
+    ub = ub,
+    constraint = constraint,
+    parent = parent,
+    name = name,
+    displayName = displayName,
+    ctor = { URealVar(it) }
 )

@@ -16,6 +16,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     inequalities: List<LinearInequality>,
     private val constraint: Boolean = false,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -141,7 +142,12 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
         for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register("${name}_i", k[i, _a], u[i], tokenTable)) {
+            when (val result = inequality.register(
+                parentName = "${name}_i",
+                k = k[i, _a],
+                flag = u[i],
+                tokenTable = tokenTable
+            )) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -165,7 +171,14 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register("${name}_i", k[i, _a], u[i], epsilon, model)) {
+            when (val result = inequality.register(
+                parent = parent ?: this,
+                parentName = "${name}_i",
+                k = k[i, _a],
+                flag = u[i],
+                epsilon = epsilon,
+                model = model
+            )) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -178,7 +191,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             if (!constraint) {
                 when (val result = model.addConstraint(
                     sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
-                    "${name}_lb"
+                    name = "${name}_lb",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -189,7 +203,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
                 when (val result = model.addConstraint(
                     sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
-                    "${name}_ub"
+                    name = "${name}_ub",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -200,7 +215,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             } else {
                 when (val result = model.addConstraint(
                     sum(u) geq amount!!.lowerBound.value.unwrap(),
-                    "${name}_lb"
+                    name = "${name}_lb",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -211,7 +227,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
                 when (val result = model.addConstraint(
                     sum(u) leq amount!!.upperBound.value.unwrap(),
-                    "${name}_ub"
+                    name = "${name}_ub",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -242,7 +259,15 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         val amountValue = UInt64(values.count { it })
 
         for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register("${name}_i", k[i, _a], u[i], epsilon, model, fixedValues)) {
+            when (val result = inequality.register(
+                parent = parent ?: this,
+                parentName = "${name}_i",
+                k = k[i, _a],
+                flag = u[i],
+                epsilon = epsilon,
+                model = model,
+                fixedValues = fixedValues
+            )) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -255,7 +280,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             if (!constraint) {
                 when (val result = model.addConstraint(
                     sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
-                    "${name}_lb"
+                    name = "${name}_lb",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -266,7 +292,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
                 when (val result = model.addConstraint(
                     sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
-                    "${name}_ub"
+                    name = "${name}_ub",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -279,7 +306,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
                 when (val result = model.addConstraint(
                     y eq bin,
-                    "${name}_y"
+                    name = "${name}_y",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -294,7 +322,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             } else {
                 when (val result = model.addConstraint(
                     sum(u) geq amount!!.lowerBound.value.unwrap(),
-                    "${name}_lb"
+                    name = "${name}_lb",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -305,7 +334,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
                 when (val result = model.addConstraint(
                     sum(u) leq amount!!.upperBound.value.unwrap(),
-                    "${name}_ub"
+                    name = "${name}_ub",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -475,23 +505,27 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 // todo: optimize
 open class AnyFunction(
     inequalities: List<LinearInequality>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities,
+    inequalities = inequalities,
+    parent = parent,
     name = name,
     displayName = displayName
 ), LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): AnyFunction {
             return AnyFunction(
-                inequalities.map { it.toLinearInequality() },
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -510,12 +544,14 @@ open class AnyFunction(
 class InListFunction(
     val x: AbstractLinearPolynomial<*>,
     val list: List<AbstractLinearPolynomial<*>>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AnyFunction(
-    list.map { x eq it },
-    name,
-    displayName
+    inequalities = list.map { x eq it },
+    parent = parent,
+    name = name,
+    displayName = displayName
 ) {
     companion object {
         operator fun <
@@ -524,14 +560,16 @@ class InListFunction(
         > invoke(
             x: T,
             list: List<ToLinearPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): InListFunction {
             return InListFunction(
-                x.toLinearPolynomial(),
-                list.map { it.toLinearInequality().lhs },
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                list = list.map { it.toLinearInequality().lhs },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -539,23 +577,27 @@ class InListFunction(
 
 class NotAllFunction(
     inequalities: List<LinearInequality>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities,
+    inequalities = inequalities,
+    parent = parent,
     name = name,
     displayName = displayName
 ), LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): NotAllFunction {
             return NotAllFunction(
-                inequalities.map { it.toLinearInequality() },
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -574,23 +616,27 @@ class NotAllFunction(
 // todo: optimize
 class AllFunction(
     inequalities: List<LinearInequality>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities,
+    inequalities = inequalities,
+    parent = parent,
     name = name,
     displayName = displayName
 ), LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): AllFunction {
             return AllFunction(
-                inequalities.map { it.toLinearInequality() },
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -608,23 +654,27 @@ class AllFunction(
 
 class SatisfiedAmountInequalityFunction(
     inequalities: List<LinearInequality>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities,
+    inequalities = inequalities,
+    parent = parent,
     name = name,
     displayName = displayName
 ) {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): SatisfiedAmountInequalityFunction {
             return SatisfiedAmountInequalityFunction(
-                inequalities.map { it.toLinearInequality() },
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -635,29 +685,35 @@ class AtLeastInequalityFunction(
     constraint: Boolean = true,
     amount: UInt64,
     epsilon: Flt64 = Flt64(1e-6),
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities,
-    constraint,
-    epsilon,
-    name,
-    displayName
+    inequalities = inequalities,
+    constraint = constraint,
+    epsilon = epsilon,
+    parent = parent,
+    name = name,
+    displayName = displayName
 ), LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             constraint: Boolean = true,
             amount: UInt64,
+            epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): AtLeastInequalityFunction {
             return AtLeastInequalityFunction(
-                inequalities.map { it.toLinearInequality() },
-                constraint,
-                amount,
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                constraint = constraint,
+                amount = amount,
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -683,29 +739,35 @@ class NumerableFunction(
     override val amount: ValueRange<UInt64>,
     constraint: Boolean = true,
     epsilon: Flt64 = Flt64(1e-6),
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities,
-    constraint,
-    epsilon,
-    name,
-    displayName
+    inequalities = inequalities,
+    constraint = constraint,
+    epsilon = epsilon,
+    parent = parent,
+    name = name,
+    displayName = displayName
 ), LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             amount: ValueRange<UInt64>,
             constraint: Boolean = true,
+            epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): NumerableFunction {
             return NumerableFunction(
-                inequalities.map { it.toLinearInequality() },
-                amount,
-                constraint,
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                amount = amount,
+                constraint = constraint,
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }

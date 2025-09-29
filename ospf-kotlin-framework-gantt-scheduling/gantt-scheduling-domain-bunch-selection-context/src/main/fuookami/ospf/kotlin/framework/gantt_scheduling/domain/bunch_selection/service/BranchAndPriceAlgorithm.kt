@@ -673,12 +673,12 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun refresh(feasibleLpResult: ColumnGenerationSolver.FeasibleLPResult) {
+    private fun refresh(feasibleLpResult: ColumnGenerationSolver.LPResult) {
         mainProblemSolvingTimes += UInt64.one
         mainProblemSolvingTime += feasibleLpResult.result.time
     }
 
-    private fun refresh(ipResult: SolverOutput) {
+    private fun refresh(ipResult: FeasibleSolverOutput) {
         mainProblemSolvingTimes += UInt64.one
         mainProblemSolvingTime += ipResult.time
     }

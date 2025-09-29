@@ -16,6 +16,7 @@ class ModFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val d: Flt64,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_mod_${d}",
     override var displayName: String? = "$x mod $d"
 ) : LinearFunctionSymbol {
@@ -29,15 +30,17 @@ class ModFunction(
             x: T,
             d: Int,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
             return ModFunction(
-                x.toLinearPolynomial(),
-                Flt64(d),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                d = Flt64(d),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -48,15 +51,17 @@ class ModFunction(
             x: T,
             d: Double,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
             return ModFunction(
-                x.toLinearPolynomial(),
-                Flt64(d),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                d = Flt64(d),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -68,15 +73,17 @@ class ModFunction(
             x: T1,
             d: T2,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
             return ModFunction(
-                x.toLinearPolynomial(),
-                d.toFlt64(),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                d = d.toFlt64(),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -188,7 +195,8 @@ class ModFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq (d * q + r),
-            name = name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -217,7 +225,8 @@ class ModFunction(
 
         when (val result = model.addConstraint(
             x eq (d * q + r),
-            name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -228,7 +237,8 @@ class ModFunction(
 
         when (val result = model.addConstraint(
             q eq qValue,
-            "${name}_q"
+            name = "${name}_q",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -243,7 +253,8 @@ class ModFunction(
 
         when (val result = model.addConstraint(
             r eq rValue,
-            "${name}_r"
+            name = "${name}_r",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

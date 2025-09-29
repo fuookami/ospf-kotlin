@@ -141,25 +141,25 @@ abstract class AbstractNotFunctionImpl(
 
 class NotFunctionImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: NotFunction,
+    self: NotFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractNotFunctionImpl(x, parent) {
+) : AbstractNotFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: NotFunction,
+            self: NotFunction,
             name: String,
             displayName: String? = null,
         ): NotFunctionImpl {
             return NotFunctionImpl(
-                x.toLinearPolynomial(),
-                parent,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -203,42 +203,43 @@ class NotFunctionImpl(
 
 class NotFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: NotFunction,
+    self: NotFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractNotFunctionImpl(x, parent) {
+) : AbstractNotFunctionImpl(x, self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: NotFunction,
+            self: NotFunction,
             epsilon: Flt64,
             name: String,
             displayName: String? = null,
         ): NotFunctionPiecewiseImpl {
             return NotFunctionPiecewiseImpl(
-                x.toLinearPolynomial(),
-                parent,
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
-            x,
-            listOf(
+            x = x,
+            points = listOf(
                 Point2(Flt64.zero, Flt64.one),
                 Point2(epsilon - Flt32.decimalPrecision.toFlt64(), Flt64.one),
                 Point2(epsilon, Flt64.one),
                 Point2(Flt64.one, Flt64.one)
             ),
-            "${name}_piecewise"
+            parent = parent ?: self,
+            name = "${name}_piecewise"
         )
     }
 
@@ -333,11 +334,11 @@ class NotFunctionPiecewiseImpl(
 
 class NotFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: NotFunction,
+    self: NotFunction,
     private val extract: Boolean = true,
     override var name: String,
     override var displayName: String? = null
-) : AbstractNotFunctionImpl(x, parent) {
+) : AbstractNotFunctionImpl(x, self) {
     private val logger = logger()
 
     companion object {
@@ -346,17 +347,17 @@ class NotFunctionDiscreteImpl(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: NotFunction,
+            self: NotFunction,
             extract: Boolean,
             name: String,
             displayName: String? = null,
         ): NotFunctionDiscreteImpl {
             return NotFunctionDiscreteImpl(
-                x.toLinearPolynomial(),
-                parent,
-                extract,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                extract = extract,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -420,7 +421,8 @@ class NotFunctionDiscreteImpl(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -432,7 +434,8 @@ class NotFunctionDiscreteImpl(
         if (extract) {
             when (val result = model.addConstraint(
                 (Flt64.one - y) leq x,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -461,7 +464,8 @@ class NotFunctionDiscreteImpl(
 
         when (val result = model.addConstraint(
             x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -473,7 +477,8 @@ class NotFunctionDiscreteImpl(
         if (extract) {
             when (val result = model.addConstraint(
                 (Flt64.one - y) leq x,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -485,7 +490,8 @@ class NotFunctionDiscreteImpl(
 
         when (val result = model.addConstraint(
             y eq bin.toFlt64(),
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -500,11 +506,11 @@ class NotFunctionDiscreteImpl(
 
 class NotFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
-    parent: NotFunction,
+    self: NotFunction,
     private val epsilon: Flt64 = Flt64(1e-6),
     override var name: String,
     override var displayName: String? = null
-) : AbstractNotFunctionImpl(x, parent) {
+) : AbstractNotFunctionImpl(x, self) {
     private val logger = logger()
 
     companion object {
@@ -513,17 +519,17 @@ class NotFunctionExtractAndNotDiscreteImpl(
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
-            parent: NotFunction,
+            self: NotFunction,
             epsilon: Flt64,
             name: String,
             displayName: String? = null,
         ): NotFunctionExtractAndNotDiscreteImpl {
             return NotFunctionExtractAndNotDiscreteImpl(
-                x.toLinearPolynomial(),
-                parent,
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -604,7 +610,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
             x eq x.upperBound!!.value.unwrap() * b,
-            "${name}_xb"
+            name = "${name}_xb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -615,7 +622,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             (Flt64.one - y) geq b,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -626,7 +634,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             (Flt64.one - y) leq (Flt64.one / epsilon) * b,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -671,7 +680,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             x eq x.upperBound!!.value.unwrap() * b,
-            "${name}_xb"
+            name = "${name}_xb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -682,7 +692,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             (Flt64.one - y) geq b,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -693,7 +704,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             (Flt64.one - y) leq (Flt64.one / epsilon) * b,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -704,7 +716,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             b eq pct,
-            "${name}_b"
+            name = "${name}_b",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -719,7 +732,8 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
         when (val result = model.addConstraint(
             y eq bin.toFlt64(),
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -741,6 +755,7 @@ class NotFunction(
     private val extract: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     private val piecewise: Boolean = false,
+    override val parent: IntermediateSymbol? = null,
     impl: NotFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -756,18 +771,20 @@ class NotFunction(
             extract: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
+            parent: IntermediateSymbol? = null,
             impl: NotFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null,
         ): NotFunction {
             return NotFunction(
-                x.toLinearPolynomial(),
-                extract,
-                epsilon,
-                piecewise,
-                impl,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                extract = extract,
+                epsilon = epsilon,
+                piecewise = piecewise,
+                parent = parent,
+                impl = impl,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -775,34 +792,34 @@ class NotFunction(
     private val impl: AbstractNotFunctionImpl by lazy {
         impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
             NotFunctionImpl(
-                x,
-                this,
-                name,
-                displayName
+                x = x,
+                self = this,
+                name = name,
+                displayName = displayName
             )
         } else if (x.discrete) {
             NotFunctionDiscreteImpl(
-                x,
-                this,
-                extract,
-                name,
-                displayName
+                x = x,
+                self = this,
+                extract = extract,
+                name = name,
+                displayName = displayName
             )
         } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
             NotFunctionPiecewiseImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         } else {
             NotFunctionExtractAndNotDiscreteImpl(
-                x,
-                this,
-                epsilon,
-                name,
-                displayName
+                x = x,
+                self = this,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
     }

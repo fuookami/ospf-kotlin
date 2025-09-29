@@ -39,10 +39,10 @@ class ParallelCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: SolverOutput? = null
+                var result: FeasibleSolverOutput? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -65,14 +65,14 @@ class ParallelCombinatorialColumnGenerationSolver(
                         }
                         promises.joinAll()
                         if (result != null) {
-                            Ok(result)
+                            Ok(result!!)
                         } else {
                             Failed(ErrorCode.SolverNotFound, "No solver valid.")
                         }
                     }
                 } catch (e: Exception) {
                     if (result != null) {
-                        Ok(result)
+                        Ok(result!!)
                     } else {
                         Failed(ErrorCode.OREngineSolvingException)
                     }
@@ -133,10 +133,10 @@ class ParallelCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<ColumnGenerationSolver.FeasibleLPResult> {
+    ): Ret<ColumnGenerationSolver.LPResult> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: ColumnGenerationSolver.FeasibleLPResult? = null
+                var result: ColumnGenerationSolver.LPResult? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -159,14 +159,14 @@ class ParallelCombinatorialColumnGenerationSolver(
                         }
                         promises.joinAll()
                         if (result != null) {
-                            Ok(result)
+                            Ok(result!!)
                         } else {
                             Failed(ErrorCode.SolverNotFound, "No solver valid.")
                         }
                     }
                 } catch (e: Exception) {
                     if (result != null) {
-                        Ok(result)
+                        Ok(result!!)
                     } else {
                         Failed(ErrorCode.OREngineSolvingException)
                     }

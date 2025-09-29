@@ -39,19 +39,19 @@ class ParallelCombinatorialQuadraticSolver(
 
     override suspend fun invoke(
         model: QuadraticTetradModelView,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<FeasibleSolverOutput> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: SolverOutput? = null
+                var result: FeasibleSolverOutput? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
                             launch(Dispatchers.Default) {
-                                when (val ret = solver.value.invoke(model, statusCallBack?.let {
+                                when (val ret = solver.value.invoke(model, solvingStatusCallBack?.let {
                                     { status ->
                                         synchronized(lock) {
                                             if (bestStatus == null) {
@@ -89,7 +89,7 @@ class ParallelCombinatorialQuadraticSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
                             Ok(result!!)
                         } else {
@@ -109,7 +109,7 @@ class ParallelCombinatorialQuadraticSolver(
                 coroutineScope {
                     val promises = solvers.mapIndexed { i, solver ->
                         async(Dispatchers.Default) {
-                            val result = solver.value.invoke(model, statusCallBack?.let {
+                            val result = solver.value.invoke(model, solvingStatusCallBack?.let {
                                 { status ->
                                     synchronized(lock) {
                                         if (bestStatus == null) {
@@ -179,20 +179,20 @@ class ParallelCombinatorialQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<SolverOutput, List<Solution>>? = null
+                var result: Pair<FeasibleSolverOutput, List<Solution>>? = null
                 val lock = Any()
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
                             launch(Dispatchers.Default) {
-                                when (val ret = solver.value.invoke(model, solutionAmount, statusCallBack?.let {
+                                when (val ret = solver.value.invoke(model, solutionAmount, solvingStatusCallBack?.let {
                                     { status ->
                                         synchronized(lock) {
                                             if (bestStatus == null) {
@@ -230,7 +230,7 @@ class ParallelCombinatorialQuadraticSolver(
                                 }
                             }
                         }
-                        promises.forEach { it.join() }
+                        promises.joinAll()
                         if (result != null) {
                             Ok(result!!)
                         } else {
@@ -250,7 +250,7 @@ class ParallelCombinatorialQuadraticSolver(
                 coroutineScope {
                     val promises = solvers.mapIndexed { i, solver ->
                         async(Dispatchers.Default) {
-                            val result = solver.value.invoke(model, solutionAmount, statusCallBack?.let {
+                            val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack?.let {
                                 { status ->
                                     synchronized(lock) {
                                         if (bestStatus == null) {
