@@ -107,6 +107,36 @@ class BasicQuadraticTetradModel(
         }
     }
 
+    fun linearRelaxed(): BasicQuadraticTetradModel {
+        return BasicQuadraticTetradModel(
+            variables.map {
+                when (it.type) {
+                    is Binary -> {
+                        val ret = it.copy()
+                        ret._type = Percentage
+                        ret
+                    }
+
+                    is Ternary, is UInteger -> {
+                        val ret = it.copy()
+                        ret._type = UContinuous
+                        ret
+                    }
+
+                    is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer -> {
+                        val ret = it.copy()
+                        ret._type = Continuous
+                        ret
+                    }
+
+                    else -> it.copy()
+                }
+            },
+            constraints.copy(),
+            name
+        )
+    }
+
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
@@ -191,7 +221,36 @@ class BasicQuadraticTetradModel(
     }
 }
 
-typealias QuadraticTetradModelView = ModelView<QuadraticConstraintCell, QuadraticObjectiveCell>
+interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, QuadraticObjectiveCell> {
+    override val constraints: QuadraticConstraint
+    val dual: Boolean
+
+    fun linearRelax(): QuadraticTetradModelView
+    fun linearRelaxed(): QuadraticTetradModelView
+    suspend fun farkasDual(): QuadraticTetradModelView
+    fun feasibility(): QuadraticTetradModelView
+    fun elastic(): QuadraticTetradModelView
+
+    fun tidyDualSolution(solution: Solution): QuadraticDualSolution {
+        return if (dual) {
+            variables.associateNotNull {
+                if (it.dualOrigin != null && solution.size > it.index) {
+                    (it.dualOrigin as OriginQuadraticConstraint) to solution[it.index]
+                } else {
+                    null
+                }
+            }
+        } else {
+            constraints.indices.associateNotNull {
+                if (constraints.origins[it] != null && solution.size > it) {
+                    constraints.origins[it]!! to solution[it]
+                } else {
+                    null
+                }
+            }
+        }
+    }
+}
 
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
@@ -202,7 +261,7 @@ data class QuadraticTetradModel(
     override val variables: List<Variable> by impl::variables
     override val constraints: QuadraticConstraint by impl::constraints
     override val name: String by impl::name
-    val dual get() = dualOrigin != null
+    override val dual get() = dualOrigin != null
 
     companion object {
         private val logger = logger()
@@ -307,6 +366,8 @@ data class QuadraticTetradModel(
                     },
                     type = token.variable.type,
                     origin = token.variable,
+                    dualOrigin = null,
+                    slack = null,
                     name = token.variable.name,
                     initialResult = token.result
                 )
@@ -694,20 +755,24 @@ data class QuadraticTetradModel(
     override fun copy() = QuadraticTetradModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
-    fun linearRelax(): QuadraticTetradModel {
+    override fun linearRelax(): QuadraticTetradModel {
         impl.linearRelax()
         return this
+    }
+
+    override fun linearRelaxed(): QuadraticTetradModel {
+        return QuadraticTetradModel(impl.linearRelaxed(), tokenIndexMap, objective.copy())
     }
 
     suspend fun dual(): QuadraticTetradModel {
         TODO("not implemented yet")
     }
 
-    suspend fun farkasDual(): QuadraticTetradModel {
+    override suspend fun farkasDual(): QuadraticTetradModel {
         TODO("not implemented yet")
     }
 
-    suspend fun feasibility(): QuadraticTetradModel {
+    override fun feasibility(): QuadraticTetradModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()
@@ -720,12 +785,17 @@ data class QuadraticTetradModel(
                 }) {
                     Sign.LessEqual -> {
                         val slack = Variable(
-                            colIndex,
+                            index = colIndex,
                             lowerBound = Flt64.zero,
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack"
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[it]
+                            ),
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
 
@@ -751,7 +821,12 @@ data class QuadraticTetradModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack"
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[it]
+                            ),
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
                         val artifact = Variable(
@@ -760,7 +835,10 @@ data class QuadraticTetradModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact"
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
 
@@ -793,7 +871,10 @@ data class QuadraticTetradModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact"
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
 
@@ -851,24 +932,8 @@ data class QuadraticTetradModel(
         )
     }
 
-    fun tidyDualSolution(solution: Solution): QuadraticDualSolution {
-        return if (dual) {
-            variables.associateNotNull {
-                if (it.dualOrigin != null && solution.size > it.index) {
-                    (it.dualOrigin as OriginQuadraticConstraint) to solution[it.index]
-                } else {
-                    null
-                }
-            }
-        } else {
-            constraints.indices.associateNotNull {
-                if (constraints.origins[it] != null && solution.size > it) {
-                    constraints.origins[it]!! to solution[it]
-                } else {
-                    null
-                }
-            }
-        }
+    override fun elastic(): QuadraticTetradModel {
+        TODO("not implemented yet")
     }
 
     override fun exportLP(writer: FileWriter): Try {
@@ -932,7 +997,7 @@ suspend fun solveDual(
 }
 
 suspend fun solveFarkasDual(
-    model: QuadraticTetradModel,
+    model: QuadraticTetradModelView,
     solver: QuadraticSolver
 ): Ret<QuadraticDualSolution> {
     val dualModel = model.farkasDual()

@@ -5,17 +5,11 @@ import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 
 fun computeIIS(
-    model: LinearTriadModelView,
-    solver: AbstractLinearSolver,
-    config: IISConfig
-): Ret<LinearTriadModel> {
-    TODO("not implemented yet")
-}
-
-fun computeIIS(
     model: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
     config: IISConfig
 ): Ret<QuadraticTetradModel> {
+    val elasticModel = model.elastic()
+
     TODO("not implemented yet")
 }

@@ -216,7 +216,36 @@ class BasicLinearTriadModel(
     }
 }
 
-typealias LinearTriadModelView = ModelView<LinearConstraintCell, LinearObjectiveCell>
+interface LinearTriadModelView: ModelView<LinearConstraintCell, LinearObjectiveCell> {
+    override val constraints: LinearConstraint
+    val dual: Boolean
+
+    fun linearRelax(): LinearTriadModelView
+    fun linearRelaxed(): LinearTriadModelView
+    suspend fun farkasDual(): LinearTriadModelView
+    fun feasibility(): LinearTriadModelView
+    fun elastic(): LinearTriadModelView
+
+    fun tidyDualSolution(solution: Solution): LinearDualSolution {
+        return if (dual) {
+            variables.associateNotNull {
+                if (it.dualOrigin != null && solution.size > it.index) {
+                    (it.dualOrigin as OriginLinearConstraint) to solution[it.index]
+                } else {
+                    null
+                }
+            }
+        } else {
+            constraints.indices.associateNotNull {
+                if (constraints.origins[it] != null && solution.size > it) {
+                    constraints.origins[it]!! to solution[it]
+                } else {
+                    null
+                }
+            }
+        }
+    }
+}
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
@@ -227,7 +256,7 @@ data class LinearTriadModel(
     override val variables: List<Variable> by impl::variables
     override val constraints: LinearConstraint by impl::constraints
     override val name: String by impl::name
-    val dual get() = dualOrigin != null
+    override val dual get() = dualOrigin != null
 
     companion object {
         private val logger = logger()
@@ -332,6 +361,8 @@ data class LinearTriadModel(
                     },
                     type = token.variable.type,
                     origin = token.variable,
+                    dualOrigin = null,
+                    slack = null,
                     name = token.variable.name,
                     initialResult = token.result
                 )
@@ -571,12 +602,12 @@ data class LinearTriadModel(
     override fun copy() = LinearTriadModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
 
-    fun linearRelax(): LinearTriadModel {
+    override fun linearRelax(): LinearTriadModel {
         impl.linearRelax()
         return this
     }
 
-    fun linearRelaxed(): LinearTriadModel {
+    override fun linearRelaxed(): LinearTriadModel {
         return LinearTriadModel(impl.linearRelaxed(), tokenIndexMap, objective.copy())
     }
 
@@ -625,6 +656,7 @@ data class LinearTriadModel(
                 type = Continuous,
                 origin = null,
                 dualOrigin = this.constraints.origins[it],
+                slack = null,
                 name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_dual",
                 initialResult = Flt64.zero
             )
@@ -643,6 +675,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.zero,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_lb_dual",
                             initialResult = Flt64.zero
                         )
@@ -656,6 +690,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_ub_dual",
                             initialResult = Flt64.zero
                         )
@@ -669,6 +705,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.zero,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_lb_dual",
                             initialResult = Flt64.zero
                         )
@@ -679,6 +717,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_ub_dual",
                             initialResult = Flt64.zero
                         )
@@ -698,6 +738,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_lb_dual",
                             initialResult = Flt64.zero
                         )
@@ -711,6 +753,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.zero,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_ub_dual",
                             initialResult = Flt64.zero
                         )
@@ -724,6 +768,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_lb_dual",
                             initialResult = Flt64.zero
                         )
@@ -734,6 +780,8 @@ data class LinearTriadModel(
                             upperBound = Flt64.zero,
                             type = Continuous,
                             origin = null,
+                            dualOrigin = null,
+                            slack = null,
                             name = "${it.name}_ub_dual",
                             initialResult = Flt64.zero
                         )
@@ -840,7 +888,7 @@ data class LinearTriadModel(
         )
     }
 
-    suspend fun farkasDual(): LinearTriadModel {
+    override suspend fun farkasDual(): LinearTriadModel {
         var colIndex = this.constraints.size
         val farkasVariables = ArrayList<Variable>()
         val posFarkasVariables = ArrayList<Variable>()
@@ -856,6 +904,7 @@ data class LinearTriadModel(
                         type = Continuous,
                         origin = null,
                         dualOrigin = this.constraints.origins[i],
+                        slack = null,
                         name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
                         initialResult = Flt64.zero
                     )
@@ -871,6 +920,7 @@ data class LinearTriadModel(
                         type = Continuous,
                         origin = null,
                         dualOrigin = this.constraints.origins[i],
+                        slack = null,
                         name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
                         initialResult = Flt64.zero
                     )
@@ -886,6 +936,7 @@ data class LinearTriadModel(
                         type = Continuous,
                         origin = null,
                         dualOrigin = this.constraints.origins[i],
+                        slack = null,
                         name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
                         initialResult = Flt64.zero
                     )
@@ -897,6 +948,10 @@ data class LinearTriadModel(
                         upperBound = Flt64.infinity,
                         type = Continuous,
                         origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            constraint = this.constraints.origins[i]
+                        ),
                         name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_pos_slack",
                         initialResult = Flt64.zero
                     )
@@ -908,6 +963,10 @@ data class LinearTriadModel(
                         upperBound = Flt64.infinity,
                         type = Continuous,
                         origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            constraint = this.constraints.origins[i]
+                        ),
                         name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_neg_slack",
                         initialResult = Flt64.zero
                     )
@@ -929,6 +988,8 @@ data class LinearTriadModel(
                     upperBound = Flt64.zero,
                     type = Continuous,
                     origin = null,
+                    dualOrigin = null,
+                    slack = null,
                     name = "${it.name}_lb_dual",
                     initialResult = Flt64.zero
                 )
@@ -942,6 +1003,8 @@ data class LinearTriadModel(
                     upperBound = Flt64.infinity,
                     type = Continuous,
                     origin = null,
+                    dualOrigin = null,
+                    slack = null,
                     name = "${it.name}_ub_dual",
                     initialResult = Flt64.zero
                 )
@@ -955,6 +1018,8 @@ data class LinearTriadModel(
                     upperBound = Flt64.zero,
                     type = Continuous,
                     origin = null,
+                    dualOrigin = null,
+                    slack = null,
                     name = "${it.name}_lb_dual",
                     initialResult = Flt64.zero
                 )
@@ -965,6 +1030,8 @@ data class LinearTriadModel(
                     upperBound = Flt64.infinity,
                     type = Continuous,
                     origin = null,
+                    dualOrigin = null,
+                    slack = null,
                     name = "${it.name}_ub_dual",
                     initialResult = Flt64.zero
                 )
@@ -1132,7 +1199,7 @@ data class LinearTriadModel(
         )
     }
 
-    fun feasibility(): LinearTriadModel {
+    override fun feasibility(): LinearTriadModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()
@@ -1145,12 +1212,17 @@ data class LinearTriadModel(
                 }) {
                     Sign.LessEqual -> {
                         val slack = Variable(
-                            colIndex,
+                            index = colIndex,
                             lowerBound = Flt64.zero,
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack"
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[it]
+                            ),
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
 
@@ -1175,7 +1247,12 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack"
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[it]
+                            ),
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_slack",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
                         val artifact = Variable(
@@ -1184,7 +1261,10 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact"
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
 
@@ -1215,7 +1295,10 @@ data class LinearTriadModel(
                             upperBound = Flt64.infinity,
                             type = Continuous,
                             origin = null,
-                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact"
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_artifact",
+                            initialResult = Flt64.zero
                         )
                         colIndex += 1
 
@@ -1272,24 +1355,306 @@ data class LinearTriadModel(
         )
     }
 
-    fun tidyDualSolution(solution: Solution): LinearDualSolution {
-        return if (dual) {
-            variables.associateNotNull {
-                if (it.dualOrigin != null && solution.size > it.index) {
-                    (it.dualOrigin as OriginLinearConstraint) to solution[it.index]
-                } else {
-                    null
+    override fun elastic(): LinearTriadModel {
+        var colIndex = this.variables.size
+        val slackVariables = ArrayList<Pair<Variable?, Variable?>>()
+        for (i in this.constraints.indices) {
+            when (this.constraints.signs[i]) {
+                Sign.LessEqual -> {
+                    slackVariables.add(
+                        Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[i]
+                            ),
+                            name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_lb_slack",
+                            initialResult = Flt64.zero
+                        ) to null
+                    )
+                    colIndex += 1
                 }
-            }
-        } else {
-            constraints.indices.associateNotNull {
-                if (constraints.origins[it] != null && solution.size > it) {
-                    constraints.origins[it]!! to solution[it]
-                } else {
-                    null
+
+                Sign.GreaterEqual -> {
+                    slackVariables.add(
+                        null to Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[i]
+                            ),
+                            name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_ub_slack",
+                            initialResult = Flt64.zero
+                        )
+                    )
+                    colIndex += 1
+                }
+
+                Sign.Equal -> {
+                    slackVariables.add(
+                        Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[i]
+                            ),
+                            name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_lb_slack",
+                            initialResult = Flt64.zero
+                        ) to Variable(
+                            index = colIndex + 1,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = VariableSlack(
+                                constraint = this.constraints.origins[i]
+                            ),
+                            name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_ub_slack",
+                            initialResult = Flt64.zero
+                        )
+                    )
+                    colIndex += 2
                 }
             }
         }
+        for ((j, variable) in this.variables.withIndex()) {
+            if (variable.free) {
+                continue
+            }
+
+            if (variable.positiveFree) {
+                // x ≥ lb
+                slackVariables.add(
+                    null to Variable(
+                        index = colIndex,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            lowerBound = variable
+                        ),
+                        name = "${variable.name}_lb_slack",
+                        initialResult = Flt64.zero
+                    )
+                )
+                colIndex += 1
+            } else if (variable.negativeFree) {
+                // x ≤ ub
+                slackVariables.add(
+                    Variable(
+                        index = colIndex,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            upperBound = variable
+                        ),
+                        name = "${variable.name}_ub_slack",
+                        initialResult = Flt64.zero
+                    ) to null
+                )
+                colIndex += 1
+            } else {
+                // lb ≤ x ≤ ub
+                slackVariables.add(
+                    Variable(
+                        index = colIndex,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            lowerBound = variable
+                        ),
+                        name = "${variable.name}_lb_slack",
+                        initialResult = Flt64.zero
+                    ) to Variable(
+                        index = colIndex + 1,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            upperBound = variable
+                        ),
+                        name = "${variable.name}_ub_slack",
+                        initialResult = Flt64.zero
+                    )
+                )
+                colIndex += 2
+            }
+        }
+
+        var rowIndex = this.variables.size
+        val constraints = LinearConstraint(
+            lhs = this.constraints.indices.map { i ->
+                this.constraints.lhs[i] + listOfNotNull(
+                    slackVariables[i].first?.let {
+                        LinearConstraintCell(
+                            rowIndex = i,
+                            colIndex = it.index,
+                            coefficient = Flt64.one,
+                        )
+                    }, slackVariables[i].second?.let {
+                        LinearConstraintCell(
+                            rowIndex = i,
+                            colIndex = it.index,
+                            coefficient = -Flt64.one,
+                        )
+                    }
+                )
+            } + this.variables.indices.flatMap { j ->
+                val jp = this.constraints.size + j
+                val thisLhs = ArrayList<List<LinearConstraintCell>>()
+                if (slackVariables[jp].first != null) {
+                    thisLhs.add(
+                        listOf(
+                            LinearConstraintCell(
+                                rowIndex = rowIndex,
+                                colIndex = j,
+                                coefficient = Flt64.one,
+                            ),
+                            LinearConstraintCell(
+                                rowIndex = rowIndex,
+                                colIndex = slackVariables[jp].first!!.index,
+                                coefficient = Flt64.one,
+                            )
+                        )
+                    )
+                    rowIndex += 1
+                }
+                if (slackVariables[jp].second != null) {
+                    thisLhs.add(
+                        listOf(
+                            LinearConstraintCell(
+                                rowIndex = rowIndex,
+                                colIndex = j,
+                                coefficient = Flt64.one,
+                            ),
+                            LinearConstraintCell(
+                                rowIndex = rowIndex,
+                                colIndex = slackVariables[jp].second!!.index,
+                                coefficient = -Flt64.one,
+                            )
+                        )
+                    )
+                    rowIndex += 1
+                }
+                thisLhs
+            },
+            signs = this.constraints.signs.map { Sign.Equal } + this.variables.indices.flatMap { j ->
+                val jp = this.constraints.size + j
+                val thisSigns = ArrayList<Sign>()
+                if (slackVariables[jp].first != null) {
+                    thisSigns.add(Sign.Equal)
+                }
+                if (slackVariables[jp].second != null) {
+                    thisSigns.add(Sign.Equal)
+                }
+                thisSigns
+            },
+            rhs = this.constraints.rhs + this.variables.flatMapIndexed { j, variable ->
+                val jp = this.constraints.size + j
+                val thisRhs = ArrayList<Flt64>()
+                if (slackVariables[jp].first != null) {
+                    thisRhs.add(variable.upperBound)
+                }
+                if (slackVariables[jp].second != null) {
+                    thisRhs.add(variable.lowerBound)
+                }
+                thisRhs
+            },
+            names = this.constraints.names.map { "${it.ifEmpty { "cons${it}" }}_elastic" } + this.variables.flatMapIndexed { j, variable ->
+                val jp = this.constraints.size + j
+                val thisNames = ArrayList<String>()
+                if (slackVariables[jp].first != null) {
+                    thisNames.add("${variable.name}_lb_slack")
+                }
+                if (slackVariables[jp].second != null) {
+                    thisNames.add("${variable.name}_ub_slack")
+                }
+                thisNames
+            },
+            sources = this.constraints.sources.map { ConstraintSource.Elastic } + this.variables.indices.flatMap { j ->
+                val jp = this.constraints.size + j
+                val thisSources = ArrayList<ConstraintSource>()
+                if (slackVariables[jp].first != null) {
+                    thisSources.add(ConstraintSource.ElasticLowerBound)
+                }
+                if (slackVariables[jp].second != null) {
+                    thisSources.add(ConstraintSource.ElasticUpperBound)
+                }
+                thisSources
+            },
+            origins = this.constraints.origins + this.variables.indices.flatMap { j ->
+                val jp = this.constraints.size + j
+                val thisOrigins = ArrayList<OriginLinearConstraint?>()
+                if (slackVariables[jp].first != null) {
+                    thisOrigins.add(null)
+                }
+                if (slackVariables[jp].second != null) {
+                    thisOrigins.add(null)
+                }
+                thisOrigins
+            },
+            froms = this.constraints.froms + this.variables.indices.flatMap { j ->
+                val jp = this.constraints.size + j
+                val thisOrigins = ArrayList<IntermediateSymbol?>()
+                if (slackVariables[jp].first != null) {
+                    thisOrigins.add(null)
+                }
+                if (slackVariables[jp].second != null) {
+                    thisOrigins.add(null)
+                }
+                thisOrigins
+            },
+        )
+
+        val objective = slackVariables.flatMap { (posSlack, negSlack) ->
+            listOfNotNull(
+                posSlack?.let {
+                    LinearObjectiveCell(
+                        colIndex = it.index,
+                        coefficient = Flt64.one
+                    )
+                },
+                negSlack?.let {
+                    LinearObjectiveCell(
+                        colIndex = it.index,
+                        coefficient = -Flt64.one
+                    )
+                }
+            )
+        }
+
+        return LinearTriadModel(
+            impl = BasicLinearTriadModel(
+                variables = this.variables + slackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index },
+                constraints = constraints,
+                name = "$name-elastic"
+            ),
+            tokenIndexMap = tokenIndexMap,
+            objective = LinearObjective(ObjectCategory.Minimum, objective)
+        )
     }
 
     override fun exportLP(writer: FileWriter): Try {
@@ -1353,7 +1718,7 @@ suspend fun solveDual(
 }
 
 suspend fun solveFarkasDual(
-    model: LinearTriadModel,
+    model: LinearTriadModelView,
     solver: LinearSolver
 ): Ret<LinearDualSolution> {
     val dualModel = model.farkasDual()

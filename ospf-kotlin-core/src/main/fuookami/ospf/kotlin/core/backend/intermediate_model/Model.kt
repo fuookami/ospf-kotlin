@@ -11,6 +11,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 typealias OriginConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.Constraint
 
+data class VariableSlack(
+    val constraint: OriginConstraint? = null,
+    val lowerBound: Variable? = null,
+    val upperBound: Variable? = null
+)
+
 class Variable(
     val index: Int,
     lowerBound: Flt64,
@@ -18,6 +24,7 @@ class Variable(
     type: VariableType<*>,
     val origin: AbstractVariableItem<*, *>?,
     val dualOrigin: OriginConstraint? = null,
+    val slack: VariableSlack? = null,
     val name: String,
     val initialResult: Flt64? = null
 ) : Cloneable, Copyable<Variable> {
@@ -59,7 +66,7 @@ class Variable(
             return (upperBound eq Flt64.negativeInfinity || upperBound geq Flt64.decimalPrecision.reciprocal())
         }
 
-    override fun copy() = Variable(index, lowerBound, upperBound, type, origin, dualOrigin, name, initialResult)
+    override fun copy() = Variable(index, lowerBound, upperBound, type, origin, dualOrigin, slack, name, initialResult)
     override fun clone() = copy()
 
     override fun toString() = name
@@ -77,9 +84,14 @@ interface ConstraintCell<Self : ConstraintCell<Self>> : Cell<Self> {
 
 enum class ConstraintSource {
     Origin,
+    LowerBound,
+    UpperBound,
     Dual,
     FarkasDual,
-    Feasibility
+    Feasibility,
+    Elastic,
+    ElasticLowerBound,
+    ElasticUpperBound
 }
 
 abstract class Constraint<Cell>(
