@@ -16,6 +16,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     Plus<Flt64, Self>, Minus<Flt64, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
     val category: Category
     val monomials: List<M>
+    val fixed: Boolean get() = monomials.isEmpty() || monomials.all { it.coefficient eq Flt64.zero }
     val constant: Flt64
     override val discrete: Boolean get() = monomials.all { it.discrete } && constant.round() eq constant
     val dependencies: Set<IntermediateSymbol>

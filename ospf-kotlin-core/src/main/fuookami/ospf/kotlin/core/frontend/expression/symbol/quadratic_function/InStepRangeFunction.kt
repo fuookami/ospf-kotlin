@@ -10,17 +10,14 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class InStepRangeFunction(
-    lowerBound: AbstractQuadraticPolynomial<*>,
-    upperBound: AbstractQuadraticPolynomial<*>,
+class InStepRange(
+    private val lb: AbstractQuadraticPolynomial<*>,
+    private val ub: AbstractQuadraticPolynomial<*>,
     private val step: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
-    private val lb = lowerBound
-    private val ub = upperBound
-
     companion object {
         operator fun <
             T1 : AbstractQuadraticPolynomial<Poly1>,
@@ -28,16 +25,16 @@ class InStepRangeFunction(
             T2 : AbstractQuadraticPolynomial<Poly2>,
             Poly2 : AbstractQuadraticPolynomial<Poly2>
         > invoke(
-            lowerBound: T1,
-            upperBound: T2,
+            lb: T1,
+            ub: T2,
             step: Int,
             parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction {
-            return InStepRangeFunction(
-                lowerBound = lowerBound.toQuadraticPolynomial(),
-                upperBound = upperBound.toQuadraticPolynomial(),
+        ): InStepRange {
+            return InStepRange(
+                lb = lb.toQuadraticPolynomial(),
+                ub = ub.toQuadraticPolynomial(),
                 step = QuadraticPolynomial(step),
                 parent = parent,
                 name = name,
@@ -51,16 +48,16 @@ class InStepRangeFunction(
             T2 : AbstractQuadraticPolynomial<Poly2>,
             Poly2 : AbstractQuadraticPolynomial<Poly2>
         > invoke(
-            lowerBound: T1,
-            upperBound: T2,
+            lb: T1,
+            ub: T2,
             step: Double,
             parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction {
-            return InStepRangeFunction(
-                lowerBound = lowerBound.toQuadraticPolynomial(),
-                upperBound = upperBound.toQuadraticPolynomial(),
+        ): InStepRange {
+            return InStepRange(
+                lb = lb.toQuadraticPolynomial(),
+                ub = ub.toQuadraticPolynomial(),
                 step = QuadraticPolynomial(step),
                 parent = parent,
                 name = name,
@@ -75,16 +72,16 @@ class InStepRangeFunction(
             Poly2 : AbstractQuadraticPolynomial<Poly2>,
             T3 : RealNumber<T3>
         > invoke(
-            lowerBound: T1,
-            upperBound: T2,
+            lb: T1,
+            ub: T2,
             step: T3,
             parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction {
-            return InStepRangeFunction(
-                lowerBound = lowerBound.toQuadraticPolynomial(),
-                upperBound = upperBound.toQuadraticPolynomial(),
+        ): InStepRange {
+            return InStepRange(
+                lb = lb.toQuadraticPolynomial(),
+                ub = ub.toQuadraticPolynomial(),
                 step = QuadraticPolynomial(step),
                 parent = parent,
                 name = name,
@@ -100,16 +97,16 @@ class InStepRangeFunction(
             T3 : AbstractQuadraticPolynomial<Poly3>,
             Poly3 : AbstractQuadraticPolynomial<Poly3>
         > invoke(
-            lowerBound: T1,
-            upperBound: T2,
+            lb: T1,
+            ub: T2,
             step: T3,
             parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction {
-            return InStepRangeFunction(
-                lowerBound = lowerBound.toQuadraticPolynomial(),
-                upperBound = upperBound.toQuadraticPolynomial(),
+        ): InStepRange {
+            return InStepRange(
+                lb = lb.toQuadraticPolynomial(),
+                ub = ub.toQuadraticPolynomial(),
                 step = step.toQuadraticPolynomial(),
                 parent = parent,
                 name = name,
@@ -128,7 +125,7 @@ class InStepRangeFunction(
 
     private val q: FloorFunction by lazy {
         FloorFunction(
-            x = upperBound - lowerBound,
+            x = ub - lb,
             d = step,
             parent = parent ?: this,
             name = "${name}_intDiv_$step"
@@ -136,7 +133,7 @@ class InStepRangeFunction(
     }
 
     private val y: AbstractQuadraticPolynomial<*> by lazy {
-        val y = QuadraticPolynomial(lowerBound + q * stepLinear, "${name}_y")
+        val y = QuadraticPolynomial(lb + q * stepLinear, "${name}_y")
         y.range.set(possibleRange)
         y
     }
