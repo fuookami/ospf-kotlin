@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 class SerialCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
-    private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+    private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
 ): ColumnGenerationSolver {
     private val logger = logger()
 
@@ -17,7 +17,7 @@ class SerialCombinatorialColumnGenerationSolver(
         @JvmName("constructBySolvers")
         operator fun invoke(
             solvers: List<ColumnGenerationSolver>,
-            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
         ): SerialCombinatorialColumnGenerationSolver {
             return SerialCombinatorialColumnGenerationSolver(solvers.map { lazy { it } }, stopErrorCode)
         }
@@ -25,7 +25,7 @@ class SerialCombinatorialColumnGenerationSolver(
         @JvmName("constructBySolverExtractors")
         operator fun invoke(
             solvers: List<() -> ColumnGenerationSolver>,
-            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
         ): SerialCombinatorialColumnGenerationSolver {
             return SerialCombinatorialColumnGenerationSolver(solvers.map { lazy { it() } }, stopErrorCode)
         }

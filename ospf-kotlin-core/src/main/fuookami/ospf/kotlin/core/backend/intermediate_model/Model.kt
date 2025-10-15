@@ -38,7 +38,7 @@ class Variable(
 
     val free: Boolean
         get() {
-            return negativeFree || positiveFree
+            return negativeFree && positiveFree
         }
 
     val normalized: Boolean
@@ -155,36 +155,6 @@ interface BasicModelView<ConCell>
             return variables.any { it.type.isNotBinaryIntegerType }
         }
 
-    fun exportLP(writer: OutputStreamWriter): Try
-}
-
-interface ModelView<ConCell, ObjCell>
-        where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell>, ObjCell : Cell<ObjCell>, ObjCell : Copyable<ObjCell> {
-    val variables: List<Variable>
-    val constraints: Constraint<ConCell>
-    val objective: Objective<ObjCell>
-    val name: String
-
-    val containsContinuous: Boolean
-        get() {
-            return variables.any { it.type.isContinuousType }
-        }
-
-    val containsBinary: Boolean
-        get() {
-            return variables.any { it.type.isBinaryType }
-        }
-
-    val containsInteger: Boolean
-        get() {
-            return variables.any { it.type.isIntegerType }
-        }
-
-    val containsNotBinaryInteger: Boolean
-        get() {
-            return variables.any { it.type.isNotBinaryIntegerType }
-        }
-
     fun export(format: ModelFileFormat): Try {
         return export(Path("."), format)
     }
@@ -213,5 +183,10 @@ interface ModelView<ConCell, ObjCell>
         return result
     }
 
-    fun exportLP(writer: FileWriter): Try
+    fun exportLP(writer: OutputStreamWriter): Try
+}
+
+interface ModelView<ConCell, ObjCell> : BasicModelView<ConCell>
+        where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell>, ObjCell : Cell<ObjCell>, ObjCell : Copyable<ObjCell> {
+    val objective: Objective<ObjCell>
 }

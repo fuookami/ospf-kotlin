@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -14,4 +15,4 @@ data class IISComputingStatus(
     val totalProgress: Flt64 get() = (restBoundAmount.toFlt64() + restConstraintAmount.toFlt64()) / (totalBoundAmount.toFlt64() + totalConstraintAmount.toFlt64())
 }
 
-typealias IISComputingStatusCallBack = (IISComputingStatus) -> Try
+typealias IISComputingStatusCallBack = (Boolean, Duration, IISComputingStatus) -> Try

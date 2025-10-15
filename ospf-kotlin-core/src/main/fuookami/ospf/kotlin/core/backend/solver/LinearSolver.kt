@@ -32,7 +32,7 @@ interface AbstractLinearSolver {
             }
 
             is Failed -> {
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
                     when (val result = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
                             Ok(LinearInfeasibleSolverOutput(result.value))
@@ -94,7 +94,7 @@ interface AbstractLinearSolver {
             }
 
             is Failed -> {
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
                     when (val result = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
                             Ok(LinearInfeasibleSolverOutput(result.value) to emptyList())

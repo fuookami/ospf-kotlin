@@ -45,6 +45,18 @@ class LinearConstraint(
     val origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null },
     val froms: List<IntermediateSymbol?> = (0 until lhs.size).map { null }
 ) : Constraint<LinearConstraintCell>(lhs, signs, rhs, names, sources) {
+    fun filter(condition: (Int) -> Boolean): LinearConstraint {
+        return LinearConstraint(
+            lhs = lhs.filterIndexed { i, _ -> condition(i) },
+            signs = signs.filterIndexed { i, _ -> condition(i) },
+            rhs = rhs.filterIndexed { i, _ -> condition(i) },
+            names = names.filterIndexed { i, _ -> condition(i) },
+            sources = sources.filterIndexed { i, _ -> condition(i) },
+            origins = origins.filterIndexed { i, _ -> condition(i) },
+            froms = froms.filterIndexed { i, _ -> condition(i) }
+        )
+    }
+
     override fun copy() = LinearConstraint(
         lhs.map { line -> line.map { it.copy() } },
         signs.toList(),
@@ -73,11 +85,13 @@ class LinearObjectiveCell(
 
 typealias LinearObjective = Objective<LinearObjectiveCell>
 
+typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
+
 class BasicLinearTriadModel(
     override val variables: List<Variable>,
     override val constraints: LinearConstraint,
     override val name: String
-) : BasicModelView<LinearConstraintCell>, Cloneable, Copyable<BasicLinearTriadModel> {
+) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
     override fun copy() = BasicLinearTriadModel(
         variables.map { it.copy() },
         constraints.copy(),
@@ -253,11 +267,6 @@ data class LinearTriadModel(
     override val objective: LinearObjective,
     internal val dualOrigin: LinearTriadModelView? = null
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
-    override val variables: List<Variable> by impl::variables
-    override val constraints: LinearConstraint by impl::constraints
-    override val name: String by impl::name
-    override val dual get() = dualOrigin != null
-
     companion object {
         private val logger = logger()
 
@@ -598,6 +607,11 @@ data class LinearTriadModel(
             return LinearObjective(objectiveCategory, objective, constant)
         }
     }
+
+    override val variables: List<Variable> by impl::variables
+    override val constraints: LinearConstraint by impl::constraints
+    override val name: String by impl::name
+    override val dual get() = dualOrigin != null
 
     override fun copy() = LinearTriadModel(impl.copy(), tokenIndexMap, objective.copy())
     override fun clone() = copy()
@@ -1432,13 +1446,13 @@ data class LinearTriadModel(
         }
         for ((j, variable) in this.variables.withIndex()) {
             if (variable.free) {
-                continue
-            }
-
-            if (variable.positiveFree) {
+                slackVariables.add(
+                    null to null
+                )
+            } else if (variable.positiveFree) {
                 // x ≥ lb
                 slackVariables.add(
-                    null to Variable(
+                    Variable(
                         index = colIndex,
                         lowerBound = Flt64.zero,
                         upperBound = Flt64.infinity,
@@ -1450,13 +1464,13 @@ data class LinearTriadModel(
                         ),
                         name = "${variable.name}_lb_slack",
                         initialResult = Flt64.zero
-                    )
+                    ) to null
                 )
                 colIndex += 1
             } else if (variable.negativeFree) {
                 // x ≤ ub
                 slackVariables.add(
-                    Variable(
+                    null to Variable(
                         index = colIndex,
                         lowerBound = Flt64.zero,
                         upperBound = Flt64.infinity,
@@ -1468,7 +1482,7 @@ data class LinearTriadModel(
                         ),
                         name = "${variable.name}_ub_slack",
                         initialResult = Flt64.zero
-                    ) to null
+                    )
                 )
                 colIndex += 1
             } else {
@@ -1640,7 +1654,7 @@ data class LinearTriadModel(
                 negSlack?.let {
                     LinearObjectiveCell(
                         colIndex = it.index,
-                        coefficient = -Flt64.one
+                        coefficient = Flt64.one
                     )
                 }
             )
@@ -1657,7 +1671,7 @@ data class LinearTriadModel(
         )
     }
 
-    override fun exportLP(writer: FileWriter): Try {
+    override fun exportLP(writer: OutputStreamWriter): Try {
         writer.write("${objective.category}\n")
         var i = 0
         for (cell in objective.obj) {

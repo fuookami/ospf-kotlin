@@ -98,14 +98,14 @@ abstract class GurobiSolver {
                 }
 
                 GRB.INF_OR_UNBD -> {
-                    SolverStatus.SolvingException
+                    SolverStatus.InfeasibleOrUnbounded
                 }
 
                 else -> {
                     if (grbModel.get(GRB.IntAttr.SolCount) > 0) {
                         SolverStatus.Feasible
                     } else {
-                        SolverStatus.Infeasible
+                        SolverStatus.SolvingException
                     }
                 }
             }

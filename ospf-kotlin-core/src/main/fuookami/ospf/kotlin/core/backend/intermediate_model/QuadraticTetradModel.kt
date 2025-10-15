@@ -936,7 +936,7 @@ data class QuadraticTetradModel(
         TODO("not implemented yet")
     }
 
-    override fun exportLP(writer: FileWriter): Try {
+    override fun exportLP(writer: OutputStreamWriter): Try {
         writer.write("${objective.category}\n")
         var i = 0
         for (cell in objective.obj) {

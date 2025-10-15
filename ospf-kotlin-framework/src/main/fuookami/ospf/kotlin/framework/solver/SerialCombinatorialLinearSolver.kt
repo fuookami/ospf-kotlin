@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 class SerialCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
-    private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+    private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
 ): AbstractLinearSolver {
     private val logger = logger()
 
@@ -19,7 +19,7 @@ class SerialCombinatorialLinearSolver(
         @JvmName("constructBySolvers")
         operator fun invoke(
             solvers: List<AbstractLinearSolver>,
-            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
         ): SerialCombinatorialLinearSolver {
             return SerialCombinatorialLinearSolver(solvers.map { lazy { it } }, stopErrorCode)
         }
@@ -27,7 +27,7 @@ class SerialCombinatorialLinearSolver(
         @JvmName("constructBySolverExtractors")
         operator fun invoke(
             solvers: List<() -> AbstractLinearSolver>,
-            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelNoSolution, ErrorCode.ORModelUnbounded)
+            stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
         ): SerialCombinatorialLinearSolver {
             return SerialCombinatorialLinearSolver(solvers.map { lazy { it() } }, stopErrorCode)
         }

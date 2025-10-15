@@ -105,7 +105,7 @@ abstract class ScipSolver {
             }
 
             SCIP_Status.SCIP_STATUS_INFORUNBD -> {
-                SolverStatus.SolvingException
+                SolverStatus.InfeasibleOrUnbounded
             }
 
             else -> {

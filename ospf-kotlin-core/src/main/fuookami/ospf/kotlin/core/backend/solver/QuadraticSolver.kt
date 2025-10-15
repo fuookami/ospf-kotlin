@@ -32,7 +32,7 @@ interface AbstractQuadraticSolver {
             }
 
             is Failed -> {
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
                     when (val result = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
                             Ok(QuadraticInfeasibleSolverOutput(result.value))
@@ -94,7 +94,7 @@ interface AbstractQuadraticSolver {
             }
 
             is Failed -> {
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
                     when (val result = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
                             Ok(QuadraticInfeasibleSolverOutput(result.value) to emptyList())

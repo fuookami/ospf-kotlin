@@ -94,6 +94,18 @@ inline fun <R, T> List<T>.lastNotNullOfOrNull(
     return null
 }
 
+inline fun <T> Iterable<T>.filterIndexed(
+    crossinline predicate: IndexedPredicate<T>
+): List<T> {
+    return this.mapIndexedNotNull { i, value ->
+        if (predicate(i, value)) {
+            value
+        } else {
+            null
+        }
+    }
+}
+
 inline fun <T> Iterable<T?>.filterNotNull(
     crossinline predicate: Predicate<T>
 ): List<T> {

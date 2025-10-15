@@ -17,5 +17,6 @@ data class IISConfig(
     },
     val notImprovementTime: Duration? = null,
     val computingStatusCallBack: IISComputingStatusCallBack? = null,
+    val slackTolerance: Flt64 = Flt64(1e-6),
     val extraConfig: Any? = null
 )

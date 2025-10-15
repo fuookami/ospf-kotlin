@@ -6,10 +6,13 @@ enum class SolverStatus {
     Optimal,
     Feasible,
     Infeasible {
-        override val errCode = ErrorCode.ORModelNoSolution
+        override val errCode = ErrorCode.ORModelInfeasible
     },
     Unbounded {
         override val errCode = ErrorCode.ORModelUnbounded
+    },
+    InfeasibleOrUnbounded {
+        override val errCode = ErrorCode.ORModelInfeasibleOrUnbounded
     },
     SolvingException {
         override val errCode = ErrorCode.OREngineSolvingException

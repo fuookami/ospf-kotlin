@@ -185,7 +185,7 @@ class ScipLinearBendersDecompositionSolver(
 
             is Failed -> {
                 jobs.joinAll()
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
                     Ok(
                         LinearBendersDecompositionSolver.LinearInfeasibleResult(
                             farkasDualSolution = farkasSolution,
@@ -407,7 +407,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
             is Failed -> {
                 jobs.joinAll()
-                if (result.error.code == ErrorCode.ORModelNoSolution) {
+                if (result.error.code == ErrorCode.ORModelInfeasible) {
                     val cuts = when (val result = mechanismModel.generateFeasibleCut(
                         fixedVariables = fixedVariables,
                         farkasDualSolution = farkasSolution

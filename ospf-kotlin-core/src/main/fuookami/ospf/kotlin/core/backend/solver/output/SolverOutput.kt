@@ -18,7 +18,7 @@ data class FeasibleSolverOutput(
 ) : LinearSolverOutput, QuadraticSolverOutput
 
 data class LinearInfeasibleSolverOutput(
-    val iis: LinearTriadModelView
+    val iis: BasicLinearTriadModelView
 ) : LinearSolverOutput
 
 data class QuadraticInfeasibleSolverOutput(
