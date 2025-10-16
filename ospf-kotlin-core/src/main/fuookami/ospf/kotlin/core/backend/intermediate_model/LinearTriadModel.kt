@@ -34,6 +34,10 @@ class LinearConstraintCell(
 
     override fun copy() = LinearConstraintCell(rowIndex, colIndex, coefficient.copy())
     override fun clone() = copy()
+
+    override fun toString(): String {
+        return "(${rowIndex}, ${colIndex}, ${coefficient})"
+    }
 }
 
 class LinearConstraint(
@@ -81,6 +85,10 @@ class LinearObjectiveCell(
 
     override fun copy() = LinearObjectiveCell(colIndex, coefficient.copy())
     override fun clone() = copy()
+
+    override fun toString(): String {
+        return "(${colIndex}, ${coefficient})"
+    }
 }
 
 typealias LinearObjective = Objective<LinearObjectiveCell>
@@ -153,7 +161,7 @@ class BasicLinearTriadModel(
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
-            writer.append(" ${constraints.names[i]}: ")
+            writer.append(" ${constraints.names[i].ifEmpty { "cons$i" }}: ")
             var flag = false
             for (j in constraints.lhs[i].indices) {
                 if (constraints.lhs[i][j].coefficient eq Flt64.zero) {
@@ -187,14 +195,16 @@ class BasicLinearTriadModel(
 
         writer.append("Bounds\n")
         for (variable in variables) {
-            val lowerInf = variable.lowerBound.isNegativeInfinity()
-            val upperInf = variable.upperBound.isInfinity()
-            if (lowerInf && upperInf) {
+            if (variable.free) {
                 writer.append(" $variable free\n")
-            } else if (lowerInf) {
-                writer.append(" $variable <= ${variable.upperBound}\n")
-            } else if (upperInf) {
+            } else if (variable.positiveNormalized) {
+                writer.append(" $variable >= 0\n")
+            } else if (variable.negativeNormalized) {
+                writer.append(" $variable <= 0\n")
+            } else if (variable.positiveFree) {
                 writer.append(" $variable >= ${variable.lowerBound}\n")
+            } else if (variable.negativeFree) {
+                writer.append(" $variable <= ${variable.upperBound}\n")
             } else {
                 if (variable.lowerBound eq variable.upperBound) {
                     writer.append(" $variable = ${variable.lowerBound}\n")
@@ -1445,7 +1455,7 @@ data class LinearTriadModel(
             }
         }
         for ((j, variable) in this.variables.withIndex()) {
-            if (variable.free) {
+            if (variable.free || variable.positiveNormalized || variable.negativeNormalized) {
                 slackVariables.add(
                     null to null
                 )
@@ -1526,13 +1536,13 @@ data class LinearTriadModel(
                         LinearConstraintCell(
                             rowIndex = i,
                             colIndex = it.index,
-                            coefficient = Flt64.one,
+                            coefficient = -Flt64.one,
                         )
                     }, slackVariables[i].second?.let {
                         LinearConstraintCell(
                             rowIndex = i,
                             colIndex = it.index,
-                            coefficient = -Flt64.one,
+                            coefficient = Flt64.one,
                         )
                     }
                 )
@@ -1575,14 +1585,14 @@ data class LinearTriadModel(
                 }
                 thisLhs
             },
-            signs = this.constraints.signs.map { Sign.Equal } + this.variables.indices.flatMap { j ->
+            signs = this.constraints.signs + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
                 val thisSigns = ArrayList<Sign>()
                 if (slackVariables[jp].first != null) {
-                    thisSigns.add(Sign.Equal)
+                    thisSigns.add(Sign.GreaterEqual)
                 }
                 if (slackVariables[jp].second != null) {
-                    thisSigns.add(Sign.Equal)
+                    thisSigns.add(Sign.LessEqual)
                 }
                 thisSigns
             },
@@ -1590,10 +1600,10 @@ data class LinearTriadModel(
                 val jp = this.constraints.size + j
                 val thisRhs = ArrayList<Flt64>()
                 if (slackVariables[jp].first != null) {
-                    thisRhs.add(variable.upperBound)
+                    thisRhs.add(variable.lowerBound)
                 }
                 if (slackVariables[jp].second != null) {
-                    thisRhs.add(variable.lowerBound)
+                    thisRhs.add(variable.upperBound)
                 }
                 thisRhs
             },
@@ -1662,7 +1672,14 @@ data class LinearTriadModel(
 
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
-                variables = this.variables + slackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index },
+                variables = this.variables.map {
+                    it.copy().apply {
+                        if (!free && !positiveNormalized && !negativeNormalized) {
+                            _lowerBound = Flt64.negativeInfinity
+                            _upperBound = Flt64.infinity
+                        }
+                    }
+                } + slackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index },
                 constraints = constraints,
                 name = "$name-elastic"
             ),

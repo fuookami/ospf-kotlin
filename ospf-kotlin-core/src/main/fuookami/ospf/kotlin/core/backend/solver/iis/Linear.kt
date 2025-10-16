@@ -35,6 +35,8 @@ suspend fun computeIIS(
     val boundAmount = UInt64(elasticModel.constraints.sources.count { it == ConstraintSource.ElasticLowerBound || it == ConstraintSource.ElasticUpperBound })
     val constraintAmount = UInt64(elasticModel.constraints.sources.count { it == ConstraintSource.Elastic })
 
+    // todo: find impossible constraints
+
     when (val result = performElasticFiltering(
         elasticModel = elasticModel,
         solver = solver,
@@ -110,18 +112,57 @@ private fun getRelatedConstraints(
         }
 }
 
+private fun getRelatedVariables(
+    model: LinearTriadModelView,
+    filter: Set<Variable>,
+    relatedConstraints: List<Int>
+): List<Triple<Variable, Flt64?, Flt64?>> {
+    return (filter.mapNotNull { variable ->
+        if (variable.slack?.lowerBound != null) {
+            Triple(variable.slack.lowerBound, true, false)
+        } else if (variable.slack?.upperBound != null) {
+            Triple(variable.slack.upperBound, false, true)
+        } else {
+            null
+        }
+    } + relatedConstraints.flatMap { i ->
+        model.constraints.lhs[i].map { cell ->
+            Triple(model.variables[cell.colIndex], false, false)
+        }
+    })
+        .groupBy { it.first }
+        .toList()
+        .sortedBy { it.first.index }
+        .map { (variable, bounds) ->
+            val lowerBound = if (bounds.any { it.second }) {
+                variable.lowerBound
+            } else {
+                null
+            }
+            val upperBound = if (bounds.any { it.third }) {
+                variable.upperBound
+            } else {
+                null
+            }
+            Triple(variable, lowerBound, upperBound)
+        }
+}
+
 private fun dump(
     model: LinearTriadModelView,
     elasticFilter: Map<Variable, Flt64>
 ): LinearIISModel {
     val relatedConstraints = getRelatedConstraints(model, elasticFilter.keys)
-    val relatedVariables = (elasticFilter.keys.mapNotNull { it.slack?.lowerBound ?: it.slack?.upperBound }
-        + relatedConstraints.flatMap { i -> model.constraints.lhs[i].map { cell -> model.variables[cell.colIndex] } }
-    ).distinct().sortedBy { it.index }
+    val relatedVariables = getRelatedVariables(model, elasticFilter.keys, relatedConstraints)
 
     return LinearIISModel(
         impl = BasicLinearTriadModel(
-            variables = relatedVariables,
+            variables = relatedVariables.map {
+                it.first.copy().apply {
+                    _lowerBound = it.second ?: Flt64.negativeInfinity
+                    _upperBound = it.third ?: Flt64.infinity
+                }
+            },
             constraints = model.constraints.filter { row -> row in relatedConstraints },
             name = "${model.name}_iis"
         ),
@@ -138,13 +179,16 @@ private fun dump(
     val relatedMISConstraints = getRelatedConstraints(model, misConstraints)
     val relatedGuardConstraints = getRelatedConstraints(model, guardConstraints)
     val relatedConstraints = (relatedMISConstraints + relatedGuardConstraints).distinct().sorted()
-    val relatedVariables = ((misConstraints + guardConstraints).mapNotNull { it.slack?.lowerBound ?: it.slack?.upperBound }
-        + relatedConstraints.flatMap { i -> model.constraints.lhs[i].map { cell -> model.variables[cell.colIndex] } }
-    ).distinct().sortedBy { it.index }
+    val relatedVariables = getRelatedVariables(model, misConstraints + guardConstraints, relatedConstraints)
 
     return LinearIISModel(
         impl = BasicLinearTriadModel(
-            variables = relatedVariables,
+            variables = relatedVariables.map {
+                it.first.copy().apply {
+                    _lowerBound = it.second ?: Flt64.negativeInfinity
+                    _upperBound = it.third ?: Flt64.infinity
+                }
+            },
             constraints = model.constraints.filter { row -> row in relatedMISConstraints },
             name = "${model.name}_iis"
         ),
@@ -201,7 +245,7 @@ private suspend fun performElasticFiltering(
         }
     }
     if (relaxInequalitiesAndVariableBoundsResult.first) {
-        return Ok(true to relaxVariableBoundsResult.second)
+        return Ok(true to relaxInequalitiesAndVariableBoundsResult.second)
     }
 
     val relaxAllResult = when (val result = relaxSpecificComponents(
@@ -244,7 +288,7 @@ private suspend fun relaxSpecificComponents(
     elasticModel.variables.forEach { variable ->
         if (variable.slack != null) {
             variable._upperBound = if (relaxCondition(variable)) {
-                Flt64.decimalPrecision.reciprocal()
+                Flt64.infinity
             } else {
                 Flt64.zero
             }

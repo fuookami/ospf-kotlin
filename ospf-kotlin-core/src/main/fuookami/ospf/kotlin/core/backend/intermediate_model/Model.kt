@@ -63,7 +63,7 @@ class Variable(
 
     val positiveFree: Boolean
         get() {
-            return (upperBound eq Flt64.negativeInfinity || upperBound geq Flt64.decimalPrecision.reciprocal())
+            return (upperBound eq Flt64.infinity || upperBound geq Flt64.decimalPrecision.reciprocal())
         }
 
     override fun copy() = Variable(index, lowerBound, upperBound, type, origin, dualOrigin, slack, name, initialResult)
