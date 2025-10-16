@@ -106,8 +106,38 @@ fun run(
     return ok
 }
 
+suspend fun syncRun(
+    vararg blocks: suspend () -> Try
+): Try {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+    }
+    return ok
+}
+
 fun run(
     blocks: Iterable<() -> Try>
+): Try {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+    }
+    return ok
+}
+
+suspend fun syncRun(
+    blocks: Iterable<suspend () -> Try>
 ): Try {
     for (block in blocks) {
         when (val result = block()) {
@@ -138,9 +168,43 @@ fun <T> run(
     return lastBlock()
 }
 
+suspend fun <T> syncRun(
+    vararg blocks: suspend () -> Try,
+    lastBlock: suspend () -> Ret<T>
+): Ret<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+    }
+
+    return lastBlock()
+}
+
 fun <T> run(
     blocks: Iterable<() -> Try>,
     lastBlock: () -> Ret<T>
+): Ret<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+        }
+    }
+
+    return lastBlock()
+}
+
+suspend fun <T> syncRun(
+    blocks: Iterable<suspend () -> Try>,
+    lastBlock: suspend () -> Ret<T>
 ): Ret<T> {
     for (block in blocks) {
         when (val result = block()) {

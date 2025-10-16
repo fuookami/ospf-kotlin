@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (EnvrConfig) -> Try
 typealias NativeCallback = CallbackBase.() -> Unit
-typealias LinearFunction = (SolverStatus?, Model, List<Var>, List<Constraint>) -> Try
-typealias QuadraticFunction = (SolverStatus?, Model, List<Var>, List<QConstraint>) -> Try
+typealias LinearFunction = suspend (SolverStatus?, Model, List<Var>, List<Constraint>) -> Try
+typealias QuadraticFunction = suspend (SolverStatus?, Model, List<Var>, List<QConstraint>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -44,16 +44,16 @@ class CoptLinearSolverCallBack(
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<LinearFunction>? = map[point]
 
     fun execIfContain(env: EnvrConfig): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, copt: Model, variables: List<Var>, constraints: List<Constraint>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, copt: Model, variables: List<Var>, constraints: List<Constraint>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, copt, variables, constraints) }
             })
         } else {
@@ -92,16 +92,16 @@ class CoptQuadraticSolverCallBack(
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
     fun execIfContain(env: EnvrConfig): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, copt: Model, variables: List<Var>, constraints: List<QConstraint>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, copt: Model, variables: List<Var>, constraints: List<QConstraint>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, copt, variables, constraints) }
             })
         } else {

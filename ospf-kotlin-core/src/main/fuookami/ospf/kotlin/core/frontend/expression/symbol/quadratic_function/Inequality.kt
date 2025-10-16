@@ -7,20 +7,23 @@ import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 internal fun QuadraticInequality.register(
+    parent: IntermediateSymbol,
     parentName: String,
     k: PctVariable1,
     flag: AbstractVariableItem<*, Binary>,
     model: AbstractQuadraticMechanismModel
 ): Try {
-    return register(parentName, PctVariableView1(k), flag, model)
+    return register(parent, parentName, PctVariableView1(k), flag, model)
 }
 
 internal fun QuadraticInequality.register(
+    parent: IntermediateSymbol,
     parentName: String,
     k: PctVariableView,
     flag: AbstractVariableItem<*, Binary>,
@@ -31,7 +34,8 @@ internal fun QuadraticInequality.register(
     if (lhs.range.valueRange?.contains(rhs.constant) == true) {
         when (val result = model.addConstraint(
             lhs eq (k[0] * lhs.lowerBound!!.value.unwrap() + k[1] * rhs.constant + k[2] * lhs.upperBound!!.value.unwrap()),
-            name.ifEmpty { parentName }
+            name = name.ifEmpty { parentName },
+            from = parent
         )) {
             is Ok -> {}
 

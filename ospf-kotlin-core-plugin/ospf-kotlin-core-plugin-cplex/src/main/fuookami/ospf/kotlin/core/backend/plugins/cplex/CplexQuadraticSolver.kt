@@ -27,9 +27,9 @@ class CplexQuadraticSolver(
 
     override suspend fun invoke(
         model: QuadraticTetradModelView,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
-        val impl = CplexQuadraticSolverImpl(config, callBack, statusCallBack)
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<FeasibleSolverOutput> {
+        val impl = CplexQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -38,8 +38,8 @@ class CplexQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -75,7 +75,7 @@ class CplexQuadraticSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { Pair(it, results) }
             System.gc()
@@ -91,13 +91,13 @@ private class CplexQuadraticSolverImpl(
 ) : CplexSolver() {
     private lateinit var cplexVars: List<IloNumVar>
     private lateinit var cplexConstraints: List<IloRange>
-    private lateinit var output: SolverOutput
+    private lateinit var output: FeasibleSolverOutput
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput> {
         val processes = arrayOf(
             { it.init(model.name) },
             { it.dump(model) },
@@ -331,7 +331,7 @@ private class CplexQuadraticSolverImpl(
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant
             val possibleBestObj = Flt64(cplex.bestObjValue) + model.objective.constant
-            output = SolverOutput(
+            output = FeasibleSolverOutput(
                 obj = obj,
                 solution = cplexVars.map { Flt64(cplex.getValue(it)) },
                 time = cplex.cplexTime.seconds,

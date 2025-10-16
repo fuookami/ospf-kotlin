@@ -4,6 +4,7 @@ import java.util.*
 import kotlinx.coroutines.*
 import jscip.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -25,7 +26,7 @@ class ScipColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -80,7 +81,7 @@ class ScipColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -192,7 +193,7 @@ class ScipColumnGenerationSolver(
             })
         }
 
-        lateinit var dualSolution: Solution
+        lateinit var dualSolution: LinearDualSolution
         val solver = ScipLinearSolver(
             config = config.copy(
                 threadNum = UInt64.one
@@ -203,10 +204,10 @@ class ScipColumnGenerationSolver(
                     model.setHeuristics(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
                     ok
                 }
-                .analyzingSolution { _, model, _, constraints ->
-                    dualSolution = constraints.map {
-                        Flt64(model.getDual(it))
-                    }
+                .analyzingSolution { _, scipModel, _, constraints ->
+                    dualSolution = model.tidyDualSolution(constraints.map {
+                        Flt64(scipModel.getDual(it))
+                    })
                     ok
                 }
         )
@@ -214,8 +215,29 @@ class ScipColumnGenerationSolver(
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
                 metaModel.tokens.setSolution(result.value.solution)
+                val dualObject = dualSolution.sumOf { (constraint, value) ->
+                    constraint.rhs * value
+                }
+                if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
+                    // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                    when (val result = solveDual(model, ScipLinearSolver(config))) {
+                        is Ok -> {
+                            dualSolution = result.value
+                        }
+
+                        is Failed -> {
+                            jobs.joinAll()
+                            return Failed(result.error)
+                        }
+                    }
+                }
                 jobs.joinAll()
-                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = result.value,
+                        dualSolution = dualSolution
+                    )
+                )
             }
 
             is Failed -> {

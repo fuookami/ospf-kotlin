@@ -10,10 +10,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-class InStepRangeFunction(
-    lowerBound: AbstractLinearPolynomial<*>,
-    upperBound: AbstractLinearPolynomial<*>,
+class InStepRange(
+    private val lb: AbstractLinearPolynomial<*>,
+    private val ub: AbstractLinearPolynomial<*>,
     private val step: Flt64,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -24,35 +25,35 @@ class InStepRangeFunction(
             T2 : ToLinearPolynomial<Poly2>,
             Poly2 : AbstractLinearPolynomial<Poly2>
         > invoke (
-            lowerBound: T1,
-            upperBound: T2,
+            lb: T1,
+            ub: T2,
             step: Flt64,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction {
-            return InStepRangeFunction(
-                lowerBound.toLinearPolynomial(),
-                upperBound.toLinearPolynomial(),
-                step,
-                name,
-                displayName
+        ): InStepRange {
+            return InStepRange(
+                lb = lb.toLinearPolynomial(),
+                ub = ub.toLinearPolynomial(),
+                step = step,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
-    private val lb = lowerBound
-    private val ub = upperBound
-
     private val q: FloorFunction by lazy {
         FloorFunction(
-            upperBound - lowerBound,
-            step,
+            x = ub - lb,
+            d = step,
+            parent = parent ?: this,
             name = "${name}_intDiv_$step"
         )
     }
 
     private val y: AbstractLinearPolynomial<*> by lazy {
-        val y = LinearPolynomial(lowerBound + q * step, "${name}_y")
+        val y = LinearPolynomial(lb + q * step, "${name}_y")
         y.range.set(possibleRange)
         y
     }

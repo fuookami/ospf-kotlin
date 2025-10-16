@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class FloorFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "floor_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌋"
 ) : QuadraticFunctionSymbol {
@@ -28,14 +29,16 @@ class FloorFunction(
         > invoke(
             x: T,
             d: Int,
+            parent: IntermediateSymbol? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
-                x.toQuadraticPolynomial(),
-                QuadraticPolynomial(d),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = QuadraticPolynomial(d),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -45,14 +48,16 @@ class FloorFunction(
         > invoke(
             x: T,
             d: Double,
+            parent: IntermediateSymbol? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
-                x.toQuadraticPolynomial(),
-                QuadraticPolynomial(d),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = QuadraticPolynomial(d),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -63,14 +68,16 @@ class FloorFunction(
         > invoke(
             x: T1,
             d: T2,
+            parent: IntermediateSymbol? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
-                x.toQuadraticPolynomial(),
-                QuadraticPolynomial(d),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = QuadraticPolynomial(d),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -82,20 +89,26 @@ class FloorFunction(
         > invoke(
             x: T1,
             d: T2,
+            parent: IntermediateSymbol? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
             return FloorFunction(
-                x.toQuadraticPolynomial(),
-                d.toQuadraticPolynomial(),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = d.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val dLinear: LinearFunction by lazy {
-        LinearFunction(d, "${name}_d")
+        LinearFunction(
+            polynomial = d,
+            parent = parent ?: this,
+            name = "${name}_d"
+        )
     }
 
     private val q: IntVar by lazy {
@@ -258,7 +271,8 @@ class FloorFunction(
 
         when (val result = model.addConstraint(
             x eq (dLinear * q + r),
-            name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -320,7 +334,8 @@ class FloorFunction(
 
         when (val result = model.addConstraint(
             x eq (dLinear * q + r),
-            name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -331,7 +346,8 @@ class FloorFunction(
 
         when (val result = model.addConstraint(
             q eq qValue,
-            "${name}_q"
+            name = "${name}_q",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -346,7 +362,8 @@ class FloorFunction(
 
         when (val result = model.addConstraint(
             r eq rValue,
-            "${name}_r"
+            name = "${name}_r",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

@@ -46,7 +46,7 @@ fun <T : FloatingNumber<T>> ln(
             m *= constants.two
             k -= constants.one
         }
-        ln(m, constants)!! + k * constants.ln2
+        ln(m, constants)!! + k * constants.lg2
     }
 }
 

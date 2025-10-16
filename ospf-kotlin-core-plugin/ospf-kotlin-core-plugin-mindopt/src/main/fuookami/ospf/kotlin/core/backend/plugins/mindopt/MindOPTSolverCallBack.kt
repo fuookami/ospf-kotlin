@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (MDOEnv) -> Try
 typealias NativeCallback = MDOCallback.() -> Unit
-typealias LinearFunction = (SolverStatus?, MDOModel, List<MDOVar>, List<MDOConstr>) -> Try
-typealias QuadraticFunction = (SolverStatus?, MDOModel, List<MDOVar>, List<MDOQConstr>) -> Try
+typealias LinearFunction = suspend (SolverStatus?, MDOModel, List<MDOVar>, List<MDOConstr>) -> Try
+typealias QuadraticFunction = suspend (SolverStatus?, MDOModel, List<MDOVar>, List<MDOQConstr>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -44,16 +44,16 @@ class MindOPTLinearSolverCallBack(
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<LinearFunction>? = map[point]
 
     fun execIfContain(env: MDOEnv): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOConstr>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOConstr>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, mindopt, variables, constraints) }
             })
         } else {
@@ -92,16 +92,16 @@ class MindOPTQuadraticSolverCallBack(
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
     fun execIfContain(env: MDOEnv): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOQConstr>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOQConstr>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, mindopt, variables, constraints) }
             })
         } else {

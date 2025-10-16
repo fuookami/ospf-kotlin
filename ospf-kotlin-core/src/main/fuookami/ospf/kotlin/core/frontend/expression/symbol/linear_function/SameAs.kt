@@ -17,6 +17,7 @@ class SameAsFunction(
     private val constraint: Boolean = true,
     private val fixed: Boolean? = null,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol {
@@ -26,18 +27,20 @@ class SameAsFunction(
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             constraint: Boolean = true,
-            fixedValue: Boolean? = null,
+            fixed: Boolean? = null,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): SameAsFunction {
             return SameAsFunction(
-                inequalities.map { it.toLinearInequality() },
-                constraint,
-                fixedValue,
-                epsilon,
-                name,
-                displayName
+                inequalities = inequalities.map { it.toLinearInequality() },
+                constraint = constraint,
+                fixed = fixed,
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -153,7 +156,12 @@ class SameAsFunction(
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
         if (!constraint && inequalities.size > 1) {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register("${name}_i", k[i, _a], u[i], tokenTable)) {
+                when (val result = inequality.register(
+                    parentName = "${name}_i",
+                    k = k[i, _a],
+                    flag = u[i],
+                    tokenTable = tokenTable
+                )) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -163,7 +171,12 @@ class SameAsFunction(
             }
         } else {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register("${name}_i", k[i, _a], null, tokenTable)) {
+                when (val result = inequality.register(
+                    parentName = "${name}_i",
+                    k = k[i, _a],
+                    flag = null,
+                    tokenTable = tokenTable
+                )) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -187,7 +200,14 @@ class SameAsFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         if (!constraint && inequalities.size > 1) {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register("${name}_i", k[i, _a], u[i], epsilon, model)) {
+                when (val result = inequality.register(
+                    parent = parent ?: this,
+                    parentName = "${name}_i",
+                    k = k[i, _a],
+                    flag = u[i],
+                    epsilon = epsilon,
+                    model = model
+                )) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -198,7 +218,8 @@ class SameAsFunction(
 
             when (val result = model.addConstraint(
                 y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -209,7 +230,8 @@ class SameAsFunction(
 
             when (val result = model.addConstraint(
                 y leq sum(u) / UInt64(inequalities.size),
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -219,7 +241,14 @@ class SameAsFunction(
             }
         } else {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], y, epsilon, model)) {
+                when (val result = inequality.register(
+                    parent = parent ?: this,
+                    parentName = name,
+                    k = k[i, _a],
+                    flag = y,
+                    epsilon = epsilon,
+                    model = model
+                )) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -254,7 +283,15 @@ class SameAsFunction(
             }
 
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], u[i], epsilon, model)) {
+                when (val result = inequality.register(
+                    parent = parent ?: this,
+                    parentName = "${name}_i",
+                    k = k[i, _a],
+                    flag = u[i],
+                    epsilon = epsilon,
+                    model = model,
+                    fixedValues = fixedValues
+                )) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -265,7 +302,8 @@ class SameAsFunction(
 
             when (val result = model.addConstraint(
                 y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -276,7 +314,8 @@ class SameAsFunction(
 
             when (val result = model.addConstraint(
                 y leq sum(u) / UInt64(inequalities.size),
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -287,7 +326,8 @@ class SameAsFunction(
 
             when (val result = model.addConstraint(
                 y eq bin,
-                "${name}_y"
+                name = "${name}_y",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -301,7 +341,15 @@ class SameAsFunction(
             }
         } else {
             for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(name, k[i, _a], y, epsilon, model, fixedValues)) {
+                when (val result = inequality.register(
+                    parent = parent ?: this,
+                    parentName = name,
+                    k = k[i, _a],
+                    flag = y,
+                    epsilon = epsilon,
+                    model = model,
+                    fixedValues = fixedValues
+                )) {
                     is Ok -> {}
 
                     is Failed -> {

@@ -16,7 +16,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class MaskingFunction(
     private val x: AbstractQuadraticPolynomial<*>,
-    private val mask: AbstractQuadraticPolynomial<*>,
+    mask: AbstractQuadraticPolynomial<*>? = null,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -27,14 +28,16 @@ class MaskingFunction(
         > invoke(
             x: T,
             mask: AbstractQuadraticPolynomial<*>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
             return MaskingFunction(
-                x.toQuadraticPolynomial(),
-                mask,
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                mask = mask,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -44,14 +47,16 @@ class MaskingFunction(
         > invoke(
             x: AbstractQuadraticPolynomial<*>,
             mask: T,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
             return MaskingFunction(
-                x,
-                mask.toQuadraticPolynomial(),
-                name,
-                displayName
+                x = x,
+                mask = mask.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -63,19 +68,30 @@ class MaskingFunction(
         > invoke(
             x: T1,
             mask: T2,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
             return MaskingFunction(
-                x.toQuadraticPolynomial(),
-                mask.toQuadraticPolynomial(),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                mask = mask.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val logger = logger()
+
+    private val u: BinVar by lazy {
+        BinVar("${name}_u")
+    }
+
+    private val externalMask: Boolean = mask != null
+    private val mask: AbstractQuadraticPolynomial<*> by lazy {
+        mask ?: QuadraticPolynomial(u)
+    }
 
     private val y: RealVar by lazy {
         val y = RealVar("${name}_y")
@@ -84,7 +100,11 @@ class MaskingFunction(
     }
 
     private val polyY: QuadraticPolynomial by lazy {
-        val polyY = QuadraticPolynomial(y)
+        val polyY = if (x.range.range?.contains(Flt64.zero) == true) {
+            QuadraticPolynomial(x)
+        } else {
+            QuadraticPolynomial(y)
+        }
         polyY.range.set(possibleRange)
         polyY
     }
@@ -161,9 +181,11 @@ class MaskingFunction(
                 Flt64.zero
             }
 
-            logger.trace { "Setting SemiFunction ${name}.y to $yValue" }
-            tokenTable.find(y)?.let { token ->
-                token._result = yValue
+            if (x.range.range?.contains(Flt64.zero) != true) {
+                logger.trace { "Setting MaskingFunction ${name}.y to $yValue" }
+                tokenTable.find(y)?.let { token ->
+                    token._result = yValue
+                }
             }
 
             yValue
@@ -173,6 +195,16 @@ class MaskingFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
+        if (!externalMask) {
+            when (val result = tokenTable.add(u)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -189,44 +221,73 @@ class MaskingFunction(
             return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $mask"))
         }
 
-        when (val result = model.addConstraint(
-            y leq x + m * (Flt64.one - mask),
-            name = "${name}_lb"
-        )) {
-            is Ok -> {}
+        if (x.range.range?.contains(Flt64.zero) == true) {
+            when (val result = model.addConstraint(
+                x leq m * mask,
+                name = "${name}_ub",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
-        }
-        when (val result = model.addConstraint(
-            y geq x - m * (Flt64.one - mask),
-            name = "${name}_ub"
-        )) {
-            is Ok -> {}
+            when (val result = model.addConstraint(
+                x geq -m * mask,
+                name = "${name}_lb",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
-        }
-        when (val result = model.addConstraint(
-            y leq m * mask,
-            name = "${name}_ym_lb"
-        )) {
-            is Ok -> {}
+        } else {
+            when (val result = model.addConstraint(
+                y leq x + m * (Flt64.one - mask),
+                name = "${name}_ub",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
-        }
-        when (val result = model.addConstraint(
-            y geq -m * mask,
-            name = "${name}_ym_ub"
-        )) {
-            is Ok -> {}
+            when (val result = model.addConstraint(
+                y geq x - m * (Flt64.one - mask),
+                name = "${name}_lb",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
+                y leq m * mask,
+                name = "${name}_ym_ub",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
+                y geq -m * mask,
+                name = "${name}_ym_lb",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
         }
 
@@ -248,67 +309,115 @@ class MaskingFunction(
         val maskValue = mask.evaluate(fixedValues, model.tokens) ?: return register(model)
         val maskBin = maskValue gr Flt64.zero
 
-        when (val result = model.addConstraint(
-            y leq x + m * (Flt64.one - mask),
-            name = "${name}_lb"
-        )) {
-            is Ok -> {}
+        if (x.range.range?.contains(Flt64.zero) == true) {
+            when (val result = model.addConstraint(
+                x leq m * mask,
+                name = "${name}_ub",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
+                x geq -m * mask,
+                name = "${name}_lb",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        } else {
+            when (val result = model.addConstraint(
+                y leq x + m * (Flt64.one - mask),
+                name = "${name}_ub",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
+                y geq x - m * (Flt64.one - mask),
+                name = "${name}_lb",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
+                y leq m * mask,
+                name = "${name}_ym_ub",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+            when (val result = model.addConstraint(
+                y geq -m * mask,
+                name = "${name}_ym_lb",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            when (val result = model.addConstraint(
+                y eq if (maskBin) {
+                    xValue
+                } else {
+                    Flt64.zero
+                },
+                name = "${name}_y",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+
+            model.tokens.find(y)?.let { token ->
+                token._result = if (maskBin) {
+                    xValue
+                } else {
+                    Flt64.zero
+                }
             }
         }
-        when (val result = model.addConstraint(
-            y geq x - m * (Flt64.one - mask),
-            name = "${name}_ub"
-        )) {
-            is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+        if (!externalMask) {
+            when (val result = model.addConstraint(
+                u eq maskBin,
+                name = "${name}_u",
+                from = parent ?: this
+            )) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
-        }
-        when (val result = model.addConstraint(
-            y leq m * mask,
-            name = "${name}_ym_lb"
-        )) {
-            is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-        when (val result = model.addConstraint(
-            y geq -m * mask,
-            name = "${name}_ym_ub"
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            y eq if (maskBin) {
-                xValue
-            } else {
-                Flt64.zero
-            },
-            name = "${name}_y"
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        model.tokens.find(y)?.let { token ->
-            token._result = if (maskBin) {
-                xValue
-            } else {
-                Flt64.zero
+            model.tokens.find(u)?.let { token ->
+                token._result = maskBin.toFlt64()
             }
         }
 

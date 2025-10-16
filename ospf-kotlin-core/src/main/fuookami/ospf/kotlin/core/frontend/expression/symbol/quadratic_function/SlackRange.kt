@@ -18,6 +18,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     private val lb: AbstractQuadraticPolynomial<*>,
     private val ub: AbstractQuadraticPolynomial<*>,
     private val constraint: Boolean = true,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
@@ -46,7 +47,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
     private val y: AbstractQuadraticPolynomial<*> by lazy {
         val y = QuadraticPolynomial(neg + pos, "${name}_y")
-
+        y.range.set(possibleRange)
         y
     }
 
@@ -189,7 +190,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         if (constraint) {
             when (val result = model.addConstraint(
                 polyX leq ub,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -200,7 +202,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
             when (val result = model.addConstraint(
                 polyX geq lb,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -241,7 +244,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         if (constraint) {
             when (val result = model.addConstraint(
                 polyX leq ub,
-                "${name}_ub"
+                name = "${name}_ub",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -252,7 +256,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
             when (val result = model.addConstraint(
                 polyX geq lb,
-                "${name}_lb"
+                name = "${name}_lb",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -264,7 +269,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
         when (val result = model.addConstraint(
             _neg eq negSlack,
-            "${name}_neg"
+            name = "${name}_neg",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -279,7 +285,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
         when (val result = model.addConstraint(
             _pos eq posSlack,
-            "${name}_pos"
+            name = "${name}_pos",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -419,13 +426,30 @@ object SlackRangeFunction {
             UContinuous
         },
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         return if (type.isIntegerType) {
-            UIntegerSlackRangeFunction(x, lb, ub, constraint, name, displayName)
+            UIntegerSlackRangeFunction(
+                x = x,
+                lb = lb,
+                ub = ub,
+                constraint = constraint,
+                parent = parent,
+                name = name,
+                displayName = displayName
+            )
         } else {
-            URealSlackRangeFunction(x, lb, ub, constraint, name, displayName)
+            URealSlackRangeFunction(
+                x = x,
+                lb = lb,
+                ub = ub,
+                constraint = constraint,
+                parent = parent,
+                name = name,
+                displayName = displayName
+            )
         }
     }
 
@@ -438,22 +462,24 @@ object SlackRangeFunction {
         ub: Int,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toQuadraticPolynomial()
         return invoke(
-            xPoly,
-            QuadraticPolynomial(lb),
-            QuadraticPolynomial(ub),
+            x = xPoly,
+            lb = QuadraticPolynomial(lb),
+            ub = QuadraticPolynomial(ub),
             type = type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -466,17 +492,19 @@ object SlackRangeFunction {
         ub: Double,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         return invoke(
-            x.toQuadraticPolynomial(),
-            QuadraticPolynomial(lb),
-            QuadraticPolynomial(ub),
+            x = x.toQuadraticPolynomial(),
+            lb = QuadraticPolynomial(lb),
+            ub = QuadraticPolynomial(ub),
             type = type ?: UContinuous,
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -489,22 +517,24 @@ object SlackRangeFunction {
         ub: Trivalent,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toQuadraticPolynomial()
         return invoke(
-            xPoly,
-            QuadraticPolynomial(lb.value),
-            QuadraticPolynomial(ub.value),
+            x = xPoly,
+            lb = QuadraticPolynomial(lb.value),
+            ub = QuadraticPolynomial(ub.value),
             type = type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -517,22 +547,24 @@ object SlackRangeFunction {
         ub: BalancedTrivalent,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         val xPoly = x.toQuadraticPolynomial()
         return invoke(
-            xPoly,
-            QuadraticPolynomial(lb.value),
-            QuadraticPolynomial(ub.value),
+            x = xPoly,
+            lb = QuadraticPolynomial(lb.value),
+            ub = QuadraticPolynomial(ub.value),
             type = type ?: if (xPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -547,17 +579,19 @@ object SlackRangeFunction {
         ub: T3,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
         return invoke(
-            x.toQuadraticPolynomial(),
-            QuadraticPolynomial(lb),
-            QuadraticPolynomial(ub),
+            x = x.toQuadraticPolynomial(),
+            lb = QuadraticPolynomial(lb),
+            ub = QuadraticPolynomial(ub),
             type = type ?: UContinuous,
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 
@@ -574,6 +608,7 @@ object SlackRangeFunction {
         ub: T3,
         type: VariableType<*>? = null,
         constraint: Boolean = true,
+        parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -581,17 +616,18 @@ object SlackRangeFunction {
         val lbPoly = lb.toQuadraticPolynomial()
         val ubPoly = ub.toQuadraticPolynomial()
         return invoke(
-            xPoly,
-            lbPoly,
-            ubPoly,
+            x = xPoly,
+            lb = lbPoly,
+            ub = ubPoly,
             type = type ?: if (xPoly.discrete && lbPoly.discrete && ubPoly.discrete) {
                 UInteger
             } else {
                 UContinuous
             },
-            constraint,
-            name,
-            displayName
+            constraint = constraint,
+            parent = parent,
+            name = name,
+            displayName = displayName
         )
     }
 }
@@ -601,9 +637,19 @@ class UIntegerSlackRangeFunction(
     lb: AbstractQuadraticPolynomial<*>,
     ub: AbstractQuadraticPolynomial<*>,
     constraint: Boolean = true,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null,
-) : AbstractSlackRangeFunction<UIntVar>(x, lb, ub, constraint, name, displayName, { UIntVar(it) }) {
+) : AbstractSlackRangeFunction<UIntVar>(
+    x = x,
+    lb = lb,
+    ub = ub,
+    constraint = constraint,
+    parent = parent,
+    name = name,
+    displayName = displayName,
+    ctor = { UIntVar(it) }
+) {
     override val discrete = true
 }
 
@@ -612,6 +658,16 @@ class URealSlackRangeFunction(
     lb: AbstractQuadraticPolynomial<*>,
     ub: AbstractQuadraticPolynomial<*>,
     constraint: Boolean = true,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null,
-) : AbstractSlackRangeFunction<URealVar>(x, lb, ub, constraint, name, displayName, { URealVar(it) })
+) : AbstractSlackRangeFunction<URealVar>(
+    x = x,
+    lb = lb,
+    ub = ub,
+    constraint = constraint,
+    parent = parent,
+    name = name,
+    displayName = displayName,
+    ctor = { URealVar(it) }
+)

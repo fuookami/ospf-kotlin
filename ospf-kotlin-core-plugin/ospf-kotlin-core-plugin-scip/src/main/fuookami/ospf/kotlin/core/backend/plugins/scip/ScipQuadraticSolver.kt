@@ -32,9 +32,9 @@ class ScipQuadraticSolver(
 
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
-        val impl = ScipQuadraticSolverImpl(config, callBack, statusCallBack)
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<FeasibleSolverOutput> {
+        val impl = ScipQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
         val result = impl(model)
         System.gc()
         return result
@@ -43,8 +43,8 @@ class ScipQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
-        statusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
@@ -80,7 +80,7 @@ class ScipQuadraticSolver(
                         }
                         ok
                     },
-                statusCallBack = statusCallBack
+                statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
             System.gc()
@@ -100,7 +100,7 @@ private class ScipQuadraticSolverImpl(
     private lateinit var scipConstraints: List<jscip.Constraint>
     private lateinit var scipQuadraticObjectiveVars: List<jscip.Variable>
     private lateinit var scipQuadraticObjectiveTransformers: List<jscip.Constraint>
-    private lateinit var output: SolverOutput
+    private lateinit var output: FeasibleSolverOutput
 
     override fun finalize() {
         for (constraint in scipConstraints) {
@@ -118,7 +118,7 @@ private class ScipQuadraticSolverImpl(
         super.finalize()
     }
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<SolverOutput> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput> {
         mip = model.containsNotBinaryInteger
         val processes = arrayOf(
             { it.init(model.name) },
@@ -393,7 +393,7 @@ private class ScipQuadraticSolverImpl(
             } else {
                 Flt64.zero
             }
-            output = SolverOutput(
+            output = FeasibleSolverOutput(
                 obj = obj,
                 solution = results,
                 time = solvingTime!!,

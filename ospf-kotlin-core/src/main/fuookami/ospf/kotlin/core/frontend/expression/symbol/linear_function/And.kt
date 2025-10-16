@@ -16,7 +16,7 @@ typealias AndFunctionImplBuilder = (AndFunction) -> AbstractAndFunctionImpl
 
 abstract class AbstractAndFunctionImpl(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    protected val parent: AndFunction
+    protected val self: AndFunction
 ) : LinearLogicFunctionSymbol {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
@@ -28,6 +28,7 @@ abstract class AbstractAndFunctionImpl(
 
     override val category get() = Linear
 
+    override val parent get() = self.parent
     override val dependencies: Set<IntermediateSymbol>
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
@@ -161,31 +162,35 @@ abstract class AbstractAndFunctionImpl(
 
 class AndFunctionOnePolynomialImpl(
     val polynomial: AbstractLinearPolynomial<*>,
-    parent: AndFunction,
+    self: AndFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractAndFunctionImpl(listOf(polynomial), parent) {
+) : AbstractAndFunctionImpl(listOf(polynomial), self) {
     companion object {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             polynomial: T,
-            parent: AndFunction,
+            self: AndFunction,
             name: String,
             displayName: String? = null
         ): AndFunctionOnePolynomialImpl {
             return AndFunctionOnePolynomialImpl(
-                polynomial.toLinearPolynomial(),
-                parent,
-                name,
-                displayName
+                polynomial = polynomial.toLinearPolynomial(),
+                self = self,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val bin: BinaryzationFunction by lazy {
-        BinaryzationFunction(polynomial, name = "${name}_bin")
+        BinaryzationFunction(
+            x = polynomial,
+            parent = parent ?: self,
+            name = "${name}_bin"
+        )
     }
 
     override val polyY: AbstractLinearPolynomial<*> by lazy {
@@ -204,9 +209,9 @@ class AndFunctionOnePolynomialImpl(
         bin.prepareAndCache(values, tokenTable)
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             if (values.isNullOrEmpty()) {
                 bin.evaluate(tokenTable)
@@ -275,32 +280,40 @@ class AndFunctionOnePolynomialImpl(
 
 private class AndFunctionMultiPolynomialImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: AndFunction,
+    self: AndFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractAndFunctionImpl(polynomials, parent) {
+) : AbstractAndFunctionImpl(polynomials, self) {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
-            parent: AndFunction,
+            self: AndFunction,
             name: String,
             displayName: String? = null
         ): AndFunctionMultiPolynomialImpl {
             return AndFunctionMultiPolynomialImpl(
-                polynomials.map { it.toLinearPolynomial() },
-                parent,
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                self = self,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val maxmin: MaxMinFunction by lazy {
-        MaxMinFunction(polynomials, "${name}_maxmin")
+        MaxMinFunction(
+            polynomials = polynomials,
+            parent = parent ?: self,
+            name = "${name}_maxmin"
+        )
     }
 
     private val bin: BinaryzationFunction by lazy {
-        BinaryzationFunction(LinearPolynomial(maxmin), name = "${name}_bin")
+        BinaryzationFunction(
+            x = LinearPolynomial(maxmin),
+            parent = parent ?: self,
+            name = "${name}_bin"
+        )
     }
 
     override val polyY: AbstractLinearPolynomial<*> by lazy {
@@ -323,9 +336,9 @@ private class AndFunctionMultiPolynomialImpl(
         bin.prepareAndCache(values, tokenTable)
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             if (values.isNullOrEmpty()) {
                 bin.evaluate(tokenTable)
@@ -426,22 +439,22 @@ private class AndFunctionMultiPolynomialImpl(
 
 private class AndFunctionMultiPolynomialBinaryImpl(
     polynomials: List<AbstractLinearPolynomial<*>>,
-    parent: AndFunction,
+    self: AndFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractAndFunctionImpl(polynomials, parent) {
+) : AbstractAndFunctionImpl(polynomials, self) {
     companion object {
         operator fun invoke(
             polynomials: List<AbstractLinearPolynomial<*>>,
-            parent: AndFunction,
+            self: AndFunction,
             name: String,
             displayName: String? = null
         ): AndFunctionMultiPolynomialImpl {
             return AndFunctionMultiPolynomialImpl(
-                polynomials.map { it.toLinearPolynomial() },
-                parent,
-                name,
-                displayName
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                self = self,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -462,9 +475,9 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         }
 
         return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(parent)
+            tokenTable.cached(self)
         } else {
-            tokenTable.cached(parent, values)
+            tokenTable.cached(self, values)
         } == false) {
             val yValue = polynomials.all { polynomial ->
                 val thisValue = if (values.isNullOrEmpty()) {
@@ -506,7 +519,8 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 y leq polynomial,
-                "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -518,7 +532,8 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         // if all polynomial are not zero, y will be not zero
         when (val result = model.addConstraint(
             y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -547,7 +562,8 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 y leq polynomial,
-                "${name}_ub_${polynomial.name.ifEmpty { "$i" }}"
+                name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -559,7 +575,8 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
         when (val result = model.addConstraint(
             y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -570,7 +587,8 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
         when (val result = model.addConstraint(
             y eq bin,
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: self
         )) {
             is Ok -> {}
 
@@ -589,22 +607,25 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
 class AndFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
+    override val parent: IntermediateSymbol? = null,
+    impl: AndFunctionImplBuilder? = null,
     override var name: String,
-    override var displayName: String? = null,
-    impl: AndFunctionImplBuilder? = null
+    override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
+            impl: AndFunctionImplBuilder? = null,
             name: String,
-            displayName: String? = null,
-            impl: AndFunctionImplBuilder? = null
+            displayName: String? = null
         ): AndFunction {
             return AndFunction(
-                polynomials.map { it.toLinearPolynomial() },
-                name,
-                displayName,
-                impl
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                parent = parent,
+                impl = impl,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -612,24 +633,24 @@ class AndFunction(
     private val impl: AbstractAndFunctionImpl by lazy {
         impl?.invoke(this) ?: if (polynomials.size == 1) {
             AndFunctionOnePolynomialImpl(
-                polynomials.first(),
-                this,
-                name,
-                displayName
+                polynomial = polynomials.first(),
+                self = this,
+                name = name,
+                displayName = displayName
             )
         } else if (polynomials.all { it.discrete && it.upperBound!!.value.unwrap() leq Flt64.one }) {
             AndFunctionMultiPolynomialBinaryImpl(
-                polynomials,
-                this,
-                name,
-                displayName
+                polynomials = polynomials,
+                self = this,
+                name = name,
+                displayName = displayName
             )
         } else {
             AndFunctionMultiPolynomialImpl(
-                polynomials,
-                this,
-                name,
-                displayName
+                polynomials = polynomials,
+                self = this,
+                name = name,
+                displayName = displayName
             )
         }
     }

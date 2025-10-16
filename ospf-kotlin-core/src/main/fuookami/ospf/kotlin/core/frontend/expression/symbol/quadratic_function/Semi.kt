@@ -16,19 +16,25 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 class SemiFunction(
     private val x: AbstractQuadraticPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null,
 ) : QuadraticFunctionSymbol {
     companion object {
-        operator fun <T: ToQuadraticPolynomial<Poly>, Poly : AbstractQuadraticPolynomial<Poly>> invoke(
+        operator fun <
+            T: ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+        > invoke(
             x: T,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null,
         ): SemiFunction {
             return SemiFunction(
-                x.toQuadraticPolynomial(),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -140,7 +146,8 @@ class SemiFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         when (val result = model.addConstraint(
             y geq x,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -150,7 +157,8 @@ class SemiFunction(
         }
         when (val result = model.addConstraint(
             y leq x + m * u,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -160,7 +168,8 @@ class SemiFunction(
         }
         when (val result = model.addConstraint(
             y leq m * (Flt64.one - u),
-            "${name}_yu"
+            name = "${name}_yu",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -189,7 +198,8 @@ class SemiFunction(
 
         when (val result = model.addConstraint(
             y geq x,
-            "${name}_lb"
+            name = "${name}_lb",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -199,7 +209,8 @@ class SemiFunction(
         }
         when (val result = model.addConstraint(
             y leq x + m * u,
-            "${name}_ub"
+            name = "${name}_ub",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -209,7 +220,8 @@ class SemiFunction(
         }
         when (val result = model.addConstraint(
             y leq m * (Flt64.one - u),
-            "${name}_yu"
+            name = "${name}_yu",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -220,7 +232,8 @@ class SemiFunction(
 
         when (val result = model.addConstraint(
             y eq yValue,
-            "${name}_y"
+            name = "${name}_y",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -235,7 +248,8 @@ class SemiFunction(
 
         when (val result = model.addConstraint(
             u eq bin,
-            "${name}_u"
+            name = "${name}_u",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

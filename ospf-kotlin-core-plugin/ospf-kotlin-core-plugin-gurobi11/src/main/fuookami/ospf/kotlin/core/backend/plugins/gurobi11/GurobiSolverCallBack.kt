@@ -7,9 +7,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias CreatingEnvironmentFunction = (GRBEnv) -> Try
-typealias LinearFunction = (SolverStatus?, GRBModel, List<GRBVar>, List<GRBConstr>) -> Try
 typealias NativeCallback = GRBCallback.() -> Unit
-typealias QuadraticFunction = (SolverStatus?, GRBModel, List<GRBVar>, List<GRBQConstr>) -> Try
+typealias LinearFunction = suspend (SolverStatus?, GRBModel, List<GRBVar>, List<GRBConstr>) -> Try
+typealias QuadraticFunction = suspend (SolverStatus?, GRBModel, List<GRBVar>, List<GRBQConstr>) -> Try
 
 enum class Point {
     AfterModeling,
@@ -44,16 +44,16 @@ class GurobiLinearSolverCallBack(
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<LinearFunction>? = map[point]
 
     fun execIfContain(env: GRBEnv): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBConstr>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBConstr>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, gurobi, variables, constraints) }
             })
         } else {
@@ -92,16 +92,16 @@ class GurobiQuadraticSolverCallBack(
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
-    fun contain(point: Point) = map.containsKey(point)
+    fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
     fun execIfContain(env: GRBEnv): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    fun execIfContain(point: Point, status: SolverStatus?, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBQConstr>): Try? {
+    suspend fun execIfContain(point: Point, status: SolverStatus?, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBQConstr>): Try? {
         return if (!map[point].isNullOrEmpty()) {
-            run(map[point]!!.map {
+            syncRun(map[point]!!.map {
                 { it(status, gurobi, variables, constraints) }
             })
         } else {

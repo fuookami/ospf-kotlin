@@ -20,6 +20,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val y: AbstractQuadraticPolynomial<*>,
     val triangles: List<Triangle3>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol {
@@ -222,7 +223,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             val rhs = polyU(i)
             when (val result = model.addConstraint(
                 (u[i] - m * w[i] + m) geq rhs,
-                "${name}_ul_$i"
+                name = "${name}_ul_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -232,7 +234,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
             when (val result = model.addConstraint(
                 (u[i] + m * w[i] - m) leq rhs,
-                "${name}_ur_$i"
+                name = "${name}_ur_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -246,7 +249,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             val rhs = polyV(i)
             when (val result = model.addConstraint(
                 (v[i] - m * w[i] + m) geq rhs,
-                "${name}_vl_$i"
+                name = "${name}_vl_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -256,7 +260,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
             when (val result = model.addConstraint(
                 (v[i] + m * w[i] - m) leq rhs,
-                "${name}_vr_$i"
+                name = "${name}_vr_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -268,7 +273,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
         when (val result = model.addConstraint(
             sum(w) eq Flt64.one,
-            "${name}_w"
+            name = "${name}_w",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -280,7 +286,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         for (i in indices) {
             when (val result = model.addConstraint(
                 (u[i] + v[i]) leq w[i],
-                "${name}_uv_$i"
+                name = "${name}_uv_$i",
+                from = parent ?: this
             )) {
                 is Ok -> {}
 
@@ -340,7 +347,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             if (i == index) {
                 when (val result = model.addConstraint(
                     (u[i] - m * w[i] + m) geq uPoly,
-                    "${name}_ul_$i"
+                    name = "${name}_ul_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -350,7 +358,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
                 when (val result = model.addConstraint(
                     (u[i] - m * w[i] - m) leq uPoly,
-                    "${name}_ur_$i"
+                    name = "${name}_ur_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -360,7 +369,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
                 when (val result = model.addConstraint(
                     u[i] eq uValue,
-                    "${name}_u_$i"
+                    name = "${name}_u_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -375,7 +385,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                 when (val result = model.addConstraint(
                     (v[i] - m * w[i] + m) geq vPoly,
-                    "${name}_vl_$i"
+                    name = "${name}_vl_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -385,7 +396,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
                 when (val result = model.addConstraint(
                     (v[i] - m * w[i] - m) leq vPoly,
-                    "${name}_vr_$i"
+                    name = "${name}_vr_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -395,7 +407,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
                 when (val result = model.addConstraint(
                     v[i] eq vValue,
-                    "${name}_v_$i"
+                    name = "${name}_v_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -410,7 +423,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                 when (val result = model.addConstraint(
                     w[i] eq Flt64.one,
-                    "${name}_w_$i"
+                    name = "${name}_w_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -425,7 +439,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             } else {
                 when (val result = model.addConstraint(
                     m geq uPoly,
-                    "${name}_ul_$i"
+                    name = "${name}_ul_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -435,7 +450,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
                 when (val result = model.addConstraint(
                     -m leq uPoly,
-                    "${name}_ur_$i"
+                    name = "${name}_ur_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -446,7 +462,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                 when (val result = model.addConstraint(
                     m geq vPoly,
-                    "${name}_vl_$i"
+                    name = "${name}_vl_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -456,7 +473,8 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
                 when (val result = model.addConstraint(
                     -m leq vPoly,
-                    "${name}_vr_$i"
+                    name = "${name}_vr_$i",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -646,14 +664,16 @@ class BivariateLinearPiecewiseFunction(
     y: AbstractQuadraticPolynomial<*>,
     val points: List<Point3>,
     triangles: List<Triangle3>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
-) : AbstractBivariateLinearPiecewiseFunction(x, y, triangles, name, displayName) {
+) : AbstractBivariateLinearPiecewiseFunction(x, y, triangles, parent, name, displayName) {
     companion object {
         operator fun invoke(
             x: AbstractQuadraticPolynomial<*>,
             y: AbstractQuadraticPolynomial<*>,
             points: List<Point3>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): BivariateLinearPiecewiseFunction {
@@ -664,6 +684,7 @@ class BivariateLinearPiecewiseFunction(
                 y = y,
                 points = sortedPoints,
                 triangles = triangles,
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -678,6 +699,7 @@ class BivariateLinearPiecewiseFunction(
             x: T1,
             y: T2,
             points: List<Point3>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): BivariateLinearPiecewiseFunction {
@@ -685,6 +707,7 @@ class BivariateLinearPiecewiseFunction(
                 x = x.toQuadraticPolynomial(),
                 y = y.toQuadraticPolynomial(),
                 points = points,
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -697,14 +720,16 @@ class IsolineBivariateLinearPiecewiseFunction(
     y: AbstractQuadraticPolynomial<*>,
     val isolines: List<Pair<Flt64, List<Point2>>>,
     triangles: List<Triangle3>,
+    parent: IntermediateSymbol? = null,
     name: String,
     displayName: String? = null
-) : AbstractBivariateLinearPiecewiseFunction(x, y, triangles, name, displayName) {
+) : AbstractBivariateLinearPiecewiseFunction(x, y, triangles, parent, name, displayName) {
     companion object {
         operator fun invoke(
             x: AbstractQuadraticPolynomial<*>,
             y: AbstractQuadraticPolynomial<*>,
             isolines: List<Pair<Flt64, List<Point2>>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IsolineBivariateLinearPiecewiseFunction {
@@ -717,6 +742,7 @@ class IsolineBivariateLinearPiecewiseFunction(
                 y = y,
                 isolines = sortedIsolines,
                 triangles = triangles,
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -731,6 +757,7 @@ class IsolineBivariateLinearPiecewiseFunction(
             x: T1,
             y: T2,
             isolines: List<Pair<Flt64, List<Point2>>>,
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IsolineBivariateLinearPiecewiseFunction {
@@ -738,6 +765,7 @@ class IsolineBivariateLinearPiecewiseFunction(
                 x = x.toQuadraticPolynomial(),
                 y = y.toQuadraticPolynomial(),
                 isolines = isolines,
+                parent = parent,
                 name = name,
                 displayName = displayName
             )

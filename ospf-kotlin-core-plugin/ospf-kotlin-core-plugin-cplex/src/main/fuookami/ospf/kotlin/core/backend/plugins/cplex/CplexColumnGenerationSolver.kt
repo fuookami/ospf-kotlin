@@ -3,8 +3,9 @@ package fuookami.ospf.kotlin.core.backend.plugins.cplex
 import java.util.*
 import kotlinx.coroutines.*
 import ilog.cplex.*
+import ilog.concert.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -12,9 +13,6 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.*
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import ilog.concert.IloException
 
 class CplexColumnGenerationSolver(
     val config: SolverConfig = SolverConfig(),
@@ -29,7 +27,7 @@ class CplexColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<SolverOutput> {
+    ): Ret<FeasibleSolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -84,7 +82,7 @@ class CplexColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -197,7 +195,7 @@ class CplexColumnGenerationSolver(
             })
         }
 
-        lateinit var dualSolution: Solution
+        lateinit var dualSolution: LinearDualSolution
         val solver = CplexLinearSolver(
             config = config,
             callBack = callBack.copy()
@@ -206,9 +204,9 @@ class CplexColumnGenerationSolver(
                     ok
                 }
                 .analyzingSolution { _, cplex, _, constraints ->
-                    dualSolution = constraints.map {
+                    dualSolution = model.tidyDualSolution(constraints.map {
                         Flt64(cplex.getDual(it))
-                    }
+                    })
                     ok
                 }
         )

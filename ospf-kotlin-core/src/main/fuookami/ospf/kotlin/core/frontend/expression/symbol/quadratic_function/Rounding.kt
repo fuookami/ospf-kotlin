@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class RoundingFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,
+    override val parent: IntermediateSymbol? = null,
     override var name: String = "round_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌉"
 ) : QuadraticFunctionSymbol {
@@ -28,13 +29,15 @@ class RoundingFunction(
         > invoke(
             x: T,
             d: Int,
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toQuadraticPolynomial(),
-                QuadraticPolynomial(d),
-                name,
+                x = x.toQuadraticPolynomial(),
+                d = QuadraticPolynomial(d),
+                parent = parent,
+                name = name,
                 displayName
             )
         }
@@ -45,14 +48,16 @@ class RoundingFunction(
         > invoke(
             x: T,
             d: Double,
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toQuadraticPolynomial(),
-                QuadraticPolynomial(d),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = QuadraticPolynomial(d),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -63,14 +68,16 @@ class RoundingFunction(
         > invoke(
             x: T1,
             d: T2,
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toQuadraticPolynomial(),
-                QuadraticPolynomial(d),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = QuadraticPolynomial(d),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -82,20 +89,26 @@ class RoundingFunction(
         > invoke(
             x: T1,
             d: T2,
+            parent: IntermediateSymbol? = null,
             name: String = "round_${x}_${d}",
             displayName: String? = "⌊$x/$d⌉"
         ): RoundingFunction {
             return RoundingFunction(
-                x.toQuadraticPolynomial(),
-                d.toQuadraticPolynomial(),
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                d = d.toQuadraticPolynomial(),
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
 
     private val dLinear: LinearFunction by lazy {
-        LinearFunction(d, "${name}_d")
+        LinearFunction(
+            polynomial = d,
+            parent = parent ?: this,
+            name = "${name}_d"
+        )
     }
 
     private val q: IntVar by lazy {
@@ -245,7 +258,8 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             x eq (dLinear * q + r),
-            name
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -318,7 +332,8 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             q eq qValue,
-            "${name}_q"
+            name = "${name}_q",
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -333,7 +348,8 @@ class RoundingFunction(
 
         when (val result = model.addConstraint(
             r eq rValue,
-            "${name}_r"
+            name = "${name}_r",
+            from = parent ?: this
         )) {
             is Ok -> {}
 

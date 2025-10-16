@@ -17,6 +17,7 @@ class IfInFunction(
     lowerBound: AbstractLinearPolynomial<*>,
     upperBound: AbstractLinearPolynomial<*>,
     private val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol {
@@ -31,16 +32,18 @@ class IfInFunction(
             lowerBound: Int,
             upperBound: Int,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
             return IfInFunction(
-                x.toLinearPolynomial(),
-                LinearPolynomial(lowerBound),
-                LinearPolynomial(upperBound),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                lowerBound = LinearPolynomial(lowerBound),
+                upperBound = LinearPolynomial(upperBound),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -52,16 +55,18 @@ class IfInFunction(
             lowerBound: Double,
             upperBound: Double,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
             return IfInFunction(
-                x.toLinearPolynomial(),
-                LinearPolynomial(lowerBound),
-                LinearPolynomial(upperBound),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                lowerBound = LinearPolynomial(lowerBound),
+                upperBound = LinearPolynomial(upperBound),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -75,16 +80,18 @@ class IfInFunction(
             lowerBound: T2,
             upperBound: T3,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
             return IfInFunction(
-                x.toLinearPolynomial(),
-                LinearPolynomial(lowerBound),
-                LinearPolynomial(upperBound),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                lowerBound = LinearPolynomial(lowerBound),
+                upperBound = LinearPolynomial(upperBound),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -100,16 +107,18 @@ class IfInFunction(
             lowerBound: T2,
             upperBound: T3,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
             return IfInFunction(
-                x.toLinearPolynomial(),
-                lowerBound.toLinearPolynomial(),
-                upperBound.toLinearPolynomial(),
-                epsilon,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                lowerBound = lowerBound.toLinearPolynomial(),
+                upperBound = upperBound.toLinearPolynomial(),
+                epsilon = epsilon,
+                parent = parent,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -142,7 +151,11 @@ class IfInFunction(
     }
 
     private val y: AndFunction by lazy {
-        AndFunction(listOf(lby, uby), "${name}_y")
+        AndFunction(
+            polynomials = listOf(lby, uby),
+            parent = parent ?: this,
+            name = "${name}_y"
+        )
     }
 
     private val polyY: AbstractLinearPolynomial<*> by lazy {
@@ -237,7 +250,12 @@ class IfInFunction(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = lowerBoundInequality.register(name, lbk, lby, tokenTable)) {
+        when (val result = lowerBoundInequality.register(
+            parentName = name,
+            k = lbk,
+            flag = lby,
+            tokenTable = tokenTable
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -245,7 +263,12 @@ class IfInFunction(
             }
         }
 
-        when (val result = upperBoundInequality.register(name, ubk, uby, tokenTable)) {
+        when (val result = upperBoundInequality.register(
+            parentName = name,
+            k = ubk,
+            flag = uby,
+            tokenTable = tokenTable
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -265,7 +288,14 @@ class IfInFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = lowerBoundInequality.register(name, lbk, lby, epsilon, model)) {
+        when (val result = lowerBoundInequality.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = lbk,
+            flag = lby,
+            epsilon = epsilon,
+            model = model
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -273,7 +303,14 @@ class IfInFunction(
             }
         }
 
-        when (val result = upperBoundInequality.register(name, ubk, uby, epsilon, model)) {
+        when (val result = upperBoundInequality.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = ubk,
+            flag = uby,
+            epsilon = epsilon,
+            model = model
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -303,7 +340,15 @@ class IfInFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = lowerBoundInequality.register(name, lbk, lby, epsilon, model, fixedValues)) {
+        when (val result = lowerBoundInequality.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = lbk,
+            flag = lby,
+            epsilon = epsilon,
+            model = model,
+            fixedValues = fixedValues
+        )) {
             is Ok -> {}
 
             is Failed -> {
@@ -311,7 +356,15 @@ class IfInFunction(
             }
         }
 
-        when (val result = upperBoundInequality.register(name, ubk, uby, epsilon, model, fixedValues)) {
+        when (val result = upperBoundInequality.register(
+            parent = parent ?: this,
+            parentName = name,
+            k = ubk,
+            flag = uby,
+            epsilon = epsilon,
+            model = model,
+            fixedValues = fixedValues
+        )) {
             is Ok -> {}
 
             is Failed -> {

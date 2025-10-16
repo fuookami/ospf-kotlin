@@ -127,7 +127,7 @@ interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConst
 
     val pi: Self
     val e: Self
-    val ln2: Self
+    val lg2: Self
 }
 
 interface NumericIntegerNumber<Self : NumericIntegerNumber<Self, I>, I : IntegerNumber<I>> : Integer<Self>,

@@ -28,9 +28,10 @@ enum class ErrorCode(private val code: UInt8) {
     OREngineModelingException(UInt8(0x26U)),
     OREngineSolvingException(UInt8(0x27U)),
     OREngineTerminated(UInt8(0x28U)),
-    ORModelNoSolution(UInt8(0x29U)),
+    ORModelInfeasible(UInt8(0x29U)),
     ORModelUnbounded(UInt8(0x2aU)),
-    ORSolutionInvalid(UInt8(0x2bU)),
+    ORModelInfeasibleOrUnbounded(UInt8(0x2aU)),
+    ORSolutionInvalid(UInt8(0x2cU)),
 
     ApplicationFailed(UInt8(0x30U)),
     ApplicationError(UInt8(0x31U)),
