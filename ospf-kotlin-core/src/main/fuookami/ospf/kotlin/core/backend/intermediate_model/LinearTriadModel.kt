@@ -248,7 +248,10 @@ interface LinearTriadModelView: ModelView<LinearConstraintCell, LinearObjectiveC
     fun linearRelaxed(): LinearTriadModelView
     suspend fun farkasDual(): LinearTriadModelView
     fun feasibility(): LinearTriadModelView
-    fun elastic(): LinearTriadModelView
+    fun elastic(
+        minmaxSlack: Boolean = false,
+        minSlackAmount: Pair<UInt64, Flt64>? = null
+    ): LinearTriadModelView
 
     fun tidyDualSolution(solution: Solution): LinearDualSolution {
         return if (dual) {
@@ -1379,9 +1382,13 @@ data class LinearTriadModel(
         )
     }
 
-    override fun elastic(): LinearTriadModel {
+    override fun elastic(
+        minmaxSlack: Boolean,
+        minSlackAmount: Pair<UInt64, Flt64>?
+    ): LinearTriadModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Pair<Variable?, Variable?>>()
+        val slackBinVariables = ArrayList<Pair<Variable, Variable>>()
         for (i in this.constraints.indices) {
             when (this.constraints.signs[i]) {
                 Sign.LessEqual -> {
@@ -1527,6 +1534,37 @@ data class LinearTriadModel(
                 colIndex += 2
             }
         }
+        if (minSlackAmount != null) {
+            slackBinVariables.addAll(slackVariables.flatMap { it.toList().filterNotNull() }.mapIndexed { j, slack ->
+                slack to Variable(
+                    index = colIndex + j,
+                    lowerBound = Flt64.zero,
+                    upperBound = Flt64.one,
+                    type = Binary,
+                    origin = null,
+                    dualOrigin = null,
+                    name = "${slack.name}_bin",
+                    initialResult = Flt64.zero
+                )
+            })
+            colIndex += slackBinVariables.size
+        }
+        val minmaxSlackVariable = if (minmaxSlack) {
+            val minmax = Variable(
+                index = colIndex,
+                lowerBound = Flt64.zero,
+                upperBound = Flt64.infinity,
+                type = Continuous,
+                origin = null,
+                dualOrigin = null,
+                name = "minmax_slack",
+                initialResult = Flt64.zero
+            )
+            colIndex += 1
+            minmax
+        } else {
+            null
+        }
 
         var rowIndex = this.variables.size
         val constraints = LinearConstraint(
@@ -1584,6 +1622,88 @@ data class LinearTriadModel(
                     rowIndex += 1
                 }
                 thisLhs
+            } + if (minSlackAmount != null) {
+                val thisLhs = slackBinVariables.flatMapIndexed { j, (slack, bin) ->
+                    listOf(
+                        listOf(
+                            LinearConstraintCell(
+                                rowIndex = rowIndex + 2 * j,
+                                colIndex = slack.index,
+                                coefficient = Flt64.one,
+                            ),
+                            LinearConstraintCell(
+                                rowIndex = rowIndex + 2 * j,
+                                colIndex = bin.index,
+                                coefficient = -minSlackAmount.second - Flt64.decimalPrecision
+                            )
+                        ),
+                        listOf(
+                            LinearConstraintCell(
+                                rowIndex = rowIndex + 2 * j + 1,
+                                colIndex = slack.index,
+                                coefficient = Flt64.one
+                            ),
+                            LinearConstraintCell(
+                                rowIndex = rowIndex + 2 * j + 1,
+                                colIndex = bin.index,
+                                coefficient = -Flt64.decimalPrecision.reciprocal()
+                            )
+                        )
+                    )
+                } + listOf(
+                    slackBinVariables.map { (_, bin) ->
+                        LinearConstraintCell(
+                            rowIndex = rowIndex + 2 * slackBinVariables.size + 1,
+                            colIndex = bin.index,
+                            coefficient = Flt64.one
+                        )
+                    }
+                )
+                rowIndex += 2 * slackBinVariables.size + 1
+                thisLhs
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                val thisLhs = ArrayList<List<LinearConstraintCell>>()
+                for ((lbSlack, ubSlack) in slackVariables) {
+                    if (lbSlack != null) {
+                        thisLhs.add(
+                            listOf(
+                                LinearConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex = minmaxSlackVariable!!.index,
+                                    coefficient = Flt64.one,
+                                ),
+                                LinearConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex = lbSlack.index,
+                                    coefficient = -Flt64.one,
+                                )
+                            )
+                        )
+                        rowIndex += 1
+                    }
+                    if (ubSlack != null) {
+                        thisLhs.add(
+                            listOf(
+                                LinearConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex = minmaxSlackVariable!!.index,
+                                    coefficient = Flt64.one,
+                                ),
+                                LinearConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex = ubSlack.index,
+                                    coefficient = -Flt64.one,
+                                )
+                            )
+                        )
+                        rowIndex += 1
+                    }
+                }
+                thisLhs
+            } else {
+                emptyList()
             },
             signs = this.constraints.signs + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
@@ -1595,6 +1715,19 @@ data class LinearTriadModel(
                     thisSigns.add(Sign.LessEqual)
                 }
                 thisSigns
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { listOf(Sign.GreaterEqual, Sign.LessEqual) } + listOf(Sign.GreaterEqual)
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                slackVariables.flatMap { (lbSlack, ubSlack) ->
+                    listOfNotNull(
+                        lbSlack?.let { Sign.GreaterEqual },
+                        ubSlack?.let { Sign.GreaterEqual }
+                    )
+                }
+            } else {
+                emptyList()
             },
             rhs = this.constraints.rhs + this.variables.flatMapIndexed { j, variable ->
                 val jp = this.constraints.size + j
@@ -1606,8 +1739,21 @@ data class LinearTriadModel(
                     thisRhs.add(variable.upperBound)
                 }
                 thisRhs
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { listOf(Flt64.zero, Flt64.zero) } + listOf(minSlackAmount.first.toFlt64())
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                slackVariables.flatMap { (lbSlack, ubSlack) ->
+                    listOfNotNull(
+                        lbSlack?.let { Flt64.zero },
+                        ubSlack?.let { Flt64.zero }
+                    )
+                }
+            } else {
+                emptyList()
             },
-            names = this.constraints.names.map { "${it.ifEmpty { "cons${it}" }}_elastic" } + this.variables.flatMapIndexed { j, variable ->
+            names = this.constraints.names.mapIndexed { i, name -> "${name.ifEmpty { "cons${i}" }}_elastic" } + this.variables.flatMapIndexed { j, variable ->
                 val jp = this.constraints.size + j
                 val thisNames = ArrayList<String>()
                 if (slackVariables[jp].first != null) {
@@ -1617,6 +1763,19 @@ data class LinearTriadModel(
                     thisNames.add("${variable.name}_ub_slack")
                 }
                 thisNames
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { (slack, _) -> listOf("${slack.name}_bin_lb", "${slack.name}_bin_ub") } + listOf("min_slack_amount")
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                slackVariables.flatMap { (lbSlack, ubSlack) ->
+                    listOfNotNull(
+                        lbSlack?.let { "${lbSlack.name}_minmax" },
+                        ubSlack?.let { "${ubSlack.name}_minmax" }
+                    )
+                }
+            } else {
+                emptyList()
             },
             sources = this.constraints.sources.map { ConstraintSource.Elastic } + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
@@ -1628,6 +1787,23 @@ data class LinearTriadModel(
                     thisSources.add(ConstraintSource.ElasticUpperBound)
                 }
                 thisSources
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { listOf(ConstraintSource.ElasticSlackBinary, ConstraintSource.ElasticSlackBinary) } + listOf(ConstraintSource.ElasticSlackBinary)
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                val thisSources = ArrayList<ConstraintSource>()
+                for ((lbSlack, ubSlack) in slackVariables) {
+                    if (lbSlack != null) {
+                        thisSources.add(ConstraintSource.ElasticSlackMinmax)
+                    }
+                    if (ubSlack != null) {
+                        thisSources.add(ConstraintSource.ElasticSlackMinmax)
+                    }
+                }
+                thisSources
+            } else {
+                emptyList()
             },
             origins = this.constraints.origins + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
@@ -1639,6 +1815,23 @@ data class LinearTriadModel(
                     thisOrigins.add(null)
                 }
                 thisOrigins
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { listOf(null, null) } + listOf(null)
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                val thisOrigins = ArrayList<OriginLinearConstraint?>()
+                for ((lbSlack, ubSlack) in slackVariables) {
+                    if (lbSlack != null) {
+                        thisOrigins.add(null)
+                    }
+                    if (ubSlack != null) {
+                        thisOrigins.add(null)
+                    }
+                }
+                thisOrigins
+            } else {
+                emptyList()
             },
             froms = this.constraints.froms + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
@@ -1650,6 +1843,23 @@ data class LinearTriadModel(
                     thisOrigins.add(null)
                 }
                 thisOrigins
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { listOf(null, null) } + listOf(null)
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                val thisOrigins = ArrayList<IntermediateSymbol?>()
+                for ((lbSlack, ubSlack) in slackVariables) {
+                    if (lbSlack != null) {
+                        thisOrigins.add(null)
+                    }
+                    if (ubSlack != null) {
+                        thisOrigins.add(null)
+                    }
+                }
+                thisOrigins
+            } else {
+                emptyList()
             },
         )
 
@@ -1668,6 +1878,15 @@ data class LinearTriadModel(
                     )
                 }
             )
+        } + if (minmaxSlack) {
+            listOf(
+                LinearObjectiveCell(
+                    colIndex = minmaxSlackVariable!!.index,
+                    coefficient = Flt64.one
+                )
+            )
+        } else {
+            emptyList()
         }
 
         return LinearTriadModel(
@@ -1679,7 +1898,15 @@ data class LinearTriadModel(
                             _upperBound = Flt64.infinity
                         }
                     }
-                } + slackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index },
+                } + slackVariables.flatMap { it.toList().filterNotNull() }.sortedBy { it.index } + if (minSlackAmount != null) {
+                    slackBinVariables.map { it.second }
+                } else {
+                    emptyList()
+                } + if (minmaxSlack) {
+                    listOf(minmaxSlackVariable!!)
+                } else {
+                    emptyList()
+                },
                 constraints = constraints,
                 name = "$name-elastic"
             ),
