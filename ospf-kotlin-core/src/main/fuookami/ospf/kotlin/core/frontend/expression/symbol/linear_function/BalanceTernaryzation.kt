@@ -16,7 +16,32 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-typealias BalanceTernaryzationFunctionImplBuilder = (BalanceTernaryzationFunction) -> AbstractBalanceTernaryzationFunctionImpl
+data class BalanceTernaryzationFunctionImplBuilderParams(
+    val x: AbstractLinearPolynomial<*>,
+    val self: BalanceTernaryzationFunction,
+    val name: String,
+    val displayName: String? = null
+) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            self: BalanceTernaryzationFunction,
+            name: String,
+            displayName: String? = null
+        ): BalanceTernaryzationFunctionImplBuilderParams {
+            return BalanceTernaryzationFunctionImplBuilderParams(
+                x = x.toLinearPolynomial(),
+                self = self,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
+typealias BalanceTernaryzationFunctionImplBuilder = (BalanceTernaryzationFunctionImplBuilderParams) -> AbstractBalanceTernaryzationFunctionImpl
 
 abstract class AbstractBalanceTernaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
@@ -170,7 +195,7 @@ class BalanceTernaryzationFunctionImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
-    companion object {
+    companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<*>
@@ -185,6 +210,15 @@ class BalanceTernaryzationFunctionImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: BalanceTernaryzationFunctionImplBuilderParams): AbstractBalanceTernaryzationFunctionImpl {
+            return BalanceTernaryzationFunctionImpl(
+                x = params.x,
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -249,18 +283,18 @@ class BalanceTernaryzationFunctionImpl(
 class BalanceTernaryzationFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
     self: BalanceTernaryzationFunction,
-    private val epsilon: Flt64 = Flt64(1e-6),
+    private val epsilon: Flt64 = self.epsilon,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
-    companion object {
+    companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<*>
         > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
-            epsilon: Flt64 = Flt64(1e-6),
+            epsilon: Flt64 = self.epsilon,
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionPiecewiseImpl {
@@ -272,7 +306,22 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
                 displayName = displayName
             )
         }
+
+        override operator fun invoke(params: BalanceTernaryzationFunctionImplBuilderParams): AbstractBalanceTernaryzationFunctionImpl {
+            return BalanceTernaryzationFunctionPiecewiseImpl(params, params.self.epsilon)
+        }
     }
+
+    constructor(
+        params: BalanceTernaryzationFunctionImplBuilderParams,
+        epsilon: Flt64
+    ): this(
+        x = params.x,
+        self = params.self,
+        epsilon = epsilon,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
@@ -378,20 +427,20 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 class BalanceTernaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BalanceTernaryzationFunction,
-    private val extract: Boolean = true,
+    private val extract: Boolean = self.extract,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
-    companion object {
+    companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
-            extract: Boolean = true,
+            extract: Boolean = self.extract,
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionDiscreteImpl {
@@ -403,7 +452,22 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 displayName = displayName
             )
         }
+
+        override fun invoke(params: BalanceTernaryzationFunctionImplBuilderParams): AbstractBalanceTernaryzationFunctionImpl {
+            return BalanceTernaryzationFunctionDiscreteImpl(params, params.self.extract)
+        }
     }
+
+    constructor(
+        params: BalanceTernaryzationFunctionImplBuilderParams,
+        extract: Boolean
+    ): this(
+        x = params.x,
+        self = params.self,
+        extract = extract,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val m = max(abs(x.lowerBound!!.value.unwrap()), abs(x.upperBound!!.value.unwrap()))
 
@@ -647,20 +711,20 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BalanceTernaryzationFunction,
-    private val epsilon: Flt64 = Flt64(1e-6),
+    private val epsilon: Flt64 = self.epsilon,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
-    companion object {
+    companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
-            epsilon: Flt64 = Flt64(1e-6),
+            epsilon: Flt64 = self.epsilon,
             name: String,
             displayName: String? = null,
         ): BalanceTernaryzationFunctionExtractAndNotDiscreteImpl {
@@ -672,7 +736,22 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                 displayName = displayName
             )
         }
+
+        override operator fun invoke(params: BalanceTernaryzationFunctionImplBuilderParams): AbstractBalanceTernaryzationFunctionImpl {
+            return BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(params, params.self.epsilon)
+        }
     }
+
+    constructor(
+        params: BalanceTernaryzationFunctionImplBuilderParams,
+        epsilon: Flt64
+    ): this(
+        x = params.x,
+        self = params.self,
+        epsilon = epsilon,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val b: PctVariable1 by lazy {
         PctVariable1(name = "${name}_b", Shape1(2))
@@ -1004,9 +1083,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
 class BalanceTernaryzationFunction(
     val x: AbstractLinearPolynomial<*>,
-    private val extract: Boolean = true,
-    private val epsilon: Flt64 = Flt64(1e-6),
-    private val piecewise: Boolean = false,
+    internal val extract: Boolean = true,
+    internal val epsilon: Flt64 = Flt64(1e-6),
+    internal val piecewise: Boolean = false,
     override val parent: IntermediateSymbol? = null,
     impl: BalanceTernaryzationFunctionImplBuilder? = null,
     override var name: String,
@@ -1042,38 +1121,39 @@ class BalanceTernaryzationFunction(
     }
 
     private val impl: AbstractBalanceTernaryzationFunctionImpl by lazy {
-        impl?.invoke(this) ?: if (x.discrete && ValueRange(-Flt64.one, Flt64.one).value!! contains x.range.range!!) {
-            BalanceTernaryzationFunctionImpl(
-                x = x,
-                self = this,
-                name = name,
-                displayName = displayName
-            )
-        } else if (x.discrete) {
-            BalanceTernaryzationFunctionDiscreteImpl(
-                x = x,
-                self = this,
-                extract = extract,
-                name = name,
-                displayName = displayName
-            )
-        } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
-            BalanceTernaryzationFunctionPiecewiseImpl(
-                x = x,
-                self = this,
-                epsilon = epsilon,
-                name = name,
-                displayName = displayName
-            )
-        } else {
-            BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
-                x = x,
-                self = this,
-                epsilon = epsilon,
-                name = name,
-                displayName = displayName
-            )
-        }
+        impl?.invoke(BalanceTernaryzationFunctionImplBuilderParams(x, this, name, displayName))
+            ?: if (x.discrete && ValueRange(-Flt64.one, Flt64.one).value!! contains x.range.range!!) {
+                BalanceTernaryzationFunctionImpl(
+                    x = x,
+                    self = this,
+                    name = name,
+                    displayName = displayName
+                )
+            } else if (x.discrete) {
+                BalanceTernaryzationFunctionDiscreteImpl(
+                    x = x,
+                    self = this,
+                    extract = extract,
+                    name = name,
+                    displayName = displayName
+                )
+            } else if (extract && !x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
+                BalanceTernaryzationFunctionPiecewiseImpl(
+                    x = x,
+                    self = this,
+                    epsilon = epsilon,
+                    name = name,
+                    displayName = displayName
+                )
+            } else {
+                BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
+                    x = x,
+                    self = this,
+                    epsilon = epsilon,
+                    name = name,
+                    displayName = displayName
+                )
+            }
     }
 
     override val discrete = true

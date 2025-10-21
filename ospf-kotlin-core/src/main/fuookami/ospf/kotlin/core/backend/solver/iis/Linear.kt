@@ -31,7 +31,7 @@ suspend fun computeIIS(
     config: IISConfig
 ): Ret<LinearIISModel> {
     val startTime = Clock.System.now()
-    val elasticModel = model.elastic()
+    val elasticModel = model.elastic(minSlackAmount = UInt64.two to config.slackTolerance)
     val boundAmount = UInt64(elasticModel.constraints.sources.count { it == ConstraintSource.ElasticLowerBound || it == ConstraintSource.ElasticUpperBound })
     val constraintAmount = UInt64(elasticModel.constraints.sources.count { it == ConstraintSource.Elastic })
 
@@ -310,7 +310,7 @@ private suspend fun relaxSpecificComponents(
     }
 
     val relaxedComponents = elasticModel.variables.associateNotNull { variable ->
-        if (variable.slack != null && result.solution[variable.index] gr tolerance) {
+        if (variable.slack != null && result.solution[variable.index] geq tolerance) {
             variable to result.solution[variable.index]
         } else {
             null

@@ -12,7 +12,29 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-typealias AndFunctionImplBuilder = (AndFunction) -> AbstractAndFunctionImpl
+data class AndFunctionImplBuilderParams(
+    val polynomials: List<AbstractLinearPolynomial<*>>,
+    val self: AndFunction,
+    val name: String,
+    val displayName: String? = null
+) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            self: AndFunction,
+            name: String,
+            displayName: String? = null
+        ): AndFunctionImplBuilderParams {
+            return AndFunctionImplBuilderParams(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                self = self,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
+typealias AndFunctionImplBuilder = (AndFunctionImplBuilderParams) -> AbstractAndFunctionImpl
 
 abstract class AbstractAndFunctionImpl(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
@@ -166,7 +188,7 @@ class AndFunctionOnePolynomialImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(listOf(polynomial), self) {
-    companion object {
+    companion object : AndFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
@@ -181,6 +203,15 @@ class AndFunctionOnePolynomialImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: AndFunctionImplBuilderParams): AndFunctionOnePolynomialImpl {
+            return AndFunctionOnePolynomialImpl(
+                polynomial = params.polynomials.first(),
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -284,7 +315,7 @@ private class AndFunctionMultiPolynomialImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(polynomials, self) {
-    companion object {
+    companion object : AndFunctionImplBuilder {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             self: AndFunction,
@@ -296,6 +327,15 @@ private class AndFunctionMultiPolynomialImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: AndFunctionImplBuilderParams): AbstractAndFunctionImpl {
+            return AndFunctionMultiPolynomialImpl(
+                polynomials = params.polynomials,
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -443,7 +483,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractAndFunctionImpl(polynomials, self) {
-    companion object {
+    companion object : AndFunctionImplBuilder {
         operator fun invoke(
             polynomials: List<AbstractLinearPolynomial<*>>,
             self: AndFunction,
@@ -455,6 +495,15 @@ private class AndFunctionMultiPolynomialBinaryImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: AndFunctionImplBuilderParams): AbstractAndFunctionImpl {
+            return AndFunctionMultiPolynomialBinaryImpl(
+                polynomials = params.polynomials,
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -631,28 +680,29 @@ class AndFunction(
     }
 
     private val impl: AbstractAndFunctionImpl by lazy {
-        impl?.invoke(this) ?: if (polynomials.size == 1) {
-            AndFunctionOnePolynomialImpl(
-                polynomial = polynomials.first(),
-                self = this,
-                name = name,
-                displayName = displayName
-            )
-        } else if (polynomials.all { it.discrete && it.upperBound!!.value.unwrap() leq Flt64.one }) {
-            AndFunctionMultiPolynomialBinaryImpl(
-                polynomials = polynomials,
-                self = this,
-                name = name,
-                displayName = displayName
-            )
-        } else {
-            AndFunctionMultiPolynomialImpl(
-                polynomials = polynomials,
-                self = this,
-                name = name,
-                displayName = displayName
-            )
-        }
+        impl?.invoke(AndFunctionImplBuilderParams(polynomials, this, name, displayName))
+            ?: if (polynomials.size == 1) {
+                AndFunctionOnePolynomialImpl(
+                    polynomial = polynomials.first(),
+                    self = this,
+                    name = name,
+                    displayName = displayName
+                )
+            } else if (polynomials.all { it.discrete && it.upperBound!!.value.unwrap() leq Flt64.one }) {
+                AndFunctionMultiPolynomialBinaryImpl(
+                    polynomials = polynomials,
+                    self = this,
+                    name = name,
+                    displayName = displayName
+                )
+            } else {
+                AndFunctionMultiPolynomialImpl(
+                    polynomials = polynomials,
+                    self = this,
+                    name = name,
+                    displayName = displayName
+                )
+            }
     }
 
     override val discrete = true
