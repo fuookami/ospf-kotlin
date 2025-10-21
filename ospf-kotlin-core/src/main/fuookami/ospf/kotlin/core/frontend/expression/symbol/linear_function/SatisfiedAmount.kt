@@ -12,7 +12,29 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-typealias SatisfiedAmountPolynomialFunctionImplBuilder = (AbstractSatisfiedAmountPolynomialFunction) -> AbstractSatisfiedAmountPolynomialFunctionImpl
+data class SatisfiedAmountPolynomialFunctionImplBuilderParams(
+    val polynomials: List<AbstractLinearPolynomial<*>>,
+    val self: AbstractSatisfiedAmountPolynomialFunction,
+    val name: String,
+    val displayName: String? = null
+) {
+    companion object {
+        operator fun invoke(
+            polynomials: List<ToLinearPolynomial<*>>,
+            self: AbstractSatisfiedAmountPolynomialFunction,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountPolynomialFunctionImplBuilderParams {
+            return SatisfiedAmountPolynomialFunctionImplBuilderParams(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                self = self,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
+typealias SatisfiedAmountPolynomialFunctionImplBuilder = (SatisfiedAmountPolynomialFunctionImplBuilderParams) -> AbstractSatisfiedAmountPolynomialFunctionImpl
 
 abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     protected val amount: UInt64? = null,
@@ -229,7 +251,7 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64.one, polynomials, self) {
-    companion object {
+    companion object : SatisfiedAmountPolynomialFunctionImplBuilder {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             self: AbstractSatisfiedAmountPolynomialFunction,
@@ -241,6 +263,15 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: SatisfiedAmountPolynomialFunctionImplBuilderParams): AbstractSatisfiedAmountPolynomialFunctionImpl {
+            return SatisfiedAmountPolynomialFunctionAnyImpl(
+                polynomials = params.polynomials,
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -356,7 +387,7 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64(polynomials.size), polynomials, self) {
-    companion object {
+    companion object : SatisfiedAmountPolynomialFunctionImplBuilder {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             self: AbstractSatisfiedAmountPolynomialFunction,
@@ -368,6 +399,15 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: SatisfiedAmountPolynomialFunctionImplBuilderParams): AbstractSatisfiedAmountPolynomialFunctionImpl {
+            return SatisfiedAmountPolynomialFunctionAllImpl(
+                polynomials = params.polynomials,
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -487,7 +527,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 ) : AbstractSatisfiedAmountPolynomialFunctionImpl(amount, polynomials, self) {
     private val logger = logger()
 
-    companion object {
+    companion object : SatisfiedAmountPolynomialFunctionImplBuilder {
         operator fun invoke(
             amount: UInt64?,
             polynomials: List<ToLinearPolynomial<*>>,
@@ -505,7 +545,24 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 displayName = displayName
             )
         }
+
+        override operator fun invoke(params: SatisfiedAmountPolynomialFunctionImplBuilderParams): AbstractSatisfiedAmountPolynomialFunctionImpl {
+            return SatisfiedAmountPolynomialFunctionSomeImpl(params, params.self.amount, params.self.extract)
+        }
     }
+
+    constructor(
+        params: SatisfiedAmountPolynomialFunctionImplBuilderParams,
+        amount: UInt64?,
+        extract: Boolean
+    ): this(
+        amount = amount,
+        polynomials = params.polynomials,
+        extract = extract,
+        self = params.self,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
@@ -730,7 +787,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 
 sealed class AbstractSatisfiedAmountPolynomialFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
-    private val extract: Boolean = true,
+    internal val extract: Boolean = true,
     override val parent: IntermediateSymbol? = null,
     impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     override var name: String,
@@ -739,36 +796,37 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
     open val amount: UInt64? = null
 
     private val impl: AbstractSatisfiedAmountPolynomialFunctionImpl by lazy {
-        impl?.invoke(this) ?: when (amount) {
-            UInt64.one -> {
-                SatisfiedAmountPolynomialFunctionAnyImpl(
-                    polynomials = polynomials,
-                    self = this,
-                    name = name,
-                    displayName = displayName
-                )
-            }
+        impl?.invoke(SatisfiedAmountPolynomialFunctionImplBuilderParams(polynomials, this, name, displayName))
+            ?: when (amount) {
+                UInt64.one -> {
+                    SatisfiedAmountPolynomialFunctionAnyImpl(
+                        polynomials = polynomials,
+                        self = this,
+                        name = name,
+                        displayName = displayName
+                    )
+                }
 
-            UInt64(polynomials.size) -> {
-                SatisfiedAmountPolynomialFunctionAllImpl(
-                    polynomials = polynomials,
-                    self = this,
-                    name = name,
-                    displayName = displayName
-                )
-            }
+                UInt64(polynomials.size) -> {
+                    SatisfiedAmountPolynomialFunctionAllImpl(
+                        polynomials = polynomials,
+                        self = this,
+                        name = name,
+                        displayName = displayName
+                    )
+                }
 
-            else -> {
-                SatisfiedAmountPolynomialFunctionSomeImpl(
-                    amount = amount,
-                    polynomials = polynomials,
-                    extract = extract,
-                    self = this,
-                    name = name,
-                    displayName = displayName
-                )
+                else -> {
+                    SatisfiedAmountPolynomialFunctionSomeImpl(
+                        amount = amount,
+                        polynomials = polynomials,
+                        extract = extract,
+                        self = this,
+                        name = name,
+                        displayName = displayName
+                    )
+                }
             }
-        }
     }
 
     override val discrete = true

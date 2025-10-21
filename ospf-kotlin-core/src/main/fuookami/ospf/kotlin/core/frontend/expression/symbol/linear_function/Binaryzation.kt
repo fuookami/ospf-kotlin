@@ -13,7 +13,32 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
-typealias BinaryzationFunctionImplBuilder = (BinaryzationFunction) -> AbstractBinaryzationFunctionImpl
+data class BinaryzationFunctionImplBuilderParams(
+    val x: AbstractLinearPolynomial<*>,
+    val self: BinaryzationFunction,
+    val name: String,
+    val displayName: String? = null
+) {
+    companion object {
+        operator fun <
+            T : ToLinearPolynomial<Poly>,
+            Poly : AbstractLinearPolynomial<Poly>
+        > invoke(
+            x: T,
+            self: BinaryzationFunction,
+            name: String,
+            displayName: String? = null
+        ): BinaryzationFunctionImplBuilderParams {
+            return BinaryzationFunctionImplBuilderParams(
+                x = x.toLinearPolynomial(),
+                self = self,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+}
+typealias BinaryzationFunctionImplBuilder = (BinaryzationFunctionImplBuilderParams) -> AbstractBinaryzationFunctionImpl
 
 abstract class AbstractBinaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
@@ -151,7 +176,7 @@ class BinaryzationFunctionImpl(
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, self) {
-    companion object {
+    companion object : BinaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
@@ -166,6 +191,15 @@ class BinaryzationFunctionImpl(
                 self = self,
                 name = name,
                 displayName = displayName
+            )
+        }
+
+        override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
+            return BinaryzationFunctionImpl(
+                x = params.x,
+                self = params.self,
+                name = params.name,
+                displayName = params.displayName
             )
         }
     }
@@ -224,18 +258,18 @@ class BinaryzationFunctionImpl(
 class BinaryzationFunctionPiecewiseImpl(
     x: AbstractLinearPolynomial<*>,
     self: BinaryzationFunction,
-    private val epsilon: Flt64 = Flt64(1e-6),
+    private val epsilon: Flt64 = self.epsilon,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, self) {
-    companion object {
+    companion object : BinaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
             self: BinaryzationFunction,
-            epsilon: Flt64 = Flt64(1e-6),
+            epsilon: Flt64 = self.epsilon,
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionPiecewiseImpl {
@@ -247,7 +281,22 @@ class BinaryzationFunctionPiecewiseImpl(
                 displayName = displayName
             )
         }
+
+        override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
+            return BinaryzationFunctionPiecewiseImpl(params, params.self.epsilon)
+        }
     }
+
+    constructor(
+        params: BinaryzationFunctionImplBuilderParams,
+        epsilon: Flt64
+    ): this(
+        x = params.x,
+        self = params.self,
+        epsilon = epsilon,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val piecewiseFunction: UnivariateLinearPiecewiseFunction by lazy {
         UnivariateLinearPiecewiseFunction(
@@ -351,20 +400,20 @@ class BinaryzationFunctionPiecewiseImpl(
 class BinaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BinaryzationFunction,
-    private val extract: Boolean = true,
+    private val extract: Boolean = self.extract,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
-    companion object {
+    companion object : BinaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
            x: T,
            self: BinaryzationFunction,
-           extract: Boolean = true,
+           extract: Boolean = self.extract,
            name: String,
            displayName: String? = null
         ): BinaryzationFunctionDiscreteImpl {
@@ -376,7 +425,22 @@ class BinaryzationFunctionDiscreteImpl(
                 displayName
             )
         }
+
+        override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
+            return BinaryzationFunctionDiscreteImpl(params, params.self.extract)
+        }
     }
+
+    constructor(
+        params: BinaryzationFunctionImplBuilderParams,
+        extract: Boolean,
+    ): this(
+        x = params.x,
+        self = params.self,
+        extract = extract,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val m = x.upperBound!!.value.unwrap()
 
@@ -574,20 +638,20 @@ class BinaryzationFunctionDiscreteImpl(
 class BinaryzationFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BinaryzationFunction,
-    private val epsilon: Flt64 = Flt64(1e-6),
+    private val epsilon: Flt64 = self.epsilon,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, self) {
     private val logger = logger()
 
-    companion object {
+    companion object : BinaryzationFunctionImplBuilder {
         operator fun <
             T : ToLinearPolynomial<Poly>,
             Poly : AbstractLinearPolynomial<Poly>
         > invoke(
             x: T,
             self: BinaryzationFunction,
-            epsilon: Flt64 = Flt64(1e-6),
+            epsilon: Flt64 = self.epsilon,
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionExtractAndNotDiscreteImpl {
@@ -599,7 +663,22 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
                 displayName = displayName
             )
         }
+
+        override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
+            return BinaryzationFunctionExtractAndNotDiscreteImpl(params, params.self.epsilon)
+        }
     }
+
+    constructor(
+        params: BinaryzationFunctionImplBuilderParams,
+        epsilon: Flt64,
+    ): this(
+        x = params.x,
+        self = params.self,
+        epsilon = epsilon,
+        name = params.name,
+        displayName = params.displayName
+    )
 
     private val m = x.upperBound!!.value.unwrap()
 
@@ -824,9 +903,9 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
 class BinaryzationFunction(
     private val x: AbstractLinearPolynomial<*>,
-    private val extract: Boolean = true,
-    private val epsilon: Flt64 = Flt64(1e-6),
-    private val piecewise: Boolean = false,
+    internal val extract: Boolean = true,
+    internal val epsilon: Flt64 = Flt64(1e-6),
+    internal val piecewise: Boolean = false,
     override val parent: IntermediateSymbol? = null,
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
@@ -862,38 +941,39 @@ class BinaryzationFunction(
     }
 
     private val impl: AbstractBinaryzationFunctionImpl by lazy {
-        impl?.invoke(this) ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
-            BinaryzationFunctionImpl(
-                x = x,
-                self = this,
-                name = name,
-                displayName = displayName
-            )
-        } else if (x.discrete || !extract) {
-            BinaryzationFunctionDiscreteImpl(
-                x = x,
-                self = this,
-                extract = extract,
-                name = name,
-                displayName = displayName
-            )
-        } else if (!x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
-            BinaryzationFunctionPiecewiseImpl(
-                x = x,
-                self = this,
-                epsilon = epsilon,
-                name = name,
-                displayName = displayName
-            )
-        } else {
-            BinaryzationFunctionExtractAndNotDiscreteImpl(
-                x = x,
-                self = this,
-                epsilon = epsilon,
-                name = name,
-                displayName = displayName
-            )
-        }
+        impl?.invoke(BinaryzationFunctionImplBuilderParams(x, this, name, displayName))
+            ?: if (x.discrete && ValueRange(Flt64.zero, Flt64.one).value!! contains x.range.range!!) {
+                BinaryzationFunctionImpl(
+                    x = x,
+                    self = this,
+                    name = name,
+                    displayName = displayName
+                )
+            } else if (x.discrete || !extract) {
+                BinaryzationFunctionDiscreteImpl(
+                    x = x,
+                    self = this,
+                    extract = extract,
+                    name = name,
+                    displayName = displayName
+                )
+            } else if (!x.discrete && (piecewise || epsilon geq piecewiseThreshold)) {
+                BinaryzationFunctionPiecewiseImpl(
+                    x = x,
+                    self = this,
+                    epsilon = epsilon,
+                    name = name,
+                    displayName = displayName
+                )
+            } else {
+                BinaryzationFunctionExtractAndNotDiscreteImpl(
+                    x = x,
+                    self = this,
+                    epsilon = epsilon,
+                    name = name,
+                    displayName = displayName
+                )
+            }
     }
 
     override val discrete = true

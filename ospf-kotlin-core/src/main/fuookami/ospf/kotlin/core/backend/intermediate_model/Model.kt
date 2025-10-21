@@ -91,7 +91,9 @@ enum class ConstraintSource {
     Feasibility,
     Elastic,
     ElasticLowerBound,
-    ElasticUpperBound
+    ElasticUpperBound,
+    ElasticSlackBinary,
+    ElasticSlackMinmax
 }
 
 abstract class Constraint<Cell>(
