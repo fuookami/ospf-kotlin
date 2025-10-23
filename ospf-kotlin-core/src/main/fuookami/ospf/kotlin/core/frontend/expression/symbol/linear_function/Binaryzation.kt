@@ -73,12 +73,6 @@ abstract class AbstractBinaryzationFunctionImpl(
             }
         ).value!!
 
-    override fun flush(force: Boolean) {
-        x.flush(force)
-        polyY.flush(force)
-        polyY.range.set(possibleRange.toFlt64())
-    }
-
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
@@ -208,6 +202,12 @@ class BinaryzationFunctionImpl(
         x.copy()
     }
 
+    override fun flush(force: Boolean) {
+        x.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
+    }
+
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
@@ -319,8 +319,10 @@ class BinaryzationFunctionPiecewiseImpl(
     }
 
     override fun flush(force: Boolean) {
-        super.flush(force)
+        x.flush(force)
         piecewiseFunction.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -401,6 +403,7 @@ class BinaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BinaryzationFunction,
     private val extract: Boolean = self.extract,
+    m: Flt64? = null,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, self) {
@@ -414,35 +417,40 @@ class BinaryzationFunctionDiscreteImpl(
            x: T,
            self: BinaryzationFunction,
            extract: Boolean = self.extract,
+           m: Flt64? = null,
            name: String,
            displayName: String? = null
         ): BinaryzationFunctionDiscreteImpl {
             return BinaryzationFunctionDiscreteImpl(
-                x.toLinearPolynomial(),
-                self,
-                extract,
-                name,
-                displayName
+                x = x.toLinearPolynomial(),
+                self = self,
+                extract = extract,
+                m = m,
+                name = name,
+                displayName = displayName
             )
         }
 
         override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
-            return BinaryzationFunctionDiscreteImpl(params, params.self.extract)
+            return BinaryzationFunctionDiscreteImpl(params, params.self.extract, null)
         }
     }
 
     constructor(
         params: BinaryzationFunctionImplBuilderParams,
         extract: Boolean,
+        m: Flt64? = null
     ): this(
         x = params.x,
         self = params.self,
         extract = extract,
+        m = m,
         name = params.name,
         displayName = params.displayName
     )
 
-    private val m = x.upperBound!!.value.unwrap()
+    private val mFixed = m != null
+    private var m = m ?: x.upperBound!!.value.unwrap()
 
     private val y: BinVar by lazy {
         val y = BinVar("${name}_y")
@@ -454,6 +462,17 @@ class BinaryzationFunctionDiscreteImpl(
         val polyY = LinearPolynomial(y)
         polyY.range.set(possibleRange.toFlt64())
         polyY
+    }
+
+    override fun flush(force: Boolean) {
+        x.flush(force)
+        val newPossibleRange = possibleRange
+        y.range.set(newPossibleRange)
+        polyY.flush(force)
+        polyY.range.set(newPossibleRange.toFlt64())
+        if (!mFixed) {
+            m = x.upperBound!!.value.unwrap()
+        }
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -639,6 +658,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BinaryzationFunction,
     private val epsilon: Flt64 = self.epsilon,
+    m: Flt64? = null,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBinaryzationFunctionImpl(x, self) {
@@ -652,6 +672,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             x: T,
             self: BinaryzationFunction,
             epsilon: Flt64 = self.epsilon,
+            m: Flt64? = null,
             name: String,
             displayName: String? = null
         ): BinaryzationFunctionExtractAndNotDiscreteImpl {
@@ -659,28 +680,32 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
                 x = x.toLinearPolynomial(),
                 self = self,
                 epsilon = epsilon,
+                m = m,
                 name = name,
                 displayName = displayName
             )
         }
 
         override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
-            return BinaryzationFunctionExtractAndNotDiscreteImpl(params, params.self.epsilon)
+            return BinaryzationFunctionExtractAndNotDiscreteImpl(params, params.self.epsilon, null)
         }
     }
 
     constructor(
         params: BinaryzationFunctionImplBuilderParams,
         epsilon: Flt64,
+        m: Flt64? = null
     ): this(
         x = params.x,
         self = params.self,
         epsilon = epsilon,
+        m = m,
         name = params.name,
         displayName = params.displayName
     )
 
-    private val m = x.upperBound!!.value.unwrap()
+    private val mFixed = m != null
+    private var m = m ?: x.upperBound!!.value.unwrap()
 
     private val b: PctVar by lazy {
         PctVar("${name}_b")
@@ -696,6 +721,15 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         val polyY = LinearPolynomial(y)
         polyY.range.set(possibleRange.toFlt64())
         polyY
+    }
+
+    override fun flush(force: Boolean) {
+        x.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
+        if (!mFixed) {
+            m = x.upperBound!!.value.unwrap()
+        }
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {

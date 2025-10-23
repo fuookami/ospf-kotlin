@@ -134,7 +134,8 @@ class CeilingFunction(
     override fun flush(force: Boolean) {
         x.flush(force)
         y.flush(force)
-        q.range.set(ValueRange(possibleRange.lowerBound.value.unwrap().toInt64(), possibleRange.upperBound.value.unwrap().toInt64()).value!!)
+        val newPossibleRange = possibleRange
+        q.range.set(ValueRange(newPossibleRange.lowerBound.value.unwrap().toInt64(), newPossibleRange.upperBound.value.unwrap().toInt64()).value!!)
         r.range.set(ValueRange(Flt64.zero, d.abs() - epsilon).value!!)
         y.range.set(possibleRange)
     }

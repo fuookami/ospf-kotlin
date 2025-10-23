@@ -527,12 +527,6 @@ data object UIntXSerializer : KSerializer<UIntX> {
     }
 }
 
-fun Boolean.toUInt64() = if (this) {
-    UInt64.one
-} else {
-    UInt64.zero
-}
-
 @JvmInline
 @Serializable(with = UIntXSerializer::class)
 value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {
@@ -648,6 +642,18 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = FltX(value.toBigDecimal())
+}
+
+fun Boolean.toUInt8() = if (this) {
+    UInt8.one
+} else {
+    UInt8.zero
+}
+
+fun Boolean.toUInt64() = if (this) {
+    UInt64.one
+} else {
+    UInt64.zero
 }
 
 fun String.toUInt8() = UInt8(toUByte())

@@ -80,12 +80,6 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
             }
         ).value!!
 
-    override fun flush(force: Boolean) {
-        x.flush(force)
-        polyY.flush(force)
-        polyY.range.set(possibleRange.toFlt64())
-    }
-
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
@@ -227,6 +221,12 @@ class BalanceTernaryzationFunctionImpl(
         x.copy()
     }
 
+    override fun flush(force: Boolean) {
+        x.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
+    }
+
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
@@ -346,8 +346,10 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
     }
 
     override fun flush(force: Boolean) {
-        super.flush(force)
+        x.flush(force)
         piecewiseFunction.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -428,6 +430,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     x: AbstractLinearPolynomial<*>,
     self: BalanceTernaryzationFunction,
     private val extract: Boolean = self.extract,
+    m: Flt64? = null,
     override var name: String,
     override var displayName: String? = null
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
@@ -454,22 +457,29 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         override fun invoke(params: BalanceTernaryzationFunctionImplBuilderParams): AbstractBalanceTernaryzationFunctionImpl {
-            return BalanceTernaryzationFunctionDiscreteImpl(params, params.self.extract)
+            return BalanceTernaryzationFunctionDiscreteImpl(params, params.self.extract, null)
         }
     }
 
     constructor(
         params: BalanceTernaryzationFunctionImplBuilderParams,
-        extract: Boolean
+        extract: Boolean,
+        m: Flt64? = null
     ): this(
         x = params.x,
         self = params.self,
         extract = extract,
+        m = m,
         name = params.name,
         displayName = params.displayName
     )
 
-    private val m = max(abs(x.lowerBound!!.value.unwrap()), abs(x.upperBound!!.value.unwrap()))
+    private val possibleUpperBound get() = max(
+        abs(x.lowerBound!!.value.unwrap()),
+        abs(x.upperBound!!.value.unwrap())
+    )
+    private val mFixed = m != null
+    private var m = m ?: possibleUpperBound
 
     private val y: BinVariable1 by lazy {
         val y = BinVariable1("${name}_y", Shape1(2))
@@ -482,6 +492,17 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         val polyY = y[1] - y[0]
         polyY.range.set(possibleRange.toFlt64())
         polyY
+    }
+
+    override fun flush(force: Boolean) {
+        x.flush(force)
+        if (!mFixed) {
+            m = possibleUpperBound
+        }
+        y[0].range.set(ValueRange(UInt8.zero, (x.lowerBound!!.value.unwrap() ls Flt64.zero).toUInt8()).value!!)
+        y[1].range.set(ValueRange(UInt8.zero, (x.upperBound!!.value.unwrap() gr Flt64.zero).toUInt8()).value!!)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -768,6 +789,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         val polyY = y[1] - y[0]
         polyY.range.set(possibleRange.toFlt64())
         polyY
+    }
+
+    override fun flush(force: Boolean) {
+        x.flush(force)
+        y[0].range.set(ValueRange(UInt8.zero, (x.lowerBound!!.value.unwrap() ls Flt64.zero).toUInt8()).value!!)
+        y[1].range.set(ValueRange(UInt8.zero, (x.upperBound!!.value.unwrap() gr Flt64.zero).toUInt8()).value!!)
+        polyY.flush(force)
+        polyY.range.set(possibleRange.toFlt64())
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -1086,6 +1115,7 @@ class BalanceTernaryzationFunction(
     internal val extract: Boolean = true,
     internal val epsilon: Flt64 = Flt64(1e-6),
     internal val piecewise: Boolean = false,
+    m: Flt64? = null,
     override val parent: IntermediateSymbol? = null,
     impl: BalanceTernaryzationFunctionImplBuilder? = null,
     override var name: String,
@@ -1134,6 +1164,7 @@ class BalanceTernaryzationFunction(
                     x = x,
                     self = this,
                     extract = extract,
+                    m = m,
                     name = name,
                     displayName = displayName
                 )
