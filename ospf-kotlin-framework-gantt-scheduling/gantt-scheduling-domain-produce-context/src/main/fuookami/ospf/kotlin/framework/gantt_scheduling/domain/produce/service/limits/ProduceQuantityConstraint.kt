@@ -164,14 +164,14 @@ class ProduceQuantityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val product = iteratorLb.next().first
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price
                 }
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val product = iteratorUb.next().first
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price
                 }
             }

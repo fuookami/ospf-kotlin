@@ -165,14 +165,14 @@ class ConsumptionQuantityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val material = iteratorLb.next().first
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
                 }
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val material = iterableUb.next().first
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
                 }
             }

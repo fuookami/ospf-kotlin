@@ -10,16 +10,38 @@ import fuookami.ospf.kotlin.core.frontend.model.*
 typealias DualSolution = Map<Constraint, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>
 typealias QuadraticDualSolution = Map<QuadraticConstraint, Flt64>
-typealias MetaDualSolution = Map<Inequality<*, *>, Flt64>
+
+data class MetaDualSolution(
+    val constraints: Map<Inequality<*, *>, Flt64>,
+    val symbols: Map<IntermediateSymbol, List<Pair<Constraint, Flt64>>>
+)
 
 @JvmName("linearDualSolutionToMetaDualSolution")
 fun LinearDualSolution.toMeta(): MetaDualSolution {
-    return this.filterKeys { it.origin != null }.mapKeys { it.key.origin!! }
+    return MetaDualSolution(
+        constraints = this
+            .filterKeys { it.origin != null }
+            .mapKeys { it.key.origin!! },
+        symbols = this
+            .filterKeys { it.from != null }
+            .entries
+            .groupBy { it.key.from!! }
+            .mapValues { prices -> prices.value.map { it.toPair() } }
+    )
 }
 
 @JvmName("quadraticDualSolutionToMetaDualSolution")
 fun QuadraticDualSolution.toMeta(): MetaDualSolution {
-    return this.filterKeys { it.origin != null }.mapKeys { it.key.origin!! }
+    return MetaDualSolution(
+        constraints = this
+            .filterKeys { it.origin != null }
+            .mapKeys { it.key.origin!! },
+        symbols = this
+            .filterKeys { it.from != null }
+            .entries
+            .groupBy { it.key.from!! }
+            .mapValues { prices -> prices.value.map { it.toPair() } }
+    )
 }
 
 sealed class Constraint(
@@ -54,7 +76,7 @@ class LinearConstraint(
     name: String = "",
     origin: Inequality<*, *>? = null,
     from: IntermediateSymbol? = null,
-) : Constraint(lhs, sign, rhs, name, origin) {
+) : Constraint(lhs, sign, rhs, name, origin, from) {
     companion object {
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
@@ -90,7 +112,7 @@ class QuadraticConstraint(
     name: String = "",
     origin: Inequality<*, *>? = null,
     from: IntermediateSymbol? = null
-) : Constraint(lhs, sign, rhs, name, origin) {
+) : Constraint(lhs, sign, rhs, name, origin, from) {
     companion object {
         @JvmName("constructByLinearInequality")
         operator fun invoke(
