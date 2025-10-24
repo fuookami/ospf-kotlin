@@ -156,14 +156,14 @@ class ResourceCapacityConstraint<
         for (j in indices) {
             if (model.constraints[j].name.startsWith("${name}_lb")) {
                 val slot = iteratorLb.next()
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
                 }
             }
 
             if (model.constraints[j].name.startsWith("${name}_ub")) {
                 val slot = iteratorUb.next()
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
                 }
             }
