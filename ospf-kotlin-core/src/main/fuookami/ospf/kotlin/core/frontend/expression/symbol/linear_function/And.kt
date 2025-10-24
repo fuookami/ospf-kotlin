@@ -76,15 +76,6 @@ abstract class AbstractAndFunctionImpl(
             }
         ).value!!
 
-    override fun flush(force: Boolean) {
-        for (polynomial in polynomials) {
-            polynomial.flush(force)
-        }
-
-        polyY.flush(force)
-        polyY.range.set(possibleRange)
-    }
-
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
@@ -231,8 +222,12 @@ class AndFunctionOnePolynomialImpl(
     }
 
     override fun flush(force: Boolean) {
-        super.flush(force)
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
+        }
         bin.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -363,9 +358,13 @@ private class AndFunctionMultiPolynomialImpl(
     }
 
     override fun flush(force: Boolean) {
-        super.flush(force)
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
+        }
         maxmin.flush(force)
         bin.flush(force)
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
@@ -516,6 +515,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         val polyY = LinearPolynomial(y)
         polyY.range.set(possibleRange)
         polyY
+    }
+
+    override fun flush(force: Boolean) {
+        for (polynomial in polynomials) {
+            polynomial.flush(force)
+        }
+        polyY.flush(force)
+        polyY.range.set(possibleRange)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {

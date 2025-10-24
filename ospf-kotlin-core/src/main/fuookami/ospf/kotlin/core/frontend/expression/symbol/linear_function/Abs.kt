@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class AbsFunction(
     private val x: AbstractLinearPolynomial<*>,
     private val extract: Boolean = true,
+    m: Flt64? = null,
     override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
@@ -41,6 +42,13 @@ class AbsFunction(
         }
     }
 
+    private val possibleUpperBound get() = max(
+        abs(x.lowerBound!!.value.unwrap()),
+        abs(x.upperBound!!.value.unwrap())
+    )
+    private val mFixed = m != null
+    private var m = m ?: possibleUpperBound
+
     private val neg: PctVar by lazy {
         PctVar("${name}_neg")
     }
@@ -54,10 +62,12 @@ class AbsFunction(
     }
 
     private val y: MutableLinearPolynomial by lazy {
-        MutableLinearPolynomial(
-            (m * pos + m * neg).toMutable(),
+        val polyY = MutableLinearPolynomial(
+            (this.m * pos + this.m * neg).toMutable(),
             "${name}_abs_y"
         )
+        polyY.range.set(ValueRange(Flt64.zero, this.m).value!!)
+        polyY
     }
 
     override val discrete by lazy {
@@ -74,17 +84,16 @@ class AbsFunction(
     override val cells get() = y.cells
     override val cached get() = y.cached
 
-    private val possibleUpperBound get() = max(abs(x.lowerBound!!.value.unwrap()), abs(x.upperBound!!.value.unwrap()))
-    private var m = possibleUpperBound
-
     override fun flush(force: Boolean) {
         x.flush(force)
         y.flush(force)
-        val newM = possibleUpperBound
-        if (m neq newM) {
-            y.range.set(ValueRange(-m, m).value!!)
-            y.asMutable() *= m / newM
-            m = newM
+        if (!mFixed) {
+            val newM = possibleUpperBound
+            if (m neq newM) {
+                y.range.set(ValueRange(Flt64.zero, m).value!!)
+                y.asMutable() *= newM / m
+                m = newM
+            }
         }
     }
 
@@ -301,7 +310,9 @@ class AbsFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(tokenList, zeroIfNone)?.let { abs(it) }
+        return x.evaluate(tokenList, zeroIfNone)?.let {
+            abs(it)
+        }
     }
 
     override fun evaluate(
@@ -309,7 +320,9 @@ class AbsFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let { abs(it) }
+        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+            abs(it)
+        }
     }
 
     override fun evaluate(
@@ -317,7 +330,9 @@ class AbsFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenList, zeroIfNone)?.let { abs(it) }
+        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+            abs(it)
+        }
     }
 
     override fun calculateValue(
