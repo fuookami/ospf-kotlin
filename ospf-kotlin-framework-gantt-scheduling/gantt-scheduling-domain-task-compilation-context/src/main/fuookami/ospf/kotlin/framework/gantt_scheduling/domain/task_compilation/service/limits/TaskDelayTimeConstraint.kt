@@ -85,7 +85,7 @@ class TaskDelayTimeConstraint<
         val iterator = tasks.iterator()
         for (j in indices) {
             if (model.constraints[j].name.startsWith(name)) {
-                shadowPrices[model.constraints[j]]?.let { price ->
+                shadowPrices.constraints[model.constraints[j]]?.let { price ->
                     map.put(ShadowPrice(TaskDelayTimeShadowPriceKey(iterator.next()), price))
                 }
             }
