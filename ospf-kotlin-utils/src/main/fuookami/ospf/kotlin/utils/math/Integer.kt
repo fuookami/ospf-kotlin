@@ -587,6 +587,12 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
     override fun toFltX() = FltX(value.toBigDecimal())
 }
 
+fun Boolean.toInt8() = if (this) {
+    Int8.one
+} else {
+    Int8.zero
+}
+
 fun String.toInt8() = Int8(toByte())
 fun String.toInt8OrNull() = toByteOrNull()?.let { Int8(it) }
 fun String.toInt16() = Int16(toShort())
