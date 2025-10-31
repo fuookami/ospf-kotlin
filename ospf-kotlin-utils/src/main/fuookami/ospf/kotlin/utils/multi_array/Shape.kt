@@ -28,7 +28,9 @@ class UnknownDummyIndexTypeException(
 
 interface Shape {
     val dimension: Int
+    val udimension: UInt64 get() = UInt64(dimension)
     val size: Int
+    val usize: UInt64 get() = UInt64(size)
     val indices get() = 0 until dimension
 
     operator fun get(index: Int): Int

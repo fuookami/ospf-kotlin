@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class MaskingFunction(
     private val x: AbstractLinearPolynomial<*>,
     mask: AbstractLinearPolynomial<*>? = null,
+    m: Flt64? = null,
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
@@ -32,6 +33,7 @@ class MaskingFunction(
         > invoke(
             x: T1,
             mask: T2,
+            m: Flt64? = null,
             parent: IntermediateSymbol? = null,
             name: String,
             displayName: String? = null
@@ -39,12 +41,20 @@ class MaskingFunction(
             return MaskingFunction(
                 x = x.toLinearPolynomial(),
                 mask = mask.toLinearPolynomial(),
+                m = m,
                 parent = parent,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    private val possibleUpperBound get() = max(
+        abs(x.lowerBound!!.value.unwrap()),
+        abs(x.upperBound!!.value.unwrap())
+    )
+    private val mFixed = m != null
+    private var m = m ?: possibleUpperBound
 
     private val u: BinVar by lazy {
         BinVar("${name}_u")
@@ -100,18 +110,16 @@ class MaskingFunction(
                 Flt64.zero
             }
         ).value!!
-    private val m: Flt64 by lazy {
-        max(
-            abs(x.lowerBound!!.value.unwrap()),
-            abs(x.upperBound!!.value.unwrap())
-        )
-    }
 
     override fun flush(force: Boolean) {
         x.flush(force)
         mask.flush(force)
+        y.range.set(possibleRange)
         polyY.flush(force)
         polyY.range.set(possibleRange)
+        if (!mFixed) {
+            m = possibleUpperBound
+        }
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {

@@ -40,7 +40,7 @@ sealed interface MetaModel : Model {
     }
 
     val name: String
-    val constraints: List<Inequality<*, *>>
+    val constraints: List<MetaConstraint<*>>
     override val objectCategory: ObjectCategory
     val subObjects: List<SubObject<*, *, *>>
     val tokens: AbstractMutableTokenTable
@@ -95,14 +95,83 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapSymbols")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, IntermediateSymbol>>): Try {
-        return tokens.add(symbols.values.flatMap { it.values })
+    @JvmName("addMultiMap2Symbols")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, IntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapSymbolLists")
-    fun <K1, K2, K3> add(symbols: Map<K1, Map<K2, Map<K3, IntermediateSymbol>>>): Try {
+    @JvmName("addMultiMap2SymbolLists")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<IntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3Symbols")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, IntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3SymbolLists")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<IntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4Symbols")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, IntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4SymbolLists")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<IntermediateSymbol>>): Try {
         for (symbols in symbols.values) {
             when (val result = add(symbols)) {
                 is Ok -> {}
@@ -143,14 +212,83 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapQuantitySymbols")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, QuantityIntermediateSymbol>>): Try {
-        return tokens.add(symbols.values.flatMap { it.values.map { token -> token.value } })
+    @JvmName("addMultiMap2QuantitySymbols")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, QuantityIntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapQuantitySymbolLists")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, Iterable<QuantityIntermediateSymbol>>>): Try {
+    @JvmName("addMultiMap2QuantitySymbolLists")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<QuantityIntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3QuantitySymbols")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, QuantityIntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3QuantitySymbolLists")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<QuantityIntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4QuantitySymbols")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, QuantityIntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4QuantitySymbolLists")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<QuantityIntermediateSymbol>>): Try {
         for (symbols in symbols.values) {
             when (val result = add(symbols)) {
                 is Ok -> {}
@@ -167,8 +305,14 @@ sealed interface MetaModel : Model {
         tokens.remove(symbol)
     }
 
-    fun registerConstraintGroup(name: String)
-    fun indicesOfConstraintGroup(name: String): IntRange?
+    fun registerConstraintGroup(group: MetaConstraintGroup)
+    fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
+
+    fun constraintsOfGroup(group: MetaConstraintGroup): List<MetaConstraint<*>> {
+        return indicesOfConstraintGroup(group)?.let { indices ->
+            indices.map { constraints[it] }
+        } ?: constraints.filter { it.group == group }
+    }
 
     override fun setSolution(solution: Solution) {
         tokens.setSolution(solution)
@@ -191,7 +335,7 @@ sealed interface MetaModel : Model {
             symbol.flush(force)
         }
         for (constraint in constraints) {
-            constraint.flush(force)
+            constraint.constraint.flush(force)
         }
         for (objective in subObjects) {
             objective.polynomial.flush(force)
@@ -317,7 +461,7 @@ sealed interface MetaModel : Model {
 
             writer.append("Subject to:\n")
             for (constraint in constraints) {
-                writer.append("$constraint: ${constraint.toRawString(unfold)}\n")
+                writer.append("$constraint: ${constraint.constraint.toRawString(unfold)}\n")
             }
             writer.append("\n")
 
@@ -326,8 +470,184 @@ sealed interface MetaModel : Model {
     }
 }
 
-interface AbstractLinearMetaModel : MetaModel, LinearModel
-interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel
+interface AbstractLinearMetaModel : MetaModel, LinearModel {
+    fun addConstraint(
+        constraint: AbstractVariableItem<*, *>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: LinearMonomial,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: AbstractLinearPolynomial<*>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: LinearIntermediateSymbol,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: LinearInequality,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = false
+    ): Try
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionVariables")
+    fun partition(
+        variables: Iterable<AbstractVariableItem<*, *>>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return partition(sum(variables), group, name, displayName, args)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearSymbols")
+    fun partition(
+        symbols: Iterable<LinearIntermediateSymbol>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return partition(sum(symbols), group, name, displayName, args)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearMonomials")
+    fun partition(
+        monomials: Iterable<LinearMonomial>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return partition(sum(monomials), group, name, displayName, args)
+    }
+
+    fun partition(
+        polynomial: AbstractLinearPolynomial<*>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return addConstraint(polynomial eq true, group, name, displayName, args)
+    }
+}
+
+interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
+    fun addConstraint(
+        constraint: QuadraticMonomial,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: AbstractQuadraticPolynomial<*>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: QuadraticIntermediateSymbol,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        return addConstraint(constraint eq true, group, name, displayName, args, withRangeSet)
+    }
+
+    fun addConstraint(
+        constraint: QuadraticInequality,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = null
+    ): Try
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticMonomials")
+    fun partition(
+        monomials: Iterable<QuadraticMonomial>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return partition(qsum(monomials), group, name, displayName, args)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticSymbols")
+    fun partition(
+        symbols: Iterable<QuadraticIntermediateSymbol>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return partition(qsum(symbols), group, name, displayName, args)
+    }
+
+    fun partition(
+        polynomial: AbstractQuadraticPolynomial<*>,
+        group: MetaConstraintGroup?,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null
+    ): Try {
+        return addConstraint(polynomial eq Flt64.one, group, name, displayName, args)
+    }
+}
 
 abstract class AbstractMetaModel(
     val category: Category,
@@ -350,22 +670,22 @@ abstract class AbstractMetaModel(
         }
     }
 
-    private var currentConstraintGroup: String? = null
+    private var currentConstraintGroup: MetaConstraintGroup? = null
     private var currentConstraintGroupIndexLowerBound: Int? = null
-    private val constraintGroupIndexMap = HashMap<String, IntRange>()
+    private val constraintGroupIndexMap = HashMap<MetaConstraintGroup, IntRange>()
 
-    override fun registerConstraintGroup(name: String) {
+    override fun registerConstraintGroup(group: MetaConstraintGroup) {
         if (currentConstraintGroup != null) {
             assert(currentConstraintGroupIndexLowerBound != null)
 
             constraintGroupIndexMap[currentConstraintGroup!!] =
                 currentConstraintGroupIndexLowerBound!!..<constraints.size
         }
-        currentConstraintGroup = name
+        currentConstraintGroup = group
         currentConstraintGroupIndexLowerBound = constraints.size
     }
 
-    override fun indicesOfConstraintGroup(name: String): IntRange? {
+    override fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange? {
         if (currentConstraintGroup != null) {
             assert(currentConstraintGroupIndexLowerBound != null)
 
@@ -374,7 +694,7 @@ abstract class AbstractMetaModel(
             currentConstraintGroup = null
             currentConstraintGroupIndexLowerBound = null
         }
-        return constraintGroupIndexMap[name]
+        return constraintGroupIndexMap[group]
     }
 }
 
@@ -386,8 +706,8 @@ class LinearMetaModel(
     dumpBlocking: Boolean = false,
     withRangeSet: Boolean = true
 ) : AbstractMetaModel(Linear, manualTokenAddition, concurrent, dumpBlocking, withRangeSet), AbstractLinearMetaModel {
-    internal val _constraints: MutableList<LinearInequality> = ArrayList()
-    override val constraints: List<Inequality<*, *>> by ::_constraints
+    internal val _constraints: MutableList<MetaConstraint<LinearInequality>> = ArrayList()
+    override val constraints: List<MetaConstraint<*>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
 
@@ -399,7 +719,7 @@ class LinearMetaModel(
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
-        _constraints.add(constraint)
+        _constraints.add(MetaConstraint(constraint))
         
         if (withRangeSet ?: this.withRangeSet
             && constraint.lhs.monomials.size == 1
@@ -444,6 +764,45 @@ class LinearMetaModel(
     override fun toString(): String {
         return name
     }
+
+    override fun addConstraint(
+        constraint: LinearInequality,
+        group: MetaConstraintGroup?,
+        name: String?,
+        displayName: String?,
+        args: Any?,
+        withRangeSet: Boolean?
+    ): Try {
+        name?.let { constraint.name = it }
+        displayName?.let { constraint.name = it }
+        _constraints.add(MetaConstraint(constraint, group, args))
+
+        if (withRangeSet ?: this.withRangeSet
+            && constraint.lhs.monomials.size == 1
+            && !constraint.lhs.monomials.first().pure
+            && constraint.rhs.monomials.isEmpty()
+        ) {
+            val symbol = constraint.lhs.monomials.first().symbol.exprSymbol!!
+            val constant = constraint.rhs.constant - constraint.lhs.constant
+            when (constraint.sign) {
+                Sign.Less, Sign.LessEqual -> {
+                    symbol.range.leq(constant)
+                }
+
+                Sign.Greater, Sign.GreaterEqual -> {
+                    symbol.range.geq(constant)
+                }
+
+                Sign.Equal -> {
+                    symbol.range.eq(constant)
+                }
+
+                Sign.Unequal -> {}
+            }
+        }
+
+        return ok
+    }
 }
 
 class QuadraticMetaModel(
@@ -454,10 +813,21 @@ class QuadraticMetaModel(
     dumpBlocking: Boolean = false,
     withRangeSet: Boolean = true
 ) : AbstractMetaModel(Quadratic, manualTokenAddition, concurrent, dumpBlocking, withRangeSet), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
-    internal val _constraints: MutableList<QuadraticInequality> = ArrayList()
-    override val constraints: List<Inequality<*, *>> by ::_constraints
+    internal val _constraints: MutableList<MetaConstraint<QuadraticInequality>> = ArrayList()
+    override val constraints: List<MetaConstraint<*>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
+
+    override fun addConstraint(
+        constraint: LinearInequality,
+        group: MetaConstraintGroup?,
+        name: String?,
+        displayName: String?,
+        args: Any?,
+        withRangeSet: Boolean?
+    ): Try {
+        return addConstraint(QuadraticInequality(constraint), group, name, displayName, args, withRangeSet)
+    }
 
     override fun addConstraint(
         constraint: QuadraticInequality,
@@ -467,7 +837,47 @@ class QuadraticMetaModel(
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
-        _constraints.add(constraint)
+        _constraints.add(MetaConstraint(constraint))
+
+        if (withRangeSet ?: this.withRangeSet
+            && !constraint.lhs.monomials.first().pure
+            && constraint.lhs.monomials.first().symbol.symbol2 == null
+            && constraint.rhs.monomials.isEmpty()
+        ) {
+            val symbol = constraint.lhs.monomials.first().symbol.symbol1.v2
+                ?: constraint.lhs.monomials.first().symbol.symbol1.v3!!
+            val constant = constraint.rhs.constant - constraint.lhs.constant
+            when (constraint.sign) {
+                Sign.Less, Sign.LessEqual -> {
+                    symbol.range.leq(constant)
+                }
+
+                Sign.Greater, Sign.GreaterEqual -> {
+                    symbol.range.geq(constant)
+                }
+
+                Sign.Equal -> {
+                    symbol.range.eq(constant)
+                }
+
+                Sign.Unequal -> {}
+            }
+        }
+
+        return ok
+    }
+
+    override fun addConstraint(
+        constraint: QuadraticInequality,
+        group: MetaConstraintGroup?,
+        name: String?,
+        displayName: String?,
+        args: Any?,
+        withRangeSet: Boolean?
+    ): Try {
+        name?.let { constraint.name = it }
+        displayName?.let { constraint.name = it }
+        _constraints.add(MetaConstraint(constraint, group, args))
 
         if (withRangeSet ?: this.withRangeSet
             && !constraint.lhs.monomials.first().pure

@@ -26,7 +26,8 @@ class ExecutorCompilationConstraint<
         for (executor in executors) {
             when (val result = model.addConstraint(
                 compilation.executorCompilation[executor] eq UInt64.one,
-                "${name}_$executor"
+                name = "${name}_$executor",
+                args = ExecutorCompilationShadowPriceKey(executor)
             )) {
                 is Ok -> {}
 
@@ -65,24 +66,19 @@ class ExecutorCompilationConstraint<
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
         shadowPrices: MetaDualSolution
     ): Try {
-        val indices = model.indicesOfConstraintGroup(name) ?: model.constraints.indices
-        val iterator = executors.iterator()
-        for (j in indices) {
-            if (model.constraints[j].name.startsWith(name)) {
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    map.put(ShadowPrice(ExecutorCompilationShadowPriceKey(iterator.next()), price))
-                }
-            }
-
-            if (!iterator.hasNext()) {
-                break
+        for (constraint in model.constraintsOfGroup()) {
+            val executor = (constraint.args as? ExecutorCompilationShadowPriceKey<E>)?.executor ?: continue
+            shadowPrices.constraints[constraint]?.let { price ->
+                map.put(ShadowPrice(ExecutorCompilationShadowPriceKey(executor), price))
             }
         }
+
         return ok
     }
 }

@@ -37,7 +37,8 @@ class TaskDelayTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.estimateStartTime[task] leq with(timeWindow) { task.scheduledTime!!.start.value },
-                "${name}_$task"
+                name = "${name}_$task",
+                args = TaskDelayTimeShadowPriceKey(task)
             )) {
                 is Ok -> {}
 
@@ -76,24 +77,19 @@ class TaskDelayTimeConstraint<
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
         shadowPrices: MetaDualSolution
     ): Try {
-        val indices = model.indicesOfConstraintGroup(name) ?: model.constraints.indices
-        val iterator = tasks.iterator()
-        for (j in indices) {
-            if (model.constraints[j].name.startsWith(name)) {
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    map.put(ShadowPrice(TaskDelayTimeShadowPriceKey(iterator.next()), price))
-                }
-            }
-
-            if (!iterator.hasNext()) {
-                break
+        for (constraint in model.constraintsOfGroup()) {
+            val task = (constraint.args as? TaskDelayTimeShadowPriceKey<E, A>)?.task ?: continue
+            shadowPrices.constraints[constraint]?.let { price ->
+                map.put(ShadowPrice(TaskDelayTimeShadowPriceKey(task), price))
             }
         }
+
         return ok
     }
 }
