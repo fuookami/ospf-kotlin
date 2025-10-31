@@ -140,11 +140,21 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (_neg != null && neg != null) {
             when (_neg) {
                 is UIntVar -> {
-                    (_neg!! as UIntVar).range.set(ValueRange(neg!!.lowerBound!!.value.unwrap().toUInt64(), neg!!.upperBound!!.value.unwrap().toUInt64()).value!!)
+                    (_neg!! as UIntVar).range.set(
+                        ValueRange(
+                            neg!!.lowerBound!!.value.unwrap().toUInt64(),
+                            neg!!.upperBound!!.value.unwrap().toUInt64()
+                        ).value!!
+                    )
                 }
 
                 is URealVar -> {
-                    (_neg!! as URealVar).range.set(ValueRange(neg!!.lowerBound!!.value.unwrap(), neg!!.upperBound!!.value.unwrap()).value!!)
+                    (_neg!! as URealVar).range.set(
+                        ValueRange(
+                            neg!!.lowerBound!!.value.unwrap(),
+                            neg!!.upperBound!!.value.unwrap()
+                        ).value!!
+                    )
                 }
             }
         }
@@ -152,11 +162,21 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         if (_pos != null && pos != null) {
             when (_pos) {
                 is UIntVar -> {
-                    (_pos!! as UIntVar).range.set(ValueRange(pos!!.lowerBound!!.value.unwrap().toUInt64(), pos!!.upperBound!!.value.unwrap().toUInt64()).value!!)
+                    (_pos!! as UIntVar).range.set(
+                        ValueRange(
+                            pos!!.lowerBound!!.value.unwrap().toUInt64(),
+                            pos!!.upperBound!!.value.unwrap().toUInt64()
+                        ).value!!
+                    )
                 }
 
                 is URealVar -> {
-                    (_pos!! as URealVar).range.set(ValueRange(pos!!.lowerBound!!.value.unwrap(), pos!!.upperBound!!.value.unwrap()).value!!)
+                    (_pos!! as URealVar).range.set(
+                        ValueRange(
+                            pos!!.lowerBound!!.value.unwrap(),
+                            pos!!.upperBound!!.value.unwrap()
+                        ).value!!
+                    )
                 }
             }
         }
@@ -762,17 +782,20 @@ object SlackFunction {
             UContinuous
         },
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
+        val positive = withNegative?.let { !it } ?: withPositive
+
         return if (type.isIntegerType) {
             UIntegerSlackFunction(
                 x = x,
                 y = threshold,
-                withNegative = !withPositive,
-                withPositive = withPositive,
+                withNegative = !positive,
+                withPositive = positive,
                 threshold = true,
                 constraint = constraint,
                 parent = parent,
@@ -783,8 +806,8 @@ object SlackFunction {
             URealSlackFunction(
                 x = x,
                 y = threshold,
-                withNegative = !withPositive,
-                withPositive = withPositive,
+                withNegative = !positive,
+                withPositive = positive,
                 threshold = true,
                 constraint = constraint,
                 parent = parent,
@@ -802,6 +825,7 @@ object SlackFunction {
         threshold: Int,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -817,6 +841,7 @@ object SlackFunction {
                 UContinuous
             },
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
@@ -832,6 +857,7 @@ object SlackFunction {
         threshold: Double,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -843,6 +869,7 @@ object SlackFunction {
             threshold = QuadraticPolynomial(threshold),
             type = type ?: UContinuous,
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
@@ -858,6 +885,7 @@ object SlackFunction {
         threshold: Boolean,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -873,6 +901,7 @@ object SlackFunction {
                 UContinuous
             },
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
@@ -888,6 +917,7 @@ object SlackFunction {
         threshold: Trivalent,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -903,6 +933,7 @@ object SlackFunction {
                 UContinuous
             },
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
@@ -918,6 +949,7 @@ object SlackFunction {
         threshold: BalancedTrivalent,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -933,6 +965,7 @@ object SlackFunction {
                 UContinuous
             },
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
@@ -949,6 +982,7 @@ object SlackFunction {
         threshold: T2,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -960,6 +994,7 @@ object SlackFunction {
             threshold = QuadraticPolynomial(threshold),
             type = type ?: UContinuous,
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
@@ -977,6 +1012,7 @@ object SlackFunction {
         threshold: T2,
         type: VariableType<*>? = null,
         withPositive: Boolean = true,
+        withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
         name: String,
@@ -993,6 +1029,7 @@ object SlackFunction {
                 UContinuous
             },
             withPositive = withPositive,
+            withNegative = withNegative,
             constraint = constraint,
             parent = parent,
             name = name,
