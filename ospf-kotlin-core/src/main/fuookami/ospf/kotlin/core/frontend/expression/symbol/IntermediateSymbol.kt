@@ -348,6 +348,17 @@ class LinearExpressionSymbol(
                 displayName = displayName
             )
         }
+
+        operator fun invoke(
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                Flt64.zero,
+                name = name,
+                displayName = displayName
+            )
+        }
     }
 
     override val operationCategory: Category = Linear
@@ -581,6 +592,17 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol {
+            return QuadraticExpressionSymbol(
+                Flt64.zero,
                 name = name,
                 displayName = displayName
             )
