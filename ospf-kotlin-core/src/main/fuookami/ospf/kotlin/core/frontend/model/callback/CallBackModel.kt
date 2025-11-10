@@ -111,8 +111,8 @@ class CallBackModel internal constructor(
             val tokens = model.tokens.copy()
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution -> constraint.isTrue(solution, tokens) },
-                    constraint.name
+                    { solution: Solution -> constraint.constraint.isTrue(solution, tokens) },
+                    constraint.constraint.name
                 )
             }.toMutableList()
             val objectiveFunction = model.subObjects.map { objective ->

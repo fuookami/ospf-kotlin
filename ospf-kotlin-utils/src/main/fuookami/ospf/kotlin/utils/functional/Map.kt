@@ -2,6 +2,14 @@ package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.math.*
 
+typealias MultiMap2<K1, K2, V> = Map<K1, Map<K2, V>>
+typealias MultiMap3<K1, K2, K3, V> = Map<K1, Map<K2, Map<K3, V>>>
+typealias MultiMap4<K1, K2, K3, K4, V> = Map<K1, Map<K2, Map<K3, Map<K4, V>>>>
+
+typealias MutableMultiMap2<K1, K2, V> = MutableMap<K1, MutableMap<K2, V>>
+typealias MutableMultiMap3<K1, K2, K3, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>
+typealias MutableMultiMap4<K1, K2, K3, K4, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>
+
 operator fun <K, T> Map<K, List<T>>.get(key: K, i: Int): T? {
     return this[key]?.get(i)
 }

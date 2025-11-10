@@ -7,12 +7,10 @@ import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 
-interface Pipeline<in M : Model> {
-    val name: String
-
+interface Pipeline<in M : Model> : MetaConstraintGroup {
     fun register(model: M) {
         if (model is MetaModel) {
-            model.registerConstraintGroup(name)
+            model.registerConstraintGroup(this)
         }
     }
 
