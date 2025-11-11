@@ -170,6 +170,12 @@ sealed interface MetaModel : Model {
     fun registerConstraintGroup(group: MetaConstraintGroup)
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
 
+    fun constraintsOfGroup(group: MetaConstraintGroup): List<MetaConstraint<*>> {
+        return indicesOfConstraintGroup(group)?.let { indices ->
+            indices.map { constraints[it] }
+        } ?: constraints.filter { it.group == group }
+    }
+
     override fun setSolution(solution: Solution) {
         tokens.setSolution(solution)
     }
@@ -329,7 +335,7 @@ sealed interface MetaModel : Model {
 interface AbstractLinearMetaModel : MetaModel, LinearModel {
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -340,7 +346,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
 
     fun addConstraint(
         constraint: LinearMonomial,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -351,7 +357,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
 
     fun addConstraint(
         constraint: AbstractLinearPolynomial<*>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -362,7 +368,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
 
     fun addConstraint(
         constraint: LinearIntermediateSymbol,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -373,7 +379,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
 
     fun addConstraint(
         constraint: LinearInequality,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -384,7 +390,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     @JvmName("partitionVariables")
     fun partition(
         variables: Iterable<AbstractVariableItem<*, *>>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -396,7 +402,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     @JvmName("partitionLinearSymbols")
     fun partition(
         symbols: Iterable<LinearIntermediateSymbol>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -408,7 +414,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     @JvmName("partitionLinearMonomials")
     fun partition(
         monomials: Iterable<LinearMonomial>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -418,7 +424,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
 
     fun partition(
         polynomial: AbstractLinearPolynomial<*>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -430,7 +436,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
 interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     fun addConstraint(
         constraint: QuadraticMonomial,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -441,7 +447,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
 
     fun addConstraint(
         constraint: AbstractQuadraticPolynomial<*>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -452,7 +458,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
 
     fun addConstraint(
         constraint: QuadraticIntermediateSymbol,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -463,7 +469,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
 
     fun addConstraint(
         constraint: QuadraticInequality,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
@@ -474,7 +480,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     @JvmName("partitionQuadraticMonomials")
     fun partition(
         monomials: Iterable<QuadraticMonomial>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -486,7 +492,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     @JvmName("partitionQuadraticSymbols")
     fun partition(
         symbols: Iterable<QuadraticIntermediateSymbol>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -496,7 +502,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
 
     fun partition(
         polynomial: AbstractQuadraticPolynomial<*>,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
@@ -623,7 +629,7 @@ class LinearMetaModel(
 
     override fun addConstraint(
         constraint: LinearInequality,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String?,
         displayName: String?,
         args: Any?,
@@ -676,7 +682,7 @@ class QuadraticMetaModel(
 
     override fun addConstraint(
         constraint: LinearInequality,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String?,
         displayName: String?,
         args: Any?,
@@ -725,7 +731,7 @@ class QuadraticMetaModel(
 
     override fun addConstraint(
         constraint: QuadraticInequality,
-        group: MetaConstraintGroup,
+        group: MetaConstraintGroup?,
         name: String?,
         displayName: String?,
         args: Any?,

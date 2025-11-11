@@ -59,6 +59,7 @@ class MakespanMinimization<
                 }
             }
         }
+
         return ok
     }
 }

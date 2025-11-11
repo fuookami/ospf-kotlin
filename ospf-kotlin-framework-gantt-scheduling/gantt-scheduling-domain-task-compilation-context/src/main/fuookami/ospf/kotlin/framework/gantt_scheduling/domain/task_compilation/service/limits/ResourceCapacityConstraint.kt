@@ -36,7 +36,8 @@ class ResourceCapacityConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             overQuantity.polyX leq thisQuantity.upperBound.value.unwrap(),
-                            "${name}_ub_$slot"
+                            name = "${name}_ub_$slot",
+                            args = ResourceCapacityShadowPriceKey(slot)
                         )) {
                             is Ok -> {}
 
@@ -49,7 +50,8 @@ class ResourceCapacityConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             usage.quantity[slot] leq thisQuantity.upperBound.value.unwrap(),
-                            "${name}_ub_$slot"
+                            name = "${name}_ub_$slot",
+                            args = ResourceCapacityShadowPriceKey(slot)
                         )) {
                             is Ok -> {}
 
@@ -62,7 +64,8 @@ class ResourceCapacityConstraint<
             } else {
                 when (val result = model.addConstraint(
                     usage.quantity[slot] leq thisQuantity.upperBound.value.unwrap(),
-                    "${usage.name}_${name}_ub_$slot"
+                    name = "${usage.name}_${name}_ub_$slot",
+                    args = ResourceCapacityShadowPriceKey(slot)
                 )) {
                     is Ok -> {}
 
@@ -77,7 +80,8 @@ class ResourceCapacityConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             lessQuantity.polyX geq thisQuantity.lowerBound.value.unwrap(),
-                            "${name}_lb_$slot"
+                            name = "${name}_lb_$slot",
+                            args = ResourceCapacityShadowPriceKey(slot)
                         )) {
                             is Ok -> {}
 
@@ -90,7 +94,8 @@ class ResourceCapacityConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             usage.quantity[slot] geq thisQuantity.lowerBound.value.unwrap(),
-                            "${name}_lb_$slot"
+                            name = "${name}_lb_$slot",
+                            args = ResourceCapacityShadowPriceKey(slot)
                         )) {
                             is Ok -> {}
 
@@ -103,7 +108,8 @@ class ResourceCapacityConstraint<
             } else {
                 when (val result = model.addConstraint(
                     usage.quantity[slot] geq thisQuantity.lowerBound.value.unwrap(),
-                    "${name}_lb_$slot"
+                    name = "${name}_lb_$slot",
+                    args = ResourceCapacityShadowPriceKey(slot)
                 )) {
                     is Ok -> {}
 
@@ -143,33 +149,17 @@ class ResourceCapacityConstraint<
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
         shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<ResourceTimeSlot<R, C>, Flt64>()
-        val indices = model.indicesOfConstraintGroup(name)
-            ?: model.constraints.indices
-        val iteratorLb = usage.timeSlots.iterator()
-        val iteratorUb = usage.timeSlots.iterator()
-        for (j in indices) {
-            if (model.constraints[j].name.startsWith("${name}_lb")) {
-                val slot = iteratorLb.next()
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
-                }
-            }
-
-            if (model.constraints[j].name.startsWith("${name}_ub")) {
-                val slot = iteratorUb.next()
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
-                }
-            }
-
-            if (!iteratorLb.hasNext() && !iteratorUb.hasNext()) {
-                break
+        for (constraint in model.constraintsOfGroup()) {
+            val slot = (constraint.args as? ResourceCapacityShadowPriceKey<R, C>)?.slot ?: continue
+            shadowPrices.constraints[constraint]?.let { price ->
+                thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
             }
         }
         for ((slot, value) in thisShadowPrices) {

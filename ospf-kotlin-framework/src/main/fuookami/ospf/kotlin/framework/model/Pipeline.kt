@@ -34,6 +34,26 @@ interface CGPipeline<
     in Model : MetaModel,
     in Map : AbstractShadowPriceMap<Args, Map>
 > : Pipeline<Model> {
+    companion object {
+        fun <
+            Model : MetaModel,
+            Map : AbstractShadowPriceMap<*, Map>
+        > refreshByKeyAsArgs(pipeline: CGPipeline<*, Model, Map>, map: Map, model: Model, shadowPrices: MetaDualSolution): Try {
+            val thisShadowPrices = HashMap<ShadowPriceKey, Flt64>()
+            for (constraint in model.constraintsOfGroup(pipeline)) {
+                val key = (constraint.args as? ShadowPriceKey) ?: continue
+                shadowPrices.constraints[constraint]?.let { price ->
+                    thisShadowPrices[key] = (thisShadowPrices[key] ?: Flt64.zero) + price
+                }
+            }
+            for ((key, value) in thisShadowPrices) {
+                map.put(ShadowPrice(key, value))
+            }
+
+            return ok
+        }
+    }
+
     fun extractor(): ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance Map>? {
         return null
     }

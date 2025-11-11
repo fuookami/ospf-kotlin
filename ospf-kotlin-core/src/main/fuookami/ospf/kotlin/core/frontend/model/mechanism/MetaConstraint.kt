@@ -11,6 +11,20 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 interface MetaConstraintGroup {
     val name: String
 
+    fun MetaModel.registerConstraintGroup() {
+        this.registerConstraintGroup(this@MetaConstraintGroup)
+    }
+
+    fun MetaModel.indicesOfConstraintGroup(): IntRange? {
+        return this.indicesOfConstraintGroup(this@MetaConstraintGroup)
+    }
+
+    fun MetaModel.constraintsOfGroup(): List<MetaConstraint<*>> {
+        return indicesOfConstraintGroup(this@MetaConstraintGroup)?.let { indices ->
+            indices.map { constraints[it] }
+        } ?: emptyList()
+    }
+
     fun AbstractLinearMetaModel.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         name: String? = null,

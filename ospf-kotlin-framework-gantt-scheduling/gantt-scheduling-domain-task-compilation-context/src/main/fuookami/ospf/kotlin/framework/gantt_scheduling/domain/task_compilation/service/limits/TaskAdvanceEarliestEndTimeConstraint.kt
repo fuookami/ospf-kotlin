@@ -37,7 +37,8 @@ class TaskAdvanceEarliestEndTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.estimateEndTime[task] geq with(timeWindow) { task.earliestEndTime!!.value },
-                "${name}_$task"
+                name = "${name}_$task",
+                args = TaskAdvanceEarliestEndTimeShadowPriceKey(task)
             )) {
                 is Ok -> {}
 
@@ -46,6 +47,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
                 }
             }
         }
+
         return ok
     }
 
@@ -75,24 +77,19 @@ class TaskAdvanceEarliestEndTimeConstraint<
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
         shadowPrices: MetaDualSolution
     ): Try {
-        val indices = model.indicesOfConstraintGroup(name) ?: model.constraints.indices
-        val iterator = tasks.iterator()
-        for (j in indices) {
-            if (model.constraints[j].name.startsWith(name)) {
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    map.put(ShadowPrice(TaskAdvanceEarliestEndTimeShadowPriceKey(iterator.next()), price))
-                }
-            }
-
-            if (!iterator.hasNext()) {
-                break
+        for (constraint in model.constraintsOfGroup()) {
+            val task = (constraint.args as? TaskAdvanceEarliestEndTimeShadowPriceKey<E, A>)?.task ?: continue
+            shadowPrices.constraints[constraint]?.let { price ->
+                map.put(ShadowPrice(TaskAdvanceEarliestEndTimeShadowPriceKey(task), price))
             }
         }
+
         return ok
     }
 }
