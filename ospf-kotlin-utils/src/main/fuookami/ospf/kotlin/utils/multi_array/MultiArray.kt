@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 sealed class AbstractMultiArray<out T : Any, S : Shape>(
     val shape: S,
@@ -191,129 +192,129 @@ operator fun <K, T : Any, S : Shape> Map<K, MutableMultiArray<T, S>>.set(k: K, v
     this[k]!![v.map { it.index }.toIntArray()] = value
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, i: Int): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, i: Int): T {
     return this[k1]!![k2]!![i]
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, i: UInt64): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, i: UInt64): T {
     return this[k1]!![k2]!![i]
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, e: Indexed): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, e: Indexed): T {
     return this[k1]!![k2]!![e]
 }
 
 @JvmName("mapMapGetByIntArray")
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, v: IntArray): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, v: IntArray): T {
     return this[k1]!![k2]!![v]
 }
 
 @JvmName("mapMapGetByInts")
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, vararg v: Int): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, vararg v: Int): T {
     return this[k1]!![k2]!![v]
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, v: Iterable<UInt64>): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, v: Iterable<UInt64>): T {
     return this[k1]!![k2]!![v]
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, vararg v: Indexed): T {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, vararg v: Indexed): T {
     return this[k1]!![k2]!![v.map { it.index }.toIntArray()]
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MultiArray<T, S>>>.get(k1: K1, k2: K2, vararg v: Any): MultiArrayView<T, S> {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MultiArray<T, S>>.get(k1: K1, k2: K2, vararg v: Any): MultiArrayView<T, S> {
     return this[k1]!![k2]!!.get(*v)
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, i: Int, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, i: Int, value: T) {
     this[k1]!![k2]!![i] = value
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, i: UInt64, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, i: UInt64, value: T) {
     this[k1]!![k2]!![i] = value
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, e: Indexed, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, e: Indexed, value: T) {
     this[k1]!![k2]!![e] = value
 }
 
 @JvmName("mapMapSetByIntArray")
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, v: IntArray, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, v: IntArray, value: T) {
     this[k1]!![k2]!![v] = value
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, vararg v: Int, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, vararg v: Int, value: T) {
     this[k1]!![k2]!![v] = value
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, v: Iterable<UInt64>, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, v: Iterable<UInt64>, value: T) {
     this[k1]!![k2]!![v] = value
 }
 
-operator fun <K1, K2, T : Any, S : Shape> Map<K1, Map<K2, MutableMultiArray<T, S>>>.set(k1: K1, k2: K2, vararg v: Indexed, value: T) {
+operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, vararg v: Indexed, value: T) {
     this[k1]!![k2]!![v.map { it.index }.toIntArray()] = value
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, i: Int): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, i: Int): T {
     return this[k1]!![k2]!![k3]!![i]
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, i: UInt64): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, i: UInt64): T {
     return this[k1]!![k2]!![k3]!![i]
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, e: Indexed): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, e: Indexed): T {
     return this[k1]!![k2]!![k3]!![e]
 }
 
 @JvmName("mapMapMapGetByIntArray")
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, v: IntArray): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, v: IntArray): T {
     return this[k1]!![k2]!![k3]!![v]
 }
 
 @JvmName("mapMapMapGetByInts")
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, vararg v: Int): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, vararg v: Int): T {
     return this[k1]!![k2]!![k3]!![v]
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, v: Iterable<UInt64>): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, v: Iterable<UInt64>): T {
     return this[k1]!![k2]!![k3]!![v]
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, vararg v: Indexed): T {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, vararg v: Indexed): T {
     return this[k1]!![k2]!![k3]!![v.map { it.index }.toIntArray()]
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MultiArray<T, S>>>>.get(k1: K1, k2: K2, k3: K3, vararg v: Any): MultiArrayView<T, S> {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MultiArray<T, S>>.get(k1: K1, k2: K2, k3: K3, vararg v: Any): MultiArrayView<T, S> {
     return this[k1]!![k2]!![k3]!!.get(*v)
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, i: Int, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, i: Int, value: T) {
     this[k1]!![k2]!![k3]!![i] = value
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, i: UInt64, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, i: UInt64, value: T) {
     this[k1]!![k2]!![k3]!![i] = value
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, e: Indexed, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, e: Indexed, value: T) {
     this[k1]!![k2]!![k3]!![e] = value
 }
 
 @JvmName("mapMapMapSetByIntArray")
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, v: IntArray, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, v: IntArray, value: T) {
     this[k1]!![k2]!![k3]!![v] = value
 }
 
 @JvmName("mapMapMapSetByInts")
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, vararg v: Int, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, vararg v: Int, value: T) {
     this[k1]!![k2]!![k3]!![v] = value
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, v: Iterable<UInt64>, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, v: Iterable<UInt64>, value: T) {
     this[k1]!![k2]!![k3]!![v] = value
 }
 
-operator fun <K1, K2, K3, T : Any, S : Shape> Map<K1, Map<K2, Map<K3, MutableMultiArray<T, S>>>>.set(k1: K1, k2: K2, k3: K3, vararg v: Indexed, value: T) {
+operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, vararg v: Indexed, value: T) {
     this[k1]!![k2]!![k3]!![v.map { it.index }.toIntArray()] = value
 }

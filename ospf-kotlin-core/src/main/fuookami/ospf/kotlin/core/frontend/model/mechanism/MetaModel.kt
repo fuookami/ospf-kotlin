@@ -102,7 +102,28 @@ sealed interface MetaModel : Model {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapMapSymbolLists")
+    fun <K1, K2> add(symbols: Map<K1, Map<K2, Iterable<IntermediateSymbol>>>): Try {
+        return tokens.add(symbols.values.flatMap { it.values.flatten() })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapMapSymbols")
     fun <K1, K2, K3> add(symbols: Map<K1, Map<K2, Map<K3, IntermediateSymbol>>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapMapMapSymbolLists")
+    fun <K1, K2, K3> add(symbols: Map<K1, Map<K2, Map<K3, Iterable<IntermediateSymbol>>>>): Try {
         for (symbols in symbols.values) {
             when (val result = add(symbols)) {
                 is Ok -> {}
