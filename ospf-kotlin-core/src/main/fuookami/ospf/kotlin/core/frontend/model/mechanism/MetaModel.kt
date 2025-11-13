@@ -95,20 +95,8 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapSymbols")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, IntermediateSymbol>>): Try {
-        return tokens.add(symbols.values.flatMap { it.values })
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapSymbolLists")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, Iterable<IntermediateSymbol>>>): Try {
-        return tokens.add(symbols.values.flatMap { it.values.flatten() })
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapMapSymbols")
-    fun <K1, K2, K3> add(symbols: Map<K1, Map<K2, Map<K3, IntermediateSymbol>>>): Try {
+    @JvmName("addMultiMap2Symbols")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, IntermediateSymbol>): Try {
         for (symbols in symbols.values) {
             when (val result = add(symbols)) {
                 is Ok -> {}
@@ -122,8 +110,68 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapMapSymbolLists")
-    fun <K1, K2, K3> add(symbols: Map<K1, Map<K2, Map<K3, Iterable<IntermediateSymbol>>>>): Try {
+    @JvmName("addMultiMap2SymbolLists")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<IntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3Symbols")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, IntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3SymbolLists")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<IntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4Symbols")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, IntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4SymbolLists")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<IntermediateSymbol>>): Try {
         for (symbols in symbols.values) {
             when (val result = add(symbols)) {
                 is Ok -> {}
@@ -164,14 +212,83 @@ sealed interface MetaModel : Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapQuantitySymbols")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, QuantityIntermediateSymbol>>): Try {
-        return tokens.add(symbols.values.flatMap { it.values.map { token -> token.value } })
+    @JvmName("addMultiMap2QuantitySymbols")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, QuantityIntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapQuantitySymbolLists")
-    fun <K1, K2> add(symbols: Map<K1, Map<K2, Iterable<QuantityIntermediateSymbol>>>): Try {
+    @JvmName("addMultiMap2QuantitySymbolLists")
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<QuantityIntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3QuantitySymbols")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, QuantityIntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap3QuantitySymbolLists")
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<QuantityIntermediateSymbol>>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4QuantitySymbols")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, QuantityIntermediateSymbol>): Try {
+        for (symbols in symbols.values) {
+            when (val result = add(symbols)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4QuantitySymbolLists")
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<QuantityIntermediateSymbol>>): Try {
         for (symbols in symbols.values) {
             when (val result = add(symbols)) {
                 is Ok -> {}

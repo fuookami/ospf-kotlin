@@ -38,27 +38,39 @@ interface Model {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapVariables")
-    fun <K1, K2> add(items: Map<K1, Map<K2, AbstractVariableItem<*, *>>>): Try {
-        return add(items.values.map { it.values }.flatten())
+    @JvmName("addMultiMap2Variables")
+    fun <K1, K2> add(items: MultiMap2<K1, K2, AbstractVariableItem<*, *>>): Try {
+        return add(items.values.flatMap { it.values })
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapVariableLists")
-    fun <K1, K2> add(items: Map<K1, Map<K2, Iterable<AbstractVariableItem<*, *>>>>): Try {
-        return add(items.values.map { it.values }.flatten())
+    @JvmName("addMultiMap2VariableLists")
+    fun <K1, K2> add(items: MultiMap2<K1, K2, Iterable<AbstractVariableItem<*, *>>>): Try {
+        return add(items.values.flatMap { it.values }.flatten())
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapMapVariables")
-    fun <K1, K2, K3> add(items: Map<K1, Map<K2, Map<K3, AbstractVariableItem<*, *>>>>): Try {
-        return add(items.values.flatMap { it.values }.map { it.values }.flatten())
+    @JvmName("addMultiMap3Variables")
+    fun <K1, K2, K3> add(items: MultiMap3<K1, K2, K3, AbstractVariableItem<*, *>>): Try {
+        return add(items.values.flatMap { it.values }.flatMap { it.values })
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapMapMapVariableLists")
-    fun <K1, K2, K3> add(items: Map<K1, Map<K2, Map<K3, Iterable<AbstractVariableItem<*, *>>>>>): Try {
-        return add(items.values.flatMap { it.values }.map { it.values }.flatten())
+    @JvmName("addMultiMap3VariableLists")
+    fun <K1, K2, K3> add(items: MultiMap3<K1, K2, K3, Iterable<AbstractVariableItem<*, *>>>): Try {
+        return add(items.values.flatMap { it.values }.flatMap { it.values }.flatten())
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4Variables")
+    fun <K1, K2, K3, K4> add(items: MultiMap4<K1, K2, K3, K4, AbstractVariableItem<*, *>>): Try {
+        return add(items.values.flatMap { it.values }.flatMap { it.values }.flatMap { it.values })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMultiMap4VariableLists")
+    fun <K1, K2, K3, K4> add(items: MultiMap4<K1, K2, K3, K4, Iterable<AbstractVariableItem<*, *>>>): Try {
+        return add(items.values.flatMap { it.values }.flatMap { it.values }.flatMap { it.values }.flatten())
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
