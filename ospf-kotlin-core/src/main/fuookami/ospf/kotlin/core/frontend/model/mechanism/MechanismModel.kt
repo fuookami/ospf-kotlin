@@ -99,8 +99,7 @@ class LinearMechanismModel(
                     constraints = metaModel._constraints.map {
                         LinearConstraint(
                             inequality = it,
-                            tokens = tokens,
-                            origin = true
+                            tokens = tokens
                         )
                     }.toMutableList(),
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
@@ -150,8 +149,7 @@ class LinearMechanismModel(
                             ).map {
                                 LinearConstraint(
                                     inequality = it,
-                                    tokens = tokens,
-                                    origin = true
+                                    tokens = tokens
                                 )
                             }
                         if (memoryUseOver()) {
@@ -166,8 +164,7 @@ class LinearMechanismModel(
                         val result = listOf(
                             LinearConstraint(
                                 inequality = it,
-                                tokens = tokens,
-                                origin = true
+                                tokens = tokens
                             )
                         )
                         if (memoryUseOver()) {
@@ -273,7 +270,7 @@ class LinearMechanismModel(
         from: IntermediateSymbol?
     ): Try {
         name?.let { constraint.name = it }
-        _constraints.add(LinearConstraint(constraint, tokens, from = from))
+        _constraints.add(LinearConstraint(constraint, tokens, from))
         return ok
     }
 
@@ -404,8 +401,7 @@ class QuadraticMechanismModel(
                     constraints = metaModel._constraints.map {
                         QuadraticConstraint(
                             inequality = it,
-                            tokens = tokens,
-                            origin = true
+                            tokens = tokens
                         )
                     }.toMutableList(),
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
@@ -462,8 +458,7 @@ class QuadraticMechanismModel(
                             ).map {
                                 QuadraticConstraint(
                                     inequality = it,
-                                    tokens = tokens,
-                                    origin = true
+                                    tokens = tokens
                                 )
                             }
                         if (memoryUseOver()) {
@@ -478,8 +473,7 @@ class QuadraticMechanismModel(
                         val result = listOf(
                             QuadraticConstraint(
                                 inequality = it,
-                                tokens = tokens,
-                                origin = true
+                                tokens = tokens
                             )
                         )
                         result
@@ -579,7 +573,7 @@ class QuadraticMechanismModel(
         from: IntermediateSymbol?
     ): Try {
         name?.let { constraint.name = it }
-        _constraints.add(QuadraticConstraint(constraint, tokens, from = from))
+        _constraints.add(QuadraticConstraint(constraint, tokens, from))
         return ok
     }
 

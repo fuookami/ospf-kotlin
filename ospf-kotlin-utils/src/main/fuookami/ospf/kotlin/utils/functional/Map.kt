@@ -2,6 +2,14 @@ package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.math.*
 
+typealias MultiMap2<K1, K2, V> = Map<K1, Map<K2, V>>
+typealias MultiMap3<K1, K2, K3, V> = Map<K1, Map<K2, Map<K3, V>>>
+typealias MultiMap4<K1, K2, K3, K4, V> = Map<K1, Map<K2, Map<K3, Map<K4, V>>>>
+
+typealias MutableMultiMap2<K1, K2, V> = MutableMap<K1, MutableMap<K2, V>>
+typealias MutableMultiMap3<K1, K2, K3, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>
+typealias MutableMultiMap4<K1, K2, K3, K4, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>
+
 operator fun <K, T> Map<K, List<T>>.get(key: K, i: Int): T? {
     return this[key]?.get(i)
 }
@@ -10,11 +18,11 @@ operator fun <K, T> Map<K, List<T>>.get(key: K, i: UInt64): T? {
     return this[key]?.get(i)
 }
 
-operator fun <K1, K2, V> Map<K1, Map<K2, V>>.get(key1: K1, key2: K2): V? {
+operator fun <K1, K2, V> MultiMap2<K1, K2, V>.get(key1: K1, key2: K2): V? {
     return this[key1]?.get(key2)
 }
 
-fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.getOrPut(
+fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.getOrPut(
     key1: K1,
     key2: K2,
     defaultValue: () -> V,
@@ -25,7 +33,7 @@ fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.getOrPut(
         .getOrPut(key2, defaultValue)
 }
 
-operator fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.set(
+operator fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.set(
     key1: K1,
     key2: K2,
     value: V
@@ -33,7 +41,7 @@ operator fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.set(
     return this.put(key1, key2, value)
 }
 
-fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.put(
+fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.put(
     key1: K1,
     key2: K2,
     value: V,
@@ -44,19 +52,19 @@ fun <K1, K2, V> MutableMap<K1, MutableMap<K2, V>>.put(
         .put(key2, value)
 }
 
-operator fun <K1, K2, T> Map<K1, Map<K2, List<T>>>.get(key1: K1, key2: K2, i: Int): T? {
+operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: Int): T? {
     return this[key1]?.get(key2)?.get(i)
 }
 
-operator fun <K1, K2, T> Map<K1, Map<K2, List<T>>>.get(key1: K1, key2: K2, i: UInt64): T? {
+operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: UInt64): T? {
     return this[key1]?.get(key2)?.get(i)
 }
 
-operator fun <K1, K2, K3, V> Map<K1, Map<K2, Map<K3, V>>>.get(key1: K1, key2: K2, key3: K3): V? {
+operator fun <K1, K2, K3, V> MultiMap3<K1, K2, K3, V>.get(key1: K1, key2: K2, key3: K3): V? {
     return this[key1]?.get(key2)?.get(key3)
 }
 
-fun <K1, K2, K3, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>.getOrPut(
+fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.getOrPut(
     key1: K1,
     key2: K2,
     key3: K3,
@@ -70,7 +78,7 @@ fun <K1, K2, K3, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>.getOrPut(
         .getOrPut(key3, defaultValue)
 }
 
-operator fun <K1, K2, K3, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>.set(
+operator fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.set(
     key1: K1,
     key2: K2,
     key3: K3,
@@ -79,7 +87,7 @@ operator fun <K1, K2, K3, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>.s
     return this.put(key1, key2, key3, value)
 }
 
-fun <K1, K2, K3, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>.put(
+fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.put(
     key1: K1,
     key2: K2,
     key3: K3,
@@ -93,19 +101,19 @@ fun <K1, K2, K3, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>.put(
         .put(key3, value)
 }
 
-operator fun <K1, K2, K3, T> Map<K1, Map<K2, Map<K3, List<T>>>>.get(key1: K1, key2: K2, key3: K3, i: Int): T? {
+operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: K2, key3: K3, i: Int): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(i)
 }
 
-operator fun <K1, K2, K3, T> Map<K1, Map<K2, Map<K3, List<T>>>>.get(key1: K1, key2: K2, key3: K3, i: UInt64): T? {
+operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: K2, key3: K3, i: UInt64): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(i)
 }
 
-operator fun <K1, K2, K3, K4, V> Map<K1, Map<K2, Map<K3, Map<K4, V>>>>.get(key1: K1, key2: K2, key3: K3, key4: K4): V? {
+operator fun <K1, K2, K3, K4, V> MultiMap4<K1, K2, K3, K4, V>.get(key1: K1, key2: K2, key3: K3, key4: K4): V? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)
 }
 
-fun <K1, K2, K3, K4, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>.getOrPut(
+fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.getOrPut(
     key1: K1,
     key2: K2,
     key3: K3,
@@ -122,7 +130,7 @@ fun <K1, K2, K3, K4, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<
         .getOrPut(key4, defaultValue)
 }
 
-operator fun <K1, K2, K3, K4, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>.set(
+operator fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.set(
     key1: K1,
     key2: K2,
     key3: K3,
@@ -132,7 +140,7 @@ operator fun <K1, K2, K3, K4, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, Mu
     return this.put(key1, key2, key3, key4, value)
 }
 
-fun <K1, K2, K3, K4, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>.put(
+fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.put(
     key1: K1,
     key2: K2,
     key3: K3,
@@ -149,10 +157,10 @@ fun <K1, K2, K3, K4, V> MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<
         .put(key4, value)
 }
 
-operator fun <K1, K2, K3, K4, T> Map<K1, Map<K2, Map<K3, Map<K4, List<T>>>>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: Int): T? {
+operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: Int): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)?.get(i)
 }
 
-operator fun <K1, K2, K3, K4, T> Map<K1, Map<K2, Map<K3, Map<K4, List<T>>>>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: UInt64): T? {
+operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: UInt64): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)?.get(i)
 }

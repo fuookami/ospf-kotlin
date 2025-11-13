@@ -34,6 +34,7 @@ class ExecutorCostMinimization<
                 }
             }
         }
+
         return ok
     }
 }

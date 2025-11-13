@@ -9,8 +9,8 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
 
-data class ConsumptionQuantityShadowPriceKey(
-    val material: AbstractMaterial,
+data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(
+    val material: C,
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
 
 class ConsumptionQuantityConstraint<
@@ -35,7 +35,8 @@ class ConsumptionQuantityConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             overQuantity.polyX leq reserve.quantity.upperBound.value.unwrap(),
-                            "${name}_ub_$material"
+                            name = "${name}_ub_$material",
+                            args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
                             is Ok -> {}
 
@@ -48,7 +49,8 @@ class ConsumptionQuantityConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap(),
-                            "${name}_ub_$material"
+                            name = "${name}_ub_$material",
+                            args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
                             is Ok -> {}
 
@@ -61,7 +63,8 @@ class ConsumptionQuantityConstraint<
             } else {
                 when (val result = model.addConstraint(
                     consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap(),
-                    "${name}_ub_$material"
+                    name = "${name}_ub_$material",
+                    args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
                     is Ok -> {}
 
@@ -76,7 +79,8 @@ class ConsumptionQuantityConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             lessQuantity.polyX geq reserve.quantity.lowerBound.value.unwrap(),
-                            "${name}_lb_$material"
+                            name = "${name}_lb_$material",
+                            args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
                             is Ok -> {}
 
@@ -89,7 +93,8 @@ class ConsumptionQuantityConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap(),
-                            "${name}_lb_$material"
+                            name = "${name}_lb_$material",
+                            args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
                             is Ok -> {}
 
@@ -102,7 +107,8 @@ class ConsumptionQuantityConstraint<
             } else {
                 when (val result = model.addConstraint(
                     consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap(),
-                    "${name}_lb_$material"
+                    name = "${name}_lb_$material",
+                    args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
                     is Ok -> {}
 
@@ -152,33 +158,17 @@ class ConsumptionQuantityConstraint<
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel,
         shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<C, Flt64>()
-        val indices = model.indicesOfConstraintGroup(name)
-            ?: model.constraints.indices
-        val iteratorLb = materials.iterator()
-        val iterableUb = materials.iterator()
-        for (j in indices) {
-            if (model.constraints[j].name.startsWith("${name}_lb")) {
-                val material = iteratorLb.next().first
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
-                }
-            }
-
-            if (model.constraints[j].name.startsWith("${name}_ub")) {
-                val material = iterableUb.next().first
-                shadowPrices.constraints[model.constraints[j]]?.let { price ->
-                    thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
-                }
-            }
-
-            if (!iteratorLb.hasNext() && !iterableUb.hasNext()) {
-                break
+        for (constraint in model.constraintsOfGroup()) {
+            val material = (constraint.args as? ConsumptionQuantityShadowPriceKey<C>)?.material ?: continue
+            shadowPrices.constraints[constraint]?.let { price ->
+                thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
             }
         }
         for ((material, value) in thisShadowPrices) {
