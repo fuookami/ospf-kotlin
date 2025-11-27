@@ -10,6 +10,20 @@ typealias MutableMultiMap2<K1, K2, V> = MutableMap<K1, MutableMap<K2, V>>
 typealias MutableMultiMap3<K1, K2, K3, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>
 typealias MutableMultiMap4<K1, K2, K3, K4, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>
 
+fun <K1, K2, V> List<Triple<K1, K2, V>>.toMap2(): MultiMap2<K1, K2, V> {
+    return this.groupBy(
+        { it.first },
+        { it.second to it.third }
+    ).mapValues { it.value.toMap() }
+}
+
+fun <K1, K2, K3, V> List<Quadruple<K1, K2, K3, V>>.toMap3(): MultiMap3<K1, K2, K3, V> {
+    return this.groupBy(
+        { it.first },
+        { Triple(it.second, it.third, it.fourth) }
+    ).mapValues { it.value.toMap2() }
+}
+
 operator fun <K, T> Map<K, List<T>>.get(key: K, i: Int): T? {
     return this[key]?.get(i)
 }

@@ -324,11 +324,12 @@ data class QuadraticTetradModel(
             for ((_, _) in tokenIndexMap) {
                 variables.add(null)
             }
+            val bounds = model.constraints.filter {
+                it.lhs.size == 1 && it.lhs.first().coefficient eq Flt64.one && it.lhs.first().token2 == null
+            }.groupBy { it.lhs.first().token1 }
             for ((token, i) in tokenIndexMap) {
-                val bounds = model.constraints.filter {
-                    it.lhs.size == 1 && it.lhs.first().coefficient eq Flt64.one && it.lhs.first().token1 == token && it.lhs.first().token2 == null
-                }
-                val lb = bounds
+                val thisBounds = bounds[token] ?: emptyList()
+                val lb = thisBounds
                     .filter { it.sign == Sign.GreaterEqual || it.sign == Sign.Equal }
                     .maxOfOrNull {
                         val lhs = it.lhs.sumOf { cell -> cell.coefficient }
@@ -340,7 +341,7 @@ data class QuadraticTetradModel(
                             Flt64.negativeInfinity
                         }
                     }
-                val ub = bounds
+                val ub = thisBounds
                     .filter { it.sign == Sign.LessEqual || it.sign == Sign.Equal }
                     .minOfOrNull {
                         val lhs = it.lhs.sumOf { cell -> cell.coefficient }
