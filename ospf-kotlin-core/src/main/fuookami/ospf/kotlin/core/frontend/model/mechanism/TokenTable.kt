@@ -583,18 +583,24 @@ class AutoTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): AutoTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean
+        ): AutoTokenTable {
             return AutoTokenTable(
                 category = tokenTable.category,
-                tokenList = AutoTokenList(tokenTable.tokenList),
+                tokenList = AutoTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean
+    ) : this(
         category = category,
-        tokenList = AutoTokenList(),
+        tokenList = AutoTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 
@@ -609,18 +615,24 @@ class ManualTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ManualTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean
+        ): ManualTokenTable {
             return ManualTokenTable(
                 category = tokenTable.category,
-                tokenList = ManualTokenList(tokenTable.tokenList),
+                tokenList = ManualTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean
+    ) : this(
         category = category,
-        tokenList = ManualTokenList(),
+        tokenList = ManualTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 
@@ -976,18 +988,24 @@ class ConcurrentAutoTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean
+        ): ConcurrentMutableTokenTable {
             return ConcurrentAutoTokenTable(
                 category = tokenTable.category,
-                tokenList = AutoTokenList(tokenTable.tokenList),
+                tokenList = AutoTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean
+    ) : this(
         category = category,
-        tokenList = AutoTokenList(),
+        tokenList = AutoTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 
@@ -1002,18 +1020,24 @@ class ConcurrentManualAddTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean
+        ): ConcurrentMutableTokenTable {
             return ConcurrentManualAddTokenTable(
                 category = tokenTable.category,
-                tokenList = ManualTokenList(tokenTable.tokenList),
+                tokenList = ManualTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean
+    ) : this(
         category = category,
-        tokenList = ManualTokenList(),
+        tokenList = ManualTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 

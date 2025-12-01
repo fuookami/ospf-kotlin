@@ -82,8 +82,8 @@ class LinearMechanismModel(
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
-            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.concurrent) {
-                if (blocking ?: metaModel.dumpBlocking) {
+            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
+                if (blocking ?: metaModel.configuration.dumpBlocking) {
                     runBlocking {
                         dumpAsync(metaModel, tokens, this)
                     }
@@ -261,7 +261,7 @@ class LinearMechanismModel(
     }
 
     private val _constraints = constraints.toMutableList()
-    internal val concurrent by parent::concurrent
+    internal val concurrent by parent.configuration::concurrent
     override val constraints by ::_constraints
 
     override fun addConstraint(
@@ -384,8 +384,8 @@ class QuadraticMechanismModel(
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
-            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.concurrent) {
-                if (blocking ?: metaModel.dumpBlocking) {
+            val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
+                if (blocking ?: metaModel.configuration.dumpBlocking) {
                     runBlocking {
                         dumpAsync(metaModel, tokens, this)
                     }
@@ -419,18 +419,18 @@ class QuadraticMechanismModel(
 
             logger.trace { "Registering symbols for $metaModel" }
             for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.let { symbol ->
+                (symbol as? LinearFunctionSymbol)?.let {
                     if (fixedVariables.isNullOrEmpty()) {
-                        symbol.register(model)
+                        it.register(model)
                     } else {
-                        symbol.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        it.register(model, fixedVariables.mapKeys { it.key as Symbol })
                     }
                 }
-                (symbol as? QuadraticFunctionSymbol)?.let { symbol ->
+                (symbol as? QuadraticFunctionSymbol)?.let {
                     if (fixedVariables.isNullOrEmpty()) {
-                        symbol.register(model)
+                        it.register(model)
                     } else {
-                        symbol.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        it.register(model, fixedVariables.mapKeys { it.key as Symbol })
                     }
                 }
             }
@@ -564,7 +564,7 @@ class QuadraticMechanismModel(
     }
 
     private val _constraints = constraints.toMutableList()
-    internal val concurrent by parent::concurrent
+    internal val concurrent by parent.configuration::concurrent
     override val constraints by ::_constraints
 
     override fun addConstraint(

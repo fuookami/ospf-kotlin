@@ -12,11 +12,9 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 typealias Solution = List<Flt64>
 
-interface Model {
+interface Model : AddableTokenCollection {
     val objectCategory: ObjectCategory
 
-    fun add(item: AbstractVariableItem<*, *>): Try
-    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
 
     @Suppress("INAPPLICABLE_JVM_NAME")

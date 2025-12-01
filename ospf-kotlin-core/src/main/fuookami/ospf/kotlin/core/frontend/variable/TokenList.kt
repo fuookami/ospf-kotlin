@@ -142,9 +142,9 @@ interface AbstractMutableTokenList : AbstractTokenList, AddableTokenCollection {
     fun remove(item: AbstractVariableItem<*, *>)
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 sealed class MutableTokenList(
     internal val list: MutableMap<VariableItemKey, Token> = HashMap(),
+    protected val checkTokenExisted: Boolean = System.getProperty("env", "prod") != "prod",
     protected var currentIndex: Int = 0
 ) : AbstractMutableTokenList, Copyable<MutableTokenList>, AutoCloseable {
     override val tokens by list::values
@@ -171,7 +171,7 @@ sealed class MutableTokenList(
         }
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
-        if (list.containsKey(item.key)) {
+        if (checkTokenExisted && list.containsKey(item.key)) {
             return Failed(Err(ErrorCode.TokenExisted))
         }
         list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
@@ -185,7 +185,7 @@ sealed class MutableTokenList(
 
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
         for (item in items) {
-            if (list.containsKey(item.key)) {
+            if (checkTokenExisted && list.containsKey(item.key)) {
                 return Failed(Err(ErrorCode.TokenExisted))
             }
             list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
@@ -246,24 +246,30 @@ sealed class MutableTokenList(
 
 class AutoTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
+    checkTokenExisted: Boolean,
     currentIndex: Int
-) : MutableTokenList(list, currentIndex) {
+) : MutableTokenList(list, checkTokenExisted, currentIndex) {
     companion object {
-        operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
+        operator fun invoke(
+            tokenList: AbstractTokenList,
+            checkTokenExisted: Boolean
+        ): MutableTokenList {
             return AutoTokenList(
-                tokenList.tokens.associateBy { it.key }.toMutableMap(),
-                tokenList.tokens.maxOf { it.solverIndex } + 1
+                list = tokenList.tokens.associateBy { it.key }.toMutableMap(),
+                checkTokenExisted = checkTokenExisted,
+                currentIndex = tokenList.tokens.maxOf { it.solverIndex } + 1
             )
         }
     }
 
-    constructor() : this(
+    constructor(checkTokenExisted: Boolean) : this(
         list = HashMap(),
+        checkTokenExisted = checkTokenExisted,
         currentIndex = 0
     )
 
     override fun copy(): MutableTokenList {
-        return AutoTokenList(list.toMutableMap(), currentIndex)
+        return AutoTokenList(list.toMutableMap(), checkTokenExisted, currentIndex)
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token {
@@ -283,24 +289,30 @@ class AutoTokenList private constructor(
 
 class ManualTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
+    checkTokenExisted: Boolean,
     currentIndex: Int
-) : MutableTokenList(list, currentIndex) {
+) : MutableTokenList(list, checkTokenExisted, currentIndex) {
     companion object {
-        operator fun invoke(tokenList: AbstractTokenList): MutableTokenList {
+        operator fun invoke(
+            tokenList: AbstractTokenList,
+            checkTokenExisted: Boolean
+        ): MutableTokenList {
             return ManualTokenList(
-                tokenList.tokens.associateBy { it.key }.toMutableMap(),
-                tokenList.tokens.maxOf { it.solverIndex } + 1
+                list = tokenList.tokens.associateBy { it.key }.toMutableMap(),
+                checkTokenExisted = checkTokenExisted,
+                currentIndex = tokenList.tokens.maxOf { it.solverIndex } + 1
             )
         }
     }
 
-    constructor() : this(
+    constructor(checkTokenExisted: Boolean) : this(
         list = HashMap(),
+        checkTokenExisted = checkTokenExisted,
         currentIndex = 0
     )
 
     override fun copy(): MutableTokenList {
-        return ManualTokenList(list.toMutableMap(), currentIndex)
+        return ManualTokenList(list.toMutableMap(), checkTokenExisted, currentIndex)
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token? {
