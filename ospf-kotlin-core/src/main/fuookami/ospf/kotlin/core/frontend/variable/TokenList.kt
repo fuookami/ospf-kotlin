@@ -133,11 +133,20 @@ class TokenList(
     }
 }
 
+interface AddableTokenCollection {
+    fun add(item: AbstractVariableItem<*, *>): Try
+    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
+}
+
+interface AbstractMutableTokenList : AbstractTokenList, AddableTokenCollection {
+    fun remove(item: AbstractVariableItem<*, *>)
+}
+
 @OptIn(ExperimentalStdlibApi::class)
 sealed class MutableTokenList(
     internal val list: MutableMap<VariableItemKey, Token> = HashMap(),
     protected var currentIndex: Int = 0
-) : AbstractTokenList, Copyable<MutableTokenList>, AutoCloseable {
+) : AbstractMutableTokenList, Copyable<MutableTokenList>, AutoCloseable {
     override val tokens by list::values
 
     protected val lock = Any()
@@ -161,7 +170,7 @@ sealed class MutableTokenList(
             }
         }
 
-    fun add(item: AbstractVariableItem<*, *>): Try {
+    override fun add(item: AbstractVariableItem<*, *>): Try {
         if (list.containsKey(item.key)) {
             return Failed(Err(ErrorCode.TokenExisted))
         }
@@ -174,7 +183,7 @@ sealed class MutableTokenList(
         return ok
     }
 
-    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
         for (item in items) {
             if (list.containsKey(item.key)) {
                 return Failed(Err(ErrorCode.TokenExisted))
@@ -189,7 +198,7 @@ sealed class MutableTokenList(
         return ok
     }
 
-    fun remove(item: AbstractVariableItem<*, *>) {
+    override fun remove(item: AbstractVariableItem<*, *>) {
         synchronized(lock) {
             _tokenIndexMap = HashBiMap()
             val removedToken = list.remove(item.key)

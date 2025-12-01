@@ -770,15 +770,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
     }
 
     override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(b)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(y)) {
+        when (val result = tokenTable.add(listOf(b, y))) {
             is Ok -> {}
 
             is Failed -> {
@@ -841,15 +833,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         if (bin eq Flt64.one) {
-            when (val result = tokenTable.add(b)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-
-            when (val result = tokenTable.add(y)) {
+            when (val result = tokenTable.add(listOf(b, y))) {
                 is Ok -> {}
 
                 is Failed -> {

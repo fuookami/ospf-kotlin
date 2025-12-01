@@ -138,16 +138,8 @@ class AbsFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(neg)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(pos)) {
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = tokenTable.add(listOf(neg, pos))) {
             is Ok -> {}
 
             is Failed -> {

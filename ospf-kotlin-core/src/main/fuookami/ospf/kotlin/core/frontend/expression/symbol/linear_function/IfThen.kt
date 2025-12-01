@@ -231,7 +231,7 @@ class IfThenFunction(
                 }
             }
 
-            when (val result = tokenTable.add(y)) {
+            when (val result = y.register(tokenTable)) {
                 is Ok -> {}
 
                 is Failed -> {

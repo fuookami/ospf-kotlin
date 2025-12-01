@@ -147,13 +147,17 @@ sealed interface AbstractTokenTable {
     }
 }
 
-sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable {
-    fun add(item: AbstractVariableItem<*, *>): Try
+sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable, AddableTokenCollection {
+    override fun add(item: AbstractVariableItem<*, *>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addVariables")
-    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
+
+    fun add(scope: FunctionSymbolRegistrationScope): Try {
+        return add(scope.tokens)
+    }
 
     fun add(symbol: IntermediateSymbol): Try
 
@@ -403,12 +407,13 @@ fun Collection<IntermediateSymbol>.register(
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
+        val scope = FunctionSymbolRegistrationScope()
         for (symbol in readySymbols) {
             when (val result = (symbol as? FunctionSymbol)?.let {
                 if (fixedValues.isNullOrEmpty()) {
-                    it.register(tokenTable)
+                    it.register(scope)
                 } else {
-                    it.register(tokenTable, fixedValues)
+                    it.register(scope, fixedValues)
                 }
             }) {
                 null -> {}
@@ -424,6 +429,13 @@ fun Collection<IntermediateSymbol>.register(
                 is Failed -> {
                     return Failed(result.error)
                 }
+            }
+        }
+        when (val result = tokenTable.add(scope)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
             }
         }
         if (memoryUseOver()) {
@@ -626,32 +638,17 @@ sealed class ConcurrentMutableTokenTable(
     override val symbols by ::_symbols
 
     private val lock = Any()
-    internal val tokenCache: MutableList<AbstractVariableItem<*, *>> = ArrayList()
     internal val cachedSymbolValue1: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
     internal val cachedSymbolValue2: MutableMap<Pair<IntermediateSymbol, Map<Symbol, Flt64>>, Flt64?> = HashMap()
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
-        synchronized(lock) {
-            tokenCache.add(item)
-        }
-        return ok
+        return tokenList.add(item)
     }
 
     @JvmName("addVariables")
     @Suppress("INAPPLICABLE_JVM_NAME")
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
-        synchronized(lock) {
-            tokenCache.addAll(items)
-        }
-        return ok
-    }
-
-    internal fun flushTokenCache(): Try {
-        return synchronized(lock) {
-            val result = tokenList.add(tokenCache)
-            tokenCache.clear()
-            result
-        }
+        return tokenList.add(items)
     }
 
     override fun remove(item: AbstractVariableItem<*, *>) {
@@ -819,12 +816,13 @@ suspend fun Collection<IntermediateSymbol>.register(
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {
+            val scope = FunctionSymbolRegistrationScope()
             for (symbol in readySymbols) {
                 when (val result = (symbol as? FunctionSymbol)?.let {
                     if (fixedValues.isNullOrEmpty()) {
-                        it.register(tokenTable)
+                        it.register(scope)
                     } else {
-                        it.register(tokenTable, fixedValues)
+                        it.register(scope, fixedValues)
                     }
                 }) {
                     null -> {}
@@ -836,7 +834,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                     }
                 }
             }
-            when (val result = tokenTable.flushTokenCache()) {
+            when (val result = tokenTable.add(scope)) {
                 is Ok -> {}
 
                 is Failed -> {
