@@ -326,7 +326,7 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = or.register(tokenTable)) {
             is Ok -> {}
 
@@ -351,7 +351,7 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         when (val result = or.register(tokenTable, fixedValues)) {
@@ -462,7 +462,7 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = and.register(tokenTable)) {
             is Ok -> {}
 
@@ -487,7 +487,7 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         when (val result = and.register(tokenTable, fixedValues)) {
@@ -643,7 +643,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         for (bin in bins) {
             when (val result = bin.register(tokenTable)) {
                 is Ok -> {}
@@ -710,7 +710,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)
@@ -849,7 +849,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         return impl.prepare(values, tokenTable)
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 
@@ -874,7 +874,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         when (val result = impl.register(tokenTable, fixedValues)) {

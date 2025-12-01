@@ -173,16 +173,8 @@ class CeilingFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(q)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(r)) {
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = tokenTable.add(listOf(q, r))) {
             is Ok -> {}
 
             is Failed -> {
@@ -210,7 +202,7 @@ class CeilingFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

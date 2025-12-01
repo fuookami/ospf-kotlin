@@ -60,10 +60,10 @@ sealed class Constraint(
         return sign(lhsValue, rhs)
     }
 
-    fun isTrue(results: Solution): Boolean {
+    fun isTrue(results: Solution): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.evaluate(results)
+            lhsValue += cell.evaluate(results) ?: return null
         }
         return sign(lhsValue, rhs)
     }

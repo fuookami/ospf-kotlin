@@ -82,8 +82,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapSymbolLists")
     fun <K> add(symbols: Map<K, Iterable<IntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -97,8 +97,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2Symbols")
     fun <K1, K2> add(symbols: MultiMap2<K1, K2, IntermediateSymbol>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -112,8 +112,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2SymbolLists")
     fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<IntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -127,8 +127,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3Symbols")
     fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, IntermediateSymbol>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -142,8 +142,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3SymbolLists")
     fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<IntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -157,8 +157,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4Symbols")
     fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, IntermediateSymbol>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -172,8 +172,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4SymbolLists")
     fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<IntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -199,8 +199,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapQuantitySymbolLists")
     fun <K> add(symbols: Map<K, Iterable<QuantityIntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -214,8 +214,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2QuantitySymbols")
     fun <K1, K2> add(symbols: MultiMap2<K1, K2, QuantityIntermediateSymbol>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -229,8 +229,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2QuantitySymbolLists")
     fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<QuantityIntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -244,8 +244,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3QuantitySymbols")
     fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, QuantityIntermediateSymbol>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -259,8 +259,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3QuantitySymbolLists")
     fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<QuantityIntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -274,8 +274,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4QuantitySymbols")
     fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, QuantityIntermediateSymbol>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -289,8 +289,8 @@ sealed interface MetaModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4QuantitySymbolLists")
     fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<QuantityIntermediateSymbol>>): Try {
-        for (symbols in symbols.values) {
-            when (val result = add(symbols)) {
+        for (syms in symbols.values) {
+            when (val result = add(syms)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -649,24 +649,29 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     }
 }
 
-abstract class AbstractMetaModel(
-    val category: Category,
-    manualTokenAddition: Boolean = true,
+data class MetaModelConfiguration(
+    internal val manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
     internal val dumpBlocking: Boolean = false,
-    internal val withRangeSet: Boolean = false
+    internal val withRangeSet: Boolean = false,
+    internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+)
+
+abstract class AbstractMetaModel(
+    val category: Category,
+    internal val configuration: MetaModelConfiguration
 ) : MetaModel {
-    override val tokens: AbstractMutableTokenTable = if (concurrent) {
-        if (manualTokenAddition) {
-            ConcurrentManualAddTokenTable(category)
+    override val tokens: AbstractMutableTokenTable = if (configuration.concurrent) {
+        if (configuration.manualTokenAddition) {
+            ConcurrentManualAddTokenTable(category, configuration.checkTokenExists)
         } else {
-            ConcurrentAutoTokenTable(category)
+            ConcurrentAutoTokenTable(category, configuration.checkTokenExists)
         }
     } else {
-        if (manualTokenAddition) {
-            ManualTokenTable(category)
+        if (configuration.manualTokenAddition) {
+            ManualTokenTable(category, configuration.checkTokenExists)
         } else {
-            AutoTokenTable(category)
+            AutoTokenTable(category, configuration.checkTokenExists)
         }
     }
 
@@ -701,11 +706,8 @@ abstract class AbstractMetaModel(
 class LinearMetaModel(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    manualTokenAddition: Boolean = true,
-    concurrent: Boolean = true,
-    dumpBlocking: Boolean = false,
-    withRangeSet: Boolean = true
-) : AbstractMetaModel(Linear, manualTokenAddition, concurrent, dumpBlocking, withRangeSet), AbstractLinearMetaModel {
+    configuration: MetaModelConfiguration = MetaModelConfiguration()
+) : AbstractMetaModel(Linear, configuration), AbstractLinearMetaModel {
     internal val _constraints: MutableList<MetaConstraint<LinearInequality>> = ArrayList()
     override val constraints: List<MetaConstraint<*>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
@@ -721,7 +723,7 @@ class LinearMetaModel(
         displayName?.let { constraint.name = it }
         _constraints.add(MetaConstraint(constraint))
         
-        if (withRangeSet ?: this.withRangeSet
+        if (withRangeSet ?: this.configuration.withRangeSet
             && constraint.lhs.monomials.size == 1
             && !constraint.lhs.monomials.first().pure
             && constraint.rhs.monomials.isEmpty()
@@ -777,7 +779,7 @@ class LinearMetaModel(
         displayName?.let { constraint.name = it }
         _constraints.add(MetaConstraint(constraint, group, args))
 
-        if (withRangeSet ?: this.withRangeSet
+        if (withRangeSet ?: this.configuration.withRangeSet
             && constraint.lhs.monomials.size == 1
             && !constraint.lhs.monomials.first().pure
             && constraint.rhs.monomials.isEmpty()
@@ -808,11 +810,8 @@ class LinearMetaModel(
 class QuadraticMetaModel(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    manualTokenAddition: Boolean = true,
-    concurrent: Boolean = true,
-    dumpBlocking: Boolean = false,
-    withRangeSet: Boolean = true
-) : AbstractMetaModel(Quadratic, manualTokenAddition, concurrent, dumpBlocking, withRangeSet), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
+    configuration: MetaModelConfiguration = MetaModelConfiguration()
+) : AbstractMetaModel(Quadratic, configuration), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
     internal val _constraints: MutableList<MetaConstraint<QuadraticInequality>> = ArrayList()
     override val constraints: List<MetaConstraint<*>> by ::_constraints
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
@@ -839,7 +838,7 @@ class QuadraticMetaModel(
         displayName?.let { constraint.name = it }
         _constraints.add(MetaConstraint(constraint))
 
-        if (withRangeSet ?: this.withRangeSet
+        if (withRangeSet ?: this.configuration.withRangeSet
             && !constraint.lhs.monomials.first().pure
             && constraint.lhs.monomials.first().symbol.symbol2 == null
             && constraint.rhs.monomials.isEmpty()
@@ -879,7 +878,7 @@ class QuadraticMetaModel(
         displayName?.let { constraint.name = it }
         _constraints.add(MetaConstraint(constraint, group, args))
 
-        if (withRangeSet ?: this.withRangeSet
+        if (withRangeSet ?: this.configuration.withRangeSet
             && !constraint.lhs.monomials.first().pure
             && constraint.lhs.monomials.first().symbol.symbol2 == null
             && constraint.rhs.monomials.isEmpty()

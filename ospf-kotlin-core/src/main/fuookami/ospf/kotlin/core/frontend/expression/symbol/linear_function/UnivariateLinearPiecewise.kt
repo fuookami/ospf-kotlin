@@ -152,7 +152,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = tokenTable.add(k)) {
             is Ok -> {}
 
@@ -233,10 +233,22 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+        val xValue = when (tokenTable) {
+            is AbstractTokenTable -> {
+                x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+            }
+
+            is FunctionSymbolRegistrationScope -> {
+                x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+            }
+
+            else -> {
+                return register(tokenTable)
+            }
+        }
         val i = (0 until (points.size - 1)).indexOfFirst {
             points[it].x leq xValue && xValue leq points[it + 1].x
         }

@@ -257,7 +257,7 @@ class BalanceTernaryzationFunctionImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         return ok
     }
 
@@ -273,7 +273,7 @@ class BalanceTernaryzationFunctionImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return ok
@@ -371,7 +371,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = piecewiseFunction.register(tokenTable)) {
             is Ok -> {}
 
@@ -396,7 +396,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>,
     ): Try {
         when (val result = piecewiseFunction.register(tokenTable, fixedValues)) {
@@ -542,7 +542,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = tokenTable.add(y)) {
             is Ok -> {}
 
@@ -621,10 +621,22 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+        val xValue = when (tokenTable) {
+            is AbstractTokenTable -> {
+                x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+            }
+
+            is FunctionSymbolRegistrationScope -> {
+                x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+            }
+
+            else -> {
+                return register(tokenTable)
+            }
+        }
         val ter = if (xValue gr Flt64.zero) {
             Flt64.one
         } else if (xValue ls Flt64.zero) {
@@ -854,7 +866,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = tokenTable.add(b)) {
             is Ok -> {}
 
@@ -963,10 +975,22 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+        val xValue = when (tokenTable) {
+            is AbstractTokenTable -> {
+                x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+            }
+
+            is FunctionSymbolRegistrationScope -> {
+                x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+            }
+
+            else -> {
+                return register(tokenTable)
+            }
+        }
         val ter = if (xValue gr Flt64.zero) {
             Flt64.one
         } else if (xValue ls Flt64.zero) {
@@ -1207,7 +1231,7 @@ class BalanceTernaryzationFunction(
         return impl.prepare(values, tokenTable)
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = impl.register(tokenTable)) {
             is Ok -> {}
 
@@ -1232,7 +1256,7 @@ class BalanceTernaryzationFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         when (val result = impl.register(tokenTable, fixedValues)) {

@@ -151,18 +151,20 @@ class CallBackModel internal constructor(
                 ManualTokenTable(model.tokens)
             }
             val constraints = model.constraints.map { constraint ->
-                Pair<Extractor<Boolean?, Solution>, String>(
+                Pair(
                     { solution: Solution -> constraint.isTrue(solution) },
                     constraint.name
                 )
             }.toMutableList()
             val objectiveFunction = model.objectFunction.subObjects.map { objective ->
-                Pair<Extractor<Flt64?, Solution>, String>(
+                Pair(
                     { solution: Solution ->
                         if (objective.category == model.objectFunction.category) {
                             objective.evaluate(solution)
                         } else {
-                            -objective.evaluate(solution)
+                            objective.evaluate(solution)?.let {
+                                -it
+                            }
                         }
                     },
                     objective.name
@@ -186,7 +188,7 @@ class CallBackModel internal constructor(
     override val objectiveFunctions by ::_objectiveFunctions
 
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> {
-        return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokenIndexMap.size))
+        return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
     }
 
     override fun compareObjective(lhs: Flt64, rhs: Flt64): Order {

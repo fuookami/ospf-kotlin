@@ -50,7 +50,7 @@ interface AbstractCallBackModelInterface<Obj, V> : Model {
 
     fun constraintSatisfied(solution: Solution): Boolean? {
         for (token in tokens.tokens) {
-            val index = tokens.tokenIndexMap[token] ?: continue
+            val index = tokens.indexOf(token) ?: continue
             if (token.range?.contains(solution[index]) != true) {
                 return false
             }

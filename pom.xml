@@ -23,7 +23,7 @@
         <module>ospf-kotlin-starters</module>
     </modules>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
-    <version>1.0.60</version>
+    <version>1.0.61</version>
     <packaging>pom</packaging>
     <name>ospf-kotlin</name>
     <description>operation research algorithm software framework</description>
@@ -73,7 +73,6 @@
         <log4j.version>2.22.0</log4j.version>
         <log4j-api-kotlin.version>1.4.0</log4j-api-kotlin.version>
         <slf4j-api.version>2.0.5</slf4j-api.version>
-        <bimap.version>1.1.0</bimap.version>
         <jackson.version>2.18.2</jackson.version>
         <complex-numbers.version>1.0</complex-numbers.version>
         <apache-commons-math3.version>3.6.1</apache-commons-math3.version>
