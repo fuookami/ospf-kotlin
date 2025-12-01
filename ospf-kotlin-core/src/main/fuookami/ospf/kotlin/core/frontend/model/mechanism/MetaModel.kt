@@ -46,13 +46,31 @@ sealed interface MetaModel : Model {
     val tokens: AbstractMutableTokenTable
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
-        return tokens.add(item)
+        return when (tokens) {
+            is ConcurrentMutableTokenTable -> {
+                tokens.add(item)
+                (tokens as ConcurrentMutableTokenTable).flushTokenCache()
+            }
+
+            else -> {
+                return tokens.add(item)
+            }
+        }
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addVars")
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
-        return tokens.add(items)
+        return when (tokens) {
+            is ConcurrentMutableTokenTable -> {
+                tokens.add(items)
+                (tokens as ConcurrentMutableTokenTable).flushTokenCache()
+            }
+
+            else -> {
+                return tokens.add(items)
+            }
+        }
     }
 
     override fun remove(item: AbstractVariableItem<*, *>) {

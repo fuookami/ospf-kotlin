@@ -162,7 +162,20 @@ sealed class MutableTokenList(
         }
 
     fun add(item: AbstractVariableItem<*, *>): Try {
-        synchronized(lock) {
+        if (list.containsKey(item.key)) {
+            return Failed(Err(ErrorCode.TokenExisted))
+        }
+        list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
+            synchronized(lock) {
+                _cachedSolution = tokens.any { it.result != null }
+            }
+        }))
+        ++currentIndex
+        return ok
+    }
+
+    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+        for (item in items) {
             if (list.containsKey(item.key)) {
                 return Failed(Err(ErrorCode.TokenExisted))
             }
@@ -171,26 +184,7 @@ sealed class MutableTokenList(
                     _cachedSolution = tokens.any { it.result != null }
                 }
             }))
-            _cachedSolution = tokens.any { it.result != null }
             ++currentIndex
-        }
-        return ok
-    }
-
-    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
-        synchronized(lock) {
-            for (item in items) {
-                if (list.containsKey(item.key)) {
-                    return Failed(Err(ErrorCode.TokenExisted))
-                }
-                list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
-                    synchronized(lock) {
-                        _cachedSolution = tokens.any { it.result != null }
-                    }
-                }))
-                ++currentIndex
-            }
-            _cachedSolution = tokens.any { it.result != null }
         }
         return ok
     }
@@ -198,8 +192,10 @@ sealed class MutableTokenList(
     fun remove(item: AbstractVariableItem<*, *>) {
         synchronized(lock) {
             _tokenIndexMap = HashBiMap()
-            list.remove(item.key)
-            _cachedSolution = tokens.any { it.result != null }
+            val removedToken = list.remove(item.key)
+            if (removedToken?.result != null) {
+                _cachedSolution = tokens.any { it.result != null }
+            }
         }
     }
 
