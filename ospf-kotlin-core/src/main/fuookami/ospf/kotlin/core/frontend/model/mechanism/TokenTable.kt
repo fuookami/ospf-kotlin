@@ -407,7 +407,7 @@ fun Collection<IntermediateSymbol>.register(
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
-        val scope = FunctionSymbolRegistrationScope()
+        val scope = FunctionSymbolRegistrationScope(origin = tokenTable)
         for (symbol in readySymbols) {
             when (val result = (symbol as? FunctionSymbol)?.let {
                 if (fixedValues.isNullOrEmpty()) {
@@ -828,7 +828,7 @@ suspend fun Collection<IntermediateSymbol>.register(
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {
-            val scope = FunctionSymbolRegistrationScope()
+            val scope = FunctionSymbolRegistrationScope(origin = tokenTable)
             for (symbol in readySymbols) {
                 when (val result = (symbol as? FunctionSymbol)?.let {
                     if (fixedValues.isNullOrEmpty()) {
