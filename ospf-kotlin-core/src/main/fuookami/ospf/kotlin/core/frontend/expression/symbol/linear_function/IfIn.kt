@@ -249,7 +249,7 @@ class IfInFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = lowerBoundInequality.register(
             parentName = name,
             k = lbk,
@@ -276,7 +276,7 @@ class IfInFunction(
             }
         }
 
-        when (val result = tokenTable.add(y)) {
+        when (val result = y.register(tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -330,7 +330,7 @@ class IfInFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

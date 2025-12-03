@@ -188,7 +188,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = tokenTable.add(u)) {
             is Ok -> {}
 
@@ -301,11 +301,27 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
-        val yValue = y.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+        val (xValue, yValue) = when (tokenTable) {
+            is AbstractTokenTable -> {
+                val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+                val yValue = y.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+                xValue to yValue
+            }
+
+            is FunctionSymbolRegistrationScope -> {
+                val xValue = x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+                val yValue = y.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+                xValue to yValue
+            }
+
+            else -> {
+                return register(tokenTable)
+            }
+        }
+
         val index = indices.firstOrNull {
             val triangle = triangles[it]
             val (minX, maxX) = minMax(triangle.p1.x, triangle.p2.x, triangle.p3.x)

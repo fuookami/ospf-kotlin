@@ -97,7 +97,7 @@ class LinearFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         if (polynomial.category != Linear) {
             when (val result = tokenTable.add(y)) {
                 is Ok -> {}
@@ -130,7 +130,7 @@ class LinearFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

@@ -225,24 +225,12 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        if (_neg != null) {
-            when (val result = tokenTable.add(_neg!!)) {
-                is Ok -> {}
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = tokenTable.add(listOfNotNull(_neg, _pos))) {
+            is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-        }
-
-        if (_pos != null) {
-            when (val result = tokenTable.add(_pos!!)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
+            is Failed -> {
+                return Failed(result.error)
             }
         }
 
@@ -296,7 +284,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

@@ -617,7 +617,7 @@ class ManualTokenTable private constructor(
     companion object {
         operator fun invoke(
             tokenTable: AbstractTokenTable,
-            checkTokenExists: Boolean
+            checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
         ): ManualTokenTable {
             return ManualTokenTable(
                 category = tokenTable.category,
@@ -629,7 +629,7 @@ class ManualTokenTable private constructor(
 
     constructor(
         category: Category,
-        checkTokenExists: Boolean
+        checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
     ) : this(
         category = category,
         tokenList = ManualTokenList(checkTokenExists),
@@ -1002,7 +1002,7 @@ class ConcurrentAutoTokenTable private constructor(
 
     constructor(
         category: Category,
-        checkTokenExists: Boolean
+        checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
     ) : this(
         category = category,
         tokenList = AutoTokenList(checkTokenExists),
@@ -1022,7 +1022,7 @@ class ConcurrentManualAddTokenTable private constructor(
     companion object {
         operator fun invoke(
             tokenTable: AbstractTokenTable,
-            checkTokenExists: Boolean
+            checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
         ): ConcurrentMutableTokenTable {
             return ConcurrentManualAddTokenTable(
                 category = tokenTable.category,
@@ -1034,7 +1034,7 @@ class ConcurrentManualAddTokenTable private constructor(
 
     constructor(
         category: Category,
-        checkTokenExists: Boolean
+        checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
     ) : this(
         category = category,
         tokenList = ManualTokenList(checkTokenExists),

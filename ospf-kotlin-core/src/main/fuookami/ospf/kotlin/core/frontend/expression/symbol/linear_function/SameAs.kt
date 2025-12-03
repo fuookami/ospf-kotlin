@@ -153,7 +153,7 @@ class SameAsFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         if (!constraint && inequalities.size > 1) {
             for ((i, inequality) in inequalities.withIndex()) {
                 when (val result = inequality.register(
@@ -262,7 +262,7 @@ class SameAsFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

@@ -138,7 +138,7 @@ sealed class AbstractMaxFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = tokenTable.add(minmax)) {
             is Ok -> {}
 
@@ -207,9 +207,30 @@ sealed class AbstractMaxFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
+        val i = if (exact) {
+            val values = polynomials.map {
+                when (tokenTable) {
+                    is AbstractTokenTable -> {
+                        it.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+                    }
+
+                    is FunctionSymbolRegistrationScope -> {
+                        it.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+                    }
+
+                    else -> {
+                        return register(tokenTable)
+                    }
+                }
+            }
+            values.withIndex().maxBy { it.value }.index
+        } else {
+            null
+        }
+
         when (val result = tokenTable.add(minmax)) {
             is Ok -> {}
 
@@ -219,12 +240,7 @@ sealed class AbstractMaxFunction(
         }
 
         if (exact) {
-            val values = polynomials.map {
-                it.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
-            }
-            val i = values.withIndex().maxBy { it.value }.index
-
-            when (val result = tokenTable.add(u[i])) {
+            when (val result = tokenTable.add(u[i!!])) {
                 is Ok -> {}
 
                 is Failed -> {

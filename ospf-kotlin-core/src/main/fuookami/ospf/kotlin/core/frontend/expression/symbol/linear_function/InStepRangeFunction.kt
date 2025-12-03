@@ -119,8 +119,8 @@ class InStepRange(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(q)) {
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = q.register(tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -144,7 +144,7 @@ class InStepRange(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         when (val result = q.register(tokenTable, fixedValues)) {
