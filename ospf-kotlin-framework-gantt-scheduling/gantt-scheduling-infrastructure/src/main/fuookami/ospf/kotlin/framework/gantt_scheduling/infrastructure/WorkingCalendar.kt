@@ -904,27 +904,34 @@ open class WorkingCalendar(
 
 typealias ProductivityCondition<T> = (T) -> Boolean
 
-open class Productivity<T>(
+open class Productivity<T, U>(
     val timeWindow: TimeRange,
+    val extractor: Extractor<U, T>,
     val weekDays: Set<DayOfWeek> = emptySet(),
     val monthDays: Set<Int> = emptySet(),
-    val capacities: Map<T, Duration>,
+    val capacities: Map<U, Duration>,
     val conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList()
 ) {
+    private val cache = HashMap<T, Duration?>()
+
     open fun capacityOf(material: T): Duration? {
-        return capacities[material]
-            ?: conditionCapacities.find { it.first(material) }?.second
+        return capacities[extractor(material)]
+            ?: cache.getOrPut(material) {
+                conditionCapacities.firstOrNull { it.first(material) }?.second
+            }
     }
 
     open fun new(
         timeWindow: TimeRange? = null,
+        extractor: Extractor<U, T>? = null,
         weekDays: Set<DayOfWeek>? = null,
         monthDays: Set<Int>? = null,
-        capacities: Map<T, Duration>? = null,
+        capacities: Map<U, Duration>? = null,
         conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>>? = null
-    ): Productivity<T> {
+    ): Productivity<T, U> {
         return Productivity(
             timeWindow = timeWindow ?: this.timeWindow,
+            extractor = extractor ?: this.extractor,
             weekDays = weekDays ?: this.weekDays,
             monthDays = monthDays ?: this.monthDays,
             capacities = capacities ?: this.capacities,
@@ -933,19 +940,19 @@ open class Productivity<T>(
     }
 }
 
-sealed class ProductivityCalendar<Q, P, T>(
+sealed class ProductivityCalendar<Q, P, T, U>(
     timeWindow: TimeWindow,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null,
     private val constants: RealNumberConstants<Q>,
     private val floor: Extractor<Q, Flt64>
-) : WorkingCalendar(timeWindow) where P : Productivity<T>, Q : RealNumber<Q>, Q : PlusGroup<Q> {
+) : WorkingCalendar(timeWindow) where P : Productivity<T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q> {
     companion object {
-        operator fun <P, T> invoke(
+        operator fun <P, T, U> invoke(
             timeWindow: TimeWindow,
             productivity: List<P>,
             continuous: Boolean
-        ): ProductivityCalendar<*, P, T> where P : Productivity<T> {
+        ): ProductivityCalendar<*, P, T, U> where P : Productivity<T, U> {
             return if (continuous) {
                 ContinuousProductivityCalendar(
                     timeWindow = timeWindow,
@@ -1003,7 +1010,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Instant {
-        val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findFrom(startTime, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return Instant.DISTANT_FUTURE
         }
@@ -1059,7 +1066,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findFrom(startTime, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return ActualTime(
                 time = TimeRange(
@@ -1099,7 +1106,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
-        val productivityCalendar = productivity.findFrom(startTime, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findFrom(startTime, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return null
         }
@@ -1131,7 +1138,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return ActualTime(
                 time = TimeRange(
@@ -1171,7 +1178,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
-        val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findFromParallelly(startTime, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return null
         }
@@ -1202,7 +1209,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
+        val productivityCalendar = productivity.findUntil(endTime, Productivity<T, U>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
             return ActualTime(
                 time = TimeRange(
@@ -1240,7 +1247,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
-        val productivityCalendar = productivity.findUntil(endTime, Productivity<T>::timeWindow).reversed()
+        val productivityCalendar = productivity.findUntil(endTime, Productivity<T, U>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
             return null
         }
@@ -1270,7 +1277,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
+        val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T, U>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
             return ActualTime(
                 time = TimeRange(
@@ -1308,7 +1315,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime? {
-        val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T>::timeWindow).reversed()
+        val productivityCalendar = productivity.findUntilParallelly(endTime, Productivity<T, U>::timeWindow).reversed()
         if (productivityCalendar.isEmpty()) {
             return null
         }
@@ -1338,7 +1345,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Q {
-        val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.find(time, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return constants.zero
         }
@@ -1368,7 +1375,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Q? {
-        val productivityCalendar = productivity.find(time, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.find(time, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return null
         }
@@ -1398,7 +1405,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Q {
-        val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findParallelly(time, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return constants.zero
         }
@@ -1428,7 +1435,7 @@ sealed class ProductivityCalendar<Q, P, T>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Q? {
-        val productivityCalendar = productivity.findParallelly(time, Productivity<T>::timeWindow)
+        val productivityCalendar = productivity.findParallelly(time, Productivity<T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
             return null
         }
@@ -1450,7 +1457,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     private fun actualTimeFrom(
         material: T,
         startTime: Instant,
-        productivityCalendar: List<Productivity<T>>,
+        productivityCalendar: List<Productivity<T, U>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
         beforeConnectionTime: DurationRange? = null,
@@ -1537,7 +1544,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     private fun actualTimeUntil(
         material: T,
         endTime: Instant,
-        productivityCalendar: List<Productivity<T>>,
+        productivityCalendar: List<Productivity<T, U>>,
         quantity: Q,
         unavailableTimes: List<TimeRange> = emptyList(),
         beforeConnectionTime: DurationRange? = null,
@@ -1622,7 +1629,7 @@ sealed class ProductivityCalendar<Q, P, T>(
     private fun actualQuantity(
         material: T,
         time: TimeRange,
-        productivityCalendar: List<Productivity<T>>,
+        productivityCalendar: List<Productivity<T, U>>,
         unavailableTimes: List<TimeRange> = emptyList(),
         beforeConnectionTime: DurationRange? = null,
         afterConnectionTime: DurationRange? = null,
@@ -1664,15 +1671,15 @@ sealed class ProductivityCalendar<Q, P, T>(
     }
 }
 
-open class DiscreteProductivityCalendar<P, T>(
+open class DiscreteProductivityCalendar<P, T, U>(
     timeWindow: TimeWindow,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
-) : ProductivityCalendar<UInt64, P, T>(timeWindow, productivity, unavailableTimes, UInt64, { it.floor().toUInt64() })
-        where P : Productivity<T>
+) : ProductivityCalendar<UInt64, P, T, U>(timeWindow, productivity, unavailableTimes, UInt64, { it.floor().toUInt64() })
+        where P : Productivity<T, U>
 
-open class ContinuousProductivityCalendar<P, T>(
+open class ContinuousProductivityCalendar<P, T, U>(
     timeWindow: TimeWindow,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
-) : ProductivityCalendar<Flt64, P, T>(timeWindow, productivity, unavailableTimes, Flt64, { it }) where P : Productivity<T>
+) : ProductivityCalendar<Flt64, P, T, U>(timeWindow, productivity, unavailableTimes, Flt64, { it }) where P : Productivity<T, U>
