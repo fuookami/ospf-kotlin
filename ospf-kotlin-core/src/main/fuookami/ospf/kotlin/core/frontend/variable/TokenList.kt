@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
 import kotlin.collections.*
-import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
