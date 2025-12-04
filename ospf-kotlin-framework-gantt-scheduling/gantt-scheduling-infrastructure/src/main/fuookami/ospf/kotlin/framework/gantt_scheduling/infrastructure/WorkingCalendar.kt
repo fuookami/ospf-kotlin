@@ -912,6 +912,25 @@ open class Productivity<T, U>(
     val capacities: Map<U, Duration>,
     val conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList()
 ) {
+    companion object {
+        operator fun <T> invoke(
+            timeWindow: TimeRange,
+            weekDays: Set<DayOfWeek> = emptySet(),
+            monthDays: Set<Int> = emptySet(),
+            capacities: Map<T, Duration>,
+            conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList()
+        ): Productivity<T, T> {
+            return Productivity(
+                timeWindow = timeWindow,
+                extractor = { it },
+                weekDays = weekDays,
+                monthDays = monthDays,
+                capacities = capacities.mapKeys { it.key },
+                conditionCapacities = conditionCapacities
+            )
+        }
+    }
+
     private val cache = HashMap<T, Duration?>()
 
     open fun capacityOf(material: T): Duration? {
