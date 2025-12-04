@@ -219,8 +219,8 @@ class RoundingFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(dLinear)) {
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = dLinear.register(tokenTable)) {
             is Ok -> {}
 
             is Failed -> {
@@ -272,7 +272,7 @@ class RoundingFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         when (val result = dLinear.register(tokenTable, fixedValues)) {

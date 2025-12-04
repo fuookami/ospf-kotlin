@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.core.backend.intermediate_model
 import java.io.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.*
-import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
@@ -254,7 +253,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
-    val tokenIndexMap: BiMap<Token, Int>,
+    val tokensInSolver: List<Token>,
     override val objective: QuadraticObjective,
     internal val dualOrigin: QuadraticTetradModelView? = null
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
@@ -272,11 +271,12 @@ data class QuadraticTetradModel(
             concurrent: Boolean? = null
         ): QuadraticTetradModel {
             logger.trace("Creating QuadraticTetradModel for $model")
-            val tokenIndexMap = if (fixedVariables.isNullOrEmpty()) {
-                model.tokens.tokenIndexMap
+            val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
+                model.tokens.tokensInSolver
             } else {
-                model.tokens.tokenIndexMapWithout(fixedVariables.keys)
+                model.tokens.tokensInSolverWithout(fixedVariables.keys)
             }
+            val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
             val tetradModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
@@ -290,24 +290,24 @@ data class QuadraticTetradModel(
                     }
 
                     QuadraticTetradModel(
-                        BasicQuadraticTetradModel(
+                        impl = BasicQuadraticTetradModel(
                             variables = variablePromise.await(),
                             constraints = constraintPromise.await(),
                             name = model.name
                         ),
-                        tokenIndexMap,
-                        objectivePromise.await()
+                        tokensInSolver = tokensInSolver,
+                        objective = objectivePromise.await()
                     )
                 }
             } else {
                 QuadraticTetradModel(
-                    BasicQuadraticTetradModel(
+                    impl = BasicQuadraticTetradModel(
                         variables = dumpVariables(model, tokenIndexMap),
                         constraints = dumpConstraints(model, tokenIndexMap, fixedVariables),
                         name = model.name
                     ),
-                    tokenIndexMap,
-                    dumpObjectives(model, tokenIndexMap, fixedVariables)
+                    tokensInSolver = tokensInSolver,
+                    objective = dumpObjectives(model, tokenIndexMap, fixedVariables)
                 )
             }
 
@@ -318,16 +318,16 @@ data class QuadraticTetradModel(
 
         private fun dumpVariables(
             model: QuadraticMechanismModel,
-            tokenIndexMap: BiMap<Token, Int>
+            tokenIndexes: Map<Token, Int>,
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
-            for ((_, _) in tokenIndexMap) {
+            for ((_, _) in tokenIndexes) {
                 variables.add(null)
             }
             val bounds = model.constraints.filter {
                 it.lhs.size == 1 && it.lhs.first().coefficient eq Flt64.one && it.lhs.first().token2 == null
             }.groupBy { it.lhs.first().token1 }
-            for ((token, i) in tokenIndexMap) {
+            for ((token, i) in tokenIndexes) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
                     .filter { it.sign == Sign.GreaterEqual || it.sign == Sign.Equal }
@@ -378,7 +378,7 @@ data class QuadraticTetradModel(
 
         private fun dumpConstraints(
             model: QuadraticMechanismModel,
-            tokenIndexes: BiMap<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraint {
             val notBoundConstraints = model.constraints.filter {
@@ -472,7 +472,7 @@ data class QuadraticTetradModel(
 
         private suspend fun dumpConstraintsAsync(
             model: QuadraticMechanismModel,
-            tokenIndexes: BiMap<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraint {
             val notBoundConstraints = model.constraints.filter {
@@ -670,7 +670,7 @@ data class QuadraticTetradModel(
 
         private fun dumpObjectives(
             model: QuadraticMechanismModel,
-            tokenIndexes: BiMap<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticObjective {
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
@@ -753,7 +753,7 @@ data class QuadraticTetradModel(
         }
     }
 
-    override fun copy() = QuadraticTetradModel(impl.copy(), tokenIndexMap, objective.copy())
+    override fun copy() = QuadraticTetradModel(impl.copy(), tokensInSolver, objective.copy())
     override fun clone() = copy()
 
     override fun linearRelax(): QuadraticTetradModel {
@@ -762,7 +762,7 @@ data class QuadraticTetradModel(
     }
 
     override fun linearRelaxed(): QuadraticTetradModel {
-        return QuadraticTetradModel(impl.linearRelaxed(), tokenIndexMap, objective.copy())
+        return QuadraticTetradModel(impl.linearRelaxed(), tokensInSolver, objective.copy())
     }
 
     suspend fun dual(): QuadraticTetradModel {
@@ -928,7 +928,7 @@ data class QuadraticTetradModel(
                 constraints = constraints,
                 name = "$name-feasibility"
             ),
-            tokenIndexMap = tokenIndexMap,
+            tokensInSolver = tokensInSolver,
             objective = QuadraticObjective(ObjectCategory.Minimum, objective)
         )
     }

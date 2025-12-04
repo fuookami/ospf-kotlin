@@ -195,7 +195,7 @@ class IfThenFunction(
         return displayName ?: name
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         when (val result = p.register(
             parentName = name,
             k = pk,
@@ -231,7 +231,7 @@ class IfThenFunction(
                 }
             }
 
-            when (val result = tokenTable.add(y)) {
+            when (val result = y.register(tokenTable)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -304,7 +304,7 @@ class IfThenFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

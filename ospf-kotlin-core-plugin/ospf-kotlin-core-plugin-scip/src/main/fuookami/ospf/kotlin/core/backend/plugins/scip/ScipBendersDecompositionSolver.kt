@@ -150,7 +150,7 @@ class ScipLinearBendersDecompositionSolver(
 
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
-                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
+                metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 val dualObject = dualSolution.sumOf { (constraint, value) ->
@@ -361,7 +361,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
-                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
+                metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 val dualObject = dualSolution.sumOf { (constraint, value) ->

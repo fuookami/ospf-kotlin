@@ -627,10 +627,26 @@ class QuadraticExpressionSymbol(
     }
 }
 
+data class FunctionSymbolRegistrationScope(
+    val tokens: MutableList<AbstractVariableItem<*, *>> = mutableListOf(),
+    val origin: AbstractTokenTable? = null
+) : AddableTokenCollection {
+    override fun add(item: AbstractVariableItem<*, *>): Try {
+        tokens.add(item)
+        return ok
+    }
+
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+        tokens.addAll(items)
+        return ok
+    }
+}
+
 interface FunctionSymbol : IntermediateSymbol {
-    fun register(tokenTable: AbstractMutableTokenTable): Try
+    fun register(tokenTable: AddableTokenCollection): Try
+
     fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

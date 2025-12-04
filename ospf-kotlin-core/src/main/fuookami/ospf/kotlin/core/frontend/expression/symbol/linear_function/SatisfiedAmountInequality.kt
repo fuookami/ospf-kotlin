@@ -140,7 +140,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
+    override fun register(tokenTable: AddableTokenCollection): Try {
         for ((i, inequality) in inequalities.withIndex()) {
             when (val result = inequality.register(
                 parentName = "${name}_i",
@@ -243,7 +243,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import kotlin.collections.*
 import kotlinx.coroutines.*
-import io.michaelrocks.bimap.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
@@ -24,7 +23,7 @@ sealed interface AbstractTokenTable {
     val category: Category
     val tokenList: AbstractTokenList
     val tokens: Collection<Token> get() = tokenList.tokens
-    val tokenIndexMap: BiMap<Token, Int> get() = tokenList.tokenIndexMap
+    val tokensInSolver: List<Token> get() = tokenList.tokensInSolver
     val symbols: Collection<IntermediateSymbol>
     val cachedSolution: Boolean get() = tokenList.cachedSolution
 
@@ -37,28 +36,25 @@ sealed interface AbstractTokenTable {
     }
 
     operator fun get(index: Int): Token {
-        return tokenIndexMap.inverse[index] ?: tokenList.tokens.find { it.solverIndex == index }!!
+        return tokenList[index]
     }
 
-    fun indexOf(token: Token): Int {
-        return tokenIndexMap[token] ?: token.solverIndex
+    fun indexOf(token: Token): Int? {
+        return tokenList.indexOf(token)
     }
 
     fun indexOf(item: AbstractVariableItem<*, *>): Int? {
         return find(item)?.let { indexOf(it) }
     }
 
-    fun tokenIndexMapWithout(items: Set<AbstractVariableItem<*, *>>): BiMap<Token, Int> {
-        var i = 0
-        val thisTokenIndexMap = HashBiMap<Token, Int>()
-        for (j in 0 until tokenIndexMap.size) {
-            val token = tokenIndexMap.inverse[j]!!
+    fun tokensInSolverWithout(items: Set<AbstractVariableItem<*, *>>): List<Token> {
+        val tokensInSolver = ArrayList<Token>()
+        for (token in this.tokensInSolver) {
             if (token.variable !in items) {
-                thisTokenIndexMap[token] = i
-                i += 1
+                tokensInSolver.add(token)
             }
         }
-        return thisTokenIndexMap
+        return tokensInSolver
     }
 
     fun setSolution(solution: List<Flt64>) {
@@ -147,13 +143,17 @@ sealed interface AbstractTokenTable {
     }
 }
 
-sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable {
-    fun add(item: AbstractVariableItem<*, *>): Try
+sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable, AddableTokenCollection {
+    override fun add(item: AbstractVariableItem<*, *>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addVariables")
-    fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
+
+    fun add(scope: FunctionSymbolRegistrationScope): Try {
+        return add(scope.tokens)
+    }
 
     fun add(symbol: IntermediateSymbol): Try
 
@@ -403,12 +403,13 @@ fun Collection<IntermediateSymbol>.register(
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
+        val scope = FunctionSymbolRegistrationScope(origin = tokenTable)
         for (symbol in readySymbols) {
             when (val result = (symbol as? FunctionSymbol)?.let {
                 if (fixedValues.isNullOrEmpty()) {
-                    it.register(tokenTable)
+                    it.register(scope)
                 } else {
-                    it.register(tokenTable, fixedValues)
+                    it.register(scope, fixedValues)
                 }
             }) {
                 null -> {}
@@ -424,6 +425,13 @@ fun Collection<IntermediateSymbol>.register(
                 is Failed -> {
                     return Failed(result.error)
                 }
+            }
+        }
+        when (val result = tokenTable.add(scope)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
             }
         }
         if (memoryUseOver()) {
@@ -571,18 +579,24 @@ class AutoTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): AutoTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean
+        ): AutoTokenTable {
             return AutoTokenTable(
                 category = tokenTable.category,
-                tokenList = AutoTokenList(tokenTable.tokenList),
+                tokenList = AutoTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean
+    ) : this(
         category = category,
-        tokenList = AutoTokenList(),
+        tokenList = AutoTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 
@@ -597,18 +611,24 @@ class ManualTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ManualTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+        ): ManualTokenTable {
             return ManualTokenTable(
                 category = tokenTable.category,
-                tokenList = ManualTokenList(tokenTable.tokenList),
+                tokenList = ManualTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+    ) : this(
         category = category,
-        tokenList = ManualTokenList(),
+        tokenList = ManualTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 
@@ -804,12 +824,13 @@ suspend fun Collection<IntermediateSymbol>.register(
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {
+            val scope = FunctionSymbolRegistrationScope(origin = tokenTable)
             for (symbol in readySymbols) {
                 when (val result = (symbol as? FunctionSymbol)?.let {
                     if (fixedValues.isNullOrEmpty()) {
-                        it.register(tokenTable)
+                        it.register(scope)
                     } else {
-                        it.register(tokenTable, fixedValues)
+                        it.register(scope, fixedValues)
                     }
                 }) {
                     null -> {}
@@ -819,6 +840,13 @@ suspend fun Collection<IntermediateSymbol>.register(
                     is Failed -> {
                         return@coroutineScope Failed(result.error)
                     }
+                }
+            }
+            when (val result = tokenTable.add(scope)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return@coroutineScope Failed(result.error)
                 }
             }
             if (memoryUseOver()) {
@@ -956,18 +984,24 @@ class ConcurrentAutoTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean
+        ): ConcurrentMutableTokenTable {
             return ConcurrentAutoTokenTable(
                 category = tokenTable.category,
-                tokenList = AutoTokenList(tokenTable.tokenList),
+                tokenList = AutoTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+    ) : this(
         category = category,
-        tokenList = AutoTokenList(),
+        tokenList = AutoTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 
@@ -982,18 +1016,24 @@ class ConcurrentManualAddTokenTable private constructor(
     symbols: List<IntermediateSymbol>
 ) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
     companion object {
-        operator fun invoke(tokenTable: AbstractTokenTable): ConcurrentMutableTokenTable {
+        operator fun invoke(
+            tokenTable: AbstractTokenTable,
+            checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+        ): ConcurrentMutableTokenTable {
             return ConcurrentManualAddTokenTable(
                 category = tokenTable.category,
-                tokenList = ManualTokenList(tokenTable.tokenList),
+                tokenList = ManualTokenList(tokenTable.tokenList, checkTokenExists),
                 symbols = tokenTable.symbols.toMutableList()
             )
         }
     }
 
-    constructor(category: Category) : this(
+    constructor(
+        category: Category,
+        checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
+    ) : this(
         category = category,
-        tokenList = ManualTokenList(),
+        tokenList = ManualTokenList(checkTokenExists),
         symbols = ArrayList()
     )
 

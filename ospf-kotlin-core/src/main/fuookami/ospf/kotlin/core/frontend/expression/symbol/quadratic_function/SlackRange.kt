@@ -166,16 +166,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        when (val result = tokenTable.add(_neg)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-        }
-
-        when (val result = tokenTable.add(_pos)) {
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = tokenTable.add(listOf(_neg, _pos))) {
             is Ok -> {}
 
             is Failed -> {
@@ -217,7 +209,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

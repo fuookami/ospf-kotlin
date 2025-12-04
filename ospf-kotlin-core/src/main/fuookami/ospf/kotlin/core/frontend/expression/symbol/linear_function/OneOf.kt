@@ -174,14 +174,12 @@ sealed class AbstractOneOfFunction(
         }
     }
 
-    override fun register(tokenTable: AbstractMutableTokenTable): Try {
-        u.filterNotNull().forEach {
-            when (val result = tokenTable.add(it)) {
-                is Ok -> {}
+    override fun register(tokenTable: AddableTokenCollection): Try {
+        when (val result = tokenTable.add(u.filterNotNull())) {
+            is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
+            is Failed -> {
+                return Failed(result.error)
             }
         }
 
@@ -235,7 +233,7 @@ sealed class AbstractOneOfFunction(
     }
 
     override fun register(
-        tokenTable: AbstractMutableTokenTable,
+        tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(tokenTable)

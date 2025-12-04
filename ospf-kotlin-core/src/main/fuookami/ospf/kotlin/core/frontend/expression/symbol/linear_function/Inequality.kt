@@ -19,7 +19,7 @@ internal fun LinearInequality.register(
     parentName: String,
     k: PctVariable1,
     flag: AbstractVariableItem<*, Binary>,
-    tokenTable: AbstractMutableTokenTable
+    tokenTable: AddableTokenCollection
 ): Try {
     return register(parentName, PctVariableView1(k), flag, tokenTable)
 }
@@ -51,7 +51,7 @@ internal fun LinearInequality.register(
     parentName: String,
     k: PctVariableView,
     flag: AbstractVariableItem<*, Binary>?,
-    tokenTable: AbstractMutableTokenTable
+    tokenTable: AddableTokenCollection
 ): Try {
     assert(k.size == 3)
 
