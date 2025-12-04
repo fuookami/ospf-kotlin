@@ -7,52 +7,55 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-private fun tokenIndexMap(tokens: Collection<Token>): BiMap<Token, Int> {
-    val ret = HashBiMap<Token, Int>()
-    for ((index, token) in tokens.toList().sortedBy { it.solverIndex }.withIndex()) {
-        ret[token] = index
-    }
-    return ret
-}
-
-sealed interface AbstractTokenList {
-    val tokens: Collection<Token>
-    val tokenIndexMap: BiMap<Token, Int>
-    val cachedSolution: Boolean get() = tokens.any { it.result != null }
+sealed class AbstractTokenList {
+    abstract val tokens: Collection<Token>
+    abstract val tokensInSolver: List<Token>
+    open val cachedSolution: Boolean get() = tokens.any { it.result != null }
 
     operator fun get(index: Int): Token {
-        return tokenIndexMap.inverse[index] ?: tokens.find { it.solverIndex == index }!!
+        return find(index)!!
     }
 
-    fun indexOf(token: Token): Int {
-        return tokenIndexMap[token] ?: token.solverIndex
-    }
+    private val cache = HashMap<Token, Int>()
 
-    fun indexOf(item: AbstractVariableItem<*, *>): Int? {
-        return find(item)?.let { indexOf(it) }
-    }
-
-    fun find(item: AbstractVariableItem<*, *>): Token?
-
-    fun find(index: Int): Token? {
-        return tokenIndexMap.inverse[index]
-    }
-
-    fun setSolution(solution: List<Flt64>) {
-        assert(solution.size >= tokens.size)
-        val tokenIndexMap = tokenIndexMap(tokens)
-        for (token in tokens) {
-            token._result = solution[tokenIndexMap[token]!!]
+    open fun indexOf(token: Token): Int? {
+        return if (tokensInSolver.isNotEmpty()) {
+            cache.getOrPut(token) {
+                tokensInSolver.indexOf(token)
+            }
+        } else {
+            null
         }
     }
 
-    fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+    open fun indexOf(item: AbstractVariableItem<*, *>): Int? {
+        return find(item)?.let { indexOf(it) }
+    }
+
+    abstract fun find(item: AbstractVariableItem<*, *>): Token?
+
+    fun find(index: Int): Token? {
+        return if (tokensInSolver.isNotEmpty() && index in tokensInSolver.indices) {
+            tokensInSolver[index]
+        } else {
+            tokens.find { it.solverIndex == index }
+        }
+    }
+
+    open fun setSolution(solution: List<Flt64>) {
+        assert(solution.size >= tokens.size)
+        for ((index, token) in tokensInSolver.withIndex()) {
+            token._result = solution[index]
+        }
+    }
+
+    open fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         for ((variable, value) in solution) {
             find(variable)?._result = value
         }
     }
 
-    fun clearSolution() {
+    open fun clearSolution() {
         for (token in tokens) {
             token._result = null
         }
@@ -62,7 +65,7 @@ sealed interface AbstractTokenList {
 @OptIn(ExperimentalStdlibApi::class)
 class TokenList(
     val list: Map<VariableItemKey, Token>
-) : AbstractTokenList, AutoCloseable {
+) : AbstractTokenList(), AutoCloseable {
     constructor(tokens: MutableTokenList) : this(tokens.list.toMap())
 
     init {
@@ -79,8 +82,8 @@ class TokenList(
 
     private val lock = Any()
 
-    override val tokenIndexMap: BiMap<Token, Int> by lazy {
-        tokenIndexMap(tokens)
+    override val tokensInSolver: List<Token> by lazy {
+        tokens.sortedBy { it.solverIndex }
     }
     private var _cachedSolution: Boolean? = null
     override val cachedSolution: Boolean
@@ -99,10 +102,9 @@ class TokenList(
 
     override fun setSolution(solution: List<Flt64>) {
         synchronized(lock) {
-            assert(solution.size >= tokens.size)
-            val tokenIndexMap = tokenIndexMap(tokens)
-            for (token in tokens) {
-                token.__result = solution[tokenIndexMap[token]!!]
+            assert(solution.size >= tokensInSolver.size)
+            for ((index, token) in tokensInSolver.withIndex()) {
+                token.__result = solution[index]
             }
             _cachedSolution = tokens.any { it.result != null }
         }
@@ -138,26 +140,26 @@ interface AddableTokenCollection {
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
 }
 
-interface AbstractMutableTokenList : AbstractTokenList, AddableTokenCollection {
-    fun remove(item: AbstractVariableItem<*, *>)
+abstract class AbstractMutableTokenList : AbstractTokenList(), AddableTokenCollection {
+    abstract fun remove(item: AbstractVariableItem<*, *>)
 }
 
 sealed class MutableTokenList(
     internal val list: MutableMap<VariableItemKey, Token> = HashMap(),
     protected val checkTokenExisted: Boolean = System.getProperty("env", "prod") != "prod",
     protected var currentIndex: Int = 0
-) : AbstractMutableTokenList, Copyable<MutableTokenList>, AutoCloseable {
+) : AbstractMutableTokenList(), Copyable<MutableTokenList>, AutoCloseable {
     override val tokens by list::values
 
     protected val lock = Any()
 
-    private lateinit var _tokenIndexMap: BiMap<Token, Int>
-    override val tokenIndexMap: BiMap<Token, Int>
+    private lateinit var _tokensInSolver: List<Token>
+    override val tokensInSolver: List<Token>
         get() {
-            if (!::_tokenIndexMap.isInitialized || _tokenIndexMap.isEmpty()) {
-                _tokenIndexMap = tokenIndexMap(tokens)
+            if (!::_tokensInSolver.isInitialized || _tokensInSolver.isEmpty()) {
+                _tokensInSolver = tokens.sortedBy { it.solverIndex }
             }
-            return _tokenIndexMap
+            return _tokensInSolver
         }
     protected var _cachedSolution: Boolean? = null
     override val cachedSolution: Boolean
@@ -200,7 +202,7 @@ sealed class MutableTokenList(
 
     override fun remove(item: AbstractVariableItem<*, *>) {
         synchronized(lock) {
-            _tokenIndexMap = HashBiMap()
+            _tokensInSolver = ArrayList()
             val removedToken = list.remove(item.key)
             if (removedToken?.result != null) {
                 _cachedSolution = tokens.any { it.result != null }
@@ -210,10 +212,9 @@ sealed class MutableTokenList(
 
     override fun setSolution(solution: List<Flt64>) {
         synchronized(lock) {
-            assert(solution.size >= tokens.size)
-            val tokenIndexMap = tokenIndexMap(tokens)
-            for (token in tokens) {
-                token.__result = solution[tokenIndexMap[token]!!]
+            assert(solution.size >= tokensInSolver.size)
+            for ((index, token) in tokensInSolver.withIndex()) {
+                token.__result = solution[index]
                 _cachedSolution = tokens.any { it.result != null }
             }
         }

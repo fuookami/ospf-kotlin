@@ -24,7 +24,7 @@ sealed interface AbstractTokenTable {
     val category: Category
     val tokenList: AbstractTokenList
     val tokens: Collection<Token> get() = tokenList.tokens
-    val tokenIndexMap: BiMap<Token, Int> get() = tokenList.tokenIndexMap
+    val tokensInSolver: List<Token> get() = tokenList.tokensInSolver
     val symbols: Collection<IntermediateSymbol>
     val cachedSolution: Boolean get() = tokenList.cachedSolution
 
@@ -37,28 +37,25 @@ sealed interface AbstractTokenTable {
     }
 
     operator fun get(index: Int): Token {
-        return tokenIndexMap.inverse[index] ?: tokenList.tokens.find { it.solverIndex == index }!!
+        return tokenList[index]
     }
 
-    fun indexOf(token: Token): Int {
-        return tokenIndexMap[token] ?: token.solverIndex
+    fun indexOf(token: Token): Int? {
+        return tokenList.indexOf(token)
     }
 
     fun indexOf(item: AbstractVariableItem<*, *>): Int? {
         return find(item)?.let { indexOf(it) }
     }
 
-    fun tokenIndexMapWithout(items: Set<AbstractVariableItem<*, *>>): BiMap<Token, Int> {
-        var i = 0
-        val thisTokenIndexMap = HashBiMap<Token, Int>()
-        for (j in 0 until tokenIndexMap.size) {
-            val token = tokenIndexMap.inverse[j]!!
+    fun tokensInSolverWithout(items: Set<AbstractVariableItem<*, *>>): List<Token> {
+        val tokensInSolver = ArrayList<Token>()
+        for (token in this.tokensInSolver) {
             if (token.variable !in items) {
-                thisTokenIndexMap[token] = i
-                i += 1
+                tokensInSolver.add(token)
             }
         }
-        return thisTokenIndexMap
+        return tokensInSolver
     }
 
     fun setSolution(solution: List<Flt64>) {

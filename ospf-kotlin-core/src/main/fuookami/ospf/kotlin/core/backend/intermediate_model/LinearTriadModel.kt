@@ -276,7 +276,7 @@ interface LinearTriadModelView: ModelView<LinearConstraintCell, LinearObjectiveC
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
-    val tokenIndexMap: BiMap<Token, Int>,
+    val tokensInSolver: List<Token>,
     override val objective: LinearObjective,
     internal val dualOrigin: LinearTriadModelView? = null
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
@@ -289,11 +289,12 @@ data class LinearTriadModel(
             concurrent: Boolean? = null
         ): LinearTriadModel {
             logger.trace("Creating LinearTriadModel for $model")
-            val tokenIndexMap = if (fixedVariables.isNullOrEmpty()) {
-                model.tokens.tokenIndexMap
+            val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
+                model.tokens.tokensInSolver
             } else {
-                model.tokens.tokenIndexMapWithout(fixedVariables.keys)
+                model.tokens.tokensInSolverWithout(fixedVariables.keys)
             }
+            val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
@@ -312,7 +313,7 @@ data class LinearTriadModel(
                             constraints = constraintPromise.await(),
                             name = model.name
                         ),
-                        tokenIndexMap = tokenIndexMap,
+                        tokensInSolver = tokensInSolver,
                         objective = objectivePromise.await()
                     )
                 }
@@ -323,7 +324,7 @@ data class LinearTriadModel(
                         constraints = dumpConstraints(model, tokenIndexMap, fixedVariables),
                         name = model.name
                     ),
-                    tokenIndexMap = tokenIndexMap,
+                    tokensInSolver = tokensInSolver,
                     objective = dumpObjectives(model, tokenIndexMap, fixedVariables)
                 )
             }
@@ -335,7 +336,7 @@ data class LinearTriadModel(
 
         private fun dumpVariables(
             model: LinearMechanismModel,
-            tokenIndexMap: BiMap<Token, Int>
+            tokenIndexMap: Map<Token, Int>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexMap) {
@@ -395,7 +396,7 @@ data class LinearTriadModel(
 
         private fun dumpConstraints(
             model: LinearMechanismModel,
-            tokenIndexes: BiMap<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
             val notBoundConstraints = model.constraints.filter {
@@ -450,7 +451,7 @@ data class LinearTriadModel(
 
         private suspend fun dumpConstraintsAsync(
             model: LinearMechanismModel,
-            tokenIndexes: BiMap<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
             val notBoundConstraints = model.constraints.filter {
@@ -568,7 +569,7 @@ data class LinearTriadModel(
 
         private fun dumpObjectives(
             model: LinearMechanismModel,
-            tokenIndexes: BiMap<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearObjective {
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
@@ -627,7 +628,7 @@ data class LinearTriadModel(
     override val name: String by impl::name
     override val dual get() = dualOrigin != null
 
-    override fun copy() = LinearTriadModel(impl.copy(), tokenIndexMap, objective.copy())
+    override fun copy() = LinearTriadModel(impl.copy(), tokensInSolver, objective.copy())
     override fun clone() = copy()
 
     override fun linearRelax(): LinearTriadModel {
@@ -636,7 +637,7 @@ data class LinearTriadModel(
     }
 
     override fun linearRelaxed(): LinearTriadModel {
-        return LinearTriadModel(impl.linearRelaxed(), tokenIndexMap, objective.copy())
+        return LinearTriadModel(impl.linearRelaxed(), tokensInSolver, objective.copy())
     }
 
     suspend fun dual(): LinearTriadModel {
@@ -910,7 +911,7 @@ data class LinearTriadModel(
                 constraints = LinearConstraint(lhs, signs, rhs, names, sources),
                 name = "$name-dual"
             ),
-            tokenIndexMap = tokenIndexMap,
+            tokensInSolver = tokensInSolver,
             objective = LinearObjective(this.objective.category.reverse, objective),
             dualOrigin = this
         )
@@ -1221,7 +1222,7 @@ data class LinearTriadModel(
                 constraints = LinearConstraint(lhs, signs, rhs, names, sources),
                 name = "$name-farkas-dual"
             ),
-            tokenIndexMap = tokenIndexMap,
+            tokensInSolver = tokensInSolver,
             objective = LinearObjective(ObjectCategory.Minimum, objective),
             dualOrigin = this
         )
@@ -1378,7 +1379,7 @@ data class LinearTriadModel(
                 constraints = constraints,
                 name = "$name-feasibility"
             ),
-            tokenIndexMap = tokenIndexMap,
+            tokensInSolver = tokensInSolver,
             objective = LinearObjective(ObjectCategory.Minimum, objective)
         )
     }
@@ -1911,7 +1912,7 @@ data class LinearTriadModel(
                 constraints = constraints,
                 name = "$name-elastic"
             ),
-            tokenIndexMap = tokenIndexMap,
+            tokensInSolver = tokensInSolver,
             objective = LinearObjective(ObjectCategory.Minimum, objective)
         )
     }

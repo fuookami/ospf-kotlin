@@ -142,7 +142,7 @@ class MindOPTLinearBendersDecompositionSolver(
 
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
-                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
+                metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 jobs.joinAll()
@@ -333,7 +333,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
 
         return when (val result = solver(model, solvingStatusCallBack)) {
             is Ok -> {
-                metaModel.tokens.setSolution(model.tokenIndexMap.map { (token, index) ->
+                metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                     token.variable to result.value.solution[index]
                 }.toMap() + fixedVariables)
                 jobs.joinAll()

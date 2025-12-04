@@ -20,10 +20,10 @@ sealed class SubObject(
         return ret
     }
 
-    fun evaluate(results: Solution): Flt64 {
+    fun evaluate(results: Solution): Flt64? {
         var ret = constant
         for (cell in cells) {
-            ret += cell.evaluate(results)
+            ret += cell.evaluate(results) ?: return null
         }
         return ret
     }

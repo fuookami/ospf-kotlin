@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 
 sealed interface Cell {
     fun evaluate(): Flt64?
-    fun evaluate(solution: List<Flt64>): Flt64
+    fun evaluate(solution: List<Flt64>): Flt64?
     fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64?
 }
 
@@ -18,8 +18,10 @@ class LinearCell(
         return token.result?.let { coefficient * it }
     }
 
-    override fun evaluate(solution: List<Flt64>): Flt64 {
-        return coefficient * solution[tokenTable.tokenIndexMap[token]!!]
+    override fun evaluate(solution: List<Flt64>): Flt64? {
+        return tokenTable.indexOf(token)?.let {
+            coefficient * solution[it]
+        }
     }
 
     override fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64? {
@@ -49,11 +51,17 @@ class QuadraticCell(
         }
     }
 
-    override fun evaluate(solution: List<Flt64>): Flt64 {
+    override fun evaluate(solution: List<Flt64>): Flt64? {
         return if (token2 == null) {
-            coefficient * solution[tokenTable.tokenIndexMap[token1]!!]
+            tokenTable.indexOf(token1)?.let {
+                coefficient * solution[it]
+            }
         } else {
-            coefficient * solution[tokenTable.tokenIndexMap[token1]!!] * solution[tokenTable.tokenIndexMap[token2]!!]
+            tokenTable.indexOf(token1)?.let { index1 ->
+                tokenTable.indexOf(token2)?.let { index2 ->
+                    coefficient * solution[index1] * solution[index2]
+                }
+            }
         }
     }
 

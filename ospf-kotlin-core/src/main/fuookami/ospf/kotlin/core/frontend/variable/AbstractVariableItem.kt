@@ -12,18 +12,6 @@ data class VariableItemKey(
     val identifier: UInt64,
     val index: Int
 ) : Ord<VariableItemKey> {
-    companion object {
-        private fun reverseBit(v: UInt64): Int {
-            var value = v.toInt32().value
-            value = value and -0x55555556 shr 1 or (value and 0x55555555 shl 1)
-            value = value and -0x33333334 shr 2 or (value and 0x33333333 shl 2)
-            value = value and -0xf0f0f10 shr 4 or (value and 0x0F0F0F0F shl 4)
-            value = value and -0xff0100 shr 8 or (value and 0x00FF00FF shl 8)
-            value = value and -0x10000 shr 16 or (value and 0x0000FFFF shl 16)
-            return value
-        }
-    }
-
     override fun partialOrd(rhs: VariableItemKey): Order {
         return if (this.identifier < rhs.identifier) {
             Order.Less()
@@ -35,7 +23,7 @@ data class VariableItemKey(
     }
 
     override fun hashCode(): Int {
-        return reverseBit(identifier) or index
+        return identifier.toInt() * 31 + index
     }
 
     override fun equals(other: Any?): Boolean {
