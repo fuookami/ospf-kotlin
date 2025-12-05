@@ -43,7 +43,7 @@ typealias BinaryzationFunctionImplBuilder = (BinaryzationFunctionImplBuilderPara
 abstract class AbstractBinaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
     protected val self: BinaryzationFunction,
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
     override val discrete = true
@@ -952,7 +952,7 @@ class BinaryzationFunction(
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     companion object {
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
 

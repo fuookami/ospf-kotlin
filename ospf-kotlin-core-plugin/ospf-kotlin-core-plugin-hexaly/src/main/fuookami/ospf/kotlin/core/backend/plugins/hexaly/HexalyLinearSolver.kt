@@ -71,6 +71,7 @@ private class HexalyLinearSolverImpl(
     private lateinit var hexalyObjective: HxExpression
     private lateinit var output: FeasibleSolverOutput
 
+    private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
@@ -232,8 +233,16 @@ private class HexalyLinearSolverImpl(
                         val currentBound = Flt64(currentSolution.getDoubleObjectiveBound(0))
                         val currentTime = Clock.System.now() - beginTime!!
 
+                        if (initialBestObj == null) {
+                            initialBestObj = currentObj
+                        }
+
                         if (config.notImprovementTime != null) {
-                            if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
+                            if (bestObj == null
+                                || bestBound == null
+                                || (currentObj - bestObj!!).abs() leq config.improveThreshold
+                                || (currentBound - bestBound!!).abs() leq config.improveThreshold
+                            ) {
                                 bestObj = currentObj
                                 bestBound = currentBound
                                 bestTime = currentTime
@@ -247,8 +256,22 @@ private class HexalyLinearSolverImpl(
                                 SolvingStatus(
                                     solver = "hexaly",
                                     time = currentTime,
+                                    objectCategory = when (hexalyModel.getObjectiveDirection(0)) {
+                                        HxObjectiveDirection.Minimize -> {
+                                            ObjectCategory.Minimum
+                                        }
+
+                                        HxObjectiveDirection.Maximize -> {
+                                            ObjectCategory.Maximum
+                                        }
+
+                                        else -> {
+                                            null
+                                        }
+                                    },
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
+                                    initialBestObj = initialBestObj ?: currentObj,
                                     gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
                                 )
                             )) {

@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Solution
 
 data object TaskSolutionAnalyzer {
     operator fun <
@@ -18,19 +20,28 @@ data object TaskSolutionAnalyzer {
         tasks: List<T>,
         bunches: List<List<B>>,
         compilation: BunchCompilation<B, T, E, A>,
-        model: AbstractLinearMetaModel
-    ): Ret<Solution<T, E, A>> {
+        model: AbstractLinearMetaModel,
+        solution: Solution? = null
+    ): Ret<TaskSolution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
-        val canceledTask = ArrayList<T>()
-        for (token in model.tokens.tokens) {
-            for ((i, xi) in compilation.x.withIndex()) {
-                if (UInt64(i.toULong()) >= iteration) {
-                    break
-                }
+        val canceledTasks = ArrayList<T>()
 
-                if (token.belongsTo(xi) && token.result?.let { (it - Flt64.one) leq Flt64(1e-5) } == true) {
-                    val assignedBunch = bunches[i][token.variable.vectorView[0]]
-                    for (task in assignedBunch.tasks) {
+        for ((i, xi) in compilation.x.withIndex()) {
+            if (UInt64(i.toULong()) > iteration) {
+                break
+            }
+
+            for (x in xi) {
+                val token = model.tokens.find(x) ?: continue
+                val result = if (token.result != null) {
+                    token.result!!
+                } else {
+                    val index = model.tokens.indexOf(token) ?: continue
+                    solution?.get(index) ?: continue
+                }.round().toUInt64()
+                if (result eq UInt64.one) {
+                    val bunch = bunches[i].findOrGet(x.index)
+                    for (task in bunch.tasks) {
                         when (val policy = task.assignmentPolicy) {
                             null -> {}
 
@@ -43,12 +54,21 @@ data object TaskSolutionAnalyzer {
                     }
                 }
             }
+        }
 
-            if (token.belongsTo(compilation.y) && token.result?.let { (it - Flt64.one) leq Flt64(1e-5) } == true) {
-                canceledTask.add(tasks[token.variable.vectorView[0]])
+        for (y in compilation.y) {
+            val token = model.tokens.find(y) ?: continue
+            val result = if (token.result != null) {
+                token.result!!
+            } else {
+                val index = model.tokens.indexOf(token) ?: continue
+                solution?.get(index) ?: continue
+            }.round().toUInt64()
+            if (result eq UInt64.one) {
+                canceledTasks.add(tasks.findOrGet(y.index))
             }
         }
 
-        return Ok(Solution(assignedTasks, canceledTask))
+        return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 }

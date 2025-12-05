@@ -18,9 +18,9 @@ fun <
     T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
-> Solution.Companion.invoke(
+> TaskSolution.Companion.invoke(
     bunchSolution: BunchSolution<B, T, E, A>
-): Solution<T, E, A> {
+): TaskSolution<T, E, A> {
     val assignedTasks = ArrayList<T>()
     for (bunch in bunchSolution.bunches) {
         for (task in bunch.tasks) {
@@ -35,5 +35,5 @@ fun <
             }
         }
     }
-    return Solution(assignedTasks, bunchSolution.canceledTasks)
+    return TaskSolution(assignedTasks, bunchSolution.canceledTasks)
 }
