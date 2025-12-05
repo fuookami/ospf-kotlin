@@ -19,7 +19,7 @@ class CeilingFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String = "ceil_${x}_${d}",
     override var displayName: String? = "⌈$x/$d⌉"
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     companion object {

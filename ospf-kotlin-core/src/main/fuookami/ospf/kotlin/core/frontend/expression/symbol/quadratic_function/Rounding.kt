@@ -19,7 +19,7 @@ class RoundingFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String = "round_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌉"
-) : QuadraticFunctionSymbol {
+) : QuadraticFunctionSymbol() {
     private val logger = logger()
 
     companion object {

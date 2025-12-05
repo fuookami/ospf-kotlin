@@ -15,7 +15,7 @@ class SigmoidFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_sigmoid",
     override var displayName: String? = "Sigmoid($x)"
-) : QuadraticFunctionSymbol {
+) : QuadraticFunctionSymbol() {
     companion object {
         enum class Precision {
             Full,

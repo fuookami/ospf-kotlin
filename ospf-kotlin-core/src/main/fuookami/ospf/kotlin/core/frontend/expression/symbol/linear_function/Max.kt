@@ -20,7 +20,7 @@ sealed class AbstractMaxFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val minmax: RealVar by lazy {
         RealVar("${name}_y")
     }

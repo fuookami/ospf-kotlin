@@ -42,7 +42,7 @@ typealias BinaryzationFunctionImplBuilder = (BinaryzationFunctionImplBuilderPara
 abstract class AbstractBinaryzationFunctionImpl(
     protected val x: AbstractQuadraticPolynomial<*>,
     protected val self: BinaryzationFunction
-) : QuadraticLogicFunctionSymbol {
+) : QuadraticLogicFunctionSymbol() {
     protected abstract val polyY: AbstractQuadraticPolynomial<*>
 
     override val discrete = true
@@ -497,7 +497,7 @@ class BinaryzationFunction(
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticLogicFunctionSymbol {
+) : QuadraticLogicFunctionSymbol() {
     companion object {
         operator fun <
             T : ToQuadraticPolynomial<Poly>,

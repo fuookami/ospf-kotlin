@@ -19,7 +19,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     open val amount: ValueRange<UInt64>? = null
@@ -513,7 +513,7 @@ open class AnyFunction(
     parent = parent,
     name = name,
     displayName = displayName
-), LinearLogicFunctionSymbol {
+), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
@@ -585,7 +585,7 @@ class NotAllFunction(
     parent = parent,
     name = name,
     displayName = displayName
-), LinearLogicFunctionSymbol {
+), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
@@ -624,7 +624,7 @@ class AllFunction(
     parent = parent,
     name = name,
     displayName = displayName
-), LinearLogicFunctionSymbol {
+), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
@@ -695,7 +695,7 @@ class AtLeastInequalityFunction(
     parent = parent,
     name = name,
     displayName = displayName
-), LinearLogicFunctionSymbol {
+), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
@@ -749,7 +749,7 @@ class NumerableFunction(
     parent = parent,
     name = name,
     displayName = displayName
-), LinearLogicFunctionSymbol {
+), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,

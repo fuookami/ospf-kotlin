@@ -40,7 +40,7 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     protected val amount: UInt64? = null,
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     protected val self: AbstractSatisfiedAmountPolynomialFunction
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
     override val discrete = true
@@ -792,7 +792,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
     impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     open val amount: UInt64? = null
 
     private val impl: AbstractSatisfiedAmountPolynomialFunctionImpl by lazy {
@@ -1013,7 +1013,7 @@ class AtLeastPolynomialFunction(
     impl = impl,
     name = name,
     displayName = displayName
-), LinearLogicFunctionSymbol {
+), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,

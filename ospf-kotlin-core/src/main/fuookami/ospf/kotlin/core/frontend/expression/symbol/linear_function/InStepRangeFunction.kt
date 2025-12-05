@@ -17,7 +17,7 @@ class InStepRange(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     companion object {
         operator fun <
             T1 : ToLinearPolynomial<Poly1>,

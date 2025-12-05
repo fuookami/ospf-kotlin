@@ -46,7 +46,7 @@ typealias BalanceTernaryzationFunctionImplBuilder = (BalanceTernaryzationFunctio
 abstract class AbstractBalanceTernaryzationFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
     protected val self: BalanceTernaryzationFunction
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
     override val discrete = true
@@ -1144,7 +1144,7 @@ class BalanceTernaryzationFunction(
     impl: BalanceTernaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     companion object {
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
 

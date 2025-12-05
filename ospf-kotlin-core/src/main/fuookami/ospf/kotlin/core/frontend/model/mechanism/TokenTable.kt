@@ -110,6 +110,28 @@ sealed interface AbstractTokenTable {
         }
     }
 
+    fun cacheIfNotCached(symbol: IntermediateSymbol, solution: List<Flt64>? = null, value: () -> Flt64?): Flt64? {
+        var cachedValue = this.cachedValue(symbol, solution)
+        if (cachedValue == null) {
+            value()?.let {
+                cachedValue = it
+                cache(symbol, solution, it)
+            }
+        }
+        return cachedValue
+    }
+
+    fun cacheIfNotCached(symbol: IntermediateSymbol, fixedValues: Map<Symbol, Flt64>, value: () -> Flt64?): Flt64? {
+        var cachedValue = this.cachedValue(symbol, fixedValues)
+        if (cachedValue == null) {
+            value()?.let {
+                cachedValue = it
+                cache(symbol, fixedValues, it)
+            }
+        }
+        return cachedValue
+    }
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>? = null) {
@@ -176,8 +198,8 @@ data class TokenTable(
 
     override val tokens by tokenList::tokens
 
-    private val cachedSymbolValue1: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
-    private val cachedSymbolValue2: MutableMap<Pair<IntermediateSymbol, Map<Symbol, Flt64>>, Flt64?> = HashMap()
+    private val cachedSymbolValue1: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64> = HashMap()
+    private val cachedSymbolValue2: MutableMap<Pair<IntermediateSymbol, Map<Symbol, Flt64>>, Flt64> = HashMap()
 
     override fun flush() {
         cachedSymbolValue1.clear()
@@ -480,8 +502,8 @@ data class ConcurrentTokenTable(
     override val tokens by tokenList::tokens
 
     private val lock = Any()
-    private val cachedSymbolValue1: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64?> = HashMap()
-    private val cachedSymbolValue2: MutableMap<Pair<IntermediateSymbol, Map<Symbol, Flt64>>, Flt64?> = HashMap()
+    private val cachedSymbolValue1: MutableMap<Pair<IntermediateSymbol, List<Flt64>?>, Flt64> = HashMap()
+    private val cachedSymbolValue2: MutableMap<Pair<IntermediateSymbol, Map<Symbol, Flt64>>, Flt64> = HashMap()
 
     override fun flush() {
         synchronized(lock) {
@@ -525,6 +547,32 @@ data class ConcurrentTokenTable(
         return synchronized(lock) {
             cachedSymbolValue2[symbol to fixedValues] = value
             value
+        }
+    }
+
+    override fun cacheIfNotCached(symbol: IntermediateSymbol, solution: List<Flt64>?, value: () -> Flt64?): Flt64? {
+        return synchronized(lock) {
+            var cachedValue = cachedSymbolValue1[symbol to solution]
+            if (cachedValue == null) {
+                value()?.let {
+                    cachedValue = it
+                    cachedSymbolValue1[symbol to solution] = it
+                }
+            }
+            cachedValue
+        }
+    }
+
+    override fun cacheIfNotCached(symbol: IntermediateSymbol, fixedValues: Map<Symbol, Flt64>, value: () -> Flt64?): Flt64? {
+        return synchronized(lock) {
+            var cachedValue = cachedSymbolValue2[symbol to fixedValues]
+            if (cachedValue == null) {
+                value()?.let {
+                    cachedValue = it
+                    cachedSymbolValue2[symbol to fixedValues] = it
+                }
+            }
+            cachedValue
         }
     }
 
@@ -795,6 +843,32 @@ sealed class ConcurrentMutableTokenTable(
                     Pair(symbol, fixedValues) to it
                 }
             })
+        }
+    }
+
+    override fun cacheIfNotCached(symbol: IntermediateSymbol, solution: List<Flt64>?, value: () -> Flt64?): Flt64? {
+        return synchronized(lock) {
+            var cachedValue = cachedSymbolValue1[symbol to solution]
+            if (cachedValue == null) {
+                value()?.let {
+                    cachedValue = it
+                    cachedSymbolValue1[symbol to solution] = it
+                }
+            }
+            cachedValue
+        }
+    }
+
+    override fun cacheIfNotCached(symbol: IntermediateSymbol, fixedValues: Map<Symbol, Flt64>, value: () -> Flt64?): Flt64? {
+        return synchronized(lock) {
+            var cachedValue = cachedSymbolValue2[symbol to fixedValues]
+            if (cachedValue == null) {
+                value()?.let {
+                    cachedValue = it
+                    cachedSymbolValue2[symbol to fixedValues] = it
+                }
+            }
+            cachedValue
         }
     }
 }

@@ -39,7 +39,7 @@ typealias AndFunctionImplBuilder = (AndFunctionImplBuilderParams) -> AbstractAnd
 abstract class AbstractAndFunctionImpl(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     protected val self: AndFunction
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
     override val discrete = true
@@ -667,7 +667,7 @@ class AndFunction(
     impl: AndFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,

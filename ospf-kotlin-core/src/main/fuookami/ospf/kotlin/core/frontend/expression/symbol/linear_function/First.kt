@@ -18,7 +18,7 @@ class FirstFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     companion object {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
