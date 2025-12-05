@@ -2,12 +2,13 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Solution
 
 interface BunchCompilationContext<
     Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -162,17 +163,19 @@ interface BunchCompilationContext<
     fun analyzeTaskSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: AbstractLinearMetaModel
-    ): Ret<Solution<T, E, A>> {
-        return TaskSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
+        model: AbstractLinearMetaModel,
+        solution: Solution? = null
+    ): Ret<TaskSolution<T, E, A>> {
+        return TaskSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model, solution)
     }
 
     fun analyzeBunchSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel,
+        solution: Solution? = null
     ): Ret<BunchSolution<B, T, E, A>> {
-        return BunchSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model)
+        return BunchSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model, solution)
     }
 }
 

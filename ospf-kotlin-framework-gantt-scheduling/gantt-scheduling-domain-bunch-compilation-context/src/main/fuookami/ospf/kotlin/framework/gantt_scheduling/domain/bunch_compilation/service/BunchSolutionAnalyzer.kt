@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
@@ -18,24 +19,41 @@ data object BunchSolutionAnalyzer {
         tasks: List<T>,
         bunches: List<List<B>>,
         compilation: BunchCompilation<B, T, E, A>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel,
+        solution: Solution? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         val assignedBunches = ArrayList<B>()
         val canceledTasks = ArrayList<T>()
-        for (token in model.tokens.tokens) {
-            for ((i, xi) in compilation.x.withIndex()) {
-                if (UInt64(i.toULong()) > iteration) {
-                    break
-                }
 
-                if (token.belongsTo(xi) && token.result?.let { abs(it - Flt64.one) leq Flt64(1e-5) } == true) {
-                    val assignedBunch = bunches[i][token.variable.vectorView[0]]
-                    assignedBunches.add(assignedBunch)
-                }
+        for ((i, xi) in compilation.x.withIndex()) {
+            if (UInt64(i.toULong()) > iteration) {
+                break
             }
 
-            if (token.belongsTo(compilation.y) && token.result?.let { abs(it - Flt64.one) leq Flt64(1e-5) } == true) {
-                canceledTasks.add(tasks[token.variable.vectorView[0]])
+            for (x in xi) {
+                val token = model.tokens.find(x) ?: continue
+                val result = if (token.result != null) {
+                    token.result!!
+                } else {
+                    val index = model.tokens.indexOf(token) ?: continue
+                    solution?.get(index) ?: continue
+                }.round().toUInt64()
+                if (result eq UInt64.one) {
+                    assignedBunches.add(bunches[i].findOrGet(x.index))
+                }
+            }
+        }
+
+        for (y in compilation.y) {
+            val token = model.tokens.find(y) ?: continue
+            val result = if (token.result != null) {
+                token.result!!
+            } else {
+                val index = model.tokens.indexOf(token) ?: continue
+                solution?.get(index) ?: continue
+            }.round().toUInt64()
+            if (result eq UInt64.one) {
+                canceledTasks.add(tasks.findOrGet(y.index))
             }
         }
 

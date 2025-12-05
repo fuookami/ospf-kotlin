@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -19,14 +21,22 @@ data object SolutionAnalyzer {
         executors: List<E>,
         compilation: TaskCompilation<T, E, A>,
         model: AbstractLinearMetaModel,
-        assignedPolicyGenerator: (executor: E?) -> A?
-    ): Ret<Solution<T, E, A>> {
+        assignedPolicyGenerator: (executor: E?) -> A?,
+        solution: Solution? = null,
+    ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
-        for (token in model.tokens.tokens) {
-            if (token.belongsTo(compilation.x) && token.result?.let { it eq Flt64.one } == true) {
-                val task = token.variable.vectorView[0]
-                val executor = token.variable.vectorView[1]
-                assignedExecutor[tasks.find { it.index == task }!!] = executors.find { it.index == executor }!!
+        for (x in compilation.x) {
+            val token = model.tokens.find(x) ?: continue
+            val result = if (token.result != null) {
+                token.result!!
+            } else {
+                val index = model.tokens.indexOf(token) ?: continue
+                solution?.get(index) ?: continue
+            }.round().toUInt64()
+            if (result geq UInt64.one) {
+                val task = tasks.findOrGet(x.vectorView[0])
+                val executor = executors.findOrGet(x.vectorView[1])
+                assignedExecutor[task] = executor
             }
         }
 
@@ -51,7 +61,7 @@ data object SolutionAnalyzer {
             }
         }
 
-        return Ok(Solution(assignedTasks, canceledTasks))
+        return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -67,33 +77,51 @@ data object SolutionAnalyzer {
         taskTime: TaskSchedulingTaskTime<T, E, A>,
         results: List<Flt64>,
         model: AbstractLinearMetaModel,
-        assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?
-    ): Ret<Solution<T, E, A>> {
+        assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
+        solution: Solution? = null,
+    ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
-        for (token in model.tokens.tokens) {
-            if (token.belongsTo(compilation.x) && token.result?.let { it eq Flt64.one } == true) {
-                val task = token.variable.vectorView[0]
-                val executor = token.variable.vectorView[1]
-                assignedExecutor[tasks.find { it.index == task }!!] = executors.find { it.index == executor }!!
+        for (x in compilation.x) {
+            val token = model.tokens.find(x) ?: continue
+            val result = if (token.result != null) {
+                token.result!!
+            } else {
+                val index = model.tokens.indexOf(token) ?: continue
+                solution?.get(index) ?: continue
+            }.round().toUInt64()
+            if (result geq UInt64.one) {
+                val task = tasks.findOrGet(x.vectorView[0])
+                val executor = executors.findOrGet(x.vectorView[1])
+                assignedExecutor[task] = executor
             }
         }
 
         val assignedEST = HashMap<AbstractTask<E, A>, Instant>()
-        for (token in model.tokens.tokens) {
-            if (token.belongsTo(taskTime.est)) {
-                val task = token.variable.vectorView[0]
-                assignedEST[tasks.find { it.index == task }!!] = with(timeWindow) { token.result!!.instant }
+        for (est in taskTime.est) {
+            val task = tasks.findOrGet(est.index)
+            if (!assignedExecutor.containsKey(task)) {
+                continue
             }
+
+            val token = model.tokens.find(est) ?: continue
+            val result = if (token.result != null) {
+                token.result!!
+            } else {
+                val index = model.tokens.indexOf(token) ?: continue
+                solution?.get(index) ?: continue
+            }
+            assignedEST[task] = timeWindow.instantOf(result)
         }
 
-        val assignedECT = tasks.associateWith { task ->
-            taskTime.estimateEndTime[task].evaluate(results, model.tokens)?.let { with(timeWindow) { it.instant } }
-                ?: Instant.DISTANT_FUTURE
+        val assignedECT = assignedExecutor.entries.associate { (task, _) ->
+            task to (taskTime.estimateEndTime[task].evaluate(results, model.tokens)?.let {
+                with(timeWindow) { it.instant }
+            } ?: Instant.DISTANT_FUTURE)
         }
 
-        val assignedTime = tasks.mapNotNull {
-            if (assignedEST.containsKey(it) && assignedECT.containsKey(it)) {
-                Pair(it, TimeRange(assignedEST[it]!!, assignedECT[it]!!))
+        val assignedTime = assignedExecutor.entries.mapNotNull { (task, _) ->
+            if (assignedEST.containsKey(task) && assignedECT.containsKey(task)) {
+                task to TimeRange(assignedEST[task]!!, assignedECT[task]!!)
             } else {
                 null
             }
@@ -120,7 +148,7 @@ data object SolutionAnalyzer {
             }
         }
 
-        return Ok(Solution(assignedTasks, canceledTasks))
+        return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -134,27 +162,46 @@ data object SolutionAnalyzer {
         originTasks: List<T>,
         tasks: List<List<IT>>,
         compilation: IterativeTaskCompilation<IT, T, E, A>,
-        model: AbstractLinearMetaModel
-    ): Ret<Solution<T, E, A>> {
+        model: AbstractLinearMetaModel,
+        solution: Solution? = null,
+    ): Ret<TaskSolution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTasks = ArrayList<T>()
-        for (token in model.tokens.tokens) {
-            for ((i, xi) in compilation.x.withIndex()) {
-                if (UInt64(i.toULong()) > iteration) {
-                    break
-                }
 
-                if (token.belongsTo(xi) && token.result?.let { it eq Flt64.one } == true) {
-                    val assignedTask = tasks[i][token.variable.vectorView[0]]
-                    assignedTasks.add(assignedTask as T)
-                }
+        for ((i, xi) in compilation.x.withIndex()) {
+            if (UInt64(i.toULong()) > iteration) {
+                break
             }
 
-            if (token.belongsTo(compilation.y) && token.result?.let { it eq Flt64.one } == true) {
-                canceledTasks.add(originTasks[token.variable.vectorView[0]])
+            for (x in xi) {
+                val token = model.tokens.find(x) ?: continue
+                val result = if (token.result != null) {
+                    token.result!!
+                } else {
+                    val index = model.tokens.indexOf(token) ?: continue
+                    solution?.get(index) ?: continue
+                }.round().toUInt64()
+                if (result geq UInt64.one) {
+                    val task = tasks[i].findOrGet(x.index)
+                    assignedTasks.add(task as T)
+                }
             }
         }
 
-        return Ok(Solution(assignedTasks, canceledTasks))
+        for (y in compilation.y) {
+            val token = model.tokens.find(y) ?: continue
+            val result = if (token.result != null) {
+                token.result!!
+            } else {
+                val index = model.tokens.indexOf(token) ?: continue
+                solution?.get(index) ?: continue
+            }.round().toUInt64()
+            if (result eq UInt64.one) {
+                val task = originTasks.findOrGet(y.index)
+                canceledTasks.add(task)
+            }
+        }
+
+        return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 }

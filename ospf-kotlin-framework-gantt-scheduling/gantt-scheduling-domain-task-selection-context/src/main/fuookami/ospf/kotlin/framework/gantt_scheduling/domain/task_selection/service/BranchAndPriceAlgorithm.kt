@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.solver.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Solution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_selection.model.*
 
 class BranchAndPriceAlgorithm<
@@ -79,13 +79,13 @@ class BranchAndPriceAlgorithm<
         return notFixedExecutorAmount(fixedTasks) * configuration.minimumColumnAmountPerExecutor
     }
 
-    suspend operator fun invoke(id: String): Ret<Solution<T, E, A>> {
+    suspend operator fun invoke(id: String): Ret<TaskSolution<T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
         try {
-            lateinit var bestSolution: Solution<T, E, A>
+            lateinit var bestSolution: TaskSolution<T, E, A>
             val model = LinearMetaModel(id)
             var iteration = Iteration<IT, E, A>()
             when (val result = register(model)) {
@@ -671,7 +671,7 @@ class BranchAndPriceAlgorithm<
     private fun analyzeSolution(
         iteration: UInt64,
         model: AbstractLinearMetaModel
-    ): Result<Solution<T, E, A>, Error> {
+    ): Result<TaskSolution<T, E, A>, Error> {
         return when (val result = context.analyzeSolution(iteration, tasks, model)) {
             is Ok -> {
                 Ok(result.value)
@@ -684,30 +684,34 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun logLPResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
-        when (val result = context.logResult(iteration, model)) {
-            is Ok -> {}
+        if (System.getProperty("env", "prod") != "prod") {
+            when (val result = context.logResult(iteration, model)) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
         }
         return ok
     }
 
     private fun logMILPResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
-        when (val result = logLPResults(iteration, model)) {
-            is Ok -> {}
+        if (System.getProperty("env", "prod") != "prod") {
+            when (val result = logLPResults(iteration, model)) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
-        }
 
-        when (val result = context.logTaskCost(iteration, model)) {
-            is Ok -> {}
+            when (val result = context.logTaskCost(iteration, model)) {
+                is Ok -> {}
 
-            is Failed -> {
-                return Failed(result.error)
+                is Failed -> {
+                    return Failed(result.error)
+                }
             }
         }
 

@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
-data class Solution<
+data class TaskSolution<
     out T : AbstractTask<E, A>,
     out E : Executor,
     out A : AssignmentPolicy<E>
