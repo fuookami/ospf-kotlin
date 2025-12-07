@@ -142,7 +142,7 @@ interface AbstractLinearSolver {
 
     suspend operator fun invoke(
         model: LinearMechanismModel,
-        solvingStatusCallBack: SolvingStatusCallBack? = null
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
     ): Ret<FeasibleSolverOutput> {
         val intermediateModel = dump(model)
         return this(intermediateModel, solvingStatusCallBack)
@@ -235,9 +235,10 @@ interface AbstractLinearSolver {
     suspend operator fun invoke(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -252,10 +253,11 @@ interface AbstractLinearSolver {
     suspend operator fun invoke(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -271,11 +273,12 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack)
             callBack?.invoke(result)
             return@future result
         }
@@ -285,12 +288,13 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: (Ret<SolverOutput>) -> Unit
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack, iisConfig)
             callBack(result)
             return@future result
         }
@@ -300,9 +304,10 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -318,10 +323,11 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -338,11 +344,12 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callback: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack)
             callback?.invoke(result)
             return@future result
         }
@@ -353,12 +360,13 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callback: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack, iisConfig)
             callback?.invoke(result)
             return@future result
         }
@@ -370,11 +378,13 @@ interface AbstractLinearSolver {
 
     suspend fun dump(
         model: LinearMetaModel,
-        registrationStatusCallBack: RegistrationStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<LinearMechanismModel> {
         return LinearMechanismModel(
             metaModel = model,
-            registrationStatusCallBack = registrationStatusCallBack
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
         )
     }
 }
@@ -388,13 +398,15 @@ interface LinearSolver : AbstractLinearSolver {
 
     override suspend fun dump(
         model: LinearMetaModel,
-        registrationStatusCallBack: RegistrationStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<LinearMechanismModel> {
         return LinearMechanismModel(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpIntermediateModelConcurrent,
-            registrationStatusCallBack = registrationStatusCallBack
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
         )
     }
 }

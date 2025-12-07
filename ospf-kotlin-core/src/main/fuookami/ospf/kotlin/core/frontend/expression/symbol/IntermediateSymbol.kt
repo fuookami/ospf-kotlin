@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.utils.multi_array.Shape
 
 internal fun Polynomial<*, *, *>.toTidyRawString(unfold: UInt64): String {
     return if (monomials.isEmpty()) {

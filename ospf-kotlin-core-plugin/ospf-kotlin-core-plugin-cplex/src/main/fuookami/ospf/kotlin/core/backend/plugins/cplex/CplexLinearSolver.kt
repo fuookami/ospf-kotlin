@@ -94,6 +94,7 @@ private class CplexLinearSolverImpl(
     private lateinit var cplexConstraints: List<IloRange>
     private lateinit var output: FeasibleSolverOutput
 
+    private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
@@ -260,6 +261,10 @@ private class CplexLinearSolverImpl(
                     val currentBound = Flt64(bestObjValue)
                     val currentTime = cplexTime.seconds
 
+                    if (initialBestObj == null) {
+                        initialBestObj = currentObj
+                    }
+
                     if (config.notImprovementTime != null) {
                         if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
                             bestObj = currentObj
@@ -275,8 +280,22 @@ private class CplexLinearSolverImpl(
                             SolvingStatus(
                                 solver = "cplex",
                                 time = currentTime,
+                                objectCategory = when (cplex.objective.sense) {
+                                    IloObjectiveSense.Minimize -> {
+                                        ObjectCategory.Minimum
+                                    }
+
+                                    IloObjectiveSense.Maximize -> {
+                                        ObjectCategory.Maximum
+                                    }
+
+                                    else -> {
+                                        null
+                                    }
+                                },
                                 obj = currentObj,
                                 possibleBestObj = currentBound,
+                                initialBestObj = initialBestObj ?: currentObj,
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
                             )
                         )) {
