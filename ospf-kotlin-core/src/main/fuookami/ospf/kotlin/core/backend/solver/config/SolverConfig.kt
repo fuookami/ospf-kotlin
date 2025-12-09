@@ -17,6 +17,7 @@ data class SolverConfig(
     },
     val gap: Flt64 = Flt64.zero,
     val notImprovementTime: Duration? = null,
+    val improveThreshold: Flt64 = Flt64.decimalPrecision,
     val dumpMechanismModelConcurrent: Boolean? = null,
     val dumpMechanismModelBlocking: Boolean? = null,
     val dumpIntermediateModelConcurrent: Boolean? = null,

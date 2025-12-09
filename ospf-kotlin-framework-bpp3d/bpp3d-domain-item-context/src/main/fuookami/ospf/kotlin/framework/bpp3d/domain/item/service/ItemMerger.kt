@@ -334,7 +334,7 @@ data object ItemMerger {
                             break
                         }
                         mergedItems.add(block)
-                        (UInt64.zero until maxAmount).forEach { _ -> list.removeLast() }
+                        (UInt64.zero until maxAmount).forEach { _ -> list.removeAt(list.lastIndex) }
                     }
                 } else {
                     break

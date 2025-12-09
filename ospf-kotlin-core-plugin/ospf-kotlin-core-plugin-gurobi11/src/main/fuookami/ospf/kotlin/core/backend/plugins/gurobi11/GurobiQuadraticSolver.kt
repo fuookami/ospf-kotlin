@@ -258,7 +258,11 @@ private class GurobiQuadraticSolverImpl(
                             }
 
                             if (config.notImprovementTime != null) {
-                                if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
+                                if (bestObj == null
+                                    || bestBound == null
+                                    || (currentObj - bestObj!!).abs() leq config.improveThreshold
+                                    || (currentBound - bestBound!!).abs() leq config.improveThreshold
+                                ) {
                                     bestObj = currentObj
                                     bestBound = currentBound
                                     bestTime = currentTime
