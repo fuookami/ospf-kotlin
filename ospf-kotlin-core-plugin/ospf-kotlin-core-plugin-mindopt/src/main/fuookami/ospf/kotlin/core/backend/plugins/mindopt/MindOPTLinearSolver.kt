@@ -83,6 +83,7 @@ private class MindOPTLinearSolverImpl(
     private lateinit var mindoptConstraints: List<MDOConstr>
     private lateinit var output: FeasibleSolverOutput
 
+    private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
@@ -233,7 +234,11 @@ private class MindOPTLinearSolverImpl(
                             val currentTime = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds
 
                             if (config.notImprovementTime != null) {
-                                if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
+                                if (bestObj == null
+                                    || bestBound == null
+                                    || (currentObj - bestObj!!).abs() leq config.improveThreshold
+                                    || (currentBound - bestBound!!).abs() leq config.improveThreshold
+                                ) {
                                     bestObj = currentObj
                                     bestBound = currentBound
                                     bestTime = currentTime
@@ -245,10 +250,24 @@ private class MindOPTLinearSolverImpl(
                             statusCallBack?.let {
                                 when (it(
                                     SolvingStatus(
-                                        solver = "gurobi",
+                                        solver = "mindopt",
                                         time = currentTime,
+                                        objectCategory = when (mindoptModel.get(MDO.IntAttr.ModelSense)) {
+                                            MDO.MINIMIZE -> {
+                                                ObjectCategory.Minimum
+                                            }
+
+                                            MDO.MAXIMIZE -> {
+                                                ObjectCategory.Maximum
+                                            }
+
+                                            else -> {
+                                                null
+                                            }
+                                        },
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
+                                        initialBestObj = initialBestObj ?: currentObj,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
                                     )
                                 )) {

@@ -19,7 +19,7 @@ class ModFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_mod_${d}",
     override var displayName: String? = "$x mod $d"
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     companion object {

@@ -405,7 +405,7 @@ data class QuadraticMonomialCell internal constructor(
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
                     val index = tokenList.indexOf(cell.value.variable1)
-                    if (index != null) {
+                    if (index != null && index != -1) {
                         results[index]
                     } else {
                         logger.trace { "Unknown index for ${cell.value.variable1}." }
@@ -858,7 +858,7 @@ data class QuadraticMonomialSymbol(
             return when (this) {
                 is Variant3.V1 -> {
                     val index = tokenList.indexOf(this.value)
-                    if (index != null) {
+                    if (index != null && index != -1) {
                         results[index]
                     } else {
                         logger.trace { "Unknown token for ${this.value}." }

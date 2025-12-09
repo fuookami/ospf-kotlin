@@ -20,7 +20,7 @@ sealed class AbstractMinFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticFunctionSymbol {
+) : QuadraticFunctionSymbol() {
     private val logger = logger()
 
     private val maxmin: RealVar by lazy {

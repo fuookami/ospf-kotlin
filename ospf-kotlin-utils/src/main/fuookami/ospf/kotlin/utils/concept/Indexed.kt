@@ -85,3 +85,7 @@ open class AutoIndexed internal constructor(
         mIndex = nextIndex(cls)
     }
 }
+
+fun <T : Indexed> List<T>.findOrGet(index: Int): T {
+    return find { it.index == index } ?: get(index)
+}

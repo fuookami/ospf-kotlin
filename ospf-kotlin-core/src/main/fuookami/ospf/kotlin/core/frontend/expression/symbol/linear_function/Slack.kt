@@ -25,7 +25,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     init {

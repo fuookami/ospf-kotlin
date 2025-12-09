@@ -263,7 +263,7 @@ data class LinearMonomialCell internal constructor(
         return when (cell) {
             is Either.Left -> {
                 val index = tokenList.indexOf(cell.value.variable)
-                if (index != null) {
+                if (index != null && index != -1) {
                     val result = results[index]
                     cell.value.coefficient * result
                 } else {
@@ -568,7 +568,7 @@ data class LinearMonomialSymbol(
         return when (symbol) {
             is Either.Left -> {
                 val index = tokenList.indexOf(symbol.value)
-                if (index != null) {
+                if (index != null && index != -1) {
                     results[index]
                 } else {
                     logger.trace { "Unknown result for ${symbol.value}" }

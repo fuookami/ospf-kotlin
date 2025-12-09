@@ -66,7 +66,8 @@ class LinearMechanismModel(
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            registrationStatusCallBack: RegistrationStatusCallBack? = null
+            registrationStatusCallBack: RegistrationStatusCallBack? = null,
+            dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
         ): Ret<LinearMechanismModel> {
             logger.info { "Creating LinearMechanismModel for $metaModel" }
 
@@ -85,11 +86,11 @@ class LinearMechanismModel(
             val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
                 if (blocking ?: metaModel.configuration.dumpBlocking) {
                     runBlocking {
-                        dumpAsync(metaModel, tokens, this)
+                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
                     }
                 } else {
                     coroutineScope {
-                        dumpAsync(metaModel, tokens, this)
+                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
                     }
                 }
             } else {
@@ -116,14 +117,31 @@ class LinearMechanismModel(
             System.gc()
 
             logger.trace { "Registering symbols for $metaModel" }
-            for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.let {
+            for ((i, symbol) in tokens.symbols.withIndex()) {
+                (symbol as? LinearFunctionSymbol)?.let { sym ->
                     if (fixedVariables.isNullOrEmpty()) {
-                        it.register(model)
+                        sym.register(model)
                     } else {
-                        it.register(model, fixedVariables as Map<Symbol, Flt64>)
+                        sym.register(model, fixedVariables.mapKeys { it.key as Symbol })
                     }
                 }
+
+                if (dumpingStatusCallBack != null && i % 100 == 0) {
+                    dumpingStatusCallBack(
+                        MechanismModelDumpingStatus.dumpingSymbols(
+                            ready = UInt64(i),
+                            model = metaModel
+                        )
+                    )
+                }
+            }
+            if (dumpingStatusCallBack != null) {
+                dumpingStatusCallBack(
+                    MechanismModelDumpingStatus.dumpingSymbols(
+                        ready = tokens.symbols.usize,
+                        model = metaModel
+                    )
+                )
             }
             logger.trace { "Symbols registered for $metaModel" }
 
@@ -135,10 +153,13 @@ class LinearMechanismModel(
         private suspend fun dumpAsync(
             metaModel: LinearMetaModel,
             tokens: AbstractTokenTable,
-            scope: CoroutineScope
+            scope: CoroutineScope,
+            callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModel {
             val factor1 = Flt64(metaModel._constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
             val constraints = if (factor1 >= 1) {
+                val thisCompletedConstraintAmountLock = Any()
+                var thisCompletedConstraintAmount = UInt64.zero
                 val segment = pow(UInt64.ten, factor1).toInt()
                 (0..(metaModel._constraints.size / segment)).map { i ->
                     scope.async(Dispatchers.Default) {
@@ -154,6 +175,17 @@ class LinearMechanismModel(
                             }
                         if (memoryUseOver()) {
                             System.gc()
+                        }
+                        if (callBack != null) {
+                            synchronized(thisCompletedConstraintAmountLock) {
+                                thisCompletedConstraintAmount += result.usize
+                                callBack(
+                                    MechanismModelDumpingStatus.dumpingConstrains(
+                                        ready = thisCompletedConstraintAmount,
+                                        model = metaModel
+                                    )
+                                )
+                            }
                         }
                         result
                     }
@@ -214,6 +246,15 @@ class LinearMechanismModel(
                         result
                     }
                 }
+            }
+
+            if (callBack != null) {
+                callBack(
+                    MechanismModelDumpingStatus.dumpingConstrains(
+                        ready = metaModel.constraints.usize,
+                        model = metaModel
+                    )
+                )
             }
 
             return LinearMechanismModel(
@@ -368,7 +409,8 @@ class QuadraticMechanismModel(
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            registrationStatusCallBack: RegistrationStatusCallBack? = null
+            registrationStatusCallBack: RegistrationStatusCallBack? = null,
+            dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
         ): Ret<QuadraticMechanismModel> {
             logger.info { "Creating QuadraticMechanismModel for $metaModel" }
 
@@ -387,11 +429,11 @@ class QuadraticMechanismModel(
             val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
                 if (blocking ?: metaModel.configuration.dumpBlocking) {
                     runBlocking {
-                        dumpAsync(metaModel, tokens, this)
+                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
                     }
                 } else {
                     coroutineScope {
-                        dumpAsync(metaModel, tokens, this)
+                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
                     }
                 }
             } else {
@@ -418,21 +460,38 @@ class QuadraticMechanismModel(
             System.gc()
 
             logger.trace { "Registering symbols for $metaModel" }
-            for (symbol in tokens.symbols) {
-                (symbol as? LinearFunctionSymbol)?.let {
+            for ((i, symbol) in tokens.symbols.withIndex()) {
+                (symbol as? LinearFunctionSymbol)?.let { sym ->
                     if (fixedVariables.isNullOrEmpty()) {
-                        it.register(model)
+                        sym.register(model)
                     } else {
-                        it.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        sym.register(model, fixedVariables.mapKeys { it.key as Symbol })
                     }
                 }
-                (symbol as? QuadraticFunctionSymbol)?.let {
+                (symbol as? QuadraticFunctionSymbol)?.let { sym ->
                     if (fixedVariables.isNullOrEmpty()) {
-                        it.register(model)
+                        sym.register(model)
                     } else {
-                        it.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        sym.register(model, fixedVariables.mapKeys { it.key as Symbol })
                     }
                 }
+
+                if (dumpingStatusCallBack != null && i % 100 == 0) {
+                    dumpingStatusCallBack(
+                        MechanismModelDumpingStatus.dumpingSymbols(
+                            ready = UInt64(i),
+                            model = metaModel
+                        )
+                    )
+                }
+            }
+            if (dumpingStatusCallBack != null) {
+                dumpingStatusCallBack(
+                    MechanismModelDumpingStatus.dumpingSymbols(
+                        ready = tokens.symbols.usize,
+                        model = metaModel
+                    )
+                )
             }
             logger.trace { "Symbols registered for $metaModel" }
 
@@ -444,10 +503,13 @@ class QuadraticMechanismModel(
         private suspend fun dumpAsync(
             metaModel: QuadraticMetaModel,
             tokens: AbstractTokenTable,
-            scope: CoroutineScope
+            scope: CoroutineScope,
+            callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModel {
             val factor1 = Flt64(metaModel._constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
             val constraints = if (factor1 >= 1) {
+                val thisCompletedConstraintAmountLock = Any()
+                var thisCompletedConstraintAmount = UInt64.zero
                 val segment = pow(UInt64.ten, factor1).toInt()
                 (0..(metaModel._constraints.size / segment)).map { i ->
                     scope.async(Dispatchers.Default) {
@@ -463,6 +525,17 @@ class QuadraticMechanismModel(
                             }
                         if (memoryUseOver()) {
                             System.gc()
+                        }
+                        if (callBack != null) {
+                            synchronized(thisCompletedConstraintAmountLock) {
+                                thisCompletedConstraintAmount += result.usize
+                                callBack(
+                                    MechanismModelDumpingStatus.dumpingConstrains(
+                                        ready = thisCompletedConstraintAmount,
+                                        model = metaModel
+                                    )
+                                )
+                            }
                         }
                         result
                     }
@@ -517,6 +590,15 @@ class QuadraticMechanismModel(
                         result
                     }
                 }
+            }
+
+            if (callBack != null) {
+                callBack(
+                    MechanismModelDumpingStatus.dumpingConstrains(
+                        ready = metaModel.constraints.usize,
+                        model = metaModel
+                    )
+                )
             }
 
             return QuadraticMechanismModel(

@@ -2,10 +2,11 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Solution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.*
 
 interface IterativeTaskCompilationContext<
@@ -148,9 +149,10 @@ interface IterativeTaskCompilationContext<
     fun analyzeSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: AbstractLinearMetaModel
-    ): Ret<Solution<T, E, A>> {
-        return SolutionAnalyzer(iteration, tasks, aggregation.tasksIteration, aggregation.compilation, model)
+        model: AbstractLinearMetaModel,
+        solution: Solution? = null
+    ): Ret<TaskSolution<T, E, A>> {
+        return SolutionAnalyzer(iteration, tasks, aggregation.tasksIteration, aggregation.compilation, model, solution = solution)
     }
 }
 

@@ -43,7 +43,7 @@ typealias NotFunctionImplBuilder = (NotFunctionImplBuilderParams) -> AbstractNot
 abstract class AbstractNotFunctionImpl(
     protected val x: AbstractLinearPolynomial<*>,
     protected val self: NotFunction
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     protected abstract val polyY: AbstractLinearPolynomial<*>
 
     override val discrete = true
@@ -852,7 +852,7 @@ class NotFunction(
     impl: NotFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearLogicFunctionSymbol {
+) : LinearLogicFunctionSymbol() {
     companion object {
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
 

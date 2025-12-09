@@ -18,7 +18,7 @@ sealed class AbstractOneOfFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     data class Branch(
         val condition: AbstractLinearPolynomial<*>? = null,
         val polynomial: AbstractLinearPolynomial<*>,

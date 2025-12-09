@@ -82,6 +82,7 @@ private class GurobiQuadraticSolverImpl(
     private lateinit var grbConstraints: List<GRBQConstr>
     private lateinit var output: FeasibleSolverOutput
 
+    private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
@@ -251,8 +252,16 @@ private class GurobiQuadraticSolverImpl(
                             val currentBound = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBND))
                             val currentTime = getDoubleInfo(GRB.Callback.RUNTIME).seconds
 
+                            if (initialBestObj == null) {
+                                initialBestObj = currentObj
+                            }
+
                             if (config.notImprovementTime != null) {
-                                if (bestObj == null || bestBound == null || currentObj neq bestObj!! || currentBound neq bestBound!!) {
+                                if (bestObj == null
+                                    || bestBound == null
+                                    || (currentObj - bestObj!!).abs() leq config.improveThreshold
+                                    || (currentBound - bestBound!!).abs() leq config.improveThreshold
+                                ) {
                                     bestObj = currentObj
                                     bestBound = currentBound
                                     bestTime = currentTime
@@ -266,8 +275,22 @@ private class GurobiQuadraticSolverImpl(
                                     SolvingStatus(
                                         solver = "gurobi",
                                         time = currentTime,
+                                        objectCategory = when (grbModel.get(GRB.IntAttr.ModelSense)) {
+                                            GRB.MINIMIZE -> {
+                                                ObjectCategory.Minimum
+                                            }
+
+                                            GRB.MAXIMIZE -> {
+                                                ObjectCategory.Minimum
+                                            }
+
+                                            else -> {
+                                                null
+                                            }
+                                        },
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
+                                        initialBestObj = initialBestObj ?: currentObj,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
                                     )
                                 )) {

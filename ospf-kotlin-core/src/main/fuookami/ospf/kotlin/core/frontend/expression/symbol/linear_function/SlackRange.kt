@@ -22,7 +22,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     private val _neg: V by lazy {

@@ -20,7 +20,7 @@ class MaskingFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticFunctionSymbol {
+) : QuadraticFunctionSymbol() {
     companion object {
         operator fun <
             T : ToQuadraticPolynomial<Poly>,

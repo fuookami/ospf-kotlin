@@ -19,7 +19,7 @@ class FloorFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String = "floor_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌋"
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     companion object {

@@ -21,7 +21,7 @@ class AbsFunction(
     override val parent: IntermediateSymbol? = null,
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
-) : LinearFunctionSymbol {
+) : LinearFunctionSymbol() {
     private val logger = logger()
 
     companion object {

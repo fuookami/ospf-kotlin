@@ -38,6 +38,9 @@ interface IntermediateSymbol : Symbol, Expression {
     val parent: IntermediateSymbol? get() = null
     val dependencies: Set<IntermediateSymbol>
 
+    val identifier: UInt64
+    val index: Int
+
     fun flush(force: Boolean = false)
 
     fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64?
@@ -85,6 +88,15 @@ abstract class ExpressionSymbol(
 ) : IntermediateSymbol {
     open val polynomial: Polynomial<*, *, *> by ::_polynomial
 
+    internal var _group: AbstractSymbolCombination<*>? = null
+    internal var _index: Int? = null
+    override val identifier: UInt64 by lazy {
+        _group?.identifier ?: IdentifierGenerator.gen()
+    }
+    override val index: Int by lazy {
+        _index ?: 0
+    }
+
     open fun asMutable(): MutablePolynomial<*, *, *> {
         return _polynomial
     }
@@ -115,14 +127,15 @@ abstract class ExpressionSymbol(
     }
 
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {
-            for (dependency in dependencies) {
-                if (tokenTable.cachedSolution && tokenTable.cached(dependency, null) == false) {
-                    dependency.evaluate(tokenTable, zeroIfNone)
+        return if (tokenTable.cachedSolution) {
+            tokenTable.cacheIfNotCached(this, null) {
+                for (dependency in dependencies) {
+                    if (tokenTable.cachedSolution) {
+                        dependency.evaluate(tokenTable, zeroIfNone)
+                    }
                 }
+                polynomial.evaluate(tokenTable, zeroIfNone)
             }
-            val value = polynomial.evaluate(tokenTable, zeroIfNone) ?: return null
-            tokenTable.cache(this, null, value)
         } else {
             tokenTable.cachedValue(this, null)
         }
@@ -133,14 +146,15 @@ abstract class ExpressionSymbol(
     }
 
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution && tokenTable.cached(this, results) == false) {
-            for (dependency in dependencies) {
-                if (tokenTable.cachedSolution && tokenTable.cached(dependency, results) == false) {
-                    dependency.evaluate(tokenTable, zeroIfNone)
+        return if (tokenTable.cachedSolution) {
+            tokenTable.cacheIfNotCached(this, results) {
+                for (dependency in dependencies) {
+                    if (tokenTable.cachedSolution) {
+                        dependency.evaluate(results, tokenTable, zeroIfNone)
+                    }
                 }
+                polynomial.evaluate(results, tokenTable, zeroIfNone)
             }
-            val value = polynomial.evaluate(results, tokenTable, zeroIfNone) ?: return null
-            tokenTable.cache(this, results, value)
         } else {
             tokenTable.cachedValue(this, results)
         }
@@ -159,14 +173,15 @@ abstract class ExpressionSymbol(
             tokenTable?.cache(this, values, values[this]!!)
             values[this]!!
         } else if (tokenTable != null) {
-            if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(this, values) == false) {
-                for (dependency in dependencies) {
-                    if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(dependency, values) == false) {
-                        dependency.evaluate(tokenTable, zeroIfNone)
+            if (values.isNotEmpty() || tokenTable.cachedSolution) {
+                tokenTable.cacheIfNotCached(this, values) {
+                    for (dependency in dependencies) {
+                        if (values.isNotEmpty() || tokenTable.cachedSolution) {
+                            dependency.evaluate(values, tokenTable, zeroIfNone)
+                        }
                     }
+                    polynomial.evaluate(values, tokenTable, zeroIfNone)
                 }
-                val value = polynomial.evaluate(values, tokenTable, zeroIfNone) ?: return null
-                tokenTable.cache(this, values, value)
             } else {
                 tokenTable.cachedValue(this, values)
             }
@@ -177,6 +192,21 @@ abstract class ExpressionSymbol(
 
     override fun toString(): String {
         return displayName ?: name
+    }
+
+    override fun hashCode(): Int {
+        return identifier.toInt() * 31 + index
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ExpressionSymbol) return false
+
+        if (identifier != other.identifier) return false
+        if (index != other.index) return false
+        if (name != other.name) return false
+
+        return true
     }
 }
 
@@ -653,28 +683,30 @@ interface FunctionSymbol : IntermediateSymbol {
     }
 
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution && tokenTable.cached(this, null) == false) {
-            for (dependency in dependencies) {
-                if (tokenTable.cached(dependency, null) == false) {
-                    dependency.evaluate(tokenTable, zeroIfNone)
+        return if (tokenTable.cachedSolution) {
+            tokenTable.cacheIfNotCached(this, null) {
+                for (dependency in dependencies) {
+                    if (tokenTable.cachedSolution) {
+                        dependency.evaluate(tokenTable, zeroIfNone)
+                    }
                 }
+                calculateValue(tokenTable, zeroIfNone)
             }
-            val value = calculateValue(tokenTable, zeroIfNone) ?: return null
-            tokenTable.cache(this, null, value)
         } else {
             tokenTable.cachedValue(this, null)
         }
     }
 
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution && tokenTable.cached(this, results) == false) {
-            for (dependency in dependencies) {
-                if (tokenTable.cachedSolution && tokenTable.cached(dependency, results) == false) {
-                    dependency.evaluate(tokenTable, zeroIfNone)
+        return if (tokenTable.cachedSolution) {
+            tokenTable.cacheIfNotCached(this, results) {
+                for (dependency in dependencies) {
+                    if (tokenTable.cachedSolution) {
+                        dependency.evaluate(results, tokenTable, zeroIfNone)
+                    }
                 }
+                calculateValue(results, tokenTable, zeroIfNone)
             }
-            val value = calculateValue(results, tokenTable, zeroIfNone) ?: return null
-            tokenTable.cache(this, results, value)
         } else {
             tokenTable.cachedValue(this, results)
         }
@@ -685,14 +717,15 @@ interface FunctionSymbol : IntermediateSymbol {
             tokenTable?.cache(this, values, values[this]!!)
             values[this]!!
         } else if (tokenTable != null) {
-            if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(this, values) == false) {
-                for (dependency in dependencies) {
-                    if ((values.isNotEmpty() || tokenTable.cachedSolution) && tokenTable.cached(dependency, values) == false) {
-                        dependency.evaluate(tokenTable, zeroIfNone)
+            if (values.isNotEmpty() || tokenTable.cachedSolution) {
+                tokenTable.cacheIfNotCached(this, values) {
+                    for (dependency in dependencies) {
+                        if (values.isNotEmpty() || tokenTable.cachedSolution) {
+                            dependency.evaluate(values, tokenTable, zeroIfNone)
+                        }
                     }
+                    calculateValue(values, tokenTable, zeroIfNone)
                 }
-                val value = calculateValue(values, tokenTable, zeroIfNone) ?: return null
-                tokenTable.cache(this, values, value)
             } else {
                 tokenTable.cachedValue(this, values)
             }
@@ -720,29 +753,77 @@ interface LogicFunctionSymbol : FunctionSymbol {
     }
 }
 
-interface LinearFunctionSymbol : LinearIntermediateSymbol, FunctionSymbol {
-    fun register(model: AbstractLinearMechanismModel): Try
-    fun register(
+abstract class LinearFunctionSymbol : LinearIntermediateSymbol, FunctionSymbol {
+    internal var _group: AbstractSymbolCombination<*>? = null
+    internal var _index: Int? = null
+    override val identifier: UInt64 by lazy {
+        _group?.identifier ?: IdentifierGenerator.gen()
+    }
+    override val index: Int by lazy {
+        _index ?: 0
+    }
+
+    abstract fun register(model: AbstractLinearMechanismModel): Try
+    open fun register(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(model)
     }
+
+    override fun hashCode(): Int {
+        return identifier.toInt() * 31 + index
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LinearFunctionSymbol) return false
+
+        if (identifier != other.identifier) return false
+        if (index != other.index) return false
+        if (name != other.name) return false
+
+        return true
+    }
 }
 
-interface LinearLogicFunctionSymbol : LinearFunctionSymbol, LogicFunctionSymbol {}
+abstract class LinearLogicFunctionSymbol : LinearFunctionSymbol(), LogicFunctionSymbol {}
 
-interface QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSymbol {
-    fun register(model: AbstractQuadraticMechanismModel): Try
-    fun register(
+abstract class QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSymbol {
+    internal var _group: AbstractSymbolCombination<*>? = null
+    internal var _index: Int? = null
+    override val identifier: UInt64 by lazy {
+        _group?.identifier ?: IdentifierGenerator.gen()
+    }
+    override val index: Int by lazy {
+        _index ?: 0
+    }
+
+    abstract fun register(model: AbstractQuadraticMechanismModel): Try
+    open fun register(
         model: AbstractQuadraticMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         return register(model)
     }
+
+    override fun hashCode(): Int {
+        return identifier.toInt() * 31 + index
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is QuadraticFunctionSymbol) return false
+
+        if (identifier != other.identifier) return false
+        if (index != other.index) return false
+        if (name != other.name) return false
+
+        return true
+    }
 }
 
-interface QuadraticLogicFunctionSymbol : QuadraticFunctionSymbol, LogicFunctionSymbol {}
+abstract class QuadraticLogicFunctionSymbol : QuadraticFunctionSymbol(), LogicFunctionSymbol {}
 
 operator fun LinearIntermediateSymbol.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol> {
     return Quantity(this, rhs)
