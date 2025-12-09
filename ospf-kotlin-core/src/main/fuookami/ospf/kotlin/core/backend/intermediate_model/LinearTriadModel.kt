@@ -285,7 +285,9 @@ data class LinearTriadModel(
         suspend operator fun invoke(
             model: LinearMechanismModel,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            concurrent: Boolean? = null
+            concurrent: Boolean? = null,
+            withDumpingBounds: Boolean? = null,
+            withForceDumpingBounds: Boolean? = null
         ): LinearTriadModel {
             logger.trace("Creating LinearTriadModel for $model")
             val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
@@ -294,13 +296,40 @@ data class LinearTriadModel(
                 model.tokens.tokensInSolverWithout(fixedVariables.keys)
             }
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
+            val bounds = model.constraints
+                .flatMap { constraint ->
+                    if ((withDumpingBounds ?: true)
+                        && constraint.lhs.size == 1
+                        && constraint.lhs.first().coefficient eq Flt64.one
+                    ) {
+                        listOf(Quadruple(constraint, constraint.lhs.first().token, constraint.sign, constraint.rhs))
+                    } else if (withForceDumpingBounds ?: false) {
+                        if (constraint.lhs.size == 1) {
+                            listOf(Quadruple(constraint, constraint.lhs.first().token, constraint.sign, constraint.rhs / constraint.lhs.first().coefficient))
+                        } else if (constraint.lhs.all { it.coefficient eq Flt64.one && it.token.lowerBound!!.value.unwrap() geq Flt64.zero }
+                            && (constraint.sign == Sign.LessEqual || constraint.sign == Sign.Equal)
+                            && constraint.rhs eq Flt64.zero
+                        ) {
+                            constraint.lhs.map { Quadruple(constraint, it.token, Sign.Equal, Flt64.zero) }
+                        } else if (constraint.lhs.all { it.coefficient eq -Flt64.one && it.token.lowerBound!!.value.unwrap() geq Flt64.zero }
+                            && (constraint.sign == Sign.GreaterEqual || constraint.sign == Sign.Equal)
+                            && constraint.rhs eq Flt64.zero
+                        ) {
+                            constraint.lhs.map { Quadruple(constraint, it.token, Sign.Equal, Flt64.zero) }
+                        } else {
+                            emptyList()
+                        }
+                    } else {
+                        emptyList()
+                    }
+                }.groupBy { it.second }
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(model, tokenIndexMap)
+                        dumpVariables(model, tokenIndexMap, bounds)
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(model, tokenIndexMap, fixedVariables)
+                        dumpConstraintsAsync(model, tokenIndexMap, bounds, fixedVariables)
                     }
                     val objectivePromise = async(Dispatchers.Default) {
                         dumpObjectives(model, tokenIndexMap, fixedVariables)
@@ -319,8 +348,8 @@ data class LinearTriadModel(
             } else {
                 LinearTriadModel(
                     impl = BasicLinearTriadModel(
-                        variables = dumpVariables(model, tokenIndexMap),
-                        constraints = dumpConstraints(model, tokenIndexMap, fixedVariables),
+                        variables = dumpVariables(model, tokenIndexMap, bounds),
+                        constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables),
                         name = model.name
                     ),
                     tokensInSolver = tokensInSolver,
@@ -335,41 +364,22 @@ data class LinearTriadModel(
 
         private fun dumpVariables(
             model: LinearMechanismModel,
-            tokenIndexMap: Map<Token, Int>
+            tokenIndexMap: Map<Token, Int>,
+            bounds: Map<Token, List<Quadruple<OriginLinearConstraint, Token, Sign, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexMap) {
                 variables.add(null)
             }
-            val bounds = model.constraints.filter {
-                it.lhs.size == 1 && it.lhs.first().coefficient eq Flt64.one
-            }.groupBy { it.lhs.first().token }
+
             for ((token, i) in tokenIndexMap) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
-                    .filter { it.sign == Sign.GreaterEqual || it.sign == Sign.Equal }
-                    .maxOfOrNull {
-                        val lhs = it.lhs.sumOf { cell -> cell.coefficient }
-                        if (lhs neq Flt64.zero) {
-                            it.rhs / lhs
-                        } else if (it.rhs gr Flt64.zero) {
-                            Flt64.infinity
-                        } else {
-                            Flt64.negativeInfinity
-                        }
-                    }
+                    .filter { it.third == Sign.GreaterEqual || it.third == Sign.Equal }
+                    .maxOfOrNull { it.fourth }
                 val ub = thisBounds
-                    .filter { it.sign == Sign.LessEqual || it.sign == Sign.Equal }
-                    .minOfOrNull {
-                        val lhs = it.lhs.sumOf { cell -> cell.coefficient }
-                        if (lhs neq Flt64.zero) {
-                            it.rhs / lhs
-                        } else if (it.rhs gr Flt64.zero) {
-                            Flt64.infinity
-                        } else {
-                            Flt64.negativeInfinity
-                        }
-                    }
+                    .filter { it.third == Sign.LessEqual || it.third == Sign.Equal }
+                    .minOfOrNull { it.fourth }
                 variables[i] = Variable(
                     index = i,
                     lowerBound = if (lb != null) {
@@ -396,11 +406,13 @@ data class LinearTriadModel(
         private fun dumpConstraints(
             model: LinearMechanismModel,
             tokenIndexes: Map<Token, Int>,
+            bounds: Map<Token, List<Quadruple<OriginLinearConstraint, Token, Sign, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
-            val notBoundConstraints = model.constraints.filter {
-                it.lhs.isEmpty() || it.lhs.size >= 2 || it.lhs.any { cell -> cell.coefficient neq Flt64.one || cell.token != it.lhs.first().token }
-            }
+            val boundConstraints = bounds.values.flatMap { thisBounds ->
+                thisBounds.map { it.first }
+            }.distinct().toSet()
+            val notBoundConstraints = model.constraints.filter { !boundConstraints.contains(it) }
 
             val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
                 val lhs = ArrayList<LinearConstraintCell>()
@@ -451,11 +463,13 @@ data class LinearTriadModel(
         private suspend fun dumpConstraintsAsync(
             model: LinearMechanismModel,
             tokenIndexes: Map<Token, Int>,
+            bounds: Map<Token, List<Quadruple<OriginLinearConstraint, Token, Sign, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraint {
-            val notBoundConstraints = model.constraints.filter {
-                it.lhs.isEmpty() || it.lhs.size >= 2 || it.lhs.any { cell -> cell.coefficient neq Flt64.one || cell.token != it.lhs.first().token }
-            }
+            val boundConstraints = bounds.values.flatMap { thisBounds ->
+                thisBounds.map { it.first }
+            }.distinct().toSet()
+            val notBoundConstraints = model.constraints.filter { !boundConstraints.contains(it) }
 
             return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
                 val factor = Flt64(notBoundConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()

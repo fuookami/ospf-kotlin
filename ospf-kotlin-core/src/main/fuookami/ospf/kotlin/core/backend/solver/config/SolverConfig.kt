@@ -21,5 +21,7 @@ data class SolverConfig(
     val dumpMechanismModelConcurrent: Boolean? = null,
     val dumpMechanismModelBlocking: Boolean? = null,
     val dumpIntermediateModelConcurrent: Boolean? = null,
+    val dumpIntermediateModelBounds: Boolean? = null,
+    val dumpIntermediateModelForceBounds: Boolean? = null,
     val extraConfig: Any? = null
 )

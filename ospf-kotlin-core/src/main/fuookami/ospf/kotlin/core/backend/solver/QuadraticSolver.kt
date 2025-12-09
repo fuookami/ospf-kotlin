@@ -235,9 +235,10 @@ interface AbstractQuadraticSolver {
     suspend operator fun invoke(
         model: QuadraticMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -252,10 +253,11 @@ interface AbstractQuadraticSolver {
     suspend operator fun invoke(
         model: QuadraticMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -271,11 +273,12 @@ interface AbstractQuadraticSolver {
     fun solveAsync(
         model: QuadraticMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack)
             callBack?.invoke(result)
             result
         }
@@ -285,12 +288,13 @@ interface AbstractQuadraticSolver {
     fun solveAsync(
         model: QuadraticMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractQuadraticSolver.invoke(model, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack, iisConfig)
             callBack?.invoke(result)
             result
         }
@@ -300,9 +304,10 @@ interface AbstractQuadraticSolver {
         model: QuadraticMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -318,10 +323,11 @@ interface AbstractQuadraticSolver {
         model: QuadraticMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack)) {
+        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -337,12 +343,13 @@ interface AbstractQuadraticSolver {
     fun solveAsync(
         model: QuadraticMetaModel,
         solutionAmount: UInt64,
-        solvingStatusCallBack: SolvingStatusCallBack? = null,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack)
             callBack?.invoke(result)
             result
         }
@@ -352,13 +359,14 @@ interface AbstractQuadraticSolver {
     fun solveAsync(
         model: QuadraticMetaModel,
         solutionAmount: UInt64,
-        solvingStatusCallBack: SolvingStatusCallBack? = null,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractQuadraticSolver.invoke(model, solutionAmount, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack, iisConfig)
             callBack?.invoke(result)
             result
         }
@@ -370,11 +378,13 @@ interface AbstractQuadraticSolver {
 
     suspend fun dump(
         model: QuadraticMetaModel,
-        registrationStatusCallBack: RegistrationStatusCallBack? = null
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<QuadraticMechanismModel> {
         return QuadraticMechanismModel(
             metaModel = model,
-            registrationStatusCallBack = registrationStatusCallBack
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
         )
     }
 }
@@ -383,18 +393,26 @@ interface QuadraticSolver : AbstractQuadraticSolver {
     val config: SolverConfig
 
     override suspend fun dump(model: QuadraticMechanismModel): QuadraticTetradModel {
-        return QuadraticTetradModel(model, null, config.dumpIntermediateModelConcurrent)
+        return QuadraticTetradModel(
+            model = model,
+            fixedVariables = null,
+            concurrent = config.dumpIntermediateModelConcurrent,
+            withDumpingBounds = config.dumpIntermediateModelBounds,
+            withForceDumpingBounds = config.dumpIntermediateModelForceBounds
+        )
     }
 
     override suspend fun dump(
         model: QuadraticMetaModel,
-        registrationStatusCallBack: RegistrationStatusCallBack?
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<QuadraticMechanismModel> {
         return QuadraticMechanismModel(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
-            registrationStatusCallBack = registrationStatusCallBack
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
         )
     }
 }

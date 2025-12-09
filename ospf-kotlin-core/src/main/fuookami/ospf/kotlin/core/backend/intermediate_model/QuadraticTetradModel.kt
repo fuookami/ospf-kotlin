@@ -268,7 +268,9 @@ data class QuadraticTetradModel(
         suspend operator fun invoke(
             model: QuadraticMechanismModel,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            concurrent: Boolean? = null
+            concurrent: Boolean? = null,
+            withDumpingBounds: Boolean? = null,
+            withForceDumpingBounds: Boolean? = null
         ): QuadraticTetradModel {
             logger.trace("Creating QuadraticTetradModel for $model")
             val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
@@ -277,13 +279,41 @@ data class QuadraticTetradModel(
                 model.tokens.tokensInSolverWithout(fixedVariables.keys)
             }
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
+            val bounds = model.constraints
+                .flatMap { constraint ->
+                    if ((withDumpingBounds ?: true)
+                        && constraint.lhs.size == 1
+                        && constraint.lhs.first().coefficient eq Flt64.one
+                        && constraint.lhs.first().token2 == null
+                    ) {
+                        listOf(Quadruple(constraint, constraint.lhs.first().token1, constraint.sign, constraint.rhs))
+                    } else if (withForceDumpingBounds ?: false) {
+                        if (constraint.lhs.size == 1 && constraint.lhs.first().token2 == null) {
+                            listOf(Quadruple(constraint, constraint.lhs.first().token1, constraint.sign, constraint.rhs / constraint.lhs.first().coefficient))
+                        } else if (constraint.lhs.all { it.coefficient eq Flt64.one && it.token2 == null && it.token1.lowerBound!!.value.unwrap() geq Flt64.zero }
+                            && (constraint.sign == Sign.LessEqual || constraint.sign == Sign.Equal)
+                            && constraint.rhs eq Flt64.zero
+                        ) {
+                            constraint.lhs.map { Quadruple(constraint, it.token1, Sign.Equal, Flt64.zero) }
+                        } else if (constraint.lhs.all { it.coefficient eq -Flt64.one && it.token2 == null && it.token1.lowerBound!!.value.unwrap() geq Flt64.zero }
+                            && (constraint.sign == Sign.GreaterEqual || constraint.sign == Sign.Equal)
+                            && constraint.rhs eq Flt64.zero
+                        ) {
+                            constraint.lhs.map { Quadruple(constraint, it.token1, Sign.Equal, Flt64.zero) }
+                        } else {
+                            emptyList()
+                        }
+                    } else {
+                        emptyList()
+                    }
+                }.groupBy { it.second }
             val tetradModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(model, tokenIndexMap)
+                        dumpVariables(model, tokenIndexMap, bounds)
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(model, tokenIndexMap, fixedVariables)
+                        dumpConstraintsAsync(model, tokenIndexMap, bounds, fixedVariables)
                     }
                     val objectivePromise = async(Dispatchers.Default) {
                         dumpObjectives(model, tokenIndexMap, fixedVariables)
@@ -302,8 +332,8 @@ data class QuadraticTetradModel(
             } else {
                 QuadraticTetradModel(
                     impl = BasicQuadraticTetradModel(
-                        variables = dumpVariables(model, tokenIndexMap),
-                        constraints = dumpConstraints(model, tokenIndexMap, fixedVariables),
+                        variables = dumpVariables(model, tokenIndexMap, bounds),
+                        constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables),
                         name = model.name
                     ),
                     tokensInSolver = tokensInSolver,
@@ -319,40 +349,20 @@ data class QuadraticTetradModel(
         private fun dumpVariables(
             model: QuadraticMechanismModel,
             tokenIndexes: Map<Token, Int>,
+            bounds: Map<Token, List<Quadruple<OriginQuadraticConstraint, Token, Sign, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
                 variables.add(null)
             }
-            val bounds = model.constraints.filter {
-                it.lhs.size == 1 && it.lhs.first().coefficient eq Flt64.one && it.lhs.first().token2 == null
-            }.groupBy { it.lhs.first().token1 }
             for ((token, i) in tokenIndexes) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
-                    .filter { it.sign == Sign.GreaterEqual || it.sign == Sign.Equal }
-                    .maxOfOrNull {
-                        val lhs = it.lhs.sumOf { cell -> cell.coefficient }
-                        if (lhs neq Flt64.zero) {
-                            it.rhs / lhs
-                        } else if (it.rhs gr Flt64.zero) {
-                            Flt64.infinity
-                        } else {
-                            Flt64.negativeInfinity
-                        }
-                    }
+                    .filter { it.third == Sign.GreaterEqual || it.third == Sign.Equal }
+                    .maxOfOrNull { it.fourth }
                 val ub = thisBounds
-                    .filter { it.sign == Sign.LessEqual || it.sign == Sign.Equal }
-                    .minOfOrNull {
-                        val lhs = it.lhs.sumOf { cell -> cell.coefficient }
-                        if (lhs neq Flt64.zero) {
-                            it.rhs / lhs
-                        } else if (it.rhs gr Flt64.zero) {
-                            Flt64.infinity
-                        } else {
-                            Flt64.negativeInfinity
-                        }
-                    }
+                    .filter { it.third == Sign.LessEqual || it.third == Sign.Equal }
+                    .minOfOrNull { it.fourth }
                 variables[i] = Variable(
                     index = i,
                     lowerBound = if (lb != null) {
@@ -379,11 +389,13 @@ data class QuadraticTetradModel(
         private fun dumpConstraints(
             model: QuadraticMechanismModel,
             tokenIndexes: Map<Token, Int>,
+            bounds: Map<Token, List<Quadruple<OriginQuadraticConstraint, Token, Sign, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraint {
-            val notBoundConstraints = model.constraints.filter {
-                it.lhs.isEmpty() || it.lhs.size >= 2 || it.lhs.any { cell -> cell.coefficient neq Flt64.one || cell.token2 != null || cell.token1 != it.lhs.first().token1 }
-            }
+            val boundConstraints = bounds.values.flatMap { thisBounds ->
+                thisBounds.map { it.first }
+            }.distinct().toSet()
+            val notBoundConstraints = model.constraints.filter { !boundConstraints.contains(it) }
 
             val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
                 val lhs = ArrayList<QuadraticConstraintCell>()
@@ -473,11 +485,13 @@ data class QuadraticTetradModel(
         private suspend fun dumpConstraintsAsync(
             model: QuadraticMechanismModel,
             tokenIndexes: Map<Token, Int>,
+            bounds: Map<Token, List<Quadruple<OriginQuadraticConstraint, Token, Sign, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraint {
-            val notBoundConstraints = model.constraints.filter {
-                it.lhs.isEmpty() || it.lhs.size >= 2 || it.lhs.any { cell -> cell.coefficient neq Flt64.one || cell.token2 != null || cell.token1 != it.lhs.first().token1 }
-            }
+            val boundConstraints = bounds.values.flatMap { thisBounds ->
+                thisBounds.map { it.first }
+            }.distinct().toSet()
+            val notBoundConstraints = model.constraints.filter { !boundConstraints.contains(it) }
 
             return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
                 val factor = Flt64(notBoundConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()

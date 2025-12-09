@@ -253,7 +253,7 @@ interface AbstractLinearSolver {
     suspend operator fun invoke(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
@@ -273,7 +273,7 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
@@ -288,7 +288,7 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearMetaModel,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: (Ret<SolverOutput>) -> Unit
@@ -304,7 +304,7 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
@@ -323,7 +323,7 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
@@ -344,7 +344,7 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callback: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
@@ -360,7 +360,7 @@ interface AbstractLinearSolver {
         model: LinearMetaModel,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
-        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?,
+        dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callback: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
@@ -393,7 +393,13 @@ interface LinearSolver : AbstractLinearSolver {
     val config: SolverConfig
 
     override suspend fun dump(model: LinearMechanismModel): LinearTriadModel {
-        return LinearTriadModel(model, null, config.dumpIntermediateModelConcurrent)
+        return LinearTriadModel(
+            model = model, 
+            fixedVariables = null, 
+            concurrent = config.dumpIntermediateModelConcurrent, 
+            withDumpingBounds = config.dumpIntermediateModelBounds, 
+            withForceDumpingBounds = config.dumpIntermediateModelForceBounds
+        )
     }
 
     override suspend fun dump(
