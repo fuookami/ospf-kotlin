@@ -244,8 +244,8 @@ private class MindOPTQuadraticSolverImpl(
                             if (config.notImprovementTime != null) {
                                 if (bestObj == null
                                     || bestBound == null
-                                    || (currentObj - bestObj!!).abs() leq config.improveThreshold
-                                    || (currentBound - bestBound!!).abs() leq config.improveThreshold
+                                    || (currentObj - bestObj!!).abs() geq config.improveThreshold
+                                    || (currentBound - bestBound!!).abs() geq config.improveThreshold
                                 ) {
                                     bestObj = currentObj
                                     bestBound = currentBound
