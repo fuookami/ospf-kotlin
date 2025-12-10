@@ -64,7 +64,9 @@ class ContextVar<T>(
     internal val defaultValue: T
 ) {
     @get:Synchronized
-    internal val stackValues: MutableMap<ContextKey?, T> = hashMapOf(Pair(null, defaultValue))
+    internal val stackValues: MutableMap<ContextKey, T> = hashMapOf()
+    @get:Synchronized
+    internal val customValues: MutableMap<Any, T> = hashMapOf()
 
     @Synchronized
     fun set(value: T): Context<T> {
@@ -79,12 +81,43 @@ class ContextVar<T>(
     }
 
     @Synchronized
-    fun get(): T {
-        var key: ContextKey? = ContextKey()
-        while (!stackValues.containsKey(key)) {
-            key = key?.parent
+    operator fun set(key: Any, value: T): Context<T> {
+        when (key) {
+            is ContextKey -> {
+                stackValues[key] = value
+            }
+
+            else -> {
+                customValues[key] = value
+            }
         }
-        return stackValues[key]!!
+        return Context(this)
+    }
+
+    @Synchronized
+    fun get(): T? {
+        return get(ContextKey())
+    }
+
+    @Synchronized
+    operator fun get(key: Any?): T? {
+        return when (key) {
+            is ContextKey -> {
+                var k: ContextKey? = key
+                while (!stackValues.containsKey(k)) {
+                    k = k?.parent
+                }
+                stackValues[k] ?: defaultValue
+            }
+
+            null -> {
+                defaultValue
+            }
+
+            else -> {
+                customValues[key]
+            }
+        }
     }
 }
 

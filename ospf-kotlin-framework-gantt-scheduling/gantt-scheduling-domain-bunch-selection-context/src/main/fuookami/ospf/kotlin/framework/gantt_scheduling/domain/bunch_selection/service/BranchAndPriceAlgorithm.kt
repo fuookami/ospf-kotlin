@@ -78,10 +78,14 @@ class BranchAndPriceAlgorithm<
     private fun minimumColumnAmount(
         fixedBunches: Set<B>,
         configuration: Configuration
-    ): UInt64 =
-        notFixedExtractorAmount(fixedBunches) * configuration.minimumColumnAmountPerExecutor
+    ): UInt64 {
+        return notFixedExtractorAmount(fixedBunches) * configuration.minimumColumnAmountPerExecutor
+    }
 
-    suspend operator fun invoke(id: String): Ret<BunchSolution<B, T, E, A>> {
+    suspend operator fun invoke(
+        id: String,
+        heartBeatCallBack: ((Instant, Duration, Flt64) -> Try)? = null
+    ): Ret<BunchSolution<B, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
 
@@ -209,8 +213,7 @@ class BranchAndPriceAlgorithm<
                     }
                     logLpResults(iteration.iteration, model)
 
-                    val reducedAmount =
-                        UInt64(fixedBunches.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
+                    val reducedAmount = UInt64(fixedBunches.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
                     if (columnAmount > configuration.maximumColumnAmount) {
                         maximumReducedCost1 = when (val result = removeColumns(
                             maximumReducedCost1,
