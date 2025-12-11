@@ -104,10 +104,10 @@ class ContextVar<T>(
         return when (key) {
             is ContextKey -> {
                 var k: ContextKey? = key
-                while (!stackValues.containsKey(k)) {
-                    k = k?.parent
+                while (k != null && !stackValues.containsKey(k)) {
+                    k = k.parent
                 }
-                stackValues[k] ?: defaultValue
+                k?.let { stackValues[it] } ?: defaultValue
             }
 
             null -> {
