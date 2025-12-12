@@ -209,6 +209,16 @@ sealed class MutableTokenList(
         }
     }
 
+    internal fun flush() {
+        _tokensInSolver = ArrayList()
+        synchronized(lock) {
+            for (token in tokens) {
+                token.__result = null
+            }
+            _cachedSolution = false
+        }
+    }
+
     override fun setSolution(solution: List<Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
@@ -233,7 +243,7 @@ sealed class MutableTokenList(
             for (token in tokens) {
                 token.__result = null
             }
-            _cachedSolution = tokens.any { it.result != null }
+            _cachedSolution = false
         }
     }
 

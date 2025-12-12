@@ -594,7 +594,7 @@ data class LinearMonomialSymbol(
         return when (symbol) {
             is Either.Left -> {
                 val index = tokenTable.indexOf(symbol.value)
-                if (index != null) {
+                if (index != null && index != -1) {
                     results[index]
                 } else {
                     logger.trace { "Unknown result for ${symbol.value}" }

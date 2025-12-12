@@ -336,6 +336,7 @@ sealed class MutableTokenTable(
     }
 
     override fun flush() {
+        tokenList.flush()
         cachedSymbolValue1.clear()
         cachedSymbolValue2.clear()
     }
@@ -759,6 +760,7 @@ sealed class ConcurrentMutableTokenTable(
 
     override fun flush() {
         synchronized(lock) {
+            tokenList.flush()
             cachedSymbolValue1.clear()
             cachedSymbolValue2.clear()
         }
