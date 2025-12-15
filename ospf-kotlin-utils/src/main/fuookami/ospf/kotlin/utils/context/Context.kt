@@ -95,12 +95,12 @@ class ContextVar<T>(
     }
 
     @Synchronized
-    fun get(): T? {
+    fun get(): T {
         return get(ContextKey())
     }
 
     @Synchronized
-    operator fun get(key: Any?): T? {
+    operator fun get(key: Any?): T {
         return when (key) {
             is ContextKey -> {
                 var k: ContextKey? = key
@@ -115,7 +115,7 @@ class ContextVar<T>(
             }
 
             else -> {
-                customValues[key]
+                customValues[key] ?: defaultValue
             }
         }
     }
