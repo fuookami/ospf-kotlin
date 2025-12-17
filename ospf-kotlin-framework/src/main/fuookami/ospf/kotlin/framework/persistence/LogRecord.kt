@@ -180,7 +180,7 @@ class LogRecordPersistenceSaving(
     private val db: Database,
     private val tableName: String,
     async: Boolean? = null
-) : Saving {
+) : Saving, AutoCloseable {
     private val async: Boolean by lazy {
         async ?: (db.dialect !is SQLiteDialect)
     }
@@ -224,7 +224,7 @@ class LogRecordPersistenceSaving(
         null
     }
 
-    protected fun finalize() {
+    override fun close() {
         try {
             job?.cancel()
         } catch (e: Exception) {

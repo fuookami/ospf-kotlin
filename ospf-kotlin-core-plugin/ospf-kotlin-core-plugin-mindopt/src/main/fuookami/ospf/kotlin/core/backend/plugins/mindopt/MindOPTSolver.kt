@@ -5,12 +5,12 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-abstract class MindOPTSolver {
+abstract class MindOPTSolver : AutoCloseable {
     protected lateinit var env: MDOEnv
     protected lateinit var mindoptModel: MDOModel
     protected lateinit var status: SolverStatus
 
-    protected fun finalize() {
+    override fun close() {
         mindoptModel.dispose()
         env.dispose()
     }

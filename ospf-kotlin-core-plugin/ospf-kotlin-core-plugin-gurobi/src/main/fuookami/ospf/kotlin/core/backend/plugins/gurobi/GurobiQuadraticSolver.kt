@@ -27,10 +27,15 @@ class GurobiQuadraticSolver(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = GurobiQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return GurobiQuadraticSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -42,7 +47,7 @@ class GurobiQuadraticSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = GurobiQuadraticSolverImpl(
+            GurobiQuadraticSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { GurobiQuadraticSolverCallBack() }
@@ -65,10 +70,11 @@ class GurobiQuadraticSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -102,7 +108,7 @@ private class GurobiQuadraticSolverImpl(
                 }
             },
             { it.dump(model) },
-            GurobiQuadraticSolverImpl::configure,
+            { it.configure(model) },
             GurobiQuadraticSolverImpl::solve,
             GurobiQuadraticSolverImpl::analyzeStatus,
             GurobiQuadraticSolverImpl::analyzeSolution
@@ -236,7 +242,7 @@ private class GurobiQuadraticSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
@@ -251,6 +257,7 @@ private class GurobiQuadraticSolverImpl(
                             val currentObj = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBST))
                             val currentBound = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBND))
                             val currentTime = getDoubleInfo(GRB.Callback.RUNTIME).seconds
+                            val currentBestSolution = getSolution(grbVars.toTypedArray()).map { Flt64(it) }
 
                             if (initialBestObj == null) {
                                 initialBestObj = currentObj
@@ -275,6 +282,10 @@ private class GurobiQuadraticSolverImpl(
                                     SolvingStatus(
                                         solver = "gurobi",
                                         time = currentTime,
+                                        solverConfig = config,
+                                        intermediateModel = model,
+                                        solverModel = grbModel,
+                                        solverCallBack = this,
                                         objectCategory = when (grbModel.get(GRB.IntAttr.ModelSense)) {
                                             GRB.MINIMIZE -> {
                                                 ObjectCategory.Minimum
@@ -291,7 +302,8 @@ private class GurobiQuadraticSolverImpl(
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
-                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                        currentBestSolution = currentBestSolution
                                     )
                                 )) {
                                     is Ok -> {}

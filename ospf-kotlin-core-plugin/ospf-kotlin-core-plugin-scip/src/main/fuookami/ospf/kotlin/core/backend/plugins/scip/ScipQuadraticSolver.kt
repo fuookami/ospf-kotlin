@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.core.backend.plugins.scip
 import kotlin.time.*
 import kotlinx.datetime.*
 import kotlinx.coroutines.*
-import jscip.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -102,7 +101,7 @@ private class ScipQuadraticSolverImpl(
     private lateinit var scipQuadraticObjectiveTransformers: List<jscip.Constraint>
     private lateinit var output: FeasibleSolverOutput
 
-    override fun finalize() {
+    override fun close() {
         for (constraint in scipConstraints) {
             scip.releaseCons(constraint)
         }
@@ -115,7 +114,7 @@ private class ScipQuadraticSolverImpl(
         for (variable in scipQuadraticObjectiveVars) {
             scip.releaseVar(variable)
         }
-        super.finalize()
+        super.close()
     }
 
     suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput> {
@@ -302,7 +301,7 @@ private class ScipQuadraticSolverImpl(
                     -Double.MAX_VALUE,
                     Double.MAX_VALUE,
                     0.0,
-                    SCIP_Vartype.SCIP_VARTYPE_CONTINUOUS
+                    jscip.SCIP_Vartype.SCIP_VARTYPE_CONTINUOUS
                 )
                 val qocon = scip.createConsQuadratic(
                     "${scipVars[cell.colIndex1].name}_${scipVars[cell.colIndex2!!]}",
@@ -368,7 +367,7 @@ private class ScipQuadraticSolverImpl(
         if (config.threadNum gr UInt64.one) {
             scip.solveConcurrent()
             val stage = scip.stage
-            if (stage.swigValue() < SCIP_Stage.SCIP_STAGE_INITPRESOLVE.swigValue()) {
+            if (stage.swigValue() < jscip.SCIP_Stage.SCIP_STAGE_INITPRESOLVE.swigValue()) {
                 scip.solve()
             }
         } else {

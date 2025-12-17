@@ -790,13 +790,13 @@ value class FltX(internal val value: BigDecimal) :
     override fun toInt16() = Int16(value.toInt().toShort())
     override fun toInt32() = Int32(value.toInt())
     override fun toInt64() = Int64(value.toLong())
-    override fun toIntX() = IntX(value.toString())
+    override fun toIntX() = IntX(toPlainString())
 
     override fun toUInt8() = UInt8(value.toInt().toUByte())
     override fun toUInt16() = UInt16(value.toInt().toUShort())
     override fun toUInt32() = UInt32(value.toLong().toUInt())
     override fun toUInt64() = UInt64(value.toLong().toULong())
-    override fun toUIntX() = UIntX(value.toString())
+    override fun toUIntX() = UIntX(toPlainString())
 
     override fun toFlt32() = Flt32(value.toFloat())
     override fun toFlt64() = Flt64(value.toDouble())

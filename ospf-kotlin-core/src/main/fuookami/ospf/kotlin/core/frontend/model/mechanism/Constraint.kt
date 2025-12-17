@@ -48,6 +48,7 @@ sealed class Constraint(
     open val lhs: List<Cell>,
     val sign: Sign,
     val rhs: Flt64,
+    val lazy: Boolean,
     val name: String = "",
     open val origin: MetaConstraint<*>? = null,
     open val from: IntermediateSymbol? = null
@@ -73,10 +74,11 @@ class LinearConstraint(
     override val lhs: List<LinearCell>,
     sign: Sign,
     rhs: Flt64,
+    lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
     from: IntermediateSymbol? = null,
-) : Constraint(lhs, sign, rhs, name, origin, from) {
+) : Constraint(lhs, sign, rhs, lazy, name, origin, from) {
     companion object {
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
             inequality: MetaConstraint<Ineq>,
@@ -102,6 +104,7 @@ class LinearConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.constraint.sign),
                 rhs = -rhs,
+                lazy = inequality.lazy,
                 name = inequality.constraint.name,
                 origin = inequality
             )
@@ -144,10 +147,11 @@ class QuadraticConstraint(
     override val lhs: List<QuadraticCell>,
     sign: Sign,
     rhs: Flt64,
+    lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
     from: IntermediateSymbol? = null
-) : Constraint(lhs, sign, rhs, name, origin, from) {
+) : Constraint(lhs, sign, rhs, lazy, name, origin, from) {
     companion object {
         @JvmName("constructByLinearInequality")
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
@@ -174,6 +178,7 @@ class QuadraticConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.constraint.sign),
                 rhs = -rhs,
+                lazy = inequality.lazy,
                 name = inequality.constraint.name,
                 origin = inequality,
                 from = null

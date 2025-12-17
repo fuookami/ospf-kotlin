@@ -378,7 +378,7 @@ interface AbstractQuadraticSolver {
 
     suspend fun dump(
         model: QuadraticMetaModel,
-        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<QuadraticMechanismModel> {
         return QuadraticMechanismModel(

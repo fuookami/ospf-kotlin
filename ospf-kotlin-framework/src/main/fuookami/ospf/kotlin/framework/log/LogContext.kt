@@ -72,7 +72,7 @@ class LogContext private constructor(
     val serviceId: String,
     val pushing: Pushing? = null,
     val saving: Saving? = null
-) : Cloneable {
+) : Cloneable, AutoCloseable {
     private val logger = logger()
 
     companion object {
@@ -97,6 +97,12 @@ class LogContext private constructor(
             val context = LogContextBuilder()
             builder(context)
             return context()
+        }
+    }
+
+    override fun close() {
+        if (saving is AutoCloseable) {
+            saving.close()
         }
     }
 

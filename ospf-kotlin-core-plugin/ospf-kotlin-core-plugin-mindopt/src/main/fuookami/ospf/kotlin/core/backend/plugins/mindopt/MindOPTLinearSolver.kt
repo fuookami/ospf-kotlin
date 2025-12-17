@@ -28,10 +28,15 @@ class MindOPTLinearSolver(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = MindOPTLinearSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return MindOPTLinearSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -43,7 +48,7 @@ class MindOPTLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = MindOPTLinearSolverImpl(
+            MindOPTLinearSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { MindOPTLinearSolverCallBack() }
@@ -64,10 +69,11 @@ class MindOPTLinearSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -94,7 +100,7 @@ private class MindOPTLinearSolverImpl(
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
-            MindOPTLinearSolverImpl::configure,
+            { it.configure(model) },
             MindOPTLinearSolverImpl::solve,
             MindOPTLinearSolverImpl::analyzeStatus,
             MindOPTLinearSolverImpl::analyzeSolution
@@ -217,7 +223,7 @@ private class MindOPTLinearSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
             mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toDouble())
@@ -232,6 +238,7 @@ private class MindOPTLinearSolverImpl(
                             val currentObj = Flt64(getDoubleInfo(MDO.CB_MIP_OBJBST))
                             val currentBound = Flt64(getDoubleInfo(MDO.CB_MIP_OBJBND))
                             val currentTime = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds
+                            val currentBestSolution = this.getSolution(mindoptVars.toTypedArray()).map { Flt64(it) }
 
                             if (config.notImprovementTime != null) {
                                 if (bestObj == null
@@ -251,7 +258,10 @@ private class MindOPTLinearSolverImpl(
                                 when (it(
                                     SolvingStatus(
                                         solver = "mindopt",
-                                        time = currentTime,
+                                        solverConfig = config,
+                                        intermediateModel = model,
+                                        solverModel = mindoptModel,
+                                        solverCallBack = this,
                                         objectCategory = when (mindoptModel.get(MDO.IntAttr.ModelSense)) {
                                             MDO.MINIMIZE -> {
                                                 ObjectCategory.Minimum
@@ -265,10 +275,12 @@ private class MindOPTLinearSolverImpl(
                                                 null
                                             }
                                         },
+                                        time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
-                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                        currentBestSolution = currentBestSolution
                                     )
                                 )) {
                                     is Ok -> {}
