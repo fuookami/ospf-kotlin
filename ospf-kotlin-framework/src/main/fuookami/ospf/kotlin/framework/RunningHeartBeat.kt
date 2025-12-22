@@ -5,6 +5,11 @@ import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 
+data class SubProgressHeartBeat(
+    val estimatedTime: Duration,
+    val progress: Flt64
+)
+
 data class RunningHeartBeat(
     val id: String,
     val runTime: Duration,
