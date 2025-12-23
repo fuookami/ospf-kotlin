@@ -29,7 +29,7 @@ class TaskConflictConstraint<
                     if (conflict(executor, tasks[i], tasks[j])) {
                         when (val result = model.addConstraint(
                             (x[tasks[i], executor] + x[tasks[j], executor]) leq Flt64.one,
-                            "${name}_${tasks[i]}_${tasks[j]}"
+                            name = "${name}_${tasks[i]}_${tasks[j]}"
                         )) {
                             is Ok -> {}
 

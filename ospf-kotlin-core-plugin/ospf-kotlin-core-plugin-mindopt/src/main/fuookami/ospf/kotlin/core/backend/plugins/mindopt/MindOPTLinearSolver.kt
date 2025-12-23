@@ -94,7 +94,7 @@ private class MindOPTLinearSolverImpl(
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
-            MindOPTLinearSolverImpl::configure,
+            { it.configure(model) },
             MindOPTLinearSolverImpl::solve,
             MindOPTLinearSolverImpl::analyzeStatus,
             MindOPTLinearSolverImpl::analyzeSolution
@@ -217,7 +217,7 @@ private class MindOPTLinearSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
             mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toDouble())
@@ -232,6 +232,7 @@ private class MindOPTLinearSolverImpl(
                             val currentObj = Flt64(getDoubleInfo(MDO.CB_MIP_OBJBST))
                             val currentBound = Flt64(getDoubleInfo(MDO.CB_MIP_OBJBND))
                             val currentTime = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds
+                            val currentBestSolution = this.getSolution(mindoptVars.toTypedArray()).map { Flt64(it) }
 
                             if (config.notImprovementTime != null) {
                                 if (bestObj == null
@@ -251,7 +252,10 @@ private class MindOPTLinearSolverImpl(
                                 when (it(
                                     SolvingStatus(
                                         solver = "mindopt",
-                                        time = currentTime,
+                                        solverConfig = config,
+                                        intermediateModel = model,
+                                        solverModel = mindoptModel,
+                                        solverCallBack = this,
                                         objectCategory = when (mindoptModel.get(MDO.IntAttr.ModelSense)) {
                                             MDO.MINIMIZE -> {
                                                 ObjectCategory.Minimum
@@ -265,10 +269,12 @@ private class MindOPTLinearSolverImpl(
                                                 null
                                             }
                                         },
+                                        time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
-                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                        currentBestSolution = currentBestSolution
                                     )
                                 )) {
                                     is Ok -> {}

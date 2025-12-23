@@ -80,7 +80,7 @@ private class HexalyQuadraticSolverImpl(
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
-            HexalyQuadraticSolverImpl::configure,
+            { it.configure(model) },
             HexalyQuadraticSolverImpl::solve,
             HexalyQuadraticSolverImpl::analyzeStatus,
             HexalyQuadraticSolverImpl::analyzeSolution
@@ -246,7 +246,7 @@ private class HexalyQuadraticSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)
             optimizer.param.nbThreads = config.threadNum.toInt()
@@ -261,6 +261,7 @@ private class HexalyQuadraticSolverImpl(
                         val currentObj = Flt64(currentSolution.getDoubleValue(hexalyObjective))
                         val currentBound = Flt64(currentSolution.getDoubleObjectiveBound(0))
                         val currentTime = Clock.System.now() - beginTime!!
+                        val currentBestSolution = hexalyVars.map { Flt64(currentSolution.getDoubleValue(it)) }
 
                         if (initialBestObj == null) {
                             initialBestObj = currentObj
@@ -284,7 +285,10 @@ private class HexalyQuadraticSolverImpl(
                             when (it(
                                 SolvingStatus(
                                     solver = "hexaly",
-                                    time = currentTime,
+                                    solverConfig = config,
+                                    intermediateModel = model,
+                                    solverModel = hexalyModel,
+                                    solverCallBack = this,
                                     objectCategory = when (hexalyModel.getObjectiveDirection(0)) {
                                         HxObjectiveDirection.Minimize -> {
                                             ObjectCategory.Minimum
@@ -298,10 +302,12 @@ private class HexalyQuadraticSolverImpl(
                                             null
                                         }
                                     },
+                                    time = currentTime,
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
-                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                    currentBestSolution = currentBestSolution
                                 )
                             )) {
                                 is Ok -> {}

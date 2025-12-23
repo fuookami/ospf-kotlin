@@ -80,7 +80,7 @@ private class HexalyLinearSolverImpl(
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
-            HexalyLinearSolverImpl::configure,
+            { it.configure(model) },
             HexalyLinearSolverImpl::solve,
             HexalyLinearSolverImpl::analyzeStatus,
             HexalyLinearSolverImpl::analyzeSolution
@@ -217,7 +217,7 @@ private class HexalyLinearSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)
             optimizer.param.nbThreads = config.threadNum.toInt()
@@ -232,6 +232,7 @@ private class HexalyLinearSolverImpl(
                         val currentObj = Flt64(currentSolution.getDoubleValue(hexalyObjective))
                         val currentBound = Flt64(currentSolution.getDoubleObjectiveBound(0))
                         val currentTime = Clock.System.now() - beginTime!!
+                        val currentBestSolution = hexalyVars.map { Flt64(currentSolution.getDoubleValue(it)) }
 
                         if (initialBestObj == null) {
                             initialBestObj = currentObj
@@ -255,7 +256,10 @@ private class HexalyLinearSolverImpl(
                             when (it(
                                 SolvingStatus(
                                     solver = "hexaly",
-                                    time = currentTime,
+                                    solverConfig = config,
+                                    intermediateModel = model,
+                                    solverModel = hexalyModel,
+                                    solverCallBack = this,
                                     objectCategory = when (hexalyModel.getObjectiveDirection(0)) {
                                         HxObjectiveDirection.Minimize -> {
                                             ObjectCategory.Minimum
@@ -269,10 +273,12 @@ private class HexalyLinearSolverImpl(
                                             null
                                         }
                                     },
+                                    time = currentTime,
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
-                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                    currentBestSolution = currentBestSolution
                                 )
                             )) {
                                 is Ok -> {}

@@ -31,7 +31,7 @@ class ItemDemandConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             overLoad.polyX leq demandRange.upperBound.value.unwrap(),
-                            "${name}_ub_${item}"
+                            name = "${name}_ub_${item}"
                         )) {
                             is Ok -> {}
 
@@ -44,7 +44,7 @@ class ItemDemandConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             load.load[item] leq demandRange.upperBound.value.unwrap(),
-                            "${name}_ub_${item}"
+                            name = "${name}_ub_${item}"
                         )) {
                             is Ok -> {}
 
@@ -57,7 +57,7 @@ class ItemDemandConstraint<
             } else {
                 when (val result = model.addConstraint(
                     load.load[item] leq demand,
-                    "${name}_ub_${item}"
+                    name = "${name}_ub_${item}"
                 )) {
                     is Ok -> {}
 
@@ -72,7 +72,7 @@ class ItemDemandConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             lessLoad.polyX leq demandRange.upperBound.value.unwrap(),
-                            "${name}_lb_${item}"
+                            name = "${name}_lb_${item}"
                         )) {
                             is Ok -> {}
 
@@ -85,7 +85,7 @@ class ItemDemandConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             load.load[item] geq demandRange.lowerBound.value.unwrap(),
-                            "${name}_ub_${item}"
+                            name = "${name}_ub_${item}"
                         )) {
                             is Ok -> {}
 
@@ -98,7 +98,7 @@ class ItemDemandConstraint<
             } else {
                 when (val result = model.addConstraint(
                     load.load[item] geq demand,
-                    "${name}_ub_${item}"
+                    name = "${name}_ub_${item}"
                 )) {
                     is Ok -> {}
 
