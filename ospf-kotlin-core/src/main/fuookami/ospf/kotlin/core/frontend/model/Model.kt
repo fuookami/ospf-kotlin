@@ -141,42 +141,47 @@ interface Model : AddableTokenCollection {
 interface LinearModel : Model {
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: LinearMonomial,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: AbstractLinearPolynomial<*>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: LinearIntermediateSymbol,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: LinearInequality,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = false
@@ -186,38 +191,42 @@ interface LinearModel : Model {
     @JvmName("partitionVariables")
     fun partition(
         variables: Iterable<AbstractVariableItem<*, *>>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return partition(sum(variables), name, displayName)
+        return partition(sum(variables), lazy, name, displayName)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
         symbols: Iterable<LinearIntermediateSymbol>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return partition(sum(symbols), name, displayName)
+        return partition(sum(symbols), lazy, name, displayName)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearMonomials")
     fun partition(
         monomials: Iterable<LinearMonomial>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return partition(sum(monomials), name, displayName)
+        return partition(sum(monomials), lazy, name, displayName)
     }
 
     fun partition(
         polynomial: AbstractLinearPolynomial<*>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return addConstraint(polynomial eq true, name, displayName)
+        return addConstraint(polynomial eq true, lazy, name, displayName)
     }
 
     override fun addObject(
@@ -315,42 +324,47 @@ interface LinearModel : Model {
 interface QuadraticModel : LinearModel {
     fun addConstraint(
         constraint: QuadraticMonomial,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     override fun addConstraint(
         constraint: LinearInequality,
+        lazy: Boolean,
         name: String?,
         displayName: String?,
         withRangeSet: Boolean?
     ): Try {
-        return addConstraint(QuadraticInequality(constraint), name, displayName, withRangeSet)
+        return addConstraint(QuadraticInequality(constraint), lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: AbstractQuadraticPolynomial<*>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: QuadraticIntermediateSymbol,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, name, displayName, withRangeSet)
+        return addConstraint(constraint eq true, lazy, name, displayName, withRangeSet)
     }
 
     fun addConstraint(
         constraint: QuadraticInequality,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = null
@@ -360,28 +374,31 @@ interface QuadraticModel : LinearModel {
     @JvmName("partitionQuadraticMonomials")
     fun partition(
         monomials: Iterable<QuadraticMonomial>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return partition(qsum(monomials), name, displayName)
+        return partition(qsum(monomials), lazy, name, displayName)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
         symbols: Iterable<QuadraticIntermediateSymbol>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return partition(qsum(symbols), name, displayName)
+        return partition(qsum(symbols), lazy, name, displayName)
     }
 
     fun partition(
         polynomial: AbstractQuadraticPolynomial<*>,
+        lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return addConstraint(polynomial eq Flt64.one, name, displayName)
+        return addConstraint(polynomial eq Flt64.one, lazy, name, displayName)
     }
 
     override fun addObject(

@@ -422,7 +422,11 @@ fun Collection<IntermediateSymbol>.register(
             totalSymbolAmount = tokenTable.symbols.usize
         )
     )
-    var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
+    var dependencies = notEmptySymbols.associateWith { symbol ->
+        symbol.dependencies.filter { dependency ->
+            dependency !in completedSymbols
+        }.toMutableSet()
+    }.toMap()
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
@@ -896,7 +900,11 @@ suspend fun Collection<IntermediateSymbol>.register(
                 totalSymbolAmount = tokenTable.symbols.usize
             )
         )
-        var dependencies = notEmptySymbols.associateWith { it.dependencies.toMutableSet() }.toMap()
+        var dependencies = notEmptySymbols.associateWith { symbol ->
+            symbol.dependencies.filter { dependency ->
+                dependency !in completedSymbols
+            }.toMutableSet()
+        }.toMap()
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {

@@ -32,10 +32,15 @@ class ScipLinearSolver(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = ScipLinearSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return ScipLinearSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -47,7 +52,7 @@ class ScipLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = ScipLinearSolverImpl(
+            ScipLinearSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { ScipSolverCallBack() }
@@ -79,10 +84,11 @@ class ScipLinearSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -98,14 +104,14 @@ private class ScipLinearSolverImpl(
     private lateinit var scipConstraints: List<jscip.Constraint>
     private lateinit var output: FeasibleSolverOutput
 
-    override fun finalize() {
+    override fun close() {
         for (constraint in scipConstraints) {
             scip.releaseCons(constraint)
         }
         for (variable in scipVars) {
             scip.releaseVar(variable)
         }
-        super.finalize()
+        super.close()
     }
 
     suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput> {

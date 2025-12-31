@@ -70,14 +70,16 @@ class ContextVar<T>(
 
     @Synchronized
     fun set(value: T): Context<T> {
-        stackValues[ContextKey()] = value
-        return Context(this)
+        val key = ContextKey()
+        stackValues[key] = value
+        return Context(key, this)
     }
 
     @Synchronized
     fun set(builder: () -> T): Context<T> {
-        stackValues[ContextKey()] = builder()
-        return Context(this)
+        val key = ContextKey()
+        stackValues[key] = builder()
+        return Context(key, this)
     }
 
     @Synchronized
@@ -91,7 +93,7 @@ class ContextVar<T>(
                 customValues[key] = value
             }
         }
-        return Context(this)
+        return Context(key, this)
     }
 
     @Synchronized
@@ -119,20 +121,52 @@ class ContextVar<T>(
             }
         }
     }
+
+    @Synchronized
+    fun remove(key: Any? = null) {
+        when (key) {
+            is ContextKey -> {
+                val removedKeys = HashSet<ContextKey>()
+                for (ckey in stackValues.keys) {
+                    var childKey: ContextKey? = ckey
+                    while (childKey != null && childKey != key) {
+                        childKey = childKey.parent
+                    }
+                    if (childKey == key) {
+                        removedKeys.add(childKey)
+                    }
+                }
+                removedKeys.forEach {
+                    stackValues.remove(it)?.let { value ->
+                        if (value is AutoCloseable) {
+                            value.close()
+                        }
+                    }
+                }
+            }
+
+            null -> {
+                remove(ContextKey())
+            }
+
+            else -> {
+                customValues.remove(key)?.let { value ->
+                    if (value is AutoCloseable) {
+                        value.close()
+                    }
+                }
+            }
+        }
+    }
 }
 
 class Context<T>(
+    private val key: Any,
     private val context: ContextVar<T>
-) {
+) : AutoCloseable {
     @Synchronized
-    protected fun finalize() {
-        var key: ContextKey? = ContextKey()
-        while (!context.stackValues.containsKey(key)) {
-            key = key?.parent
-        }
-        if (key != null) {
-            context.stackValues.remove(key)
-        }
+    override fun close() {
+        context.remove(key)
     }
 }
 

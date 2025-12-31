@@ -7,13 +7,18 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-abstract class HexalySolver {
+abstract class HexalySolver : AutoCloseable {
     protected lateinit var optimizer: HexalyOptimizer
     protected lateinit var hexalyModel: HxModel
     protected lateinit var hexalySolution: HxSolution
     protected lateinit var status: SolverStatus
     protected var beginTime: Instant? = null
     protected var solvingTime: Duration? = null
+
+    override fun close() {
+        hexalyModel.close()
+        optimizer.close()
+    }
 
     protected suspend fun init(
         name: String,

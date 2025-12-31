@@ -27,10 +27,15 @@ class HexalyQuadraticSolver(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = HexalyQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return HexalyQuadraticSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).let { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -42,7 +47,7 @@ class HexalyQuadraticSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = HexalyQuadraticSolverImpl(
+            HexalyQuadraticSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { HexalySolverCallBack() }
@@ -53,10 +58,11 @@ class HexalyQuadraticSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -80,7 +86,7 @@ private class HexalyQuadraticSolverImpl(
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
-            HexalyQuadraticSolverImpl::configure,
+            { it.configure(model) },
             HexalyQuadraticSolverImpl::solve,
             HexalyQuadraticSolverImpl::analyzeStatus,
             HexalyQuadraticSolverImpl::analyzeSolution
@@ -246,7 +252,7 @@ private class HexalyQuadraticSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)
             optimizer.param.nbThreads = config.threadNum.toInt()
@@ -261,6 +267,7 @@ private class HexalyQuadraticSolverImpl(
                         val currentObj = Flt64(currentSolution.getDoubleValue(hexalyObjective))
                         val currentBound = Flt64(currentSolution.getDoubleObjectiveBound(0))
                         val currentTime = Clock.System.now() - beginTime!!
+                        val currentBestSolution = hexalyVars.map { Flt64(currentSolution.getDoubleValue(it)) }
 
                         if (initialBestObj == null) {
                             initialBestObj = currentObj
@@ -284,7 +291,10 @@ private class HexalyQuadraticSolverImpl(
                             when (it(
                                 SolvingStatus(
                                     solver = "hexaly",
-                                    time = currentTime,
+                                    solverConfig = config,
+                                    intermediateModel = model,
+                                    solverModel = hexalyModel,
+                                    solverCallBack = this,
                                     objectCategory = when (hexalyModel.getObjectiveDirection(0)) {
                                         HxObjectiveDirection.Minimize -> {
                                             ObjectCategory.Minimum
@@ -298,10 +308,12 @@ private class HexalyQuadraticSolverImpl(
                                             null
                                         }
                                     },
+                                    time = currentTime,
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
-                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                    currentBestSolution = currentBestSolution
                                 )
                             )) {
                                 is Ok -> {}

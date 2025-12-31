@@ -30,10 +30,15 @@ class CplexLinearSolver(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = CplexLinearSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return CplexLinearSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -45,7 +50,7 @@ class CplexLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = CplexLinearSolverImpl(
+            CplexLinearSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { CplexSolverCallBack() }
@@ -77,10 +82,11 @@ class CplexLinearSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { Pair(it, results) }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { Pair(it, results) }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -105,7 +111,7 @@ private class CplexLinearSolverImpl(
         val processes = arrayOf(
             { it.init(model.name) },
             { it.dump(model) },
-            CplexLinearSolverImpl::configure,
+            { it.configure(model) },
             CplexLinearSolverImpl::solve,
             CplexLinearSolverImpl::analyzeStatus,
             { it.analyzeSolution(model) }
@@ -247,7 +253,7 @@ private class CplexLinearSolverImpl(
         return ok
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: LinearTriadModelView): Try {
         cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
         cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toDouble())
         cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
@@ -260,6 +266,7 @@ private class CplexLinearSolverImpl(
                     val currentObj = Flt64(incumbentObjValue)
                     val currentBound = Flt64(bestObjValue)
                     val currentTime = cplexTime.seconds
+                    val currentBestSolution = cplexVars.map { Flt64(cplex.getValue(it)) }
 
                     if (initialBestObj == null) {
                         initialBestObj = currentObj
@@ -283,7 +290,10 @@ private class CplexLinearSolverImpl(
                         when (it(
                             SolvingStatus(
                                 solver = "cplex",
-                                time = currentTime,
+                                solverConfig = config,
+                                intermediateModel = model,
+                                solverModel = cplex,
+                                solverCallBack = this,
                                 objectCategory = when (cplex.objective.sense) {
                                     IloObjectiveSense.Minimize -> {
                                         ObjectCategory.Minimum
@@ -297,10 +307,12 @@ private class CplexLinearSolverImpl(
                                         null
                                     }
                                 },
+                                time = currentTime,
                                 obj = currentObj,
                                 possibleBestObj = currentBound,
                                 initialBestObj = initialBestObj ?: currentObj,
-                                gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                currentBestSolution = currentBestSolution
                             )
                         )) {
                             is Ok -> {}
@@ -310,6 +322,8 @@ private class CplexLinearSolverImpl(
                             }
                         }
                     }
+
+                    // todo: add lazy constraint
                 }
             })
         }

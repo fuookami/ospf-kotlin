@@ -43,7 +43,7 @@ typealias KafkaMessageRecord = ConsumerRecord<String, String>
 
 data class KafkaClient(
     val config: KafkaConfig
-) {
+) : AutoCloseable {
     val producer: KafkaProducer<String, String>
     lateinit var topicConsumer: KafkaConsumer<String, String>
     val topicProcessor: MutableMap<String, (String, KafkaMessageRecord) -> Unit> = HashMap()
@@ -62,7 +62,7 @@ data class KafkaClient(
         producer = KafkaProducer(props, StringSerializer(), StringSerializer())
     }
 
-    protected fun finalize() {
+    override fun close() {
         producer.close()
         if (::topicConsumer.isInitialized) {
             topicConsumer.close()

@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 
-abstract class ScipSolver {
+abstract class ScipSolver : AutoCloseable {
     companion object {
         internal var loadedLibrary = false
 
@@ -55,7 +55,7 @@ abstract class ScipSolver {
     protected lateinit var status: SolverStatus
     protected var solvingTime: Duration? = null
 
-    protected open fun finalize() {
+    override fun close() {
         scip.free()
     }
 

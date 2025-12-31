@@ -29,10 +29,15 @@ class CoptLinearSolver(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = CoptLinearSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return CoptLinearSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -44,7 +49,7 @@ class CoptLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = CoptLinearSolverImpl(
+            CoptLinearSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { CoptLinearSolverCallBack() }
@@ -64,10 +69,11 @@ class CoptLinearSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -102,7 +108,7 @@ private class CoptLinearSolverImpl(
                 }
             },
             { it.dump(model) },
-            CoptLinearSolverImpl::configure,
+            { it.configure(model) },
             CoptLinearSolverImpl::solve,
             CoptLinearSolverImpl::analyzeStatus,
             CoptLinearSolverImpl::analyzeSolution
@@ -225,7 +231,7 @@ private class CoptLinearSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toDouble())
@@ -239,6 +245,7 @@ private class CoptLinearSolverImpl(
                         val currentObj = Flt64(get(COPT.CallBackInfo.BestObj))
                         val currentBound = Flt64(get(COPT.CallBackInfo.BestBound))
                         val currentTime = coptModel.get(COPT.DoubleAttr.SolvingTime).seconds
+                        val currentBestSolution = this.solution.map { Flt64(it) }
 
                         if (initialBestObj == null) {
                             initialBestObj = currentObj
@@ -263,6 +270,10 @@ private class CoptLinearSolverImpl(
                                 SolvingStatus(
                                     solver = "copt",
                                     time = currentTime,
+                                    solverConfig = config,
+                                    intermediateModel = model,
+                                    solverModel = coptModel,
+                                    solverCallBack = this,
                                     objectCategory = when (coptModel.get(COPT.IntAttr.ObjSense)) {
                                         COPT.MINIMIZE -> {
                                             ObjectCategory.Minimum
@@ -279,7 +290,8 @@ private class CoptLinearSolverImpl(
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
-                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                    currentBestSolution = currentBestSolution
                                 )
                             )) {
                                 is Ok -> {}
@@ -288,6 +300,8 @@ private class CoptLinearSolverImpl(
                                     interrupt()
                                 }
                             }
+
+                            // todo: add lazy constraint
                         }
                     }
                 }, COPT.CALL_BACK_CONTEXT_MIP_NODE)

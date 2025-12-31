@@ -28,10 +28,15 @@ class GurobiLinearSolver(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = GurobiLinearSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return GurobiLinearSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -43,7 +48,7 @@ class GurobiLinearSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = GurobiLinearSolverImpl(
+            GurobiLinearSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { GurobiLinearSolverCallBack() }
@@ -66,10 +71,11 @@ class GurobiLinearSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -103,7 +109,7 @@ private class GurobiLinearSolverImpl(
                 }
             },
             { it.dump(model) },
-            GurobiLinearSolverImpl::configure,
+            { it.configure(model) },
             GurobiLinearSolverImpl::solve,
             GurobiLinearSolverImpl::analyzeStatus,
             GurobiLinearSolverImpl::analyzeSolution
@@ -225,7 +231,7 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
@@ -240,6 +246,7 @@ private class GurobiLinearSolverImpl(
                             val currentObj = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBST))
                             val currentBound = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBND))
                             val currentTime = getDoubleInfo(GRB.Callback.RUNTIME).seconds
+                            val currentBestSolution = getSolution(grbVars.toTypedArray()).map { Flt64(it) }
 
                             if (initialBestObj == null) {
                                 initialBestObj = currentObj
@@ -263,7 +270,10 @@ private class GurobiLinearSolverImpl(
                                 when (it(
                                     SolvingStatus(
                                         solver = "gurobi",
-                                        time = currentTime,
+                                        solverConfig = config,
+                                        intermediateModel = model,
+                                        solverModel = grbModel,
+                                        solverCallBack = this,
                                         objectCategory = when (grbModel.get(GRB.IntAttr.ModelSense)) {
                                             GRB.MINIMIZE -> {
                                                 ObjectCategory.Minimum
@@ -277,10 +287,12 @@ private class GurobiLinearSolverImpl(
                                                 null
                                             }
                                         },
+                                        time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
-                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                        gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                        currentBestSolution = currentBestSolution
                                     )
                                 )) {
                                     is Ok -> {}

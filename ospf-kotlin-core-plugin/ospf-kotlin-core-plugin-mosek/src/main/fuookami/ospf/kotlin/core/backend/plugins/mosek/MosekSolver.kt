@@ -6,10 +6,15 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-abstract class MosekSolver {
+abstract class MosekSolver : AutoCloseable {
     protected lateinit var env: Env
     protected lateinit var mosekModel: Task
     protected lateinit var status: SolverStatus
+
+    override fun close() {
+        mosekModel.close()
+        env.close()
+    }
 
     protected suspend fun init(
         name: String,

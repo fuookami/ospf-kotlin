@@ -28,10 +28,15 @@ class MindOPTQuadraticSolver(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = MindOPTQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
-        val result = impl(model)
-        System.gc()
-        return result
+        return MindOPTQuadraticSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        ).use { impl ->
+            val result = impl(model)
+            System.gc()
+            result
+        }
     }
 
     override suspend fun invoke(
@@ -43,7 +48,7 @@ class MindOPTQuadraticSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = MindOPTQuadraticSolverImpl(
+            MindOPTQuadraticSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { MindOPTQuadraticSolverCallBack() }
@@ -64,10 +69,11 @@ class MindOPTQuadraticSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -94,7 +100,7 @@ private class MindOPTQuadraticSolverImpl(
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
-            MindOPTQuadraticSolverImpl::configure,
+            { it.configure(model) },
             MindOPTQuadraticSolverImpl::solve,
             MindOPTQuadraticSolverImpl::analyzeStatus,
             MindOPTQuadraticSolverImpl::analyzeSolution
@@ -225,7 +231,7 @@ private class MindOPTQuadraticSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
             mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toDouble())
@@ -259,7 +265,10 @@ private class MindOPTQuadraticSolverImpl(
                                 when (it(
                                     SolvingStatus(
                                         solver = "mindopt",
-                                        time = currentTime,
+                                        solverConfig = config,
+                                        intermediateModel = model,
+                                        solverModel = mindoptModel,
+                                        solverCallBack = this,
                                         objectCategory = when (mindoptModel.get(MDO.IntAttr.ModelSense)) {
                                             MDO.MINIMIZE -> {
                                                 ObjectCategory.Minimum
@@ -273,6 +282,7 @@ private class MindOPTQuadraticSolverImpl(
                                                 null
                                             }
                                         },
+                                        time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,

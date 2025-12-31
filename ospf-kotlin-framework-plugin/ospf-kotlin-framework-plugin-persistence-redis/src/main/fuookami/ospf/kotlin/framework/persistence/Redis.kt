@@ -47,8 +47,8 @@ data class RedisConfig(
 
 data class RedisClient(
     val jedis: Jedis
-) {
-    protected fun finalize() {
+) : AutoCloseable {
+    override fun close() {
         jedis.close()
     }
 }
@@ -174,36 +174,40 @@ fun <T> RedisClient.getObj(name: String, deserializer: (String) -> T): T? {
 
 data class RedisContext(
     val client: RedisClient
-) {
-    protected fun finalize() {
+) : AutoCloseable {
+    override fun close() {
         client.jedis.close()
     }
 }
 
-fun redisContext(context: RedisContext.() -> Unit) {
+fun useRedis(block: RedisContext.() -> Unit) {
     Redis()?.let {
-        val ctx = RedisContext(it)
-        context(ctx)
+        RedisContext(it).use { ctx ->
+            block(ctx)
+        }
     }
 }
 
-fun redisContext(key: RedisClientKey, context: RedisContext.() -> Unit) {
+fun useRedis(key: RedisClientKey, block: RedisContext.() -> Unit) {
     Redis(key)?.let {
-        val ctx = RedisContext(it)
-        context(ctx)
+        RedisContext(it).use { ctx ->
+            block(ctx)
+        }
     }
 }
 
-fun redisContext(name: String, context: RedisContext.() -> Unit) {
+fun useRedis(name: String, block: RedisContext.() -> Unit) {
     Redis(name)?.let {
-        val ctx = RedisContext(it)
-        context(ctx)
+        RedisContext(it).use { ctx ->
+            block(ctx)
+        }
     }
 }
 
-fun redisContext(name: String, database: Int, context: RedisContext.() -> Unit) {
+fun useRedis(name: String, database: Int, block: RedisContext.() -> Unit) {
     Redis(name, database)?.let {
-        val ctx = RedisContext(it)
-        context(ctx)
+        RedisContext(it).use { ctx ->
+            block(ctx)
+        }
     }
 }

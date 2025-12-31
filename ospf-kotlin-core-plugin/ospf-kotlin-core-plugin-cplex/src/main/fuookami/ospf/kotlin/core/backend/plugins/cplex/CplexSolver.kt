@@ -4,9 +4,14 @@ import ilog.cplex.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
-abstract class CplexSolver {
+abstract class CplexSolver : AutoCloseable {
     protected lateinit var cplex: IloCplex
     protected lateinit var status: SolverStatus
+
+    override fun close() {
+        cplex.endModel()
+        cplex.end()
+    }
 
     protected suspend fun init(name: String): Try {
         cplex = IloCplex()

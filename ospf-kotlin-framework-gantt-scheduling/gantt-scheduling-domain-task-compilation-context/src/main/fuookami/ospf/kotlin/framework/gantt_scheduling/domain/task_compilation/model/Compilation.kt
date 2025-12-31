@@ -418,7 +418,7 @@ open class IterativeTaskCompilation<
             for (task in thisTasks) {
                 when (val result = model.addConstraint(
                     xor[executor] geq xi[task],
-                    "xor_${executor}_${iteration}_${task}"
+                    name = "xor_${executor}_${iteration}_${task}"
                 )) {
                     is Ok -> {}
 
@@ -435,7 +435,7 @@ open class IterativeTaskCompilation<
                     if (task1 != task2 && conflict(task1, task2)) {
                         when (val result = model.addConstraint(
                             xi[task1] + x[otherIteration][task2] leq Flt64.one,
-                            "task_conflict_${task1}_${otherIteration}_${task2}"
+                            name = "task_conflict_${task1}_${otherIteration}_${task2}"
                         )) {
                             is Ok -> {}
 

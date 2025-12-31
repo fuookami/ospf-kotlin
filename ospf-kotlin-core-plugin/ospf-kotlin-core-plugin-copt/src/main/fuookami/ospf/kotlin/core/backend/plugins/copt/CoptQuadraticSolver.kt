@@ -43,7 +43,7 @@ class CoptQuadraticSolver(
             this(model).map { it to emptyList() }
         } else {
             val results = ArrayList<Solution>()
-            val impl = CoptQuadraticSolverImpl(
+            CoptQuadraticSolverImpl(
                 config = config,
                 callBack = callBack
                     .copyIfNotNullOr { CoptQuadraticSolverCallBack() }
@@ -63,10 +63,11 @@ class CoptQuadraticSolver(
                         ok
                     },
                 statusCallBack = solvingStatusCallBack
-            )
-            val result = impl(model).map { it to results }
-            System.gc()
-            return result
+            ).use { impl ->
+                val result = impl(model).map { it to results }
+                System.gc()
+                result
+            }
         }
     }
 }
@@ -101,7 +102,7 @@ private class CoptQuadraticSolverImpl(
                 }
             },
             { it.dump(model) },
-            CoptQuadraticSolverImpl::configure,
+            { it.configure(model) },
             CoptQuadraticSolverImpl::solve,
             CoptQuadraticSolverImpl::analyzeStatus,
             CoptQuadraticSolverImpl::analyzeSolution
@@ -236,7 +237,7 @@ private class CoptQuadraticSolverImpl(
         }
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
             coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toDouble())
@@ -250,6 +251,7 @@ private class CoptQuadraticSolverImpl(
                         val currentObj = Flt64(get(COPT.CallBackInfo.BestObj))
                         val currentBound = Flt64(get(COPT.CallBackInfo.BestBound))
                         val currentTime = coptModel.get(COPT.DoubleAttr.SolvingTime).seconds
+                        val currentBestSolution = this.solution.map { Flt64(it) }
 
                         if (initialBestObj == null) {
                             initialBestObj = currentObj
@@ -274,6 +276,10 @@ private class CoptQuadraticSolverImpl(
                                 SolvingStatus(
                                     solver = "copt",
                                     time = currentTime,
+                                    solverConfig = config,
+                                    intermediateModel = model,
+                                    solverModel = coptModel,
+                                    solverCallBack = this,
                                     objectCategory = when (coptModel.get(COPT.IntAttr.ObjSense)) {
                                         COPT.MINIMIZE -> {
                                             ObjectCategory.Minimum
@@ -290,7 +296,8 @@ private class CoptQuadraticSolverImpl(
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
-                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
+                                    gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                    currentBestSolution = currentBestSolution
                                 )
                             )) {
                                 is Ok -> {}
@@ -300,6 +307,8 @@ private class CoptQuadraticSolverImpl(
                                 }
                             }
                         }
+
+                        // todo: add lazy constraint
                     }
                 }, COPT.CALL_BACK_CONTEXT_MIP_NODE)
             }
