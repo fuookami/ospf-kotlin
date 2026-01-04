@@ -7,14 +7,17 @@ import fuookami.ospf.kotlin.utils.error.*
 
 data class SubProgressHeartBeat(
     val estimatedTime: Duration,
-    val progress: Flt64
+    val progress: Flt64,
+    val message: String? = null
 )
 
 data class RunningHeartBeat(
     val id: String,
     val runTime: Duration,
     val estimatedTime: Duration,
-    val optimizedRate: Flt64
+    val optimizedRate: Flt64,
+    val progress: String? = null,
+    val message: String? = null
 ) {
     val time: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 }

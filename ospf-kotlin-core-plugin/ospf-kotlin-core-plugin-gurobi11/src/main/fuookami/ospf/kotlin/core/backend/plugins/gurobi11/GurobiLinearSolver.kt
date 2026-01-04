@@ -92,6 +92,7 @@ private class GurobiLinearSolverImpl(
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
+    private var bestSolution: List<Flt64>? = null
     private var bestTime: Duration = Duration.ZERO
 
     suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput> {
@@ -242,11 +243,13 @@ private class GurobiLinearSolverImpl(
                     override fun callback() {
                         callBack?.nativeCallback?.invoke(this)
 
+                        if (where == GRB.CB_MIPSOL) {
+                            bestSolution = getSolution(grbVars.toTypedArray()).map { Flt64(it) }
+                        }
                         if (where == GRB.CB_MIP) {
                             val currentObj = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBST))
                             val currentBound = Flt64(getDoubleInfo(GRB.Callback.MIP_OBJBND))
                             val currentTime = getDoubleInfo(GRB.Callback.RUNTIME).seconds
-                            val currentBestSolution = getSolution(grbVars.toTypedArray()).map { Flt64(it) }
 
                             if (initialBestObj == null) {
                                 initialBestObj = currentObj
@@ -292,7 +295,7 @@ private class GurobiLinearSolverImpl(
                                         possibleBestObj = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
-                                        currentBestSolution = currentBestSolution
+                                        currentBestSolution = bestSolution
                                     )
                                 )) {
                                     is Ok -> {}
