@@ -492,8 +492,9 @@ class BinaryzationFunctionLinearImpl(
 
 class BinaryzationFunction(
     private val x: AbstractQuadraticPolynomial<*>,
-    override val parent: IntermediateSymbol? = null,
     internal val epsilon: Flt64 = Flt64(1e-6),
+    override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -504,16 +505,18 @@ class BinaryzationFunction(
             Poly : AbstractQuadraticPolynomial<Poly>
         > invoke(
             x: T,
-            parent: IntermediateSymbol? = null,
             epsilon: Flt64 = Flt64(1e-6),
+            parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: BinaryzationFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
         ): BinaryzationFunction {
             return BinaryzationFunction(
                 x = x.toQuadraticPolynomial(),
-                parent = parent,
                 epsilon = epsilon,
+                parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -540,6 +543,9 @@ class BinaryzationFunction(
                 )
             }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     override val discrete = true
 

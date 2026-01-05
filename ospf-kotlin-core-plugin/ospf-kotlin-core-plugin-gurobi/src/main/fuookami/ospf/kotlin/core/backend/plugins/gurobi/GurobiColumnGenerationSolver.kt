@@ -39,7 +39,13 @@ class GurobiColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(
+                    model = result.value,
+                    fixedVariables = null,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {
@@ -94,7 +100,13 @@ class GurobiColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(
+                    model = result.value,
+                    fixedVariables = null,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {
@@ -168,7 +180,13 @@ class GurobiColumnGenerationSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(
+                    model = result.value,
+                    fixedVariables = null,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {

@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class SemiFunction(
     private val x: AbstractLinearPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null,
 ) : LinearFunctionSymbol() {
@@ -27,12 +28,14 @@ class SemiFunction(
         > invoke(
             x: T,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null,
         ): SemiFunction {
             return SemiFunction(
                 x = x.toLinearPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -40,6 +43,9 @@ class SemiFunction(
     }
 
     private val logger = logger()
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val y: URealVar by lazy {
         val y = URealVar("${name}_y")

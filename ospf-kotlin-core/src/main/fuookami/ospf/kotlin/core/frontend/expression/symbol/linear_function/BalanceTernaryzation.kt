@@ -58,6 +58,7 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
     override val category = Linear
 
     override val parent get() = self.parent
+    override val args get() = self.args
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -1141,6 +1142,7 @@ class BalanceTernaryzationFunction(
     internal val piecewise: Boolean = false,
     m: Flt64? = null,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: BalanceTernaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -1157,6 +1159,7 @@ class BalanceTernaryzationFunction(
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: BalanceTernaryzationFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
@@ -1167,6 +1170,7 @@ class BalanceTernaryzationFunction(
                 epsilon = epsilon,
                 piecewise = piecewise,
                 parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -1210,6 +1214,9 @@ class BalanceTernaryzationFunction(
                 )
             }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     override val discrete = true
 

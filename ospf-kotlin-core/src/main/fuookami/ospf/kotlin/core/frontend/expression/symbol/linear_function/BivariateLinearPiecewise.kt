@@ -21,6 +21,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     private val y: AbstractLinearPolynomial<*>,
     val triangles: List<Triangle3>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -54,6 +55,9 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             return lhsLestPoint ord rhsLestPoint
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     val size by triangles::size
     val indices by triangles::indices
@@ -679,6 +683,7 @@ class BivariateLinearPiecewiseFunction(
     val points: List<Point3>,
     triangles: List<Triangle3>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractBivariateLinearPiecewiseFunction(
@@ -686,6 +691,7 @@ class BivariateLinearPiecewiseFunction(
     y = y,
     triangles = triangles,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -695,6 +701,7 @@ class BivariateLinearPiecewiseFunction(
             y: AbstractLinearPolynomial<*>,
             points: List<Point3>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): BivariateLinearPiecewiseFunction {
@@ -706,6 +713,7 @@ class BivariateLinearPiecewiseFunction(
                 points = sortedPoints,
                 triangles = triangles,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -721,6 +729,7 @@ class BivariateLinearPiecewiseFunction(
             y: T2,
             points: List<Point3>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): BivariateLinearPiecewiseFunction {
@@ -729,6 +738,7 @@ class BivariateLinearPiecewiseFunction(
                 y = y.toLinearPolynomial(),
                 points = points,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -742,6 +752,7 @@ class IsolineBivariateLinearPiecewiseFunction(
     val isolines: List<Pair<Flt64, List<Point2>>>,
     triangles: List<Triangle3>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractBivariateLinearPiecewiseFunction(
@@ -749,6 +760,7 @@ class IsolineBivariateLinearPiecewiseFunction(
     y = y,
     triangles = triangles,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -758,6 +770,7 @@ class IsolineBivariateLinearPiecewiseFunction(
             y: AbstractLinearPolynomial<*>,
             isolines: List<Pair<Flt64, List<Point2>>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IsolineBivariateLinearPiecewiseFunction {
@@ -771,6 +784,7 @@ class IsolineBivariateLinearPiecewiseFunction(
                 isolines = sortedIsolines,
                 triangles = triangles,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -786,6 +800,7 @@ class IsolineBivariateLinearPiecewiseFunction(
             y: T2,
             isolines: List<Pair<Flt64, List<Point2>>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IsolineBivariateLinearPiecewiseFunction {
@@ -794,6 +809,7 @@ class IsolineBivariateLinearPiecewiseFunction(
                 y = y.toLinearPolynomial(),
                 isolines = isolines,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )

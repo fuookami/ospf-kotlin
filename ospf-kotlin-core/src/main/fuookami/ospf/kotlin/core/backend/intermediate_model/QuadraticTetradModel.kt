@@ -18,6 +18,13 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 
 typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
 
+private fun OriginQuadraticConstraint.isBound(): Boolean {
+    return lhs.size == 1
+            && lhs.first().coefficient eq Flt64.one
+            && lhs.first().token2 == null
+            // && from?.second != true
+}
+
 class QuadraticConstraintCell(
     override val rowIndex: Int,
     val colIndex1: Int,
@@ -42,7 +49,7 @@ class QuadraticConstraint(
     names: List<String>,
     sources: List<ConstraintSource>,
     val origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null },
-    val froms: List<IntermediateSymbol?> = (0 until lhs.size).map { null }
+    val froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
 ) : Constraint<QuadraticConstraintCell>(lhs, signs, rhs, names, sources) {
     override fun copy() = QuadraticConstraint(
         lhs.map { line -> line.map { it.copy() } },
@@ -268,9 +275,9 @@ data class QuadraticTetradModel(
         suspend operator fun invoke(
             model: QuadraticMechanismModel,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            concurrent: Boolean? = null,
-            withDumpingBounds: Boolean? = null,
-            withForceDumpingBounds: Boolean? = null
+            dumpConstraintsToBounds: Boolean? = null,
+            forceDumpBounds: Boolean? = null,
+            concurrent: Boolean? = null
         ): QuadraticTetradModel {
             logger.trace("Creating QuadraticTetradModel for $model")
             val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
@@ -281,13 +288,9 @@ data class QuadraticTetradModel(
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
             val bounds = model.constraints
                 .flatMap { constraint ->
-                    if ((withDumpingBounds ?: true)
-                        && constraint.lhs.size == 1
-                        && constraint.lhs.first().coefficient eq Flt64.one
-                        && constraint.lhs.first().token2 == null
-                    ) {
+                    if ((dumpConstraintsToBounds ?: true) && constraint.isBound()) {
                         listOf(Quadruple(constraint, constraint.lhs.first().token1, constraint.sign, constraint.rhs))
-                    } else if (withForceDumpingBounds ?: false) {
+                    } else if (forceDumpBounds ?: false) {
                         if (constraint.lhs.size == 1 && constraint.lhs.first().token2 == null) {
                             listOf(Quadruple(constraint, constraint.lhs.first().token1, constraint.sign, constraint.rhs / constraint.lhs.first().coefficient))
                         } else if (constraint.lhs.all { it.coefficient eq Flt64.one && it.token2 == null && it.token1.lowerBound!!.value.unwrap() geq Flt64.zero }
@@ -355,6 +358,7 @@ data class QuadraticTetradModel(
             for ((_, _) in tokenIndexes) {
                 variables.add(null)
             }
+
             for ((token, i) in tokenIndexes) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
@@ -469,7 +473,7 @@ data class QuadraticTetradModel(
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginQuadraticConstraint>()
-            val froms = ArrayList<IntermediateSymbol?>()
+            val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
@@ -584,7 +588,7 @@ data class QuadraticTetradModel(
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginQuadraticConstraint>()
-                    val froms = ArrayList<IntermediateSymbol?>()
+                    val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -605,7 +609,7 @@ data class QuadraticTetradModel(
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginQuadraticConstraint>()
-                val froms = ArrayList<IntermediateSymbol?>()
+                val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
                     for (cell in constraint.lhs) {

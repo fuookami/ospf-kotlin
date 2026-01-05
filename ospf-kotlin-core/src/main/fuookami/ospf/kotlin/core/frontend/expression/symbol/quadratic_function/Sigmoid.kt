@@ -13,6 +13,7 @@ class SigmoidFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val samplingPoints: List<Point2>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String = "${x}_sigmoid",
     override var displayName: String? = "Sigmoid($x)"
 ) : QuadraticFunctionSymbol() {
@@ -77,6 +78,7 @@ class SigmoidFunction(
             x: T,
             samplingPoints: List<Point2>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_sigmoid",
             displayName: String? = "Sigmoid(${x})"
         ): SigmoidFunction {
@@ -84,6 +86,7 @@ class SigmoidFunction(
                 x = x.toQuadraticPolynomial(),
                 samplingPoints = samplingPoints,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -97,6 +100,7 @@ class SigmoidFunction(
             precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_sigmoid",
             displayName: String? = "Sigmoid($x)"
         ): SigmoidFunction {
@@ -104,11 +108,15 @@ class SigmoidFunction(
                 x = x.toQuadraticPolynomial(),
                 samplingPoints = samplingPoints(precision, decimalPrecision),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val impl = UnivariateLinearPiecewiseFunction(
         x = x,

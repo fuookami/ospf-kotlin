@@ -17,13 +17,17 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     private val x: AbstractQuadraticPolynomial<*>,
     private val lb: AbstractQuadraticPolynomial<*>,
     private val ub: AbstractQuadraticPolynomial<*>,
-    private val constraint: Boolean = true,
+    val constraint: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
 ) : QuadraticFunctionSymbol() {
     private val logger = logger()
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val _neg: V by lazy {
         ctor("${name}_neg")
@@ -183,7 +187,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             when (val result = model.addConstraint(
                 polyX leq ub,
                 name = "${name}_ub",
-                from = parent ?: this
+                from = (parent ?: this) to true
             )) {
                 is Ok -> {}
 
@@ -195,7 +199,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             when (val result = model.addConstraint(
                 polyX geq lb,
                 name = "${name}_lb",
-                from = parent ?: this
+                from = (parent ?: this) to true
             )) {
                 is Ok -> {}
 
@@ -237,7 +241,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             when (val result = model.addConstraint(
                 polyX leq ub,
                 name = "${name}_ub",
-                from = parent ?: this
+                from = (parent ?: this) to true
             )) {
                 is Ok -> {}
 
@@ -249,7 +253,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             when (val result = model.addConstraint(
                 polyX geq lb,
                 name = "${name}_lb",
-                from = parent ?: this
+                from = (parent ?: this) to true
             )) {
                 is Ok -> {}
 
@@ -419,6 +423,7 @@ object SlackRangeFunction {
         },
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -439,6 +444,7 @@ object SlackRangeFunction {
                 ub = ub,
                 constraint = constraint,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -455,6 +461,7 @@ object SlackRangeFunction {
         type: VariableType<*>? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -470,6 +477,7 @@ object SlackRangeFunction {
             },
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -485,6 +493,7 @@ object SlackRangeFunction {
         type: VariableType<*>? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -495,6 +504,7 @@ object SlackRangeFunction {
             type = type ?: UContinuous,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -510,6 +520,7 @@ object SlackRangeFunction {
         type: VariableType<*>? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -525,6 +536,7 @@ object SlackRangeFunction {
             },
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -540,6 +552,7 @@ object SlackRangeFunction {
         type: VariableType<*>? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -555,6 +568,7 @@ object SlackRangeFunction {
             },
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -572,6 +586,7 @@ object SlackRangeFunction {
         type: VariableType<*>? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -582,6 +597,7 @@ object SlackRangeFunction {
             type = type ?: UContinuous,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -601,6 +617,7 @@ object SlackRangeFunction {
         type: VariableType<*>? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackRangeFunction<*> {
@@ -618,6 +635,7 @@ object SlackRangeFunction {
             },
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -630,6 +648,7 @@ class UIntegerSlackRangeFunction(
     ub: AbstractQuadraticPolynomial<*>,
     constraint: Boolean = true,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null,
 ) : AbstractSlackRangeFunction<UIntVar>(
@@ -638,6 +657,7 @@ class UIntegerSlackRangeFunction(
     ub = ub,
     constraint = constraint,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName,
     ctor = { UIntVar(it) }
@@ -651,6 +671,7 @@ class URealSlackRangeFunction(
     ub: AbstractQuadraticPolynomial<*>,
     constraint: Boolean = true,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null,
 ) : AbstractSlackRangeFunction<URealVar>(
@@ -659,6 +680,7 @@ class URealSlackRangeFunction(
     ub = ub,
     constraint = constraint,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName,
     ctor = { URealVar(it) }

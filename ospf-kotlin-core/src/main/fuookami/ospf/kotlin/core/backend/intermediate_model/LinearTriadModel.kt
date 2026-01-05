@@ -19,6 +19,12 @@ import fuookami.ospf.kotlin.core.backend.solver.*
 
 typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraint
 
+private fun OriginLinearConstraint.isBound(): Boolean {
+    return lhs.size == 1
+            && lhs.first().coefficient eq Flt64.one
+            // && from?.second != true
+}
+
 class LinearConstraintCell(
     override val rowIndex: Int,
     val colIndex: Int,
@@ -46,7 +52,7 @@ class LinearConstraint(
     names: List<String>,
     sources: List<ConstraintSource>,
     val origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null },
-    val froms: List<IntermediateSymbol?> = (0 until lhs.size).map { null }
+    val froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
 ) : Constraint<LinearConstraintCell>(lhs, signs, rhs, names, sources) {
     fun filter(condition: (Int) -> Boolean): LinearConstraint {
         return LinearConstraint(
@@ -255,7 +261,7 @@ interface LinearTriadModelView: ModelView<LinearConstraintCell, LinearObjectiveC
     fun tidyDualSolution(solution: Solution): LinearDualSolution {
         return if (dual) {
             variables.associateNotNull {
-                if (it.dualOrigin != null && solution.size > it.index) {
+                if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {
                     (it.dualOrigin as OriginLinearConstraint) to solution[it.index]
                 } else {
                     null
@@ -263,7 +269,7 @@ interface LinearTriadModelView: ModelView<LinearConstraintCell, LinearObjectiveC
             }
         } else {
             constraints.indices.associateNotNull {
-                if (constraints.origins[it] != null && solution.size > it) {
+                if (constraints.origins[it] != null && solution.size > it && solution[it] neq Flt64.zero) {
                     constraints.origins[it]!! to solution[it]
                 } else {
                     null
@@ -285,9 +291,9 @@ data class LinearTriadModel(
         suspend operator fun invoke(
             model: LinearMechanismModel,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            concurrent: Boolean? = null,
-            withDumpingBounds: Boolean? = null,
-            withForceDumpingBounds: Boolean? = null
+            dumpConstraintsToBounds: Boolean? = null,
+            forceDumpBounds: Boolean? = null,
+            concurrent: Boolean? = null
         ): LinearTriadModel {
             logger.trace("Creating LinearTriadModel for $model")
             val tokensInSolver = if (fixedVariables.isNullOrEmpty()) {
@@ -298,12 +304,9 @@ data class LinearTriadModel(
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
             val bounds = model.constraints
                 .flatMap { constraint ->
-                    if ((withDumpingBounds ?: true)
-                        && constraint.lhs.size == 1
-                        && constraint.lhs.first().coefficient eq Flt64.one
-                    ) {
+                    if ((dumpConstraintsToBounds ?: true) && constraint.isBound()) {
                         listOf(Quadruple(constraint, constraint.lhs.first().token, constraint.sign, constraint.rhs))
-                    } else if (withForceDumpingBounds ?: false) {
+                    } else if (forceDumpBounds ?: false) {
                         if (constraint.lhs.size == 1) {
                             listOf(Quadruple(constraint, constraint.lhs.first().token, constraint.sign, constraint.rhs / constraint.lhs.first().coefficient))
                         } else if (constraint.lhs.all { it.coefficient eq Flt64.one && it.token.lowerBound!!.value.unwrap() geq Flt64.zero }
@@ -371,7 +374,6 @@ data class LinearTriadModel(
             for ((_, _) in tokenIndexMap) {
                 variables.add(null)
             }
-
             for ((token, i) in tokenIndexMap) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
@@ -447,7 +449,7 @@ data class LinearTriadModel(
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginLinearConstraint>()
-            val froms = ArrayList<IntermediateSymbol?>()
+            val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
@@ -522,7 +524,7 @@ data class LinearTriadModel(
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginLinearConstraint>()
-                    val froms = ArrayList<IntermediateSymbol?>()
+                    val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -542,7 +544,7 @@ data class LinearTriadModel(
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginLinearConstraint>()
-                val froms = ArrayList<IntermediateSymbol?>()
+                val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<LinearConstraintCell>()
                     var thisRhs = constraint.rhs
@@ -1850,7 +1852,7 @@ data class LinearTriadModel(
             },
             froms = this.constraints.froms + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisOrigins = ArrayList<IntermediateSymbol?>()
+                val thisOrigins = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
                 if (slackVariables[jp].first != null) {
                     thisOrigins.add(null)
                 }
@@ -1863,7 +1865,7 @@ data class LinearTriadModel(
             } else {
                 emptyList()
             } + if (minmaxSlack) {
-                val thisOrigins = ArrayList<IntermediateSymbol?>()
+                val thisOrigins = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
                 for ((lbSlack, ubSlack) in slackVariables) {
                     if (lbSlack != null) {
                         thisOrigins.add(null)

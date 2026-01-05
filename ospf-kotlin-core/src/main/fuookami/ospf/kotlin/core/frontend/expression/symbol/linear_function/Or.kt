@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class OrFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol() {
@@ -24,17 +25,22 @@ class OrFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): OrFunction {
             return OrFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val y: BinVar by lazy {
         BinVar("${name}_y")

@@ -17,6 +17,7 @@ class ModFunction(
     private val d: Flt64,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String = "${x}_mod_${d}",
     override var displayName: String? = "$x mod $d"
 ) : LinearFunctionSymbol() {
@@ -31,6 +32,7 @@ class ModFunction(
             d: Int,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -39,6 +41,7 @@ class ModFunction(
                 d = Flt64(d),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -52,6 +55,7 @@ class ModFunction(
             d: Double,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -60,6 +64,7 @@ class ModFunction(
                 d = Flt64(d),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -74,6 +79,7 @@ class ModFunction(
             d: T2,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -82,11 +88,15 @@ class ModFunction(
                 d = d.toFlt64(),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    private val _args = args
+    override val args = _args ?: parent?.args
 
     private val q: IntVar by lazy {
         val q = IntVar("${name}_q")

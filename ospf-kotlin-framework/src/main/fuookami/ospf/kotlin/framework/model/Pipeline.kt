@@ -59,6 +59,30 @@ interface CGPipeline<
     }
 
     fun refresh(map: Map, model: Model, shadowPrices: MetaDualSolution): Try {
+        val thisShadowPrices = model
+            .constraintsOfGroup()
+            .mapNotNull {
+                if (it.args is ShadowPriceKey) {
+                    it to (it.args as ShadowPriceKey)
+                } else {
+                    null
+                }
+            }
+            .groupBy { it.second }
+            .mapNotNull { (key, constraints) ->
+                val values = constraints.mapNotNull {
+                    shadowPrices.constraints[it.first]
+                }
+                if (values.isNotEmpty()) {
+                    key to values.sum()
+                } else {
+                    null
+                }
+            }
+        for ((key, value) in thisShadowPrices) {
+            map.put(ShadowPrice(key, value))
+        }
+
         return ok
     }
 }

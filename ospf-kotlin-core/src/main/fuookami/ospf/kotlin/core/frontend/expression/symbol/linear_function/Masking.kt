@@ -19,6 +19,7 @@ class MaskingFunction(
     mask: AbstractLinearPolynomial<*>? = null,
     m: Flt64? = null,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -35,6 +36,7 @@ class MaskingFunction(
             mask: T2,
             m: Flt64? = null,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
@@ -43,11 +45,15 @@ class MaskingFunction(
                 mask = mask.toLinearPolynomial(),
                 m = m,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val possibleUpperBound get() = max(
         abs(x.lowerBound!!.value.unwrap()),

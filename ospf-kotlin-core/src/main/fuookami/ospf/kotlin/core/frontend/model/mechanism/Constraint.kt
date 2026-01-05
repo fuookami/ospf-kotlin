@@ -25,7 +25,7 @@ fun LinearDualSolution.toMeta(): MetaDualSolution {
         symbols = this
             .filterKeys { it.from != null }
             .entries
-            .groupBy { it.key.from!! }
+            .groupBy { it.key.from!!.first }
             .mapValues { prices -> prices.value.map { it.toPair() } }
     )
 }
@@ -39,7 +39,7 @@ fun QuadraticDualSolution.toMeta(): MetaDualSolution {
         symbols = this
             .filterKeys { it.from != null }
             .entries
-            .groupBy { it.key.from!! }
+            .groupBy { it.key.from!!.first }
             .mapValues { prices -> prices.value.map { it.toPair() } }
     )
 }
@@ -51,7 +51,7 @@ sealed class Constraint(
     val lazy: Boolean,
     val name: String = "",
     open val origin: MetaConstraint<*>? = null,
-    open val from: IntermediateSymbol? = null
+    open val from: Pair<IntermediateSymbol, Boolean>? = null
 ) {
     fun isTrue(): Boolean? {
         var lhsValue = Flt64.zero
@@ -77,7 +77,7 @@ class LinearConstraint(
     lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
-    from: IntermediateSymbol? = null,
+    from: Pair<IntermediateSymbol, Boolean>? = null,
 ) : Constraint(lhs, sign, rhs, lazy, name, origin, from) {
     companion object {
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
@@ -113,7 +113,7 @@ class LinearConstraint(
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
             tokens: AbstractTokenTable,
-            from: IntermediateSymbol? = null,
+            from: Pair<IntermediateSymbol, Boolean>? = null,
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
             var rhs = Flt64.zero
@@ -150,7 +150,7 @@ class QuadraticConstraint(
     lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
-    from: IntermediateSymbol? = null
+    from: Pair<IntermediateSymbol, Boolean>? = null
 ) : Constraint(lhs, sign, rhs, lazy, name, origin, from) {
     companion object {
         @JvmName("constructByLinearInequality")
@@ -189,7 +189,7 @@ class QuadraticConstraint(
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
             tokens: AbstractTokenTable,
-            from: IntermediateSymbol? = null
+            from: Pair<IntermediateSymbol, Boolean>? = null
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero
@@ -257,7 +257,7 @@ class QuadraticConstraint(
         operator fun invoke(
             inequality: Inequality<*, QuadraticMonomialCell>,
             tokens: AbstractTokenTable,
-            from: IntermediateSymbol? = null
+            from: Pair<IntermediateSymbol, Boolean>? = null
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
             var rhs = Flt64.zero

@@ -17,6 +17,7 @@ class XorFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     private val extract: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol() {
@@ -27,6 +28,7 @@ class XorFunction(
             polynomials: List<ToLinearPolynomial<*>>,
             extract: Boolean = true,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): XorFunction {
@@ -34,6 +36,7 @@ class XorFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 extract = extract,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -43,6 +46,9 @@ class XorFunction(
     init {
         assert(polynomials.size >= 2)
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val maxmin: MaxMinFunction by lazy {
         MaxMinFunction(

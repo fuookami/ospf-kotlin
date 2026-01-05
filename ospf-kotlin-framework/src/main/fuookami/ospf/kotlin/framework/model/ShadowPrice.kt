@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.model
 
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 
 open class ShadowPriceKey(
     val limit: KClass<*>
@@ -29,9 +29,16 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
     open operator fun invoke(arg: Args) = _extractors.sumOf { it(this, arg) }
 
     operator fun get(key: ShadowPriceKey): ShadowPrice? = _map[key]
+    operator fun set(key: ShadowPriceKey, value: ShadowPrice) {
+        _map[key] = value
+    }
 
     fun put(price: ShadowPrice) {
         _map[price.key] = price
+    }
+
+    fun putOrAdd(price: ShadowPrice) {
+        _map[price.key] = ShadowPrice(price.key, (_map[price.key]?.price ?: Flt64.zero) + price.price)
     }
 
     fun put(extractor: ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance M>) {
@@ -47,7 +54,11 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
     }
 }
 
-fun <Args : Any, Model : MetaModel, Map : AbstractShadowPriceMap<Args, Map>> extractShadowPrice(
+fun <
+    Args : Any,
+    Model : MetaModel,
+    Map : AbstractShadowPriceMap<Args, Map>
+> extractShadowPrice(
     shadowPriceMap: Map,
     pipelineList: CGPipelineList<Args, Model, Map>,
     model: Model,
@@ -63,5 +74,23 @@ fun <Args : Any, Model : MetaModel, Map : AbstractShadowPriceMap<Args, Map>> ext
         val extractor = pipeline.extractor() ?: continue
         shadowPriceMap.put(extractor)
     }
+    return ok
+}
+
+fun <
+    Args : Any,
+    Map : AbstractShadowPriceMap<Args, Map>
+> IntermediateSymbol.refresh(
+    map: Map,
+    shadowPrices: MetaDualSolution
+): Try {
+    when (val args = this.args) {
+        is ShadowPriceKey -> {
+            shadowPrices.symbols[this]?.sumOf { it.second }?.let {
+                map.putOrAdd(ShadowPrice(args, it))
+            }
+        }
+    }
+
     return ok
 }

@@ -17,10 +17,14 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     private val constraint: Boolean = false,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
     private val logger = logger()
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     open val amount: ValueRange<UInt64>? = null
 
@@ -506,11 +510,13 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 open class AnyFunction(
     inequalities: List<LinearInequality>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
     inequalities = inequalities,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ), LogicFunctionSymbol {
@@ -518,12 +524,14 @@ open class AnyFunction(
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): AnyFunction {
             return AnyFunction(
                 inequalities = inequalities.map { it.toLinearInequality() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -545,11 +553,13 @@ class InListFunction(
     val x: AbstractLinearPolynomial<*>,
     val list: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AnyFunction(
     inequalities = list.map { x eq it },
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -561,6 +571,7 @@ class InListFunction(
             x: T,
             list: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): InListFunction {
@@ -568,6 +579,7 @@ class InListFunction(
                 x = x.toLinearPolynomial(),
                 list = list.map { it.toLinearInequality().lhs },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -578,11 +590,13 @@ class InListFunction(
 class NotAllFunction(
     inequalities: List<LinearInequality>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
     inequalities = inequalities,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ), LogicFunctionSymbol {
@@ -590,12 +604,14 @@ class NotAllFunction(
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): NotAllFunction {
             return NotAllFunction(
                 inequalities = inequalities.map { it.toLinearInequality() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -617,11 +633,13 @@ class NotAllFunction(
 class AllFunction(
     inequalities: List<LinearInequality>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
     inequalities = inequalities,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ), LogicFunctionSymbol {
@@ -629,12 +647,14 @@ class AllFunction(
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): AllFunction {
             return AllFunction(
                 inequalities = inequalities.map { it.toLinearInequality() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -655,11 +675,13 @@ class AllFunction(
 class SatisfiedAmountInequalityFunction(
     inequalities: List<LinearInequality>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
     inequalities = inequalities,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -667,12 +689,14 @@ class SatisfiedAmountInequalityFunction(
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): SatisfiedAmountInequalityFunction {
             return SatisfiedAmountInequalityFunction(
                 inequalities = inequalities.map { it.toLinearInequality() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -686,6 +710,7 @@ class AtLeastInequalityFunction(
     amount: UInt64,
     epsilon: Flt64 = Flt64(1e-6),
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
@@ -693,6 +718,7 @@ class AtLeastInequalityFunction(
     constraint = constraint,
     epsilon = epsilon,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ), LogicFunctionSymbol {
@@ -703,6 +729,7 @@ class AtLeastInequalityFunction(
             amount: UInt64,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): AtLeastInequalityFunction {
@@ -712,6 +739,7 @@ class AtLeastInequalityFunction(
                 amount = amount,
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -740,6 +768,7 @@ class NumerableFunction(
     constraint: Boolean = true,
     epsilon: Flt64 = Flt64(1e-6),
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
@@ -747,6 +776,7 @@ class NumerableFunction(
     constraint = constraint,
     epsilon = epsilon,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ), LogicFunctionSymbol {
@@ -757,6 +787,7 @@ class NumerableFunction(
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): NumerableFunction {
@@ -766,6 +797,7 @@ class NumerableFunction(
                 constraint = constraint,
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )

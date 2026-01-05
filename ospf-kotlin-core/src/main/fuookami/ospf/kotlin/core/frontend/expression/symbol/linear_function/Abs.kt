@@ -19,6 +19,7 @@ class AbsFunction(
     private val extract: Boolean = true,
     m: Flt64? = null,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String = "${x}_abs",
     override var displayName: String? = "|$x|"
 ) : LinearFunctionSymbol() {
@@ -29,6 +30,7 @@ class AbsFunction(
             x: T,
             extract: Boolean = true,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null,
         ): AbsFunction {
@@ -36,11 +38,15 @@ class AbsFunction(
                 x = x.toLinearPolynomial(),
                 extract = extract,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    private val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val possibleUpperBound get() = max(
         abs(x.lowerBound!!.value.unwrap()),

@@ -18,9 +18,12 @@ class MaskingFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     mask: AbstractQuadraticPolynomial<*>? = null,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
+    private val logger = logger()
+
     companion object {
         operator fun <
             T : ToQuadraticPolynomial<Poly>,
@@ -29,6 +32,7 @@ class MaskingFunction(
             x: T,
             mask: AbstractQuadraticPolynomial<*>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
@@ -36,6 +40,7 @@ class MaskingFunction(
                 x = x.toQuadraticPolynomial(),
                 mask = mask,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -48,6 +53,7 @@ class MaskingFunction(
             x: AbstractQuadraticPolynomial<*>,
             mask: T,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
@@ -55,6 +61,7 @@ class MaskingFunction(
                 x = x,
                 mask = mask.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -69,6 +76,7 @@ class MaskingFunction(
             x: T1,
             mask: T2,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingFunction {
@@ -76,13 +84,15 @@ class MaskingFunction(
                 x = x.toQuadraticPolynomial(),
                 mask = mask.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
 
-    private val logger = logger()
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val u: BinVar by lazy {
         BinVar("${name}_u")

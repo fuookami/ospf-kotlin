@@ -15,6 +15,7 @@ class InStepRange(
     private val ub: AbstractLinearPolynomial<*>,
     private val step: Flt64,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -29,6 +30,7 @@ class InStepRange(
             ub: T2,
             step: Flt64,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): InStepRange {
@@ -42,6 +44,9 @@ class InStepRange(
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val q: FloorFunction by lazy {
         FloorFunction(

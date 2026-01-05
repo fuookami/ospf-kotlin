@@ -789,6 +789,7 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     internal val extract: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -828,6 +829,9 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
                 }
             }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     override val discrete = true
 
@@ -969,12 +973,14 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
 class SatisfiedAmountPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountPolynomialFunction(
     polynomials = polynomials,
     parent = parent,
+    args = args,
     impl = impl,
     name = name,
     displayName = displayName
@@ -983,6 +989,7 @@ class SatisfiedAmountPolynomialFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
@@ -990,6 +997,7 @@ class SatisfiedAmountPolynomialFunction(
             return SatisfiedAmountPolynomialFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -1003,6 +1011,7 @@ class AtLeastPolynomialFunction(
     override val amount: UInt64,
     extract: Boolean = true,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
     name: String,
     displayName: String? = null
@@ -1010,6 +1019,7 @@ class AtLeastPolynomialFunction(
     polynomials = polynomials,
     extract = extract,
     parent = parent,
+    args = args,
     impl = impl,
     name = name,
     displayName = displayName
@@ -1020,6 +1030,7 @@ class AtLeastPolynomialFunction(
             amount: UInt64,
             extract: Boolean = true,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
@@ -1029,6 +1040,7 @@ class AtLeastPolynomialFunction(
                 amount = amount,
                 extract = extract,
                 parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -1054,6 +1066,7 @@ data object SatisfiedAmountFunction {
     operator fun invoke(
         polynomials: List<AbstractLinearPolynomial<*>>,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
         name: String,
         displayName: String? = null
@@ -1061,6 +1074,7 @@ data object SatisfiedAmountFunction {
         return SatisfiedAmountPolynomialFunction(
             polynomials = polynomials,
             parent = parent,
+            args = args,
             impl = impl,
             name = name,
             displayName = displayName
@@ -1071,12 +1085,14 @@ data object SatisfiedAmountFunction {
     operator fun invoke(
         inequalities: List<LinearInequality>,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null
     ): SatisfiedAmountInequalityFunction {
         return SatisfiedAmountInequalityFunction(
             inequalities = inequalities,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -1086,12 +1102,14 @@ data object SatisfiedAmountFunction {
     operator fun invoke(
         inequalities: List<ToLinearInequality>,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null
     ): SatisfiedAmountInequalityFunction {
         return SatisfiedAmountInequalityFunction(
             inequalities = inequalities.map { it.toLinearInequality() },
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -1104,6 +1122,7 @@ data object AtLeastFunction {
         amount: UInt64,
         extract: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         impl: SatisfiedAmountPolynomialFunctionImplBuilder? = null,
         name: String,
         displayName: String? = null
@@ -1113,6 +1132,7 @@ data object AtLeastFunction {
             amount = amount,
             extract = extract,
             parent = parent,
+            args = args,
             impl = impl,
             name = name,
             displayName = displayName
@@ -1125,6 +1145,7 @@ data object AtLeastFunction {
         constraint: Boolean = true,
         amount: UInt64,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null
     ): AtLeastInequalityFunction {
@@ -1133,6 +1154,7 @@ data object AtLeastFunction {
             constraint = constraint,
             amount = amount,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -1144,6 +1166,7 @@ data object AtLeastFunction {
         constraint: Boolean = true,
         amount: UInt64,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null
     ): AtLeastInequalityFunction {
@@ -1152,6 +1175,7 @@ data object AtLeastFunction {
             constraint = constraint,
             amount = amount,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )

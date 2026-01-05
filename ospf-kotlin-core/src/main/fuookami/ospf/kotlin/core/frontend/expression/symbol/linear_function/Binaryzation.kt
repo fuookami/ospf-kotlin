@@ -55,6 +55,7 @@ abstract class AbstractBinaryzationFunctionImpl(
     override val category = Linear
 
     override val parent get() = self.parent
+    override val args get() = self.args
     override val dependencies get() = x.dependencies
     override val cells get() = polyY.cells
     override val cached get() = polyY.cached
@@ -949,6 +950,7 @@ class BinaryzationFunction(
     internal val epsilon: Flt64 = Flt64(1e-6),
     internal val piecewise: Boolean = false,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: BinaryzationFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -965,6 +967,7 @@ class BinaryzationFunction(
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: BinaryzationFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
@@ -975,6 +978,7 @@ class BinaryzationFunction(
                 epsilon = epsilon,
                 piecewise = piecewise,
                 parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -1017,6 +1021,9 @@ class BinaryzationFunction(
                 )
             }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     override val discrete = true
 

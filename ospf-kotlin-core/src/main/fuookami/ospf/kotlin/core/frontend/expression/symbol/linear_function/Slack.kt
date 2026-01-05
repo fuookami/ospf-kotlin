@@ -17,11 +17,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 sealed class AbstractSlackFunction<V : Variable<*>>(
     private val x: AbstractLinearPolynomial<*>,
     private val y: AbstractLinearPolynomial<*>,
-    private val withNegative: Boolean = true,
-    private val withPositive: Boolean = true,
-    private val threshold: Boolean = false,
-    private val constraint: Boolean = true,
+    val withNegative: Boolean = true,
+    val withPositive: Boolean = true,
+    val threshold: Boolean = false,
+    val constraint: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null,
     private val ctor: (String) -> V
@@ -31,6 +32,9 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     init {
         assert(withNegative || withPositive)
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val _neg: V? by lazy {
         if (withNegative) {
@@ -251,7 +255,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     when (val result = model.addConstraint(
                         polyX geq y,
                         name = name,
-                        from = parent ?: this
+                        from = (parent ?: this) to true
                     )) {
                         is Ok -> {}
 
@@ -263,7 +267,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     when (val result = model.addConstraint(
                         polyX leq y,
                         name = name,
-                        from = parent ?: this
+                        from = (parent ?: this) to true
                     )) {
                         is Ok -> {}
 
@@ -276,7 +280,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                 when (val result = model.addConstraint(
                     polyX eq y,
                     name = name,
-                    from = parent ?: this
+                    from = (parent ?: this) to true
                 )) {
                     is Ok -> {}
 
@@ -320,7 +324,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     when (val result = model.addConstraint(
                         polyX geq y,
                         name = name,
-                        from = parent ?: this
+                        from = (parent ?: this) to true
                     )) {
                         is Ok -> {}
 
@@ -332,7 +336,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     when (val result = model.addConstraint(
                         polyX leq y,
                         name = name,
-                        from = parent ?: this
+                        from = (parent ?: this) to true
                     )) {
                         is Ok -> {}
 
@@ -504,6 +508,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -516,6 +521,7 @@ object SlackFunction {
                 threshold = threshold,
                 constraint = constraint,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -528,6 +534,7 @@ object SlackFunction {
                 threshold = threshold,
                 constraint = constraint,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -546,6 +553,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -563,6 +571,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -580,6 +589,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -593,6 +603,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -610,6 +621,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -627,6 +639,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -644,6 +657,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -661,6 +675,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -678,6 +693,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -695,6 +711,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -713,6 +730,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -726,6 +744,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -745,6 +764,7 @@ object SlackFunction {
         threshold: Boolean = false,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -763,6 +783,7 @@ object SlackFunction {
             threshold = threshold,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -780,6 +801,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -794,6 +816,7 @@ object SlackFunction {
                 threshold = true,
                 constraint = constraint,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -806,6 +829,7 @@ object SlackFunction {
                 threshold = true,
                 constraint = constraint,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -823,6 +847,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -839,6 +864,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -855,6 +881,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -867,6 +894,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -883,6 +911,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -899,6 +928,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -915,6 +945,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -931,6 +962,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -947,6 +979,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -963,6 +996,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -980,6 +1014,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -992,6 +1027,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -1010,6 +1046,7 @@ object SlackFunction {
         withNegative: Boolean? = null,
         constraint: Boolean = true,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String,
         displayName: String? = null,
     ): AbstractSlackFunction<*> {
@@ -1027,6 +1064,7 @@ object SlackFunction {
             withNegative = withNegative,
             constraint = constraint,
             parent = parent,
+            args = args,
             name = name,
             displayName = displayName
         )
@@ -1041,6 +1079,7 @@ class UIntegerSlackFunction(
     threshold: Boolean = false,
     constraint: Boolean = true,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null,
 ) : AbstractSlackFunction<UIntVar>(
@@ -1051,6 +1090,7 @@ class UIntegerSlackFunction(
     threshold = threshold,
     constraint = constraint,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName,
     ctor = { UIntVar(it) }
@@ -1066,6 +1106,7 @@ class URealSlackFunction(
     threshold: Boolean = false,
     constraint: Boolean = true,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null,
 ) : AbstractSlackFunction<URealVar>(
@@ -1076,6 +1117,7 @@ class URealSlackFunction(
     threshold = threshold,
     constraint = constraint,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName,
     ctor = { URealVar(it) }

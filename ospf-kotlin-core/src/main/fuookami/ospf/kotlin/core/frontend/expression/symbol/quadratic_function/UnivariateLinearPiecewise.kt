@@ -18,6 +18,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     val points: List<Point2>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
@@ -32,6 +33,9 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             }
         })
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     val size by points::size
     val indices by points::indices
@@ -408,12 +412,14 @@ open class UnivariateLinearPiecewiseFunction(
     x: AbstractQuadraticPolynomial<*>,
     points: List<Point2>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractUnivariateLinearPiecewiseFunction(
     x = x,
     points = points.sortedBy { it.x },
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -425,6 +431,7 @@ open class UnivariateLinearPiecewiseFunction(
             x: T,
             points: List<Point2>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): UnivariateLinearPiecewiseFunction {
@@ -432,6 +439,7 @@ open class UnivariateLinearPiecewiseFunction(
                 x = x.toQuadraticPolynomial(),
                 points = points,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -443,12 +451,14 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
     x: AbstractQuadraticPolynomial<*>,
     points: List<Point2>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractUnivariateLinearPiecewiseFunction(
     x = x,
     points = points.sortedBy { it.x },
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -460,6 +470,7 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
             x: T,
             points: List<Point2>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MonotoneUnivariateLinearPiecewiseFunction {
@@ -467,6 +478,7 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
                 x = x.toQuadraticPolynomial(),
                 points = points,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )

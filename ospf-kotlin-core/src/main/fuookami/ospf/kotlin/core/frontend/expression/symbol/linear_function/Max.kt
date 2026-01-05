@@ -18,9 +18,13 @@ sealed class AbstractMaxFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     private val exact: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
+    private val _args = args
+    override val args = _args ?: parent?.args
+
     private val minmax: RealVar by lazy {
         RealVar("${name}_y")
     }
@@ -402,12 +406,14 @@ sealed class AbstractMaxFunction(
 class MinMaxFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(
     polynomials = polynomials,
     exact = true,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -415,12 +421,14 @@ class MinMaxFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = name
         ): MinMaxFunction {
             return MinMaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -439,12 +447,14 @@ class MinMaxFunction(
 class MaxFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(
     polynomials = polynomials,
     exact = false,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
  ) {
@@ -452,12 +462,14 @@ class MaxFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = name
         ): MaxFunction {
             return MaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )

@@ -18,9 +18,13 @@ sealed class AbstractMinFunction(
     protected val polynomials: List<AbstractLinearPolynomial<*>>,
     private val exact: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
+    private val _args = args
+    override val args = _args ?: parent?.args
+
     private val maxmin: RealVar by lazy {
         RealVar("${name}_maxmin")
     }
@@ -402,12 +406,14 @@ sealed class AbstractMinFunction(
 class MaxMinFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(
     polynomials = polynomials,
     exact = true,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -415,12 +421,14 @@ class MaxMinFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaxMinFunction {
             return MaxMinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -439,12 +447,14 @@ class MaxMinFunction(
 class MinFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(
     polynomials = polynomials,
     exact = false,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -452,12 +462,14 @@ class MinFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MinFunction {
             return MinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )

@@ -18,6 +18,7 @@ class IfInFunction(
     upperBound: AbstractLinearPolynomial<*>,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = parent?.args,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol() {
@@ -33,6 +34,7 @@ class IfInFunction(
             upperBound: Int,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -42,6 +44,7 @@ class IfInFunction(
                 upperBound = LinearPolynomial(upperBound),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -56,6 +59,7 @@ class IfInFunction(
             upperBound: Double,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -65,6 +69,7 @@ class IfInFunction(
                 upperBound = LinearPolynomial(upperBound),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -81,6 +86,7 @@ class IfInFunction(
             upperBound: T3,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -90,6 +96,7 @@ class IfInFunction(
                 upperBound = LinearPolynomial(upperBound),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -108,6 +115,7 @@ class IfInFunction(
             upperBound: T3,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction {
@@ -117,6 +125,7 @@ class IfInFunction(
                 upperBound = upperBound.toLinearPolynomial(),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -133,6 +142,9 @@ class IfInFunction(
         lowerBoundInequality.name = "${name}_lb"
         upperBoundInequality.name = "${name}_ub"
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val lbk: PctVariable1 by lazy {
         PctVariable1("${name}_lbk", Shape1(3))

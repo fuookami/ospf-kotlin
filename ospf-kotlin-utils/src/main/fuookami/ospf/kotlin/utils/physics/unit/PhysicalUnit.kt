@@ -32,6 +32,10 @@ abstract class PhysicalUnit {
         }
     }
 
+    fun from(unit: PhysicalUnit): Scale? {
+        return unit.to(this)
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is PhysicalUnit) return false

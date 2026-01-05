@@ -51,6 +51,7 @@ abstract class AbstractAndFunctionImpl(
     override val category get() = Linear
 
     override val parent get() = self.parent
+    override val args get() = self.args
     override val dependencies: Set<IntermediateSymbol>
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
@@ -664,6 +665,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 class AndFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: AndFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -672,6 +674,7 @@ class AndFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: AndFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null
@@ -679,6 +682,7 @@ class AndFunction(
             return AndFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -711,6 +715,9 @@ class AndFunction(
                 )
             }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     override val discrete = true
 

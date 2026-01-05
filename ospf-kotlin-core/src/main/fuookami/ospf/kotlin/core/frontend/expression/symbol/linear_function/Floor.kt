@@ -17,6 +17,7 @@ class FloorFunction(
     private val d: Flt64,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = parent?.args,
     override var name: String = "floor_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌋"
 ) : LinearFunctionSymbol() {
@@ -31,6 +32,7 @@ class FloorFunction(
             d: Int,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -39,6 +41,7 @@ class FloorFunction(
                 d = Flt64(d),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -52,6 +55,7 @@ class FloorFunction(
             d: Double,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -60,6 +64,7 @@ class FloorFunction(
                 d = Flt64(d),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -74,6 +79,7 @@ class FloorFunction(
             d: T2,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -82,11 +88,15 @@ class FloorFunction(
                 d = d.toFlt64(),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val q: IntVar by lazy {
         val q = IntVar("${name}_q")

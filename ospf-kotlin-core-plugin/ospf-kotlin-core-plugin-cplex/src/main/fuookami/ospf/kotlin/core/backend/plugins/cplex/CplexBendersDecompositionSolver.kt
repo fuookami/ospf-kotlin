@@ -41,7 +41,13 @@ class CplexLinearBendersDecompositionSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(result.value, null, config.dumpIntermediateModelConcurrent)
+                LinearTriadModel(
+                    model = result.value,
+                    fixedVariables = null,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {
@@ -98,7 +104,13 @@ class CplexLinearBendersDecompositionSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                result.value to LinearTriadModel(result.value, fixedVariables, config.dumpIntermediateModelConcurrent)
+                result.value to LinearTriadModel(
+                    model = result.value,
+                    fixedVariables = null,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {
@@ -222,7 +234,13 @@ class CplexQuadraticBendersDecompositionSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                QuadraticTetradModel(result.value, null, config.dumpIntermediateModelConcurrent)
+                QuadraticTetradModel(
+                    model = result.value,
+                    fixedVariables = null,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {
@@ -292,7 +310,13 @@ class CplexQuadraticBendersDecompositionSolver(
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                result.value to QuadraticTetradModel(result.value, fixedVariables, config.dumpIntermediateModelConcurrent)
+                result.value to QuadraticTetradModel(
+                    model = result.value,
+                    fixedVariables = fixedVariables,
+                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
+                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                    concurrent = config.dumpIntermediateModelConcurrent
+                )
             }
 
             is Failed -> {

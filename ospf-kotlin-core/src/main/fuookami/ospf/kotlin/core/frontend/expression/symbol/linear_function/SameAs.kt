@@ -18,6 +18,7 @@ class SameAsFunction(
     private val fixed: Boolean? = null,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -30,6 +31,7 @@ class SameAsFunction(
             fixed: Boolean? = null,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): SameAsFunction {
@@ -39,11 +41,15 @@ class SameAsFunction(
                 fixed = fixed,
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val inequalities by lazy {
         inequalities.map { it.normalize() }
