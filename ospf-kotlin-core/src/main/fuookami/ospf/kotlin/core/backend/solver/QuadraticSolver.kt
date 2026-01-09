@@ -396,9 +396,9 @@ interface QuadraticSolver : AbstractQuadraticSolver {
         return QuadraticTetradModel(
             model = model,
             fixedVariables = null,
-            concurrent = config.dumpIntermediateModelConcurrent,
-            withDumpingBounds = config.dumpIntermediateModelBounds,
-            withForceDumpingBounds = config.dumpIntermediateModelForceBounds
+            dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+            forceDumpBounds = config.dumpIntermediateModelForceBounds,
+            concurrent = config.dumpIntermediateModelConcurrent
         )
     }
 

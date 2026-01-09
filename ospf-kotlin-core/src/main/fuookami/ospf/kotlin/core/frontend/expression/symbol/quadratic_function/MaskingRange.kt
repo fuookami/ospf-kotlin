@@ -18,6 +18,7 @@ class MaskingRangeFunction(
     private val lb: AbstractQuadraticPolynomial<*>,
     private val ub: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
@@ -36,6 +37,7 @@ class MaskingRangeFunction(
             lb: T2,
             ub: T3,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -44,6 +46,7 @@ class MaskingRangeFunction(
                 lb = lb.toQuadraticPolynomial(),
                 ub = ub.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -57,6 +60,7 @@ class MaskingRangeFunction(
             lb: Int,
             ub: Int,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -65,6 +69,7 @@ class MaskingRangeFunction(
                 lb = QuadraticPolynomial(lb),
                 ub = QuadraticPolynomial(ub),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -78,6 +83,7 @@ class MaskingRangeFunction(
             lb: Double,
             ub: Double,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -86,6 +92,7 @@ class MaskingRangeFunction(
                 lb = QuadraticPolynomial(lb),
                 ub = QuadraticPolynomial(ub),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -101,6 +108,7 @@ class MaskingRangeFunction(
             lb: T2,
             ub: T3,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -109,11 +117,15 @@ class MaskingRangeFunction(
                 lb = QuadraticPolynomial(lb.toFlt64()),
                 ub = QuadraticPolynomial(ub.toFlt64()),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val u: BinVar by lazy {
         BinVar(name = "${name}_u")

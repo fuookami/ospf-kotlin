@@ -17,9 +17,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class SemiFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null,
 ) : QuadraticFunctionSymbol() {
+    private val logger = logger()
+
     companion object {
         operator fun <
             T: ToQuadraticPolynomial<Poly>,
@@ -27,19 +30,22 @@ class SemiFunction(
         > invoke(
             x: T,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null,
         ): SemiFunction {
             return SemiFunction(
                 x = x.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
 
-    private val logger = logger()
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val y: URealVar by lazy {
         val y = URealVar("${name}_y")

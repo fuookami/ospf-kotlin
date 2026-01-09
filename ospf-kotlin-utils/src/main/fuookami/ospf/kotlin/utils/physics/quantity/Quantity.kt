@@ -138,6 +138,19 @@ fun <V: RealNumber<V>> Quantity<V>.toFltX(): Quantity<FltX> {
     return Quantity(this.value.toFltX(), this.unit)
 }
 
+fun <F : FloatingImpl<F>> Quantity<F>.floor(): Quantity<F> {
+    return Quantity(value.floor(), unit)
+}
+
+fun <F : FloatingImpl<F>> Quantity<F>.ceil(): Quantity<F> {
+    return Quantity(value.ceil(), unit)
+}
+
+fun <F : FloatingImpl<F>> Quantity<F>.round(): Quantity<F> {
+    return Quantity(value.round(), unit)
+}
+
+
 @JvmName("convertQuantityInt64")
 fun Quantity<Int64>.to(unit: PhysicalUnit): Quantity<Int64>? {
     return if (this.unit == unit) {

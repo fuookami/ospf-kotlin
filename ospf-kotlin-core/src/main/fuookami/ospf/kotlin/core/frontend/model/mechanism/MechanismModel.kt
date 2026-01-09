@@ -25,15 +25,27 @@ interface AbstractLinearMechanismModel : MechanismModel {
     fun addConstraint(
         constraint: LinearInequality,
         name: String? = null,
-        from: IntermediateSymbol? = null,
+        from: Pair<IntermediateSymbol, Boolean>? = null,
     ): Try
+
+    fun addConstraint(
+        constraint: LinearInequality,
+        name: String? = null,
+        from: IntermediateSymbol?,
+    ): Try {
+        return addConstraint(
+            constraint = constraint,
+            name = name,
+            from = from?.let { it to false }
+        )
+    }
 }
 
 interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
-        from: IntermediateSymbol?
+        from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
         return addConstraint(QuadraticInequality(constraint), name, from)
     }
@@ -41,8 +53,20 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
     fun addConstraint(
         constraint: QuadraticInequality,
         name: String? = null,
-        from: IntermediateSymbol? = null
+        from: Pair<IntermediateSymbol, Boolean>? = null
     ): Try
+
+    fun addConstraint(
+        constraint: QuadraticInequality,
+        name: String? = null,
+        from: IntermediateSymbol?
+    ): Try {
+        return addConstraint(
+            constraint = constraint,
+            name = name,
+            from = from?.let { it to false }
+        )
+    }
 }
 
 interface SingleObjectMechanismModel : MechanismModel {
@@ -308,7 +332,7 @@ class LinearMechanismModel(
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
-        from: IntermediateSymbol?
+        from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
         name?.let { constraint.name = it }
         _constraints.add(LinearConstraint(constraint, tokens, from))
@@ -652,7 +676,7 @@ class QuadraticMechanismModel(
     override fun addConstraint(
         constraint: QuadraticInequality,
         name: String?,
-        from: IntermediateSymbol?
+        from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
         name?.let { constraint.name = it }
         _constraints.add(QuadraticConstraint(constraint, tokens, from))

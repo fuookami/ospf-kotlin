@@ -17,6 +17,7 @@ class FloorFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String = "floor_${x}_${d}",
     override var displayName: String? = "⌊$x/$d⌋"
 ) : QuadraticFunctionSymbol() {
@@ -30,6 +31,7 @@ class FloorFunction(
             x: T,
             d: Int,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -37,6 +39,7 @@ class FloorFunction(
                 x = x.toQuadraticPolynomial(),
                 d = QuadraticPolynomial(d),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -49,6 +52,7 @@ class FloorFunction(
             x: T,
             d: Double,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -56,6 +60,7 @@ class FloorFunction(
                 x = x.toQuadraticPolynomial(),
                 d = QuadraticPolynomial(d),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -69,6 +74,7 @@ class FloorFunction(
             x: T1,
             d: T2,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -76,6 +82,7 @@ class FloorFunction(
                 x = x.toQuadraticPolynomial(),
                 d = QuadraticPolynomial(d),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -90,6 +97,7 @@ class FloorFunction(
             x: T1,
             d: T2,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "floor_${x}_${d}",
             displayName: String? = "⌊$x/$d⌋"
         ): FloorFunction {
@@ -97,11 +105,15 @@ class FloorFunction(
                 x = x.toQuadraticPolynomial(),
                 d = d.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val dLinear: LinearFunction by lazy {
         LinearFunction(

@@ -19,6 +19,7 @@ class IfThenFunction(
     private val constraint: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = parent?.args,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -32,6 +33,7 @@ class IfThenFunction(
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IfThenFunction {
@@ -41,11 +43,15 @@ class IfThenFunction(
                 constraint = constraint,
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val p by lazy { p.normalize() }
     private val q by lazy { q.normalize() }

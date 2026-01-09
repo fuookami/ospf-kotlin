@@ -36,6 +36,7 @@ interface IntermediateSymbol : Symbol, Expression {
 
     val cached: Boolean
     val parent: IntermediateSymbol? get() = null
+    val args: Any? get() = parent?.args
     val dependencies: Set<IntermediateSymbol>
 
     val identifier: UInt64

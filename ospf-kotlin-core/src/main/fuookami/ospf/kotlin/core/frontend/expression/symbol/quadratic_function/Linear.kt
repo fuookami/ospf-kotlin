@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class LinearFunction(
     val polynomial: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
@@ -25,17 +26,22 @@ class LinearFunction(
         > invoke(
             polynomial: T,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): LinearFunction {
             return LinearFunction(
                 polynomial = polynomial.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val y: RealVar by lazy {
         RealVar("${name}_y")

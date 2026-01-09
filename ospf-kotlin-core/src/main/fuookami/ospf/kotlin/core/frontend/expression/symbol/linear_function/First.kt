@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class FirstFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol() {
@@ -23,21 +24,31 @@ class FirstFunction(
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): FirstFunction {
             return FirstFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
 
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
+    
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
-            BinaryzationFunction(polynomials[i], parent = parent ?: this, name = "${name}_bin_$i")
+            BinaryzationFunction(
+                polynomials[i], 
+                parent = parent ?: this,
+                args = parent?.args ?: args,
+                name = "${name}_bin_$i"
+            )
         }
     }
 

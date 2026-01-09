@@ -74,7 +74,7 @@ data class Scale(
                 is Either.Left -> base.value.pow(scale.second)
                 is Either.Right -> base.value.pow(scale.second)
             }
-        }
+        }.stripTrailingZeros()
     }
 
     operator fun times(other: FltX): Scale {
@@ -226,4 +226,9 @@ data class Scale(
         }
         return Scale(newScales.tidy())
     }
+}
+
+// for java
+fun getValue(scale: Scale): FltX {
+    return scale.value
 }

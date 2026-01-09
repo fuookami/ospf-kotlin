@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 sealed class AbstractOneOfFunction(
     protected val branches: List<Branch>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -43,6 +44,9 @@ sealed class AbstractOneOfFunction(
             }
         }
     }
+
+    private val _args = args
+    override val args = _args ?: parent?.args
 
     private val u: List<BinVar?> by lazy {
         branches.map {
@@ -458,11 +462,13 @@ class IfElseFunction(
 class OneOfFunction(
     branches: List<Branch>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractOneOfFunction(
     branches = branches,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {

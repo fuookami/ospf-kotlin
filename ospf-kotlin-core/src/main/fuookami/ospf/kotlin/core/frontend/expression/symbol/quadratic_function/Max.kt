@@ -18,10 +18,14 @@ sealed class AbstractMaxFunction(
     protected val polynomials: List<AbstractQuadraticPolynomial<*>>,
     private val exact: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
     private val logger = logger()
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val minmax: RealVar by lazy {
         RealVar("${name}_y")
@@ -405,12 +409,14 @@ sealed class AbstractMaxFunction(
 class MinMaxFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(
     polynomials = polynomials,
     exact = true,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -418,12 +424,14 @@ class MinMaxFunction(
         operator fun invoke(
             polynomials: List<ToQuadraticPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MinMaxFunction {
             return MinMaxFunction(
                 polynomials = polynomials.map { it.toQuadraticPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -442,12 +450,14 @@ class MinMaxFunction(
 class MaxFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = name
 ) : AbstractMaxFunction(
     polynomials = polynomials,
     exact = false,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
@@ -455,12 +465,14 @@ class MaxFunction(
         operator fun invoke(
             polynomials: List<ToQuadraticPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaxFunction {
             return MaxFunction(
                 polynomials = polynomials.map { it.toQuadraticPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )

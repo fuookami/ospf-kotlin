@@ -17,6 +17,7 @@ class MaskingRangeFunction(
     private val lb: Flt64,
     private val ub: Flt64,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
@@ -31,6 +32,7 @@ class MaskingRangeFunction(
             lb: Int,
             ub: Int,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -39,6 +41,7 @@ class MaskingRangeFunction(
                 lb = Flt64(lb),
                 ub = Flt64(ub),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -52,6 +55,7 @@ class MaskingRangeFunction(
             lb: Double,
             ub: Double,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -60,6 +64,7 @@ class MaskingRangeFunction(
                 lb = Flt64(lb),
                 ub = Flt64(ub),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -75,6 +80,7 @@ class MaskingRangeFunction(
             lb: T2,
             ub: T3,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction {
@@ -83,11 +89,15 @@ class MaskingRangeFunction(
                 lb = lb.toFlt64(),
                 ub = ub.toFlt64(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val u: BinVar by lazy {
         BinVar("${name}_u")

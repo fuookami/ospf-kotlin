@@ -667,9 +667,16 @@ value class FltX(internal val value: BigDecimal) :
     }
 
     constructor(value: Double, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
-    constructor(value: Long, scale: Int = 2, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
+    constructor(value: Long, scale: Int = 0, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
     constructor(value: String, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal(value).setScale(scale, roundingMode))
 
+    fun stripTrailingZeros() = if (value.scale() < 0) {
+        FltX(value.setScale(0, RoundingMode.HALF_UP))
+    } else if (value.scale() > 0) {
+        FltX(value.stripTrailingZeros())
+    } else {
+        this
+    }
     fun withScale(scale: Int) = FltX(value.setScale(scale))
     fun withScale(scale: Int, roundingMode: RoundingMode) = FltX(value.setScale(scale, roundingMode))
 
@@ -743,9 +750,21 @@ value class FltX(internal val value: BigDecimal) :
         digits: Int,
         precision: FloatingNumber<*>
     ): FltX = when (index) {
-        is Flt32 -> pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
-        is Flt64 -> pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
-        is FltX -> pow(this.withScale(digits), index.withScale(digits), FltX, digits, precision.toFltX())
+        is Flt32 -> if (index.round() eq index) {
+            pow(this, index.round().toInt32().value, FltX, digits, precision.toFltX())
+        } else {
+            pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+        }
+        is Flt64 -> if (index.round() eq index) {
+            pow(this, index.round().toInt32().value, FltX, digits, precision.toFltX())
+        } else {
+            pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+        }
+        is FltX -> if (index.stripTrailingZeros() eq index) {
+            pow(this, index.round().toInt32().value, FltX, digits, precision.toFltX())
+        } else {
+            pow(this.withScale(digits), index.withScale(digits), FltX, digits, precision.toFltX())
+        }
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
     }
 

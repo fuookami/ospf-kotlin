@@ -394,11 +394,11 @@ interface LinearSolver : AbstractLinearSolver {
 
     override suspend fun dump(model: LinearMechanismModel): LinearTriadModel {
         return LinearTriadModel(
-            model = model, 
-            fixedVariables = null, 
-            concurrent = config.dumpIntermediateModelConcurrent, 
-            withDumpingBounds = config.dumpIntermediateModelBounds, 
-            withForceDumpingBounds = config.dumpIntermediateModelForceBounds
+            model = model,
+            fixedVariables = null,
+            dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+            forceDumpBounds = config.dumpIntermediateModelForceBounds,
+            concurrent = config.dumpIntermediateModelConcurrent
         )
     }
 

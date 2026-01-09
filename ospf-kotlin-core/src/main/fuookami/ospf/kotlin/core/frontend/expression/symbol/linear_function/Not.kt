@@ -849,6 +849,7 @@ class NotFunction(
     internal val epsilon: Flt64 = Flt64(1e-6),
     internal val piecewise: Boolean = false,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     impl: NotFunctionImplBuilder? = null,
     override var name: String,
     override var displayName: String? = null
@@ -865,6 +866,7 @@ class NotFunction(
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             impl: NotFunctionImplBuilder? = null,
             name: String,
             displayName: String? = null,
@@ -875,6 +877,7 @@ class NotFunction(
                 epsilon = epsilon,
                 piecewise = piecewise,
                 parent = parent,
+                args = args,
                 impl = impl,
                 name = name,
                 displayName = displayName
@@ -917,6 +920,9 @@ class NotFunction(
                 )
             }
     }
+
+    private val _args = args
+    override val args get() = _args ?: parent?.args
 
     override val discrete = true
 

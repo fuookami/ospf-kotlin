@@ -17,6 +17,7 @@ class IfFunction(
     inequality: LinearInequality,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
+    args: Any? = parent?.args,
     override var name: String,
     override var displayName: String? = null
 ) : LinearLogicFunctionSymbol() {
@@ -29,6 +30,7 @@ class IfFunction(
             condition: T,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): IfFunction {
@@ -36,11 +38,15 @@ class IfFunction(
                 inequality = condition.toLinearInequality(),
                 epsilon = epsilon,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val inequality by lazy {
         inequality.normalize()

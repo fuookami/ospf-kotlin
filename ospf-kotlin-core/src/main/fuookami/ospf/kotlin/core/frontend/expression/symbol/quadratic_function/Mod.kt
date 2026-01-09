@@ -17,6 +17,7 @@ class ModFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String = "${x}_mod_${d}",
     override var displayName: String? = "$x mod $d"
 ) : QuadraticFunctionSymbol() {
@@ -30,6 +31,7 @@ class ModFunction(
             x: T,
             d: Int,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -37,6 +39,7 @@ class ModFunction(
                 x = x.toQuadraticPolynomial(),
                 d = QuadraticPolynomial(d),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -49,6 +52,7 @@ class ModFunction(
             x: T,
             d: Double,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -56,6 +60,7 @@ class ModFunction(
                 x = x.toQuadraticPolynomial(),
                 d = QuadraticPolynomial(d),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -69,6 +74,7 @@ class ModFunction(
             x: T1,
             d: T2,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -76,6 +82,7 @@ class ModFunction(
                 x = x.toQuadraticPolynomial(),
                 d = QuadraticPolynomial(d),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -90,6 +97,7 @@ class ModFunction(
             x: T1,
             d: T2,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "${x}_mod_${d}",
             displayName: String? = "$x mod $d"
         ): ModFunction {
@@ -97,11 +105,15 @@ class ModFunction(
                 x = x.toQuadraticPolynomial(),
                 d = d.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val dLinear: LinearFunction by lazy {
         LinearFunction(

@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 class ProductFunction(
     val polynomials: List<AbstractQuadraticPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String = polynomials.joinToString("*") { "$it" },
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
@@ -25,12 +26,14 @@ class ProductFunction(
         operator fun invoke(
             polynomials: List<ToQuadraticPolynomial<*>>,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = polynomials.joinToString("*") { "$it" },
             displayName: String? = null
         ): ProductFunction {
             return ProductFunction(
                 polynomials = polynomials.map { it.toQuadraticPolynomial() },
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -45,12 +48,14 @@ class ProductFunction(
             x: T1,
             y: T2,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String = "$x*$y",
             displayName: String? = null
         ): ProductFunction {
             return ProductFunction(
                 polynomials = listOf(x.toQuadraticPolynomial(), y.toQuadraticPolynomial()),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -61,13 +66,23 @@ class ProductFunction(
         x: AbstractQuadraticPolynomial<*>,
         y: AbstractQuadraticPolynomial<*>,
         parent: IntermediateSymbol? = null,
+        args: Any? = null,
         name: String = "$x*$y",
         displayName: String? = null
-    ) : this(listOf(x, y), parent, name, displayName)
+    ) : this(
+        polynomials = listOf(x, y),
+        parent = parent,
+        args = args,
+        name = name,
+        displayName = displayName
+    )
 
     init {
         assert(polynomials.all { it.category != Quadratic })
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val y: RealVariable1 by lazy {
         RealVariable1("${name}_y", Shape1(polynomials.lastIndex))

@@ -15,6 +15,7 @@ class InStepRange(
     private val ub: AbstractQuadraticPolynomial<*>,
     private val step: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
@@ -29,6 +30,7 @@ class InStepRange(
             ub: T2,
             step: Int,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): InStepRange {
@@ -37,6 +39,7 @@ class InStepRange(
                 ub = ub.toQuadraticPolynomial(),
                 step = QuadraticPolynomial(step),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -52,6 +55,7 @@ class InStepRange(
             ub: T2,
             step: Double,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): InStepRange {
@@ -60,6 +64,7 @@ class InStepRange(
                 ub = ub.toQuadraticPolynomial(),
                 step = QuadraticPolynomial(step),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -76,6 +81,7 @@ class InStepRange(
             ub: T2,
             step: T3,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): InStepRange {
@@ -84,6 +90,7 @@ class InStepRange(
                 ub = ub.toQuadraticPolynomial(),
                 step = QuadraticPolynomial(step),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -101,6 +108,7 @@ class InStepRange(
             ub: T2,
             step: T3,
             parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): InStepRange {
@@ -109,11 +117,15 @@ class InStepRange(
                 ub = ub.toQuadraticPolynomial(),
                 step = step.toQuadraticPolynomial(),
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
         }
     }
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val stepLinear: LinearFunction by lazy {
         LinearFunction(

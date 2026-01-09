@@ -18,10 +18,14 @@ sealed class AbstractMinFunction(
     protected val polynomials: List<AbstractQuadraticPolynomial<*>>,
     private val exact: Boolean = true,
     override val parent: IntermediateSymbol? = null,
+    args: Any? = null,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticFunctionSymbol() {
     private val logger = logger()
+
+    internal val _args = args
+    override val args get() = _args ?: parent?.args
 
     private val maxmin: RealVar by lazy {
         RealVar("${name}_maxmin")
@@ -404,25 +408,31 @@ sealed class AbstractMinFunction(
 class MaxMinFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(
     polynomials = polynomials,
     exact = true,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
     companion object {
         operator fun invoke(
             polynomials: List<ToQuadraticPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MaxMinFunction {
             return MaxMinFunction(
-                polynomials.map { it.toQuadraticPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toQuadraticPolynomial() },
+                parent = parent,
+                args = args,
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -439,25 +449,31 @@ class MaxMinFunction(
 class MinFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     parent: IntermediateSymbol? = null,
+    args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractMinFunction(
     polynomials = polynomials,
     exact = false,
     parent = parent,
+    args = args,
     name = name,
     displayName = displayName
 ) {
     companion object {
         operator fun invoke(
             polynomials: List<ToQuadraticPolynomial<*>>,
+            parent: IntermediateSymbol? = null,
+            args: Any? = null,
             name: String,
             displayName: String? = null
         ): MinFunction {
             return MinFunction(
-                polynomials.map { it.toQuadraticPolynomial() },
-                name,
-                displayName
+                polynomials = polynomials.map { it.toQuadraticPolynomial() },
+                parent = parent,
+                args = args,
+                name = name,
+                displayName = displayName
             )
         }
     }
