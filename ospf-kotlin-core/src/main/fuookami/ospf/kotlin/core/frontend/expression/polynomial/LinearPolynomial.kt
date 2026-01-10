@@ -2028,13 +2028,13 @@ operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<LinearMonomi
 operator fun LinearIntermediateSymbol.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(LinearMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
-    return LinearPolynomial(monomials = newMonomials)
+    return LinearPolynomial(monomials = newMonomials, constant = rhs.constant)
 }
 
 operator fun LinearIntermediateSymbol.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(LinearMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
-    return LinearPolynomial(monomials = newMonomials)
+    return LinearPolynomial(monomials = newMonomials, constant = -rhs.constant)
 }
 
 // quantity polynomial and quantity symbol
@@ -2150,13 +2150,13 @@ operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<LinearMonomial>): Quan
 operator fun LinearMonomial.plus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { it.copy() })
-    return LinearPolynomial(monomials = newMonomials)
+    return LinearPolynomial(monomials = newMonomials, constant = rhs.constant)
 }
 
 operator fun LinearMonomial.minus(rhs: AbstractLinearPolynomial<*>): LinearPolynomial {
     val newMonomials = arrayListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { -it })
-    return LinearPolynomial(monomials = newMonomials)
+    return LinearPolynomial(monomials = newMonomials, constant = -rhs.constant)
 }
 
 // quantity polynomial and quantity monomial

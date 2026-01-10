@@ -149,7 +149,7 @@ abstract class Rational<Self, I> protected constructor(
 abstract class RationalConstants<Self, I> protected constructor(
     private val ctor: (I, I) -> Self,
     private val constants: RealNumberConstants<I>
-) : RealNumberConstants<Self> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
+) : RationalNumberConstants<Self, I> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
     override val zero: Self get() = ctor(constants.zero, constants.one)
     override val one: Self get() = ctor(constants.one, constants.one)
     override val two: Self get() = ctor(constants.two, constants.one)
@@ -158,6 +158,8 @@ abstract class RationalConstants<Self, I> protected constructor(
     override val ten: Self get() = ctor(constants.ten, constants.one)
     override val minimum: Self get() = ctor(constants.minimum, constants.one)
     override val maximum: Self get() = ctor(constants.maximum, constants.one)
+
+    override val half: Self get() = ctor(constants.one, constants.two)
 
     override val nan: Self get() = ctor(constants.zero, constants.zero)
     override val infinity: Self get() = ctor(constants.one, constants.zero)
