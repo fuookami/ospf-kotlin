@@ -38,6 +38,23 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
     return ctor(converter2(num), converter2(den))
 }
 
+private fun <F: FloatingImpl<F>> bankerRound(value: F): F {
+    val fractional = value - value.floor()
+
+    return if (fractional gr value.constants.half) {
+        value.ceil()
+    } else if (fractional ls value.constants.half) {
+        value.floor()
+    } else {
+        val integer = value.floor()
+        if (integer % value.constants.two eq value.constants.zero) {
+            integer
+        } else {
+            integer + value.constants.one
+        }
+    }
+}
+
 @Suppress("UNCHECKED_CAST")
 interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override infix fun eq(rhs: Self) = (this - rhs).abs() <= this.constants.decimalPrecision
@@ -77,10 +94,14 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     fun floor(): Self
     fun ceil(): Self
     fun round(): Self
+    fun trunc(): Self
+    fun bankerRound(): Self
 
     fun floorTo(precision: Int = this.constants.decimalDigits!!): Self
     fun ceilTo(precision: Int = this.constants.decimalDigits!!): Self
     fun roundTo(precision: Int = this.constants.decimalDigits!!): Self
+    fun truncTo(precision: Int = this.constants.decimalDigits!!): Self
+    fun bankerRoundTo(precision: Int = this.constants.decimalDigits!!): Self
 }
 
 data object Flt32Serializer : KSerializer<Flt32> {
@@ -132,6 +153,8 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
         @JvmStatic
         override val negativeInfinity: Flt32 get() = Flt32(Float.NEGATIVE_INFINITY)
 
+        @JvmStatic
+        override val half: Flt32 get() = Flt32(0.5f)
         @JvmStatic
         override val pi: Flt32 get() = Flt32(PI.toFloat())
         @JvmStatic
@@ -330,10 +353,14 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
     override fun floor() = Flt32(floor(value))
     override fun ceil() = Flt32(ceil(value))
     override fun round() = Flt32(round(value))
+    override fun trunc() = Flt32(truncate(value))
+    override fun bankerRound() = bankerRound(this)
 
     override fun floorTo(precision: Int) = Flt32(floor(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
     override fun ceilTo(precision: Int) = Flt32(ceil(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
     override fun roundTo(precision: Int) = Flt32(round(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    override fun truncTo(precision: Int) = Flt32(truncate(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+    override fun bankerRoundTo(precision: Int) = bankerRound(Flt32(value * 10.0F.pow(precision))) / Flt32(10.0F.pow(precision))
 }
 
 data object Flt64Serializer : KSerializer<Flt64> {
@@ -387,6 +414,8 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
         @JvmStatic
         override val negativeInfinity: Flt64 get() = Flt64(Double.NEGATIVE_INFINITY)
 
+        @JvmStatic
+        override val half: Flt64 get() = Flt64(0.5)
         @JvmStatic
         override val pi: Flt64 get() = Flt64(PI)
         @JvmStatic
@@ -585,10 +614,14 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
     override fun floor() = Flt64(floor(value))
     override fun ceil() = Flt64(ceil(value))
     override fun round() = Flt64(round(value))
+    override fun trunc() = Flt64(truncate(value))
+    override fun bankerRound() = bankerRound(this)
 
     override fun floorTo(precision: Int) = Flt64(floor(value * 10.0.pow(precision)) / 10.0.pow(precision))
     override fun ceilTo(precision: Int) = Flt64(ceil(value * 10.0.pow(precision)) / 10.0.pow(precision))
     override fun roundTo(precision: Int) = Flt64(round(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    override fun truncTo(precision: Int) = Flt64(truncate(value * 10.0.pow(precision)) / 10.0.pow(precision))
+    override fun bankerRoundTo(precision: Int) = bankerRound(Flt64(value * 10.0.pow(precision))) / Flt64(10.0.pow(precision))
 }
 
 data object FltXSerializer : KSerializer<FltX> {
@@ -656,6 +689,8 @@ value class FltX(internal val value: BigDecimal) :
         @JvmStatic
         override val epsilon: FltX get() = decimalPrecision
 
+        @JvmStatic
+        override val half: FltX get() = FltX("0.5", 1)
         @JvmStatic
         override val pi: FltX get() = FltX(PI.toBigDecimal())
         @JvmStatic
@@ -838,6 +873,22 @@ value class FltX(internal val value: BigDecimal) :
         return FltX(value.setScale(0, RoundingMode.HALF_UP).setScale(scale))
     }
 
+    override fun trunc(): FltX {
+        val scale = value.scale()
+        return if (value > BigDecimal.ZERO) {
+            FltX(value.setScale(0, RoundingMode.FLOOR).setScale(scale))
+        } else if (value < BigDecimal.ZERO) {
+            FltX(value.setScale(0, RoundingMode.CEILING).setScale(scale))
+        } else {
+            this
+        }
+    }
+
+    override fun bankerRound(): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(0, RoundingMode.HALF_EVEN).setScale(scale))
+    }
+
     override fun floorTo(precision: Int): FltX {
         val scale = value.scale()
         return FltX(value.setScale(precision, RoundingMode.FLOOR).setScale(scale))
@@ -851,6 +902,22 @@ value class FltX(internal val value: BigDecimal) :
     override fun roundTo(precision: Int): FltX {
         val scale = value.scale()
         return FltX(value.setScale(precision, RoundingMode.HALF_UP).setScale(scale))
+    }
+
+    override fun truncTo(precision: Int): FltX {
+        val scale = value.scale()
+        return if (value > BigDecimal.ZERO) {
+            FltX(value.setScale(precision, RoundingMode.FLOOR).setScale(scale))
+        } else if (value < BigDecimal.ZERO) {
+            FltX(value.setScale(precision, RoundingMode.CEILING).setScale(scale))
+        } else {
+            this
+        }
+    }
+
+    override fun bankerRoundTo(precision: Int): FltX {
+        val scale = value.scale()
+        return FltX(value.setScale(precision, RoundingMode.HALF_EVEN).setScale(scale))
     }
 }
 

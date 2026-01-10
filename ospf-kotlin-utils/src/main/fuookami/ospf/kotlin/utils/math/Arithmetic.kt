@@ -118,6 +118,12 @@ interface UIntegerNumber<Self : UIntegerNumber<Self>> : Integer<Self>, NumberFie
 interface RationalNumber<Self : RationalNumber<Self, I>, I> : RealNumber<Self>, NumberField<Self>, Pow<Self>
         where I : Integer<I>, I : NumberField<I>
 
+interface RationalNumberConstants<Self : RationalNumber<Self, I>, I> : RealNumberConstants<Self>
+        where I : Integer<I>, I : NumberField<I>
+{
+    val half: Self
+}
+
 interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, NumberField<Self>, Pow<Self> {
     override val constants: FloatingNumberConstants<Self>
 }
@@ -125,6 +131,7 @@ interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, Number
 interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConstants<Self> {
     override val positiveMinimum: Self get() = epsilon
 
+    val half: Self
     val pi: Self
     val e: Self
     val lg2: Self
