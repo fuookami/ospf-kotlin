@@ -15,12 +15,18 @@ sealed class AbstractTokenList {
         return find(index)!!
     }
 
-    private val cache = HashMap<Token, Int>()
+    private val cache = HashMap<Token, Int?>()
 
     open fun indexOf(token: Token): Int? {
         return if (tokensInSolver.isNotEmpty()) {
             cache.getOrPut(token) {
-                tokensInSolver.indexOf(token)
+                tokensInSolver.indexOf(token).let {
+                    if (it != -1) {
+                        it
+                    } else {
+                        null
+                    }
+                }
             }
         } else {
             null
