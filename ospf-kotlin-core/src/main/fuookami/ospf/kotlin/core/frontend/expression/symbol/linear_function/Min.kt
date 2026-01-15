@@ -265,7 +265,7 @@ sealed class AbstractMinFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
                 maxmin leq polynomial,
-                name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
                 is Ok -> {}
@@ -297,7 +297,7 @@ sealed class AbstractMinFunction(
                 if (i == index) {
                     when (val result = model.addConstraint(
                         maxmin geq polynomial,
-                        name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                        name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {
                         is Ok -> {}
@@ -325,7 +325,7 @@ sealed class AbstractMinFunction(
                 } else {
                     when (val result = model.addConstraint(
                         maxmin geq (polynomial - m),
-                        name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
+                        name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {
                         is Ok -> {}
