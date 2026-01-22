@@ -12,8 +12,9 @@ enum class RenderProductionType {
 @Serializable
 data class RenderCuttingPlanProductionDTO(
     val name: String,
-    val x: Flt64,
-    val width: Flt64,
+    val x: FltX,
+    val width: FltX,
+    val unitLength: FltX,
     val productionType: RenderProductionType,
     val info: Map<String, String>
 )
@@ -22,8 +23,8 @@ data class RenderCuttingPlanProductionDTO(
 data class RenderCuttingPlanDTO(
     val group: List<String>,
     val productions: List<RenderCuttingPlanProductionDTO>,
-    val width: Flt64,
-    val standardWidth: Flt64,
+    val width: FltX,
+    val standardWidth: FltX,
     val amount: UInt64,
     val info: Map<String, String>
 )
