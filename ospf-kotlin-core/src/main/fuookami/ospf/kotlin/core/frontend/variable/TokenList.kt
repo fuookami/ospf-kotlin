@@ -192,15 +192,13 @@ sealed class MutableTokenList(
 
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
         for (item in items) {
-            if (checkTokenExisted && list.containsKey(item.key)) {
-                return Failed(Err(ErrorCode.TokenExisted))
-            }
-            list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
-                synchronized(lock) {
-                    _cachedSolution = tokens.any { it.result != null }
+            when (val result = add(item)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
                 }
-            }))
-            ++currentIndex
+            }
         }
         return ok
     }
@@ -217,12 +215,7 @@ sealed class MutableTokenList(
 
     internal fun flush() {
         _tokensInSolver = ArrayList()
-        synchronized(lock) {
-            for (token in tokens) {
-                token.__result = null
-            }
-            _cachedSolution = false
-        }
+        clearSolution()
     }
 
     override fun setSolution(solution: List<Flt64>) {
