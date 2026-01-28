@@ -33,48 +33,50 @@ class CoptColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val solver = CoptLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(result.value)
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val solver = CoptLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(result.value)
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -94,65 +96,68 @@ class CoptColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
 
-        val results = ArrayList<Solution>()
-        val solver = CoptLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, copt, _, _ ->
-                    if (amount gr UInt64.one) {
-                        // todo: set copt parameter to limit number of solutions
-                    }
-                    ok
-                }
-                .analyzingSolution { _, copt, variables, _ ->
-                    for (i in 0 until min(amount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
-                        val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
-                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                            results.add(thisResults)
-                        }
-                    }
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                results.add(0, result.value.solution)
-                jobs.joinAll()
-                Ok(Pair(result.value, results))
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val results = ArrayList<Solution>()
+            val solver = CoptLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .configuration { _, copt, _, _ ->
+                        if (amount gr UInt64.one) {
+                            // todo: set copt parameter to limit number of solutions
+                        }
+                        ok
+                    }
+                    .analyzingSolution { _, copt, variables, _ ->
+                        for (i in 0 until min(amount.toInt(), copt.get(COPT.IntAttr.PoolSols))) {
+                            val thisResults = copt.getPoolSolution(i, variables.toTypedArray()).map { Flt64(it) }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ok
+                    }
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    results.add(0, result.value.solution)
+                    jobs.joinAll()
+                    Ok(Pair(result.value, results))
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -171,56 +176,58 @@ class CoptColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        model.linearRelax()
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        lateinit var dualSolution: LinearDualSolution
-        val solver = CoptLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .analyzingSolution { _, _, _, constraints ->
-                    dualSolution = model.tidyDualSolution(constraints.map {
-                        Flt64(it.get(COPT.DoubleInfo.Dual))
-                    })
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            model.linearRelax()
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            lateinit var dualSolution: LinearDualSolution
+            val solver = CoptLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .analyzingSolution { _, _, _, constraints ->
+                        dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                            Flt64(constraint.get(COPT.DoubleInfo.Dual))
+                        })
+                        ok
+                    }
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }

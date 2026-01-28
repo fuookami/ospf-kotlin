@@ -115,6 +115,11 @@ class CeilingFunction(
         r
     }
 
+    val remainder: AbstractLinearPolynomial<*> by lazy {
+        val remainder = LinearPolynomial(r, "${name}_remainder")
+        remainder
+    }
+
     private val y: AbstractLinearPolynomial<*> by lazy {
         val y = LinearPolynomial(q, "${name}_y")
         y.range.set(possibleRange)

@@ -10,9 +10,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 // [b, e)
 data class TimeRange(
-    val start: Instant = Instant.DISTANT_PAST,
-    val end: Instant = Instant.DISTANT_FUTURE
-) {
+    override val start: Instant = Instant.DISTANT_PAST,
+    override val end: Instant = Instant.DISTANT_FUTURE
+) : TimeSlot {
     companion object {
         operator fun invoke(date: LocalDate): TimeRange {
             val start = date.atStartOfDayIn(TimeZone.currentSystemDefault())
@@ -32,8 +32,9 @@ data class TimeRange(
         }
     }
 
+    override val time: TimeRange get() = this
     val empty: Boolean get() = start >= end
-    val duration: Duration get() = end - start
+    override val duration: Duration get() = end - start
 
     val front: TimeRange?
         get() = if (start != Instant.DISTANT_PAST) {

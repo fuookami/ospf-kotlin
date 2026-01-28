@@ -32,48 +32,50 @@ class HexalyColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val solver = HexalyLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(result.value)
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val solver = HexalyLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(result.value)
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -93,56 +95,58 @@ class HexalyColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val results = ArrayList<Solution>()
-        val solver = HexalyLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, hexaly, _, _ ->
-                    ok
-                }
-                .analyzingSolution { _, hexaly, variables, _ ->
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                results.add(0, result.value.solution)
-                jobs.joinAll()
-                Ok(Pair(result.value, results))
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val results = ArrayList<Solution>()
+            val solver = HexalyLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .configuration { _, hexaly, _, _ ->
+                        ok
+                    }
+                    .analyzingSolution { _, hexaly, variables, _ ->
+                        ok
+                    }
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    results.add(0, result.value.solution)
+                    jobs.joinAll()
+                    Ok(Pair(result.value, results))
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -161,79 +165,81 @@ class HexalyColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        model.linearRelax()
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            model.linearRelax()
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
+            }
 
-        var error: Error? = null
-        return try {
-            coroutineScope {
-                val solver = HexalyLinearSolver(
-                    config = config,
-                    callBack = callBack
-                )
-                val dualSolutionPromises = async(Dispatchers.Default) {
-                    val dualModel = model.dual()
-                    solver(dualModel)
-                }
-                when (val result = solver(model, solvingStatusCallBack)) {
-                    is Ok -> {
-                        when (val dualResult = dualSolutionPromises.await()) {
-                            is Ok -> {
-                                metaModel.tokens.setSolution(result.value.solution)
-                                jobs.joinAll()
-                                Ok(
-                                    ColumnGenerationSolver.LPResult(
-                                        result = result.value,
-                                        dualSolution = model.tidyDualSolution(dualResult.value.solution)
+            var error: Error? = null
+            try {
+                coroutineScope {
+                    val solver = HexalyLinearSolver(
+                        config = config,
+                        callBack = callBack
+                    )
+                    val dualSolutionPromises = async(Dispatchers.Default) {
+                        val dualModel = model.dual()
+                        solver(dualModel)
+                    }
+                    when (val result = solver(model, solvingStatusCallBack)) {
+                        is Ok -> {
+                            when (val dualResult = dualSolutionPromises.await()) {
+                                is Ok -> {
+                                    metaModel.tokens.setSolution(result.value.solution)
+                                    jobs.joinAll()
+                                    Ok(
+                                        ColumnGenerationSolver.LPResult(
+                                            result = result.value,
+                                            dualSolution = model.tidyDualSolution(dualResult.value.solution)
+                                        )
                                     )
-                                )
-                            }
+                                }
 
-                            is Failed -> {
-                                error = dualResult.error
-                                cancel()
-                                jobs.joinAll()
-                                Failed(dualResult.error)
+                                is Failed -> {
+                                    error = dualResult.error
+                                    cancel()
+                                    jobs.joinAll()
+                                    Failed(dualResult.error)
+                                }
                             }
                         }
-                    }
 
-                    is Failed -> {
-                        error = result.error
-                        cancel()
-                        jobs.joinAll()
-                        Failed(result.error)
+                        is Failed -> {
+                            error = result.error
+                            cancel()
+                            jobs.joinAll()
+                            Failed(result.error)
+                        }
                     }
                 }
+            } catch (_: CancellationException) {
+                error?.let { Failed(it) }
+                    ?: Failed(Err(ErrorCode.OREngineSolvingException))
             }
-        } catch (_: CancellationException) {
-            error?.let { Failed(it) }
-                ?: Failed(Err(ErrorCode.OREngineSolvingException))
         }
     }
 }

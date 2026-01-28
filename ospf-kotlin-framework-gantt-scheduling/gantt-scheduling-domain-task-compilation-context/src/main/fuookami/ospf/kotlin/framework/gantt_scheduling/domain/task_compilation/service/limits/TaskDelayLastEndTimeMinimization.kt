@@ -49,7 +49,7 @@ class TaskDelayLastEndTimeMinimization<
                         } else {
                             UInteger
                         },
-                        name = "delay_last_end_time_threshold_$task"
+                        name = "delay_last_end_time_threshold_${task}"
                     )
                     when (val result = model.add(slack)) {
                         is Ok -> {}

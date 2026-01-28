@@ -133,6 +133,11 @@ class ModFunction(
         r
     }
 
+    val quotient: AbstractLinearPolynomial<*> by lazy {
+        val quotient = LinearPolynomial(q, "${name}_quotient")
+        quotient
+    }
+
     private val y: AbstractQuadraticPolynomial<*> by lazy {
         val y = QuadraticPolynomial(r, "${name}_y")
         y.range.set(ValueRange(Flt64.zero, possibleUpperBound).value!!)

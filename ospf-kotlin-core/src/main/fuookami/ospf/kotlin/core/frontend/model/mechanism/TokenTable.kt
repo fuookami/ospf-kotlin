@@ -19,7 +19,7 @@ class RepeatedSymbolError(
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
 }
 
-sealed interface AbstractTokenTable {
+sealed interface AbstractTokenTable: AutoCloseable {
     val category: Category
     val tokenList: AbstractTokenList
     val tokens: Collection<Token> get() = tokenList.tokens
@@ -163,6 +163,10 @@ sealed interface AbstractTokenTable {
             cache(symbol, fixedValues, value)
         }
     }
+
+    override fun close() {
+        tokenList.close()
+    }
 }
 
 sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable, AddableTokenCollection {
@@ -266,6 +270,12 @@ data class TokenTable(
                 Pair(symbol, fixedValues) to it
             }
         })
+    }
+
+    override fun close() {
+        cachedSymbolValue1.clear()
+        cachedSymbolValue2.clear()
+        super.close()
     }
 }
 
@@ -401,6 +411,14 @@ sealed class MutableTokenTable(
                 Pair(symbol, fixedValues) to it
             }
         })
+    }
+
+    override fun close() {
+        cachedSymbolValue1.clear()
+        cachedSymbolValue2.clear()
+        _symbolsMap.clear()
+        symbols.clear()
+        super.close()
     }
 }
 

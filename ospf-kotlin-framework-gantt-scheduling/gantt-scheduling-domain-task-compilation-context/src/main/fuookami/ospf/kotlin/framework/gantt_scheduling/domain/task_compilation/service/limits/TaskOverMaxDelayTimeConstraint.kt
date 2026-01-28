@@ -37,7 +37,7 @@ class TaskOverMaxDelayTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.delayTime[task] leq with(timeWindow) { task.maxDelay!!.value },
-                name = "${name}_$task",
+                name = "${name}_${task}",
                 args = TaskOverMaxDelayShadowPriceKey(task)
             )) {
                 is Ok -> {}

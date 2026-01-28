@@ -40,7 +40,7 @@ class ProduceLessQuantityMinimization<
                         x = produce.lessQuantity[product],
                         threshold = thresholdValue,
                         type = UContinuous,
-                        name = "produce_less_quantity_minimization_threshold_$product"
+                        name = "produce_less_quantity_minimization_threshold_${product}"
                     )
                     when (val result = model.add(slack)) {
                         is Ok -> {}
