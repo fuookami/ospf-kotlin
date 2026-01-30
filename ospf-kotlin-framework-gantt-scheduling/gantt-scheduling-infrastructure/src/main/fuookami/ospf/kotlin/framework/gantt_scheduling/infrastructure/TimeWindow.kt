@@ -202,11 +202,16 @@ data class TimeWindow(
     }
 
     fun roundTimeSlotsOf(interval: Duration): List<TimeRange> {
+        return roundTimeSlotsOf(mapOf(null to interval))
+    }
+
+    fun roundTimeSlotsOf(intervals: Map<TimeRange?, Duration>): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
         var current = start
-        val end1 = start.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant() + upper.interval
+        var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
+        val end1 = start.truncatedTo(upper.durationUnit) + ceil(upper.interval / currentInterval).toInt() * currentInterval
         while (current != end1) {
-            val duration = min(end1 - current, interval)
+            val duration = min(end1 - current, currentInterval)
             timeSlots.add(
                 TimeRange(
                     start = max(start, current),
@@ -214,10 +219,11 @@ data class TimeWindow(
                 )
             )
             current += duration
+            currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
         }
-        val end2 = end.toJavaInstant().truncatedTo(upper.durationUnit.toTimeUnit().toChronoUnit()).toKotlinInstant()
+        val end2 = end.truncatedTo(upper.durationUnit)
         while (current != end2) {
-            val duration = min(end2 - current, interval)
+            val duration = min(end2 - current, currentInterval)
             timeSlots.add(
                 TimeRange(
                     start = current,
@@ -225,9 +231,10 @@ data class TimeWindow(
                 )
             )
             current += duration
+            currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
         }
         while (current != end) {
-            val duration = min(end - current, interval)
+            val duration = min(end - current, currentInterval)
             timeSlots.add(
                 TimeRange(
                     start = current,
@@ -235,6 +242,7 @@ data class TimeWindow(
                 )
             )
             current += duration
+            currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
         }
         return timeSlots
     }
