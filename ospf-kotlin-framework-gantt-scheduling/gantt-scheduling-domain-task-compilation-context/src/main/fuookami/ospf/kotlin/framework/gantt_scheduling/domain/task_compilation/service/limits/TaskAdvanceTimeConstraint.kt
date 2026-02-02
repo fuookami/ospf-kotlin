@@ -37,7 +37,7 @@ class TaskAdvanceTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.estimateStartTime[task] geq with(timeWindow) { task.scheduledTime!!.start.value },
-                name = "${name}_$task",
+                name = "${name}_${task}",
                 args = TaskAdvanceTimeShadowPriceKey(task)
             )) {
                 is Ok -> {}

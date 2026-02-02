@@ -37,7 +37,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.estimateEndTime[task] geq with(timeWindow) { task.earliestEndTime!!.value },
-                name = "${name}_$task",
+                name = "${name}_${task}",
                 args = TaskAdvanceEarliestEndTimeShadowPriceKey(task)
             )) {
                 is Ok -> {}

@@ -140,8 +140,13 @@ class FloorFunction(
         r
     }
 
+    val remainder: AbstractQuadraticPolynomial<*> by lazy {
+        val remainder = QuadraticPolynomial(r, "${name}_remainder")
+        remainder
+    }
+
     private val y: AbstractQuadraticPolynomial<*> by lazy {
-        val y = QuadraticPolynomial(r, "${name}_y")
+        val y = QuadraticPolynomial(q, "${name}_y")
         y.range.set(possibleRange)
         y
     }

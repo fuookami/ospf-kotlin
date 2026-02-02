@@ -29,7 +29,7 @@ class TaskCompilationConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 compilation.taskCompilation[task] eq Flt64.one,
-                name = "${name}_$task",
+                name = "${name}_${task}",
                 args = TaskCompilationShadowPriceKey(task)
             )) {
                 is Ok -> {}

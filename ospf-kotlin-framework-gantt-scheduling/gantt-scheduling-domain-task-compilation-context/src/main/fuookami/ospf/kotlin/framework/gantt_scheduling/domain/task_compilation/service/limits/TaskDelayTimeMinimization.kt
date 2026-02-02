@@ -49,7 +49,7 @@ class TaskDelayTimeMinimization<
                         } else {
                             UInteger
                         },
-                        name = "delay_time_threshold_$task"
+                        name = "delay_time_threshold_${task}"
                     )
                     when (val result = model.add(slack)) {
                         is Ok -> {}

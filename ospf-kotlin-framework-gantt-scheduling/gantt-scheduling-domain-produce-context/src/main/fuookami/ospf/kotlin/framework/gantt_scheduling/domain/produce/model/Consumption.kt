@@ -50,14 +50,16 @@ abstract class AbstractConsumption<
                             threshold = demand.quantity.upperBound.value.unwrap(),
                             type = UContinuous,
                             constraint = false,
-                            name = "consumption_over_quantity_$product"
+                            name = "consumption_over_quantity_${product}"
                         )
                         demand.overQuantity?.let {
                             slack.pos!!.range.leq(it)
                         }
                         slack
                     } else {
-                        LinearExpressionSymbol(LinearPolynomial(), "consumption_over_quantity_$product")
+                        LinearExpressionSymbol(
+                            name = "consumption_over_quantity_${product}"
+                        )
                     }
                 }
             }
@@ -84,14 +86,16 @@ abstract class AbstractConsumption<
                             type = UContinuous,
                             withPositive = false,
                             constraint = false,
-                            name = "consumption_less_quantity_$product"
+                            name = "consumption_less_quantity_${product}"
                         )
                         demand.lessQuantity?.let {
                             slack.neg!!.range.leq(it)
                         }
                         slack
                     } else {
-                        LinearExpressionSymbol(LinearPolynomial(), "consumption_less_quantity_$product")
+                        LinearExpressionSymbol(
+                            name = "consumption_less_quantity_${product}"
+                        )
                     }
                 }
             }

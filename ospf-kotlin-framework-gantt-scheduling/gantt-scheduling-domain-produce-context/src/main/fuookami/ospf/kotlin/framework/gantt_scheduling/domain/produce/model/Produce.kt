@@ -50,14 +50,16 @@ abstract class AbstractProduce<
                             threshold = demand.quantity.upperBound.value.unwrap(),
                             type = UContinuous,
                             constraint = false,
-                            name = "produce_over_quantity_$product"
+                            name = "produce_over_quantity_${product}"
                         )
                         demand.overQuantity?.let {
                             slack.pos!!.range.leq(it)
                         }
                         slack
                     } else {
-                        LinearExpressionSymbol(LinearPolynomial(), "produce_over_quantity_$product")
+                        LinearExpressionSymbol(
+                            name = "produce_over_quantity_${product}"
+                        )
                     }
                 }
             }
@@ -84,14 +86,16 @@ abstract class AbstractProduce<
                             type = UContinuous,
                             withPositive = false,
                             constraint = false,
-                            name = "produce_less_quantity_$product"
+                            name = "produce_less_quantity_${product}"
                         )
                         demand.lessQuantity?.let {
                             slack.neg!!.range.leq(it)
                         }
                         slack
                     } else {
-                        LinearExpressionSymbol(LinearPolynomial(), "produce_less_quantity_$product")
+                        LinearExpressionSymbol(
+                            name = "produce_less_quantity_${product}"
+                        )
                     }
                 }
             }

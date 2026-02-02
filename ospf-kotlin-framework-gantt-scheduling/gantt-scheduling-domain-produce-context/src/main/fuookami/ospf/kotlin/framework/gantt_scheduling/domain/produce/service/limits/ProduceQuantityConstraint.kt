@@ -35,7 +35,7 @@ class ProduceQuantityConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             overQuantity.polyX leq demand.quantity.upperBound.value.unwrap(),
-                            name = "${name}_ub_$product",
+                            name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
                             is Ok -> {}
@@ -49,7 +49,7 @@ class ProduceQuantityConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             produce.quantity[product] leq demand.quantity.upperBound.value.unwrap(),
-                            name = "${name}_ub_$product",
+                            name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
                             is Ok -> {}
@@ -63,7 +63,7 @@ class ProduceQuantityConstraint<
             } else {
                 when (val result = model.addConstraint(
                     produce.quantity[product] leq demand.quantity.upperBound.value.unwrap(),
-                    name = "${name}_ub_$product",
+                    name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
                     is Ok -> {}
@@ -79,7 +79,7 @@ class ProduceQuantityConstraint<
                     is AbstractSlackFunction<*> -> {
                         when (val result = model.addConstraint(
                             lessQuantity.polyX geq demand.quantity.lowerBound.value.unwrap(),
-                            name = "${name}_lb_$product",
+                            name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
                             is Ok -> {}
@@ -93,7 +93,7 @@ class ProduceQuantityConstraint<
                     else -> {
                         when (val result = model.addConstraint(
                             produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap(),
-                            name = "${name}_lb_$product",
+                            name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
                             is Ok -> {}
@@ -107,7 +107,7 @@ class ProduceQuantityConstraint<
             } else {
                 when (val result = model.addConstraint(
                     produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap(),
-                    name = "${name}_lb_$product",
+                    name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
                     is Ok -> {}

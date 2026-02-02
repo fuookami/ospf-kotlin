@@ -145,11 +145,15 @@ open class BunchSchedulingTaskTime<
             ) { i, _ ->
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
-                    LinearExpressionSymbol(LinearPolynomial(), "est_slack_$task")
+                    LinearExpressionSymbol(
+                        name = "est_slack_${task}"
+                    )
                 } else {
                     when (val time = task.time) {
                         null -> {
-                            LinearExpressionSymbol(LinearPolynomial(), "est_slack_$task")
+                            LinearExpressionSymbol(
+                                name = "est_slack_${task}"
+                            )
                         }
 
                         else -> {
@@ -168,7 +172,7 @@ open class BunchSchedulingTaskTime<
                                 },
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
-                                name = "est_slack_$task"
+                                name = "est_slack_${task}"
                             )
                             slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
                             slack

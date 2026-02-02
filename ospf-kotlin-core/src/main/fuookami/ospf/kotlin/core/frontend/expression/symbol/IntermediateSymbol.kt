@@ -61,6 +61,21 @@ interface IntermediateSymbol : Symbol, Expression {
 }
 
 interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
+    companion object {
+        fun empty(
+            parent: IntermediateSymbol? = null,
+            name: String = "",
+            displayName: String? = null
+        ): LinearIntermediateSymbol {
+            return LinearExpressionSymbol(
+                Flt64.zero,
+                parent = parent,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     val cells: List<LinearMonomialCell>
 
     override fun toLinearPolynomial(): LinearPolynomial {
@@ -73,6 +88,21 @@ interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<Line
 }
 
 interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomial<QuadraticPolynomial> {
+    companion object {
+        fun empty(
+            parent: IntermediateSymbol? = null,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticIntermediateSymbol {
+            return QuadraticExpressionSymbol(
+                Flt64.zero,
+                parent = parent,
+                name = name,
+                displayName = displayName
+            )
+        }
+    }
+
     val cells: List<QuadraticMonomialCell>
 
     override fun toQuadraticPolynomial(): QuadraticPolynomial {
@@ -221,6 +251,7 @@ class LinearExpressionSymbol(
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -237,6 +268,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             symbol: LinearIntermediateSymbol,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -253,6 +285,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             monomial: LinearMonomial,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -269,6 +302,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             polynomial: AbstractLinearPolynomial<*>,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -286,6 +320,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             constant: Int,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -302,6 +337,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             constant: Double,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -318,6 +354,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             constant: Boolean,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -334,6 +371,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             constant: Trivalent,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -350,6 +388,7 @@ class LinearExpressionSymbol(
 
         operator fun invoke(
             constant: BalancedTrivalent,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -366,6 +405,7 @@ class LinearExpressionSymbol(
 
         operator fun <T : RealNumber<T>> invoke(
             constant: T,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
@@ -381,11 +421,13 @@ class LinearExpressionSymbol(
         }
 
         operator fun invoke(
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
                 Flt64.zero,
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -420,6 +462,7 @@ class QuadraticExpressionSymbol(
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -429,6 +472,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { item.name },
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { item.name },
                 displayName = displayName
             )
@@ -436,6 +480,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             symbol: LinearIntermediateSymbol,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -445,6 +490,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { symbol.name },
                     displayName = displayName ?: symbol.displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { symbol.name },
                 displayName = displayName ?: symbol.displayName
             )
@@ -452,6 +498,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             symbol: QuadraticIntermediateSymbol,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -461,6 +508,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { symbol.name },
                     displayName = displayName ?: symbol.displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { symbol.name },
                 displayName = displayName ?: symbol.displayName
             )
@@ -468,6 +516,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             monomial: LinearMonomial,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -477,6 +526,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { monomial.name },
                     displayName = displayName ?: monomial.displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { monomial.name },
                 displayName = displayName ?: monomial.displayName
             )
@@ -484,6 +534,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             monomial: QuadraticMonomial,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -493,6 +544,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { monomial.name },
                     displayName = displayName ?: monomial.displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { monomial.name },
                 displayName = displayName ?: monomial.displayName
             )
@@ -500,6 +552,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             polynomial: AbstractLinearPolynomial<*>,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -510,6 +563,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { polynomial.name },
                     displayName = displayName ?: polynomial.displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { polynomial.name },
                 displayName = displayName ?: polynomial.displayName
             )
@@ -517,6 +571,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             polynomial: AbstractQuadraticPolynomial<*>,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -527,6 +582,7 @@ class QuadraticExpressionSymbol(
                     name = name.ifEmpty { polynomial.name },
                     displayName = displayName ?: polynomial.displayName
                 ),
+                parent = parent,
                 name = name.ifEmpty { polynomial.name },
                 displayName = displayName ?: polynomial.displayName
             )
@@ -534,6 +590,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             constant: Int,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -543,6 +600,7 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -550,6 +608,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             constant: Double,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -559,6 +618,7 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -566,6 +626,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             constant: Boolean,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -575,6 +636,7 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -582,6 +644,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             constant: Trivalent,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -591,6 +654,7 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -598,6 +662,7 @@ class QuadraticExpressionSymbol(
 
         operator fun invoke(
             constant: BalancedTrivalent,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -607,6 +672,7 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
@@ -614,6 +680,7 @@ class QuadraticExpressionSymbol(
 
         operator fun <T : RealNumber<T>> invoke(
             constant: T,
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
@@ -623,17 +690,20 @@ class QuadraticExpressionSymbol(
                     name = name,
                     displayName = displayName
                 ),
+                parent = parent,
                 name = name,
                 displayName = displayName
             )
         }
 
         operator fun invoke(
+            parent: IntermediateSymbol? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
                 Flt64.zero,
+                parent = parent,
                 name = name,
                 displayName = displayName
             )

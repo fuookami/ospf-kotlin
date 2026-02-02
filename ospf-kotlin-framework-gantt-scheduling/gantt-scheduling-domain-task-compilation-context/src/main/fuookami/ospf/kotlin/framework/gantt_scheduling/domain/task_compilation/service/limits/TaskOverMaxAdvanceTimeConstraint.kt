@@ -37,7 +37,7 @@ class TaskOverMaxAdvanceTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.advanceTime[task] leq with(timeWindow) { task.maxAdvance!!.value },
-                name = "${name}_$task",
+                name = "${name}_${task}",
                 args = TaskOverMaxAdvanceShadowPriceKey(task)
             )) {
                 is Ok -> {}

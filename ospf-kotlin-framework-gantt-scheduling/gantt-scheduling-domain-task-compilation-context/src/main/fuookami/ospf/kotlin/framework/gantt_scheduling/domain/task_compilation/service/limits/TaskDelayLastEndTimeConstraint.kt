@@ -37,7 +37,7 @@ class TaskDelayLastEndTimeConstraint<
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.estimateEndTime[task] leq with(timeWindow) { task.lastEndTime!!.value },
-                name = "${name}_$task",
+                name = "${name}_${task}",
                 args = TaskDelayLastEndTimeShadowPriceKey(task)
             )) {
                 is Ok -> {}

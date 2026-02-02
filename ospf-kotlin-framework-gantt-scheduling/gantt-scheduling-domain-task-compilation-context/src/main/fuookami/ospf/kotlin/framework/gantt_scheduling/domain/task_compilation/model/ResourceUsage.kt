@@ -95,7 +95,9 @@ abstract class AbstractResourceUsage<
                             }
                             slack
                         } else {
-                            LinearExpressionSymbol(LinearPolynomial(), "${name}_over_quantity_$slot")
+                            LinearExpressionSymbol(
+                                name = "${name}_over_quantity_$slot"
+                            )
                         }
                     }
                 }
@@ -128,7 +130,9 @@ abstract class AbstractResourceUsage<
                             }
                             slack
                         } else {
-                            LinearExpressionSymbol(LinearPolynomial(), "${name}_less_quantity_$slot")
+                            LinearExpressionSymbol(
+                                name = "${name}_less_quantity_$slot"
+                            )
                         }
                     }
                 }
