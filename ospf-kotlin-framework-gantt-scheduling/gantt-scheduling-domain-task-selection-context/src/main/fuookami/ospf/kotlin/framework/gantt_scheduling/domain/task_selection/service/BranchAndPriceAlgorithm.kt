@@ -86,80 +86,54 @@ class BranchAndPriceAlgorithm<
         val beginTime = Clock.System.now()
         try {
             lateinit var bestSolution: TaskSolution<T, E, A>
-            val model = LinearMetaModel(id)
-            var iteration = Iteration<IT, E, A>()
-            when (val result = register(model)) {
-                is Ok -> {}
+            return LinearMetaModel(id).use { model ->
+                var iteration = Iteration<IT, E, A>()
+                when (val result = register(model)) {
+                    is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-
-            // solve ip with initial column
-            val ipRet = when (val result = solver.solveMILP("${id}_$iteration", model)) {
-                is Ok -> {
-                    model.setSolution(result.value.solution)
-                    result.value
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
 
-                is Failed -> {
-                    return Failed(result.error)
+                // solve ip with initial column
+                val ipRet = when (val result = solver.solveMILP("${id}_$iteration", model)) {
+                    is Ok -> {
+                        model.setSolution(result.value.solution)
+                        result.value
+                    }
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
-            }
-            logMILPResults(iteration.iteration, model)
+                logMILPResults(iteration.iteration, model)
 
-            bestSolution = when (val result = analyzeSolution(iteration.iteration, model)) {
-                is Ok -> {
-                    result.value
-                }
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-            mainProblemSolvingTimes += UInt64.one
-            mainProblemSolvingTime += ipRet.time
-            iteration.refreshIpObj(ipRet.obj)
-
-            if (ipRet.obj eq Flt64.zero) {
-                return Ok(bestSolution)
-            }
-
-            when (fixTasks(iteration.iteration, model)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Ok(bestSolution)
-                }
-            }
-            when (keepTasks(iteration.iteration, model)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Ok(bestSolution)
-                }
-            }
-
-            var mainIteration = UInt64.one
-
-            while (!iteration.isImprovementSlow
-                && iteration.runTime < configuration.timeLimit
-            ) {
-                logger.debug { "Iteration $mainIteration begin!" }
-
-                shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
+                bestSolution = when (val result = analyzeSolution(iteration.iteration, model)) {
                     is Ok -> {
                         result.value
                     }
 
                     is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                mainProblemSolvingTimes += UInt64.one
+                mainProblemSolvingTime += ipRet.time
+                iteration.refreshIpObj(ipRet.obj)
+
+                if (ipRet.obj eq Flt64.zero) {
+                    return Ok(bestSolution)
+                }
+
+                when (fixTasks(iteration.iteration, model)) {
+                    is Ok -> {}
+
+                    is Failed -> {
                         return Ok(bestSolution)
                     }
                 }
-                logLPResults(iteration.iteration, model)
-
-                when (hideExecutors(model)) {
+                when (keepTasks(iteration.iteration, model)) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -167,36 +141,12 @@ class BranchAndPriceAlgorithm<
                     }
                 }
 
-                logger.debug { "Global column generation of iteration $mainIteration begin!" }
+                var mainIteration = UInt64.one
 
-                // globally column generation
-                // it runs only 1 time
-                for (count in 0 until 1) {
-                    ++iteration
-                    val newTasks = when (val result = solveSP(id, iteration, executors, shadowPriceMap)) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    if (newTasks.isEmpty()) {
-                        logger.debug { "There is no task generated in global column generation of iteration $mainIteration." }
-                        if (iteration.optimalRate eq Flt64.one) {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    val newTaskAmount = UInt64(newTasks.size.toULong())
-
-                    when (addColumns(iteration.iteration, newTasks, model)) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
+                while (!iteration.isImprovementSlow
+                    && iteration.runTime < configuration.timeLimit
+                ) {
+                    logger.debug { "Iteration $mainIteration begin!" }
 
                     shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
                         is Ok -> {
@@ -209,117 +159,21 @@ class BranchAndPriceAlgorithm<
                     }
                     logLPResults(iteration.iteration, model)
 
-                    val badReducedAmount = UInt64(fixedTasks.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
-                    if (columnAmount > configuration.maximumColumnAmount) {
-                        maximumReducedCost1 =
-                            when (val result = removeColumns(maximumReducedCost1, configuration.maximumColumnAmount, shadowPriceMap, fixedTasks, keptTasks, model)) {
-                                is Ok -> {
-                                    result.value
-                                }
-
-                                is Failed -> {
-                                    return Ok(bestSolution)
-                                }
-                            }
-                    }
-                    if (badReducedAmount >= configuration.maxBadReducedAmount
-                        || newTaskAmount <= minimumColumnAmount(fixedTasks, configuration)
-                    ) {
-                        break
-                    }
-                }
-                maximumReducedCost1 = Flt64(50.0)
-
-                logger.debug { "Global column generation of iteration $mainIteration end!" }
-
-                val freeExecutors = when (val result = selectFreeExecutors(shadowPriceMap, model)) {
-                    is Ok -> {
-                        result.value
-                    }
-
-                    is Failed -> {
-                        return Ok(bestSolution)
-                    }
-                }
-                val fixedTasks = when (val result = globallyFix(freeExecutors)) {
-                    is Ok -> {
-                        result.value.toHashSet()
-                    }
-
-                    is Failed -> {
-                        return Ok(bestSolution)
-                    }
-                }
-                val freeExecutorList = freeExecutors.toMutableList()
-
-                logger.debug { "Local column generation of iteration $mainIteration begin!" }
-
-                // locally column generation
-                while (true) {
-                    shadowPriceMap = when (val result = solveRMP(id, iteration, model, false)) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    logLPResults(iteration.iteration, model)
-
-                    ++iteration
-                    val newTasks = when (val result = solveSP(id, iteration, freeExecutorList, shadowPriceMap)) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    if (newTasks.isEmpty()) {
-                        --iteration
-                        logger.debug { "There is no task generated in local column generation of iteration $mainIteration: $iteration." }
-                        break
-                    }
-                    val newTaskAmount = UInt64(newTasks.size.toULong())
-
-                    when (addColumns(iteration.iteration, newTasks, model)) {
+                    when (hideExecutors(model)) {
                         is Ok -> {}
 
                         is Failed -> {
                             return Ok(bestSolution)
                         }
                     }
-                    val newFixedTasks = when (val result = locallyFix(iteration.iteration, fixedTasks, model)) {
-                        is Ok -> {
-                            result.value
-                        }
 
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    if (newFixedTasks.isNotEmpty()) {
-                        for (task in newFixedTasks) {
-                            freeExecutorList.remove(task.executor!!)
-                        }
-                        fixedTasks.addAll(newFixedTasks)
-                    } else {
-                        break
-                    }
+                    logger.debug { "Global column generation of iteration $mainIteration begin!" }
 
-                    if (columnAmount > configuration.maximumColumnAmount
-                        && newTaskAmount > minimumColumnAmount(fixedTasks, configuration)
-                    ) {
-                        maximumReducedCost2 = when (val result = removeColumns(
-                            maximumReducedCost2,
-                            configuration.maximumColumnAmount,
-                            shadowPriceMap,
-                            fixedTasks,
-                            keptTasks,
-                            model
-                        )) {
+                    // globally column generation
+                    // it runs only 1 time
+                    for (count in 0 until 1) {
+                        ++iteration
+                        val newTasks = when (val result = solveSP(id, iteration, executors, shadowPriceMap)) {
                             is Ok -> {
                                 result.value
                             }
@@ -328,52 +182,199 @@ class BranchAndPriceAlgorithm<
                                 return Ok(bestSolution)
                             }
                         }
-                    }
-                }
-
-                logger.debug { "Local column generation of iteration $mainIteration end!" }
-
-                this.fixedTasks.clear()
-                this.fixedTasks.addAll(fixedTasks)
-                // 所有生产设备已经有被固定的列（串）或者被隐藏，求解一次 IP 结束本次主迭代
-                val thisIpRet = when (val result = solver.solveMILP("${id}_${iteration}_ip", model)) {
-                    is Ok -> {
-                        model.setSolution(result.value.solution)
-                        result.value
-                    }
-
-                    is Failed -> {
-                        return Ok(bestSolution)
-                    }
-                }
-                mainProblemSolvingTimes += UInt64.one
-                mainProblemSolvingTime += thisIpRet.time
-                logMILPResults(iteration.iteration, model)
-                if (iteration.refreshIpObj(thisIpRet.obj)) {
-                    when (val result = analyzeSolution(iteration.iteration, model)) {
-                        is Ok -> {
-                            bestSolution = result.value
-                            if (thisIpRet.obj eq Flt64.zero) {
+                        if (newTasks.isEmpty()) {
+                            logger.debug { "There is no task generated in global column generation of iteration $mainIteration." }
+                            if (iteration.optimalRate eq Flt64.one) {
                                 return Ok(bestSolution)
                             }
+                        }
+                        val newTaskAmount = UInt64(newTasks.size.toULong())
+
+                        when (addColumns(iteration.iteration, newTasks, model)) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+
+                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        logLPResults(iteration.iteration, model)
+
+                        val badReducedAmount = UInt64(fixedTasks.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
+                        if (columnAmount > configuration.maximumColumnAmount) {
+                            maximumReducedCost1 =
+                                when (val result = removeColumns(maximumReducedCost1, configuration.maximumColumnAmount, shadowPriceMap, fixedTasks, keptTasks, model)) {
+                                    is Ok -> {
+                                        result.value
+                                    }
+
+                                    is Failed -> {
+                                        return Ok(bestSolution)
+                                    }
+                                }
+                        }
+                        if (badReducedAmount >= configuration.maxBadReducedAmount
+                            || newTaskAmount <= minimumColumnAmount(fixedTasks, configuration)
+                        ) {
+                            break
+                        }
+                    }
+                    maximumReducedCost1 = Flt64(50.0)
+
+                    logger.debug { "Global column generation of iteration $mainIteration end!" }
+
+                    val freeExecutors = when (val result = selectFreeExecutors(shadowPriceMap, model)) {
+                        is Ok -> {
+                            result.value
                         }
 
                         is Failed -> {
                             return Ok(bestSolution)
                         }
                     }
+                    val fixedTasks = when (val result = globallyFix(freeExecutors)) {
+                        is Ok -> {
+                            result.value.toHashSet()
+                        }
+
+                        is Failed -> {
+                            return Ok(bestSolution)
+                        }
+                    }
+                    val freeExecutorList = freeExecutors.toMutableList()
+
+                    logger.debug { "Local column generation of iteration $mainIteration begin!" }
+
+                    // locally column generation
+                    while (true) {
+                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, false)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        logLPResults(iteration.iteration, model)
+
+                        ++iteration
+                        val newTasks = when (val result = solveSP(id, iteration, freeExecutorList, shadowPriceMap)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        if (newTasks.isEmpty()) {
+                            --iteration
+                            logger.debug { "There is no task generated in local column generation of iteration $mainIteration: $iteration." }
+                            break
+                        }
+                        val newTaskAmount = UInt64(newTasks.size.toULong())
+
+                        when (addColumns(iteration.iteration, newTasks, model)) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        val newFixedTasks = when (val result = locallyFix(iteration.iteration, fixedTasks, model)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        if (newFixedTasks.isNotEmpty()) {
+                            for (task in newFixedTasks) {
+                                freeExecutorList.remove(task.executor!!)
+                            }
+                            fixedTasks.addAll(newFixedTasks)
+                        } else {
+                            break
+                        }
+
+                        if (columnAmount > configuration.maximumColumnAmount
+                            && newTaskAmount > minimumColumnAmount(fixedTasks, configuration)
+                        ) {
+                            maximumReducedCost2 = when (val result = removeColumns(
+                                maximumReducedCost2,
+                                configuration.maximumColumnAmount,
+                                shadowPriceMap,
+                                fixedTasks,
+                                keptTasks,
+                                model
+                            )) {
+                                is Ok -> {
+                                    result.value
+                                }
+
+                                is Failed -> {
+                                    return Ok(bestSolution)
+                                }
+                            }
+                        }
+                    }
+
+                    logger.debug { "Local column generation of iteration $mainIteration end!" }
+
+                    this.fixedTasks.clear()
+                    this.fixedTasks.addAll(fixedTasks)
+                    // 所有生产设备已经有被固定的列（串）或者被隐藏，求解一次 IP 结束本次主迭代
+                    val thisIpRet = when (val result = solver.solveMILP("${id}_${iteration}_ip", model)) {
+                        is Ok -> {
+                            model.setSolution(result.value.solution)
+                            result.value
+                        }
+
+                        is Failed -> {
+                            return Ok(bestSolution)
+                        }
+                    }
+                    mainProblemSolvingTimes += UInt64.one
+                    mainProblemSolvingTime += thisIpRet.time
+                    logMILPResults(iteration.iteration, model)
+                    if (iteration.refreshIpObj(thisIpRet.obj)) {
+                        when (val result = analyzeSolution(iteration.iteration, model)) {
+                            is Ok -> {
+                                bestSolution = result.value
+                                if (thisIpRet.obj eq Flt64.zero) {
+                                    return Ok(bestSolution)
+                                }
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                    }
+                    heartBeat(id, iteration.optimalRate)
+
+                    // 结束一次主迭代后，刷新所有被固定的列（串）以及被隐藏的生产设备
+                    flush(iteration.iteration)
+                    iteration.halveStep()
+
+                    logger.debug { "Iteration $mainIteration end, optimal rate: ${String.format("%.2f", (iteration.optimalRate * Flt64(100.0)).toDouble())}%" }
+                    ++mainIteration
                 }
-                heartBeat(id, iteration.optimalRate)
 
-                // 结束一次主迭代后，刷新所有被固定的列（串）以及被隐藏的生产设备
-                flush(iteration.iteration)
-                iteration.halveStep()
-
-                logger.debug { "Iteration $mainIteration end, optimal rate: ${String.format("%.2f", (iteration.optimalRate * Flt64(100.0)).toDouble())}%" }
-                ++mainIteration
+                Ok(bestSolution)
             }
-
-            return Ok(bestSolution)
         } catch (e: Exception) {
             print(e.stackTraceToString())
             return Failed(Err(ErrorCode.ApplicationException, e.message))

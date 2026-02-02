@@ -247,7 +247,9 @@ interface AbstractQuadraticSolver {
                 return Failed(result.error)
             }
         }
-        return this(mechanismModel, solvingStatusCallBack)
+        return mechanismModel.use {
+            this(it, solvingStatusCallBack)
+        }
     }
 
     suspend operator fun invoke(
@@ -266,7 +268,9 @@ interface AbstractQuadraticSolver {
                 return Failed(result.error)
             }
         }
-        return this(mechanismModel, solvingStatusCallBack, iisConfig)
+        return mechanismModel.use {
+            this(it, solvingStatusCallBack, iisConfig)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -316,7 +320,9 @@ interface AbstractQuadraticSolver {
                 return Failed(result.error)
             }
         }
-        return this(mechanismModel, solutionAmount, solvingStatusCallBack)
+        return mechanismModel.use {
+            this(it, solutionAmount, solvingStatusCallBack)
+        }
     }
 
     suspend operator fun invoke(
@@ -336,7 +342,9 @@ interface AbstractQuadraticSolver {
                 return Failed(result.error)
             }
         }
-        return this(mechanismModel, solutionAmount, solvingStatusCallBack, iisConfig)
+        return mechanismModel.use {
+            this(it, solutionAmount, solvingStatusCallBack, iisConfig)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

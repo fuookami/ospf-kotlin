@@ -92,78 +92,53 @@ class BranchAndPriceAlgorithm<
         val beginTime = Clock.System.now()
         try {
             lateinit var bestSolution: BunchSolution<B, T, E, A>
-            val model = LinearMetaModel(id)
-            var iteration = Iteration<T, E, A>()
-            when (val result = register(model)) {
-                is Ok -> {}
+            return LinearMetaModel(id).use { model ->
+                var iteration = Iteration<T, E, A>()
+                when (val result = register(model)) {
+                    is Ok -> {}
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-
-            // solve ip with initial column
-            val ipRet = when (val result = solver.solveMILP("${id}_$iteration", model)) {
-                is Ok -> {
-                    model.setSolution(result.value.solution)
-                    result.value
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
 
-                is Failed -> {
-                    return Failed(result.error)
+                // solve ip with initial column
+                val ipRet = when (val result = solver.solveMILP("${id}_$iteration", model)) {
+                    is Ok -> {
+                        model.setSolution(result.value.solution)
+                        result.value
+                    }
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
-            }
-            logIpResults(iteration.iteration, model)
+                logIpResults(iteration.iteration, model)
 
-            bestSolution = when (val result = analyzeSolution(iteration.iteration, model)) {
-                is Ok -> {
-                    result.value
-                }
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-            }
-            refresh(ipRet)
-            iteration.refreshIpObj(ipRet.obj)
-
-            if (ipRet.obj eq Flt64.zero) {
-                return Ok(bestSolution)
-            }
-
-            when (fixBunch(iteration.iteration, model)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Ok(bestSolution)
-                }
-            }
-            when (keepBunch(iteration.iteration, model)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Ok(bestSolution)
-                }
-            }
-
-            var mainIteration = UInt64.one
-            while (!iteration.isImprovementSlow
-                && iteration.runTime < configuration.timeLimit
-            ) {
-                logger.debug { "Iteration $mainIteration begin!" }
-
-                shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
+                bestSolution = when (val result = analyzeSolution(iteration.iteration, model)) {
                     is Ok -> {
                         result.value
                     }
 
                     is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+                refresh(ipRet)
+                iteration.refreshIpObj(ipRet.obj)
+
+                if (ipRet.obj eq Flt64.zero) {
+                    return Ok(bestSolution)
+                }
+
+                when (fixBunch(iteration.iteration, model)) {
+                    is Ok -> {}
+
+                    is Failed -> {
                         return Ok(bestSolution)
                     }
                 }
-                logLpResults(iteration.iteration, model)
-
-                when (hideExecutors(model)) {
+                when (keepBunch(iteration.iteration, model)) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -171,36 +146,11 @@ class BranchAndPriceAlgorithm<
                     }
                 }
 
-                logger.debug { "Global column generation of iteration $mainIteration begin!" }
-
-                // globally column generation
-                // it runs only 1 time
-                for (count in 0..<1) {
-                    ++iteration
-                    val newBunches = when (val result = solveSP(id, iteration, executors, shadowPriceMap)) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    if (newBunches.isEmpty()) {
-                        logger.debug { "There is no bunch generated in global column generation of iteration $mainIteration." }
-                        if (iteration.optimalRate eq Flt64.one) {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    val newBunchAmount = UInt64(newBunches.size.toULong())
-
-                    when (addColumns(iteration.iteration, newBunches, model)) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
+                var mainIteration = UInt64.one
+                while (!iteration.isImprovementSlow
+                    && iteration.runTime < configuration.timeLimit
+                ) {
+                    logger.debug { "Iteration $mainIteration begin!" }
 
                     shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
                         is Ok -> {
@@ -213,123 +163,21 @@ class BranchAndPriceAlgorithm<
                     }
                     logLpResults(iteration.iteration, model)
 
-                    val reducedAmount = UInt64(fixedBunches.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
-                    if (columnAmount > configuration.maximumColumnAmount) {
-                        maximumReducedCost1 = when (val result = removeColumns(
-                            maximumReducedCost1,
-                            configuration.maximumColumnAmount,
-                            shadowPriceMap,
-                            fixedBunches,
-                            keptBunches,
-                            model
-                        )) {
-                            is Ok -> {
-                                result.value
-                            }
-
-                            is Failed -> {
-                                return Ok(bestSolution)
-                            }
-                        }
-                    }
-                    if (reducedAmount >= configuration.badReducedAmount
-                        || newBunchAmount <= minimumColumnAmount(fixedBunches, configuration)
-                    ) {
-                        break
-                    }
-                }
-                maximumReducedCost1 = Flt64(50.0)
-
-                logger.debug { "Global column generation of iteration $mainIteration end!" }
-
-                val freeExecutors = when (val result = selectFreeExecutors(model)) {
-                    is Ok -> {
-                        result.value
-                    }
-
-                    is Failed -> {
-                        return Ok(bestSolution)
-                    }
-                }
-                val fixedBunches = when (val result = globallyFix(freeExecutors)) {
-                    is Ok -> {
-                        result.value.toHashSet()
-                    }
-
-                    is Failed -> {
-                        return Ok(bestSolution)
-                    }
-                }
-                val freeExecutorList = freeExecutors.toMutableList()
-
-                logger.debug { "Local column generation of iteration $mainIteration begin!" }
-
-                // locally column generation
-                while (true) {
-                    shadowPriceMap = when (val result = solveRMP(id, iteration, model, false)) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    logLpResults(iteration.iteration, model)
-
-                    ++iteration
-                    val newBunches = when (val result = solveSP(id, iteration, freeExecutorList, shadowPriceMap)) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    if (newBunches.isEmpty()) {
-                        --iteration
-                        logger.debug { "There is no bunch generated in local column generation of iteration $mainIteration: $iteration." }
-                        break
-                    }
-                    val newBunchAmount = UInt64(newBunches.size.toULong())
-
-                    when (addColumns(iteration.iteration, newBunches, model)) {
+                    when (hideExecutors(model)) {
                         is Ok -> {}
 
                         is Failed -> {
                             return Ok(bestSolution)
                         }
                     }
-                    val newFixedBunches = when (val result = locallyFix(iteration.iteration, fixedBunches, model)) {
-                        is Ok -> {
-                            result.value
-                        }
 
-                        is Failed -> {
-                            return Ok(bestSolution)
-                        }
-                    }
-                    if (newFixedBunches.isNotEmpty()) {
-                        for (bunch in newFixedBunches) {
-                            freeExecutorList.remove(bunch.executor)
-                        }
-                        fixedBunches.addAll(newFixedBunches)
-                    } else {
-                        break
-                    }
+                    logger.debug { "Global column generation of iteration $mainIteration begin!" }
 
-                    if (columnAmount > configuration.maximumColumnAmount
-                        && newBunchAmount > minimumColumnAmount(fixedBunches, configuration)
-                    ) {
-                        maximumReducedCost2 = when (val result = removeColumns(
-                            maximumReducedCost2,
-                            configuration.maximumColumnAmount,
-                            shadowPriceMap,
-                            fixedBunches,
-                            keptBunches,
-                            model
-                        )) {
+                    // globally column generation
+                    // it runs only 1 time
+                    for (count in 0..<1) {
+                        ++iteration
+                        val newBunches = when (val result = solveSP(id, iteration, executors, shadowPriceMap)) {
                             is Ok -> {
                                 result.value
                             }
@@ -338,56 +186,209 @@ class BranchAndPriceAlgorithm<
                                 return Ok(bestSolution)
                             }
                         }
-                    }
-                }
-
-                logger.debug { "Local column generation of iteration $mainIteration end!" }
-
-                this.fixedBunches.clear()
-                this.fixedBunches.addAll(fixedBunches)
-                val thisIpRet = when (val result = solver.solveMILP("${id}_${iteration}_ip", model)) {
-                    is Ok -> {
-                        model.setSolution(result.value.solution)
-                        result.value
-                    }
-
-                    is Failed -> {
-                        return Ok(bestSolution)
-                    }
-                }
-                refresh(thisIpRet)
-                logIpResults(iteration.iteration, model)
-                if (iteration.refreshIpObj(thisIpRet.obj)) {
-                    when (val result = analyzeSolution(iteration.iteration, model)) {
-                        is Ok -> {
-                            bestSolution = result.value
-                            if (thisIpRet.obj eq Flt64.zero) {
+                        if (newBunches.isEmpty()) {
+                            logger.debug { "There is no bunch generated in global column generation of iteration $mainIteration." }
+                            if (iteration.optimalRate eq Flt64.one) {
                                 return Ok(bestSolution)
                             }
+                        }
+                        val newBunchAmount = UInt64(newBunches.size.toULong())
+
+                        when (addColumns(iteration.iteration, newBunches, model)) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+
+                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        logLpResults(iteration.iteration, model)
+
+                        val reducedAmount = UInt64(fixedBunches.count { policy.reducedCost(shadowPriceMap, it) gr Flt64.zero })
+                        if (columnAmount > configuration.maximumColumnAmount) {
+                            maximumReducedCost1 = when (val result = removeColumns(
+                                maximumReducedCost1,
+                                configuration.maximumColumnAmount,
+                                shadowPriceMap,
+                                fixedBunches,
+                                keptBunches,
+                                model
+                            )) {
+                                is Ok -> {
+                                    result.value
+                                }
+
+                                is Failed -> {
+                                    return Ok(bestSolution)
+                                }
+                            }
+                        }
+                        if (reducedAmount >= configuration.badReducedAmount
+                            || newBunchAmount <= minimumColumnAmount(fixedBunches, configuration)
+                        ) {
+                            break
+                        }
+                    }
+                    maximumReducedCost1 = Flt64(50.0)
+
+                    logger.debug { "Global column generation of iteration $mainIteration end!" }
+
+                    val freeExecutors = when (val result = selectFreeExecutors(model)) {
+                        is Ok -> {
+                            result.value
                         }
 
                         is Failed -> {
                             return Ok(bestSolution)
                         }
                     }
-                }
-                heartBeat(id, iteration.optimalRate)
+                    val fixedBunches = when (val result = globallyFix(freeExecutors)) {
+                        is Ok -> {
+                            result.value.toHashSet()
+                        }
 
-                flush(iteration.iteration)
-                iteration.halveStep()
+                        is Failed -> {
+                            return Ok(bestSolution)
+                        }
+                    }
+                    val freeExecutorList = freeExecutors.toMutableList()
 
-                logger.debug {
-                    "Iteration $mainIteration end, optimal rate: ${
-                        String.format(
-                            "%.2f",
-                            (iteration.optimalRate * Flt64(100.0)).toDouble()
-                        )
-                    }%"
+                    logger.debug { "Local column generation of iteration $mainIteration begin!" }
+
+                    // locally column generation
+                    while (true) {
+                        shadowPriceMap = when (val result = solveRMP(id, iteration, model, false)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        logLpResults(iteration.iteration, model)
+
+                        ++iteration
+                        val newBunches = when (val result = solveSP(id, iteration, freeExecutorList, shadowPriceMap)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        if (newBunches.isEmpty()) {
+                            --iteration
+                            logger.debug { "There is no bunch generated in local column generation of iteration $mainIteration: $iteration." }
+                            break
+                        }
+                        val newBunchAmount = UInt64(newBunches.size.toULong())
+
+                        when (addColumns(iteration.iteration, newBunches, model)) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        val newFixedBunches = when (val result = locallyFix(iteration.iteration, fixedBunches, model)) {
+                            is Ok -> {
+                                result.value
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                        if (newFixedBunches.isNotEmpty()) {
+                            for (bunch in newFixedBunches) {
+                                freeExecutorList.remove(bunch.executor)
+                            }
+                            fixedBunches.addAll(newFixedBunches)
+                        } else {
+                            break
+                        }
+
+                        if (columnAmount > configuration.maximumColumnAmount
+                            && newBunchAmount > minimumColumnAmount(fixedBunches, configuration)
+                        ) {
+                            maximumReducedCost2 = when (val result = removeColumns(
+                                maximumReducedCost2,
+                                configuration.maximumColumnAmount,
+                                shadowPriceMap,
+                                fixedBunches,
+                                keptBunches,
+                                model
+                            )) {
+                                is Ok -> {
+                                    result.value
+                                }
+
+                                is Failed -> {
+                                    return Ok(bestSolution)
+                                }
+                            }
+                        }
+                    }
+
+                    logger.debug { "Local column generation of iteration $mainIteration end!" }
+
+                    this.fixedBunches.clear()
+                    this.fixedBunches.addAll(fixedBunches)
+                    val thisIpRet = when (val result = solver.solveMILP("${id}_${iteration}_ip", model)) {
+                        is Ok -> {
+                            model.setSolution(result.value.solution)
+                            result.value
+                        }
+
+                        is Failed -> {
+                            return Ok(bestSolution)
+                        }
+                    }
+                    refresh(thisIpRet)
+                    logIpResults(iteration.iteration, model)
+                    if (iteration.refreshIpObj(thisIpRet.obj)) {
+                        when (val result = analyzeSolution(iteration.iteration, model)) {
+                            is Ok -> {
+                                bestSolution = result.value
+                                if (thisIpRet.obj eq Flt64.zero) {
+                                    return Ok(bestSolution)
+                                }
+                            }
+
+                            is Failed -> {
+                                return Ok(bestSolution)
+                            }
+                        }
+                    }
+                    heartBeat(id, iteration.optimalRate)
+
+                    flush(iteration.iteration)
+                    iteration.halveStep()
+
+                    logger.debug {
+                        "Iteration $mainIteration end, optimal rate: ${
+                            String.format(
+                                "%.2f",
+                                (iteration.optimalRate * Flt64(100.0)).toDouble()
+                            )
+                        }%"
+                    }
+                    ++mainIteration
                 }
-                ++mainIteration
+
+                Ok(bestSolution)
             }
-
-            return Ok(bestSolution)
         } catch (e: Exception) {
             print(e.stackTraceToString())
             return Failed(Err(ErrorCode.ApplicationException, e.message))

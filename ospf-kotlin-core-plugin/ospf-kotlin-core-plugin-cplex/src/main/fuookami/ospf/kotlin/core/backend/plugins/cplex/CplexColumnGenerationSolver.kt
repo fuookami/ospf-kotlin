@@ -34,20 +34,14 @@ class CplexColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        val mechanismModel = when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
@@ -55,27 +49,36 @@ class CplexColumnGenerationSolver(
                 return Failed(result.error)
             }
         }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val solver = CplexLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(result.value)
+        return mechanismModel.use {
+            val model = LinearTriadModel(
+                model = it,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val solver = CplexLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(result.value)
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -95,20 +98,14 @@ class CplexColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        val mechanismModel = when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
@@ -116,57 +113,66 @@ class CplexColumnGenerationSolver(
                 return Failed(result.error)
             }
         }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val results = ArrayList<Solution>()
-        val solver = CplexLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, cplex, _, _ ->
-                    if (amount gr UInt64.one) {
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
-                        cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, amount.toInt())
-                        cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
-                        cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
-                    }
-                    ok
-                }
-                .solving { _, cplex, _, _ ->
-                    try {
-                        cplex.populate()
-                        ok
-                    } catch (e: IloException) {
-                        Failed(Err(ErrorCode.OREngineSolvingException, e.message))
-                    }
-                }
-                .analyzingSolution { _, cplex, variables, _ ->
-                    val solutionAmount = cplex.solnPoolNsolns
-                    for (i in 0 until solutionAmount) {
-                        val thisResults = variables.map { Flt64(cplex.getValue(it, i)) }
-                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                            results.add(thisResults)
-                        }
-                    }
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                results.add(0, result.value.solution)
-                jobs.joinAll()
-                Ok(Pair(result.value, results))
+        return mechanismModel.use {
+            val model = LinearTriadModel(
+                model = it,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val results = ArrayList<Solution>()
+            val solver = CplexLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .configuration { _, cplex, _, _ ->
+                        if (amount gr UInt64.one) {
+                            cplex.setParam(IloCplex.Param.MIP.Pool.Intensity, 4)
+                            cplex.setParam(IloCplex.Param.MIP.Pool.AbsGap, 0.0)
+                            cplex.setParam(IloCplex.Param.MIP.Pool.Capacity, amount.toInt())
+                            cplex.setParam(IloCplex.Param.MIP.Pool.Replace, 2)
+                            cplex.setParam(IloCplex.Param.MIP.Limits.Populate, amount.cub().toInt())
+                        }
+                        ok
+                    }
+                    .solving { _, cplex, _, _ ->
+                        try {
+                            cplex.populate()
+                            ok
+                        } catch (e: IloException) {
+                            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+                        }
+                    }
+                    .analyzingSolution { _, cplex, variables, _ ->
+                        val solutionAmount = cplex.solnPoolNsolns
+                        for (i in 0 until solutionAmount) {
+                            val thisResults = variables.map { variable -> Flt64(cplex.getValue(variable, i)) }
+                            if (!results.any { result -> result.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ok
+                    }
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    results.add(0, result.value.solution)
+                    jobs.joinAll()
+                    Ok(Pair(result.value, results))
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -185,20 +191,14 @@ class CplexColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        val mechanismModel = when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
@@ -206,39 +206,48 @@ class CplexColumnGenerationSolver(
                 return Failed(result.error)
             }
         }
-        model.linearRelax()
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        lateinit var dualSolution: LinearDualSolution
-        val solver = CplexLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, cplex, _, _ ->
-                    cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                    ok
-                }
-                .analyzingSolution { _, cplex, _, constraints ->
-                    dualSolution = model.tidyDualSolution(constraints.map {
-                        Flt64(cplex.getDual(it))
-                    })
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+        mechanismModel.use {
+            val model = LinearTriadModel(
+                model = it,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            model.linearRelax()
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            lateinit var dualSolution: LinearDualSolution
+            val solver = CplexLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .configuration { _, cplex, _, _ ->
+                        cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
+                        ok
+                    }
+                    .analyzingSolution { _, cplex, _, constraints ->
+                        dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                            Flt64(cplex.getDual(constraint))
+                        })
+                        ok
+                    }
+            )
+
+            return when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(ColumnGenerationSolver.LPResult(result.value, dualSolution))
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }

@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-sealed class AbstractTokenList {
+sealed class AbstractTokenList: AutoCloseable {
     abstract val tokens: Collection<Token>
     abstract val tokensInSolver: List<Token>
     open val cachedSolution: Boolean get() = tokens.any { it.result != null }
@@ -65,12 +65,16 @@ sealed class AbstractTokenList {
             token._result = null
         }
     }
+
+    override fun close() {
+        cache.clear()
+    }
 }
 
 @OptIn(ExperimentalStdlibApi::class)
 class TokenList(
     val list: Map<VariableItemKey, Token>
-) : AbstractTokenList(), AutoCloseable {
+) : AbstractTokenList() {
     constructor(tokens: MutableTokenList) : this(tokens.list.toMap())
 
     init {
@@ -137,6 +141,7 @@ class TokenList(
         list.forEach { (_, value) ->
             value.refreshCallbacks.remove(this)
         }
+        super.close()
     }
 }
 
@@ -153,7 +158,7 @@ sealed class MutableTokenList(
     internal val list: MutableMap<VariableItemKey, Token> = HashMap(),
     protected val checkTokenExisted: Boolean = System.getProperty("env", "prod") != "prod",
     protected var currentIndex: Int = 0
-) : AbstractMutableTokenList(), Copyable<MutableTokenList>, AutoCloseable {
+) : AbstractMutableTokenList(), Copyable<MutableTokenList> {
     override val tokens by list::values
 
     protected val lock = Any()
@@ -250,6 +255,9 @@ sealed class MutableTokenList(
         list.forEach { (_, value) ->
             value.refreshCallbacks.remove(this)
         }
+        super.close()
+        list.clear()
+        _tokensInSolver = emptyList()
     }
 }
 

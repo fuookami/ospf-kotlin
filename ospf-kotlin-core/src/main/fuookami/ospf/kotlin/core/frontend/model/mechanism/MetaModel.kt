@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.model.*
 
-sealed interface MetaModel : Model {
+sealed interface MetaModel : Model, AutoCloseable {
     class SubObject<Poly : Polynomial<Poly, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>(
         val parent: MetaModel,
         val category: ObjectCategory,
@@ -467,6 +467,10 @@ sealed interface MetaModel : Model {
 
             ok
         }
+    }
+
+    override fun close() {
+        tokens.close()
     }
 }
 
