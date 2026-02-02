@@ -184,7 +184,10 @@ class TaskCompilation<
                                 throw ApplicationException(result.error)
                             }
                         }
-                        LinearExpressionSymbol(or + z[executors[i]], "executor_compilation_${executors[i]}")
+                        LinearExpressionSymbol(
+                            or + z[executors[i]],
+                            name = "executor_compilation_${executors[i]}"
+                        )
                     } else {
                         OrFunction(
                             tasks.map { LinearPolynomial(x[it, executors[i]]) },
@@ -274,7 +277,9 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskCost.isInitialized) {
-            taskCost = LinearExpressionSymbol(LinearPolynomial(), "bunch_cost")
+            taskCost = LinearExpressionSymbol(
+                name = "bunch_cost"
+            )
         }
         when (val result = model.add(taskCost)) {
             is Ok -> {}

@@ -14,7 +14,7 @@ data class RenderCuttingPlanProductionDTO(
     val name: String,
     val x: FltX,
     val width: FltX,
-    val unitLength: FltX,
+    val unitLength: FltX?,
     val productionType: RenderProductionType,
     val info: Map<String, String>
 )

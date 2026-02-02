@@ -49,7 +49,7 @@ class TaskAdvanceTimeMinimization<
                         } else {
                             UInteger
                         },
-                        name = "advance_time_threshold_$task"
+                        name = "advance_time_threshold_${task}"
                     )
                     when (val result = model.add(slack)) {
                         is Ok -> {}

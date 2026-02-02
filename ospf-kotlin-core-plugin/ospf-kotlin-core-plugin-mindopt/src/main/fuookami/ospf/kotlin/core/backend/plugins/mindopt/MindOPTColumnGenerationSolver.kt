@@ -32,48 +32,50 @@ class MindOPTColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val solver = MindOPTLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(result.value)
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val solver = MindOPTLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(result.value)
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -93,66 +95,68 @@ class MindOPTColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        val results = ArrayList<Solution>()
-        val solver = MindOPTLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .configuration { _, mindopt, _, _ ->
-                    if (amount gr UInt64.one) {
-                        mindopt.set(MDO.IntParam.MIP_SolutionPoolSize, amount.toInt())
-                    }
-                    ok
-                }
-                .analyzingSolution { _, mindopt, variables, _ ->
-                    for (i in 0 until kotlin.math.min(amount.toInt(), mindopt.get(MDO.IntAttr.SolCount))) {
-                        mindopt.set(MDO.IntParam.MIP_SolutionNumber, i)
-                        val thisResults = variables.map { Flt64(it.get(MDO.DoubleAttr.Xn)) }
-                        if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                            results.add(thisResults)
-                        }
-                    }
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                results.add(0, result.value.solution)
-                jobs.joinAll()
-                Ok(Pair(result.value, results))
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            val results = ArrayList<Solution>()
+            val solver = MindOPTLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .configuration { _, mindopt, _, _ ->
+                        if (amount gr UInt64.one) {
+                            mindopt.set(MDO.IntParam.MIP_SolutionPoolSize, amount.toInt())
+                        }
+                        ok
+                    }
+                    .analyzingSolution { _, mindopt, variables, _ ->
+                        for (i in 0 until kotlin.math.min(amount.toInt(), mindopt.get(MDO.IntAttr.SolCount))) {
+                            mindopt.set(MDO.IntParam.MIP_SolutionNumber, i)
+                            val thisResults = variables.map { variable -> Flt64(variable.get(MDO.DoubleAttr.Xn)) }
+                            if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                results.add(thisResults)
+                            }
+                        }
+                        ok
+                    }
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    results.add(0, result.value.solution)
+                    jobs.joinAll()
+                    Ok(Pair(result.value, results))
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }
@@ -171,61 +175,63 @@ class MindOPTColumnGenerationSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val model = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
             registrationStatusCallBack = registrationStatusCallBack
         )) {
             is Ok -> {
-                LinearTriadModel(
-                    model = result.value,
-                    fixedVariables = null,
-                    dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
-                    forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
-                    concurrent = config.dumpIntermediateModelConcurrent
-                )
+                result.value
             }
 
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        model.linearRelax()
-        if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                model.export("$name.lp", ModelFileFormat.LP)
-            })
-        }
-
-        lateinit var dualSolution: LinearDualSolution
-        val solver = MindOPTLinearSolver(
-            config = config,
-            callBack = callBack.copy()
-                .analyzingSolution { _, _, _, constraints ->
-                    dualSolution = model.tidyDualSolution(constraints.map {
-                        Flt64(it.get(MDO.DoubleAttr.DualSoln))
-                    })
-                    ok
-                }
-        )
-
-        return when (val result = solver(model, solvingStatusCallBack)) {
-            is Ok -> {
-                metaModel.tokens.setSolution(result.value.solution)
-                jobs.joinAll()
-                Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = result.value,
-                        dualSolution = dualSolution
-                    )
-                )
+        }.use { mechanismModel ->
+            val model = LinearTriadModel(
+                model = mechanismModel,
+                fixedVariables = null,
+                dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
+                forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
+                concurrent = config.dumpIntermediateModelConcurrent
+            )
+            model.linearRelax()
+            if (toLogModel) {
+                jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    model.export("$name.lp", ModelFileFormat.LP)
+                })
             }
 
-            is Failed -> {
-                jobs.joinAll()
-                Failed(result.error)
+            lateinit var dualSolution: LinearDualSolution
+            val solver = MindOPTLinearSolver(
+                config = config,
+                callBack = callBack.copy()
+                    .analyzingSolution { _, _, _, constraints ->
+                        dualSolution = model.tidyDualSolution(constraints.map {
+                            Flt64(it.get(MDO.DoubleAttr.DualSoln))
+                        })
+                        ok
+                    }
+            )
+
+            when (val result = solver(model, solvingStatusCallBack)) {
+                is Ok -> {
+                    metaModel.tokens.setSolution(result.value.solution)
+                    jobs.joinAll()
+                    Ok(
+                        ColumnGenerationSolver.LPResult(
+                            result = result.value,
+                            dualSolution = dualSolution
+                        )
+                    )
+                }
+
+                is Failed -> {
+                    jobs.joinAll()
+                    Failed(result.error)
+                }
             }
         }
     }

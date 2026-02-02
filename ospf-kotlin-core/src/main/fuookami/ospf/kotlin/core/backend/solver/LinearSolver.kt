@@ -238,7 +238,7 @@ interface AbstractLinearSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -246,8 +246,9 @@ interface AbstractLinearSolver {
             is Failed -> {
                 return Failed(result.error)
             }
+        }.use {
+            this(it, solvingStatusCallBack)
         }
-        return this(mechanismModel, solvingStatusCallBack)
     }
 
     suspend operator fun invoke(
@@ -257,7 +258,7 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -265,8 +266,9 @@ interface AbstractLinearSolver {
             is Failed -> {
                 return Failed(result.error)
             }
+        }.use {
+            this(it, solvingStatusCallBack, iisConfig)
         }
-        return this(mechanismModel, solvingStatusCallBack, iisConfig)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -307,7 +309,7 @@ interface AbstractLinearSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -315,8 +317,9 @@ interface AbstractLinearSolver {
             is Failed -> {
                 return Failed(result.error)
             }
+        }.use {
+            this(it, solutionAmount, solvingStatusCallBack)
         }
-        return this(mechanismModel, solutionAmount, solvingStatusCallBack)
     }
 
     suspend operator fun invoke(
@@ -327,7 +330,7 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -335,8 +338,9 @@ interface AbstractLinearSolver {
             is Failed -> {
                 return Failed(result.error)
             }
+        }.use {
+            this(it, solutionAmount, solvingStatusCallBack, iisConfig)
         }
-        return this(mechanismModel, solutionAmount, solvingStatusCallBack, iisConfig)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
