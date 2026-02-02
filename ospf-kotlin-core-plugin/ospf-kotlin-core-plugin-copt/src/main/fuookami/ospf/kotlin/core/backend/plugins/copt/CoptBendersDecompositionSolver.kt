@@ -34,7 +34,7 @@ class CplexLinearBendersDecompositionSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val mechanismModel = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
@@ -48,10 +48,9 @@ class CplexLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use { mechanismModel ->
             val model = LinearTriadModel(
-                model = it,
+                model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds,
@@ -99,7 +98,7 @@ class CplexLinearBendersDecompositionSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val mechanismModel = when (val result = LinearMechanismModel(
+        return when (val result = LinearMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
@@ -114,10 +113,9 @@ class CplexLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use { mechanismModel ->
             val model = LinearTriadModel(
-                model = it,
+                model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
@@ -224,7 +222,7 @@ class CoptLinearBendersDecompositionSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val mechanismModel = when (val result = QuadraticMechanismModel(
+        return when (val result = QuadraticMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
@@ -238,10 +236,9 @@ class CoptLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use { mechanismModel ->
             val model = QuadraticTetradModel(
-                model = it,
+                model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds,
@@ -302,7 +299,7 @@ class CoptLinearBendersDecompositionSolver(
                 metaModel.export("$name.opm")
             })
         }
-        val mechanismModel = when (val result = QuadraticMechanismModel(
+        return when (val result = QuadraticMechanismModel(
             metaModel = metaModel,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,
@@ -317,10 +314,9 @@ class CoptLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use { mechanismModel ->
             val model = QuadraticTetradModel(
-                model = it,
+                model = mechanismModel,
                 fixedVariables = fixedVariables,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,

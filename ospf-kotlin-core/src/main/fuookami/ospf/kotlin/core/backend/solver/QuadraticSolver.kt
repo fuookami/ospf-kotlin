@@ -238,7 +238,7 @@ interface AbstractQuadraticSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -246,8 +246,7 @@ interface AbstractQuadraticSolver {
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use {
             this(it, solvingStatusCallBack)
         }
     }
@@ -259,7 +258,7 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -267,8 +266,7 @@ interface AbstractQuadraticSolver {
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use {
             this(it, solvingStatusCallBack, iisConfig)
         }
     }
@@ -311,7 +309,7 @@ interface AbstractQuadraticSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -319,8 +317,7 @@ interface AbstractQuadraticSolver {
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use {
             this(it, solutionAmount, solvingStatusCallBack)
         }
     }
@@ -333,7 +330,7 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val mechanismModel = when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
             is Ok -> {
                 result.value
             }
@@ -341,8 +338,7 @@ interface AbstractQuadraticSolver {
             is Failed -> {
                 return Failed(result.error)
             }
-        }
-        return mechanismModel.use {
+        }.use {
             this(it, solutionAmount, solvingStatusCallBack, iisConfig)
         }
     }
