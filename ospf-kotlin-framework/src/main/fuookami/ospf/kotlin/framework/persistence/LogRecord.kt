@@ -179,17 +179,18 @@ data object LogRecordDAO {
 class LogRecordPersistenceSaving(
     private val db: Database,
     private val tableName: String,
-    async: Boolean? = null
+    private val scope: CoroutineScope? = null
 ) : Saving, AutoCloseable {
     private val async: Boolean by lazy {
-        async ?: (db.dialect !is SQLiteDialect)
+        scope != null && db.dialect !is SQLiteDialect
     }
 
     private val mutex = Mutex()
     private val stringQueue = ArrayList<LogRecordStringRPO>()
     private val byteQueue = ArrayList<LogRecordByteRPO>()
+
     private val job: Job? = if (this.async) {
-        GlobalScope.launch {
+        scope!!.launch {
             while (this.isActive) {
                 mutex.withLock {
                     if (stringQueue.isNotEmpty()) {
@@ -225,44 +226,46 @@ class LogRecordPersistenceSaving(
     }
 
     override fun close() {
-        try {
-            job?.cancel()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        runBlocking {
-            mutex.withLock {
-                if (stringQueue.isNotEmpty()) {
-                    val table = LogRecordStringRDAO(tableName)
-                    db.useTransaction {
-                        if (db.dialect is SQLiteDialect) {
-                            it.connection.createStatement().use { stmt ->
-                                stmt.execute("PRAGMA busy_timeout = 30000;")
+        if (async) {
+            try {
+                job?.cancel()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            scope!!.launch {
+                mutex.withLock {
+                    if (stringQueue.isNotEmpty()) {
+                        val table = LogRecordStringRDAO(tableName)
+                        db.useTransaction {
+                            if (db.dialect is SQLiteDialect) {
+                                it.connection.createStatement().use { stmt ->
+                                    stmt.execute("PRAGMA busy_timeout = 30000;")
+                                }
+                            }
+
+                            for (po in stringQueue) {
+                                db.sequenceOf(table).add(po)
                             }
                         }
-
-                        for (po in stringQueue) {
-                            db.sequenceOf(table).add(po)
-                        }
+                        stringQueue.clear()
                     }
-                    stringQueue.clear()
-                }
-                if (byteQueue.isNotEmpty()) {
-                    val table = LogRecordByteRDAO(tableName)
-                    db.useTransaction {
-                        for (po in byteQueue) {
-                            db.sequenceOf(table).add(po)
+                    if (byteQueue.isNotEmpty()) {
+                        val table = LogRecordByteRDAO(tableName)
+                        db.useTransaction {
+                            for (po in byteQueue) {
+                                db.sequenceOf(table).add(po)
+                            }
                         }
+                        byteQueue.clear()
                     }
-                    byteQueue.clear()
                 }
             }
         }
     }
 
-    override fun <T : Any> invoke(serializer: KSerializer<T>, value: LogRecordPO<T>): Try {
+    override fun <T : Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try {
         if (async) {
-            runBlocking {
+            scope!!.launch {
                 mutex.withLock {
                     if (db.dialect is SQLiteDialect) {
                         stringQueue.add(value.stringRPO(serializer))
@@ -293,9 +296,9 @@ class LogRecordPersistenceSaving(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsString")
-    override operator fun <T : Any> invoke(serializer: (T) -> String, value: LogRecordPO<T>): Try {
+    override operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (T) -> String): Try {
         if (async) {
-            runBlocking {
+            scope!!.launch {
                 mutex.withLock {
                     stringQueue.add(value.stringRPO(serializer))
                 }
@@ -318,9 +321,9 @@ class LogRecordPersistenceSaving(
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsBytes")
     @Synchronized
-    override operator fun <T : Any> invoke(serializer: (T) -> ByteArray, value: LogRecordPO<T>): Try {
+    override operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (T) -> ByteArray): Try {
         if (async) {
-            runBlocking {
+            scope!!.launch {
                 mutex.withLock {
                     byteQueue.add(value.byteRPO(serializer))
                 }
