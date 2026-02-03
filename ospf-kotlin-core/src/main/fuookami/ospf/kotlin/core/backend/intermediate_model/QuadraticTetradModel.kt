@@ -48,9 +48,15 @@ class QuadraticConstraint(
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    val origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null },
-    val froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
+    origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null },
+    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
 ) : Constraint<QuadraticConstraintCell>(lhs, signs, rhs, names, sources) {
+    private val _origins: MutableList<OriginQuadraticConstraint?> = origins.toMutableList()
+    val origins: List<OriginQuadraticConstraint?> by ::_origins
+
+    private val _froms: MutableList<Pair<IntermediateSymbol, Boolean>?> = froms.toMutableList()
+    val froms: List<Pair<IntermediateSymbol, Boolean>?> by ::_froms
+
     override fun copy() = QuadraticConstraint(
         lhs.map { line -> line.map { it.copy() } },
         signs.toList(),
@@ -60,6 +66,12 @@ class QuadraticConstraint(
         origins.toList(),
         froms.toList()
     )
+
+    override fun close() {
+        _origins.clear()
+        _froms.clear()
+        super.close()
+    }
 }
 
 class QuadraticObjectiveCell(
@@ -995,6 +1007,15 @@ data class QuadraticTetradModel(
                 ok
             }
         }
+    }
+
+    override fun close() {
+        dualOrigin?.close()
+        super.close()
+    }
+
+    override fun toString(): String {
+        return name
     }
 }
 

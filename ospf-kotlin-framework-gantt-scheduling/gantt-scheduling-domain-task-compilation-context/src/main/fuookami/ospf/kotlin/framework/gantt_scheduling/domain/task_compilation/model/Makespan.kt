@@ -21,9 +21,19 @@ class Makespan<
     fun register(model: MetaModel): Try {
         if (!::makespan.isInitialized) {
             makespan = if (extra) {
-                MinMaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
+                MinMaxFunction(
+                    tasks.map {
+                        taskTime.estimateEndTime[it]
+                    },
+                    name = "makespan"
+                )
             } else {
-                MaxFunction(tasks.map { LinearPolynomial(taskTime.estimateEndTime[it]) }, name = "makespan")
+                MaxFunction(
+                    tasks.map {
+                        taskTime.estimateEndTime[it]
+                    },
+                    name = "makespan"
+                )
             }
         }
         when (val result = model.add(makespan)) {

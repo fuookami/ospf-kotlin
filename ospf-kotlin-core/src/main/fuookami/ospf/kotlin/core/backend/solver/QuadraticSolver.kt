@@ -144,8 +144,9 @@ interface AbstractQuadraticSolver {
         model: QuadraticMechanismModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        val intermediateModel = dump(model)
-        return this(intermediateModel, solvingStatusCallBack)
+        return dump(model).use { intermediateModel ->
+            this(intermediateModel, solvingStatusCallBack)
+        }
     }
 
     suspend operator fun invoke(
@@ -153,8 +154,9 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        val intermediateModel = dump(model)
-        return this(intermediateModel, solvingStatusCallBack, iisConfig)
+        return dump(model).use { intermediateModel ->
+            this(intermediateModel, solvingStatusCallBack, iisConfig)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -189,8 +191,9 @@ interface AbstractQuadraticSolver {
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        val intermediateModel = dump(model)
-        return this(intermediateModel, solutionAmount, solvingStatusCallBack)
+        return dump(model).use { intermediateModel ->
+            this(intermediateModel, solutionAmount, solvingStatusCallBack)
+        }
     }
 
     suspend operator fun invoke(
@@ -199,8 +202,9 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val intermediateModel = dump(model)
-        return this(intermediateModel, solutionAmount, solvingStatusCallBack, iisConfig)
+        return dump(model).use { intermediateModel ->
+            this(intermediateModel, solutionAmount, solvingStatusCallBack, iisConfig)
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
