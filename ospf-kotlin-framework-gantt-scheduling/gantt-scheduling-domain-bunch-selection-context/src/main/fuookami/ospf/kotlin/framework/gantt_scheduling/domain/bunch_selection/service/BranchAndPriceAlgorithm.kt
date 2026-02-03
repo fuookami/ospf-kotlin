@@ -16,13 +16,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_selection.model.*
 
 class BranchAndPriceAlgorithm<
-    Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val executors: List<E>,
     private val tasks: List<T>,
     private val initialBunches: List<B>,
@@ -31,13 +31,13 @@ class BranchAndPriceAlgorithm<
     private val configuration: Configuration
 ) {
     data class Policy<
-        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    >(
+            Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+            Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+            B : AbstractTaskBunch<T, E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            >(
         val contextBuilder: () -> BunchCompilationContext<Args, B, T, E, A>,
         val extractContextBuilder: List<(BunchCompilationContext<Args, B, T, E, A>) -> List<ExtractBunchCompilationContext<Args, B, T, E, A>>>,
         val shadowPriceMap: () -> Map,
@@ -90,9 +90,10 @@ class BranchAndPriceAlgorithm<
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
-        try {
-            lateinit var bestSolution: BunchSolution<B, T, E, A>
-            return LinearMetaModel(id).use { model ->
+        lateinit var bestSolution: BunchSolution<B, T, E, A>
+        return LinearMetaModel(id).use { model ->
+            try {
+
                 var iteration = Iteration<T, E, A>()
                 when (val result = register(model)) {
                     is Ok -> {}
@@ -388,10 +389,10 @@ class BranchAndPriceAlgorithm<
                 }
 
                 Ok(bestSolution)
+            } catch (e: Exception) {
+                print(e.stackTraceToString())
+                return Failed(Err(ErrorCode.ApplicationException, e.message))
             }
-        } catch (e: Exception) {
-            print(e.stackTraceToString())
-            return Failed(Err(ErrorCode.ApplicationException, e.message))
         }
     }
 

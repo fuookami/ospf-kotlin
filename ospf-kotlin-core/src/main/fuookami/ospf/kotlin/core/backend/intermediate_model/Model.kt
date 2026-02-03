@@ -102,7 +102,7 @@ abstract class Constraint<Cell>(
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>
-) : Cloneable, Copyable<Constraint<Cell>>
+) : Cloneable, Copyable<Constraint<Cell>>, AutoCloseable
         where Cell : ConstraintCell<Cell>, Cell : Copyable<Cell> {
     internal val _lhs = lhs.toMutableList()
     internal val _signs = signs.toMutableList()
@@ -120,6 +120,14 @@ abstract class Constraint<Cell>(
     val indices: IntRange get() = rhs.indices
 
     override fun clone() = copy()
+
+    override fun close() {
+        _lhs.clear()
+        _signs.clear()
+        _rhs.clear()
+        _names.clear()
+        _sources.clear()
+    }
 }
 
 class Objective<Cell : Copyable<Cell>>(
@@ -131,7 +139,7 @@ class Objective<Cell : Copyable<Cell>>(
     override fun clone() = copy()
 }
 
-interface BasicModelView<ConCell>
+interface BasicModelView<ConCell>: AutoCloseable
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell> {
     val variables: List<Variable>
     val constraints: Constraint<ConCell>
@@ -186,6 +194,10 @@ interface BasicModelView<ConCell>
     }
 
     fun exportLP(writer: OutputStreamWriter): Try
+
+    override fun close() {
+        constraints.close()
+    }
 }
 
 interface ModelView<ConCell, ObjCell> : BasicModelView<ConCell>

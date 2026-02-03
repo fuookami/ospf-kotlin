@@ -15,13 +15,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_selection.model.*
 
 class BranchAndPriceAlgorithm<
-    Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>    
->(
+        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val executors: List<E>,
     private val tasks: List<T>,
     private val initialTasks: List<IT>,
@@ -30,20 +30,20 @@ class BranchAndPriceAlgorithm<
     private val configuration: Configuration
 ) {
     data class Policy<
-        Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        IT : IterativeAbstractTask<E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    >(
+            Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+            Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+            IT : IterativeAbstractTask<E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            >(
         val contextBuilder: () -> IterativeTaskCompilationContext<Args, IT, T, E, A>,
         val extractContextBuilder: List<(IterativeTaskCompilationContext<Args, IT, T, E, A>) -> List<ExtractIterativeTaskCompilationContext<Args, IT, T, E, A>>>,
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, IT) -> Flt64,
         val taskGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<IT>>,
     )
-    
+
     data class Configuration(
         val solver: String? = null,
         val maxBadReducedAmount: UInt64 = UInt64(20UL),
@@ -84,9 +84,9 @@ class BranchAndPriceAlgorithm<
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
-        try {
-            lateinit var bestSolution: TaskSolution<T, E, A>
-            return LinearMetaModel(id).use { model ->
+        lateinit var bestSolution: TaskSolution<T, E, A>
+        return LinearMetaModel(id).use { model ->
+            try {
                 var iteration = Iteration<IT, E, A>()
                 when (val result = register(model)) {
                     is Ok -> {}
@@ -374,10 +374,10 @@ class BranchAndPriceAlgorithm<
                 }
 
                 Ok(bestSolution)
+            } catch (e: Exception) {
+                print(e.stackTraceToString())
+                return Failed(Err(ErrorCode.ApplicationException, e.message))
             }
-        } catch (e: Exception) {
-            print(e.stackTraceToString())
-            return Failed(Err(ErrorCode.ApplicationException, e.message))
         }
     }
 

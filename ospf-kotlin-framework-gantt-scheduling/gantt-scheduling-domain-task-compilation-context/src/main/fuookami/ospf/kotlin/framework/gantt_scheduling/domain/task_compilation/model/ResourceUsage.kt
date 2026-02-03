@@ -95,9 +95,7 @@ abstract class AbstractResourceUsage<
                             }
                             slack
                         } else {
-                            LinearExpressionSymbol(
-                                name = "${name}_over_quantity_$slot"
-                            )
+                            LinearIntermediateSymbol.empty(name = "${name}_over_quantity_$slot")
                         }
                     }
                 }
@@ -130,9 +128,7 @@ abstract class AbstractResourceUsage<
                             }
                             slack
                         } else {
-                            LinearExpressionSymbol(
-                                name = "${name}_less_quantity_$slot"
-                            )
+                            LinearIntermediateSymbol.empty(name = "${name}_less_quantity_$slot")
                         }
                     }
                 }

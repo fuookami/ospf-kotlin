@@ -190,9 +190,7 @@ abstract class TaskTimeImpl<
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.delayEnabled) {
-                            LinearExpressionSymbol(
-                                name = "over_max_delay_time_${task}"
-                            )
+                            LinearIntermediateSymbol.empty(name = "over_max_delay_time_${task}")
                         } else {
                             when (val maxDelayTime = task.maxDelay) {
                                 null -> {
@@ -270,15 +268,11 @@ abstract class TaskTimeImpl<
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.advanceEnabled) {
-                            LinearExpressionSymbol(
-                                name = "over_max_advance_time_${task}"
-                            )
+                            LinearIntermediateSymbol.empty(name = "over_max_advance_time_${task}")
                         } else {
                             when (val maxAdvanceTime = task.maxAdvance) {
                                 null -> {
-                                    LinearExpressionSymbol(
-                                        name = "over_max_advance_time_${task}"
-                                    )
+                                    LinearIntermediateSymbol.empty(name = "over_max_advance_time_${task}")
                                 }
 
                                 else -> {
@@ -350,15 +344,11 @@ abstract class TaskTimeImpl<
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.delayEnabled) {
-                            LinearExpressionSymbol(
-                                name = "delay_last_end_time_${task}"
-                            )
+                            LinearIntermediateSymbol.empty(name = "delay_last_end_time_${task}")
                         } else {
                             when (val lastEndTime = task.lastEndTime) {
                                 null -> {
-                                    LinearExpressionSymbol(
-                                        name = "delay_last_end_time_${task}"
-                                    )
+                                    LinearIntermediateSymbol.empty(name = "delay_last_end_time_${task}")
                                 }
 
                                 else -> {
@@ -430,15 +420,11 @@ abstract class TaskTimeImpl<
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.advanceEnabled) {
-                            LinearExpressionSymbol(
-                                name = "advance_earliest_end_time_${task}"
-                            )
+                            LinearIntermediateSymbol.empty(name = "advance_earliest_end_time_${task}")
                         } else {
                             when (val earliestEndTime = task.earliestEndTime) {
                                 null -> {
-                                    LinearExpressionSymbol(
-                                        name = "advance_earliest_end_time_${task}"
-                                    )
+                                    LinearIntermediateSymbol.empty(name = "advance_earliest_end_time_${task}")
                                 }
 
                                 else -> {
@@ -510,14 +496,14 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     if (!task.delayEnabled) {
                         LinearExpressionSymbol(
-                            1, 
+                            Flt64.one,
                             name = "on_last_end_time_${task}"
                         )
                     } else {
                         when (val lastEndTime = task.lastEndTime) {
                             null -> {
                                 LinearExpressionSymbol(
-                                    1, 
+                                    Flt64.one,
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -550,14 +536,14 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
                         LinearExpressionSymbol(
-                            1, 
+                            Flt64.one,
                             name = "on_earliest_end_time_${task}"
                         )
                     } else {
                         when (val earliestEndTime = task.earliestEndTime) {
                             null -> {
                                 LinearExpressionSymbol(
-                                    1, 
+                                    Flt64.one,
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -617,15 +603,11 @@ abstract class TaskTimeImpl<
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled) {
-                        LinearExpressionSymbol(
-                            name = "not_on_last_end_time_${task}"
-                        )
+                        LinearIntermediateSymbol.empty(name = "not_on_last_end_time_${task}")
                     } else {
                         when (val lastEndTime = task.lastEndTime) {
                             null -> {
-                                LinearExpressionSymbol(
-                                    name = "not_on_last_end_time_${task}"
-                                )
+                                LinearIntermediateSymbol.empty(name = "not_on_last_end_time_${task}")
                             }
 
                             else -> {
@@ -655,15 +637,11 @@ abstract class TaskTimeImpl<
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
-                        LinearExpressionSymbol(
-                            name = "not_on_earliest_end_time_${task}"
-                        )
+                        LinearIntermediateSymbol.empty(name = "not_on_earliest_end_time_${task}")
                     } else {
                         when (val earliestEndTime = task.earliestEndTime) {
                             null -> {
-                                LinearExpressionSymbol(
-                                    name = "not_on_earliest_end_time_${task}"
-                                )
+                                LinearIntermediateSymbol.empty(name = "not_on_earliest_end_time_${task}")
                             }
 
                             else -> {
@@ -801,15 +779,11 @@ class TaskSchedulingTaskTime<
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled && !task.advanceEnabled) {
-                        LinearExpressionSymbol(
-                            name = "est_slack_${task}"
-                        )
+                        LinearIntermediateSymbol.empty(name = "est_slack_${task}")
                     } else {
                         when (val time = task.time) {
                             null -> {
-                                LinearExpressionSymbol(
-                                    name = "est_slack_${task}"
-                                )
+                                LinearIntermediateSymbol.empty(name = "est_slack_${task}")
                             }
 
                             else -> {
@@ -1001,15 +975,11 @@ open class IterativeTaskSchedulingTaskTime<
             ) { i, _ ->
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
-                    LinearExpressionSymbol(
-                        name = "est_slack_${task}"
-                    )
+                    LinearIntermediateSymbol.empty(name = "est_slack_${task}")
                 } else {
                     when (val time = task.time) {
                         null -> {
-                            LinearExpressionSymbol(
-                                name = "est_slack_${task}"
-                            )
+                            LinearIntermediateSymbol.empty(name = "est_slack_${task}")
                         }
 
                         else -> {

@@ -77,9 +77,7 @@ open class BunchCompilation<
         }
 
         if (!::bunchCost.isInitialized) {
-            bunchCost = LinearExpressionSymbol(
-                name = "bunch_cost"
-            )
+            bunchCost = LinearExpressionSymbol(name = "bunch_cost")
         }
         when (val result = model.add(bunchCost)) {
             is Ok -> {}

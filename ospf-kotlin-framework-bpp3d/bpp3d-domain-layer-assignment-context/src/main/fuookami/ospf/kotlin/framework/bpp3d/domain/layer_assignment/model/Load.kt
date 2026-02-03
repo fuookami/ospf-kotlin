@@ -37,7 +37,10 @@ class ImpreciseLoad(
 
     override fun register(model: MetaModel): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1("load", Shape1(items.size)) { i, _ ->
+            load = LinearExpressionSymbols1(
+                "load",
+                Shape1(items.size)
+            ) { i, _ ->
                 LinearExpressionSymbol(name = "load_$i")
             }
         }
@@ -85,7 +88,10 @@ class PreciseLoad(
 
     override fun register(model: MetaModel): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1("load", Shape1(items.size)) { i, _ ->
+            load = LinearExpressionSymbols1(
+                "load",
+                Shape1(items.size)
+            ) { i, _ ->
                 LinearExpressionSymbol(
                     sum(layers.map { it.amount(items[i].first) * assignment.x[it] }),
                     name = "load_$i"

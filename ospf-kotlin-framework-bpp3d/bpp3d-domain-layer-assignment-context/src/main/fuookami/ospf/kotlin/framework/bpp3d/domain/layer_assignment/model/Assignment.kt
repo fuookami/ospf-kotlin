@@ -25,9 +25,7 @@ class ImpreciseAssignment(
 
     fun register(model: MetaModel): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(
-                name = "volume"
-            )
+            volume = LinearExpressionSymbol(name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}
@@ -92,7 +90,10 @@ class PreciseAssignment(
 
     fun register(model: MetaModel): Try {
         if (!::x.isInitialized) {
-            x = UIntVariable2("x", Shape2(bins.size, layers.size))
+            x = UIntVariable2(
+                "x",
+                Shape2(bins.size, layers.size)
+            )
             for ((i, bin) in bins.withIndex()) {
                 for ((j, layer) in layers.withIndex()) {
                     if (layer.bin != bin.shape || !bin.enabled(layer)) {
@@ -118,7 +119,10 @@ class PreciseAssignment(
         }
 
         if (!::u.isInitialized) {
-            u = LinearIntermediateSymbols2("u", Shape2(bins.size, layers.size)) { _, v ->
+            u = LinearIntermediateSymbols2(
+                "u",
+                Shape2(bins.size, layers.size)
+            ) { _, v ->
                 BinaryzationFunction(
                     x = LinearPolynomial(x[v[0], v[1]]),
                     name = "u_$v",
@@ -134,7 +138,10 @@ class PreciseAssignment(
         }
 
         if (!::v.isInitialized) {
-            v = LinearIntermediateSymbols1("v", Shape1(bins.size)) { i, _ ->
+            v = LinearIntermediateSymbols1(
+                "v",
+                Shape1(bins.size)
+            ) { i, _ ->
                 BinaryzationFunction(
                     x = sum(x[i, _a]),
                     name = "v_$i",
@@ -150,7 +157,10 @@ class PreciseAssignment(
         }
 
         if (!::tail.isInitialized) {
-            tail = BinVariable1("tail", Shape1(bins.size))
+            tail = BinVariable1(
+                "tail",
+                Shape1(bins.size)
+            )
         }
         when (val result = model.add(tail)) {
             is Ok -> {}

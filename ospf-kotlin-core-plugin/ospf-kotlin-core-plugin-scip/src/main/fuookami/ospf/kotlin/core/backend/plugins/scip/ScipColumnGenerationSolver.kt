@@ -48,34 +48,35 @@ class ScipColumnGenerationSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = LinearTriadModel(
+            LinearTriadModel(
                 model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            val solver = ScipLinearSolver(
-                config = config,
-                callBack = callBack.copy()
-            )
-
-            when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(result.value.solution)
-                    jobs.joinAll()
-                    Ok(result.value)
+            ).use { model ->
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    Failed(result.error)
+                val solver = ScipLinearSolver(
+                    config = config,
+                    callBack = callBack.copy()
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(result.value.solution)
+                        jobs.joinAll()
+                        Ok(result.value)
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        Failed(result.error)
+                    }
                 }
             }
         }
@@ -111,63 +112,64 @@ class ScipColumnGenerationSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = LinearTriadModel(
+            LinearTriadModel(
                 model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            val results = ArrayList<Solution>()
-            val solver = ScipLinearSolver(
-                config = config,
-                callBack = callBack.copy()
-                    .configuration { _, scip, _, _ ->
-                        if (amount gr UInt64.one) {
-                            scip.setIntParam("heuristics/dins/solnum", amount.toInt())
-                        }
-                        ok
-                    }
-                    .analyzingSolution { _, scip, variables, _ ->
-                        val bestSol = scip.bestSol
-                        val sols = scip.sols
-                        var i = UInt64.zero
-                        for (sol in sols) {
-                            if (sol != bestSol) {
-                                val thisResults = ArrayList<Flt64>()
-                                for (scipVar in variables) {
-                                    thisResults.add(Flt64(scip.getSolVal(sol, scipVar)))
-                                }
-                                if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
-                                    results.add(thisResults)
-                                }
-                            }
-                            ++i
-                            if (i >= amount) {
-                                break
-                            }
-                        }
-                        ok
-                    }
-            )
-
-            when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(result.value.solution)
-                    results.add(0, result.value.solution)
-                    jobs.joinAll()
-                    Ok(Pair(result.value, results))
+            ).use { model ->
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    Failed(result.error)
+                val results = ArrayList<Solution>()
+                val solver = ScipLinearSolver(
+                    config = config,
+                    callBack = callBack.copy()
+                        .configuration { _, scip, _, _ ->
+                            if (amount gr UInt64.one) {
+                                scip.setIntParam("heuristics/dins/solnum", amount.toInt())
+                            }
+                            ok
+                        }
+                        .analyzingSolution { _, scip, variables, _ ->
+                            val bestSol = scip.bestSol
+                            val sols = scip.sols
+                            var i = UInt64.zero
+                            for (sol in sols) {
+                                if (sol != bestSol) {
+                                    val thisResults = ArrayList<Flt64>()
+                                    for (scipVar in variables) {
+                                        thisResults.add(Flt64(scip.getSolVal(sol, scipVar)))
+                                    }
+                                    if (!results.any { it.toTypedArray() contentEquals thisResults.toTypedArray() }) {
+                                        results.add(thisResults)
+                                    }
+                                }
+                                ++i
+                                if (i >= amount) {
+                                    break
+                                }
+                            }
+                            ok
+                        }
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(result.value.solution)
+                        results.add(0, result.value.solution)
+                        jobs.joinAll()
+                        Ok(Pair(result.value, results))
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        Failed(result.error)
+                    }
                 }
             }
         }
@@ -202,70 +204,71 @@ class ScipColumnGenerationSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = LinearTriadModel(
+            LinearTriadModel(
                 model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: false,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-            model.linearRelax()
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            lateinit var dualSolution: LinearDualSolution
-            val solver = ScipLinearSolver(
-                config = config.copy(
-                    threadNum = UInt64.one
-                ),
-                callBack = callBack.copy()
-                    .configuration { _, model, _, _ ->
-                        model.setPresolving(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
-                        model.setHeuristics(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
-                        ok
-                    }
-                    .analyzingSolution { _, scipModel, _, constraints ->
-                        dualSolution = model.tidyDualSolution(constraints.map { constraint ->
-                            Flt64(scipModel.getDual(constraint))
-                        })
-                        ok
-                    }
-            )
-
-            return when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(result.value.solution)
-                    val dualObject = dualSolution.sumOf { (constraint, value) ->
-                        constraint.rhs * value
-                    }
-                    if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
-                        // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
-                        when (val result = solveDual(model, ScipLinearSolver(config))) {
-                            is Ok -> {
-                                dualSolution = result.value
-                            }
-
-                            is Failed -> {
-                                jobs.joinAll()
-                                return Failed(result.error)
-                            }
-                        }
-                    }
-                    jobs.joinAll()
-                    Ok(
-                        ColumnGenerationSolver.LPResult(
-                            result = result.value,
-                            dualSolution = dualSolution
-                        )
-                    )
+            ).use { model ->
+                model.linearRelax()
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    Failed(result.error)
+                lateinit var dualSolution: LinearDualSolution
+                val solver = ScipLinearSolver(
+                    config = config.copy(
+                        threadNum = UInt64.one
+                    ),
+                    callBack = callBack.copy()
+                        .configuration { _, model, _, _ ->
+                            model.setPresolving(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
+                            model.setHeuristics(SCIP_ParamSetting.SCIP_PARAMSETTING_OFF, true)
+                            ok
+                        }
+                        .analyzingSolution { _, scipModel, _, constraints ->
+                            dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                                Flt64(scipModel.getDual(constraint))
+                            })
+                            ok
+                        }
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(result.value.solution)
+                        val dualObject = dualSolution.sumOf { (constraint, value) ->
+                            constraint.rhs * value
+                        }
+                        if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
+                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                            when (val result = solveDual(model, ScipLinearSolver(config))) {
+                                is Ok -> {
+                                    dualSolution = result.value
+                                }
+
+                                is Failed -> {
+                                    jobs.joinAll()
+                                    return Failed(result.error)
+                                }
+                            }
+                        }
+                        jobs.joinAll()
+                        Ok(
+                            ColumnGenerationSolver.LPResult(
+                                result = result.value,
+                                dualSolution = dualSolution
+                            )
+                        )
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        Failed(result.error)
+                    }
                 }
             }
         }

@@ -50,7 +50,10 @@ class TaskCompilation<
 
     override fun register(model: MetaModel): Try {
         if (!::x.isInitialized) {
-            x = BinVariable2("x", Shape2(tasks.size, executors.size))
+            x = BinVariable2(
+                "x",
+                Shape2(tasks.size, executors.size)
+            )
             for (task in tasks) {
                 for (executor in executors) {
                     x[task, executor].name = "${x.name}_${task}_${executor}"
@@ -82,13 +85,15 @@ class TaskCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = map(
+            taskAssignment = LinearIntermediateSymbols2(
                 "task_assignment",
-                tasks,
-                executors,
-                { t, e -> LinearMonomial(x[t, e]) },
-                { (_, t), (_, e) -> "${t}_$e" }
-            )
+                Shape2(tasks.size, executors.size)
+            ) { _, v ->
+                LinearExpressionSymbol(
+                    x[v],
+                    name = "task_assignment_${v.joinToString("_")}"
+                )
+            }
             for (task in tasks) {
                 for (executor in executors) {
                     taskAssignment[task, executor].range.set(ValueRange(Flt64.zero, Flt64.one).value!!)
@@ -105,7 +110,10 @@ class TaskCompilation<
 
         if (taskCancelEnabled) {
             if (!::y.isInitialized) {
-                y = BinVariable1("y", Shape1(tasks.size))
+                y = BinVariable1(
+                    "y",
+                    Shape1(tasks.size)
+                )
                 for (task in tasks) {
                     y[task].name = ""
                     if (!task.cancelEnabled) {
@@ -126,18 +134,19 @@ class TaskCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = flatMap(
+            taskCompilation = LinearIntermediateSymbols1(
                 "task_compilation",
-                tasks,
-                { t ->
+                Shape1(tasks.size)
+            ) { t, _ ->
+                LinearExpressionSymbol(
                     if (taskCancelEnabled) {
                         y[t] + sum(x[t, _a])
                     } else {
                         sum(x[t, _a])
-                    }
-                },
-                { (_, t) -> "$t" }
-            )
+                    },
+                    name = "task_compilation_${t}"
+                )
+            }
             for (task in tasks) {
                 taskCompilation[task].range.set(ValueRange(Flt64.one, Flt64.one).value!!)
             }
@@ -277,9 +286,7 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskCost.isInitialized) {
-            taskCost = LinearExpressionSymbol(
-                name = "bunch_cost"
-            )
+            taskCost = LinearExpressionSymbol(name = "bunch_cost")
         }
         when (val result = model.add(taskCost)) {
             is Ok -> {}
@@ -290,13 +297,12 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = flatMap(
-                "task_compilation",
-                tasks,
-                executors,
-                { _, _ -> LinearPolynomial() },
-                { (_, t), (_, e) -> "${t}_$e" }
-            )
+            taskAssignment = LinearExpressionSymbols2(
+                "task_assignment",
+                Shape2(tasks.size, executors.size)
+            ) { _, v ->
+                LinearExpressionSymbol(name = "task_assignment_${v.joinToString("_")}")
+            }
         }
         when (val result = model.add(taskAssignment)) {
             is Ok -> {}
@@ -307,12 +313,15 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = flatMap(
+            taskCompilation = LinearExpressionSymbols1(
                 "task_compilation",
-                tasks,
-                { t -> LinearPolynomial(y[t]) },
-                { (_, t) -> "$t" }
-            )
+                Shape1(tasks.size)
+            ) { t, _ ->
+                LinearExpressionSymbol(
+                    y[t],
+                    name = "task_compilation_${t}"
+                )
+            }
         }
         when (val result = model.add(taskCompilation)) {
             is Ok -> {}
@@ -347,18 +356,19 @@ open class IterativeTaskCompilation<
         }
 
         if (!::executorCompilation.isInitialized) {
-            executorCompilation = flatMap(
+            executorCompilation = LinearExpressionSymbols1(
                 "executor_compilation",
-                executors,
-                { e ->
+                Shape1(executors.size)
+            ) { e, _ ->
+                LinearExpressionSymbol(
                     if (withExecutorLeisure) {
                         LinearPolynomial(xor[e] + z[e])
                     } else {
                         LinearPolynomial(xor[e])
-                    }
-                },
-                { e -> "$e" }
-            )
+                    },
+                    name = "executor_compilation_${e}"
+                )
+            }
         }
         when (val result = model.add(executorCompilation)) {
             is Ok -> {}

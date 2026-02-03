@@ -51,9 +51,15 @@ class LinearConstraint(
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    val origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null },
-    val froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
+    origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null },
+    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
 ) : Constraint<LinearConstraintCell>(lhs, signs, rhs, names, sources) {
+    private val _origins: MutableList<OriginLinearConstraint?> = origins.toMutableList()
+    val origins: List<OriginLinearConstraint?> by ::_origins
+
+    private val _froms: MutableList<Pair<IntermediateSymbol, Boolean>?> = froms.toMutableList()
+    val froms: List<Pair<IntermediateSymbol, Boolean>?> by ::_froms
+
     fun filter(condition: (Int) -> Boolean): LinearConstraint {
         return LinearConstraint(
             lhs = lhs.filterIndexed { i, _ -> condition(i) },
@@ -75,6 +81,12 @@ class LinearConstraint(
         origins.toList(),
         froms.toList()
     )
+
+    override fun close() {
+        _origins.clear()
+        _froms.clear()
+        super.close()
+    }
 }
 
 class LinearObjectiveCell(
@@ -1968,6 +1980,11 @@ data class LinearTriadModel(
                 ok
             }
         }
+    }
+
+    override fun close() {
+        dualOrigin?.close()
+        super.close()
     }
 
     override fun toString(): String {

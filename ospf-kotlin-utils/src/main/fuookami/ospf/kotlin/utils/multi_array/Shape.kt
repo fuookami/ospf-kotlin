@@ -102,6 +102,7 @@ interface Shape {
 data class Shape1(private val d1: Int) : Shape {
     companion object {
         operator fun invoke(d1: UInt64): Shape1 = Shape1(d1.toInt())
+        operator fun invoke(d1: Collection<*>): Shape1 = Shape1(d1.size)
     }
 
     override val dimension = 1
@@ -141,6 +142,7 @@ data class Shape1(private val d1: Int) : Shape {
 data class Shape2(private val d1: Int, private val d2: Int) : Shape {
     companion object {
         operator fun invoke(d1: UInt64, d2: UInt64): Shape2 = Shape2(d1.toInt(), d2.toInt())
+        operator fun invoke(d1: Collection<*>, d2: Collection<*>): Shape2 = Shape2(d1.size, d2.size)
     }
 
     private val totalSize by lazy { d1 * d2 }
@@ -182,6 +184,7 @@ data class Shape2(private val d1: Int, private val d2: Int) : Shape {
 data class Shape3(private val d1: Int, private val d2: Int, private val d3: Int) : Shape {
     companion object {
         operator fun invoke(d1: UInt64, d2: UInt64, d3: UInt64): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt())
+        operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>): Shape3 = Shape3(d1.size, d2.size, d3.size)
     }
 
     private val totalSize = d1 * d2 * d3
@@ -234,6 +237,7 @@ data class Shape3(private val d1: Int, private val d2: Int, private val d3: Int)
 data class Shape4(private val d1: Int, private val d2: Int, private val d3: Int, private val d4: Int) : Shape {
     companion object {
         operator fun invoke(d1: UInt64, d2: UInt64, d3: UInt64, d4: UInt64): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt())
+        operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>, d4: Collection<*>): Shape4 = Shape4(d1.size, d2.size, d3.size, d4.size)
     }
 
     private val totalSize = d1 * d2 * d3 * d4
@@ -299,7 +303,10 @@ data class DynShape(private val shape: IntArray) : Shape {
             return ret
         }
 
+        @JvmName("constructByUInt64List")
         operator fun invoke(shape: Iterable<UInt64>): DynShape = DynShape(shape.map { it.toInt() }.toIntArray())
+        @JvmName("constructByCollectionList")
+        operator fun invoke(shape: Iterable<Collection<*>>): DynShape = DynShape(shape.map { it.size }.toIntArray())
     }
 
     private val totalSize = calculateTotalSize(shape)

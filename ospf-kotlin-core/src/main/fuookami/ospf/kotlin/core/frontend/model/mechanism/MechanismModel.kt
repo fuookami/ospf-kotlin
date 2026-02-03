@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.*
 
 sealed interface MechanismModel: AutoCloseable {
     val name: String
@@ -415,6 +414,11 @@ class LinearMechanismModel(
         return listOf((lhs leq Flt64.zero).normalize())
     }
 
+    override fun close() {
+        _constraints.clear()
+        super<AbstractLinearMechanismModel>.close()
+    }
+
     override fun toString(): String {
         return name
     }
@@ -701,5 +705,14 @@ class QuadraticMechanismModel(
         farkasDualSolution: QuadraticDualSolution,
     ): Ret<List<Inequality<*, *>>> {
         TODO("not implemented yet")
+    }
+
+    override fun close() {
+        _constraints.clear()
+        super<AbstractQuadraticMechanismModel>.close()
+    }
+
+    override fun toString(): String {
+        return name
     }
 }
