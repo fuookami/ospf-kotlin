@@ -45,9 +45,7 @@ class TaskSchedulingSwitch<
                     val task1 = tasks[v[0]]
                     val task2 = tasks[v[1]]
                     if (task1 == task2) {
-                        LinearExpressionSymbol(
-                            name = "front_of_${task1}_${task2}"
-                        )
+                        LinearIntermediateSymbol.empty(name = "front_of_${task1}_${task2}")
                     } else {
                         IfFunction(
                             taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
@@ -75,14 +73,12 @@ class TaskSchedulingSwitch<
                     val task2 = tasks[v[2]]
                     val task3 = tasks[v[3]]
                     if (task1 == task2 || task1 == task3 || task2 == task3) {
-                        LinearExpressionSymbol(
-                            name = "between_in_${task3}_${task1}_${task2}"
-                        )
+                        LinearIntermediateSymbol.empty(name = "between_in_${task3}_${task1}_${task2}")
                     } else {
                         AndFunction(
                             listOf(
-                                LinearPolynomial(frontOf[task1, task3]),
-                                LinearPolynomial(frontOf[task3, task2])
+                                frontOf[task1, task3],
+                                frontOf[task3, task2]
                             ),
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
@@ -107,14 +103,12 @@ class TaskSchedulingSwitch<
                 val task1 = tasks[v[1]]
                 val task2 = tasks[v[2]]
                 if (task1 == task2) {
-                    LinearExpressionSymbol(
-                        name = "front_of_${task1}_${task2}"
-                    )
+                    LinearIntermediateSymbol.empty(name = "front_of_${task1}_${task2}")
                 } else if (taskTime != null) {
-                    val conditions: MutableList<LinearPolynomial> = mutableListOf(
-                        LinearPolynomial(compilation.taskAssignment[executor, task1]),
-                        LinearPolynomial(compilation.taskAssignment[executor, task2]),
-                        LinearPolynomial(frontOf[task1, task2])
+                    val conditions: MutableList<ToLinearPolynomial<*>> = mutableListOf(
+                        compilation.taskAssignment[executor, task1],
+                        compilation.taskAssignment[executor, task2],
+                        frontOf[task1, task2]
                     )
                     for (task3 in tasks) {
                         if (task3 == task1 || task3 == task2) {
@@ -132,15 +126,13 @@ class TaskSchedulingSwitch<
                     ) {
                         AndFunction(
                             listOf(
-                                LinearPolynomial(compilation.taskAssignment[executor, task1]),
-                                LinearPolynomial(compilation.taskAssignment[executor, task2])
+                                compilation.taskAssignment[executor, task1],
+                                compilation.taskAssignment[executor, task2]
                             ),
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     } else {
-                        LinearExpressionSymbol(
-                            name = "switch_${executor}_${task1}_${task2}"
-                        )
+                        LinearIntermediateSymbol.empty(name = "switch_${executor}_${task1}_${task2}")
                     }
                 }
             }

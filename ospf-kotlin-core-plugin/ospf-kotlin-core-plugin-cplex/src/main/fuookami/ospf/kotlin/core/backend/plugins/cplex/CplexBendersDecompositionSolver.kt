@@ -49,34 +49,35 @@ class CplexLinearBendersDecompositionSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = LinearTriadModel(
+            LinearTriadModel(
                 model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            val solver = CplexLinearSolver(
-                config = config,
-                callBack = callBack.copy()
-            )
-
-            when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(result.value.solution)
-                    jobs.joinAll()
-                    Ok(result.value)
+            ).use { model ->
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    Failed(result.error)
+                val solver = CplexLinearSolver(
+                    config = config,
+                    callBack = callBack.copy()
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(result.value.solution)
+                        jobs.joinAll()
+                        Ok(result.value)
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        Failed(result.error)
+                    }
                 }
             }
         }
@@ -114,84 +115,85 @@ class CplexLinearBendersDecompositionSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = LinearTriadModel(
+            LinearTriadModel(
                 model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-            model.linearRelax()
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            lateinit var dualSolution: LinearDualSolution
-            lateinit var farkasSolution: LinearDualSolution
-            val solver = CplexLinearSolver(
-                config = config,
-                callBack = callBack.copy()
-                    .configuration { _, cplex, _, _ ->
-                        cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                        ok
-                    }
-                    .analyzingSolution { _, cplex, _, constraints ->
-                        dualSolution = model.tidyDualSolution(constraints.map { constraint ->
-                            Flt64(cplex.getDual(constraint))
-                        })
-                        ok
-                    }
-                    .afterFailure { status, _, _, _ ->
-                        if (status == SolverStatus.Infeasible) {
-                            when (val result = solveFarkasDual(model, CplexLinearSolver(config))) {
-                                is Ok -> {
-                                    farkasSolution = result.value
-                                }
-
-                                is Failed -> {
-                                    return@afterFailure Failed(result.error)
-                                }
-                            }
-                        }
-                        ok
-                    }
-            )
-
-            when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                        token.variable to result.value.solution[index]
-                    }.toMap() + fixedVariables)
-                    jobs.joinAll()
-                    Ok(
-                        LinearBendersDecompositionSolver.LinearFeasibleResult(
-                            result = result.value,
-                            dualSolution = dualSolution,
-                            cuts = mechanismModel.generateOptimalCut(
-                                objectVariable = objectVariable,
-                                fixedVariables = fixedVariables,
-                                dualSolution = dualSolution
-                            )
-                        )
-                    )
+            ).use { model ->
+                model.linearRelax()
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    if (result.error.code == ErrorCode.ORModelInfeasible) {
+                lateinit var dualSolution: LinearDualSolution
+                lateinit var farkasSolution: LinearDualSolution
+                val solver = CplexLinearSolver(
+                    config = config,
+                    callBack = callBack.copy()
+                        .configuration { _, cplex, _, _ ->
+                            cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
+                            ok
+                        }
+                        .analyzingSolution { _, cplex, _, constraints ->
+                            dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                                Flt64(cplex.getDual(constraint))
+                            })
+                            ok
+                        }
+                        .afterFailure { status, _, _, _ ->
+                            if (status == SolverStatus.Infeasible) {
+                                when (val result = solveFarkasDual(model, CplexLinearSolver(config))) {
+                                    is Ok -> {
+                                        farkasSolution = result.value
+                                    }
+
+                                    is Failed -> {
+                                        return@afterFailure Failed(result.error)
+                                    }
+                                }
+                            }
+                            ok
+                        }
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
+                            token.variable to result.value.solution[index]
+                        }.toMap() + fixedVariables)
+                        jobs.joinAll()
                         Ok(
-                            LinearBendersDecompositionSolver.LinearInfeasibleResult(
-                                farkasDualSolution = farkasSolution,
-                                cuts = mechanismModel.generateFeasibleCut(
+                            LinearBendersDecompositionSolver.LinearFeasibleResult(
+                                result = result.value,
+                                dualSolution = dualSolution,
+                                cuts = mechanismModel.generateOptimalCut(
+                                    objectVariable = objectVariable,
                                     fixedVariables = fixedVariables,
-                                    farkasDualSolution = farkasSolution
+                                    dualSolution = dualSolution
                                 )
                             )
                         )
-                    } else {
-                        Failed(result.error)
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        if (result.error.code == ErrorCode.ORModelInfeasible) {
+                            Ok(
+                                LinearBendersDecompositionSolver.LinearInfeasibleResult(
+                                    farkasDualSolution = farkasSolution,
+                                    cuts = mechanismModel.generateFeasibleCut(
+                                        fixedVariables = fixedVariables,
+                                        farkasDualSolution = farkasSolution
+                                    )
+                                )
+                            )
+                        } else {
+                            Failed(result.error)
+                        }
                     }
                 }
             }
@@ -246,35 +248,35 @@ class CplexQuadraticBendersDecompositionSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = QuadraticTetradModel(
+            QuadraticTetradModel(
                 model = mechanismModel,
                 fixedVariables = null,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            val solver = CplexQuadraticSolver(
-                config = config,
-                callBack = callBack.copy()
-            )
-
-            when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(result.value.solution)
-                    jobs.joinAll()
-                    Ok(result.value)
+            ).use { model ->
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    Failed(result.error)
+                val solver = CplexQuadraticSolver(
+                    config = config,
+                    callBack = callBack.copy()
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(result.value.solution)
+                        jobs.joinAll()
+                        Ok(result.value)
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        Failed(result.error)
+                    }
                 }
             }
         }
@@ -325,87 +327,62 @@ class CplexQuadraticBendersDecompositionSolver(
                 return Failed(result.error)
             }
         }.use { mechanismModel ->
-            val model = QuadraticTetradModel(
+            QuadraticTetradModel(
                 model = mechanismModel,
                 fixedVariables = fixedVariables,
                 dumpConstraintsToBounds = config.dumpIntermediateModelBounds ?: true,
                 forceDumpBounds = config.dumpIntermediateModelForceBounds ?: false,
                 concurrent = config.dumpIntermediateModelConcurrent
-            )
-            model.linearRelax()
-            if (toLogModel) {
-                jobs.add(GlobalScope.launch(Dispatchers.IO) {
-                    model.export("$name.lp", ModelFileFormat.LP)
-                })
-            }
-
-            lateinit var dualSolution: QuadraticDualSolution
-            lateinit var farkasSolution: QuadraticDualSolution
-            val solver = CplexQuadraticSolver(
-                config = config,
-                callBack = callBack.copy()
-                    .configuration { _, cplex, _, _ ->
-                        cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
-                        ok
-                    }
-                    .analyzingSolution { _, cplex, _, constraints ->
-                        dualSolution = model.tidyDualSolution(constraints.map { constraint ->
-                            Flt64(cplex.getDual(constraint))
-                        })
-                        ok
-                    }
-                    .afterFailure { status, _, _, _ ->
-                        if (status == SolverStatus.Infeasible) {
-                            when (val result = solveFarkasDual(model, CplexQuadraticSolver(config))) {
-                                is Ok -> {
-                                    farkasSolution = result.value
-                                }
-
-                                is Failed -> {
-                                    return@afterFailure Failed(result.error)
-                                }
-                            }
-                        }
-                        ok
-                    }
-            )
-
-            when (val result = solver(model, solvingStatusCallBack)) {
-                is Ok -> {
-                    metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
-                        token.variable to result.value.solution[index]
-                    }.toMap() + fixedVariables)
-                    jobs.joinAll()
-                    val cuts = when (val result = mechanismModel.generateOptimalCut(
-                        objective = result.value.obj,
-                        objectVariable = objectVariable,
-                        fixedVariables = fixedVariables,
-                        dualSolution = dualSolution
-                    )) {
-                        is Ok -> {
-                            result.value
-                        }
-
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-                    }
-                    Ok(
-                        QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
-                            result = result.value,
-                            dualSolution = dualSolution,
-                            linearCuts = cuts.filterIsInstance<LinearInequality>(),
-                            quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
-                        )
-                    )
+            ).use { model ->
+                model.linearRelax()
+                if (toLogModel) {
+                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                        model.export("$name.lp", ModelFileFormat.LP)
+                    })
                 }
 
-                is Failed -> {
-                    jobs.joinAll()
-                    if (result.error.code == ErrorCode.ORModelInfeasible) {
-                        val cuts = when (val result = mechanismModel.generateFeasibleCut(
+                lateinit var dualSolution: QuadraticDualSolution
+                lateinit var farkasSolution: QuadraticDualSolution
+                val solver = CplexQuadraticSolver(
+                    config = config,
+                    callBack = callBack.copy()
+                        .configuration { _, cplex, _, _ ->
+                            cplex.setParam(IloCplex.Param.Preprocessing.Dual, 1)
+                            ok
+                        }
+                        .analyzingSolution { _, cplex, _, constraints ->
+                            dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                                Flt64(cplex.getDual(constraint))
+                            })
+                            ok
+                        }
+                        .afterFailure { status, _, _, _ ->
+                            if (status == SolverStatus.Infeasible) {
+                                when (val result = solveFarkasDual(model, CplexQuadraticSolver(config))) {
+                                    is Ok -> {
+                                        farkasSolution = result.value
+                                    }
+
+                                    is Failed -> {
+                                        return@afterFailure Failed(result.error)
+                                    }
+                                }
+                            }
+                            ok
+                        }
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
+                            token.variable to result.value.solution[index]
+                        }.toMap() + fixedVariables)
+                        jobs.joinAll()
+                        val cuts = when (val result = mechanismModel.generateOptimalCut(
+                            objective = result.value.obj,
+                            objectVariable = objectVariable,
                             fixedVariables = fixedVariables,
-                            farkasDualSolution = farkasSolution
+                            dualSolution = dualSolution
                         )) {
                             is Ok -> {
                                 result.value
@@ -416,14 +393,40 @@ class CplexQuadraticBendersDecompositionSolver(
                             }
                         }
                         Ok(
-                            QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
-                                farkasDualSolution = farkasSolution,
+                            QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
+                                result = result.value,
+                                dualSolution = dualSolution,
                                 linearCuts = cuts.filterIsInstance<LinearInequality>(),
                                 quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                             )
                         )
-                    } else {
-                        Failed(result.error)
+                    }
+
+                    is Failed -> {
+                        jobs.joinAll()
+                        if (result.error.code == ErrorCode.ORModelInfeasible) {
+                            val cuts = when (val result = mechanismModel.generateFeasibleCut(
+                                fixedVariables = fixedVariables,
+                                farkasDualSolution = farkasSolution
+                            )) {
+                                is Ok -> {
+                                    result.value
+                                }
+
+                                is Failed -> {
+                                    return Failed(result.error)
+                                }
+                            }
+                            Ok(
+                                QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
+                                    farkasDualSolution = farkasSolution,
+                                    linearCuts = cuts.filterIsInstance<LinearInequality>(),
+                                    quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                                )
+                            )
+                        } else {
+                            Failed(result.error)
+                        }
                     }
                 }
             }

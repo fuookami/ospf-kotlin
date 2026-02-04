@@ -12,40 +12,42 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.serialization.*
 
 interface Pushing {
-    operator fun <T: Any> invoke(serializer: KSerializer<T>, value: LogRecordPO<T>): Try {
+    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try {
         val json = Json {
             ignoreUnknownKeys = true
         }
-        return this({ json.encodeToString(LogRecordPO.serializer(serializer), it) }, value)
+        return this(value) {
+            json.encodeToString(LogRecordPO.serializer(serializer), it)
+        }
     }
 
-    operator fun <T: Any> invoke(serializer: (LogRecordPO<T>) -> String, value: LogRecordPO<T>): Try
+    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: (LogRecordPO<T>) -> String): Try
 }
 
 @OptIn(InternalSerializationApi::class)
 inline operator fun <reified T: Any> Pushing.invoke(value: LogRecordPO<T>): Try {
-    return this(T::class.serializer(), value)
+    return this(value, T::class.serializer())
 }
 
 interface Saving {
-    operator fun <T: Any> invoke(serializer: KSerializer<T>, value: LogRecordPO<T>): Try
+    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsString")
-    operator fun <T: Any> invoke(serializer: (T) -> String, value: LogRecordPO<T>): Try {
+    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: (T) -> String): Try {
         return ok
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsBytes")
-    operator fun <T: Any> invoke(serializer: (T) -> ByteArray, value: LogRecordPO<T>): Try {
+    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: (T) -> ByteArray): Try {
         return ok
     }
 }
 
 @OptIn(InternalSerializationApi::class)
 inline operator fun <reified T: Any> Saving.invoke(value: LogRecordPO<T>): Try {
-    return this(T::class.serializer(), value)
+    return this(value, T::class.serializer())
 }
 
 data class LogContextBuilder(
