@@ -24,7 +24,7 @@ class ConsumptionQuantityMaximization<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.maximize(
-            sum(materials.map {
+            polynomial = sum(materials.map {
                 val thresholdValue = threshold(it)
                 if (thresholdValue eq Flt64.zero) {
                     coefficient(it) * consumption.quantity[it]
@@ -45,7 +45,7 @@ class ConsumptionQuantityMaximization<
                     coefficient(it) * slack
                 }
             }),
-            "consumption quantity"
+            name = "consumption quantity"
         )) {
             is Ok -> {}
 

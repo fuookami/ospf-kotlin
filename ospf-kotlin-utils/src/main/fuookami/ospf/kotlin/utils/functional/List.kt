@@ -28,3 +28,26 @@ fun <T> List3<T>.getOrNull(i: Int, j: Int, k: Int): T? {
 operator fun <T> List<List<MutableList<T>>>.set(i: Int, j: Int, k: Int, value: T) {
     this[i][j][k] = value
 }
+
+data class ListFindResult<T>(
+    val self: MutableList<T>,
+    val result: T?
+) {
+    fun add(default: () -> T): T {
+        return if (result != null) {
+            result
+        } else {
+            val newValue = default()
+            self.add(newValue)
+            newValue
+        }
+    }
+
+    fun default(default: () -> T): T {
+        return result ?: default()
+    }
+}
+
+fun <T> MutableList<T>.findOr(predicate: (T) -> Boolean): ListFindResult<T> {
+    return ListFindResult(this, this.find(predicate))
+}

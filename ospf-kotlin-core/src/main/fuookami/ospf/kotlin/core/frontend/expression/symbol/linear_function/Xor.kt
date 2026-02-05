@@ -68,7 +68,10 @@ class XorFunction(
 
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
         if (polynomials.size > 2) {
-            SymbolCombination("${name}_bin", Shape1(2)) { i, _ ->
+            SymbolCombination(
+                name = "${name}_bin",
+                shape = Shape1(2)
+            ) { i, _ ->
                 if (i == 0) {
                     BinaryzationFunction(
                         x = LinearPolynomial(minmax),
@@ -84,7 +87,10 @@ class XorFunction(
                 }
             }
         } else {
-            SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
+            SymbolCombination(
+                name = "${name}_bin",
+                shape = Shape1(polynomials.size)
+            ) { i, _ ->
                 BinaryzationFunction(
                     x = polynomials[i],
                     parent = parent ?: this,
@@ -295,7 +301,7 @@ class XorFunction(
 
         for ((i, bin) in bins.withIndex()) {
             when (val result = model.addConstraint(
-                y geq bin - sum(bins.withIndex().mapNotNull {
+                constraint = y geq bin - sum(bins.withIndex().mapNotNull {
                     if (it.index == i) {
                         null
                     } else {
@@ -315,7 +321,7 @@ class XorFunction(
 
         if (extract) {
             when (val result = model.addConstraint(
-                y leq sum(bins),
+                constraint = y leq sum(bins),
                 name = "${name}_y_1",
                 from = parent ?: this
             )) {
@@ -327,7 +333,7 @@ class XorFunction(
             }
 
             when (val result = model.addConstraint(
-                y leq Flt64(bins.size) - sum(bins),
+                constraint = y leq Flt64(bins.size) - sum(bins),
                 name = "${name}_y_2",
                 from = parent ?: this
             )) {
@@ -528,7 +534,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val result = polynomial.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -550,7 +560,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val result = polynomial.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -594,8 +608,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(results, tokenTable, zeroIfNone)
-                ?: return null
+            val result = polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -617,8 +634,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(values, tokenTable, zeroIfNone)
-                ?: return null
+            val result = polynomial.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }

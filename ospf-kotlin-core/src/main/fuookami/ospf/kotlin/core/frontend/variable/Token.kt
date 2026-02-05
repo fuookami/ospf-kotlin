@@ -24,7 +24,11 @@ data class Token(
     val type by variable::type
     val range: ValueRange<Flt64>?
         get() = if (lowerBound != null && upperBound != null) {
-            ValueRange(lowerBound!!, upperBound!!, Flt64)
+            ValueRange(
+                lowerBound = lowerBound!!,
+                upperBound = upperBound!!,
+                constants = Flt64
+            )
         } else {
             null
         }

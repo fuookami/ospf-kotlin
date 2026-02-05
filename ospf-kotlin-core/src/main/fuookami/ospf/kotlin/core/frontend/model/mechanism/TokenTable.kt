@@ -100,13 +100,21 @@ sealed interface AbstractTokenTable: AutoCloseable {
 
     fun cache(symbol: IntermediateSymbol, solution: List<Flt64>? = null, value: () -> Flt64?): Flt64? {
         return value()?.let {
-            cache(symbol, solution, it)
+            cache(
+                symbol = symbol,
+                solution = solution,
+                value = it
+            )
         }
     }
 
     fun cache(symbol: IntermediateSymbol, fixedValues: Map<Symbol, Flt64>, value: () -> Flt64?): Flt64? {
         return value()?.let {
-            cache(symbol, fixedValues, it)
+            cache(
+                symbol = symbol,
+                fixedValues = fixedValues,
+                value = it
+            )
         }
     }
 
@@ -115,7 +123,11 @@ sealed interface AbstractTokenTable: AutoCloseable {
         if (cachedValue == null) {
             value()?.let {
                 cachedValue = it
-                cache(symbol, solution, it)
+                cache(
+                    symbol = symbol,
+                    solution = solution,
+                    value = it
+                )
             }
         }
         return cachedValue
@@ -126,7 +138,11 @@ sealed interface AbstractTokenTable: AutoCloseable {
         if (cachedValue == null) {
             value()?.let {
                 cachedValue = it
-                cache(symbol, fixedValues, it)
+                cache(
+                    symbol = symbol,
+                    fixedValues = fixedValues,
+                    value = it
+                )
             }
         }
         return cachedValue
@@ -136,7 +152,11 @@ sealed interface AbstractTokenTable: AutoCloseable {
     @JvmName("cacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>? = null) {
         for ((symbol, value) in symbols) {
-            cache(symbol, solution, value)
+            cache(
+                symbol = symbol,
+                solution = solution,
+                value = value
+            )
         }
     }
 
@@ -144,7 +164,11 @@ sealed interface AbstractTokenTable: AutoCloseable {
     @JvmName("cacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol, Flt64>, fixedValues: Map<Symbol, Flt64>) {
         for ((symbol, value) in symbols) {
-            cache(symbol, fixedValues, value)
+            cache(
+                symbol = symbol,
+                fixedValues = fixedValues,
+                value = value
+            )
         }
     }
 
@@ -152,7 +176,11 @@ sealed interface AbstractTokenTable: AutoCloseable {
     @JvmName("lazyCacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, solution: List<Flt64>? = null) {
         for ((symbol, value) in symbols) {
-            cache(symbol, solution, value)
+            cache(
+                symbol = symbol,
+                solution = solution,
+                value = value
+            )
         }
     }
 
@@ -160,7 +188,11 @@ sealed interface AbstractTokenTable: AutoCloseable {
     @JvmName("lazyCacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
         for ((symbol, value) in symbols) {
-            cache(symbol, fixedValues, value)
+            cache(
+                symbol = symbol,
+                fixedValues = fixedValues,
+                value = value
+            )
         }
     }
 
@@ -306,7 +338,10 @@ sealed class MutableTokenTable(
 
     override fun add(symbol: IntermediateSymbol): Try {
         if ((symbol.operationCategory ord category) is Order.Greater) {
-            return Failed(Err(ErrorCode.ApplicationError, "${symbol.name} over $category"))
+            return Failed(
+                code = ErrorCode.ApplicationError,
+                message = "${symbol.name} over $category"
+            )
         }
 
         if (_symbolsMap.containsKey(symbol.name)) {
@@ -648,7 +683,11 @@ class AutoTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
-) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
+) : MutableTokenTable(
+    category = category,
+    tokenList = tokenList,
+    _symbols = symbols.toMutableList()
+) {
     companion object {
         operator fun invoke(
             tokenTable: AbstractTokenTable,
@@ -672,7 +711,11 @@ class AutoTokenTable private constructor(
     )
 
     override fun copy(): MutableTokenTable {
-        return AutoTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return AutoTokenTable(
+            category = category,
+            tokenList = tokenList.copy(),
+            symbols = _symbols.toMutableList()
+        )
     }
 }
 
@@ -680,7 +723,11 @@ class ManualTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
-) : MutableTokenTable(category, tokenList, symbols.toMutableList()) {
+) : MutableTokenTable(
+    category = category,
+    tokenList = tokenList,
+    _symbols = symbols.toMutableList()
+) {
     companion object {
         operator fun invoke(
             tokenTable: AbstractTokenTable,
@@ -704,7 +751,11 @@ class ManualTokenTable private constructor(
     )
 
     override fun copy(): MutableTokenTable {
-        return ManualTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return ManualTokenTable(
+            category = category,
+            tokenList = tokenList.copy(),
+            symbols = _symbols.toMutableList()
+        )
     }
 }
 
@@ -969,7 +1020,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                             val thisReadSymbol = readySymbolList
                                 .subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment))
                             tokenTable.cache(
-                                thisReadSymbol.associateWithNotNull {
+                                symbols = thisReadSymbol.associateWithNotNull {
                                     if (fixedValues.isNullOrEmpty()) {
                                         it.prepare(null, tokenTable)
                                     } else {
@@ -999,7 +1050,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                     listOf(
                         launch(Dispatchers.Default) {
                             tokenTable.cache(
-                                readySymbols.associateWithNotNull {
+                                symbols = readySymbols.associateWithNotNull {
                                     if (fixedValues.isNullOrEmpty()) {
                                         it.prepare(null, tokenTable)
                                     } else {
@@ -1040,14 +1091,14 @@ suspend fun Collection<IntermediateSymbol>.register(
                 jobs.joinAll()
             } else {
                 tokenTable.cache(
-                    readySymbols.associateWithNotNull {
-                        if (fixedValues.isNullOrEmpty()) {
-                            it.prepare(null, tokenTable)
-                        } else {
-                            it.prepare(fixedValues, tokenTable)
-                        }
-                    }.mapKeys { it.key as IntermediateSymbol }
-                )
+                symbols = readySymbols.associateWithNotNull {
+                    if (fixedValues.isNullOrEmpty()) {
+                        it.prepare(null, tokenTable)
+                    } else {
+                        it.prepare(fixedValues, tokenTable)
+                    }
+                }.mapKeys { it.key as IntermediateSymbol }
+            )
 
                 callBack?.invoke(
                     RegistrationStatus(
@@ -1084,7 +1135,11 @@ class ConcurrentAutoTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
-) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
+) : ConcurrentMutableTokenTable(
+    category = category,
+    tokenList = tokenList,
+    _symbols = symbols.toMutableList()
+) {
     companion object {
         operator fun invoke(
             tokenTable: AbstractTokenTable,
@@ -1108,7 +1163,11 @@ class ConcurrentAutoTokenTable private constructor(
     )
 
     override fun copy(): ConcurrentMutableTokenTable {
-        return ConcurrentAutoTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return ConcurrentAutoTokenTable(
+            category = category,
+            tokenList = tokenList.copy(),
+            symbols = _symbols.toMutableList()
+        )
     }
 }
 
@@ -1116,7 +1175,11 @@ class ConcurrentManualAddTokenTable private constructor(
     category: Category,
     tokenList: MutableTokenList,
     symbols: List<IntermediateSymbol>
-) : ConcurrentMutableTokenTable(category, tokenList, symbols.toMutableList()) {
+) : ConcurrentMutableTokenTable(
+    category = category,
+    tokenList = tokenList,
+    _symbols = symbols.toMutableList()
+) {
     companion object {
         operator fun invoke(
             tokenTable: AbstractTokenTable,
@@ -1140,6 +1203,10 @@ class ConcurrentManualAddTokenTable private constructor(
     )
 
     override fun copy(): ConcurrentMutableTokenTable {
-        return ConcurrentManualAddTokenTable(category, tokenList.copy(), _symbols.toMutableList())
+        return ConcurrentManualAddTokenTable(
+            category = category,
+            tokenList = tokenList.copy(),
+            symbols = _symbols.toMutableList()
+        )
     }
 }

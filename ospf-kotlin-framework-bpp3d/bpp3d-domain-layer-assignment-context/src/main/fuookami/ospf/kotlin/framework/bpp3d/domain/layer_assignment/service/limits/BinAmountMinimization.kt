@@ -17,10 +17,10 @@ class BinAmountMinimization(
 ) : Pipeline<AbstractLinearMetaModel> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.minimize(
-            sum(bins.mapIndexed { i, bin ->
+            polynomial = sum(bins.mapIndexed { i, bin ->
                 coefficient(bin) * assignment.v[i]
             }),
-            "bin amount"
+            name = "bin amount"
         )) {
             is Ok -> {}
 

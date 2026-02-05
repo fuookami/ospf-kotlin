@@ -202,14 +202,12 @@ data object LinearIntermediateSymbols {
     ): LinearExpressionSymbols1 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                LinearExpressionSymbol(
-                    MutableLinearPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            LinearExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -218,14 +216,12 @@ data object LinearIntermediateSymbols {
     ): LinearExpressionSymbols2 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                LinearExpressionSymbol(
-                    MutableLinearPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            LinearExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -234,14 +230,12 @@ data object LinearIntermediateSymbols {
     ): LinearExpressionSymbols3 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                LinearExpressionSymbol(
-                    MutableLinearPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            LinearExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -250,14 +244,12 @@ data object LinearIntermediateSymbols {
     ): LinearExpressionSymbols4 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                LinearExpressionSymbol(
-                    MutableLinearPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            LinearExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -266,14 +258,12 @@ data object LinearIntermediateSymbols {
     ): DynLinearExpressionSymbols {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                LinearExpressionSymbol(
-                    MutableLinearPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            LinearExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 }
 
@@ -284,14 +274,12 @@ data object QuadraticIntermediateSymbols {
     ): QuadraticExpressionSymbols1 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                QuadraticExpressionSymbol(
-                    MutableQuadraticPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            QuadraticExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -300,14 +288,12 @@ data object QuadraticIntermediateSymbols {
     ): QuadraticExpressionSymbols2 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                QuadraticExpressionSymbol(
-                    MutableQuadraticPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            QuadraticExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -316,14 +302,12 @@ data object QuadraticIntermediateSymbols {
     ): QuadraticExpressionSymbols3 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                QuadraticExpressionSymbol(
-                    MutableQuadraticPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            QuadraticExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -332,14 +316,12 @@ data object QuadraticIntermediateSymbols {
     ): QuadraticExpressionSymbols4 {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                QuadraticExpressionSymbol(
-                    MutableQuadraticPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            QuadraticExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 
     operator fun invoke(
@@ -348,14 +330,12 @@ data object QuadraticIntermediateSymbols {
     ): DynQuadraticExpressionSymbols {
         return SymbolCombination(
             name = name,
-            shape = shape,
-            ctor = { _, v ->
-                QuadraticExpressionSymbol(
-                    MutableQuadraticPolynomial(),
-                    name = "${name}_${v.joinToString("_") { "$it" }}"
-                )
-            }
-        )
+            shape = shape
+        ) { _, v ->
+            QuadraticExpressionSymbol(
+                name = "${name}_${v.joinToString("_") { "$it" }}"
+            )
+        }
     }
 }
 

@@ -21,7 +21,12 @@ internal fun LinearInequality.register(
     flag: AbstractVariableItem<*, Binary>,
     tokenTable: AddableTokenCollection
 ): Try {
-    return register(parentName, PctVariableView1(k), flag, tokenTable)
+    return register(
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        tokenTable = tokenTable
+    )
 }
 
 internal fun LinearInequality.register(
@@ -32,7 +37,14 @@ internal fun LinearInequality.register(
     epsilon: Flt64,
     model: AbstractLinearMechanismModel
 ): Try {
-    return register(parent, parentName, PctVariableView1(k), flag, epsilon, model)
+    return register(
+        parent = parent,
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        epsilon = epsilon,
+        model = model
+    )
 }
 
 internal fun LinearInequality.register(
@@ -44,7 +56,15 @@ internal fun LinearInequality.register(
     model: AbstractLinearMechanismModel,
     fixedValues: Map<Symbol, Flt64>
 ): Try {
-    return register(parent, parentName, PctVariableView1(k), flag, epsilon, model, fixedValues)
+    return register(
+        parent = parent,
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        epsilon = epsilon,
+        model = model,
+        fixedValues = fixedValues
+    )
 }
 
 internal fun LinearInequality.register(
@@ -90,7 +110,7 @@ internal fun LinearInequality.register(
 
     if (rhs.constant in lhs.range.valueRange!!) {
         when (val result = model.addConstraint(
-            lhs leq (k[0] * lhs.lowerBound!!.value.unwrap() + k[1] * rhs.constant + k[2] * lhs.upperBound!!.value.unwrap()),
+            constraint = lhs leq (k[0] * lhs.lowerBound!!.value.unwrap() + k[1] * rhs.constant + k[2] * lhs.upperBound!!.value.unwrap()),
             name = "${name.ifEmpty { parentName }}_ub",
             from = parent
         )) {
@@ -102,7 +122,7 @@ internal fun LinearInequality.register(
         }
 
         when (val result = model.addConstraint(
-            lhs geq (k[0] * lhs.lowerBound!!.value.unwrap() + k[1] * rhs.constant + k[2] * lhs.upperBound!!.value.unwrap()),
+            constraint = lhs geq (k[0] * lhs.lowerBound!!.value.unwrap() + k[1] * rhs.constant + k[2] * lhs.upperBound!!.value.unwrap()),
             name = "${name.ifEmpty { parentName }}_ub",
             from = parent
         )) {
@@ -114,7 +134,7 @@ internal fun LinearInequality.register(
         }
 
         when (val result = model.addConstraint(
-            sum(k[_a]) eq Flt64.one,
+            constraint = sum(k[_a]) eq Flt64.one,
             name = "${name.ifEmpty { parentName }}_k",
             from = parent
         )) {
@@ -150,12 +170,18 @@ internal fun LinearInequality.register(
             }
 
             Sign.Unequal -> {
-                return Failed(Err(ErrorCode.ApplicationFailed, "$parentName's inequality sign unsupported: $this"))
+                return Failed(
+                    code = ErrorCode.ApplicationFailed,
+                    message = "$parentName's inequality sign unsupported: $this"
+                )
             }
         }
 
         for ((constraint, name) in constraints) {
-            when (val result = model.addConstraint(constraint, name)) {
+            when (val result = model.addConstraint(
+                constraint = constraint,
+                name = name
+            )) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -179,12 +205,15 @@ internal fun LinearInequality.register(
             }
 
             Sign.Unequal -> {
-                return Failed(Err(ErrorCode.ApplicationFailed, "$parentName's inequality sign unsupported: $this"))
+                return Failed(
+                    code = ErrorCode.ApplicationFailed,
+                    message = "$parentName's inequality sign unsupported: $this"
+                )
             }
         }
 
         when (val result = model.addConstraint(
-            flag eq bin,
+            constraint = flag eq bin,
             name = "${name.ifEmpty { parentName }}_flag",
             from = parent
         )) {
@@ -214,7 +243,17 @@ internal fun LinearInequality.register(
 ): Try {
     assert(k.size == 3)
 
-    val lhsValue = lhs.evaluate(fixedValues, model.tokens) ?: return register(parent, parentName, k, flag, epsilon, model)
+    val lhsValue = lhs.evaluate(
+        values = fixedValues,
+        tokenTable = model.tokens
+    ) ?: return register(
+        parent = parent,
+        parentName = parentName,
+        k = k,
+        flag = flag,
+        epsilon = epsilon,
+        model = model
+    )
     val bin = sign(lhsValue, rhs.constant)
 
     if (rhs.constant in lhs.range.valueRange!!) {

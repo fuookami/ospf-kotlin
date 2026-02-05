@@ -41,7 +41,7 @@ class RoundingFunction(
                 parent = parent,
                 args = args,
                 name = name,
-                displayName
+                displayName = displayName
             )
         }
 
@@ -274,7 +274,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            x eq (dLinear * q + r),
+            constraint = x eq (dLinear * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -337,8 +337,9 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            x eq (dLinear * q + r),
-            name
+            constraint = x eq (dLinear * q + r),
+            name = name,
+            from = parent ?: this
         )) {
             is Ok -> {}
 
@@ -348,7 +349,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            q eq qValue,
+            constraint = q eq qValue,
             name = "${name}_q",
             from = parent ?: this
         )) {
@@ -364,7 +365,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            r eq rValue,
+            constraint = r eq rValue,
             name = "${name}_r",
             from = parent ?: this
         )) {
@@ -408,8 +409,16 @@ class RoundingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val dValue = d.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return (xValue / dValue).round()
     }
 
@@ -418,8 +427,16 @@ class RoundingFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val dValue = d.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return (xValue / dValue).round()
     }
 
@@ -437,8 +454,16 @@ class RoundingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val dValue = d.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return (xValue / dValue).round()
     }
 
@@ -447,8 +472,16 @@ class RoundingFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val dValue = d.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return (xValue / dValue).round()
     }
 }

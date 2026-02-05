@@ -240,7 +240,11 @@ class SigmoidFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sigmoid(value)
     }
 
@@ -249,7 +253,11 @@ class SigmoidFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sigmoid(value)
     }
 
@@ -266,7 +274,11 @@ class SigmoidFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sigmoid(value)
     }
 
@@ -275,7 +287,11 @@ class SigmoidFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sigmoid(value)
     }
 }

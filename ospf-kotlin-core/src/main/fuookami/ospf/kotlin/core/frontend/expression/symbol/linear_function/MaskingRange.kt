@@ -166,7 +166,10 @@ class MaskingRangeFunction(
             val maskValue = if (values.isNullOrEmpty()) {
                 mask.evaluate(tokenTable)
             } else {
-                mask.evaluate(values, tokenTable)
+                mask.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             }?.let {
                 it gr Flt64.zero
             } ?: return null
@@ -214,11 +217,14 @@ class MaskingRangeFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         if (mask.lowerBound!!.value.unwrap() ls Flt64.zero || mask.upperBound!!.value.unwrap() gr Flt64.one) {
-            return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $mask"))
+            return Failed(
+                code = ErrorCode.ApplicationFailed,
+                message = "$name's domain of definition unsatisfied: $mask"
+            )
         }
 
         when (val result = model.addConstraint(
-            y leq ub * mask,
+            constraint = y leq ub * mask,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -229,7 +235,7 @@ class MaskingRangeFunction(
             }
         }
         when (val result = model.addConstraint(
-            y geq lb * mask,
+            constraint = y geq lb * mask,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -254,11 +260,14 @@ class MaskingRangeFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val maskValue = mask.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val maskValue = mask.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val maskBin = maskValue gr Flt64.zero
 
         when (val result = model.addConstraint(
-            y leq ub * mask,
+            constraint = y leq ub * mask,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -269,7 +278,7 @@ class MaskingRangeFunction(
             }
         }
         when (val result = model.addConstraint(
-            y geq lb * mask,
+            constraint = y geq lb * mask,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -312,9 +321,17 @@ class MaskingRangeFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            polyY.evaluate(results, tokenList, zeroIfNone)
+            polyY.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -325,9 +342,17 @@ class MaskingRangeFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            polyY.evaluate(values, tokenList, zeroIfNone)
+            polyY.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -350,9 +375,17 @@ class MaskingRangeFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            polyY.evaluate(results, tokenTable, zeroIfNone)
+            polyY.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -363,9 +396,17 @@ class MaskingRangeFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            polyY.evaluate(values, tokenTable, zeroIfNone)
+            polyY.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }

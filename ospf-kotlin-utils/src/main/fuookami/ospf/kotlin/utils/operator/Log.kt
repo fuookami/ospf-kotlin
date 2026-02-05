@@ -62,7 +62,11 @@ fun <Base, Natural, Ret> log(
     digits: Int,
     precision: Ret
 ): Ret? where Natural : LogP<Base, Ret> {
-    return natural.log(base, digits, precision)
+    return natural.log(
+        base = base,
+        digits = digits,
+        precision = precision
+    )
 }
 
 fun <Base, Natural, Ret, Func> log(
@@ -73,7 +77,11 @@ fun <Base, Natural, Ret, Func> log(
     func: Func
 ): Ret? where Func : LogFunP<Natural, Base, Ret> {
     return with(func) {
-        natural.log(base, digits, precision)
+        natural.log(
+            base = base,
+            digits = digits,
+            precision = precision
+        )
     }
 }
 

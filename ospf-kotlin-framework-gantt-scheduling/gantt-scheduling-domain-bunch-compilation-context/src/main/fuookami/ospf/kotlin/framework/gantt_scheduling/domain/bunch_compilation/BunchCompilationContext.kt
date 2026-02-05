@@ -145,19 +145,33 @@ interface BunchCompilationContext<
         fixedBunches: Set<B>,
         model: AbstractLinearMetaModel
     ): Ret<Set<B>> {
-        return aggregation.locallyFix(iteration, bar, fixedBunches, model)
+        return aggregation.locallyFix(
+            iteration = iteration,
+            bar = bar,
+            fixedBunches = fixedBunches,
+            model = model
+        )
     }
 
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
-        return aggregation.logResult(iteration, model)
+        return aggregation.logResult(
+            iteration = iteration,
+            model = model
+        )
     }
 
     fun logBunchCost(iteration: UInt64, model: AbstractLinearMetaModel): Try {
-        return aggregation.logBunchCost(iteration, model)
+        return aggregation.logBunchCost(
+            iteration = iteration,
+            model = model
+        )
     }
 
     fun flush(iteration: UInt64): Try {
-        return aggregation.flush(iteration, emptyList())
+        return aggregation.flush(
+            iteration = iteration,
+            tasks = emptyList()
+        )
     }
 
     fun analyzeTaskSolution(
@@ -166,7 +180,14 @@ interface BunchCompilationContext<
         model: AbstractLinearMetaModel,
         solution: Solution? = null
     ): Ret<TaskSolution<T, E, A>> {
-        return TaskSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model, solution)
+        return TaskSolutionAnalyzer(
+            iteration = iteration,
+            tasks = tasks,
+            bunches = aggregation.bunchesIteration,
+            compilation = aggregation.compilation,
+            model = model,
+            solution = solution
+        )
     }
 
     fun analyzeBunchSolution(
@@ -175,7 +196,14 @@ interface BunchCompilationContext<
         model: AbstractLinearMetaModel,
         solution: Solution? = null
     ): Ret<BunchSolution<B, T, E, A>> {
-        return BunchSolutionAnalyzer(iteration, tasks, aggregation.bunchesIteration, aggregation.compilation, model, solution)
+        return BunchSolutionAnalyzer(
+            iteration = iteration,
+            tasks = tasks,
+            bunches = aggregation.bunchesIteration,
+            compilation = aggregation.compilation,
+            model = model,
+            solution = solution
+        )
     }
 }
 

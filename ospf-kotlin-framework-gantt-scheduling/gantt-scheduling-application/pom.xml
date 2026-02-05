@@ -5,12 +5,30 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
         <artifactId>ospf-kotlin-framework-gantt-scheduling</artifactId>
-        <version>1.0.70</version>
+        <version>1.0.71</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-framework-gantt-scheduling-application</name>
     <artifactId>ospf-kotlin-framework-gantt-scheduling-application</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>

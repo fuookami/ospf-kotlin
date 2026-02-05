@@ -44,7 +44,12 @@ data class ChenSystemGenerator(
             )
         ): ChenSystemGenerator {
             return ChenSystemGenerator(
-                ChenSystem(a, b, c, h),
+                ChenSystem(
+                    a = a,
+                    b = b,
+                    c = c,
+                    h = h
+                ),
                 x
             )
         }

@@ -54,26 +54,38 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
     }
 
     fun isTrue(
-        result: List<Flt64>,
+        results: List<Flt64>,
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean = false
     ): Boolean? {
-        val lhsValue = lhs.evaluate(result, tokenList, zeroIfNone)
-            ?: return null
-        val rhsValue = rhs.evaluate(result, tokenList, zeroIfNone)
-            ?: return null
+        val lhsValue = lhs.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val rhsValue = rhs.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sign(lhsValue, rhsValue)
     }
 
     fun isTrue(
-        result: List<Flt64>,
+        results: List<Flt64>,
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean = false
     ): Boolean? {
-        val lhsValue = lhs.evaluate(result, tokenTable, zeroIfNone)
-            ?: return null
-        val rhsValue = rhs.evaluate(result, tokenTable, zeroIfNone)
-            ?: return null
+        val lhsValue = lhs.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val rhsValue = rhs.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sign(lhsValue, rhsValue)
     }
 
@@ -82,10 +94,16 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean = false
     ): Boolean? {
-        val lhsValue = lhs.evaluate(values, tokenList, zeroIfNone)
-            ?: return null
-        val rhsValue = rhs.evaluate(values, tokenList, zeroIfNone)
-            ?: return null
+        val lhsValue = lhs.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val rhsValue = rhs.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sign(lhsValue, rhsValue)
     }
 
@@ -94,10 +112,16 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean = false
     ): Boolean? {
-        val lhsValue = lhs.evaluate(values, tokenTable, zeroIfNone)
-            ?: return null
-        val rhsValue = rhs.evaluate(values, tokenTable, zeroIfNone)
-            ?: return null
+        val lhsValue = lhs.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val rhsValue = rhs.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return sign(lhsValue, rhsValue)
     }
 

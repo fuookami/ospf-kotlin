@@ -223,7 +223,7 @@ class SameAsFunction(
             }
 
             when (val result = model.addConstraint(
-                y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
+                constraint = y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -235,7 +235,7 @@ class SameAsFunction(
             }
 
             when (val result = model.addConstraint(
-                y leq sum(u) / UInt64(inequalities.size),
+                constraint = y leq sum(u) / UInt64(inequalities.size),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -403,7 +403,11 @@ class SameAsFunction(
     ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
-            val value = inequality.isTrue(results, tokenList, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (lastValue == null) {
                 lastValue = value
             } else if (lastValue != value) {
@@ -420,7 +424,11 @@ class SameAsFunction(
     ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
-            val value = inequality.isTrue(values, tokenList, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (lastValue == null) {
                 lastValue = value
             } else if (lastValue != value) {
@@ -453,7 +461,11 @@ class SameAsFunction(
     ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
-            val value = inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (lastValue == null) {
                 lastValue = value
             } else if (lastValue != value) {
@@ -470,7 +482,11 @@ class SameAsFunction(
     ): Flt64? {
         var lastValue: Boolean? = null
         for (inequality in inequalities) {
-            val value = inequality.isTrue(values, tokenTable, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (lastValue == null) {
                 lastValue = value
             } else if (lastValue != value) {

@@ -65,7 +65,11 @@ fun <
     shadowPrices: LinearDualSolution
 ): Try {
     for (pipeline in pipelineList) {
-        when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices.toMeta())) {
+        when (val ret = pipeline.refresh(
+            shadowPriceMap = shadowPriceMap,
+            model = model,
+            shadowPrices = shadowPrices.toMeta()
+        )) {
             is Ok -> {}
             is Failed -> {
                 return Failed(ret.error)
@@ -81,13 +85,13 @@ fun <
     Args : Any,
     Map : AbstractShadowPriceMap<Args, Map>
 > IntermediateSymbol.refresh(
-    map: Map,
+    shadowPriceMap: Map,
     shadowPrices: MetaDualSolution
 ): Try {
     when (val args = this.args) {
         is ShadowPriceKey -> {
             shadowPrices.symbols[this]?.sumOf { it.second }?.let {
-                map.putOrAdd(ShadowPrice(args, it))
+                shadowPriceMap.putOrAdd(ShadowPrice(args, it))
             }
         }
     }

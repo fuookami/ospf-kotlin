@@ -104,7 +104,11 @@ abstract class AbstractNotFunctionImpl(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -117,7 +121,11 @@ abstract class AbstractNotFunctionImpl(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -142,7 +150,11 @@ abstract class AbstractNotFunctionImpl(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -155,7 +167,11 @@ abstract class AbstractNotFunctionImpl(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value eq Flt64.zero) {
             Flt64.one
         } else {
@@ -213,7 +229,10 @@ class NotFunctionImpl(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             if (xValue eq Flt64.zero) {
@@ -463,7 +482,10 @@ class NotFunctionDiscreteImpl(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val bin = xValue eq Flt64.zero
@@ -498,7 +520,7 @@ class NotFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
+            constraint = x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -511,7 +533,7 @@ class NotFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                (Flt64.one - y) leq x,
+                constraint = (Flt64.one - y) leq x,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -537,11 +559,14 @@ class NotFunctionDiscreteImpl(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val bin = xValue eq Flt64.zero
 
         when (val result = model.addConstraint(
-            x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
+            constraint = x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -554,7 +579,7 @@ class NotFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                (Flt64.one - y) leq x,
+                constraint = (Flt64.one - y) leq x,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -567,7 +592,7 @@ class NotFunctionDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y eq bin.toFlt64(),
+            constraint = y eq bin.toFlt64(),
             name = "${name}_y",
             from = parent ?: this
         )) {
@@ -654,7 +679,10 @@ class NotFunctionExtractAndNotDiscreteImpl(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val pct = xValue / x.upperBound!!.value.unwrap()
@@ -767,7 +795,10 @@ class NotFunctionExtractAndNotDiscreteImpl(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val pct = xValue / x.upperBound!!.value.unwrap()
         val bin = xValue eq Flt64.zero
 
@@ -1022,7 +1053,11 @@ class NotFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(results, tokenList, zeroIfNone)
+        return impl.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -1030,7 +1065,11 @@ class NotFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(values, tokenList, zeroIfNone)
+        return impl.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -1045,7 +1084,11 @@ class NotFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(results, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -1053,6 +1096,10 @@ class NotFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(values, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 }

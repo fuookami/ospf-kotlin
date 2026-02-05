@@ -263,7 +263,7 @@ class ModFunction(
         }
 
         when (val result = model.addConstraint(
-            x eq (dLinear * q + r),
+            constraint = x eq (dLinear * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -326,7 +326,7 @@ class ModFunction(
         }
 
         when (val result = model.addConstraint(
-            x eq (dLinear * q + r),
+            constraint = x eq (dLinear * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -338,7 +338,7 @@ class ModFunction(
         }
 
         when (val result = model.addConstraint(
-            q eq qValue,
+            constraint = q eq qValue,
             name = "${name}_q",
             from = parent ?: this
         )) {
@@ -354,7 +354,7 @@ class ModFunction(
         }
 
         when (val result = model.addConstraint(
-            r eq rValue,
+            constraint = r eq rValue,
             name = "${name}_r",
             from = parent ?: this
         )) {
@@ -398,8 +398,16 @@ class ModFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val dValue = d.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return xValue % dValue
     }
 
@@ -408,8 +416,16 @@ class ModFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val dValue = d.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return xValue % dValue
     }
 
@@ -427,8 +443,16 @@ class ModFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val dValue = d.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return xValue % dValue
     }
 
@@ -437,8 +461,16 @@ class ModFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val dValue = d.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val dValue = d.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return xValue % dValue
     }
 }

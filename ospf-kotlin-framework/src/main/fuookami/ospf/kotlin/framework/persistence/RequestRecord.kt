@@ -29,7 +29,7 @@ open class RequestRecordRDAO(tableName: String) : Table<RequestRecordRPO>(tableN
     val app = varchar("app").bindTo { it.app }
     val requester = varchar("requester").bindTo { it.requester }
     val version = varchar("version").bindTo { it.version }
-    val time = datetime("time").transform({ it.toKotlinLocalDateTime() }, { it.toJavaLocalDateTime() }).bindTo { it.time }
+    val time = kotlinDatetime("time").bindTo { it.time }
     val request = blob("request").bindTo { it.request }
 }
 
@@ -54,7 +54,7 @@ open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tabl
     val version = varchar("version").bindTo { it.version }
     val code = long("code").transform({ UInt64(it.toULong()) }, { it.toLong() }).bindTo { it.code }
     val msg = varchar("msg").bindTo { it.msg }
-    val time = datetime("time").transform({ it.toKotlinLocalDateTime() }, { it.toJavaLocalDateTime() }).bindTo { it.time }
+    val time = kotlinDatetime("time").bindTo { it.time }
     val response = blob("response").bindTo { it.response }
 }
 
@@ -111,7 +111,11 @@ data class RequestRecordPO<T>(
     val rpo: RequestRecordRPO by lazy {
         rpo {
             val stream = ByteArrayOutputStream()
-            writeJsonToStream(stream, (request::class as KClass<T>).serializer(), request)
+            writeJsonToStream(
+                stream = stream,
+                serializer = (request::class as KClass<T>).serializer(),
+                value = request
+            )
             stream.toByteArray()
         }
     }
@@ -156,8 +160,16 @@ data object RequestRecordDAO {
         time: Pair<LocalDateTime, LocalDateTime>? = null
     ): List<RequestRecordPO<T>> {
         val table = RequestRecordRDAO(tableName)
-        return query(db, table, id, app, requester, time)
-            .mapNotNull { RequestRecordPO<T>(table.createEntity(it)) }
+        return query(
+            db = db,
+            table = table,
+            id = id,
+            app = app,
+            requester = requester,
+            time = time
+        ).mapNotNull {
+            RequestRecordPO<T>(table.createEntity(it))
+        }
     }
 
     inline fun <reified T : RequestDTO<T>> get(
@@ -170,8 +182,16 @@ data object RequestRecordDAO {
         deserializer: (ByteArray) -> T
     ): List<RequestRecordPO<T>> {
         val table = RequestRecordRDAO(tableName)
-        return query(db, table, id, app, requester, time)
-            .mapNotNull { RequestRecordPO<T>(table.createEntity(it), deserializer) }
+        return query(
+            db = db,
+            table = table,
+            id = id,
+            app = app,
+            requester = requester,
+            time = time
+        ).mapNotNull {
+            RequestRecordPO<T>(table.createEntity(it), deserializer)
+        }
     }
 
     fun query(
@@ -193,8 +213,7 @@ data object RequestRecordDAO {
             query = query.where { table.requester like requester }
         }
         if (time != null) {
-            query =
-                query.where { (table.time greaterEq time.first) and (table.time less time.second) }
+            query = query.where { (table.time greaterEq time.first) and (table.time less time.second) }
         }
         return query
     }
@@ -304,8 +323,17 @@ data object ResponseRecordDAO {
     ): List<ResponseRecordPO<T>> {
         val requestTable = RequestRecordRDAO(tableName.replace("response", "request"))
         val responseTable = ResponseRecordRDAO(tableName)
-        return query(db, requestTable, responseTable, id, app, requester, time)
-            .mapNotNull { ResponseRecordPO(responseTable.createEntity(it)) }
+        return query(
+            db = db,
+            requestTable = requestTable,
+            responseTable = responseTable,
+            id = id,
+            app = app,
+            requester = requester,
+            time = time
+        ).mapNotNull {
+            ResponseRecordPO(responseTable.createEntity(it))
+        }
     }
 
     inline fun <reified T : ResponseDTO<T>> get(
@@ -319,8 +347,17 @@ data object ResponseRecordDAO {
     ): List<ResponseRecordPO<T>> {
         val requestTable = RequestRecordRDAO(tableName.replace("response", "request"))
         val responseTable = ResponseRecordRDAO(tableName)
-        return query(db, requestTable, responseTable, id, app, requester, time)
-            .mapNotNull { ResponseRecordPO(responseTable.createEntity(it), deserializer) }
+        return query(
+            db = db,
+            requestTable = requestTable,
+            responseTable = responseTable,
+            id = id,
+            app = app,
+            requester = requester,
+            time = time
+        ).mapNotNull {
+            ResponseRecordPO(responseTable.createEntity(it), deserializer)
+        }
     }
 
     fun query(

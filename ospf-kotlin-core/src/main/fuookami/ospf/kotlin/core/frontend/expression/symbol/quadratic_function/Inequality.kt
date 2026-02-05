@@ -19,7 +19,13 @@ internal fun QuadraticInequality.register(
     flag: AbstractVariableItem<*, Binary>,
     model: AbstractQuadraticMechanismModel
 ): Try {
-    return register(parent, parentName, PctVariableView1(k), flag, model)
+    return register(
+        parent = parent,
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        model = model
+    )
 }
 
 internal fun QuadraticInequality.register(

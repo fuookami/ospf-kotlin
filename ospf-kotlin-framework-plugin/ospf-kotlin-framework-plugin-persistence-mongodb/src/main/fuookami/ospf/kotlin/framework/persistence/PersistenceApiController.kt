@@ -20,13 +20,25 @@ interface MongoPersistenceApiController {
         GlobalScope.launch(Dispatchers.IO) {
             val cls = request::class
             val serializer = cls.serializer() as KSerializer<Req>
-            mongoClient?.insertRequest(api, "", "", "", serializer, request)
+            mongoClient?.insertRequest(
+                path = api,
+                app = "",
+                requester = requester,
+                version = version,
+                serializer = serializer,
+                request = request)
         }
         val response = process(request)
         GlobalScope.launch(Dispatchers.IO) {
             val cls = response::class
             val serializer = cls.serializer() as KSerializer<Rep>
-            mongoClient?.insertResponse(api, app, requester, version, serializer, response)
+            mongoClient?.insertResponse(
+                path = api,
+                app = app,
+                requester = requester,
+                version = version,
+                serializer = serializer,
+                response = response)
         }
         return response
     }
@@ -46,14 +58,26 @@ interface MongoPersistenceApiController {
         GlobalScope.launch(Dispatchers.IO) {
             val cls = request::class
             val serializer = cls.serializer() as KSerializer<Req>
-            mongoClient?.insertRequest(api, "", "", "", serializer, request)
+            mongoClient?.insertRequest(
+                path = api,
+                app = "",
+                requester = requester,
+                version = version,
+                serializer = serializer,
+                request = request)
         }
         GlobalScope.launch(Dispatchers.Default) {
             val response = process(request)
             GlobalScope.launch(Dispatchers.IO) {
                 val cls = response::class
                 val serializer = cls.serializer() as KSerializer<Rep>
-                mongoClient?.insertResponse(api, app, requester, version, serializer, response)
+                mongoClient?.insertResponse(
+                    path = api,
+                    app = app,
+                    requester = requester,
+                    version = version,
+                    serializer = serializer,
+                    response = response)
             }
             asyncResponse(response)
         }

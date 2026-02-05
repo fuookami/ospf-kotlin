@@ -53,8 +53,8 @@ class ProduceLessQuantityMinimization<
                 }
             }
             when (val result = model.minimize(
-                cost,
-                "produce less quantity"
+                polynomial = cost,
+                name = "produce less quantity"
             )) {
                 is Ok -> {}
 

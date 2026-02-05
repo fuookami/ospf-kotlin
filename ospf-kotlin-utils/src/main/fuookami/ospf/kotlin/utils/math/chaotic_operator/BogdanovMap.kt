@@ -37,7 +37,11 @@ data class BogdanovMapGenerator(
             )
         ): BogdanovMapGenerator {
             return BogdanovMapGenerator(
-                BogdanovMap(epsilon, kappa, mu),
+                BogdanovMap(
+                    epsilon = epsilon,
+                    kappa = kappa,
+                    mu = mu
+                ),
                 x
             )
         }

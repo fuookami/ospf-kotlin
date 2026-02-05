@@ -88,13 +88,16 @@ open class BunchCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = flatMap(
-                "task_assignment",
-                tasks,
-                executors,
-                { _, _ -> LinearPolynomial() },
-                { (_, t), (_, e) -> "${t}_$e" }
-            )
+            taskAssignment = LinearExpressionSymbols2(
+                name = "task_assignment",
+                shape = Shape2(tasks.size, executors.size)
+            ) { _, (t, e) ->
+                val task = tasks[t]
+                val executor = executors[e]
+                LinearExpressionSymbol(
+                    name = "task_assignment_${task}_${executor}"
+                )
+            }
         }
         when (val result = model.add(taskAssignment)) {
             is Ok -> {}
@@ -105,12 +108,16 @@ open class BunchCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = flatMap(
-                "task_compilation",
-                tasks,
-                { t -> LinearPolynomial(y[t]) },
-                { (_, t) -> "$t" }
-            )
+            taskCompilation = LinearExpressionSymbols1(
+                name = "task_compilation",
+                shape = Shape1(tasks.size)
+            ) { i, _ ->
+                val task = tasks[i]
+                LinearExpressionSymbol(
+                    item = y[i],
+                    name = "task_compilation_${task}"
+                )
+            }
         }
         when (val result = model.add(taskCompilation)) {
             is Ok -> {}
@@ -134,18 +141,20 @@ open class BunchCompilation<
         }
 
         if (!::executorCompilation.isInitialized) {
-            executorCompilation = flatMap(
-                "executor_compilation",
-                executors,
-                { e ->
-                    if (withExecutorLeisure) {
-                        LinearPolynomial(z[e])
+            executorCompilation = LinearExpressionSymbols1(
+                name = "executor_compilation",
+                shape = Shape1(executors.size)
+            ) { i, _ ->
+                val executor = executors[i]
+                LinearExpressionSymbol(
+                    polynomial = if (withExecutorLeisure) {
+                        LinearPolynomial(z[i])
                     } else {
                         LinearPolynomial()
-                    }
-                },
-                { e -> "$e" }
-            )
+                    },
+                    name = "executor_compilation_${executor}"
+                )
+            }
         }
         when (val result = model.add(executorCompilation)) {
             is Ok -> {}

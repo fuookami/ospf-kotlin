@@ -16,8 +16,8 @@ class BunchCostMinimization<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.minimize(
-            compilation.bunchCost,
-            "bunch cost"
+            symbol = compilation.bunchCost,
+            name = "bunch cost"
         )) {
             is Ok -> {}
 

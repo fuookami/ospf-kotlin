@@ -147,7 +147,10 @@ class OrFunction(
         // all polys must be ∈ (R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
-                return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
+                return Failed(
+                    code = ErrorCode.ApplicationFailed,
+                    message = "$name's domain of definition unsatisfied: $polynomial"
+                )
             }
         }
 
@@ -155,7 +158,7 @@ class OrFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
                 when (val result = model.addConstraint(
-                    y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
+                    constraint = y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -167,8 +170,9 @@ class OrFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    y geq polynomial,
-                    "${name}_lb_${polynomial.name.ifEmpty { "$i" }}"
+                    constraint = y geq polynomial,
+                    name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
+                    from = parent ?: this
                 )) {
                     is Ok -> {}
 
@@ -181,7 +185,7 @@ class OrFunction(
 
         // if all polynomials are zero, y will be zero
         when (val result = model.addConstraint(
-            y leq sum(polynomials),
+            constraint = y leq sum(polynomials),
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -216,7 +220,7 @@ class OrFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
                 when (val result = model.addConstraint(
-                    y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
+                    constraint = y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -228,7 +232,7 @@ class OrFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    y geq polynomial,
+                    constraint = y geq polynomial,
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -242,7 +246,7 @@ class OrFunction(
         }
 
         when (val result = model.addConstraint(
-            y leq sum(polynomials),
+            constraint = y leq sum(polynomials),
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -254,7 +258,7 @@ class OrFunction(
         }
 
         when (val result = model.addConstraint(
-            y eq bin.toFlt64(),
+            constraint = y eq bin.toFlt64(),
             name = "${name}_y",
             from = parent ?: this
         )) {
@@ -300,7 +304,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one
@@ -315,7 +323,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one
@@ -344,7 +356,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one
@@ -359,7 +375,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one

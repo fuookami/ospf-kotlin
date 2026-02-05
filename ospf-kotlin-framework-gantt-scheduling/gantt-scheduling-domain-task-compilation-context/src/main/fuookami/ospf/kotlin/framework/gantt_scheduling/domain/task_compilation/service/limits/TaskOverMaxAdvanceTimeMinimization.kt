@@ -62,8 +62,8 @@ class TaskOverMaxAdvanceTimeMinimization<
                 }
             }
             when (val result = model.minimize(
-                cost,
-                "task over max advance time"
+                polynomial = cost,
+                name = "task over max advance time"
             )) {
                 is Ok -> {}
 

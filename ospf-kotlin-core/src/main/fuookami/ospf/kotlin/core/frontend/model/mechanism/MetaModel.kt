@@ -22,20 +22,34 @@ sealed interface MetaModel : Model, AutoCloseable {
         val polynomial: Poly,
         val name: String = polynomial.name
     ) {
-        fun value(zeroIfNone: Boolean = false): Flt64? {
-            return value(parent.tokens, zeroIfNone)
+        fun evaluate(zeroIfNone: Boolean = false): Flt64? {
+            return evaluate(
+                tokenTable = parent.tokens,
+                zeroIfNone = zeroIfNone
+            )
         }
 
-        fun value(results: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
-            return value(results, parent.tokens, zeroIfNone)
+        fun evaluate(results: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
+            return evaluate(
+                results = results,
+                tokenTable = parent.tokens,
+                zeroIfNone = zeroIfNone
+            )
         }
 
-        fun value(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-            return polynomial.evaluate(tokenTable, zeroIfNone)
+        fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+            return polynomial.evaluate(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         }
 
-        fun value(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-            return polynomial.evaluate(results, tokenTable, zeroIfNone)
+        fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+            return polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         }
     }
 
@@ -484,7 +498,15 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -496,7 +518,15 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -508,7 +538,15 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -520,7 +558,15 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -543,7 +589,14 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return partition(sum(variables), group, lazy, name, displayName, args)
+        return partition(
+            polynomial = sum(variables),
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -556,7 +609,14 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return partition(sum(symbols), group, lazy, name, displayName, args)
+        return partition(
+            polynomial = sum(symbols),
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -569,7 +629,14 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return partition(sum(monomials), group, lazy, name, displayName, args)
+        return partition(
+            polynomial = sum(monomials),
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 
     fun partition(
@@ -580,7 +647,14 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return addConstraint(polynomial eq true, group, lazy, name, displayName, args)
+        return addConstraint(
+            constraint = polynomial eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 }
 
@@ -594,7 +668,15 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -606,7 +688,15 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -618,7 +708,15 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(constraint eq true, group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = constraint eq true,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     fun addConstraint(
@@ -641,7 +739,14 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return partition(qsum(monomials), group, lazy, name, displayName, args)
+        return partition(
+            polynomial = qsum(monomials),
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -654,7 +759,14 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return partition(qsum(symbols), group, lazy, name, displayName, args)
+        return partition(
+            polynomial = qsum(symbols),
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 
     fun partition(
@@ -665,7 +777,14 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        return addConstraint(polynomial eq Flt64.one, group, lazy, name, displayName, args)
+        return addConstraint(
+            constraint = polynomial eq Flt64.one,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args
+        )
     }
 }
 
@@ -780,7 +899,11 @@ class LinearMetaModel(
         val obj = LinearPolynomial(polynomial)
         name?.let { obj.name = it }
         displayName?.let { obj.displayName = it }
-        _subObjects.add(MetaModel.SubObject(this, category, obj))
+        _subObjects.add(MetaModel.SubObject(
+            parent = this,
+            category = category,
+            polynomial = obj
+        ))
         return ok
     }
 
@@ -799,7 +922,12 @@ class LinearMetaModel(
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
-        _constraints.add(MetaConstraint(constraint, group, lazy, args))
+        _constraints.add(MetaConstraint(
+            constraint = constraint,
+            group = group,
+            lazy = lazy,
+            args = args
+        ))
 
         if (withRangeSet ?: this.configuration.withRangeSet
             && constraint.lhs.monomials.size == 1
@@ -848,7 +976,15 @@ class QuadraticMetaModel(
         args: Any?,
         withRangeSet: Boolean?
     ): Try {
-        return addConstraint(QuadraticInequality(constraint), group, lazy, name, displayName, args, withRangeSet)
+        return addConstraint(
+            constraint = QuadraticInequality(constraint),
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
     }
 
     override fun addConstraint(
@@ -901,7 +1037,12 @@ class QuadraticMetaModel(
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
-        _constraints.add(MetaConstraint(constraint, group, lazy, args))
+        _constraints.add(MetaConstraint(
+            constraint = constraint,
+            group = group,
+            lazy = lazy,
+            args = args
+        ))
 
         if (withRangeSet ?: this.configuration.withRangeSet
             && !constraint.lhs.monomials.first().pure
@@ -940,7 +1081,11 @@ class QuadraticMetaModel(
         val obj = QuadraticPolynomial(polynomial)
         name?.let { obj.name = it }
         displayName?.let { obj.displayName = it }
-        _subObjects.add(MetaModel.SubObject(this, category, obj))
+        _subObjects.add(MetaModel.SubObject(
+            parent = this,
+            category = category,
+            polynomial = obj
+        ))
         return ok
     }
 }

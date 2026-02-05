@@ -109,7 +109,11 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone)
+        val value = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -125,7 +129,11 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenList, zeroIfNone)
+        val value = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -156,7 +164,11 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone)
+        val value = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -172,7 +184,11 @@ abstract class AbstractBalanceTernaryzationFunctionImpl(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenTable, zeroIfNone)
+        val value = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value ls Flt64.zero) {
             -Flt64.one
@@ -239,7 +255,10 @@ class BalanceTernaryzationFunctionImpl(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val pos = xValue gr Flt64.zero
@@ -458,7 +477,11 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         override fun invoke(params: BalanceTernaryzationFunctionImplBuilderParams): AbstractBalanceTernaryzationFunctionImpl {
-            return BalanceTernaryzationFunctionDiscreteImpl(params, params.self.extract, null)
+            return BalanceTernaryzationFunctionDiscreteImpl(
+                params = params,
+                extract = params.self.extract,
+                m = null
+            )
         }
     }
 
@@ -557,7 +580,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            m * y[1] geq x,
+            constraint = m * y[1] geq x,
             name = "${name}_pub",
             from = parent ?: self
         )) {
@@ -569,7 +592,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            -m * y[0] leq x,
+            constraint = -m * y[0] leq x,
             name = "${name}_nlb",
             from = parent ?: self
         )) {
@@ -582,7 +605,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
+                constraint = x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
                 name = "${name}_plb",
                 from = parent ?: self
             )) {
@@ -594,7 +617,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
+                constraint = x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
                 name = "${name}_nub",
                 from = parent ?: self
             )) {
@@ -606,7 +629,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                sum(y) leq Flt64.one,
+                constraint = sum(y) leq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -627,11 +650,17 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     ): Try {
         val xValue = when (tokenTable) {
             is AbstractTokenTable -> {
-                x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+                x.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable
+                ) ?: return register(tokenTable)
             }
 
             is FunctionSymbolRegistrationScope -> {
-                x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+                x.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable.origin
+                ) ?: return register(tokenTable)
             }
 
             else -> {
@@ -682,7 +711,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
         if (ter eq Flt64.one) {
             when (val result = model.addConstraint(
-                m * y[1] geq x,
+                constraint = m * y[1] geq x,
                 name = "${name}_ub",
                 from = parent ?: self
             )) {
@@ -694,7 +723,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y[1] eq Flt64.one,
+                constraint = y[1] eq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -710,7 +739,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
         } else if (ter eq -Flt64.one) {
             when (val result = model.addConstraint(
-                -m * y[0] leq x,
+                constraint = -m * y[0] leq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -722,7 +751,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y[0] eq Flt64.one,
+                constraint = y[0] eq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -889,7 +918,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
+            constraint = x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
             name = "${name}_xb",
             from = parent ?: self
         )) {
@@ -901,7 +930,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y[1] geq b[1],
+            constraint = y[1] geq b[1],
             name = "${name}_yb_pos_lb",
             from = parent ?: self
         )) {
@@ -913,7 +942,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y[1] leq (Flt64.one / epsilon) * b[1],
+            constraint = y[1] leq (Flt64.one / epsilon) * b[1],
             name = "${name}_yb_pos_ub",
             from = parent ?: self
         )) {
@@ -925,7 +954,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y[0] geq b[0],
+            constraint = y[0] geq b[0],
             name = "${name}_yb_neg_lb",
             from = parent ?: self
         )) {
@@ -937,7 +966,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y[0] leq (Flt64.one / epsilon) * b[0],
+            constraint = y[0] leq (Flt64.one / epsilon) * b[0],
             name = "${name}_yb_neg_ub",
             from = parent ?: self
         )) {
@@ -949,7 +978,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            b[0] + y[1] leq Flt64.one,
+            constraint = b[0] + y[1] leq Flt64.one,
             name = "${name}_yb_pos",
             from = parent ?: self
         )) {
@@ -961,7 +990,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            b[1] + y[0] leq Flt64.one,
+            constraint = b[1] + y[0] leq Flt64.one,
             name = "${name}_yb_neg",
             from = parent ?: self
         )) {
@@ -1036,8 +1065,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         if (ter eq Flt64.one) {
             when (val result = model.addConstraint(
-                x eq x.upperBound!!.value.unwrap() * b[1],
-                "${name}_xb"
+                constraint = x eq x.upperBound!!.value.unwrap() * b[1],
+                name = "${name}_xb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1047,8 +1077,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y[1] eq Flt64.one,
-                "${name}_y"
+                constraint = y[1] eq Flt64.one,
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1063,8 +1094,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             val bValue = xValue / x.upperBound!!.value.unwrap()
             when (val result = model.addConstraint(
-                b[1] eq bValue,
-                "${name}_b"
+                constraint = b[1] eq bValue,
+                name = "${name}_b",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1078,8 +1110,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
         } else if (ter eq -Flt64.one) {
             when (val result = model.addConstraint(
-                x eq x.lowerBound!!.value.unwrap() * b[0],
-                "${name}_xb"
+                constraint = x eq x.lowerBound!!.value.unwrap() * b[0],
+                name = "${name}_xb",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1089,8 +1122,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y[0] eq Flt64.one,
-                "${name}_y"
+                constraint = y[0] eq Flt64.one,
+                name = "${name}_y",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1105,8 +1139,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             val bValue = xValue / x.lowerBound!!.value.unwrap()
             when (val result = model.addConstraint(
-                b[0] eq bValue,
-                "${name}_b"
+                constraint = b[0] eq bValue,
+                name = "${name}_b",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1120,8 +1155,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
         } else {
             when (val result = model.addConstraint(
-                x eq Flt64.zero,
-                "${name}_x"
+                constraint = x eq Flt64.zero,
+                name = "${name}_x",
+                from = parent ?: self
             )) {
                 is Ok -> {}
 
@@ -1312,7 +1348,11 @@ class BalanceTernaryzationFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(results, tokenList, zeroIfNone)
+        return impl.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -1320,7 +1360,11 @@ class BalanceTernaryzationFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(values, tokenList, zeroIfNone)
+        return impl.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -1335,7 +1379,11 @@ class BalanceTernaryzationFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(results, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -1343,6 +1391,10 @@ class BalanceTernaryzationFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(values, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 }

@@ -61,7 +61,10 @@ class TaskAdvanceTimeMinimization<
                     cost += thisCoefficient * slack
                 }
             }
-            when (val result = model.minimize(cost, "task advance time")) {
+            when (val result = model.minimize(
+                polynomial = cost,
+                name = "task advance time"
+            )) {
                 is Ok -> {}
 
                 is Failed -> {

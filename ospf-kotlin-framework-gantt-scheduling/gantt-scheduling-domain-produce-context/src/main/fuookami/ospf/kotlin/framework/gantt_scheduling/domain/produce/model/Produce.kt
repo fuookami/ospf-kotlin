@@ -40,8 +40,8 @@ abstract class AbstractProduce<
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
                 overQuantity = LinearIntermediateSymbols1(
-                    "produce_over_quantity",
-                    Shape1(products.size)
+                    name = "produce_over_quantity",
+                    shape = Shape1(products.size)
                 ) { i, _ ->
                     val (product, demand) = products[i]
                     if (demand != null && demand.overEnabled) {
@@ -57,7 +57,7 @@ abstract class AbstractProduce<
                         }
                         slack
                     } else {
-                        LinearExpressionSymbol(
+                        LinearIntermediateSymbol.empty(
                             name = "produce_over_quantity_${product}"
                         )
                     }
@@ -75,8 +75,8 @@ abstract class AbstractProduce<
         if (lessEnabled) {
             if (!::lessQuantity.isInitialized) {
                 lessQuantity = LinearIntermediateSymbols1(
-                    "produce_less_quantity",
-                    Shape1(products.size)
+                    name = "produce_less_quantity",
+                    shape = Shape1(products.size)
                 ) { i, _ ->
                     val (product, demand) = products[i]
                     if (demand != null && demand.lessEnabled) {
@@ -93,7 +93,7 @@ abstract class AbstractProduce<
                         }
                         slack
                     } else {
-                        LinearExpressionSymbol(
+                        LinearIntermediateSymbol.empty(
                             name = "produce_less_quantity_${product}"
                         )
                     }
@@ -147,12 +147,15 @@ class BunchSchedulingProduce<
     override fun register(model: MetaModel): Try {
         if (products.isNotEmpty()) {
             if (!::quantity.isInitialized) {
-                quantity = flatMap(
-                    "produce_quantity",
-                    products,
-                    { _ -> LinearPolynomial() },
-                    { (_, p) -> "$p" }
-                )
+                quantity = LinearExpressionSymbols1(
+                    name = "produce_quantity",
+                    shape = Shape1(products.size)
+                ) { p, _ ->
+                    val (product, _) = products[p]
+                    LinearExpressionSymbol(
+                        name = "produce_quantity_${product}"
+                    )
+                }
                 for ((product, demand) in products) {
                     if (demand != null) {
                         quantity[product].range.set(

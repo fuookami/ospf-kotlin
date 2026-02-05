@@ -26,8 +26,8 @@ class TaskOnTimeMaximization<
     override fun invoke(model: AbstractLinearMetaModel): Try {
         if (threshold eq UInt64.zero) {
             when (val result = model.maximize(
-                coefficient * sum(taskTime.onTime[_a]),
-                "task on time"
+                polynomial = coefficient * sum(taskTime.onTime[_a]),
+                name = "task on time"
             )) {
                 is Ok -> {}
 
@@ -50,8 +50,8 @@ class TaskOnTimeMaximization<
                 }
             }
             when (val result = model.maximize(
-                coefficient * slack,
-                "task on time"
+                monomial = coefficient * slack,
+                name = "task on time"
             )) {
                 is Ok -> {}
 

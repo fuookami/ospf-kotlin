@@ -115,7 +115,18 @@ class LogContext private constructor(
         type: LogRecordType = LogRecordType.Info,
         availableTime: Duration = 90.days
     ) {
-        return push(step, { writeJson(LogRecordPO.serializer(T::class.serializer()), it) }, value, type, availableTime)
+        return push(
+            step = step,
+            serializer = {
+                writeJson(
+                    serializer = LogRecordPO.serializer(T::class.serializer()),
+                    value = it
+                )
+            },
+            value = value,
+            type = type,
+            availableTime = availableTime
+        )
     }
 
     fun <T : Any> push(
@@ -125,7 +136,18 @@ class LogContext private constructor(
         type: LogRecordType = LogRecordType.Info,
         availableTime: Duration = 90.days
     ) {
-        return push(step, { writeJson(LogRecordPO.serializer(serializer), it) }, value, type, availableTime)
+        return push(
+            step = step,
+            serializer = {
+                writeJson(
+                    serializer = LogRecordPO.serializer(serializer),
+                    value = it
+                )
+            },
+            value = value,
+            type = type,
+            availableTime = availableTime
+        )
     }
 
     fun <T : Any> push(
@@ -169,7 +191,13 @@ class LogContext private constructor(
         type: LogRecordType = LogRecordType.Info,
         availableTime: Duration = 90.days
     ) {
-        return save(step, T::class.serializer(), value, type, availableTime)
+        return save(
+            step = step,
+            serializer = T::class.serializer(),
+            value = value,
+            type = type,
+            availableTime = availableTime
+        )
     }
 
     fun <T : Any> save(

@@ -11,7 +11,14 @@ inline fun <reified T> MongoDatabase.insertRequest(
     version: String,
     request: T
 ) where T : RequestDTO<T>, T : Any {
-    insertRequest(path, app, requester, version, T::class.serializer(), request)
+    insertRequest(
+        path = path,
+        app = app,
+        requester = requester,
+        version = version,
+        serializer = T::class.serializer(),
+        request = request
+    )
 }
 
 fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
@@ -22,8 +29,17 @@ fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
     serializer: KSerializer<T>,
     request: T
 ) {
-    val record = RequestRecordPO(app, requester, version, request)
-    this.insert("${path.replace('/', '_')}_input", RequestRecordPO.serializer(serializer), record)
+    val record = RequestRecordPO(
+        app = app,
+        requester = requester,
+        version = version,
+        request = request
+    )
+    this.insert(
+        collection = "${path.replace('/', '_')}_input",
+        serializer = RequestRecordPO.serializer(serializer),
+        data = record
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
@@ -31,7 +47,11 @@ inline fun <reified T> MongoDatabase.getRequest(
     path: String,
     query: Map<String, String>
 ): List<T> where T : RequestDTO<T>, T : Any {
-    return getRequest(path, T::class.serializer(), query)
+    return getRequest(
+        path = path,
+        serializer = T::class.serializer(),
+        query = query
+    )
 }
 
 fun <T : RequestDTO<T>> MongoDatabase.getRequest(
@@ -39,7 +59,11 @@ fun <T : RequestDTO<T>> MongoDatabase.getRequest(
     serializer: KSerializer<T>,
     query: Map<String, String>
 ): List<T> {
-    return this.get("${path.replace('/', '_')}_input", RequestRecordPO.serializer(serializer), query).map { it.request }
+    return this.get(
+        collectionName = "${path.replace('/', '_')}_input",
+        deserializer = RequestRecordPO.serializer(serializer),
+        query = query
+    ).map { it.request }
 }
 
 @OptIn(InternalSerializationApi::class)
@@ -50,7 +74,14 @@ inline fun <reified T> MongoDatabase.insertResponse(
     version: String,
     response: T
 ) where T : ResponseDTO<T>, T : Any {
-    return insertResponse(path, app, requester, version, T::class.serializer(), response)
+    return insertResponse(
+        path = path,
+        app = app,
+        requester = requester,
+        version = version,
+        serializer = T::class.serializer(),
+        response = response
+    )
 }
 
 fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
@@ -61,8 +92,17 @@ fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
     serializer: KSerializer<T>,
     response: T
 ) {
-    val record = ResponseRecordPO(app, requester, version, response)
-    this.insert("${path.replace('/', '_')}_output", ResponseRecordPO.serializer(serializer), record)
+    val record = ResponseRecordPO(
+        app = app,
+        requester = requester,
+        version = version,
+        response = response
+    )
+    this.insert(
+        collection = "${path.replace('/', '_')}_output",
+        serializer = ResponseRecordPO.serializer(serializer),
+        data = record
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
@@ -70,7 +110,11 @@ inline fun <reified T> MongoDatabase.getResponse(
     path: String,
     query: Map<String, String>
 ): List<T> where T : ResponseDTO<T>, T : Any {
-    return getResponse(path, T::class.serializer(), query)
+    return getResponse(
+        path = path,
+        serializer = T::class.serializer(),
+        query = query
+    )
 }
 
 fun <T : ResponseDTO<T>> MongoDatabase.getResponse(
@@ -78,8 +122,11 @@ fun <T : ResponseDTO<T>> MongoDatabase.getResponse(
     serializer: KSerializer<T>,
     query: Map<String, String>
 ): List<T> {
-    return this.get("${path.replace('/', '_')}_output", ResponseRecordPO.serializer(serializer), query)
-        .map { it.response }
+    return this.get(
+        collectionName = "${path.replace('/', '_')}_output",
+        deserializer = ResponseRecordPO.serializer(serializer),
+        query = query
+    ).map { it.response }
 }
 
 inline fun <reified T : RequestDTO<T>> RequestRecordDAO.find(

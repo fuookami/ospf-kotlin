@@ -30,7 +30,10 @@ class SwitchCostMinimization<
                 }
             }
         }
-        when (val result = model.minimize(cost, "switch cost")) {
+        when (val result = model.minimize(
+            polynomial = cost,
+            name = "switch cost"
+        )) {
             is Ok -> {}
 
             is Failed -> {

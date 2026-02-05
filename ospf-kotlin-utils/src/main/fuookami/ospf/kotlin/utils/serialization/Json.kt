@@ -23,12 +23,20 @@ class JsonNamingPolicy(
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJson(path: String, namingPolicy: JsonNamingPolicy? = null): T {
-    return readFromJson(T::class.serializer(), path, namingPolicy)
+    return readFromJson(
+        serializer = T::class.serializer(),
+        path = path,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJsonList(path: String, namingPolicy: JsonNamingPolicy? = null): List<T> {
-    return readFromJsonList(T::class.serializer(), path, namingPolicy)
+    return readFromJsonList(
+        serializer = T::class.serializer(),
+        path = path,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -45,17 +53,29 @@ fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: Jso
 
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJsonList(serializer: KSerializer<T>, path: String, namingPolicy: JsonNamingPolicy? = null): List<T> {
-    return readFromJson(ListSerializer(serializer), path, namingPolicy)
+    return readFromJson(
+        serializer = ListSerializer(serializer),
+        path = path,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJson(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): T {
-    return readFromJson(T::class.serializer(), stream, namingPolicy)
+    return readFromJson(
+        serializer = T::class.serializer(),
+        stream = stream,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJsonList(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): List<T> {
-    return readFromJsonList(ListSerializer(T::class.serializer()), stream, namingPolicy)
+    return readFromJsonList(
+        serializer = ListSerializer(T::class.serializer()),
+        stream = stream,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -83,44 +103,84 @@ fun <T> readFromJsonList(serializer: KSerializer<List<T>>, stream: InputStream, 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJson(value: T, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
-    writeJsonToStream(stream, T::class.serializer(), value, namingPolicy)
+    writeJsonToStream(
+        stream = stream,
+        serializer = T::class.serializer(),
+        value = value,
+        namingPolicy = namingPolicy
+    )
     return stream.toString()
 }
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJson(value: List<T>, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
-    writeJsonToStream(stream, ListSerializer(T::class.serializer()), value, namingPolicy)
+    writeJsonToStream(
+        stream = stream,
+        serializer = ListSerializer(T::class.serializer()),
+        value = value,
+        namingPolicy = namingPolicy
+    )
     return stream.toString()
 }
 
 fun <T> writeJson(serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
-    writeJsonToStream(stream, serializer, value, namingPolicy)
+    writeJsonToStream(
+        stream = stream,
+        serializer = serializer,
+        value = value,
+        namingPolicy = namingPolicy
+    )
     return stream.toString()
 }
 
 fun <T> writeJson(serializer: KSerializer<T>, value: List<T>, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
-    writeJsonToStream(stream, ListSerializer(serializer), value, namingPolicy)
+    writeJsonToStream(
+        stream = stream,
+        serializer = ListSerializer(serializer),
+        value = value,
+        namingPolicy = namingPolicy
+    )
     return stream.toString()
 }
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJsonToFile(path: String, value: T, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(File(path).outputStream(), T::class.serializer(), value, namingPolicy)
+    writeJsonToStream(
+        stream = File(path).outputStream(),
+        serializer = T::class.serializer(),
+        value = value,
+        namingPolicy = namingPolicy
+    )
 }
 
 fun <T> writeJsonToFile(serializer: KSerializer<T>, path: String, value: List<T>, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(File(path).outputStream(), ListSerializer(serializer), value, namingPolicy)
+    writeJsonToStream(
+        stream = File(path).outputStream(),
+        serializer = ListSerializer(serializer),
+        value = value,
+        namingPolicy = namingPolicy
+    )
 }
 
 fun <T> writeJsonToFile(path: String, serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(File(path).outputStream(), serializer, value, namingPolicy)
+    writeJsonToStream(
+        stream = File(path).outputStream(),
+        serializer = serializer,
+        value = value,
+        namingPolicy = namingPolicy
+    )
 }
 
 fun <T> writeJsonToFile(path: String, serializer: KSerializer<List<T>>, value: List<T>, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(File(path).outputStream(), serializer, value, namingPolicy)
+    writeJsonToStream(
+        stream = File(path).outputStream(),
+        serializer = serializer,
+        value = value,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
@@ -129,7 +189,12 @@ inline fun <reified T : Any> writeJsonToStream(
     value: T,
     namingPolicy: JsonNamingPolicy? = null
 ) {
-    writeJsonToStream(stream, T::class.serializer(), value, namingPolicy)
+    writeJsonToStream(
+        stream = stream,
+        serializer = T::class.serializer(),
+        value = value,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(InternalSerializationApi::class)
@@ -138,7 +203,12 @@ inline fun <reified T : Any> writeJsonToStream(
     value: List<T>,
     namingPolicy: JsonNamingPolicy? = null
 ) {
-    writeJsonToStream(stream, ListSerializer(T::class.serializer()), value, namingPolicy)
+    writeJsonToStream(
+        stream = stream,
+        serializer = ListSerializer(T::class.serializer()),
+        value = value,
+        namingPolicy = namingPolicy
+    )
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -154,7 +224,11 @@ fun <T> writeJsonToStream(
             namingStrategy = namingPolicy
         }
     }
-    json.encodeToStream(serializer, value, stream)
+    json.encodeToStream(
+        serializer = serializer,
+        value = value,
+        stream = stream
+    )
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -170,5 +244,9 @@ fun <T> writeJsonToStream(
             namingStrategy = namingPolicy
         }
     }
-    json.encodeToStream(serializer, value, stream)
+    json.encodeToStream(
+        serializer = serializer,
+        value = value,
+        stream = stream
+    )
 }

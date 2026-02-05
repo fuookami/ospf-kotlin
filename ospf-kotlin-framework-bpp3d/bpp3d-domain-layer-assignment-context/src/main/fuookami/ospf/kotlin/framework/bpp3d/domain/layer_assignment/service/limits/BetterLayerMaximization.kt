@@ -18,12 +18,12 @@ class BetterLayerMaximization(
 ) : Pipeline<AbstractLinearMetaModel> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.maximize(
-            sum(bins.flatMapIndexed { i, bin ->
+            polynomial = sum(bins.flatMapIndexed { i, bin ->
                 layers.mapIndexed { j, layer ->
                     coefficient(layer, bin) * assignment.x[i, j]
                 }
             }),
-            "better layer"
+            name = "better layer"
         )) {
             is Ok -> {}
 

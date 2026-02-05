@@ -72,8 +72,8 @@ abstract class TaskTimeImpl<
         if (delayEnabled) {
             if (!::delayTime.isInitialized) {
                 delayTime = LinearIntermediateSymbols1(
-                    "delay_time",
-                    Shape1(tasks.size)
+                    name = "delay_time",
+                    shape = Shape1(tasks.size)
                 ) { i, _ ->
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
@@ -93,7 +93,7 @@ abstract class TaskTimeImpl<
                         )
                     } else {
                         LinearExpressionSymbol(
-                            polynomial,
+                            polynomial = polynomial,
                             name = "delay_time_${task}"
                         )
                     }
@@ -107,12 +107,16 @@ abstract class TaskTimeImpl<
                             if (!task.delayEnabled) {
                                 delayTime[task].range.leq(Flt64.zero)
                             } else {
-                                delayTime[task].range.leq(with(timeWindow) { (timeWindow.end - time.start).value })
+                                delayTime[task].range.leq(
+                                    with(timeWindow) { (timeWindow.end - time.start).value }
+                                )
                             }
                         }
                     }
                     task.maxDelay?.let {
-                        delayTime[task].range.leq(with(timeWindow) { it.value })
+                        delayTime[task].range.leq(
+                            with(timeWindow) { it.value }
+                        )
                     }
                 }
             }
@@ -128,8 +132,8 @@ abstract class TaskTimeImpl<
         if (advanceEnabled) {
             if (!::advanceTime.isInitialized) {
                 advanceTime = LinearIntermediateSymbols1(
-                    "advance_time",
-                    Shape1(tasks.size),
+                    name = "advance_time",
+                    shape = Shape1(tasks.size),
                 ) { i, _ ->
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
@@ -149,13 +153,15 @@ abstract class TaskTimeImpl<
                         )
                     } else {
                         LinearExpressionSymbol(
-                            polynomial,
+                            polynomial = polynomial,
                             name = "delay_time_${task}"
                         )
                     }
                 }
                 for (task in tasks) {
-                    advanceTime[task].range.leq(with(timeWindow) { duration.value })
+                    advanceTime[task].range.leq(
+                        with(timeWindow) { duration.value }
+                    )
                     when (val time = task.time) {
                         null -> {}
 
@@ -163,12 +169,16 @@ abstract class TaskTimeImpl<
                             if (!task.advanceEnabled) {
                                 advanceTime[task].range.leq(Flt64.zero)
                             } else {
-                                advanceTime[task].range.leq(with(timeWindow) { (time.start - timeWindow.start).value })
+                                advanceTime[task].range.leq(
+                                    with(timeWindow) { (time.start - timeWindow.start).value }
+                                )
                             }
                         }
                     }
                     task.maxAdvance?.let {
-                        advanceTime[task].range.leq(with(timeWindow) { it.value })
+                        advanceTime[task].range.leq(
+                            with(timeWindow) { it.value }
+                        )
                     }
                 }
             }
@@ -185,12 +195,14 @@ abstract class TaskTimeImpl<
             if (!::overMaxDelayTime.isInitialized) {
                 try {
                     overMaxDelayTime = LinearIntermediateSymbols1(
-                        "over_max_delay_time",
-                        Shape1(tasks.size)
+                        name = "over_max_delay_time",
+                        shape = Shape1(tasks.size)
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.delayEnabled) {
-                            LinearIntermediateSymbol.empty(name = "over_max_delay_time_${task}")
+                            LinearIntermediateSymbol.empty(
+                                name = "over_max_delay_time_${task}"
+                            )
                         } else {
                             when (val maxDelayTime = task.maxDelay) {
                                 null -> {
@@ -236,7 +248,9 @@ abstract class TaskTimeImpl<
                     return Failed(e.error)
                 }
                 for (task in tasks) {
-                    overMaxDelayTime[task].range.leq(with(timeWindow) { duration.value })
+                    overMaxDelayTime[task].range.leq(
+                        with(timeWindow) { duration.value }
+                    )
                     when (val maxDelayTime = task.maxDelay) {
                         null -> {}
 
@@ -244,7 +258,9 @@ abstract class TaskTimeImpl<
                             if (!task.delayEnabled) {
                                 overMaxDelayTime[task].range.leq(Flt64.zero)
                             } else {
-                                overMaxDelayTime[task].range.leq(with(timeWindow) { maxDelayTime.value })
+                                overMaxDelayTime[task].range.leq(
+                                    with(timeWindow) { maxDelayTime.value }
+                                )
                             }
                         }
                     }
@@ -263,16 +279,20 @@ abstract class TaskTimeImpl<
             if (!::overMaxAdvanceTime.isInitialized) {
                 try {
                     overMaxAdvanceTime = LinearIntermediateSymbols1(
-                        "over_max_advance_time",
-                        Shape1(tasks.size)
+                        name = "over_max_advance_time",
+                        shape = Shape1(tasks.size)
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.advanceEnabled) {
-                            LinearIntermediateSymbol.empty(name = "over_max_advance_time_${task}")
+                            LinearIntermediateSymbol.empty(
+                                name = "over_max_advance_time_${task}"
+                            )
                         } else {
                             when (val maxAdvanceTime = task.maxAdvance) {
                                 null -> {
-                                    LinearIntermediateSymbol.empty(name = "over_max_advance_time_${task}")
+                                    LinearIntermediateSymbol.empty(
+                                        name = "over_max_advance_time_${task}"
+                                    )
                                 }
 
                                 else -> {
@@ -312,7 +332,9 @@ abstract class TaskTimeImpl<
                     return Failed(e.error)
                 }
                 for (task in tasks) {
-                    overMaxAdvanceTime[task].range.leq(with(timeWindow) { duration.value })
+                    overMaxAdvanceTime[task].range.leq(
+                        with(timeWindow) { duration.value }
+                    )
                     when (val maxAdvanceTime = task.maxAdvance) {
                         null -> {}
 
@@ -320,7 +342,9 @@ abstract class TaskTimeImpl<
                             if (!task.delayEnabled) {
                                 overMaxAdvanceTime[task].range.leq(Flt64.zero)
                             } else {
-                                overMaxAdvanceTime[task].range.leq(with(timeWindow) { maxAdvanceTime.value })
+                                overMaxAdvanceTime[task].range.leq(
+                                    with(timeWindow) { maxAdvanceTime.value }
+                                )
                             }
                         }
                     }
@@ -339,16 +363,20 @@ abstract class TaskTimeImpl<
             if (!::delayLastEndTime.isInitialized) {
                 try {
                     delayLastEndTime = LinearIntermediateSymbols1(
-                        "delay_last_end_time",
-                        Shape1(tasks.size)
+                        name = "delay_last_end_time",
+                        shape = Shape1(tasks.size)
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.delayEnabled) {
-                            LinearIntermediateSymbol.empty(name = "delay_last_end_time_${task}")
+                            LinearIntermediateSymbol.empty(
+                                name = "delay_last_end_time_${task}"
+                            )
                         } else {
                             when (val lastEndTime = task.lastEndTime) {
                                 null -> {
-                                    LinearIntermediateSymbol.empty(name = "delay_last_end_time_${task}")
+                                    LinearIntermediateSymbol.empty(
+                                        name = "delay_last_end_time_${task}"
+                                    )
                                 }
 
                                 else -> {
@@ -415,16 +443,20 @@ abstract class TaskTimeImpl<
             if (!::advanceEarliestEndTime.isInitialized) {
                 try {
                     advanceEarliestEndTime = LinearIntermediateSymbols1(
-                        "advance_earliest_end_time",
-                        Shape1(tasks.size)
+                        name = "advance_earliest_end_time",
+                        shape = Shape1(tasks.size)
                     ) { i, _ ->
                         val task = tasks[i]
                         if (!task.advanceEnabled) {
-                            LinearIntermediateSymbol.empty(name = "advance_earliest_end_time_${task}")
+                            LinearIntermediateSymbol.empty(
+                                name = "advance_earliest_end_time_${task}"
+                            )
                         } else {
                             when (val earliestEndTime = task.earliestEndTime) {
                                 null -> {
-                                    LinearIntermediateSymbol.empty(name = "advance_earliest_end_time_${task}")
+                                    LinearIntermediateSymbol.empty(
+                                        name = "advance_earliest_end_time_${task}"
+                                    )
                                 }
 
                                 else -> {
@@ -464,7 +496,9 @@ abstract class TaskTimeImpl<
                     return Failed(e.error)
                 }
                 for (task in tasks) {
-                    advanceEarliestEndTime[task].range.leq(with(timeWindow) { duration.value })
+                    advanceEarliestEndTime[task].range.leq(
+                        with(timeWindow) { duration.value }
+                    )
                     when (val earliestStartTime = task.earliestStartTime) {
                         null -> {}
 
@@ -472,7 +506,9 @@ abstract class TaskTimeImpl<
                             if (!task.advanceEnabled) {
                                 advanceEarliestEndTime[task].range.leq(Flt64.zero)
                             } else {
-                                advanceEarliestEndTime[task].range.leq(with(timeWindow) { (earliestStartTime - timeWindow.start).value })
+                                advanceEarliestEndTime[task].range.leq(
+                                    with(timeWindow) { (earliestStartTime - timeWindow.start).value }
+                                )
                             }
                         }
                     }
@@ -490,27 +526,25 @@ abstract class TaskTimeImpl<
         if (delayLastEndTimeEnabled) {
             if (!::onLastEndTime.isInitialized) {
                 onLastEndTime = LinearIntermediateSymbols1(
-                    "on_last_end_time",
-                    Shape1(tasks.size)
+                    name = "on_last_end_time",
+                    shape = Shape1(tasks.size)
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled) {
-                        LinearExpressionSymbol(
-                            Flt64.one,
+                        LinearIntermediateSymbol.empty(
                             name = "on_last_end_time_${task}"
                         )
                     } else {
                         when (val lastEndTime = task.lastEndTime) {
                             null -> {
-                                LinearExpressionSymbol(
-                                    Flt64.one,
+                                LinearIntermediateSymbol.empty(
                                     name = "on_last_end_time_${task}"
                                 )
                             }
 
                             else -> {
                                 IfFunction(
-                                    estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
+                                    inequality = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -530,27 +564,25 @@ abstract class TaskTimeImpl<
         if (advanceEarliestEndTimeEnabled) {
             if (!::onEarliestEndTime.isInitialized) {
                 onEarliestEndTime = LinearIntermediateSymbols1(
-                    "on_earliest_end_time",
-                    Shape1(tasks.size)
+                    name = "on_earliest_end_time",
+                    shape = Shape1(tasks.size)
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
-                        LinearExpressionSymbol(
-                            Flt64.one,
+                        LinearIntermediateSymbol.empty(
                             name = "on_earliest_end_time_${task}"
                         )
                     } else {
                         when (val earliestEndTime = task.earliestEndTime) {
                             null -> {
-                                LinearExpressionSymbol(
-                                    Flt64.one,
+                                LinearIntermediateSymbol.empty(
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
 
                             else -> {
                                 IfFunction(
-                                    estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
+                                    inequality = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -569,11 +601,13 @@ abstract class TaskTimeImpl<
 
         if (delayLastEndTimeEnabled || advanceEarliestEndTimeEnabled) {
             if (!::onTime.isInitialized) {
-                onTime = flatMap(
-                    "on_time",
-                    tasks,
-                    { t ->
-                        if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
+                onTime = LinearIntermediateSymbols1(
+                    name = "on_time",
+                    shape = Shape1(tasks.size)
+                ) { t, _ ->
+                    val task = tasks[t]
+                    LinearExpressionSymbol(
+                        polynomial = if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
                             onLastEndTime[t] + onEarliestEndTime[t]
                         } else if (delayLastEndTimeEnabled) {
                             LinearPolynomial(onLastEndTime[t])
@@ -581,10 +615,10 @@ abstract class TaskTimeImpl<
                             LinearPolynomial(onEarliestEndTime[t])
                         } else {
                             LinearPolynomial(1)
-                        }
-                    },
-                    { (_, t) -> "$t" }
-                )
+                        },
+                        name = "on_time_${task}"
+                    )
+                }
             }
             when (val result = model.add(onTime)) {
                 is Ok -> {}
@@ -598,21 +632,25 @@ abstract class TaskTimeImpl<
         if (delayLastEndTimeEnabled) {
             if (!::notOnLastEndTime.isInitialized) {
                 notOnLastEndTime = LinearIntermediateSymbols1(
-                    "not_on_last_end_time",
-                    Shape1(tasks.size)
+                    name = "not_on_last_end_time",
+                    shape = Shape1(tasks.size)
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled) {
-                        LinearIntermediateSymbol.empty(name = "not_on_last_end_time_${task}")
+                        LinearIntermediateSymbol.empty(
+                            name = "not_on_last_end_time_${task}"
+                        )
                     } else {
                         when (val lastEndTime = task.lastEndTime) {
                             null -> {
-                                LinearIntermediateSymbol.empty(name = "not_on_last_end_time_${task}")
+                                LinearIntermediateSymbol.empty(
+                                    name = "not_on_last_end_time_${task}"
+                                )
                             }
 
                             else -> {
                                 IfFunction(
-                                    estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
+                                    inequality = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
                                     name = "not_on_last_end_time_${task}"
                                 )
                             }
@@ -632,21 +670,25 @@ abstract class TaskTimeImpl<
         if (advanceEarliestEndTimeEnabled) {
             if (!::notOnEarliestEndTime.isInitialized) {
                 notOnEarliestEndTime = LinearIntermediateSymbols1(
-                    "on_earliest_end_time",
-                    Shape1(tasks.size)
+                    name = "on_earliest_end_time",
+                    shape = Shape1(tasks.size)
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
-                        LinearIntermediateSymbol.empty(name = "not_on_earliest_end_time_${task}")
+                        LinearIntermediateSymbol.empty(
+                            name = "not_on_earliest_end_time_${task}"
+                        )
                     } else {
                         when (val earliestEndTime = task.earliestEndTime) {
                             null -> {
-                                LinearIntermediateSymbol.empty(name = "not_on_earliest_end_time_${task}")
+                                LinearIntermediateSymbol.empty(
+                                    name = "not_on_earliest_end_time_${task}"
+                                )
                             }
 
                             else -> {
                                 IfFunction(
-                                    estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
+                                    inequality = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
                                     name = "not_on_earliest_end_time_${task}"
                                 )
                             }
@@ -665,22 +707,24 @@ abstract class TaskTimeImpl<
 
         if (delayLastEndTimeEnabled || advanceEarliestEndTimeEnabled) {
             if (!::notOnTime.isInitialized) {
-                notOnTime = flatMap(
-                    "not_on_time",
-                    tasks,
-                    { t ->
-                        if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
+                notOnTime = LinearIntermediateSymbols1(
+                    name = "not_on_time",
+                    shape = Shape1(tasks.size)
+                ) { t, _ ->
+                    val task = tasks[t]
+                    LinearExpressionSymbol(
+                        polynomial = if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
                             notOnLastEndTime[t] + notOnEarliestEndTime[t]
                         } else if (delayLastEndTimeEnabled) {
                             LinearPolynomial(notOnLastEndTime[t])
                         } else if (advanceEarliestEndTimeEnabled) {
                             LinearPolynomial(notOnEarliestEndTime[t])
                         } else {
-                            LinearPolynomial(0)
-                        }
-                    },
-                    { (_, t) -> "$t" }
-                )
+                            LinearPolynomial()
+                        },
+                        name = "not_on_time_${task}"
+                    )
+                }
             }
             when (val result = model.add(notOnTime)) {
                 is Ok -> {}
@@ -774,16 +818,20 @@ class TaskSchedulingTaskTime<
         if (delayEnabled || advanceEnabled) {
             if (!::estSlack.isInitialized) {
                 estSlack = LinearIntermediateSymbols1(
-                    "est_slack",
-                    Shape1(tasks.size)
+                    name = "est_slack",
+                    shape = Shape1(tasks.size)
                 ) { i, _ ->
                     val task = tasks[i]
                     if (!task.delayEnabled && !task.advanceEnabled) {
-                        LinearIntermediateSymbol.empty(name = "est_slack_${task}")
+                        LinearIntermediateSymbol.empty(
+                            name = "est_slack_${task}"
+                        )
                     } else {
                         when (val time = task.time) {
                             null -> {
-                                LinearIntermediateSymbol.empty(name = "est_slack_${task}")
+                                LinearIntermediateSymbol.empty(
+                                    name = "est_slack_${task}"
+                                )
                             }
 
                             else -> {
@@ -804,7 +852,12 @@ class TaskSchedulingTaskTime<
                                     withPositive = delayEnabled && task.delayEnabled,
                                     name = "est_slack_${task}"
                                 )
-                                slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
+                                slack.range.set(
+                                    ValueRange(
+                                        -y,
+                                        with(timeWindow) { end.value } - y
+                                    ).value!!
+                                )
                                 slack
                             }
                         }
@@ -821,12 +874,16 @@ class TaskSchedulingTaskTime<
         }
 
         if (!::estimateStartTime.isInitialized) {
-            estimateStartTime = map(
-                "estimate_start_time",
-                tasks,
-                { t -> LinearMonomial(est[t]) },
-                { (_, t) -> "$t" }
-            )
+            estimateStartTime = LinearIntermediateSymbols1(
+                name = "estimate_start_time",
+                shape = Shape1(tasks.size)
+            ) { t, _ ->
+                val task = tasks[t]
+                LinearExpressionSymbol(
+                    monomial = LinearMonomial(est[t]),
+                    name = "estimate_start_time_${task}"
+                )
+            }
             for (task in tasks) {
                 estimateStartTime[task].range.leq(with(timeWindow) { end.value })
                 when (val time = task.time) {
@@ -852,12 +909,16 @@ class TaskSchedulingTaskTime<
         }
 
         if (!::estimateEndTime.isInitialized) {
-            estimateEndTime = flatMap(
-                "estimate_end_time",
-                tasks,
-                { t -> estimateEndTimeCalculator(t, LinearPolynomial(estimateStartTime[t])) },
-                { (_, t) -> "$t" }
-            )
+            estimateEndTime = LinearIntermediateSymbols1(
+                name = "estimate_end_time",
+                shape = Shape1(tasks.size)
+            ) { t, _ ->
+                val task = tasks[t]
+                LinearExpressionSymbol(
+                    estimateEndTimeCalculator(task, LinearPolynomial(estimateStartTime[t])),
+                    name = "estimate_end_time_${task}"
+                )
+            }
             for (task in tasks) {
                 estimateEndTime[task].range.leq(with(timeWindow) { end.value })
                 when (val lastEndTime = task.lastEndTime) {
@@ -925,18 +986,20 @@ open class IterativeTaskSchedulingTaskTime<
         }
 
         if (!::estimateStartTime.isInitialized) {
-            estimateStartTime = flatMap(
-                "estimate_start_time",
-                tasks,
-                { t ->
+            estimateStartTime = LinearExpressionSymbols1(
+                name = "estimate_start_time",
+                shape = Shape1(tasks.size)
+            ) { t, _ ->
+                val task = tasks[t]
+                LinearExpressionSymbol(
                     if (!::estRedundancy.isInitialized) {
                         LinearPolynomial(estRedundancy[t])
                     } else {
                         LinearPolynomial()
-                    }
-                },
-                { (_, t) -> "$t" }
-            )
+                    },
+                    name = "estimate_start_time_${task}"
+                )
+            }
         }
         when (val result = model.add(estimateStartTime)) {
             is Ok -> {}
@@ -947,18 +1010,20 @@ open class IterativeTaskSchedulingTaskTime<
         }
 
         if (!::estimateEndTime.isInitialized) {
-            estimateEndTime = flatMap(
-                "estimate_end_time",
-                tasks,
-                { t ->
+            estimateEndTime = LinearExpressionSymbols1(
+                name = "estimate_end_time",
+                shape = Shape1(tasks.size)
+            ) { t, _ ->
+                val task = tasks[t]
+                LinearExpressionSymbol(
                     if (!::estRedundancy.isInitialized) {
                         LinearPolynomial(estRedundancy[t])
                     } else {
                         LinearPolynomial()
-                    }
-                },
-                { (_, t) -> "$t" }
-            )
+                    },
+                    name = "estimate_end_time_${task}"
+                )
+            }
         }
         when (val result = model.add(estimateEndTime)) {
             is Ok -> {}
@@ -970,16 +1035,20 @@ open class IterativeTaskSchedulingTaskTime<
 
         if (!::estSlack.isInitialized) {
             estSlack = LinearIntermediateSymbols1(
-                "est_slack",
-                Shape1(tasks.size)
+                name = "est_slack",
+                shape = Shape1(tasks.size)
             ) { i, _ ->
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
-                    LinearIntermediateSymbol.empty(name = "est_slack_${task}")
+                    LinearIntermediateSymbol.empty(
+                        name = "est_slack_${task}"
+                    )
                 } else {
                     when (val time = task.time) {
                         null -> {
-                            LinearIntermediateSymbol.empty(name = "est_slack_${task}")
+                            LinearIntermediateSymbol.empty(
+                                name = "est_slack_${task}"
+                            )
                         }
 
                         else -> {

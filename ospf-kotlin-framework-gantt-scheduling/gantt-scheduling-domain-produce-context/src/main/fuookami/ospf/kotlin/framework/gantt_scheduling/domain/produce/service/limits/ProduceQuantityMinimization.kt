@@ -24,7 +24,7 @@ class ProduceQuantityMinimization<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override operator fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.minimize(
-            sum(products.map {
+            polynomial = sum(products.map {
                 val thresholdValue = threshold(it)
                 if (thresholdValue eq Flt64.zero) {
                     coefficient(it) * produce.quantity[it]
@@ -45,7 +45,7 @@ class ProduceQuantityMinimization<
                     coefficient(it) * slack
                 }
             }),
-            "produce quantity"
+            name = "produce quantity"
         )) {
             is Ok -> {}
 

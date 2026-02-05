@@ -17,8 +17,8 @@ class VolumeMinimization<
 ) : AbstractBPP3DCGPipeline<Args, T> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.minimize(
-            coefficient * assignment.volume,
-            "volume"
+            monomial = coefficient * assignment.volume,
+            name = "volume"
         )) {
             is Ok -> {}
 

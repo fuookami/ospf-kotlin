@@ -61,7 +61,12 @@ data class DoublePendulumSystemGenerator(
             )
         ): DoublePendulumSystemGenerator {
             return DoublePendulumSystemGenerator(
-                DoublePendulumSystem(m, l, g, h),
+                DoublePendulumSystem(
+                    m = m,
+                    l = l,
+                    g = g,
+                    h = h
+                ),
                 x,
                 y
             )

@@ -136,16 +136,27 @@ interface Expression {
 
     fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(tokenTable.tokenList, zeroIfNone)
+        return evaluate(
+            tokenList = tokenTable.tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(results, tokenTable.tokenList, zeroIfNone)
+        return evaluate(
+            results = results,
+            tokenList = tokenTable.tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList? = null, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable? = null, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(values, tokenTable?.tokenList, zeroIfNone)
+        return evaluate(
+            values = values,
+            tokenList = tokenTable?.tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 }

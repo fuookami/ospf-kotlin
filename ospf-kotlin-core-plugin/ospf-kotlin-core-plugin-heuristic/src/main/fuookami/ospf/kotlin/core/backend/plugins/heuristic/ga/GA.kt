@@ -56,13 +56,21 @@ class GAPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGAPolicy<V> {
+) : HeuristicPolicy(
+    iterationLimit = iterationLimit,
+    notBetterIterationLimit = notBetterIterationLimit,
+    timeLimit = timeLimit
+), AbstractGAPolicy<V> {
     override suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
         model: AbstractCallBackModelInterface<*, V>
     ): List<AbstractPopulation<V>> {
-        return migration(iteration, populations, model)
+        return migration(
+            iteration = iteration,
+            populations = populations,
+            model = model
+        )
             .map { (population, newIndividuals) ->
                 val individuals = (population.individuals + newIndividuals)
                         .sortedWithPartialThreeWayComparator { lhs, rhs ->
@@ -85,9 +93,17 @@ class GAPolicy<V>(
         population: AbstractPopulation<V>,
         model: AbstractCallBackModelInterface<*, V>
     ): List<Chromosome<V>> {
-        val amount = selectionMode(iteration, population, model)
+        val amount = selectionMode(
+            iteration = iteration,
+            population = population,
+            model = model
+        )
         val weights = normalization(model, population.individuals.map { it.fitness })
-        val indexes = selection(iteration, weights, amount)
+        val indexes = selection(
+            iteration = iteration,
+            weights = weights,
+            amount = amount
+        )
         return population.individuals.mapIndexedNotNull { index, individual ->
             if (UInt64(index) in indexes) {
                 individual
@@ -104,11 +120,21 @@ class GAPolicy<V>(
         parentAmountRange: ValueRange<UInt64>
     ): List<Chromosome<V>> {
         val weights = normalization(model, population.map { it.fitness })
-        val parentGroups = crossMode(iteration, population, weights, model, parentAmountRange)
+        val parentGroups = crossMode(
+            iteration = iteration,
+            population = population,
+            weights = weights,
+            model = model,
+            parentAmountRange = parentAmountRange
+        )
         return coroutineScope {
             parentGroups.map { parents ->
                 async(Dispatchers.Default) {
-                    cross(iteration, parents, model).map { newIndividual ->
+                    cross(
+                        iteration = iteration,
+                        parents = parents,
+                        model = model
+                    ).map { newIndividual ->
                         val fixIndividual = newIndividual.mapIndexed { i, value ->
                             coerceIn(
                                 iteration = iteration,
@@ -134,12 +160,23 @@ class GAPolicy<V>(
         mutationRateRange: ValueRange<Flt64>
     ): List<Chromosome<V>> {
         val weights = normalization(model, population.map { it.fitness })
-        val mutationRate = mutationMode(iteration, population, weights, model, mutationRateRange)
+        val mutationRate = mutationMode(
+            iteration = iteration,
+            population = population,
+            weights = weights,
+            model = model,
+            mutationRateRange = mutationRateRange
+        )
         return coroutineScope {
             population.mapIndexed { i, individual ->
                 async(Dispatchers.Default) {
                     if (randomGenerator()!! geq mutationRate[i]) {
-                        val newIndividual = mutation(iteration, individual, model, mutationRate[i])
+                        val newIndividual = mutation(
+                            iteration = iteration,
+                            individual = individual,
+                            model = model,
+                            mutationRate = mutationRate[i]
+                        )
                         val fixIndividual = newIndividual.mapIndexed { i, value ->
                             coerceIn(
                                 iteration = iteration,
@@ -215,15 +252,33 @@ class GeneAlgorithm<Obj, V>(
             var globalBetter = false
 
             if (migrationPeriod > UInt64.zero && iteration.iteration % migrationPeriod == UInt64.zero) {
-                populations = policy.migrate(iteration, populations, model)
+                populations = policy.migrate(
+                    iteration = iteration,
+                    populations = populations,
+                    model = model
+                )
             }
 
             val newPopulationAndChromosomes = coroutineScope {
                 populations.map { population ->
                     async(Dispatchers.Default) {
-                        val selected = policy.select(iteration, population, model)
-                        val crossed = policy.cross(iteration, selected, model, population.parentAmountRange)
-                        val mutated = policy.mutate(iteration, crossed, model, population.mutationRateRange)
+                        val selected = policy.select(
+                            iteration = iteration,
+                            population = population,
+                            model = model
+                        )
+                        val crossed = policy.cross(
+                            iteration = iteration,
+                            population = selected,
+                            model = model,
+                            parentAmountRange = population.parentAmountRange
+                        )
+                        val mutated = policy.mutate(
+                            iteration = iteration,
+                            population = crossed,
+                            model = model,
+                            mutationRateRange = population.mutationRateRange
+                        )
                         val combined = (crossed + mutated + population.elites)
                             .sortedWithPartialThreeWayComparator { lhs, rhs ->
                                 model.compareObjective(lhs.fitness, rhs.fitness)

@@ -109,13 +109,19 @@ class InStepRange(
             val lbValue = if (values.isNullOrEmpty()) {
                 lb.evaluate(tokenTable)
             } else {
-                lb.evaluate(values, tokenTable)
+                lb.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val qValue = if (values.isNullOrEmpty()) {
                 q.evaluate(tokenTable)
             } else {
-                q.evaluate(values, tokenTable)
+                q.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             lbValue + qValue * step
@@ -194,8 +200,14 @@ class InStepRange(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(tokenList, zeroIfNone) ?: return null
-        val qValue = q.evaluate(tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * step
     }
 
@@ -204,8 +216,16 @@ class InStepRange(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val qValue = q.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * step
     }
 
@@ -214,8 +234,16 @@ class InStepRange(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val qValue = q.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * step
     }
 
@@ -223,8 +251,14 @@ class InStepRange(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(tokenTable, zeroIfNone) ?: return null
-        val qValue = q.evaluate(tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * step
     }
 
@@ -233,8 +267,16 @@ class InStepRange(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val qValue = q.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * step
     }
 
@@ -243,8 +285,16 @@ class InStepRange(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val qValue = q.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * step
     }
 }

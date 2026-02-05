@@ -40,7 +40,11 @@ data class BrusselatorGenerator(
             )
         ): BrusselatorGenerator {
             return BrusselatorGenerator(
-                Brusselator(a, b, h),
+                Brusselator(
+                    a = a,
+                    b = b,
+                    h = h
+                ),
                 x
             )
         }

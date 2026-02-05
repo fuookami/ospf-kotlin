@@ -7,16 +7,44 @@ class DerivedQuantity(
 ) {
     val quantities = quantities.sortedBy { it.dimension }
 
-    constructor(dimension: FundamentalQuantityDimension, name: String? = null, symbol: String? = null) : this(listOf(FundamentalQuantity(dimension)), name, symbol)
-    constructor(quantity: FundamentalQuantity, name: String? = null, symbol: String? = null) : this(listOf(quantity), name, symbol)
-    constructor(quantity: DerivedQuantity, name: String? = null, symbol: String? = null) : this(quantity.quantities.toList(), name, symbol)
+    constructor(
+        dimension: FundamentalQuantityDimension,
+        name: String? = null,
+        symbol: String? = null
+    ) : this(
+        quantities = listOf(FundamentalQuantity(dimension)),
+        name = name,
+        symbol = symbol
+    )
+
+    constructor(
+        quantity: FundamentalQuantity,
+        name: String? = null,
+        symbol: String? = null
+    ) : this(
+        quantities = listOf(quantity),
+        name = name,
+        symbol = symbol
+    )
+
+    constructor(
+        quantity: DerivedQuantity,
+        name: String? = null,
+        symbol: String? = null
+    ) : this(
+        quantities = quantity.quantities.toList(),
+        name = name,
+        symbol = symbol
+    )
 
     operator fun unaryMinus(): DerivedQuantity {
         return DerivedQuantity(quantities.map { -it })
     }
 
     override fun toString(): String {
-        return symbol ?: name ?: quantities.joinToString(separator = " * ") { "${it.dimension}^${it.index}" }
+        return symbol
+            ?: name
+            ?: quantities.joinToString(separator = " * ") { "${it.dimension}^${it.index}" }
     }
 
     override fun equals(other: Any?): Boolean {

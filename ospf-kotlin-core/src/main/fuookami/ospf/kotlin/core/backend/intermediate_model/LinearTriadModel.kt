@@ -6,10 +6,10 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.ordinary.pow
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.*
@@ -34,10 +34,18 @@ class LinearConstraintCell(
     override val coefficient by ::_coefficient
 
     override fun unaryMinus(): LinearConstraintCell {
-        return LinearConstraintCell(rowIndex, colIndex, -coefficient)
+        return LinearConstraintCell(
+            rowIndex = rowIndex,
+            colIndex = colIndex,
+            coefficient = -coefficient
+        )
     }
 
-    override fun copy() = LinearConstraintCell(rowIndex, colIndex, coefficient.copy())
+    override fun copy() = LinearConstraintCell(
+        rowIndex = rowIndex,
+        colIndex = colIndex,
+        coefficient = coefficient.copy()
+    )
     override fun clone() = copy()
 
     override fun toString(): String {
@@ -147,7 +155,7 @@ class BasicLinearTriadModel(
 
     fun linearRelaxed(): BasicLinearTriadModel {
         return BasicLinearTriadModel(
-            variables.map {
+            variables = variables.map {
                 when (it.type) {
                     is Binary -> {
                         val ret = it.copy()
@@ -170,8 +178,8 @@ class BasicLinearTriadModel(
                     else -> it.copy()
                 }
             },
-            constraints,
-            name
+            constraints = constraints,
+            name = name
         )
     }
 
@@ -341,13 +349,26 @@ data class LinearTriadModel(
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(model, tokenIndexMap, bounds)
+                        dumpVariables(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds
+                        )
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(model, tokenIndexMap, bounds, fixedVariables)
+                        dumpConstraintsAsync(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds,
+                            fixedVariables = fixedVariables
+                        )
                     }
                     val objectivePromise = async(Dispatchers.Default) {
-                        dumpObjectives(model, tokenIndexMap, fixedVariables)
+                        dumpObjectives(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            fixedVariables = fixedVariables
+                        )
                     }
 
                     LinearTriadModel(
@@ -363,12 +384,25 @@ data class LinearTriadModel(
             } else {
                 LinearTriadModel(
                     impl = BasicLinearTriadModel(
-                        variables = dumpVariables(model, tokenIndexMap, bounds),
-                        constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables),
+                        variables = dumpVariables(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds
+                        ),
+                        constraints = dumpConstraints(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds,
+                            fixedVariables = fixedVariables
+                        ),
                         name = model.name
                     ),
                     tokensInSolver = tokensInSolver,
-                    objective = dumpObjectives(model, tokenIndexMap, fixedVariables)
+                    objective = dumpObjectives(
+                        model = model,
+                        tokenIndexes = tokenIndexMap,
+                        fixedVariables = fixedVariables
+                    )
                 )
             }
 
@@ -379,14 +413,14 @@ data class LinearTriadModel(
 
         private fun dumpVariables(
             model: LinearMechanismModel,
-            tokenIndexMap: Map<Token, Int>,
+            tokenIndexes: Map<Token, Int>,
             bounds: Map<Token, List<Quadruple<OriginLinearConstraint, Token, Sign, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
-            for ((_, _) in tokenIndexMap) {
+            for ((_, _) in tokenIndexes) {
                 variables.add(null)
             }
-            for ((token, i) in tokenIndexMap) {
+            for ((token, i) in tokenIndexes) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
                     .filter { it.third == Sign.GreaterEqual || it.third == Sign.Equal }
@@ -471,7 +505,15 @@ data class LinearTriadModel(
                 origins.add(constraint)
                 froms.add(constraint.from)
             }
-            return LinearConstraint(lhs, signs, rhs, names, sources, origins, froms)
+            return LinearConstraint(
+                lhs = lhs,
+                signs = signs,
+                rhs = rhs,
+                names = names,
+                sources = sources,
+                origins = origins,
+                froms = froms
+            )
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -547,7 +589,15 @@ data class LinearTriadModel(
                         origins.add(constraint)
                         froms.add(constraint.from)
                     }
-                    LinearConstraint(lhs, signs, rhs, names, sources, origins, froms)
+                    LinearConstraint(
+                        lhs = lhs,
+                        signs = signs,
+                        rhs = rhs,
+                        names = names,
+                        sources = sources,
+                        origins = origins,
+                        froms = froms
+                    )
                 }
             } else {
                 val lhs = ArrayList<List<LinearConstraintCell>>()
@@ -590,7 +640,15 @@ data class LinearTriadModel(
                     froms.add(constraint.from)
                 }
                 System.gc()
-                LinearConstraint(lhs, signs, rhs, names, sources, origins, froms)
+                LinearConstraint(
+                    lhs = lhs,
+                    signs = signs,
+                    rhs = rhs,
+                    names = names,
+                    sources = sources,
+                    origins = origins,
+                    froms = froms
+                )
             }
         }
 
@@ -646,7 +704,11 @@ data class LinearTriadModel(
                     )
                 )
             }
-            return LinearObjective(objectiveCategory, objective, constant)
+            return LinearObjective(
+                category = objectiveCategory,
+                objective = objective,
+                constant = constant
+            )
         }
     }
 
@@ -655,7 +717,11 @@ data class LinearTriadModel(
     override val name: String by impl::name
     override val dual get() = dualOrigin != null
 
-    override fun copy() = LinearTriadModel(impl.copy(), tokensInSolver, objective.copy())
+    override fun copy() = LinearTriadModel(
+        impl = impl.copy(),
+        tokensInSolver = tokensInSolver,
+        objective = objective.copy()
+    )
     override fun clone() = copy()
 
     override fun linearRelax(): LinearTriadModel {
@@ -664,7 +730,11 @@ data class LinearTriadModel(
     }
 
     override fun linearRelaxed(): LinearTriadModel {
-        return LinearTriadModel(impl.linearRelaxed(), tokensInSolver, objective.copy())
+        return LinearTriadModel(
+            impl = impl.linearRelaxed(),
+            tokensInSolver = tokensInSolver,
+            objective = objective.copy()
+        )
     }
 
     suspend fun dual(): LinearTriadModel {
@@ -905,7 +975,7 @@ data class LinearTriadModel(
             }
         }
         val rhs = this.variables.map { col ->
-            this.objective.obj.find { it.colIndex == col.index }?.coefficient ?: Flt64.zero
+            this.objective.objective.find { it.colIndex == col.index }?.coefficient ?: Flt64.zero
         }
         val names = this.variables.map { "${it.name}_dual" }
         val sources = this.variables.map { ConstraintSource.Dual }
@@ -935,7 +1005,13 @@ data class LinearTriadModel(
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
                 variables = (dualVariables + boundDualVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
-                constraints = LinearConstraint(lhs, signs, rhs, names, sources),
+                constraints = LinearConstraint(
+                    lhs = lhs,
+                    signs = signs,
+                    rhs = rhs,
+                    names = names,
+                    sources = sources
+                ),
                 name = "$name-dual"
             ),
             tokensInSolver = tokensInSolver,
@@ -1246,7 +1322,13 @@ data class LinearTriadModel(
         return LinearTriadModel(
             impl = BasicLinearTriadModel(
                 variables = (farkasVariables + slackVariables + boundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
-                constraints = LinearConstraint(lhs, signs, rhs, names, sources),
+                constraints = LinearConstraint(
+                    lhs = lhs,
+                    signs = signs,
+                    rhs = rhs,
+                    names = names,
+                    sources = sources
+                ),
                 name = "$name-farkas-dual"
             ),
             tokensInSolver = tokensInSolver,
@@ -1947,7 +2029,7 @@ data class LinearTriadModel(
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.write("${objective.category}\n")
         var i = 0
-        for (cell in objective.obj) {
+        for (cell in objective.objective) {
             if (cell.coefficient eq Flt64.zero) {
                 continue
             }

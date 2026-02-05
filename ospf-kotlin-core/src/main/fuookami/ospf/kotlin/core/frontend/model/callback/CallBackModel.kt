@@ -96,13 +96,21 @@ class CallBackModel internal constructor(
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ) = CallBackModel(
             objectCategory = objectCategory,
-            policy = FunctionalCallBackModelPolicy(dumpObjectiveComparator(objectCategory), initialSolutionGenerator)
+            policy = FunctionalCallBackModelPolicy(
+                objectiveComparator = dumpObjectiveComparator(objectCategory),
+                initialSolutionsGenerator = initialSolutionGenerator
+            )
         )
 
         operator fun invoke(
             objectiveComparator: PartialComparator<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ) = CallBackModel(policy = FunctionalCallBackModelPolicy(objectiveComparator, initialSolutionGenerator))
+        ) = CallBackModel(
+            policy = FunctionalCallBackModelPolicy(
+                objectiveComparator = objectiveComparator,
+                initialSolutionsGenerator = initialSolutionGenerator
+            )
+        )
 
         operator fun invoke(
             model: AbstractMetaModel,
@@ -119,21 +127,21 @@ class CallBackModel internal constructor(
                 Pair(
                     { solution: Solution ->
                         if (objective.category == model.objectCategory) {
-                            objective.value(solution, tokens)
+                            objective.evaluate(solution, tokens)
                         } else {
-                            -objective.value(solution, tokens)!!
+                            -objective.evaluate(solution, tokens)!!
                         }
                     },
                     objective.name
                 )
             }.toMutableList()
             return CallBackModel(
-                model.category,
-                model.objectCategory,
-                tokens,
-                constraints,
-                objectiveFunction,
-                FunctionalCallBackModelPolicy(
+                category = model.category,
+                objectCategory = model.objectCategory,
+                tokens = tokens,
+                _constraints = constraints,
+                _objectiveFunctions = objectiveFunction,
+                policy = FunctionalCallBackModelPolicy(
                     dumpObjectiveComparator(model.objectCategory),
                     initialSolutionGenerator
                 )
@@ -171,12 +179,12 @@ class CallBackModel internal constructor(
                 )
             }.toMutableList()
             return CallBackModel(
-                Nonlinear,
-                model.objectFunction.category,
-                tokens,
-                constraints,
-                objectiveFunction,
-                FunctionalCallBackModelPolicy(
+                category = Nonlinear,
+                objectCategory = model.objectFunction.category,
+                tokens = tokens,
+                _constraints = constraints,
+                _objectiveFunctions = objectiveFunction,
+                policy = FunctionalCallBackModelPolicy(
                     dumpObjectiveComparator(model.objectFunction.category),
                     initialSolutionGenerator
                 )
@@ -232,7 +240,12 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
-        return addObject(category, LinearPolynomial(variable), name, displayName)
+        return addObject(
+            category = category,
+            expression = LinearPolynomial(variable),
+            name = name,
+            displayName = displayName
+        )
     }
 
     override fun <T : RealNumber<T>> addObject(
@@ -241,7 +254,12 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
-        return addObject(category, LinearPolynomial(constant), name, displayName)
+        return addObject(
+            category = category,
+            expression = LinearPolynomial(constant),
+            name = name,
+            displayName = displayName
+        )
     }
 
     fun addObject(
@@ -311,7 +329,12 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
-        return addObject(ObjectCategory.Maximum, expression, name, displayName)
+        return addObject(
+            category = ObjectCategory.Maximum,
+            expression = expression,
+            name = name,
+            displayName = displayName
+        )
     }
 
     fun maximize(
@@ -319,7 +342,12 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
-        return addObject(ObjectCategory.Maximum, func, name, displayName)
+        return addObject(
+            category = ObjectCategory.Maximum,
+            func = func,
+            name = name,
+            displayName = displayName
+        )
     }
 
     fun minimize(
@@ -327,7 +355,12 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
-        return addObject(ObjectCategory.Minimum, expression, name, displayName)
+        return addObject(
+            category = ObjectCategory.Minimum,
+            expression = expression,
+            name = name,
+            displayName = displayName
+        )
     }
 
     fun minimize(
@@ -335,7 +368,12 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
-        return addObject(ObjectCategory.Minimum, func, name, displayName)
+        return addObject(
+            category = ObjectCategory.Minimum,
+            func = func,
+            name = name,
+            displayName = displayName
+        )
     }
 
     override fun setSolution(solution: Solution) {

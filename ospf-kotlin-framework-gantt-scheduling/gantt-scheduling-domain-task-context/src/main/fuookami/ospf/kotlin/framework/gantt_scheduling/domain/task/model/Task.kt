@@ -174,10 +174,26 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
         return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
     }
 
-    val advance: Duration get() = advance(time, timeWindow, scheduledTime)
-    val actualAdvance: Duration get() = advance(time, timeWindow, scheduledTime)
-    val delay: Duration get() = delay(time, timeWindow, scheduledTime)
-    val actualDelay: Duration get() = delay(time, timeWindow, scheduledTime)
+    val advance: Duration get() = advance(
+        time = time,
+        timeWindow = timeWindow,
+        targetTime = scheduledTime
+    )
+    val actualAdvance: Duration get() = advance(
+        time = time,
+        timeWindow = timeWindow,
+        targetTime = scheduledTime
+    )
+    val delay: Duration get() = delay(
+        time = time,
+        timeWindow = timeWindow,
+        targetTime = scheduledTime
+    )
+    val actualDelay: Duration get() = delay(
+        time = time,
+        timeWindow = timeWindow,
+        targetTime = scheduledTime
+    )
 
     val overMaxDelay: Duration
         get() {
@@ -340,7 +356,11 @@ open class AbstractPlannedTask<out P: AbstractTaskPlan<E>, out E : Executor, out
         prevTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?,
         succTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>?
     ): Duration {
-        return plan.connectionTime(executor, prevTask, succTask)
+        return plan.connectionTime(
+            executor = executor,
+            prevTask = prevTask,
+            succTask = succTask
+        )
     }
 
     // it is disabled to schedule if there is actual time or time

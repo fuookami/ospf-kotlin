@@ -134,11 +134,19 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun atanh() = toFlt64().atanh()
     override fun acoth() = toFlt64().acoth()
 
-    override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(copy(), rhs, one, UInt8, UInt8::toNUInt8, NUInt8::toUInt8)
-    override infix fun until(rhs: NUInt8) = if (rhs == NUInt8.zero) {
-        rangeTo(NUInt8.zero)
+    override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(
+        start = copy(),
+        endInclusive = rhs,
+        _step = one,
+        constants = UInt8,
+        ctor = UInt8::toNUInt8,
+        converter = NUInt8::toUInt8
+    )
+
+    override infix fun until(rhs: NUInt8) = if (rhs == zero) {
+        rangeTo(zero)
     } else {
-        rangeTo((rhs - NUInt8.one).toNUInt8())
+        rangeTo((rhs - one).toNUInt8())
     }
 
     override fun toInt8() = value.toInt8()
@@ -256,13 +264,19 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun atanh() = toFlt64().atanh()
     override fun acoth() = toFlt64().acoth()
 
-    override fun rangeTo(rhs: NUInt16) =
-        NumericUIntegerRange(copy(), rhs, one, UInt16, UInt16::toNUInt16, NUInt16::toUInt16)
+    override fun rangeTo(rhs: NUInt16) = NumericUIntegerRange(
+        start = copy(),
+        endInclusive = rhs,
+        _step = one,
+        constants = UInt16,
+        ctor = UInt16::toNUInt16,
+        converter = NUInt16::toUInt16
+    )
 
-    override infix fun until(rhs: NUInt16) = if (rhs == NUInt16.zero) {
-        rangeTo(NUInt16.zero)
+    override infix fun until(rhs: NUInt16) = if (rhs == zero) {
+        rangeTo(zero)
     } else {
-        rangeTo((rhs - NUInt16.one).toNUInt16())
+        rangeTo((rhs - one).toNUInt16())
     }
 
     override fun toInt8() = value.toInt8()
@@ -379,13 +393,19 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun atanh() = toFlt64().atanh()
     override fun acoth() = toFlt64().acoth()
 
-    override fun rangeTo(rhs: NUInt32) =
-        NumericUIntegerRange(copy(), rhs, one, UInt32, UInt32::toNUInt32, NUInt32::toUInt32)
+    override fun rangeTo(rhs: NUInt32) = NumericUIntegerRange(
+        start = copy(),
+        endInclusive = rhs,
+        _step = one,
+        constants = UInt32,
+        ctor = UInt32::toNUInt32,
+        converter = NUInt32::toUInt32
+    )
 
-    override infix fun until(rhs: NUInt32) = if (rhs == NUInt32.zero) {
-        rangeTo(NUInt32.zero)
+    override infix fun until(rhs: NUInt32) = if (rhs == zero) {
+        rangeTo(zero)
     } else {
-        rangeTo((rhs - NUInt32.one).toNUInt32())
+        rangeTo((rhs - one).toNUInt32())
     }
 
     override fun toInt8() = value.toInt8()
@@ -503,13 +523,19 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun atanh() = toFlt64().atanh()
     override fun acoth() = toFlt64().acoth()
 
-    override fun rangeTo(rhs: NUInt64) =
-        NumericUIntegerRange(copy(), rhs, one, UInt64, UInt64::toNUInt64, NUInt64::toUInt64)
+    override fun rangeTo(rhs: NUInt64) = NumericUIntegerRange(
+        start = copy(),
+        endInclusive = rhs,
+        _step = one,
+        constants = UInt64,
+        ctor = UInt64::toNUInt64,
+        converter = NUInt64::toUInt64
+    )
 
-    override infix fun until(rhs: NUInt64) = if (rhs == NUInt64.zero) {
-        rangeTo(NUInt64.zero)
+    override infix fun until(rhs: NUInt64) = if (rhs == zero) {
+        rangeTo(zero)
     } else {
-        rangeTo((rhs - NUInt64.one).toNUInt64())
+        rangeTo((rhs - one).toNUInt64())
     }
 
     override fun toInt8() = value.toInt8()
@@ -636,11 +662,19 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun atanh() = toFltX().atanh()
     override fun acoth() = toFltX().acoth()
 
-    override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(copy(), rhs, one, UIntX, UIntX::toNUIntX, NUIntX::toUIntX)
-    override infix fun until(rhs: NUIntX) = if (rhs == NUIntX.zero) {
-        rangeTo(NUIntX.zero)
+    override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(
+        start = copy(),
+        endInclusive = rhs,
+        _step = one,
+        constants = UIntX,
+        ctor = UIntX::toNUIntX,
+        converter = NUIntX::toUIntX
+    )
+
+    override infix fun until(rhs: NUIntX) = if (rhs == zero) {
+        rangeTo(zero)
     } else {
-        rangeTo((rhs - NUIntX.one).toNUIntX())
+        rangeTo((rhs - one).toNUIntX())
     }
 
     override fun toInt8() = value.toInt8()

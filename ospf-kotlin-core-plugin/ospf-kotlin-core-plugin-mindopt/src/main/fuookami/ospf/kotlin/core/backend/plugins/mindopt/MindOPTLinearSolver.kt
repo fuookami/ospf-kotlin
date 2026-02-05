@@ -191,7 +191,7 @@ private class MindOPTLinearSolverImpl(
             mindoptConstraints = constraints
 
             val obj = MDOLinExpr()
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 obj.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex])
             }
             obj.addConstant(model.objective.constant.toDouble())
@@ -208,7 +208,13 @@ private class MindOPTLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                mindopt = mindoptModel,
+                variables = mindoptVars,
+                constraints = mindoptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -295,7 +301,13 @@ private class MindOPTLinearSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                mindopt = mindoptModel,
+                variables = mindoptVars,
+                constraints = mindoptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -336,7 +348,13 @@ private class MindOPTLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    mindopt = mindoptModel,
+                    variables = mindoptVars,
+                    constraints = mindoptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -345,7 +363,13 @@ private class MindOPTLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    mindopt = mindoptModel,
+                    variables = mindoptVars,
+                    constraints = mindoptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }

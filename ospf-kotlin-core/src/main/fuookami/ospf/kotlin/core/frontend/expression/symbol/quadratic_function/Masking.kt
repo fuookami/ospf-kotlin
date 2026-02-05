@@ -233,7 +233,7 @@ class MaskingFunction(
 
         if (x.range.range?.contains(Flt64.zero) == true) {
             when (val result = model.addConstraint(
-                x leq m * mask,
+                constraint = x leq m * mask,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -244,7 +244,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                x geq -m * mask,
+                constraint = x geq -m * mask,
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -256,7 +256,7 @@ class MaskingFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                y leq x + m * (Flt64.one - mask),
+                constraint = y leq x + m * (Flt64.one - mask),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -267,7 +267,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                y geq x - m * (Flt64.one - mask),
+                constraint = y geq x - m * (Flt64.one - mask),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -278,7 +278,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                y leq m * mask,
+                constraint = y leq m * mask,
                 name = "${name}_ym_ub",
                 from = parent ?: this
             )) {
@@ -289,7 +289,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                y geq -m * mask,
+                constraint = y geq -m * mask,
                 name = "${name}_ym_lb",
                 from = parent ?: this
             )) {
@@ -321,7 +321,7 @@ class MaskingFunction(
 
         if (x.range.range?.contains(Flt64.zero) == true) {
             when (val result = model.addConstraint(
-                x leq m * mask,
+                constraint = x leq m * mask,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -332,7 +332,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                x geq -m * mask,
+                constraint = x geq -m * mask,
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -344,7 +344,7 @@ class MaskingFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                y leq x + m * (Flt64.one - mask),
+                constraint = y leq x + m * (Flt64.one - mask),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -355,7 +355,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                y geq x - m * (Flt64.one - mask),
+                constraint = y geq x - m * (Flt64.one - mask),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -366,7 +366,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                y leq m * mask,
+                constraint = y leq m * mask,
                 name = "${name}_ym_ub",
                 from = parent ?: this
             )) {
@@ -377,7 +377,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                y geq -m * mask,
+                constraint = y geq -m * mask,
                 name = "${name}_ym_lb",
                 from = parent ?: this
             )) {
@@ -389,7 +389,7 @@ class MaskingFunction(
             }
 
             when (val result = model.addConstraint(
-                y eq if (maskBin) {
+                constraint = y eq if (maskBin) {
                     xValue
                 } else {
                     Flt64.zero
@@ -415,7 +415,7 @@ class MaskingFunction(
 
         if (!externalMask) {
             when (val result = model.addConstraint(
-                u eq maskBin,
+                constraint = u eq maskBin,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -463,9 +463,17 @@ class MaskingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(results, tokenList, zeroIfNone)
+            x.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -476,9 +484,17 @@ class MaskingFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(values, tokenList, zeroIfNone)
+            x.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -501,9 +517,17 @@ class MaskingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(results, tokenTable, zeroIfNone)
+            x.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -514,9 +538,17 @@ class MaskingFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(values, tokenTable, zeroIfNone)
+            x.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }

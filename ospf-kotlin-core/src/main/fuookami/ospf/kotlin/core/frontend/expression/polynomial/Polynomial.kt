@@ -96,8 +96,10 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(tokenList, zeroIfNone)
-                ?: return null
+            val thisValue = monomial.evaluate(
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             ret += thisValue
         }
         return ret
@@ -106,8 +108,11 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(results, tokenList, zeroIfNone)
-                ?: return null
+            val thisValue = monomial.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             ret += thisValue
         }
         return ret
@@ -116,8 +121,10 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(tokenTable, zeroIfNone)
-                ?: return null
+            val thisValue = monomial.evaluate(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             ret += thisValue
         }
         return ret
@@ -126,8 +133,11 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(results, tokenTable, zeroIfNone)
-                ?: return null
+            val thisValue = monomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             ret += thisValue
         }
         return ret
@@ -136,8 +146,11 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(values, tokenList, zeroIfNone)
-                ?: return null
+            val thisValue = monomial.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             ret += thisValue
         }
         return ret
@@ -146,8 +159,11 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(values, tokenTable, zeroIfNone)
-                ?: return null
+            val thisValue = monomial.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             ret += thisValue
         }
         return ret

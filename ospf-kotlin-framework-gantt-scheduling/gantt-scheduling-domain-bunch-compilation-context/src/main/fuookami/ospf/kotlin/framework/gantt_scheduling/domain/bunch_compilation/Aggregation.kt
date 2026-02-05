@@ -25,7 +25,12 @@ abstract class AbstractBunchCompilationAggregation<
 ) {
     private val logger = org.apache.logging.log4j.kotlin.logger("BunchSchedulingAggregation")
 
-    val compilation: BunchCompilation<B, T, E, A> = BunchCompilation(tasks, executors, lockCancelTasks, withExecutorLeisure)
+    val compilation: BunchCompilation<B, T, E, A> = BunchCompilation(
+        tasks = tasks,
+        executors = executors,
+        lockCancelTasks = lockCancelTasks,
+        withExecutorLeisure = withExecutorLeisure
+    )
 
     val bunchesIteration: List<List<B>> by compilation::bunchesIteration
     val bunches: List<B> by compilation::bunches
@@ -95,7 +100,12 @@ abstract class AbstractBunchCompilationAggregation<
 
         val remainingAmount = UInt64((bunches.size - removedBunches.size).toULong())
         return if (remainingAmount > maximumColumnAmount) {
-            Ok(max((maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)).toFlt64(), Flt64(5.0)))
+            Ok(
+                max(
+                    (maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)).toFlt64(),
+                    Flt64(5.0)
+                )
+            )
         } else {
             Ok(maximumReducedCost)
         }
@@ -227,7 +237,7 @@ abstract class AbstractBunchCompilationAggregation<
         }
 
         for (obj in model.subObjects) {
-            logger.debug { "${obj.name} = ${obj.value()}" }
+            logger.debug { "${obj.name} = ${obj.evaluate()}" }
         }
 
         return ok
@@ -321,7 +331,12 @@ open class BunchCompilationAggregation<
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
     withExecutorLeisure: Boolean = true
-) : AbstractBunchCompilationAggregation<B, T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure)
+) : AbstractBunchCompilationAggregation<B, T, E, A>(
+    tasks = tasks,
+    executors = executors,
+    lockCancelTasks = lockCancelTasks,
+    withExecutorLeisure = withExecutorLeisure
+)
 
 open class BunchCompilationAggregationWithTime<
     B : AbstractTaskBunch<T, E, A>,
@@ -336,10 +351,24 @@ open class BunchCompilationAggregationWithTime<
     withExecutorLeisure: Boolean = true,
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractBunchCompilationAggregation<B, T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure) {
-    val taskTime: BunchSchedulingTaskTime<B, T, E, A> =
-        BunchSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
-    val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
+) : AbstractBunchCompilationAggregation<B, T, E, A>(
+    tasks = tasks,
+    executors = executors,
+    lockCancelTasks = lockCancelTasks,
+    withExecutorLeisure = withExecutorLeisure
+) {
+    val taskTime: BunchSchedulingTaskTime<B, T, E, A> = BunchSchedulingTaskTime(
+        timeWindow = timeWindow,
+        tasks = tasks,
+        compilation = compilation,
+        redundancyRange = redundancyRange
+    )
+
+    val makespan: Makespan<T, E, A> = Makespan(
+        tasks = tasks,
+        taskTime = taskTime,
+        extra = makespanExtra
+    )
 
     override fun register(model: MetaModel): Try {
         when (val result = super.register(model)) {
@@ -374,7 +403,11 @@ open class BunchCompilationAggregationWithTime<
         newBunches: List<B>,
         model: AbstractLinearMetaModel
     ): Ret<List<B>> {
-        val unduplicatedBunches = when (val result = super.addColumns(iteration, newBunches, model)) {
+        val unduplicatedBunches = when (val result = super.addColumns(
+            iteration = iteration,
+            newBunches = newBunches,
+            model = model
+        )) {
             is Ok -> {
                 result.value
             }
@@ -384,7 +417,11 @@ open class BunchCompilationAggregationWithTime<
             }
         }
 
-        when (val result = taskTime.addColumns(iteration, unduplicatedBunches, model)) {
+        when (val result = taskTime.addColumns(
+            iteration = iteration,
+            bunches = unduplicatedBunches,
+            model = model
+        )) {
             is Ok -> {
                 result.value
             }

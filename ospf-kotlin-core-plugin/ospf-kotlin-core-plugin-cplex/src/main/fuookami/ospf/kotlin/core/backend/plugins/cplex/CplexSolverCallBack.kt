@@ -20,7 +20,7 @@ enum class Point {
 
 class CplexSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
-    private val map: MutableMap<Point, MutableList<Function>> = HashMap()
+    private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)
 ) : Copyable<CplexSolverCallBack> {
     fun set(function: NativeCallback) {
         nativeCallback = function
@@ -40,7 +40,13 @@ class CplexSolverCallBack(
     fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<Function>? = map[point]
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, cplex: IloCplex, variables: List<IloNumVar>, constraints: List<IloRange>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        cplex: IloCplex,
+        variables: List<IloNumVar>,
+        constraints: List<IloRange>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, cplex, variables, constraints) }
@@ -51,6 +57,9 @@ class CplexSolverCallBack(
     }
 
     override fun copy(): CplexSolverCallBack {
-        return CplexSolverCallBack(nativeCallback, map.toMutableMap())
+        return CplexSolverCallBack(
+            nativeCallback = nativeCallback,
+            map = map.toMutableMap()
+        )
     }
 }

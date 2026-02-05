@@ -104,9 +104,18 @@ private class GurobiQuadraticSolverImpl(
         val processes = arrayOf(
             {
                 if (server != null && password != null && connectionTime != null) {
-                    it.init(server, password, connectionTime, model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        server = server,
+                        password = password,
+                        connectionTime = connectionTime,
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 } else {
-                    it.init(model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 }
             },
             { it.dump(model) },
@@ -209,7 +218,7 @@ private class GurobiQuadraticSolverImpl(
             grbConstraints = constraints
 
             val obj = GRBQuadExpr()
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 if (cell.colIndex2 == null) {
                     obj.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex1])
                 } else {
@@ -229,7 +238,13 @@ private class GurobiQuadraticSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                gurobi = grbModel,
+                variables = grbVars,
+                constraints = grbConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -322,7 +337,13 @@ private class GurobiQuadraticSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                gurobi = grbModel,
+                variables = grbVars,
+                constraints = grbConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -363,7 +384,13 @@ private class GurobiQuadraticSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    gurobi = grbModel,
+                    variables = grbVars,
+                    constraints = grbConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -372,7 +399,13 @@ private class GurobiQuadraticSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    gurobi = grbModel,
+                    variables = grbVars,
+                    constraints = grbConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
