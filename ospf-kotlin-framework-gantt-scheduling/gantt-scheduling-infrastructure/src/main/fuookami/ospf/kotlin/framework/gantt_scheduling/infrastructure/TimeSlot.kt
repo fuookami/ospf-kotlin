@@ -8,4 +8,6 @@ interface TimeSlot {
     val start: Instant get() = time.start
     val end: Instant get() = time.end
     val duration: Duration get() = time.duration
+
+    fun subOf(subTime: TimeRange): TimeSlot?
 }

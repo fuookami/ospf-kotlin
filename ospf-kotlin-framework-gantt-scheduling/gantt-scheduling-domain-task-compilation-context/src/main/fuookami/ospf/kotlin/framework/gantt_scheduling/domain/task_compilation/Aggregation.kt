@@ -19,10 +19,9 @@ abstract class AbstractTaskSchedulingAggregation<
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
 ) {
-    val compilation: TaskCompilation<T, E, A> =
-        TaskCompilation(tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
-    val switch: TaskSchedulingSwitch<T, E, A> =
-        TaskSchedulingSwitch(timeWindow, tasks, executors, compilation)
+    val compilation: TaskCompilation<T, E, A> = TaskCompilation(tasks, executors, lockCancelTasks, taskCancelEnabled, withExecutorLeisure)
+    
+    val switch: TaskSchedulingSwitch<T, E, A> = TaskSchedulingSwitch(timeWindow, tasks, executors, compilation)
 
     open fun register(model: MetaModel): Try {
         when (val result = compilation.register(model)) {
@@ -91,6 +90,7 @@ open class TaskCompilationAggregationWithTime<
             delayLastEndTimeEnabled,
             advanceEarliestEndTimeEnabled
         )
+
     val makespan: Makespan<T, E, A> =
         Makespan(tasks, taskTime, makespanExtra)
 

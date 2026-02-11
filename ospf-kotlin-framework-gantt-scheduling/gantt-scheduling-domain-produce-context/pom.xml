@@ -20,6 +20,11 @@
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-capacity-scheduling-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
             <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context</artifactId>
             <version>${project.version}</version>
         </dependency>

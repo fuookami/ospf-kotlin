@@ -200,6 +200,10 @@ data class TimeRange(
         return result
     }
 
+    override fun subOf(subTime: TimeRange): TimeSlot? {
+        return intersect(subTime)
+    }
+
     data class SplitTimeRanges(
         val times: List<TimeRange>,
         val breakTimes: List<TimeRange>
