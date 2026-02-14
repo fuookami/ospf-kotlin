@@ -120,14 +120,22 @@ object MongoDB {
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
-    insert(collection, T::class.serializer(), data)
+    insert(
+        collection = collection,
+        serializer = T::class.serializer(),
+        data = data
+    )
 }
 
 fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, data: T) {
     val json = Json {
         ignoreUnknownKeys = true
     }
-    insert(collection, { json.encodeToString(serializer, it) }, data)
+    insert(
+        collection = collection,
+        serializer = { json.encodeToString(serializer, it) },
+        data = data
+    )
 }
 
 @Synchronized
@@ -138,14 +146,22 @@ fun <T> MongoDatabase.insert(collection: String, serializer: (T) -> String, data
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Map<String, String>): List<T> {
-    return get(collectionName, T::class.serializer(), query)
+    return get(
+        collectionName = collectionName,
+        deserializer = T::class.serializer(),
+        query = query
+    )
 }
 
 fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, query: Map<String, String>): List<T> {
     val json = Json {
         ignoreUnknownKeys = true
     }
-    return get(collectionName, { json.decodeFromString(deserializer, it) }, query)
+    return get(
+        collectionName = collectionName,
+        deserializer = { json.decodeFromString(deserializer, it) },
+        query = query
+    )
 }
 
 @Synchronized

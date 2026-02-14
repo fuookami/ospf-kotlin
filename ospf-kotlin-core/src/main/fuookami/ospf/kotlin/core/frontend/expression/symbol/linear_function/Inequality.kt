@@ -21,7 +21,12 @@ internal fun LinearInequality.register(
     flag: AbstractVariableItem<*, Binary>,
     tokenTable: AddableTokenCollection
 ): Try {
-    return register(parentName, PctVariableView1(k), flag, tokenTable)
+    return register(
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        tokenTable = tokenTable
+    )
 }
 
 internal fun LinearInequality.register(
@@ -32,7 +37,14 @@ internal fun LinearInequality.register(
     epsilon: Flt64,
     model: AbstractLinearMechanismModel
 ): Try {
-    return register(parent, parentName, PctVariableView1(k), flag, epsilon, model)
+    return register(
+        parent = parent,
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        epsilon = epsilon,
+        model = model
+    )
 }
 
 internal fun LinearInequality.register(
@@ -44,7 +56,15 @@ internal fun LinearInequality.register(
     model: AbstractLinearMechanismModel,
     fixedValues: Map<Symbol, Flt64>
 ): Try {
-    return register(parent, parentName, PctVariableView1(k), flag, epsilon, model, fixedValues)
+    return register(
+        parent = parent,
+        parentName = parentName,
+        k = PctVariableView1(k),
+        flag = flag,
+        epsilon = epsilon,
+        model = model,
+        fixedValues = fixedValues
+    )
 }
 
 internal fun LinearInequality.register(
@@ -214,7 +234,17 @@ internal fun LinearInequality.register(
 ): Try {
     assert(k.size == 3)
 
-    val lhsValue = lhs.evaluate(fixedValues, model.tokens) ?: return register(parent, parentName, k, flag, epsilon, model)
+    val lhsValue = lhs.evaluate(
+        values = fixedValues,
+        tokenTable = model.tokens
+    ) ?: return register(
+        parent = parent,
+        parentName = parentName,
+        k = k,
+        flag = flag,
+        epsilon = epsilon,
+        model = model
+    )
     val bin = sign(lhsValue, rhs.constant)
 
     if (rhs.constant in lhs.range.valueRange!!) {

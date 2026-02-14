@@ -68,7 +68,11 @@ class SCAPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractSCAPolicy<V> {
+) : HeuristicPolicy(
+    iterationLimit = iterationLimit,
+    notBetterIterationLimit = notBetterIterationLimit,
+    timeLimit = timeLimit
+), AbstractSCAPolicy<V> {
     private val qTable = mutableMapOf<UInt64, MutableList<Flt64>>()
     private var currentState: UInt64 = UInt64.zero
 
@@ -154,7 +158,11 @@ class SCAPolicy<V>(
         } else {
             updateQTable(-Flt64(0.5))
         }
-        updateState(populations.flatten(), bestIndividual, model)
+        updateState(
+            population = populations.flatten(),
+            best = bestIndividual,
+            model = model
+        )
     }
 
     private fun updateState(
@@ -163,7 +171,11 @@ class SCAPolicy<V>(
         model: AbstractCallBackModelInterface<*, *>
     ) {
         val density = calculateDensity(population)
-        val distance = calculateDistance(population, best, model)
+        val distance = calculateDistance(
+            population = population,
+            best = best,
+            model = model
+        )
         currentState = QLearningState(density, distance).discretize
     }
 
@@ -255,7 +267,11 @@ class SineCosineAlgorithm<Obj, V>(
                 bestIndividual = newBestIndividual
                 globalBetter = true
             }
-            refreshGoodIndividuals(goodIndividuals, newPopulation, model)
+            refreshGoodIndividuals(
+                goodIndividuals = goodIndividuals,
+                newIndividuals = newPopulation,
+                model = model
+            )
 
             model.flush()
             policy.update(

@@ -114,7 +114,10 @@ class AbsFunction(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val pValue = xValue geq Flt64.zero
@@ -170,7 +173,7 @@ class AbsFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq (-m * neg + m * pos),
+            constraint = x eq (-m * neg + m * pos),
             name = name,
             from = parent ?: this
         )) {
@@ -183,7 +186,7 @@ class AbsFunction(
 
         if (extract) {
             when (val result = model.addConstraint(
-                neg + pos leq Flt64.one,
+                constraint = neg + pos leq Flt64.one,
                 name = "${name}_b",
                 from = parent ?: this
             )) {
@@ -195,7 +198,7 @@ class AbsFunction(
             }
 
             when (val result = model.addConstraint(
-                p geq pos,
+                constraint = p geq pos,
                 name = "${name}_p",
                 from = parent ?: this
             )) {
@@ -207,7 +210,7 @@ class AbsFunction(
             }
 
             when (val result = model.addConstraint(
-                neg leq Flt64.one - p,
+                constraint = neg leq Flt64.one - p,
                 name = "${name}_n",
                 from = parent ?: this
             )) {
@@ -228,11 +231,17 @@ class AbsFunction(
     ): Try {
         val xValue = when (tokenTable) {
             is AbstractTokenTable -> {
-                x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+                x.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable
+                ) ?: return register(tokenTable)
             }
 
             is FunctionSymbolRegistrationScope -> {
-                x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+                x.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable.origin
+                ) ?: return register(tokenTable)
             }
 
             else -> {
@@ -265,11 +274,14 @@ class AbsFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
 
         if (xValue geq Flt64.zero) {
             when (val result = model.addConstraint(
-                x eq m * pos,
+                constraint = x eq m * pos,
                 name = name,
                 from = parent ?: this
             )) {
@@ -285,7 +297,7 @@ class AbsFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                x eq -m * neg,
+                constraint = x eq -m * neg,
                 name = name,
                 from = parent ?: this
             )) {
@@ -330,7 +342,11 @@ class AbsFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             abs(it)
         }
     }
@@ -340,7 +356,11 @@ class AbsFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             abs(it)
         }
     }
@@ -357,7 +377,11 @@ class AbsFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let { abs(it) }
+        return x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let { abs(it) }
     }
 
     override fun calculateValue(
@@ -365,6 +389,10 @@ class AbsFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenTable, zeroIfNone)?.let { abs(it) }
+        return x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let { abs(it) }
     }
 }

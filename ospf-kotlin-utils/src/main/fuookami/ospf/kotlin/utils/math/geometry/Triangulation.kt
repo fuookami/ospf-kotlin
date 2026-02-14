@@ -46,11 +46,19 @@ data object Delaunay {
             }
 
             val uniqueEdges = deleteDuplicateEdges(edges)
-            updateTriangles(thisTriangles, point, uniqueEdges)
+            updateTriangles(
+                triangles = thisTriangles,
+                point = point,
+                edges = uniqueEdges
+            )
             undeterminedTriangles = thisTriangles
         }
 
-        removeOriginSuperTriangle(triangles, superTriangle, undeterminedTriangles)
+        removeOriginSuperTriangle(
+            triangles = triangles,
+            superTriangle = superTriangle,
+            undeterminedTriangles = undeterminedTriangles
+        )
         return triangles
     }
 

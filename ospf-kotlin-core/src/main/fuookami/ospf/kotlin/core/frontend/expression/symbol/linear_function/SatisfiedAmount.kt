@@ -137,7 +137,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
-            val value = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 counter += UInt64.one
             }
@@ -160,7 +164,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
-            val value = polynomial.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 counter += UInt64.one
             }
@@ -205,7 +213,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
-            val value = polynomial.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 counter += UInt64.one
             }
@@ -228,7 +240,11 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     ): Flt64? {
         var counter = UInt64.zero
         for (polynomial in polynomials) {
-            val value = polynomial.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 counter += UInt64.one
             }
@@ -250,7 +266,11 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
     self: AbstractSatisfiedAmountPolynomialFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64.one, polynomials, self) {
+) : AbstractSatisfiedAmountPolynomialFunctionImpl(
+    amount = UInt64.one,
+    polynomials = polynomials,
+    self = self
+) {
     companion object : SatisfiedAmountPolynomialFunctionImplBuilder {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
@@ -386,7 +406,11 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
     self: AbstractSatisfiedAmountPolynomialFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunctionImpl(UInt64(polynomials.size), polynomials, self) {
+) : AbstractSatisfiedAmountPolynomialFunctionImpl(
+    amount = UInt64(polynomials.size),
+    polynomials = polynomials,
+    self = self
+) {
     companion object : SatisfiedAmountPolynomialFunctionImplBuilder {
         operator fun invoke(
             polynomials: List<ToLinearPolynomial<*>>,
@@ -524,7 +548,11 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
     self: AbstractSatisfiedAmountPolynomialFunction,
     override var name: String,
     override var displayName: String? = null
-) : AbstractSatisfiedAmountPolynomialFunctionImpl(amount, polynomials, self) {
+) : AbstractSatisfiedAmountPolynomialFunctionImpl(
+    amount = amount,
+    polynomials = polynomials,
+    self = self
+) {
     private val logger = logger()
 
     companion object : SatisfiedAmountPolynomialFunctionImplBuilder {
@@ -547,7 +575,11 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         }
 
         override operator fun invoke(params: SatisfiedAmountPolynomialFunctionImplBuilderParams): AbstractSatisfiedAmountPolynomialFunctionImpl {
-            return SatisfiedAmountPolynomialFunctionSomeImpl(params, params.self.amount, params.self.extract)
+            return SatisfiedAmountPolynomialFunctionSomeImpl(
+                params = params,
+                amount = params.self.amount,
+                extract = params.self.extract
+            )
         }
     }
 
@@ -927,7 +959,10 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(tokenList, zeroIfNone)
+        return impl.evaluate(
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -935,7 +970,11 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(results, tokenList, zeroIfNone)
+        return impl.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -943,14 +982,21 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(values, tokenList, zeroIfNone)
+        return impl.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -958,7 +1004,11 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(results, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -966,7 +1016,11 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(values, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 }
 

@@ -260,7 +260,7 @@ private class ScipLinearSolverImpl(
         System.gc()
         scipConstraints = constraints
 
-        for (cell in model.objective.obj) {
+        for (cell in model.objective.objective) {
             scip.changeVarObj(scipVars[cell.colIndex], cell.coefficient.toDouble())
         }
         when (model.objective.category) {
@@ -273,7 +273,13 @@ private class ScipLinearSolverImpl(
             }
         }
 
-        when (val result = callBack?.execIfContain(Point.AfterModeling, null, scip, scipVars, scipConstraints)) {
+        when (val result = callBack?.execIfContain(
+            point = Point.AfterModeling,
+            status = null,
+            scip = scip,
+            variables = scipVars,
+            constraints = scipConstraints
+        )) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -295,7 +301,13 @@ private class ScipLinearSolverImpl(
 
         scip.messagehdlr
 
-        when (val result = callBack?.execIfContain(Point.Configuration, null, scip, scipVars, scipConstraints)) {
+        when (val result = callBack?.execIfContain(
+            point = Point.Configuration,
+            status = null,
+            scip = scip,
+            variables = scipVars,
+            constraints = scipConstraints
+        )) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -327,7 +339,13 @@ private class ScipLinearSolverImpl(
                 gap = gap
             )
 
-            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, scip, scipVars, scipConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AnalyzingSolution,
+                status = status,
+                scip = scip,
+                variables = scipVars,
+                constraints = scipConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -336,7 +354,13 @@ private class ScipLinearSolverImpl(
             }
             return ok
         } else {
-            when (val result = callBack?.execIfContain(Point.AfterFailure, status, scip, scipVars, scipConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterFailure,
+                status = status,
+                scip = scip,
+                variables = scipVars,
+                constraints = scipConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }

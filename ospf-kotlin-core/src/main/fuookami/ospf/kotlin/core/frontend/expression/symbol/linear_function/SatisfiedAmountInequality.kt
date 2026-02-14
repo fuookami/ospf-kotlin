@@ -398,7 +398,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(results, tokenList, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -421,7 +425,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(values, tokenList, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -466,7 +474,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -489,7 +501,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(values, tokenTable, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }

@@ -86,7 +86,13 @@ interface Item : Cuboid<Item>, Indexed {
 
     val packageType get() = packageAttribute.packageType
     val packageBottomShape get() = packageShape.bottomShape
-    val packageShape get() = PackageShape(width, height, depth, weight, packageType)
+    val packageShape get() = PackageShape(
+        width = width,
+        height = height,
+        depth = depth,
+        weight = weight,
+        packageType = packageType
+    )
     val type: ItemType get() = ItemType(packageType)
     val packageCategory get() = packageType.category
     val maxLayer get() = packageAttribute.maxLayer

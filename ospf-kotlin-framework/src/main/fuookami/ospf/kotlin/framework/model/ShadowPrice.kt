@@ -65,7 +65,11 @@ fun <
     shadowPrices: LinearDualSolution
 ): Try {
     for (pipeline in pipelineList) {
-        when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices.toMeta())) {
+        when (val ret = pipeline.refresh(
+            map = shadowPriceMap,
+            model = model,
+            shadowPrices = shadowPrices.toMeta()
+        )) {
             is Ok -> {}
             is Failed -> {
                 return Failed(ret.error)

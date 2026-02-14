@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.utils.math.ordinary
 
 import java.math.*
 import fuookami.ospf.kotlin.utils.math.*
+import kotlin.reflect.full.companionObjectInstance
 
 @Suppress("UNCHECKED_CAST")
 fun <T : FloatingNumber<T>> ln(
@@ -50,6 +51,20 @@ fun <T : FloatingNumber<T>> ln(
     }
 }
 
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : FloatingNumber<T>> ln(
+    x: T,
+    digits: Int = (T::class::companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
+    precision: T = (T::class::companionObjectInstance as FloatingNumberConstants<T>).epsilon
+): T? {
+    return ln(
+        x = x,
+        constants = T::class::companionObjectInstance as FloatingNumberConstants<T>,
+        digits = digits,
+        precision = precision
+    )
+}
+
 fun <T : FloatingNumber<T>> log(
     x: T,
     base: T,
@@ -57,9 +72,35 @@ fun <T : FloatingNumber<T>> log(
     digits: Int = constants.decimalDigits!!,
     precision: T = constants.epsilon
 ): T? {
-    return ln(x, constants, digits, precision)?.let { lhs ->
-        ln(base, constants, digits, precision)?.let {
+    return ln(
+        x = x,
+        constants = constants,
+        digits = digits,
+        precision = precision
+    )?.let { lhs ->
+        ln(
+            x = base,
+            constants = constants,
+            digits = digits,
+            precision = precision
+        )?.let {
             lhs / it
         }
     } ?: constants.nan
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : FloatingNumber<T>> log(
+    x: T,
+    base: T,
+    digits: Int = (T::class::companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
+    precision: T = (T::class::companionObjectInstance as FloatingNumberConstants<T>).epsilon
+): T? {
+    return log(
+        x = x,
+        base = base,
+        constants = T::class::companionObjectInstance as FloatingNumberConstants<T>,
+        digits = digits,
+        precision = precision
+    )
 }

@@ -56,7 +56,11 @@ open class MVOPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractMVOPolicy<V> {
+) : HeuristicPolicy(
+    iterationLimit = iterationLimit,
+    notBetterIterationLimit = notBetterIterationLimit,
+    timeLimit = timeLimit
+), AbstractMVOPolicy<V> {
     companion object {
         operator fun invoke(
             minWEP: Flt64 = Flt64(0.2),
@@ -207,7 +211,12 @@ class MultiVerseOptimizer<Obj, V>(
                 bestUniverse = newBestUniverse
                 globalBetter = true
             }
-            refreshGoodIndividuals(goodUniverses, newUniverses, model, solutionAmount)
+            refreshGoodIndividuals(
+                goodIndividuals = goodUniverses,
+                newIndividuals = newUniverses,
+                model = model,
+                solutionAmount = solutionAmount
+            )
 
             model.flush()
             policy.update(

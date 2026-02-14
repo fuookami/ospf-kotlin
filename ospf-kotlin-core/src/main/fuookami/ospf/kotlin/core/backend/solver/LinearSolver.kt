@@ -26,7 +26,10 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        return when (val result = this(model, solvingStatusCallBack)) {
+        return when (val result = this(
+            model = model,
+            solvingStatusCallBack = solvingStatusCallBack
+        )) {
             is Ok -> {
                 Ok(result.value)
             }
@@ -56,7 +59,10 @@ interface AbstractLinearSolver {
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
             callBack?.invoke(result)
             result
         }
@@ -70,7 +76,11 @@ interface AbstractLinearSolver {
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
             callBack?.invoke(result)
             result
         }
@@ -88,7 +98,11 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        return when (val result = this(model, solutionAmount, solvingStatusCallBack)) {
+        return when (val result = this(
+            model = model,
+            solutionAmount = solutionAmount,
+            solvingStatusCallBack = solvingStatusCallBack
+        )) {
             is Ok -> {
                 Ok(result.value)
             }
@@ -119,7 +133,11 @@ interface AbstractLinearSolver {
         callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
             callBack?.invoke(result)
             result
         }
@@ -134,7 +152,12 @@ interface AbstractLinearSolver {
         callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
             callBack?.invoke(result)
             result
         }
@@ -145,7 +168,10 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
     ): Ret<FeasibleSolverOutput> {
         return dump(model).use { intermediateModel ->
-            this(intermediateModel, solvingStatusCallBack)
+            this(
+                model = intermediateModel,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -155,7 +181,11 @@ interface AbstractLinearSolver {
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
         return dump(model).use { intermediateModel ->
-            this(intermediateModel, solvingStatusCallBack, iisConfig)
+            this(
+                model = intermediateModel,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
         }
     }
 
@@ -166,7 +196,10 @@ interface AbstractLinearSolver {
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
             callBack?.invoke(result)
             return@future result
         }
@@ -180,7 +213,11 @@ interface AbstractLinearSolver {
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
             callBack?.invoke(result)
             return@future result
         }
@@ -192,7 +229,11 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
         return dump(model).use { intermediateModel ->
-            this(intermediateModel, solutionAmount, solvingStatusCallBack)
+            this(
+                model = intermediateModel,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -203,7 +244,12 @@ interface AbstractLinearSolver {
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
         return dump(model).use { intermediateModel ->
-            this(intermediateModel, solutionAmount, solvingStatusCallBack, iisConfig)
+            this(
+                model = intermediateModel,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
         }
     }
 
@@ -215,7 +261,11 @@ interface AbstractLinearSolver {
         callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
             callBack?.invoke(result)
             return@future result
         }
@@ -230,7 +280,12 @@ interface AbstractLinearSolver {
         callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
             callBack?.invoke(result)
             return@future result
         }
@@ -242,7 +297,11 @@ interface AbstractLinearSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(
+            model = model,
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
+        )) {
             is Ok -> {
                 result.value
             }
@@ -251,7 +310,10 @@ interface AbstractLinearSolver {
                 return Failed(result.error)
             }
         }.use {
-            this(it, solvingStatusCallBack)
+            this(
+                model = it,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -262,7 +324,11 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(
+            model = model,
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
+        )) {
             is Ok -> {
                 result.value
             }
@@ -271,7 +337,11 @@ interface AbstractLinearSolver {
                 return Failed(result.error)
             }
         }.use {
-            this(it, solvingStatusCallBack, iisConfig)
+            this(
+                model = it,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
         }
     }
 
@@ -284,7 +354,12 @@ interface AbstractLinearSolver {
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                registrationStatusCallBack = registrationStatusCallBack,
+                dumpingStatusCallBack = dumpingStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
             callBack?.invoke(result)
             return@future result
         }
@@ -300,7 +375,13 @@ interface AbstractLinearSolver {
         callBack: (Ret<SolverOutput>) -> Unit
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                registrationStatusCallBack = registrationStatusCallBack,
+                dumpingStatusCallBack = dumpingStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
             callBack(result)
             return@future result
         }
@@ -313,7 +394,11 @@ interface AbstractLinearSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(
+            model = model,
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack,
+        )) {
             is Ok -> {
                 result.value
             }
@@ -322,7 +407,11 @@ interface AbstractLinearSolver {
                 return Failed(result.error)
             }
         }.use {
-            this(it, solutionAmount, solvingStatusCallBack)
+            this(
+                model = it,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -334,7 +423,11 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        return when (val result = dump(model, registrationStatusCallBack, dumpingStatusCallBack)) {
+        return when (val result = dump(
+            model = model,
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack,
+        )) {
             is Ok -> {
                 result.value
             }
@@ -343,7 +436,12 @@ interface AbstractLinearSolver {
                 return Failed(result.error)
             }
         }.use {
-            this(it, solutionAmount, solvingStatusCallBack, iisConfig)
+            this(
+                model = it,
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
         }
     }
 
@@ -357,7 +455,13 @@ interface AbstractLinearSolver {
         callback: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solutionAmount = solutionAmount,
+                registrationStatusCallBack = registrationStatusCallBack,
+                dumpingStatusCallBack = dumpingStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
             callback?.invoke(result)
             return@future result
         }
@@ -374,7 +478,14 @@ interface AbstractLinearSolver {
         callback: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            val result = this@AbstractLinearSolver.invoke(model, solutionAmount, registrationStatusCallBack, dumpingStatusCallBack, solvingStatusCallBack, iisConfig)
+            val result = this@AbstractLinearSolver.invoke(
+                model = model,
+                solutionAmount = solutionAmount,
+                registrationStatusCallBack = registrationStatusCallBack,
+                dumpingStatusCallBack = dumpingStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack,
+                iisConfig = iisConfig
+            )
             callback?.invoke(result)
             return@future result
         }

@@ -124,7 +124,11 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> pow(
     digits: Int,
     precision: Ret
 ): Ret {
-    return base.pow(index, digits, precision)
+    return base.pow(
+        index = index,
+        digits = digits,
+        precision = precision
+    )
 }
 
 fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> pow(
@@ -135,7 +139,11 @@ fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> pow(
     func: Func
 ): Ret {
     return with(func) {
-        base.pow(index, digits, precision)
+        base.pow(
+            index = index,
+            digits = digits,
+            precision = precision
+        )
     }
 }
 

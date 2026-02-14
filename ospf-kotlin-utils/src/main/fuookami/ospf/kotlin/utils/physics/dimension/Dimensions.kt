@@ -2,177 +2,525 @@ package fuookami.ospf.kotlin.utils.physics.dimension
 
 // Fundamental Quantity
 // L
-val Length = DerivedQuantity(L, "length", "L")
+val Length = DerivedQuantity(
+    dimension = L,
+    name = "length",
+    symbol = "L"
+)
 // m
-val Mass = DerivedQuantity(M, "mass", "m")
+val Mass = DerivedQuantity(
+    dimension = M,
+    name = "mass",
+    symbol = "m"
+)
 // t
-val Time = DerivedQuantity(T, "time", "t")
+val Time = DerivedQuantity(
+    dimension = T,
+    name = "time",
+    symbol = "t"
+)
 // I
-val Current = DerivedQuantity(I, "current", "I")
+val Current = DerivedQuantity(
+    dimension = I,
+    name = "current",
+    symbol = "I"
+)
 // θ
-val Temperature = DerivedQuantity(Theta, "temperature", "T")
+val Temperature = DerivedQuantity(
+    dimension = Theta,
+    name = "temperature",
+    symbol = "T"
+)
 // N
-val AmountOfSubstance = DerivedQuantity(N, "amount of substance", "N")
+val AmountOfSubstance = DerivedQuantity(
+    dimension = N,
+    name = "amount of substance",
+    symbol = "N"
+)
 // l
-val LuminousIntensity = DerivedQuantity(J, "luminous intensity", "l")
+val LuminousIntensity = DerivedQuantity(
+    dimension = J,
+    name = "luminous intensity",
+    symbol = "l"
+)
 // rad
-val PlaneAngle = DerivedQuantity(rad, "plane angle", "rad")
+val PlaneAngle = DerivedQuantity(
+    dimension = rad,
+    name = "plane angle",
+    symbol = "rad"
+)
 // sr
-val SolidAngle = DerivedQuantity(sr, "solid angle", "sr")
+val SolidAngle = DerivedQuantity(
+    dimension = sr,
+    name = "solid angle",
+    symbol = "sr"
+)
 // i
-val Information = DerivedQuantity(B, "information", "i")
+val Information = DerivedQuantity(
+    dimension = B,
+    name = "information",
+    symbol = "i"
+)
 
 // Basic Derived Quantities
 // S = L^2
-val Area = DerivedQuantity(listOf(L * 2), "area", "S")
+val Area = DerivedQuantity(
+    quantity = Length * Length,
+    name = "area",
+    symbol = "S"
+)
 // V = L^3
-val Volume = DerivedQuantity(listOf(L * 3), "volume", "V")
+val Volume = DerivedQuantity(
+    quantity = Area * Length,
+    name = "volume",
+    symbol = "V"
+)
 // f = t^-1
-val Frequency = DerivedQuantity(listOf(T * -1), "frequency", "f")
+val Frequency = DerivedQuantity(
+    quantity = Length.unaryMinus(),
+    name = "frequency",
+    symbol = "f"
+)
 
 // Mechanics
 // v = L / t
-val Velocity = DerivedQuantity(Length / Time, "velocity", "v")
+val Velocity = DerivedQuantity(
+    quantity = Length / Time,
+    name = "velocity",
+    symbol = "v"
+)
 // ω = rad / t
-val AngularVelocity = DerivedQuantity(PlaneAngle / Time, "angular velocity", "w")
+val AngularVelocity = DerivedQuantity(
+    quantity = PlaneAngle / Time,
+    name = "angular velocity",
+    symbol = "w"
+)
 // k = L^-1
-val WaveNumber = DerivedQuantity(Length * -1, "wave number", "k")
+val WaveNumber = DerivedQuantity(
+    quantity = Length * -1,
+    name = "wave number",
+    symbol = "k"
+)
 // a = v / t
-val Acceleration = DerivedQuantity(Velocity / Time, "acceleration", "a")
+val Acceleration = DerivedQuantity(
+    quantity = Velocity / Time,
+    name = "acceleration",
+    symbol = "a"
+)
 // α = ω / t
-val AngularAcceleration = DerivedQuantity(AngularVelocity / Time, "angular acceleration", "α")
+val AngularAcceleration = DerivedQuantity(
+    quantity = AngularVelocity / Time,
+    name = "angular acceleration",
+    symbol = "α"
+)
 // P = mv
-val Momentum = DerivedQuantity(Mass * Velocity, "momentum", "M")
+val Momentum = DerivedQuantity(
+    quantity = Mass * Velocity,
+    name = "momentum",
+    symbol = "M"
+)
 // L = mω
-val AngularMomentum = DerivedQuantity(Mass * AngularVelocity, "angular momentum", "L")
+val AngularMomentum = DerivedQuantity(
+    quantity = Mass * AngularVelocity,
+    name = "angular momentum",
+    symbol = "L"
+)
 // l = mL^2
-val MomentOfInertia = DerivedQuantity(Mass * (Length * 2), "moment of inertia", "I")
+val MomentOfInertia = DerivedQuantity(
+    quantity = Mass * (Length * 2),
+    name = "moment of inertia",
+    symbol = "I"
+)
 // F = ma
-val Force = DerivedQuantity(Mass * Acceleration, "force", "F")
-val Gravity = DerivedQuantity(Force, "gravity", "g")
+val Force = DerivedQuantity(
+    quantity = Mass * Acceleration,
+    name = "force",
+    symbol = "F"
+)
+val Gravity = DerivedQuantity(
+    quantity = Force,
+    name = "gravity",
+    symbol = "g"
+)
 // p = F / S
-val Pressure = DerivedQuantity(Force / Area, "pressure", "h")
-val Stress = DerivedQuantity(Pressure, "stress", "σ")
+val Pressure = DerivedQuantity(
+    quantity = Force / Area,
+    name = "pressure",
+    symbol = "h"
+)
+val Stress = DerivedQuantity(
+    quantity = Pressure,
+    name = "stress",
+    symbol = "σ"
+)
 // I = Ft
-val Impulse = DerivedQuantity(Force * Time, "impulse", "I")
+val Impulse = DerivedQuantity(
+    quantity = Force * Time,
+    name = "impulse",
+    symbol = "I"
+)
 // t = FL
-val Torque = DerivedQuantity(Force * Length, "torque", "T")
+val Torque = DerivedQuantity(
+    quantity = Force * Length,
+    name = "torque",
+    symbol = "T"
+)
 // ρ = M / V
-val MassDensity = DerivedQuantity(Momentum / Volume, "mass density", "ρ")
+val MassDensity = DerivedQuantity(
+    quantity = Momentum / Volume,
+    name = "mass density",
+    symbol = "ρ"
+)
 // v = V / m
-val SpecificVolume = DerivedQuantity(Volume / Mass, "specific volume", "v")
+val SpecificVolume = DerivedQuantity(
+    quantity = Volume / Mass,
+    name = "specific volume",
+    symbol = "v"
+)
 // E = FL
-val Energy = DerivedQuantity(Force * Length, "energy", "E")
-val Work = DerivedQuantity(Energy, "work", "W")
-val Heat = DerivedQuantity(Energy, "heat", "Q")
+val Energy = DerivedQuantity(
+    quantity = Force * Length,
+    name = "energy",
+    symbol = "E"
+)
+val Work = DerivedQuantity(
+    quantity = Energy,
+    name = "work",
+    symbol = "W"
+)
+val Heat = DerivedQuantity(
+    quantity = Energy,
+    name = "heat",
+    symbol = "Q"
+)
 // c = N / V
-val Molarity = DerivedQuantity(AmountOfSubstance / Volume, "molarity", "c")
+val Molarity = DerivedQuantity(
+    quantity = AmountOfSubstance / Volume,
+    name = "molarity",
+    symbol = "c"
+)
 // Vm = V / N
-val MolarVolume = DerivedQuantity(Volume / AmountOfSubstance, "molar volume", "Vm")
+val MolarVolume = DerivedQuantity(
+    quantity = Volume / AmountOfSubstance,
+    name = "molar volume",
+    symbol = "Vm"
+)
 // S = E / T
-val Entropy = DerivedQuantity(Energy / Temperature, "entropy", "S")
+val Entropy = DerivedQuantity(
+    quantity = Energy / Temperature,
+    name = "entropy",
+    symbol = "S"
+)
 // Cm = S / N
-val MolarEntropy = DerivedQuantity(Entropy / AmountOfSubstance, "molar entropy", "Cm")
-val MolarHeatCapacity = DerivedQuantity(MolarEntropy, "molar heat capacity", "Cm")
+val MolarEntropy = DerivedQuantity(
+    quantity = Entropy / AmountOfSubstance,
+    name = "molar entropy",
+    symbol = "Cm"
+)
+val MolarHeatCapacity = DerivedQuantity(
+    quantity = MolarEntropy,
+    name = "molar heat capacity",
+    symbol = "Cm"
+)
 // c = S / m
-val SpecificEntropy = DerivedQuantity(Entropy / Mass, "specific entropy", "c")
-val SpecificHeatCapacity = DerivedQuantity(SpecificEntropy, "specific heat capacity", "c")
+val SpecificEntropy = DerivedQuantity(
+    quantity = Entropy / Mass,
+    name = "specific entropy",
+    symbol = "c"
+)
+val SpecificHeatCapacity = DerivedQuantity(
+    quantity = SpecificEntropy,
+    name = "specific heat capacity",
+    symbol = "c"
+)
 // Em = E / N
-val MolarEnergy = DerivedQuantity(Energy / AmountOfSubstance, "molar energy", "Em")
+val MolarEnergy = DerivedQuantity(
+    quantity = Energy / AmountOfSubstance,
+    name = "molar energy",
+    symbol = "Em"
+)
 // h = E / m
-val SpecificEnergy = DerivedQuantity(Energy / Mass, "specific energy", "h")
+val SpecificEnergy = DerivedQuantity(
+    quantity = Energy / Mass,
+    name = "specific energy",
+    symbol = "h"
+)
 // U = E / V
-val EnergyDensity = DerivedQuantity(Energy / Volume, "energy density", "U")
+val EnergyDensity = DerivedQuantity(
+    quantity = Energy / Volume,
+    name = "energy density",
+    symbol = "U"
+)
 // Cm = E / θ
-val HeatCapacity = DerivedQuantity(Energy / Temperature, "heat capacity", "Cm")
+val HeatCapacity = DerivedQuantity(
+    quantity = Energy / Temperature,
+    name = "heat capacity",
+    symbol = "Cm"
+)
 // σ = F / L
-val SurfaceTension = DerivedQuantity(Force / Length, "surface tension", "σ")
+val SurfaceTension = DerivedQuantity(
+    quantity = Force / Length,
+    name = "surface tension",
+    symbol = "σ"
+)
 // P = F * v
-val Power = DerivedQuantity(Force * Velocity, "power", "P")
+val Power = DerivedQuantity(
+    quantity = Force * Velocity,
+    name = "power",
+    symbol = "P"
+)
 // E = P / S
-val PowerDensity = DerivedQuantity(Power / Area, "power density", "E")
-val Irradiance = DerivedQuantity(PowerDensity, "irradiance", "E")
-val HeatFluxDensity = DerivedQuantity(PowerDensity, "heat flux density", "E")
+val PowerDensity = DerivedQuantity(
+    quantity = Power / Area,
+    name = "power density",
+    symbol = "E"
+)
+val Irradiance = DerivedQuantity(
+    quantity = PowerDensity,
+    name = "irradiance",
+    symbol = "E"
+)
+val HeatFluxDensity = DerivedQuantity(
+    quantity = PowerDensity,
+    name = "heat flux density",
+    symbol = "E"
+)
 // λ = P / Lθ
-val ThermalConductivity = DerivedQuantity(Power / (Length * Temperature), "thermal conductivity", "λ")
+val ThermalConductivity = DerivedQuantity(
+    quantity = Power / (Length * Temperature),
+    name = "thermal conductivity",
+    symbol = "λ"
+)
 // μ = pt
-val DynamicViscosity = DerivedQuantity(Pressure * Time, "dynamic viscosity", "μ")
+val DynamicViscosity = DerivedQuantity(
+    quantity = Pressure * Time,
+    name = "dynamic viscosity",
+    symbol = "μ"
+)
 // γ = μ / ρ
-val KinematicViscosity = DerivedQuantity(DynamicViscosity / MassDensity, "kinematic viscosity", "γ")
+val KinematicViscosity = DerivedQuantity(
+    quantity = DynamicViscosity / MassDensity,
+    name = "kinematic viscosity",
+    symbol = "γ"
+)
 // M = m / N
-val MolarMass = DerivedQuantity(Mass / AmountOfSubstance, "molar mass", "M")
+val MolarMass = DerivedQuantity(
+    quantity = Mass / AmountOfSubstance,
+    name = "molar mass",
+    symbol = "M"
+)
 // λm = m / L
-val LinearDensity = DerivedQuantity(Mass / Length, "linear density", "λm")
+val LinearDensity = DerivedQuantity(
+    quantity = Mass / Length,
+    name = "linear density",
+    symbol = "λm"
+)
 // ρA = m / S
-val SurfaceDensity = DerivedQuantity(Mass / Area, "surface density", "ρA")
+val SurfaceDensity = DerivedQuantity(
+    quantity = Mass / Area,
+    name = "surface density",
+    symbol = "ρA"
+)
 // S = E * t
-val Action = DerivedQuantity(Energy * Time, "action", "S")
+val Action = DerivedQuantity(
+    quantity = Energy * Time,
+    name = "action",
+    symbol = "S"
+)
 // Q = S * v
-val FlowRate = DerivedQuantity(Area * Velocity, "flow rate", "Q")
+val FlowRate = DerivedQuantity(
+    quantity = Area * Velocity,
+    name = "flow rate",
+    symbol = "Q"
+)
 
 // Electromagnetism
 // Q = It
-val ElectricCharge = DerivedQuantity(Current * Time, "electric charge", "Q")
+val ElectricCharge = DerivedQuantity(
+    quantity = Current * Time,
+    name = "electric charge",
+    symbol = "Q"
+)
 // ρq = Q / V
-val ElectricChargeDensity = DerivedQuantity(ElectricCharge / Volume, "electric charge density", "ρq")
+val ElectricChargeDensity = DerivedQuantity(
+    quantity = ElectricCharge / Volume,
+    name = "electric charge density",
+    symbol = "ρq"
+)
 // J = I / A
-val ElectricCurrentDensity = DerivedQuantity(Current / Area, "electric current density", "J")
+val ElectricCurrentDensity = DerivedQuantity(
+    quantity = Current / Area,
+    name = "electric current density",
+    symbol = "J"
+)
 // U = P / I
-val ElectricPotential = DerivedQuantity(Power / Current, "electric potential", "U")
-val ElectromotiveForce = DerivedQuantity(ElectricPotential, "electromotive force", "U")
-val Voltage = DerivedQuantity(ElectricPotential, "voltage", "U")
+val ElectricPotential = DerivedQuantity(
+    quantity = Power / Current,
+    name = "electric potential",
+    symbol = "U"
+)
+val ElectromotiveForce = DerivedQuantity(
+    quantity = ElectricPotential,
+    name = "electromotive force",
+    symbol = "U"
+)
+val Voltage = DerivedQuantity(
+    quantity = ElectricPotential,
+    name = "voltage",
+    symbol = "U"
+)
 // R = U / I
-val Resistance = DerivedQuantity(Voltage / Current, "resistance", "R")
-val Impedance = DerivedQuantity(Resistance, "impedance", "R")
+val Resistance = DerivedQuantity(
+    quantity = Voltage / Current,
+    name = "resistance",
+    symbol = "R"
+)
+val Impedance = DerivedQuantity(
+    quantity = Resistance,
+    name = "impedance",
+    symbol = "R"
+)
 // G = R^-1
-val Conductance = DerivedQuantity(-Resistance, "conductance", "R")
+val Conductance = DerivedQuantity(
+    quantity = -Resistance,
+    name = "conductance",
+    symbol = "R"
+)
 // κ = G / L
-val Conductivity = DerivedQuantity(Conductance / Length, "conductivity", "κ")
+val Conductivity = DerivedQuantity(
+    quantity = Conductance / Length,
+    name = "conductivity",
+    symbol = "κ"
+)
 // κm = κ * Vm
-val MolarConductivity = DerivedQuantity(Conductivity * MolarVolume, "molar conductivity", "κm")
+val MolarConductivity = DerivedQuantity(
+    quantity = Conductivity * MolarVolume,
+    name = "molar conductivity",
+    symbol = "κm"
+)
 // F = Q / U
-val Capacitance = DerivedQuantity(ElectricCharge / Voltage, "capacitance", "F")
+val Capacitance = DerivedQuantity(
+    quantity = ElectricCharge / Voltage,
+    name = "capacitance",
+    symbol = "F"
+)
 // ε = F / L
-val Permittivity = DerivedQuantity(Capacitance / Length, "permittivity", "ε")
+val Permittivity = DerivedQuantity(
+    quantity = Capacitance / Length,
+    name = "permittivity",
+    symbol = "ε"
+)
 // E = U / L
-val ElectricFieldIntensity = DerivedQuantity(Voltage / Length, "electromotive field intensity", "E")
-val ElectricFieldStrength = DerivedQuantity(ElectricFieldIntensity, "electric field strength", "E")
+val ElectricFieldIntensity = DerivedQuantity(
+    quantity = Voltage / Length,
+    name = "electromotive field intensity",
+    symbol = "E"
+)
+val ElectricFieldStrength = DerivedQuantity(
+    quantity = ElectricFieldIntensity,
+    name = "electric field strength",
+    symbol = "E"
+)
 // L = Ut / I
-val Inductance = DerivedQuantity(Voltage / Current * Time, "inductance", "L")
+val Inductance = DerivedQuantity(
+    quantity = Voltage / Current * Time,
+    name = "inductance",
+    symbol = "L"
+)
 // B = F / LI
-val MagneticFieldDensity = DerivedQuantity(Force / (Length * Current), "magnetic field density", "B")
+val MagneticFieldDensity = DerivedQuantity(
+    quantity = Force / (Length * Current),
+    name = "magnetic field density",
+    symbol = "B"
+)
 // H = I / L
-val MagneticFieldIntensity = DerivedQuantity(Current / Length, "magnetic field intensity", "H")
+val MagneticFieldIntensity = DerivedQuantity(
+    quantity = Current / Length,
+    name = "magnetic field intensity",
+    symbol = "H"
+)
 // φ = BS
-val MagneticFlux = DerivedQuantity(MagneticFieldIntensity * Area, "magnetic flux", "φ")
+val MagneticFlux = DerivedQuantity(
+    quantity = MagneticFieldIntensity * Area,
+    name = "magnetic flux",
+    symbol = "φ"
+)
 // μ = L / L
-val MagneticPermeability = DerivedQuantity(Inductance / Length, "magnetic permeability", "μ")
+val MagneticPermeability = DerivedQuantity(
+    quantity = Inductance / Length,
+    name = "magnetic permeability",
+    symbol = "μ"
+)
 // λ = μ^-1
-val MagneticReluctance = DerivedQuantity(-MagneticPermeability, "magnetic reluctance", "λ")
+val MagneticReluctance = DerivedQuantity(
+    quantity = -MagneticPermeability,
+    name = "magnetic reluctance",
+    symbol = "λ"
+)
 // λq = Q / L
-val ElectricChargeLinearDensity = DerivedQuantity(ElectricCharge / Length, "electric charge linear density", "λq")
+val ElectricChargeLinearDensity = DerivedQuantity(
+    quantity = ElectricCharge / Length,
+    name = "electric charge linear density",
+    symbol = "λq"
+)
 // σq = Q / S
-val ElectricChargeSurfaceDensity = DerivedQuantity(ElectricCharge / Area, "electric charge surface density", "σq")
+val ElectricChargeSurfaceDensity = DerivedQuantity(
+    quantity = ElectricCharge / Area,
+    name = "electric charge surface density",
+    symbol = "σq"
+)
 
 // Optics
 // φ = l * sr
-val LuminousFlux = DerivedQuantity(LuminousIntensity * SolidAngle,"luminous flux", "φ")
+val LuminousFlux = DerivedQuantity(
+    quantity = LuminousIntensity * SolidAngle,
+    name = "luminous flux",
+    symbol = "φ"
+)
 // Ev = φ / S
-val Illuminance = DerivedQuantity(LuminousFlux / Area, "illuminance", "Ev")
+val Illuminance = DerivedQuantity(
+    quantity = LuminousFlux / Area,
+    name = "illuminance",
+    symbol = "Ev"
+)
 // L = l / S
-val Luminance = DerivedQuantity(LuminousIntensity / Area, "luminance", "L")
+val Luminance = DerivedQuantity(
+    quantity = LuminousIntensity / Area,
+    name = "luminance",
+    symbol = "L"
+)
 
 // Radiology
 // A = t^-1
-val Activity = DerivedQuantity(-Time, "activity", "A")
+val Activity = DerivedQuantity(
+    quantity = -Time,
+    name = "activity",
+    symbol = "A"
+)
 // D = E / m
-val AbsorbedDose = DerivedQuantity(Energy / Mass, "absorbed dose", "D")
-val DoseEquivalent = DerivedQuantity(AbsorbedDose, "dose equivalent", "D")
+val AbsorbedDose = DerivedQuantity(
+    quantity = Energy / Mass,
+    name = "absorbed dose",
+    symbol = "D"
+)
+val DoseEquivalent = DerivedQuantity(
+    quantity = AbsorbedDose,
+    name = "dose equivalent",
+    symbol = "D"
+)
 // d = D / t
-val DosingRate = DerivedQuantity(DoseEquivalent / Time, "dosing rate", "d")
+val DosingRate = DerivedQuantity(
+    quantity = DoseEquivalent / Time,
+    name = "dosing rate",
+    symbol = "d"
+)
 
 // Other
 // N / t
 val CatalyticActivity = DerivedQuantity(AmountOfSubstance / Time, "catalytic activity")
 // B = i / t
-val Bandwidth = DerivedQuantity(Information / Time, "bandwidth", "B")
+val Bandwidth = DerivedQuantity(
+    quantity = Information / Time,
+    name = "bandwidth",
+    symbol = "B"
+)

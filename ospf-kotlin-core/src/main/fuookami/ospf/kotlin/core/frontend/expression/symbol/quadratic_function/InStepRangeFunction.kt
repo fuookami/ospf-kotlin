@@ -129,7 +129,7 @@ class InStepRange(
 
     private val stepLinear: LinearFunction by lazy {
         LinearFunction(
-            step,
+            polynomial = step,
             parent = parent ?: this,
             name = "${name}_step"
         )
@@ -308,9 +308,17 @@ class InStepRange(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         val stepValue = step.evaluate(tokenList, zeroIfNone) ?: return null
-        val qValue = q.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val qValue = q.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * stepValue
     }
 
@@ -319,9 +327,21 @@ class InStepRange(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val stepValue = step.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val qValue = q.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val stepValue = step.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * stepValue
     }
 
@@ -340,9 +360,21 @@ class InStepRange(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val stepValue = step.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val qValue = q.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val stepValue = step.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * stepValue
     }
 
@@ -351,9 +383,21 @@ class InStepRange(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val lbValue = lb.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val stepValue = step.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val qValue = q.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val lbValue = lb.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val stepValue = step.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qValue = q.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return lbValue + qValue * stepValue
     }
 }

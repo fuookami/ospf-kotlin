@@ -6,10 +6,10 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.ordinary.pow
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.model.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
@@ -35,10 +35,20 @@ class QuadraticConstraintCell(
     override val coefficient by ::_coefficient
 
     override fun unaryMinus(): QuadraticConstraintCell {
-        return QuadraticConstraintCell(rowIndex, colIndex1, colIndex2, -coefficient)
+        return QuadraticConstraintCell(
+            rowIndex = rowIndex,
+            colIndex1 = colIndex1,
+            colIndex2 = colIndex2,
+            coefficient = -coefficient
+        )
     }
 
-    override fun copy() = QuadraticConstraintCell(rowIndex, colIndex1, colIndex2, coefficient.copy())
+    override fun copy() = QuadraticConstraintCell(
+        rowIndex = rowIndex,
+        colIndex1 = colIndex1,
+        colIndex2 = colIndex2,
+        coefficient = coefficient.copy()
+    )
     override fun clone() = copy()
 }
 
@@ -83,10 +93,18 @@ class QuadraticObjectiveCell(
     override val coefficient by ::_coefficient
 
     override fun unaryMinus(): QuadraticObjectiveCell {
-        return QuadraticObjectiveCell(colIndex1, colIndex2, -coefficient)
+        return QuadraticObjectiveCell(
+            colIndex1 = colIndex1,
+            colIndex2 = colIndex2,
+            coefficient = -coefficient
+        )
     }
 
-    override fun copy() = QuadraticObjectiveCell(colIndex1, colIndex2, coefficient.copy())
+    override fun copy() = QuadraticObjectiveCell(
+        colIndex1 = colIndex1,
+        colIndex2 = colIndex2,
+        coefficient = coefficient.copy()
+    )
     override fun clone() = copy()
 }
 
@@ -127,7 +145,7 @@ class BasicQuadraticTetradModel(
 
     fun linearRelaxed(): BasicQuadraticTetradModel {
         return BasicQuadraticTetradModel(
-            variables.map {
+            variables = variables.map {
                 when (it.type) {
                     is Binary -> {
                         val ret = it.copy()
@@ -150,8 +168,8 @@ class BasicQuadraticTetradModel(
                     else -> it.copy()
                 }
             },
-            constraints.copy(),
-            name
+            constraints = constraints.copy(),
+            name = name
         )
     }
 
@@ -325,13 +343,26 @@ data class QuadraticTetradModel(
             val tetradModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(model, tokenIndexMap, bounds)
+                        dumpVariables(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds
+                        )
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(model, tokenIndexMap, bounds, fixedVariables)
+                        dumpConstraintsAsync(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds,
+                            fixedVariables = fixedVariables
+                        )
                     }
                     val objectivePromise = async(Dispatchers.Default) {
-                        dumpObjectives(model, tokenIndexMap, fixedVariables)
+                        dumpObjectives(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            fixedVariables = fixedVariables
+                        )
                     }
 
                     QuadraticTetradModel(
@@ -347,12 +378,25 @@ data class QuadraticTetradModel(
             } else {
                 QuadraticTetradModel(
                     impl = BasicQuadraticTetradModel(
-                        variables = dumpVariables(model, tokenIndexMap, bounds),
-                        constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables),
+                        variables = dumpVariables(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds
+                        ),
+                        constraints = dumpConstraints(
+                            model = model,
+                            tokenIndexes = tokenIndexMap,
+                            bounds = bounds,
+                            fixedVariables = fixedVariables
+                        ),
                         name = model.name
                     ),
                     tokensInSolver = tokensInSolver,
-                    objective = dumpObjectives(model, tokenIndexMap, fixedVariables)
+                    objective = dumpObjectives(
+                        model = model,
+                        tokenIndexes = tokenIndexMap,
+                        fixedVariables = fixedVariables
+                    )
                 )
             }
 
@@ -495,7 +539,15 @@ data class QuadraticTetradModel(
                 origins.add(constraint)
                 froms.add(constraint.from)
             }
-            return QuadraticConstraint(lhs, signs, rhs, names, sources, origins, froms)
+            return QuadraticConstraint(
+                lhs = lhs,
+                signs = signs,
+                rhs = rhs,
+                names = names,
+                sources = sources,
+                origins = origins,
+                froms = froms
+            )
         }
 
         private suspend fun dumpConstraintsAsync(
@@ -612,7 +664,15 @@ data class QuadraticTetradModel(
                         froms.add(constraint.from)
                     }
                     System.gc()
-                    QuadraticConstraint(lhs, signs, rhs, names, sources, origins, froms)
+                    QuadraticConstraint(
+                        lhs = lhs,
+                        signs = signs,
+                        rhs = rhs,
+                        names = names,
+                        sources = sources,
+                        origins = origins,
+                        froms = froms
+                    )
                 }
             } else {
                 val lhs = ArrayList<List<QuadraticConstraintCell>>()
@@ -694,7 +754,15 @@ data class QuadraticTetradModel(
                     froms.add(constraint.from)
                 }
                 System.gc()
-                QuadraticConstraint(lhs, signs, rhs, names, sources, origins, froms)
+                QuadraticConstraint(
+                    lhs = lhs,
+                    signs = signs,
+                    rhs = rhs,
+                    names = names,
+                    sources = sources,
+                    origins = origins,
+                    froms = froms
+                )
             }
         }
 
@@ -783,7 +851,11 @@ data class QuadraticTetradModel(
         }
     }
 
-    override fun copy() = QuadraticTetradModel(impl.copy(), tokensInSolver, objective.copy())
+    override fun copy() = QuadraticTetradModel(
+        impl = impl.copy(),
+        tokensInSolver = tokensInSolver,
+        objective = objective.copy()
+    )
     override fun clone() = copy()
 
     override fun linearRelax(): QuadraticTetradModel {
@@ -792,7 +864,11 @@ data class QuadraticTetradModel(
     }
 
     override fun linearRelaxed(): QuadraticTetradModel {
-        return QuadraticTetradModel(impl.linearRelaxed(), tokensInSolver, objective.copy())
+        return QuadraticTetradModel(
+            impl = impl.linearRelaxed(),
+            tokensInSolver = tokensInSolver,
+            objective = objective.copy()
+        )
     }
 
     suspend fun dual(): QuadraticTetradModel {
@@ -970,7 +1046,7 @@ data class QuadraticTetradModel(
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.write("${objective.category}\n")
         var i = 0
-        for (cell in objective.obj) {
+        for (cell in objective.objective) {
             if (cell.coefficient eq Flt64.zero) {
                 continue
             }

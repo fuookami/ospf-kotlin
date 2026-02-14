@@ -138,7 +138,10 @@ class FirstFunction(
                     val value = if (values.isNullOrEmpty()) {
                         polynomial.evaluate(tokenTable)
                     } else {
-                        polynomial.evaluate(values, tokenTable)
+                        polynomial.evaluate(
+                            values = values,
+                            tokenTable = tokenTable
+                        )
                     } ?: return@forEach
 
                     val bin = value gr Flt64.zero
@@ -292,7 +295,10 @@ class FirstFunction(
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         val first = bins.indexOfFirst {
-            val bin = it.evaluate(fixedValues, model.tokens) ?: return register(model)
+            val bin = it.evaluate(
+                values = fixedValues,
+                tokenTable = model.tokens
+            ) ?: return register(model)
             bin gr Flt64.zero
         }
 
@@ -385,7 +391,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }
@@ -399,7 +409,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }
@@ -426,7 +440,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }
@@ -440,7 +458,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }

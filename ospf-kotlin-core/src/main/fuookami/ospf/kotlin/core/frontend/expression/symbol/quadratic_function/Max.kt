@@ -167,7 +167,7 @@ sealed class AbstractMaxFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                minmax geq polynomial,
+                constraint = minmax geq polynomial,
                 name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -182,7 +182,7 @@ sealed class AbstractMaxFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
-                    minmax leq (polynomial + m * (Flt64.one - u[i])),
+                    constraint = minmax leq (polynomial + m * (Flt64.one - u[i])),
                     name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -195,7 +195,7 @@ sealed class AbstractMaxFunction(
             }
 
             when (val result = model.addConstraint(
-                sum(u) eq Flt64.one,
+                constraint = sum(u) eq Flt64.one,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -267,7 +267,7 @@ sealed class AbstractMaxFunction(
 
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                minmax geq polynomial,
+                constraint = minmax geq polynomial,
                 name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -280,7 +280,7 @@ sealed class AbstractMaxFunction(
         }
 
         when (val result = model.addConstraint(
-            minmax eq maxValue,
+            constraint = minmax eq maxValue,
             name = "${name}_max",
             from = parent ?: this
         )) {
@@ -299,7 +299,7 @@ sealed class AbstractMaxFunction(
             for ((i, polynomial) in polynomials.withIndex()) {
                 if (i == index) {
                     when (val result = model.addConstraint(
-                        minmax leq polynomial,
+                        constraint = minmax leq polynomial,
                         name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {
@@ -311,8 +311,9 @@ sealed class AbstractMaxFunction(
                     }
 
                     when (val result = model.addConstraint(
-                        u[i] eq Flt64.one,
-                        "${name}_u_${polynomial.name.ifEmpty { "$i" }}"
+                        constraint = u[i] eq Flt64.one,
+                        name = "${name}_u_${polynomial.name.ifEmpty { "$i" }}",
+                        from = parent ?: this
                     )) {
                         is Ok -> {}
 
@@ -326,7 +327,7 @@ sealed class AbstractMaxFunction(
                     }
                 } else {
                     when (val result = model.addConstraint(
-                        minmax leq (polynomial + m),
+                        constraint = minmax leq (polynomial + m),
                         name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {
@@ -362,7 +363,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -372,7 +377,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -391,7 +400,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -401,7 +414,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 }

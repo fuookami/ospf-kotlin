@@ -32,7 +32,13 @@ interface LinearBendersDecompositionSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@LinearBendersDecompositionSolver.solveMaster(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@LinearBendersDecompositionSolver.solveMaster(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -84,7 +90,15 @@ interface LinearBendersDecompositionSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LinearSubResult>> {
         return GlobalScope.future {
-            return@future this@LinearBendersDecompositionSolver.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@LinearBendersDecompositionSolver.solveSub(
+                name = name,
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 }
@@ -107,7 +121,13 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
-            return@future this@QuadraticBendersDecompositionSolver.solveMaster(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@QuadraticBendersDecompositionSolver.solveMaster(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -163,7 +183,15 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<QuadraticSubResult>> {
         return GlobalScope.future {
-            return@future this@QuadraticBendersDecompositionSolver.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@QuadraticBendersDecompositionSolver.solveSub(
+                name = name,
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 }

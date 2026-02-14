@@ -305,7 +305,13 @@ class TaskSchedulingStorageResourceUsage<
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractStorageResourceUsage<E, R, C>(timeWindow, executors, resources, times, interval) {
+) : AbstractStorageResourceUsage<E, R, C>(
+    timeWindow = timeWindow,
+    executors = executors,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         executors: List<E>,
@@ -363,7 +369,13 @@ class IterativeTaskSchedulingStorageResourceUsage<
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractStorageResourceUsage<E, R, C>(timeWindow, executors, resources, times, interval) {
+) : AbstractStorageResourceUsage<E, R, C>(
+    timeWindow = timeWindow,
+    executors = executors,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         executors: List<E>,
@@ -371,12 +383,12 @@ class IterativeTaskSchedulingStorageResourceUsage<
         times: List<TimeRange>,
         name: String
     ) : this(
-        timeWindow,
-        executors,
-        resources,
-        times,
-        timeWindow.interval,
-        name
+        timeWindow = timeWindow,
+        executors = executors,
+        resources = resources,
+        times = times,
+        interval = timeWindow.interval,
+        name = name
     )
 
     constructor(
@@ -386,12 +398,12 @@ class IterativeTaskSchedulingStorageResourceUsage<
         interval: Duration = timeWindow.interval,
         name: String
     ) : this(
-        timeWindow,
-        executors,
-        resources,
-        emptyList(),
-        interval,
-        name
+        timeWindow = timeWindow,
+        executors = executors,
+        resources = resources,
+        times = emptyList(),
+        interval = interval,
+        name = name
     )
 
     override lateinit var executorSupply: LinearExpressionSymbols3
@@ -521,7 +533,13 @@ class BunchSchedulingStorageResourceUsage<
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractStorageResourceUsage<E, R, C>(timeWindow, executors, resources, times, interval) {
+) : AbstractStorageResourceUsage<E, R, C>(
+    timeWindow = timeWindow,
+    executors = executors,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         executors: List<E>,
@@ -529,12 +547,12 @@ class BunchSchedulingStorageResourceUsage<
         times: List<TimeSlot>,
         name: String
     ) : this(
-        timeWindow,
-        executors,
-        resources,
-        times,
-        timeWindow.interval,
-        name
+        timeWindow = timeWindow,
+        executors = executors,
+        resources = resources,
+        times = times,
+        interval = timeWindow.interval,
+        name = name
     )
 
     constructor(
@@ -544,12 +562,12 @@ class BunchSchedulingStorageResourceUsage<
         interval: Duration = timeWindow.interval,
         name: String
     ) : this(
-        timeWindow,
-        executors,
-        resources,
-        emptyList(),
-        interval,
-        name
+        timeWindow = timeWindow,
+        executors = executors,
+        resources = resources,
+        times = emptyList(),
+        interval = interval,
+        name = name
     )
 
     override val overEnabled: Boolean = true

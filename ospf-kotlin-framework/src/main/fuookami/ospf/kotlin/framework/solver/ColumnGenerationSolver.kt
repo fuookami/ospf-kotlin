@@ -30,7 +30,13 @@ interface ColumnGenerationSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
         return GlobalScope.future {
-            return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@ColumnGenerationSolver.solveMILP(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -42,7 +48,13 @@ interface ColumnGenerationSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
-        return solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+        return solveMILP(
+            name = name,
+            metaModel = metaModel,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
             .map { Pair(it, listOf(it.solution)) }
     }
 
@@ -56,7 +68,14 @@ interface ColumnGenerationSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
         return GlobalScope.future {
-            return@future this@ColumnGenerationSolver.solveMILP(name, metaModel, amount, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@ColumnGenerationSolver.solveMILP(
+                name = name,
+                metaModel = metaModel,
+                amount = amount,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 
@@ -88,7 +107,13 @@ interface ColumnGenerationSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LPResult>> {
         return GlobalScope.future {
-            return@future this@ColumnGenerationSolver.solveLP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+            return@future this@ColumnGenerationSolver.solveLP(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
         }
     }
 }

@@ -57,17 +57,28 @@ sealed interface MonomialSymbol {
 
     fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(tokenTable.tokenList, zeroIfNone)
+        return evaluate(
+            tokenList = tokenTable.tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(results, tokenTable.tokenList, zeroIfNone)
+        return evaluate(
+            results = results,
+            tokenList = tokenTable.tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean = false): Flt64?
     fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(values, tokenTable?.tokenList, zeroIfNone)
+        return evaluate(
+            values = values,
+            tokenList = tokenTable?.tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     fun toRawString(unfold: UInt64 = UInt64.zero): String
@@ -117,26 +128,48 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return symbol.evaluate(tokenList, zeroIfNone)?.let { coefficient * it }
+        return symbol.evaluate(
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let { coefficient * it }
     }
 
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
-        return symbol.evaluate(results, tokenList, zeroIfNone)?.let { coefficient * it }
+        return symbol.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let { coefficient * it }
     }
 
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return symbol.evaluate(tokenTable, zeroIfNone)?.let { coefficient * it }
+        return symbol.evaluate(
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let { coefficient * it }
     }
 
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return symbol.evaluate(results, tokenTable, zeroIfNone)?.let { coefficient * it }
+        return symbol.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let { coefficient * it }
     }
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
-        return symbol.evaluate(values, tokenList, zeroIfNone)?.let { coefficient * it }
+        return symbol.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let { coefficient * it }
     }
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
-        return symbol.evaluate(values, tokenTable, zeroIfNone)?.let { coefficient * it }
+        return symbol.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let { coefficient * it }
     }
 }

@@ -49,7 +49,14 @@ data class ChuaAttractorGenerator(
             )
         ): ChuaAttractorGenerator {
             return ChuaAttractorGenerator(
-                ChuaAttractor(alpha, beta, delta, epsilon, zeta, h),
+                ChuaAttractor(
+                    alpha = alpha,
+                    beta = beta,
+                    delta = delta,
+                    epsilon = epsilon,
+                    zeta = zeta,
+                    h = h
+                ),
                 x
             )
         }

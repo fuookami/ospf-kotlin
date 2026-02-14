@@ -100,7 +100,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone)
+        val value = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
@@ -114,7 +118,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenList, zeroIfNone)
+        val value = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
@@ -141,7 +149,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone)
+        val value = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
@@ -155,7 +167,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenTable, zeroIfNone)
+        val value = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
             ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
@@ -220,7 +236,10 @@ class BinaryzationFunctionImpl(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             if (xValue gr Flt64.zero) {
@@ -433,7 +452,11 @@ class BinaryzationFunctionDiscreteImpl(
         }
 
         override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
-            return BinaryzationFunctionDiscreteImpl(params, params.self.extract, null)
+            return BinaryzationFunctionDiscreteImpl(
+                params = params,
+                extract = params.self.extract,
+                m = null
+            )
         }
     }
 
@@ -522,7 +545,7 @@ class BinaryzationFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            m * y geq x,
+            constraint = m * y geq x,
             name = "${name}_ub",
             from = parent ?: self
         )) {
@@ -535,7 +558,7 @@ class BinaryzationFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                y leq x,
+                constraint = y leq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -599,7 +622,7 @@ class BinaryzationFunctionDiscreteImpl(
 
         if (bin eq Flt64.one) {
             when (val result = model.addConstraint(
-                m * y geq x,
+                constraint = m * y geq x,
                 name = "${name}_ub",
                 from = parent ?: self
             )) {
@@ -611,7 +634,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y leq x,
+                constraint = y leq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -623,7 +646,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y eq bin,
+                constraint = y eq bin,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -639,7 +662,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
         } else {
             when (val result = model.addConstraint(
-                Flt64.zero geq x,
+                constraint = Flt64.zero geq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -651,7 +674,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                Flt64.zero leq x,
+                constraint = Flt64.zero leq x,
                 name = "${name}_ub",
                 from = parent ?: self
             )) {
@@ -700,7 +723,11 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         override operator fun invoke(params: BinaryzationFunctionImplBuilderParams): AbstractBinaryzationFunctionImpl {
-            return BinaryzationFunctionExtractAndNotDiscreteImpl(params, params.self.epsilon, null)
+            return BinaryzationFunctionExtractAndNotDiscreteImpl(
+                params = params,
+                epsilon = params.self.epsilon,
+                m = null
+            )
         }
     }
 
@@ -796,7 +823,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq m * b,
+            constraint = x eq m * b,
             name = "${name}_xb",
             from = parent ?: self
         )) {
@@ -808,7 +835,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y geq b,
+            constraint = y geq b,
             name = "${name}_lb",
             from = parent ?: self
         )) {
@@ -820,7 +847,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            y leq (Flt64.one / epsilon) * b,
+            constraint = y leq (Flt64.one / epsilon) * b,
             name = "${name}_ub",
             from = parent ?: self
         )) {
@@ -884,7 +911,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
         if (bin eq Flt64.zero) {
             when (val result = model.addConstraint(
-                x eq m * b,
+                constraint = x eq m * b,
                 name = "${name}_xb",
                 from = parent ?: self
             )) {
@@ -896,7 +923,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                y eq bin,
+                constraint = y eq bin,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -912,7 +939,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                b eq pct,
+                constraint = b eq pct,
                 name = "${name}_b",
                 from = parent ?: self
             )) {
@@ -928,7 +955,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             }
         } else {
             when (val result = model.addConstraint(
-                x eq Flt64.zero,
+                constraint = x eq Flt64.zero,
                 name = "${name}_x",
                 from = parent ?: self
             )) {
@@ -1119,7 +1146,11 @@ class BinaryzationFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(results, tokenList, zeroIfNone)
+        return impl.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -1127,7 +1158,11 @@ class BinaryzationFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(values, tokenList, zeroIfNone)
+        return impl.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -1142,7 +1177,11 @@ class BinaryzationFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(results, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -1150,6 +1189,10 @@ class BinaryzationFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(values, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 }

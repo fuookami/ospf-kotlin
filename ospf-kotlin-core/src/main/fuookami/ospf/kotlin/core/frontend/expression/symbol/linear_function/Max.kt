@@ -359,7 +359,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -369,7 +373,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -388,7 +396,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -398,7 +410,11 @@ sealed class AbstractMaxFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.maxOfOrNull {
-            it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 }

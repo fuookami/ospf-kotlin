@@ -46,7 +46,13 @@ data class CoulletAttractorGenerator(
             )
         ): CoulletAttractorGenerator {
             return CoulletAttractorGenerator(
-                CoulletAttractor(alpha, beta, delta, zeta, h),
+                CoulletAttractor(
+                    alpha = alpha,
+                    beta = beta,
+                    delta = delta,
+                    zeta = zeta,
+                    h = h
+                ),
                 x
             )
         }

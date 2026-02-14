@@ -38,7 +38,12 @@ interface CGPipeline<
         fun <
             Model : MetaModel,
             Map : AbstractShadowPriceMap<*, Map>
-        > refreshByKeyAsArgs(pipeline: CGPipeline<*, Model, Map>, map: Map, model: Model, shadowPrices: MetaDualSolution): Try {
+        > refreshByKeyAsArgs(
+            pipeline: CGPipeline<*, Model, Map>,
+            map: Map,
+            model: Model,
+            shadowPrices: MetaDualSolution
+        ): Try {
             val thisShadowPrices = HashMap<ShadowPriceKey, Flt64>()
             for (constraint in model.constraintsOfGroup(pipeline)) {
                 val key = (constraint.args as? ShadowPriceKey) ?: continue

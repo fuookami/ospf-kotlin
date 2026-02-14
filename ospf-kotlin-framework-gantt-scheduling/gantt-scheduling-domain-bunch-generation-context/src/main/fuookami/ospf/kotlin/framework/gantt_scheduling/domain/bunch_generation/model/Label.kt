@@ -33,7 +33,15 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
         tasks.add(currLabel.task!!)
     }
     val totalCost = totalCostCalculator(executor, executorUsability.lastTask, tasks)
-    return totalCost?.let { AbstractTaskBunch(executor, executorUsability, tasks, it, iteration) }
+    return totalCost?.let {
+        AbstractTaskBunch(
+            executor = executor,
+            initialUsability = executorUsability,
+            tasks = tasks,
+            cost = it,
+            iteration = iteration
+        )
+    }
 }
 
 private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
@@ -146,7 +154,13 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         executorUsability: ExecutorInitialUsability<T, E, A>,
         totalCostCalculator: TotalCostCalculator<T, E>
     ): AbstractTaskBunch<T, E, A>? {
-        return generateBunch(this, iteration, executor, executorUsability, totalCostCalculator)
+        return generateBunch(
+            label = this,
+            iteration = iteration,
+            executor = executor,
+            executorUsability = executorUsability,
+            totalCostCalculator = totalCostCalculator
+        )
     }
 
     fun <B : AbstractTaskBunch<T, E, A>> generateBunch(
@@ -156,6 +170,13 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         totalCostCalculator: TotalCostCalculator<T, E>,
         bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost) -> B
     ): B? {
-        return generateBunch(this, iteration, executor, executorUsability, totalCostCalculator, bunchCtor)
+        return generateBunch(
+            label = this,
+            iteration = iteration,
+            executor = executor,
+            executorUsability = executorUsability,
+            totalCostCalculator = totalCostCalculator,
+            bunchCtor = bunchCtor
+        )
     }
 }

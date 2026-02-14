@@ -151,7 +151,7 @@ class SemiFunction(
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         when (val result = model.addConstraint(
-            y geq x,
+            constraint = y geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -162,7 +162,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            y leq x + m * u,
+            constraint = y leq x + m * u,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -173,7 +173,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            y leq m * (Flt64.one - u),
+            constraint = y leq m * (Flt64.one - u),
             name = "${name}_yu",
             from = parent ?: this
         )) {
@@ -203,7 +203,7 @@ class SemiFunction(
         val bin = xValue gr Flt64.zero
 
         when (val result = model.addConstraint(
-            y geq x,
+            constraint = y geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -214,7 +214,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            y leq x + m * u,
+            constraint = y leq x + m * u,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -225,7 +225,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            y leq m * (Flt64.one - u),
+            constraint = y leq m * (Flt64.one - u),
             name = "${name}_yu",
             from = parent ?: this
         )) {
@@ -237,7 +237,7 @@ class SemiFunction(
         }
 
         when (val result = model.addConstraint(
-            y eq yValue,
+            constraint = y eq yValue,
             name = "${name}_y",
             from = parent ?: this
         )) {
@@ -253,7 +253,7 @@ class SemiFunction(
         }
 
         when (val result = model.addConstraint(
-            u eq bin,
+            constraint = u eq bin,
             name = "${name}_u",
             from = parent ?: this
         )) {
@@ -296,7 +296,11 @@ class SemiFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return max(Flt64.zero, xValue)
     }
 
@@ -305,7 +309,11 @@ class SemiFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return max(Flt64.zero, xValue)
     }
 
@@ -322,7 +330,11 @@ class SemiFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return max(Flt64.zero, xValue)
     }
 
@@ -331,7 +343,11 @@ class SemiFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return max(Flt64.zero, xValue)
     }
 }

@@ -211,7 +211,13 @@ class GurobiQuadraticBendersDecompositionSolver(
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<SolverOutput> {
-        return linear.solveMaster(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+        return linear.solveMaster(
+            name = name,
+            metaModel = metaModel,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -287,7 +293,15 @@ class GurobiQuadraticBendersDecompositionSolver(
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<LinearBendersDecompositionSolver.LinearSubResult> {
-        return linear.solveSub(name, metaModel, objectVariable, fixedVariables, toLogModel, registrationStatusCallBack, solvingStatusCallBack)
+        return linear.solveSub(
+            name = name,
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)

@@ -44,7 +44,12 @@ data class ChenLeeAttractorGenerator(
             )
         ): ChenLeeAttractorGenerator {
             return ChenLeeAttractorGenerator(
-                ChenLeeAttractor(alpha, beta, delta, h),
+                ChenLeeAttractor(
+                    alpha = alpha,
+                    beta = beta,
+                    delta = delta,
+                    h = h
+                ),
                 x
             )
         }

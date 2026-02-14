@@ -33,9 +33,17 @@ abstract class ConnectionResource<out C : AbstractResourceCapacity>(
         var counter = Flt64.zero
         for (i in bunch.tasks.indices) {
             counter += if (i == 0) {
-                usedBy(bunch.lastTask, bunch[i], time)
+                usedBy(
+                    prevTask = bunch.lastTask,
+                    task = bunch[i],
+                    time = time
+                )
             } else {
-                usedBy(bunch[i - 1], bunch[i], time)
+                usedBy(
+                    prevTask = bunch[i - 1],
+                    task = bunch[i],
+                    time = time
+                )
             }
         }
         return counter
@@ -55,7 +63,11 @@ data class ConnectionResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Flt64 {
-        return resource.usedBy(prevTask, task, time)
+        return resource.usedBy(
+            prevTask = prevTask,
+            task = task,
+            time = time
+        )
     }
 
     override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
@@ -155,7 +167,12 @@ class TaskSchedulingConnectionResourceUsage<
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, times, interval) {
+) : AbstractConnectionResourceUsage<R, C>(
+    timeWindow = timeWindow,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         resources: List<R>,
@@ -206,18 +223,23 @@ class BunchSchedulingConnectionResourceUsage<
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractConnectionResourceUsage<R, C>(timeWindow, resources, times, interval) {
+) : AbstractConnectionResourceUsage<R, C>(
+    timeWindow = timeWindow,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String
     ) : this(
-        timeWindow,
-        resources,
-        times,
-        timeWindow.interval,
-        name
+        timeWindow = timeWindow,
+        resources = resources,
+        times = times,
+        interval = timeWindow.interval,
+        name = name
     )
 
     constructor(
@@ -226,11 +248,11 @@ class BunchSchedulingConnectionResourceUsage<
         interval: Duration = timeWindow.interval,
         name: String
     ) : this(
-        timeWindow,
-        resources,
-        emptyList(),
-        interval,
-        name
+        timeWindow = timeWindow,
+        resources = resources,
+        times = emptyList(),
+        interval = interval,
+        name = name
     )
 
     override val overEnabled: Boolean = true

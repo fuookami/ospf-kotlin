@@ -360,7 +360,11 @@ sealed class AbstractMinFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -370,7 +374,11 @@ sealed class AbstractMinFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -388,7 +396,11 @@ sealed class AbstractMinFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -398,7 +410,11 @@ sealed class AbstractMinFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 }

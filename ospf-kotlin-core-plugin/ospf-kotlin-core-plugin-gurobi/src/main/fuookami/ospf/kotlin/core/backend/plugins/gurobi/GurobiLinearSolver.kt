@@ -104,9 +104,18 @@ private class GurobiLinearSolverImpl(
         val processes = arrayOf(
             {
                 if (server != null && password != null && connectionTime != null) {
-                    it.init(server, password, connectionTime, model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        server = server,
+                        password = password,
+                        connectionTime = connectionTime,
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 } else {
-                    it.init(model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 }
             },
             { it.dump(model) },
@@ -133,7 +142,7 @@ private class GurobiLinearSolverImpl(
                 grbModel.addVar(
                     it.lowerBound.toDouble(),
                     it.upperBound.toDouble(),
-                    0.0,
+                     0.0,
                     GurobiVariable(it.type).toGurobiVar(),
                     it.name
                 )
@@ -158,7 +167,10 @@ private class GurobiLinearSolverImpl(
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = GRBLinExpr()
                                 for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
+                                    lhs.addTerm(
+                                        cell.coefficient.toDouble(),
+                                        grbVars[cell.colIndex]
+                                    )
                                 }
                                 ii to lhs
                             }
@@ -186,7 +198,10 @@ private class GurobiLinearSolverImpl(
                     model.constraints.indices.map { i ->
                         val lhs = GRBLinExpr()
                         for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
+                            lhs.addTerm(
+                                cell.coefficient.toDouble(),
+                                grbVars[cell.colIndex]
+                            )
                         }
                         grbModel.addConstr(
                             lhs,
@@ -201,8 +216,11 @@ private class GurobiLinearSolverImpl(
             grbConstraints = constraints
 
             val obj = GRBLinExpr()
-            for (cell in model.objective.obj) {
-                obj.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
+            for (cell in model.objective.objective) {
+                obj.addTerm(
+                    cell.coefficient.toDouble(),
+                    grbVars[cell.colIndex]
+                )
             }
             obj.addConstant(model.objective.constant.toDouble())
             grbModel.setObjective(
@@ -218,7 +236,13 @@ private class GurobiLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                gurobi = grbModel,
+                variables = grbVars,
+                constraints = grbConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -311,7 +335,13 @@ private class GurobiLinearSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, grbModel, grbVars, grbConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                gurobi = grbModel,
+                variables = grbVars,
+                constraints = grbConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -352,7 +382,13 @@ private class GurobiLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    gurobi = grbModel,
+                    variables = grbVars,
+                    constraints = grbConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -361,7 +397,13 @@ private class GurobiLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, grbModel, grbVars, grbConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    gurobi = grbModel,
+                    variables = grbVars,
+                    constraints = grbConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }

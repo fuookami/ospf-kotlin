@@ -64,8 +64,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
     fun z(x: Flt64, y: Flt64): Flt64? {
         for (i in indices) {
-            val u = this.calculateU(i, x, y)
-            val v = this.calculateV(i, x, y)
+            val u = this.calculateU(
+                i = i,
+                x = x,
+                y = y
+            )
+            val v = this.calculateV(
+                i = i,
+                x = x,
+                y = y
+            )
 
             if ((Flt64.zero leq u) && (u leq Flt64.one)
                 && (Flt64.zero leq v) && (v leq Flt64.one)
@@ -149,8 +157,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
             var zValue: Flt64? = null
             for (i in indices) {
-                val uValue = this.calculateU(i, xValue, yValue)
-                val vValue = this.calculateV(i, xValue, yValue)
+                val uValue = this.calculateU(
+                    i = i,
+                    x = xValue,
+                    y = yValue
+                )
+                val vValue = this.calculateV(
+                    i = i,
+                    x = xValue,
+                    y = yValue
+                )
 
                 if ((Flt64.zero leq uValue) && (uValue leq Flt64.one)
                     && (Flt64.zero leq vValue) && (vValue leq Flt64.one)
@@ -226,7 +242,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         for (i in indices) {
             val rhs = polyU(i)
             when (val result = model.addConstraint(
-                (u[i] - m * w[i] + m) geq rhs,
+                constraint = (u[i] - m * w[i] + m) geq rhs,
                 name = "${name}_ul_$i",
                 from = parent ?: this
             )) {
@@ -237,7 +253,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             }
             when (val result = model.addConstraint(
-                (u[i] + m * w[i] - m) leq rhs,
+                constraint = (u[i] + m * w[i] - m) leq rhs,
                 name = "${name}_ur_$i",
                 from = parent ?: this
             )) {
@@ -252,7 +268,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         for (i in indices) {
             val rhs = polyV(i)
             when (val result = model.addConstraint(
-                (v[i] - m * w[i] + m) geq rhs,
+                constraint = (v[i] - m * w[i] + m) geq rhs,
                 name = "${name}_vl_$i",
                 from = parent ?: this
             )) {
@@ -263,7 +279,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             }
             when (val result = model.addConstraint(
-                (v[i] + m * w[i] - m) leq rhs,
+                constraint = (v[i] + m * w[i] - m) leq rhs,
                 name = "${name}_vr_$i",
                 from = parent ?: this
             )) {
@@ -276,7 +292,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
 
         when (val result = model.addConstraint(
-            sum(w) eq Flt64.one,
+            constraint = sum(w) eq Flt64.one,
             name = "${name}_w",
             from = parent ?: this
         )) {
@@ -289,7 +305,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
         for (i in indices) {
             when (val result = model.addConstraint(
-                (u[i] + v[i]) leq w[i],
+                constraint = (u[i] + v[i]) leq w[i],
                 name = "${name}_uv_$i",
                 from = parent ?: this
             )) {
@@ -310,14 +326,26 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     ): Try {
         val (xValue, yValue) = when (tokenTable) {
             is AbstractTokenTable -> {
-                val xValue = x.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
-                val yValue = y.evaluate(fixedValues, tokenTable) ?: return register(tokenTable)
+                val xValue = x.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable
+                ) ?: return register(tokenTable)
+                val yValue = y.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable
+                ) ?: return register(tokenTable)
                 xValue to yValue
             }
 
             is FunctionSymbolRegistrationScope -> {
-                val xValue = x.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
-                val yValue = y.evaluate(fixedValues, tokenTable.origin) ?: return register(tokenTable)
+                val xValue = x.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable.origin
+                ) ?: return register(tokenTable)
+                val yValue = y.evaluate(
+                    values = fixedValues,
+                    tokenTable = tokenTable.origin
+                ) ?: return register(tokenTable)
                 xValue to yValue
             }
 
@@ -348,8 +376,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         model: AbstractQuadraticMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
-        val yValue = y.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
+        val yValue = y.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val index = indices.firstOrNull {
             val triangle = triangles[it]
             val (minX, maxX) = minMax(triangle.p1.x, triangle.p2.x, triangle.p3.x)
@@ -358,15 +392,23 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         } ?: return register(model)
 
         val m = calculateM()
-        val uValue = calculateU(index, xValue, yValue)
-        val vValue = calculateV(index, xValue, yValue)
+        val uValue = calculateU(
+            i = index,
+            x = xValue,
+            y = yValue
+        )
+        val vValue = calculateV(
+            i = index,
+            x = xValue,
+            y = yValue
+        )
 
         for (i in indices) {
             val uPoly = polyU(i)
             val vPoly = polyV(i)
             if (i == index) {
                 when (val result = model.addConstraint(
-                    (u[i] - m * w[i] + m) geq uPoly,
+                    constraint = (u[i] - m * w[i] + m) geq uPoly,
                     name = "${name}_ul_$i",
                     from = parent ?: this
                 )) {
@@ -377,7 +419,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    (u[i] - m * w[i] - m) leq uPoly,
+                    constraint = (u[i] - m * w[i] - m) leq uPoly,
                     name = "${name}_ur_$i",
                     from = parent ?: this
                 )) {
@@ -388,7 +430,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    u[i] eq uValue,
+                    constraint = u[i] eq uValue,
                     name = "${name}_u_$i",
                     from = parent ?: this
                 )) {
@@ -404,7 +446,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    (v[i] - m * w[i] + m) geq vPoly,
+                    constraint = (v[i] - m * w[i] + m) geq vPoly,
                     name = "${name}_vl_$i",
                     from = parent ?: this
                 )) {
@@ -415,7 +457,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    (v[i] - m * w[i] - m) leq vPoly,
+                    constraint = (v[i] - m * w[i] - m) leq vPoly,
                     name = "${name}_vr_$i",
                     from = parent ?: this
                 )) {
@@ -426,7 +468,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    v[i] eq vValue,
+                    constraint = v[i] eq vValue,
                     name = "${name}_v_$i",
                     from = parent ?: this
                 )) {
@@ -442,7 +484,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    w[i] eq Flt64.one,
+                    constraint = w[i] eq Flt64.one,
                     name = "${name}_w_$i",
                     from = parent ?: this
                 )) {
@@ -458,7 +500,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    m geq uPoly,
+                    constraint = m geq uPoly,
                     name = "${name}_ul_$i",
                     from = parent ?: this
                 )) {
@@ -469,7 +511,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    -m leq uPoly,
+                    constraint = -m leq uPoly,
                     name = "${name}_ur_$i",
                     from = parent ?: this
                 )) {
@@ -481,7 +523,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    m geq vPoly,
+                    constraint = m geq vPoly,
                     name = "${name}_vl_$i",
                     from = parent ?: this
                 )) {
@@ -492,7 +534,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    -m leq vPoly,
+                    constraint = -m leq vPoly,
                     name = "${name}_vr_$i",
                     from = parent ?: this
                 )) {
@@ -587,19 +629,51 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
         for (i in triangles.indices) {
             val u = arrayOf(
-                this.calculateU(i, minX, minY),
-                this.calculateU(i, minX, maxY),
-                this.calculateU(i, maxX, minY),
-                this.calculateU(i, maxX, maxY)
+                this.calculateU(
+                    i = i,
+                    x = minX,
+                    y = minY
+                ),
+                this.calculateU(
+                    i = i,
+                    x = minX,
+                    y = maxY
+                ),
+                this.calculateU(
+                    i = i,
+                    x = maxX,
+                    y = minY
+                ),
+                this.calculateU(
+                    i = i,
+                    x = maxX,
+                    y = maxY
+                )
             )
             minU = minOf(minU, u.minOf { it })
             maxU = maxOf(maxU, u.maxOf { it })
 
             val v = arrayOf(
-                this.calculateV(i, minX, minY),
-                this.calculateV(i, minX, maxY),
-                this.calculateV(i, maxX, minY),
-                this.calculateV(i, maxX, maxY)
+                this.calculateV(
+                    i = i,
+                    x = minX,
+                    y = minY
+                ),
+                this.calculateV(
+                    i = i,
+                    x = minX,
+                    y = maxY
+                ),
+                this.calculateV(
+                    i = i,
+                    x = maxX,
+                    y = minY
+                ),
+                this.calculateV(
+                    i = i,
+                    x = maxX,
+                    y = maxY
+                )
             )
             minV = minOf(minV, v.minOf { it })
             maxV = maxOf(maxV, v.maxOf { it })
@@ -634,8 +708,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val thisX = x.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val thisY = y.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val thisX = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val thisY = y.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return z(thisX, thisY)
     }
 
@@ -644,8 +726,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val thisX = x.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val thisY = y.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val thisX = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val thisY = y.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return z(thisX, thisY)
     }
 
@@ -663,8 +753,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val thisX = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val thisY = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val thisX = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val thisY = y.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return z(thisX, thisY)
     }
 
@@ -673,8 +771,16 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val thisX = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val thisY = y.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val thisX = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val thisY = y.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return z(thisX, thisY)
     }
 }

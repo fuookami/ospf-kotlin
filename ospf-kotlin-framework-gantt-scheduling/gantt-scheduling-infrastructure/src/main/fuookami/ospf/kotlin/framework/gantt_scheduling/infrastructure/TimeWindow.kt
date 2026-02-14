@@ -271,7 +271,12 @@ data class TimeWindow(
         maxDuration: Duration? = null,
         breakTime: Duration? = null
     ): TimeRange.SplitTimeRanges {
-        return window.split(unit, currentDuration, maxDuration, breakTime)
+        return window.split(
+            unit = unit,
+            currentDuration = currentDuration,
+            maxDuration = maxDuration,
+            breakTime = breakTime
+        )
     }
 
     fun rsplit(
@@ -279,7 +284,11 @@ data class TimeWindow(
         maxDuration: Duration? = null,
         breakTime: Duration? = null
     ): TimeRange.SplitTimeRanges {
-        return window.rsplit(unit, maxDuration, breakTime)
+        return window.rsplit(
+            unit = unit,
+            maxDuration = maxDuration,
+            breakTime = breakTime
+        )
     }
     
     fun date(

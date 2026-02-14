@@ -66,7 +66,11 @@ data class LogRecordPO<T : Any>(
     val rpo by lazy {
         byteRPO {
             val stream = ByteArrayOutputStream()
-            writeJsonToStream(stream, (value::class as KClass<T>).serializer(), value)
+            writeJsonToStream(
+                stream = stream,
+                serializer = (value::class as KClass<T>).serializer(),
+                value = value
+            )
             stream.toByteArray()
         }
     }
@@ -91,7 +95,11 @@ data class LogRecordPO<T : Any>(
     fun byteRPO(serializer: KSerializer<T>): LogRecordByteRPO {
         return byteRPO {
             val stream = ByteArrayOutputStream()
-            writeJsonToStream(stream, serializer, it)
+            writeJsonToStream(
+                stream = stream,
+                serializer = serializer,
+                value = it
+            )
             stream.toByteArray()
         }
     }

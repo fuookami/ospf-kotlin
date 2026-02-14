@@ -234,7 +234,7 @@ class MosekLinearSolverImpl(
             }
             System.gc()
 
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 mosekModel.putcj(cell.colIndex, cell.coefficient.toDouble())
             }
             when (model.objective.category) {

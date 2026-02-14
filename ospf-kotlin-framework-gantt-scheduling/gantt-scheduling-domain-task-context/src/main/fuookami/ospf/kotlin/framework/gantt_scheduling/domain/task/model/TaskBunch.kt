@@ -73,7 +73,11 @@ open class AbstractTaskBunch<
             } else {
                 null
             }
-            task.duration!! + task.connectionTime(task.executor!!, prevTask, succTask)
+            task.duration!! + task.connectionTime(
+                executor = task.executor!!,
+                prevTask = prevTask,
+                succTask = succTask
+            )
         }
     }
 

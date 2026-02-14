@@ -1768,7 +1768,7 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
-    return this.foldParallelly(UInt64.ten, initial, operation)
+    return this.foldParallelly(segment = UInt64.ten, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.foldParallelly(
@@ -1817,7 +1817,7 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.tryFoldParallelly(UInt64.ten, initial, operation)
+    return this.tryFoldParallelly(segment = UInt64.ten, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldParallelly(
@@ -1891,7 +1891,7 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
-    return this.foldIndexedParallelly(UInt64.ten, initial, operation)
+    return this.foldIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
@@ -1949,7 +1949,11 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.tryFoldIndexedParallelly(UInt64.ten, initial, operation)
+    return this.tryFoldIndexedParallelly(
+        segment = UInt64.ten,
+        initial = initial,
+        operation = operation
+    )
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
@@ -2030,7 +2034,11 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
-    return this.foldRightParallelly(UInt64.ten, initial, operation)
+    return this.foldRightParallelly(
+        segment = UInt64.ten,
+        initial = initial,
+        operation = operation
+    )
 }
 
 suspend inline fun <T> Iterable<T>.foldRightParallelly(
@@ -2079,7 +2087,11 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.tryFoldRightParallelly(UInt64.ten, initial, operation)
+    return this.tryFoldRightParallelly(
+        segment = UInt64.ten,
+        initial = initial,
+        operation = operation
+    )
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
@@ -2153,7 +2165,11 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
-    return this.foldRightIndexedParallelly(UInt64.ten, initial, operation)
+    return this.foldRightIndexedParallelly(
+        segment = UInt64.ten,
+        initial = initial,
+        operation = operation
+    )
 }
 
 suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
@@ -2211,7 +2227,11 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return this.tryFoldRightIndexedParallelly(UInt64.ten, initial, operation)
+    return this.tryFoldRightIndexedParallelly(
+        segment = UInt64.ten,
+        initial = initial,
+        operation = operation
+    )
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
@@ -3178,7 +3198,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithParallelly(
     comparator: KComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.maxOfWithParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithParallelly(
@@ -3209,7 +3233,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithComparatorParallelly(
     crossinline comparator: Comparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.maxOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithComparatorParallelly(
@@ -3240,7 +3268,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithPartialComparatorParallelly(
     crossinline comparator: PartialComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.maxOfWithPartialComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithPartialComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithPartialComparatorParallelly(
@@ -3271,7 +3303,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithThreeWayComparatorParallelly(
     crossinline comparator: ThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.maxOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithThreeWayComparatorParallelly(
@@ -3302,7 +3338,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithPartialThreeWayComparatorParallel
     crossinline comparator: PartialThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.maxOfWithPartialThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithPartialThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithPartialThreeWayComparatorParallelly(
@@ -3333,7 +3373,11 @@ suspend inline fun <T, R> Iterable<T>.tryMaxOfWithComparatorParallelly(
     crossinline comparator: TryComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R> {
-    return this.tryMaxOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMaxOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMaxOfWithComparatorParallelly(
@@ -3403,7 +3447,11 @@ suspend inline fun <T, R> Iterable<T>.tryMaxOfWithThreeWayComparatorParallelly(
     crossinline comparator: TryThreeWayComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R> {
-    return this.tryMaxOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMaxOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMaxOfWithThreeWayComparatorParallelly(
@@ -3473,7 +3521,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithOrNullParallelly(
     comparator: KComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.maxOfWithParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithOrNullParallelly(
@@ -3504,7 +3556,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithComparatorOrNullParallelly(
     crossinline comparator: Comparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.maxOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithComparatorOrNullParallelly(
@@ -3535,7 +3591,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithPartialComparatorOrNullParallelly
     crossinline comparator: PartialComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.maxOfWithPartialComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithPartialComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithPartialComparatorOrNullParallelly(
@@ -3566,7 +3626,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithThreeWayComparatorOrNullParallell
     crossinline comparator: ThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.maxOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithThreeWayComparatorOrNullParallelly(
@@ -3597,7 +3661,11 @@ suspend inline fun <T, R> Iterable<T>.maxOfWithPartialThreeWayComparatorOrNullPa
     crossinline comparator: PartialThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.maxOfWithPartialThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.maxOfWithPartialThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.maxOfWithPartialThreeWayComparatorOrNullParallelly(
@@ -3628,7 +3696,11 @@ suspend inline fun <T, R> Iterable<T>.tryMaxOfWithComparatorOrNullParallelly(
     crossinline comparator: TryComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R> {
-    return this.tryMaxOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMaxOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMaxOfWithComparatorOrNullParallelly(
@@ -3698,7 +3770,11 @@ suspend inline fun <T, R> Iterable<T>.tryMaxOfWithThreeWayComparatorOrNullParall
     crossinline comparator: TryThreeWayComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R> {
-    return this.tryMaxOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMaxOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMaxOfWithThreeWayComparatorOrNullParallelly(
@@ -4657,7 +4733,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithParallelly(
     comparator: KComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.minOfWithParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithParallelly(
@@ -4688,7 +4768,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithComparatorParallelly(
     crossinline comparator: Comparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.minOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithComparatorParallelly(
@@ -4719,7 +4803,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithPartialComparatorParallelly(
     crossinline comparator: PartialComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.minOfWithPartialComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithPartialComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithPartialComparatorParallelly(
@@ -4750,7 +4838,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithThreeWayComparatorParallelly(
     crossinline comparator: ThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.minOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithThreeWayComparatorParallelly(
@@ -4781,7 +4873,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithPartialThreeWayComparatorParallel
     crossinline comparator: PartialThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R {
-    return this.minOfWithPartialThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithPartialThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 
@@ -4813,7 +4909,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinOfWithComparatorParallelly(
     crossinline comparator: TryComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R> {
-    return this.tryMinOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMinOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinOfWithComparatorParallelly(
@@ -4887,7 +4987,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinOfWithThreeWayComparatorParallelly(
     crossinline comparator: TryThreeWayComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R> {
-    return this.tryMinOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMinOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinOfWithThreeWayComparatorParallelly(
@@ -4961,7 +5065,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithComparatorOrNullParallelly(
     comparator: KComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.minOfWithComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithComparatorOrNullParallelly(
@@ -4992,7 +5100,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithComparatorOrNullParallelly(
     crossinline comparator: Comparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.minOfWithComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithComparatorOrNullParallelly(
@@ -5023,7 +5135,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithPartialComparatorOrNullParallelly
     crossinline comparator: PartialComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.minOfWithPartialComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithPartialComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithPartialComparatorOrNullParallelly(
@@ -5054,7 +5170,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithThreeWayComparatorOrNullParallell
     crossinline comparator: ThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.minOfWithThreeWayComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithThreeWayComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithThreeWayComparatorOrNullParallelly(
@@ -5085,7 +5205,11 @@ suspend inline fun <T, R> Iterable<T>.minOfWithPartialThreeWayComparatorOrNullPa
     crossinline comparator: PartialThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): R? {
-    return this.minOfWithPartialThreeWayComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.minOfWithPartialThreeWayComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minOfWithPartialThreeWayComparatorOrNullParallelly(
@@ -5116,7 +5240,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinOfWithComparatorOrNullParallelly(
     crossinline comparator: TryComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
-    return this.tryMinOfWithComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMinOfWithComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinOfWithComparatorOrNullParallelly(
@@ -5190,7 +5318,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinOfWithThreeWayComparatorOrNullParall
     crossinline comparator: TryThreeWayComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<R?> {
-    return this.tryMinOfWithThreeWayComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return this.tryMinOfWithThreeWayComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinOfWithThreeWayComparatorOrNullParallelly(
@@ -6346,7 +6478,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithParallelly(
     comparator: KComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R> {
-    return minMaxOfWithParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithParallelly(
@@ -6380,7 +6516,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithComparatorParallelly(
     crossinline comparator: Comparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R> {
-    return minMaxOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithComparatorParallelly(
@@ -6414,7 +6554,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialComparatorParallelly(
     crossinline comparator: PartialComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R> {
-    return minMaxOfWithPartialComparatorParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithPartialComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialComparatorParallelly(
@@ -6448,7 +6592,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithThreeWayComparatorParallelly(
     crossinline comparator: ThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R> {
-    return minMaxOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithThreeWayComparatorParallelly(
@@ -6482,7 +6630,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialThreeWayComparatorParal
     crossinline comparator: PartialThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R> {
-    return minMaxOfWithPartialThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithPartialThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialThreeWayComparatorParallelly(
@@ -6516,7 +6668,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithComparatorParallelly(
     crossinline comparator: TryComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<R, R>> {
-    return tryMinMaxOfWithComparatorParallelly(UInt64.ten, comparator, extractor)
+    return tryMinMaxOfWithComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithComparatorParallelly(
@@ -6612,7 +6768,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithThreeWayComparatorParallell
     crossinline comparator: TryThreeWayComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<R, R>> {
-    return tryMinMaxOfWithThreeWayComparatorParallelly(UInt64.ten, comparator, extractor)
+    return tryMinMaxOfWithThreeWayComparatorParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithThreeWayComparatorParallelly(
@@ -6708,7 +6868,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithOrNullParallelly(
     comparator: KComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R>? {
-    return minMaxOfWithOrNullParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithOrNullParallelly(
@@ -6746,7 +6910,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithComparatorOrNullParallelly(
     crossinline comparator: Comparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R>? {
-    return minMaxOfWithComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithComparatorOrNullParallelly(
@@ -6784,7 +6952,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialComparatorOrNullParalle
     crossinline comparator: PartialComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R>? {
-    return minMaxOfWithPartialComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithPartialComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialComparatorOrNullParallelly(
@@ -6822,7 +6994,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithThreeWayComparatorOrNullParall
     crossinline comparator: ThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R>? {
-    return minMaxOfWithThreeWayComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithThreeWayComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithThreeWayComparatorOrNullParallelly(
@@ -6860,7 +7036,11 @@ suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialThreeWayComparatorOrNul
     crossinline comparator: PartialThreeWayComparator<R>,
     crossinline extractor: SuspendExtractor<R, T>
 ): Pair<R, R>? {
-    return minMaxOfWithPartialThreeWayComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return minMaxOfWithPartialThreeWayComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.minMaxOfWithPartialThreeWayComparatorOrNullParallelly(
@@ -6898,7 +7078,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithComparatorOrNullParallelly(
     crossinline comparator: TryComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<R, R>?> {
-    return tryMinMaxOfWithComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return tryMinMaxOfWithComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithComparatorOrNullParallelly(
@@ -6990,7 +7174,11 @@ suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithThreeWayComparatorOrNullPar
     crossinline comparator: TryThreeWayComparator<R>,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<Pair<R, R>?> {
-    return tryMinMaxOfWithThreeWayComparatorOrNullParallelly(UInt64.ten, comparator, extractor)
+    return tryMinMaxOfWithThreeWayComparatorOrNullParallelly(
+        segment = UInt64.ten,
+        comparator = comparator,
+        extractor = extractor
+    )
 }
 
 suspend inline fun <T, R> Iterable<T>.tryMinMaxOfWithThreeWayComparatorOrNullParallelly(

@@ -75,11 +75,28 @@ class IntegerRange<I>(
     }
 
     val first: I by ::start
-    val last: I by lazy { getProgressionLastElement(start, endInclusive, step, constants) }
+    val last: I by lazy {
+        getProgressionLastElement(
+            start = start,
+            end = endInclusive,
+            step = step,
+            constants = constants
+        )
+    }
 
-    infix fun step(step: I) = IntegerRange(start, endInclusive, step, constants)
+    infix fun step(step: I) = IntegerRange(
+        start = start,
+        endInclusive = endInclusive,
+        step = step,
+        constants = constants
+    )
 
-    override fun iterator(): Iterator<I> = IntegerIterator(first, last, step, constants)
+    override fun iterator(): Iterator<I> = IntegerIterator(
+        first = first,
+        last = last,
+        step = step,
+        constants = constants
+    )
 
     override fun contains(value: I) = if (step > constants.zero) {
         first <= value && value <= last
@@ -107,7 +124,14 @@ internal class NumericIntegerIterator<NI, I>(
     constants: RealNumberConstants<I>,
     val ctor: (I) -> NI
 ) : Iterator<NI> where I : Integer<I> {
-    private val impl: IntegerIterator<I> by lazy { IntegerIterator(first, last, step, constants) }
+    private val impl: IntegerIterator<I> by lazy {
+        IntegerIterator(
+            first = first,
+            last = last,
+            step = step,
+            constants = constants
+        )
+    }
 
     override fun hasNext() = impl.hasNext()
     override fun next(): NI = ctor(impl.next())
@@ -136,11 +160,31 @@ class NumericUIntegerRange<NI, I>(
     }
 
     val first: I by lazy { converter(start) }
-    val last: I by lazy { getProgressionLastElement(converter(start), converter(endInclusive), step, constants) }
+    val last: I by lazy {
+        getProgressionLastElement(
+            start = converter(start),
+            end = converter(endInclusive),
+            step = step,
+            constants = constants
+        )
+    }
 
-    infix fun step(step: NI) = NumericUIntegerRange(start, endInclusive, step, constants, ctor, converter)
+    infix fun step(step: NI) = NumericUIntegerRange(
+        start = start,
+        endInclusive = endInclusive,
+        _step = step,
+        constants = constants,
+        ctor = ctor,
+        converter = converter
+    )
 
-    override fun iterator(): Iterator<NI> = NumericIntegerIterator(first, last, step, constants, ctor)
+    override fun iterator(): Iterator<NI> = NumericIntegerIterator(
+        first = first,
+        last = last,
+        step = step,
+        constants = constants,
+        ctor = ctor
+    )
 
     override fun contains(value: NI): Boolean {
         val actualValue = converter(value)

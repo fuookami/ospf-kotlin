@@ -42,7 +42,11 @@ data class BoualiAttractorGenerator(
             )
         ): BoualiAttractorGenerator {
             return BoualiAttractorGenerator(
-                BoualiAttractor(alpha, zeta, h),
+                BoualiAttractor(
+                    alpha = alpha,
+                    zeta = zeta,
+                    h = h
+                ),
                 x
             )
         }

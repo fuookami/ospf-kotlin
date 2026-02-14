@@ -55,7 +55,12 @@ class LinearSubObject(
                     constant = cell.constant!!
                 }
             }
-            return LinearSubObject(category, cells, constant, name)
+            return LinearSubObject(
+                category = category,
+                cells = cells,
+                constant = constant,
+                name = name
+            )
         }
     }
 }
@@ -91,7 +96,12 @@ class QuadraticSubObject(
                     constant = cell.constant!!
                 }
             }
-            return QuadraticSubObject(category, cells, constant, name)
+            return QuadraticSubObject(
+                category = category,
+                cells = cells,
+                constant = constant,
+                name = name
+            )
         }
     }
 }

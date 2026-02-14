@@ -51,8 +51,20 @@ data class Placement2<
         } else {
             Interval.Open
         }
-        val xRange = ValueRange(x, maxX, lowerInterval, upperInterval, Flt64).value!!
-        val yRange = ValueRange(y, maxY, lowerInterval, upperInterval, Flt64).value!!
+        val xRange = ValueRange(
+            lb = x,
+            ub = maxX,
+            lbInterval = lowerInterval,
+            ubInterval = upperInterval,
+            constants = Flt64
+        ).value!!
+        val yRange = ValueRange(
+            lb = y,
+            ub = maxY,
+            lbInterval = lowerInterval,
+            ubInterval = upperInterval,
+            constants = Flt64
+        ).value!!
         return xRange.contains(point.x) && yRange.contains(point.y)
     }
 
@@ -72,7 +84,12 @@ data class Placement2<
         val minY = max(y, rhs.y)
         val maxY = min(maxY, rhs.maxY)
         return if (minX ls maxX && minY ls maxY) {
-            Rectangle2(point2(x = minX, y = minY), point2(x = minX, y = maxY), point2(x = maxX, y = maxY), point2(x = maxX, y = minY))
+            Rectangle2(
+                point2(x = minX, y = minY),
+                point2(x = minX, y = maxY),
+                point2(x = maxX, y = maxY),
+                point2(x = maxX, y = minY)
+            )
         } else {
             null
         }
@@ -172,9 +189,27 @@ data class Placement3<T : Cuboid<T>>(
         } else {
             Interval.Open
         }
-        val xRange = ValueRange(absoluteX, maxAbsoluteX, lowerInterval, upperInterval, Flt64).value!!
-        val yRange = ValueRange(absoluteY, maxAbsoluteY, lowerInterval, upperInterval, Flt64).value!!
-        val zRange = ValueRange(absoluteZ, maxAbsoluteZ, lowerInterval, upperInterval, Flt64).value!!
+        val xRange = ValueRange(
+            lb = absoluteX,
+            ub = maxAbsoluteX,
+            lbInterval = lowerInterval,
+            ubInterval = upperInterval,
+            constants = Flt64
+        ).value!!
+        val yRange = ValueRange(
+            lb = absoluteY,
+            ub = maxAbsoluteY,
+            lbInterval = lowerInterval,
+            ubInterval = upperInterval,
+            constants = Flt64
+        ).value!!
+        val zRange = ValueRange(
+            lb = absoluteZ,
+            ub = maxAbsoluteZ,
+            lbInterval = lowerInterval,
+            ubInterval = upperInterval,
+            constants = Flt64
+        ).value!!
         return xRange.contains(point.x) && yRange.contains(point.y) && zRange.contains(point.z)
     }
 

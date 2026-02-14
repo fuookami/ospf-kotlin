@@ -21,7 +21,7 @@ enum class Point {
 class GurobiLinearSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, MutableList<LinearFunction>> = HashMap()
+    private val map: MutableMap<Point, MutableList<LinearFunction>> = EnumMap(Point::class.java)
 ) : Copyable<GurobiLinearSolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
@@ -51,7 +51,13 @@ class GurobiLinearSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBConstr>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        gurobi: GRBModel,
+        variables: List<GRBVar>,
+        constraints: List<GRBConstr>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, gurobi, variables, constraints) }
@@ -62,14 +68,18 @@ class GurobiLinearSolverCallBack(
     }
 
     override fun copy(): GurobiLinearSolverCallBack {
-        return GurobiLinearSolverCallBack(nativeCallback, creatingEnvironmentFunction, map.toMutableMap())
+        return GurobiLinearSolverCallBack(
+            nativeCallback = nativeCallback,
+            creatingEnvironmentFunction = creatingEnvironmentFunction,
+            map = map.toMutableMap()
+        )
     }
 }
 
 class GurobiQuadraticSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, MutableList<QuadraticFunction>> = HashMap()
+    private val map: MutableMap<Point, MutableList<QuadraticFunction>> = EnumMap(Point::class.java)
 ) : Copyable<GurobiQuadraticSolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
@@ -99,7 +109,13 @@ class GurobiQuadraticSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, gurobi: GRBModel, variables: List<GRBVar>, constraints: List<GRBQConstr>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        gurobi: GRBModel,
+        variables: List<GRBVar>,
+        constraints: List<GRBQConstr>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, gurobi, variables, constraints) }
@@ -110,6 +126,10 @@ class GurobiQuadraticSolverCallBack(
     }
 
     override fun copy(): GurobiQuadraticSolverCallBack {
-        return GurobiQuadraticSolverCallBack(nativeCallback, creatingEnvironmentFunction, map.toMutableMap())
+        return GurobiQuadraticSolverCallBack(
+            nativeCallback = nativeCallback,
+            creatingEnvironmentFunction = creatingEnvironmentFunction,
+            map = map.toMutableMap()
+        )
     }
 }

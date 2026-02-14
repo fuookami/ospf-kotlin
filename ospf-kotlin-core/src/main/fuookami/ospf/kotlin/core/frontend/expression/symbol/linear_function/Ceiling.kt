@@ -166,7 +166,10 @@ class CeilingFunction(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val qValue = (xValue / d).let {
@@ -202,7 +205,7 @@ class CeilingFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq (d * q - r),
+            constraint = x eq (d * q - r),
             name = name,
             from = parent ?: this
         )) {
@@ -227,12 +230,15 @@ class CeilingFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val qValue = (xValue / d).ceil()
         val rValue = qValue * d - xValue
 
         when (val result = model.addConstraint(
-            x eq (d * q - r),
+            constraint = x eq (d * q - r),
             name = name,
             from = parent ?: this
         )) {
@@ -244,7 +250,7 @@ class CeilingFunction(
         }
 
         when (val result = model.addConstraint(
-            q eq qValue,
+            constraint = q eq qValue,
             name = "${name}_q",
             from = parent ?: this
         )) {
@@ -260,7 +266,7 @@ class CeilingFunction(
         }
 
         when (val result = model.addConstraint(
-            r eq rValue,
+            constraint = r eq rValue,
             name = "${name}_r",
             from = parent ?: this
         )) {
@@ -304,7 +310,11 @@ class CeilingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).ceil()
         }
     }
@@ -314,7 +324,11 @@ class CeilingFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).ceil()
         }
     }
@@ -333,7 +347,11 @@ class CeilingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).ceil()
         }
     }
@@ -343,7 +361,11 @@ class CeilingFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).ceil()
         }
     }

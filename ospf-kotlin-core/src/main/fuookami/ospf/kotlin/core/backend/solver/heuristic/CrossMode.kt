@@ -113,7 +113,13 @@ class MultiParentCrossMode<V>(
     ): List<List<T>> {
         val parentAmount = parentAmountCalculator(iteration, weights, parentAmountRange)
         return if (parentAmount == UInt64.zero) {
-            OneParentCrossMode<V>()(iteration, population, weights, model, parentAmountRange)
+            OneParentCrossMode<V>()(
+                iteration = iteration,
+                population = population,
+                weights = weights,
+                model = model,
+                parentAmountRange = parentAmountRange
+            )
         } else  {
             when (method) {
                 CrossMode.Method.WeightedRing -> {

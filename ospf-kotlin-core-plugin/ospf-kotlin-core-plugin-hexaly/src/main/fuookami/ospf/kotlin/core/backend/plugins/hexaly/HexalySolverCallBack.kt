@@ -20,7 +20,7 @@ enum class Point {
 class HexalySolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, MutableList<Function>> = HashMap()
+    private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)
 ) : Copyable<HexalySolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallBack) {
@@ -50,7 +50,13 @@ class HexalySolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, hexaly: HexalyOptimizer, variables: List<HxExpression>, constraints: List<HxExpression>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        hexaly: HexalyOptimizer,
+        variables: List<HxExpression>,
+        constraints: List<HxExpression>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, hexaly, variables, constraints) }
@@ -61,6 +67,10 @@ class HexalySolverCallBack(
     }
 
     override fun copy(): HexalySolverCallBack {
-        return HexalySolverCallBack(nativeCallback, creatingEnvironmentFunction, map.toMutableMap())
+        return HexalySolverCallBack(
+            nativeCallback = nativeCallback,
+            creatingEnvironmentFunction = creatingEnvironmentFunction,
+            map = map.toMutableMap()
+        )
     }
 }

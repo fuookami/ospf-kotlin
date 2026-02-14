@@ -528,7 +528,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val result = polynomial.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -550,7 +554,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val result = polynomial.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -594,8 +602,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(results, tokenTable, zeroIfNone)
-                ?: return null
+            val result = polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }
@@ -617,8 +628,11 @@ class XorFunction(
         var zero = false
         var one = false
         for (polynomial in polynomials) {
-            val result = polynomial.evaluate(values, tokenTable, zeroIfNone)
-                ?: return null
+            val result = polynomial.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (result eq Flt64.zero) {
                 zero = true
             }

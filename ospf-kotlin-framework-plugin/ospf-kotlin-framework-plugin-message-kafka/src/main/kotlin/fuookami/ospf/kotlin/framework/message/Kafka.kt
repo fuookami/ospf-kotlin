@@ -95,7 +95,11 @@ data class KafkaClient(
         process: (String) -> Unit,
         groupId: String? = null
     ) {
-        listen(listOf(topic), { msg, _ -> process(msg) }, groupId)
+        listen(
+            topics = listOf(topic),
+            process = { msg, _ -> process(msg) },
+            groupId = groupId
+        )
     }
 
     fun listen(
@@ -103,7 +107,11 @@ data class KafkaClient(
         process: (String, KafkaMessageRecord) -> Unit,
         groupId: String? = null
     ) {
-        listen(listOf(topic), process, groupId)
+        listen(
+            topics = listOf(topic),
+            process = process,
+            groupId = groupId
+        )
     }
 
     fun listen(
@@ -111,7 +119,11 @@ data class KafkaClient(
         process: (String) -> Unit,
         groupId: String? = null
     ) {
-        listen(topics, { msg, _ -> process(msg) }, groupId)
+        listen(
+            topics = topics,
+            process = { msg, _ -> process(msg) },
+            groupId = groupId
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -153,7 +165,11 @@ data class KafkaClient(
         crossinline deserializer: (String) -> T = { it: String -> ProtoBuf.decodeFromHexString(it) },
         groupId: String? = null
     ) {
-        listen(topic, { msg, _ -> process(deserializer(msg)) }, groupId)
+        listen(
+            topics = listOf(topic),
+            process = { msg, _ -> process(deserializer(msg)) },
+            groupId = groupId
+        )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -163,7 +179,11 @@ data class KafkaClient(
         crossinline deserializer: (String) -> T = { it: String -> ProtoBuf.decodeFromHexString(it) },
         groupId: String? = null
     ) {
-        listen(topic, { msg, record -> process(deserializer(msg), record) }, groupId)
+        listen(
+            topics = listOf(topic),
+            process = { msg, record -> process(deserializer(msg), record) },
+            groupId = groupId
+        )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -173,7 +193,11 @@ data class KafkaClient(
         crossinline deserializer: (String) -> T = { it: String -> ProtoBuf.decodeFromHexString(it) },
         groupId: String? = null
     ) {
-        listen(topics, { msg, _ -> process(deserializer(msg)) }, groupId)
+        listen(
+            topics = topics,
+            process = { msg, _ -> process(deserializer(msg)) },
+            groupId = groupId
+        )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -183,7 +207,11 @@ data class KafkaClient(
         crossinline deserializer: (String) -> T = { it: String -> ProtoBuf.decodeFromHexString(it) },
         groupId: String? = null
     ) {
-        listen(topics, { msg, record -> process(deserializer(msg), record) }, groupId)
+        listen(
+            topics = topics,
+            process = { msg, record -> process(deserializer(msg), record) },
+            groupId = groupId
+        )
     }
 
     fun listenPattern(
@@ -191,7 +219,11 @@ data class KafkaClient(
         process: (String) -> Unit,
         groupId: String? = null
     ) {
-        listenPattern(pattern, { msg, _ -> process(msg) }, groupId)
+        listenPattern(
+            pattern = pattern,
+            process = { msg, _ -> process(msg) },
+            groupId = groupId
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -223,7 +255,11 @@ data class KafkaClient(
         crossinline deserializer: (String) -> T = { it: String -> ProtoBuf.decodeFromHexString(it) },
         groupId: String? = null
     ) {
-        listenPattern(pattern, { msg, _ -> process(deserializer(msg)) }, groupId)
+        listenPattern(
+            pattern = pattern,
+            process = { msg, _ -> process(deserializer(msg)) },
+            groupId = groupId
+        )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -233,7 +269,11 @@ data class KafkaClient(
         crossinline deserializer: (String) -> T = { it: String -> ProtoBuf.decodeFromHexString(it) },
         groupId: String? = null
     ) {
-        listenPattern(pattern, { msg, record -> process(deserializer(msg), record) }, groupId)
+        listenPattern(
+            pattern = pattern,
+            process = { msg, record -> process(deserializer(msg), record) },
+            groupId = groupId
+        )
     }
 
     private fun generateConsumer(groupId: String?): KafkaConsumer<String, String> {

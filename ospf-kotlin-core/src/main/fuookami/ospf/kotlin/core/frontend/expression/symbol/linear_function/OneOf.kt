@@ -144,7 +144,10 @@ sealed class AbstractOneOfFunction(
                 val value = if (values.isNullOrEmpty()) {
                     semi.evaluate(tokenTable)
                 } else {
-                    semi.evaluate(values, tokenTable)
+                    semi.evaluate(
+                        values = values,
+                        tokenTable = tokenTable
+                    )
                 } ?: return@mapIndexedNotNull null
 
                 if (value neq Flt64.zero) {
@@ -248,8 +251,12 @@ sealed class AbstractOneOfFunction(
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         val values = branches.map { branch ->
-            val conditionValue = branch.condition?.evaluate(fixedValues, model.tokens) ?: return register(model)
-            val polynomialValue = branch.polynomial.evaluate(fixedValues, model.tokens) ?: return register(model)
+            val conditionValue = branch.condition?.evaluate(
+                values = fixedValues,
+                tokenTable = model.tokens
+            ) ?: return register(model)
+            val polynomialValue = branch.polynomial.evaluate(
+                fixedValues, model.tokens) ?: return register(model)
             (conditionValue gr Flt64.zero) to polynomialValue
         }
 
@@ -319,7 +326,11 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = masks[b].evaluate(results, tokenList, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }
@@ -333,7 +344,11 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = masks[b].evaluate(values, tokenList, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }
@@ -360,7 +375,11 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = masks[b].evaluate(results, tokenTable, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }
@@ -374,7 +393,11 @@ sealed class AbstractOneOfFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((b, _) in branches.withIndex()) {
-            val value = masks[b].evaluate(values, tokenTable, zeroIfNone) ?: continue
+            val value = masks[b].evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: continue
             if (value neq Flt64.zero) {
                 return value
             }

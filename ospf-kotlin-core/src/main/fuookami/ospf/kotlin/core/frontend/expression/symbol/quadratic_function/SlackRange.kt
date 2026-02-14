@@ -331,9 +331,21 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val lbValue = lb.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val ubValue = ub.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val lbValue = lb.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val ubValue = ub.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {
@@ -348,9 +360,21 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val lbValue = lb.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val ubValue = ub.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val lbValue = lb.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val ubValue = ub.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {
@@ -381,9 +405,21 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val lbValue = lb.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val ubValue = ub.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val lbValue = lb.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val ubValue = ub.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {
@@ -398,9 +434,21 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val lbValue = lb.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val ubValue = ub.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val lbValue = lb.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val ubValue = ub.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (xValue ls lbValue) {
             lbValue - xValue
         } else if (xValue gr ubValue) {

@@ -228,7 +228,7 @@ open class IterativeTaskCompilation<
 >(
     private val originTasks: List<T>,
     private val executors: List<E>,
-    private val lockCancelTasks: Set<T> = emptySet(),
+    private val lockedCancelTasks: Set<T> = emptySet(),
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -272,7 +272,7 @@ open class IterativeTaskCompilation<
             for (task in originTasks) {
                 y[task].name = "${y.name}_${task}"
 
-                if (lockCancelTasks.contains(task)) {
+                if (lockedCancelTasks.contains(task)) {
                     y[task].range.eq(true)
                 }
             }

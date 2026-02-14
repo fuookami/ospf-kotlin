@@ -41,9 +41,15 @@ class SerialCombinatorialColumnGenerationSolver(
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
         for ((i, solver) in solvers.withIndex()) {
-            when (val result = solver.value.solveMILP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack?.let {
-                { status: SolvingStatus -> it(status.copy(solver = solver.value.name, solverIndex = UInt64(i))) }
-            })) {
+            when (val result = solver.value.solveMILP(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack?.let {
+                    { status: SolvingStatus -> it(status.copy(solver = solver.value.name, solverIndex = UInt64(i))) }
+                }
+            )) {
                 is Ok -> {
                     return Ok(result.value)
                 }
@@ -68,9 +74,15 @@ class SerialCombinatorialColumnGenerationSolver(
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<ColumnGenerationSolver.LPResult> {
         for ((i, solver) in solvers.withIndex()) {
-            when (val result = solver.value.solveLP(name, metaModel, toLogModel, registrationStatusCallBack, solvingStatusCallBack?.let {
-                { status: SolvingStatus -> it(status.copy(solver = solver.value.name, solverIndex = UInt64(i))) }
-            })) {
+            when (val result = solver.value.solveLP(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack?.let {
+                    { status: SolvingStatus -> it(status.copy(solver = solver.value.name, solverIndex = UInt64(i))) }
+                }
+            )) {
                 is Ok -> {
                     return Ok(result.value)
                 }

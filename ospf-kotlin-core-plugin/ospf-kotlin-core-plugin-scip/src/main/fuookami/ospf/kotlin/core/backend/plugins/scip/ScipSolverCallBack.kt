@@ -16,7 +16,7 @@ enum class Point {
 }
 
 class ScipSolverCallBack(
-    private val map: MutableMap<Point, MutableList<Function>> = HashMap()
+    private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)
 ) : Copyable<ScipSolverCallBack> {
     fun set(point: Point, function: Function): ScipSolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
@@ -31,7 +31,13 @@ class ScipSolverCallBack(
     fun contains(point: Point) = map.containsKey(point)
     fun get(point: Point): List<Function>? = map[point]
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, scip: Scip, variables: List<Variable>, constraints: List<Constraint>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        scip: Scip,
+        variables: List<Variable>,
+        constraints: List<Constraint>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, scip, variables, constraints) }

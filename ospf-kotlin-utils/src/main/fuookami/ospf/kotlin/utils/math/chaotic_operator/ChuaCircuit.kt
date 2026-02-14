@@ -47,7 +47,13 @@ data class ChuaCircuitGenerator(
             )
         ): ChuaCircuitGenerator {
             return ChuaCircuitGenerator(
-                ChuaCircuit(a, b, c, d, h),
+                ChuaCircuit(
+                    a = a,
+                    b = b,
+                    c = c,
+                    d = d,
+                    h = h
+                ),
                 x
             )
         }

@@ -59,10 +59,18 @@ fun <
             } else {
                 bunch.lastTask
             }
-            ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor, prevTask, task))
+            ret -= this(BunchGanttSchedulingShadowPriceArguments(
+                executor = bunch.executor,
+                prevTask = prevTask,
+                task = task
+            ))
         }
         if (bunch.tasks.isNotEmpty()) {
-            ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor, bunch.tasks.last(), null))
+            ret -= this(BunchGanttSchedulingShadowPriceArguments(
+                executor = bunch.executor,
+                prevTask = bunch.tasks.last(),
+                task = null
+            ))
         }
     }
     return ret

@@ -43,7 +43,11 @@ data class ArneodoAttractorGenerator(
             )
         ): ArneodoAttractorGenerator {
             return ArneodoAttractorGenerator(
-                ArneodoAttractor(alpha, beta, delta),
+                ArneodoAttractor(
+                    alpha = alpha,
+                    beta = beta,
+                    delta = delta
+                ),
                 x
             )
         }

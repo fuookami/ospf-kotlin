@@ -154,7 +154,13 @@ abstract class Pattern {
             val yRange = ValueRange(y, maxY).value!!
             var x = Flt64.zero
             for (placement in placements) {
-                val range = ValueRange(placement.y, placement.maxY, Interval.Closed, Interval.Open, Flt64).value!!
+                val range = ValueRange(
+                    lb = placement.y,
+                    ub = placement.maxY,
+                    lbInterval = Interval.Closed,
+                    ubInterval = Interval.Open,
+                    constants = Flt64
+                ).value!!
                 if (yRange.intersect(range) != null) {
                     x = max(x, placement.maxX)
                 }
@@ -521,7 +527,13 @@ abstract class Pattern {
                             }
                             val projection = when (val ret = pattern[i].getPatternView(item)) {
                                 is Ok -> {
-                                    ret.value?.let { PileProjection(it, Bottom, heightAmount) }
+                                    ret.value?.let {
+                                        PileProjection(
+                                            view = it,
+                                            plane = Bottom,
+                                            layer = heightAmount
+                                        )
+                                    }
                                 }
 
                                 is Failed -> {

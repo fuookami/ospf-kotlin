@@ -74,7 +74,14 @@ data class CoupledLorenzAttractorGenerator(
             )
         ) : CoupledLorenzAttractorGenerator {
             return CoupledLorenzAttractorGenerator(
-                CoupledLorenzAttractor(beta, gamma1, gamma2, epsilon, omicron, h),
+                CoupledLorenzAttractor(
+                    beta = beta,
+                    gamma1 = gamma1,
+                    gamma2 = gamma2,
+                    epsilon = epsilon,
+                    omicron = omicron,
+                    h = h
+                ),
                 x,
                 y
             )

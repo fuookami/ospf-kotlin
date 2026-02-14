@@ -47,7 +47,11 @@ data class AnishchenkoAstakhovAttractorGenerator(
             )
         ): AnishchenkoAstakhovAttractorGenerator {
             return AnishchenkoAstakhovAttractorGenerator(
-                AnishchenkoAstakhovAttractor(mu, eta, h),
+                AnishchenkoAstakhovAttractor(
+                    mu = mu,
+                    eta = eta,
+                    h = h
+                ),
                 x
             )
         }

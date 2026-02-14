@@ -32,8 +32,12 @@ suspend fun computeIIS(
 ): Ret<LinearIISModel> {
     val startTime = Clock.System.now()
     val elasticModel = model.elastic(minSlackAmount = UInt64.two to config.slackTolerance)
-    val boundAmount = UInt64(elasticModel.constraints.sources.count { it == ConstraintSource.ElasticLowerBound || it == ConstraintSource.ElasticUpperBound })
-    val constraintAmount = UInt64(elasticModel.constraints.sources.count { it == ConstraintSource.Elastic })
+    val boundAmount = UInt64(elasticModel.constraints.sources.count {
+        it == ConstraintSource.ElasticLowerBound || it == ConstraintSource.ElasticUpperBound
+    })
+    val constraintAmount = UInt64(elasticModel.constraints.sources.count {
+        it == ConstraintSource.Elastic
+    })
 
     // todo: find impossible constraints
 
@@ -48,9 +52,13 @@ suspend fun computeIIS(
                     true,
                     Clock.System.now() - startTime,
                     IISComputingStatus(
-                        restBoundAmount = UInt64(result.value.second.keys.count { it.slack?.lowerBound != null || it.slack?.upperBound != null }),
+                        restBoundAmount = UInt64(result.value.second.keys.count {
+                            it.slack?.lowerBound != null || it.slack?.upperBound != null
+                        }),
                         totalBoundAmount = boundAmount,
-                        restConstraintAmount = UInt64(result.value.second.keys.count { it.slack?.constraint != null }),
+                        restConstraintAmount = UInt64(result.value.second.keys.count {
+                            it.slack?.constraint != null
+                        }),
                         totalConstraintAmount = constraintAmount,
                     )
                 )) {
@@ -152,8 +160,15 @@ private fun dump(
     model: LinearTriadModelView,
     elasticFilter: Map<Variable, Flt64>
 ): LinearIISModel {
-    val relatedConstraints = getRelatedConstraints(model, elasticFilter.keys)
-    val relatedVariables = getRelatedVariables(model, elasticFilter.keys, relatedConstraints)
+    val relatedConstraints = getRelatedConstraints(
+        model = model,
+        slackVariables = elasticFilter.keys
+    )
+    val relatedVariables = getRelatedVariables(
+        model = model,
+        filter = elasticFilter.keys,
+        relatedConstraints = relatedConstraints
+    )
 
     return LinearIISModel(
         impl = BasicLinearTriadModel(
@@ -176,10 +191,20 @@ private fun dump(
     misConstraints: Set<Variable>,
     guardConstraints: Set<Variable>
 ): LinearIISModel {
-    val relatedMISConstraints = getRelatedConstraints(model, misConstraints)
-    val relatedGuardConstraints = getRelatedConstraints(model, guardConstraints)
+    val relatedMISConstraints = getRelatedConstraints(
+        model = model,
+        slackVariables = misConstraints
+    )
+    val relatedGuardConstraints = getRelatedConstraints(
+        model = model,
+        slackVariables = guardConstraints
+    )
     val relatedConstraints = (relatedMISConstraints + relatedGuardConstraints).distinct().sorted()
-    val relatedVariables = getRelatedVariables(model, misConstraints + guardConstraints, relatedConstraints)
+    val relatedVariables = getRelatedVariables(
+        model = model,
+        filter = misConstraints + guardConstraints,
+        relatedConstraints = relatedConstraints
+    )
 
     return LinearIISModel(
         impl = BasicLinearTriadModel(

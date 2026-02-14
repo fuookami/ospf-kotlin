@@ -42,7 +42,11 @@ data class BurkeShawAttractorGenerator(
             )
         ): BurkeShawAttractorGenerator {
             return BurkeShawAttractorGenerator(
-                BurkeShawAttractor(zeta, nu, h),
+                BurkeShawAttractor(
+                    zeta = zeta,
+                    nu = nu,
+                    h = h
+                ),
                 x
             )
         }

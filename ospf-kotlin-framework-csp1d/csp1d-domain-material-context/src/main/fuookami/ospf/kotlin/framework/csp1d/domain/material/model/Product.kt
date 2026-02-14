@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.material.model
+package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -23,7 +23,15 @@ open class Product(
             weight: FltX? = null,
             maxOverProduceLength: FltX? = null
         ): Product {
-            return Product(id, name, width, length, unitWeight, weight, maxOverProduceLength)
+            return Product(
+                id = id,
+                name = name,
+                width = width,
+                length = length,
+                unitWeight = unitWeight,
+                weight = weight,
+                maxOverProduceLength = maxOverProduceLength
+            )
         }
 
         fun dynamicLengthOf(
@@ -32,7 +40,13 @@ open class Product(
             width: List<Flt64>,
             unitWeight: FltX? = null,
         ): Product {
-            return Product(id, name, width, unitWeight = unitWeight, dynamicLength = true)
+            return Product(
+                id = id,
+                name = name,
+                width = width,
+                unitWeight = unitWeight,
+                dynamicLength = true
+            )
         }
     }
 

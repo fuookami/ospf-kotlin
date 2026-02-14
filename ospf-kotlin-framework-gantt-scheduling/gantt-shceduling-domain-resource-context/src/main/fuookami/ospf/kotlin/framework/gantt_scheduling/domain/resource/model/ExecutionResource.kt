@@ -153,7 +153,12 @@ class TaskSchedulingExecutionResourceUsage<
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, times, interval) {
+) : AbstractExecutionResourceUsage<R, C>(
+    timeWindow = timeWindow,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         resources: List<R>,
@@ -204,18 +209,23 @@ class BunchSchedulingExecutionResourceUsage<
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractExecutionResourceUsage<R, C>(timeWindow, resources, times, interval) {
+) : AbstractExecutionResourceUsage<R, C>(
+    timeWindow = timeWindow,
+    resources = resources,
+    times = times,
+    interval = interval
+) {
     constructor(
         timeWindow: TimeWindow,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String
     ) : this(
-        timeWindow,
-        resources,
-        times,
-        timeWindow.interval,
-        name
+        timeWindow = timeWindow,
+        resources = resources,
+        times = times,
+        interval = timeWindow.interval,
+        name = name
     )
 
     constructor(
@@ -224,11 +234,11 @@ class BunchSchedulingExecutionResourceUsage<
         interval: Duration = timeWindow.interval,
         name: String
     ) : this(
-        timeWindow,
-        resources,
-        emptyList(),
-        interval,
-        name
+        timeWindow = timeWindow,
+        resources = resources,
+        times = emptyList(),
+        interval = interval,
+        name = name
     )
 
     override val overEnabled: Boolean = true

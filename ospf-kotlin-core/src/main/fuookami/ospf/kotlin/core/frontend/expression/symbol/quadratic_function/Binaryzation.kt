@@ -31,8 +31,8 @@ data class BinaryzationFunctionImplBuilderParams(
             return BinaryzationFunctionImplBuilderParams(
                 x = x.toQuadraticPolynomial(),
                 self = self,
-                name,
-                displayName
+                name = name,
+                displayName = displayName
             )
         }
     }
@@ -99,7 +99,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
         } else {
@@ -112,7 +116,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
         } else {
@@ -137,7 +145,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
         } else {
@@ -150,7 +162,11 @@ abstract class AbstractBinaryzationFunctionImpl(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val value = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val value = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (value neq Flt64.zero) {
             Flt64.one
         } else {
@@ -267,11 +283,11 @@ class BinaryzationFunctionLinearImpl(
             displayName: String? = null
         ): BinaryzationFunctionLinearImpl {
             return BinaryzationFunctionLinearImpl(
-                x.toQuadraticPolynomial(),
-                self,
-                epsilon,
-                name,
-                displayName
+                x = x.toQuadraticPolynomial(),
+                self = self,
+                epsilon = epsilon,
+                name = name,
+                displayName = displayName
             )
         }
 
@@ -435,7 +451,10 @@ class BinaryzationFunctionLinearImpl(
         model: AbstractQuadraticMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val value = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val value = x.evaluate(
+                values = fixedValues,
+                tokenTable = model.tokens
+            ) ?: return register(model)
         val bin = value gr Flt64.zero
 
         when (val result = linearX.register(model, fixedValues)) {
@@ -644,7 +663,11 @@ class BinaryzationFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(results, tokenList, zeroIfNone)
+        return impl.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -652,7 +675,11 @@ class BinaryzationFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.evaluate(values, tokenList, zeroIfNone)
+        return impl.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -667,7 +694,11 @@ class BinaryzationFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(results, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -675,6 +706,10 @@ class BinaryzationFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return impl.calculateValue(values, tokenTable, zeroIfNone)
+        return impl.calculateValue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 }

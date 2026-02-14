@@ -136,13 +136,19 @@ class MaskingFunction(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val maskValue = if (values.isNullOrEmpty()) {
                 mask.evaluate(tokenTable)
             } else {
-                mask.evaluate(values, tokenTable)
+                mask.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             }?.let {
                 it gr Flt64.zero
             } ?: return null
@@ -252,8 +258,14 @@ class MaskingFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
-        val maskValue = mask.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
+        val maskValue = mask.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val maskBin = maskValue gr Flt64.zero
 
         when (val result = model.addConstraint(
@@ -375,9 +387,17 @@ class MaskingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(results, tokenList, zeroIfNone)
+            x.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -388,9 +408,17 @@ class MaskingFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(values, tokenList, zeroIfNone)
+            x.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -413,9 +441,17 @@ class MaskingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(results, tokenTable, zeroIfNone)
+            x.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }
@@ -426,9 +462,17 @@ class MaskingFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val maskValue = mask.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val maskValue = mask.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (maskValue neq Flt64.zero) {
-            x.evaluate(values, tokenTable, zeroIfNone)
+            x.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         } else {
             Flt64.zero
         }

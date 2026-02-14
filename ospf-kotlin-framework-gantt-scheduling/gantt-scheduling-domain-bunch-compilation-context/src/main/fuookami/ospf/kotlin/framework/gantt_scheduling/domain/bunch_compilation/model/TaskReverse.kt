@@ -20,12 +20,25 @@ open class TaskReverseBuilder<
         val rightMapper = HashMap<TaskKey, ArrayList<TaskReverse.ReversiblePair<T, E, A>>>()
 
         for (pair in pairs) {
-            assert(reverseEnabled(pair.first, pair.second, timeLockedTasks, timeDifferenceLimit))
+            assert(
+                reverseEnabled(
+                    prevTask = pair.first,
+                    succTask = pair.second,
+                    timeLockedTasks = timeLockedTasks,
+                    timeDifferenceLimit = timeDifferenceLimit
+                )
+            )
 
             val reversiblePair = TaskReverse.ReversiblePair(
-                pair.first,
-                pair.second,
-                symmetrical(originBunches, pair.first, pair.second, timeLockedTasks, timeDifferenceLimit)
+                prevTask = pair.first,
+                succTask = pair.second,
+                symmetrical = symmetrical(
+                    originBunches = originBunches,
+                    prevTask = pair.first,
+                    succTask = pair.second,
+                    timeLockedTasks = timeLockedTasks,
+                    timeDifferenceLimit = timeDifferenceLimit
+                )
             )
             if (!leftMapper.containsKey(pair.first.key)) {
                 leftMapper[pair.first.key] = ArrayList()
@@ -96,8 +109,12 @@ open class TaskReverseBuilder<
         timeLockedTasks: Set<@UnsafeVariance T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
-        return reverseEnabled(prevTask, succTask, timeLockedTasks, timeDifferenceLimit)
-                && prevTask.executor == succTask.executor
+        return reverseEnabled(
+            prevTask = prevTask,
+            succTask = succTask,
+            timeLockedTasks = timeLockedTasks,
+            timeDifferenceLimit = timeDifferenceLimit
+        ) && prevTask.executor == succTask.executor
     }
 
     protected open fun symmetrical(
@@ -107,7 +124,14 @@ open class TaskReverseBuilder<
         timeLockedTasks: Set<@UnsafeVariance T> = emptySet(),
         timeDifferenceLimit: Duration = Duration.ZERO
     ): Boolean {
-        assert(reverseEnabled(prevTask, succTask, timeLockedTasks, timeDifferenceLimit))
+        assert(
+            reverseEnabled(
+                prevTask = prevTask,
+                succTask = succTask,
+                timeLockedTasks = timeLockedTasks,
+                timeDifferenceLimit = timeDifferenceLimit
+            )
+        )
         return originBunches.any { it.contains(prevTask, succTask) }
     }
 }

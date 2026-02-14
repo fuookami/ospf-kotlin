@@ -50,7 +50,11 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
-        return addConstraint(QuadraticInequality(constraint), name, from)
+        return addConstraint(
+            constraint = QuadraticInequality(constraint),
+            name = name,
+            from = from
+        )
     }
 
     fun addConstraint(
@@ -99,7 +103,11 @@ class LinearMechanismModel(
             logger.info { "Creating LinearMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens, fixedVariables, registrationStatusCallBack)) {
+            val tokens = when (val result = unfold(
+                tokens = metaModel.tokens,
+                fixedVariables = fixedVariables,
+                callBack = registrationStatusCallBack
+            )) {
                 is Ok -> {
                     result.value
                 }
@@ -113,11 +121,21 @@ class LinearMechanismModel(
             val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
                 if (blocking ?: metaModel.configuration.dumpBlocking) {
                     runBlocking {
-                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
+                        dumpAsync(
+                            metaModel = metaModel,
+                            tokens = tokens,
+                            scope = this,
+                            callBack = dumpingStatusCallBack
+                        )
                     }
                 } else {
                     coroutineScope {
-                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
+                        dumpAsync(
+                            metaModel = metaModel,
+                            tokens = tokens,
+                            scope = this,
+                            callBack = dumpingStatusCallBack
+                        )
                     }
                 }
             } else {
@@ -301,7 +319,11 @@ class LinearMechanismModel(
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
+                    when (val result = tokens.symbols.register(
+                        tokenTable = temp,
+                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        callBack = callBack
+                    )) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -314,7 +336,11 @@ class LinearMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
+                    when (val result = tokens.symbols.register(
+                        tokenTable = temp,
+                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        callBack = callBack
+                    )) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }
@@ -338,7 +364,13 @@ class LinearMechanismModel(
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
         name?.let { constraint.name = it }
-        _constraints.add(LinearConstraint(constraint, tokens, from))
+        _constraints.add(
+            LinearConstraint(
+                inequality = constraint,
+                tokens = tokens,
+                from = from
+            )
+        )
         return ok
     }
 
@@ -447,7 +479,11 @@ class QuadraticMechanismModel(
             logger.info { "Creating QuadraticMechanismModel for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
-            val tokens = when (val result = unfold(metaModel.tokens, fixedVariables, registrationStatusCallBack)) {
+            val tokens = when (val result = unfold(
+                tokens = metaModel.tokens,
+                fixedVariables = fixedVariables,
+                callBack = registrationStatusCallBack
+            )) {
                 is Ok -> {
                     result.value
                 }
@@ -461,11 +497,21 @@ class QuadraticMechanismModel(
             val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
                 if (blocking ?: metaModel.configuration.dumpBlocking) {
                     runBlocking {
-                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
+                        dumpAsync(
+                            metaModel = metaModel,
+                            tokens = tokens,
+                            scope = this,
+                            callBack = dumpingStatusCallBack
+                        )
                     }
                 } else {
                     coroutineScope {
-                        dumpAsync(metaModel, tokens, this, dumpingStatusCallBack)
+                        dumpAsync(
+                            metaModel = metaModel,
+                            tokens = tokens,
+                            scope = this,
+                            callBack = dumpingStatusCallBack
+                        )
                     }
                 }
             } else {
@@ -650,7 +696,11 @@ class QuadraticMechanismModel(
             return when (tokens) {
                 is MutableTokenTable -> {
                     val temp = tokens.copy() as MutableTokenTable
-                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
+                    when (val result = tokens.symbols.register(
+                        tokenTable = temp,
+                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        callBack = callBack
+                    )) {
                         is Ok -> {
                             Ok(TokenTable(temp))
                         }
@@ -663,7 +713,11 @@ class QuadraticMechanismModel(
 
                 is ConcurrentMutableTokenTable -> {
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp, fixedVariables?.mapKeys { it.key as Symbol }, callBack)) {
+                    when (val result = tokens.symbols.register(
+                        tokenTable = temp,
+                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        callBack = callBack
+                    )) {
                         is Ok -> {
                             Ok(ConcurrentTokenTable(temp))
                         }
@@ -687,7 +741,13 @@ class QuadraticMechanismModel(
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
         name?.let { constraint.name = it }
-        _constraints.add(QuadraticConstraint(constraint, tokens, from))
+        _constraints.add(
+            QuadraticConstraint(
+                inequality = constraint,
+                tokens = tokens,
+                from = from
+            )
+        )
         return ok
     }
 

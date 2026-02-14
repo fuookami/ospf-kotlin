@@ -120,7 +120,7 @@ class LinearFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
-                y eq polynomial,
+                constraint = y eq polynomial,
                 name = name,
                 from = parent ?: this
             )) {
@@ -150,7 +150,7 @@ class LinearFunction(
 
         if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
-                y eq polynomial,
+                constraint = y eq polynomial,
                 name = name,
                 from = parent ?: this
             )) {
@@ -162,7 +162,7 @@ class LinearFunction(
             }
 
             when (val result = model.addConstraint(
-                y eq xValue,
+                constraint = y eq xValue,
                 name = name,
                 from = parent ?: this
             )) {
@@ -205,7 +205,11 @@ class LinearFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomial.evaluate(results, tokenList, zeroIfNone)
+        return polynomial.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun evaluate(
@@ -213,7 +217,11 @@ class LinearFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomial.evaluate(values, tokenList, zeroIfNone)
+        return polynomial.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -228,7 +236,11 @@ class LinearFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomial.evaluate(results, tokenTable, zeroIfNone)
+        return polynomial.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 
     override fun calculateValue(
@@ -236,6 +248,10 @@ class LinearFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return polynomial.evaluate(values, tokenTable, zeroIfNone)
+        return polynomial.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )
     }
 }

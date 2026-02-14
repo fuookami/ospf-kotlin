@@ -60,7 +60,11 @@ open class SAAPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractSAAPolicy<V> {
+) : HeuristicPolicy(
+    iterationLimit = iterationLimit,
+    notBetterIterationLimit = notBetterIterationLimit,
+    timeLimit = timeLimit
+), AbstractSAAPolicy<V> {
     companion object {
         operator fun invoke(
             initialTemperature: Flt64 = Flt64(100.0),

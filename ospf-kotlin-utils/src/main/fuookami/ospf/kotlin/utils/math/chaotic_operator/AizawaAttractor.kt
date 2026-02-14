@@ -50,7 +50,15 @@ data class AizawaAttractorGenerator(
             )
         ): AizawaAttractorGenerator {
             return AizawaAttractorGenerator(
-                AizawaAttractor(alpha, beta, gamma, delta, epsilon, zeta, h),
+                AizawaAttractor(
+                    alpha = alpha,
+                    beta = beta,
+                    gamma = gamma,
+                    delta = delta,
+                    epsilon = epsilon,
+                    zeta = zeta,
+                    h = h
+                ),
                 x
             )
         }

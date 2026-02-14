@@ -300,7 +300,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one
@@ -315,7 +319,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one
@@ -344,7 +352,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one
@@ -359,7 +371,11 @@ class OrFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.any {
-            val thisValue = it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            val thisValue = it.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             thisValue neq Flt64.zero
         }) {
             Flt64.one

@@ -32,15 +32,30 @@ data class FinnishHeartBeat(
 
     companion object {
         operator fun invoke(id: String, runTime: Duration): FinnishHeartBeat {
-            return FinnishHeartBeat(id, runTime, UInt64.zero, "")
+            return FinnishHeartBeat(
+                id = id,
+                runTime = runTime,
+                code = UInt64.zero,
+                message = ""
+            )
         }
 
         operator fun invoke(id: String, runTime: Duration, error: Error): FinnishHeartBeat {
-            return FinnishHeartBeat(id, runTime, error.code.toUInt64(), error.message)
+            return FinnishHeartBeat(
+                id = id,
+                runTime = runTime,
+                code = error.code.toUInt64(),
+                message = error.message
+            )
         }
 
         operator fun invoke(id: String, error: Error): FinnishHeartBeat {
-            return FinnishHeartBeat(id, Duration.ZERO, error.code.toUInt64(), error.message)
+            return FinnishHeartBeat(
+                id = id,
+                runTime = Duration.ZERO,
+                code = error.code.toUInt64(),
+                message = error.message
+            )
         }
     }
 }

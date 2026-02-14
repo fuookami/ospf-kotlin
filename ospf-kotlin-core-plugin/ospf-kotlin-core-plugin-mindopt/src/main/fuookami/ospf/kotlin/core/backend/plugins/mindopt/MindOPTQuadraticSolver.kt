@@ -195,7 +195,7 @@ private class MindOPTQuadraticSolverImpl(
             mindoptConstraints = constraints
 
             val obj = MDOQuadExpr()
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 if (cell.colIndex2 != null) {
                     obj.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
                 } else {
@@ -216,7 +216,13 @@ private class MindOPTQuadraticSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                mindopt = mindoptModel,
+                variables = mindoptVars,
+                constraints = mindoptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -301,7 +307,13 @@ private class MindOPTQuadraticSolverImpl(
                 })
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, mindoptModel, mindoptVars, mindoptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                mindopt = mindoptModel,
+                variables = mindoptVars,
+                constraints = mindoptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -342,7 +354,13 @@ private class MindOPTQuadraticSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    mindopt = mindoptModel,
+                    variables = mindoptVars,
+                    constraints = mindoptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -351,7 +369,13 @@ private class MindOPTQuadraticSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, mindoptModel, mindoptVars, mindoptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    mindopt = mindoptModel,
+                    variables = mindoptVars,
+                    constraints = mindoptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }

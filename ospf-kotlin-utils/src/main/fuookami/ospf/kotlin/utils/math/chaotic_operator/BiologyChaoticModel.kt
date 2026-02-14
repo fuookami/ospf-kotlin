@@ -41,7 +41,12 @@ data class BiologyChaoticModelGenerator(
             )
         ): BiologyChaoticModelGenerator {
             return BiologyChaoticModelGenerator(
-                BiologyChaoticModel(a, b, c, r),
+                BiologyChaoticModel(
+                    a = a,
+                    b = b,
+                    c = c,
+                    r = r
+                ),
                 x
             )
         }

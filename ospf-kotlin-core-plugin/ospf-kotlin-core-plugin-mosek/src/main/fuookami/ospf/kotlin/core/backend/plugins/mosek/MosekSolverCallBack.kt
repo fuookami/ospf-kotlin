@@ -20,7 +20,7 @@ enum class Point {
 class MosekSolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, MutableList<Function>> = HashMap()
+    private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)
 ) : Copyable<MosekSolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallBack) {
@@ -50,7 +50,11 @@ class MosekSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, mosekModel: Task): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        mosekModel: Task
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, mosekModel) }
@@ -61,6 +65,10 @@ class MosekSolverCallBack(
     }
 
     override fun copy(): MosekSolverCallBack {
-        return MosekSolverCallBack(nativeCallback, creatingEnvironmentFunction, map.toMutableMap())
+        return MosekSolverCallBack(
+            nativeCallback = nativeCallback,
+            creatingEnvironmentFunction = creatingEnvironmentFunction,
+            map = map.toMutableMap()
+        )
     }
 }

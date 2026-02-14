@@ -29,7 +29,13 @@ private fun cells(
             }
         }
     }
-    return cells.map { QuadraticMonomialCell(it.value, it.key.first, it.key.second) } + QuadraticMonomialCell(totalConstant)
+    return cells.map {
+        QuadraticMonomialCell(
+            coefficient = it.value,
+            variable1 = it.key.first,
+            variable2 = it.key.second
+        )
+    } + QuadraticMonomialCell(totalConstant)
 }
 
 interface ToQuadraticPolynomial<Poly : AbstractQuadraticPolynomial<Poly>> : ToQuadraticInequality {
