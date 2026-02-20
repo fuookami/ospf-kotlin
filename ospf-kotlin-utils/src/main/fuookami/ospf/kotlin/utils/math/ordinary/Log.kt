@@ -54,12 +54,12 @@ fun <T : FloatingNumber<T>> ln(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
-    digits: Int = (T::class::companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
-    precision: T = (T::class::companionObjectInstance as FloatingNumberConstants<T>).epsilon
+    digits: Int = (T::class.companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
+    precision: T = (T::class.companionObjectInstance as FloatingNumberConstants<T>).epsilon
 ): T? {
     return ln(
         x = x,
-        constants = T::class::companionObjectInstance as FloatingNumberConstants<T>,
+        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
         digits = digits,
         precision = precision
     )
@@ -93,13 +93,13 @@ fun <T : FloatingNumber<T>> log(
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,
-    digits: Int = (T::class::companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
-    precision: T = (T::class::companionObjectInstance as FloatingNumberConstants<T>).epsilon
+    digits: Int = (T::class.companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
+    precision: T = (T::class.companionObjectInstance as FloatingNumberConstants<T>).epsilon
 ): T? {
     return log(
         x = x,
         base = base,
-        constants = T::class::companionObjectInstance as FloatingNumberConstants<T>,
+        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
         digits = digits,
         precision = precision
     )
