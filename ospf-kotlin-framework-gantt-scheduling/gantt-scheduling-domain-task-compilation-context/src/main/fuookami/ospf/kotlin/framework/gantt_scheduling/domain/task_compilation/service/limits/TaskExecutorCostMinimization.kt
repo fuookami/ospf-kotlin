@@ -22,13 +22,13 @@ class TaskExecutorCostMinimization<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.minimize(
-            sum(tasks.flatMap { t ->
+            polynomial = sum(tasks.flatMap { t ->
                 executors.map { e ->
                     val coefficient = costCalculator(Pair(t, e)) ?: Flt64.infinity
                     coefficient * compilation.taskAssignment[t, e]
                 }
             }),
-            "task executor"
+            name = "task executor"
         )) {
             is Ok -> {}
 

@@ -72,12 +72,12 @@ interface IterativeTaskCompilationContext<
         model: AbstractLinearMetaModel
     ): Ret<Flt64> {
         return aggregation.removeColumns(
-            maximumReducedCost,
-            maximumColumnAmount,
-            reducedCost,
-            fixedTasks,
-            keptTasks,
-            model
+            maximumReducedCost = maximumReducedCost,
+            maximumColumnAmount = maximumColumnAmount,
+            reducedCost = reducedCost,
+            fixedTasks = fixedTasks,
+            keptTasks = keptTasks,
+            model = model
         )
     }
 
@@ -87,7 +87,11 @@ interface IterativeTaskCompilationContext<
         shadowPrices: MetaDualSolution
     ): Try {
         for (pipeline in pipelineList) {
-            when (val ret = pipeline.refresh(shadowPriceMap, model, shadowPrices)) {
+            when (val ret = pipeline.refresh(
+                shadowPriceMap = shadowPriceMap,
+                model = model,
+                shadowPrices = shadowPrices
+            )) {
                 is Ok -> {}
                 is Failed -> {
                     return Failed(ret.error)
@@ -131,7 +135,12 @@ interface IterativeTaskCompilationContext<
         fixedTasks: Set<IT>,
         model: AbstractLinearMetaModel
     ): Ret<Set<IT>> {
-        return aggregation.locallyFix(iteration, bar, fixedTasks, model)
+        return aggregation.locallyFix(
+            iteration = iteration,
+            bar = bar,
+            fixedTasks = fixedTasks,
+            model = model
+        )
     }
 
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
@@ -152,7 +161,14 @@ interface IterativeTaskCompilationContext<
         model: AbstractLinearMetaModel,
         solution: Solution? = null
     ): Ret<TaskSolution<T, E, A>> {
-        return SolutionAnalyzer(iteration, tasks, aggregation.tasksIteration, aggregation.compilation, model, solution = solution)
+        return SolutionAnalyzer(
+            iteration = iteration,
+            originTasks = tasks,
+            tasks = aggregation.tasksIteration,
+            compilation = aggregation.compilation,
+            model = model,
+            solution = solution
+        )
     }
 }
 

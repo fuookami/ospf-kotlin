@@ -44,7 +44,12 @@ data class ChenCelikovskyAttractorGenerator(
             )
         ): ChenCelikovskyAttractorGenerator {
             return ChenCelikovskyAttractorGenerator(
-                ChenCelikovskyAttractor(alpha, beta, delta, h),
+                ChenCelikovskyAttractor(
+                    alpha = alpha,
+                    beta = beta,
+                    delta = delta,
+                    h = h
+                ),
                 x
             )
         }

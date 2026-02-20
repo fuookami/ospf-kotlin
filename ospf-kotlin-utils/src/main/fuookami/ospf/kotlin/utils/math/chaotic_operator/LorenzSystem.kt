@@ -44,7 +44,12 @@ data class LorenzSystemGenerator(
             )
         ): LorenzSystemGenerator {
             return LorenzSystemGenerator(
-                LorenzSystem(a, b, c, h),
+                LorenzSystem(
+                    a = a,
+                    b = b,
+                    c = c,
+                    h = h
+                ),
                 x
             )
         }

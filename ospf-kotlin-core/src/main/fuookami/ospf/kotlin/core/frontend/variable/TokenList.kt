@@ -184,7 +184,7 @@ sealed class MutableTokenList(
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         if (checkTokenExisted && list.containsKey(item.key)) {
-            return Failed(Err(ErrorCode.TokenExisted))
+            return Failed(code = ErrorCode.TokenExisted)
         }
         list[item.key] = Token(item, currentIndex, mutableMapOf(this to {
             synchronized(lock) {
@@ -265,7 +265,11 @@ class AutoTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
     checkTokenExisted: Boolean,
     currentIndex: Int
-) : MutableTokenList(list, checkTokenExisted, currentIndex) {
+) : MutableTokenList(
+    list = list,
+    checkTokenExisted = checkTokenExisted,
+    currentIndex = currentIndex
+) {
     companion object {
         operator fun invoke(
             tokenList: AbstractTokenList,
@@ -286,7 +290,11 @@ class AutoTokenList private constructor(
     )
 
     override fun copy(): MutableTokenList {
-        return AutoTokenList(list.toMutableMap(), checkTokenExisted, currentIndex)
+        return AutoTokenList(
+            list = list.toMutableMap(),
+            checkTokenExisted = checkTokenExisted,
+            currentIndex = currentIndex
+        )
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token {
@@ -308,7 +316,11 @@ class ManualTokenList private constructor(
     list: MutableMap<VariableItemKey, Token>,
     checkTokenExisted: Boolean,
     currentIndex: Int
-) : MutableTokenList(list, checkTokenExisted, currentIndex) {
+) : MutableTokenList(
+    list = list,
+    checkTokenExisted = checkTokenExisted,
+    currentIndex = currentIndex
+) {
     companion object {
         operator fun invoke(
             tokenList: AbstractTokenList,
@@ -329,7 +341,11 @@ class ManualTokenList private constructor(
     )
 
     override fun copy(): MutableTokenList {
-        return ManualTokenList(list.toMutableMap(), checkTokenExisted, currentIndex)
+        return ManualTokenList(
+            list = list.toMutableMap(),
+            checkTokenExisted = checkTokenExisted,
+            currentIndex = currentIndex
+        )
     }
 
     override fun find(item: AbstractVariableItem<*, *>): Token? {

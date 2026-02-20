@@ -195,7 +195,7 @@ class RoundingFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq (d * q + r),
+            constraint = x eq (d * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -225,7 +225,7 @@ class RoundingFunction(
         val rValue = xValue - qValue * d
 
         when (val result = model.addConstraint(
-            x eq (d * q + r),
+            constraint = x eq (d * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -237,7 +237,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            q eq qValue,
+            constraint = q eq qValue,
             name = "${name}_q",
             from = parent ?: this
         )) {
@@ -253,7 +253,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            r eq rValue,
+            constraint = r eq rValue,
             name = "${name}_r",
             from = parent ?: this
         )) {
@@ -297,7 +297,11 @@ class RoundingFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).round()
         }
     }
@@ -307,7 +311,11 @@ class RoundingFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).round()
         }
     }
@@ -326,7 +334,11 @@ class RoundingFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).round()
         }
     }
@@ -336,7 +348,11 @@ class RoundingFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).round()
         }
     }

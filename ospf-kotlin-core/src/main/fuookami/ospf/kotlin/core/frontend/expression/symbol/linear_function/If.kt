@@ -275,7 +275,11 @@ class IfFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(results, tokenList, zeroIfNone)) {
+        return when (inequality.isTrue(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )) {
             true -> {
                 Flt64.one
             }
@@ -295,7 +299,11 @@ class IfFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(values, tokenList, zeroIfNone)) {
+        return when (inequality.isTrue(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )) {
             true -> {
                 Flt64.one
             }
@@ -334,7 +342,11 @@ class IfFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(results, tokenTable, zeroIfNone)) {
+        return when (inequality.isTrue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )) {
             true -> {
                 Flt64.one
             }
@@ -354,7 +366,11 @@ class IfFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(values, tokenTable, zeroIfNone)) {
+        return when (inequality.isTrue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )) {
             true -> {
                 Flt64.one
             }

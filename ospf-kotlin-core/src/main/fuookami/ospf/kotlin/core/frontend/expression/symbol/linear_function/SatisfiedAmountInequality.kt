@@ -194,7 +194,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         if (amount != null) {
             if (!constraint) {
                 when (val result = model.addConstraint(
-                    sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
+                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
@@ -206,7 +206,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
+                    constraint = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -218,7 +218,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap(),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
@@ -230,7 +230,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    sum(u) leq amount!!.upperBound.value.unwrap(),
+                    constraint = sum(u) leq amount!!.upperBound.value.unwrap(),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -283,7 +283,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         if (amount != null) {
             if (!constraint) {
                 when (val result = model.addConstraint(
-                    sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
+                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
@@ -295,7 +295,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
+                    constraint = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -309,7 +309,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 val bin = amount!!.contains(amountValue)
 
                 when (val result = model.addConstraint(
-                    y eq bin,
+                    constraint = y eq bin,
                     name = "${name}_y",
                     from = parent ?: this
                 )) {
@@ -325,7 +325,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap(),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
@@ -337,7 +337,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    sum(u) leq amount!!.upperBound.value.unwrap(),
+                    constraint = sum(u) leq amount!!.upperBound.value.unwrap(),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -398,7 +398,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(results, tokenList, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -421,7 +425,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(values, tokenList, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -466,7 +474,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(results, tokenTable, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -489,7 +501,11 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     ): Flt64? {
         var counter = UInt64.zero
         for (inequality in inequalities) {
-            val value = inequality.isTrue(values, tokenTable, zeroIfNone) ?: return null
+            val value = inequality.isTrue(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value) {
                 counter += UInt64.one
             }

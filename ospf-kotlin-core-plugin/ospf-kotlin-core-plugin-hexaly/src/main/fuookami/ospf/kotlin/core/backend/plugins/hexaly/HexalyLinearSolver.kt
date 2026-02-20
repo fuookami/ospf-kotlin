@@ -193,7 +193,7 @@ private class HexalyLinearSolverImpl(
             hexalyConstraints = constraints
 
             val obj = hexalyModel.sum()
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 obj.addOperands(hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex]))
             }
             obj.addOperand(model.objective.constant.toDouble())
@@ -208,7 +208,13 @@ private class HexalyLinearSolverImpl(
             }
             hexalyObjective = obj
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, optimizer, hexalyVars, hexalyConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                hexaly = optimizer,
+                variables = hexalyVars,
+                constraints = hexalyConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -298,7 +304,13 @@ private class HexalyLinearSolverImpl(
                 }
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, optimizer, hexalyVars, hexalyConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                hexaly = optimizer,
+                variables = hexalyVars,
+                constraints = hexalyConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -328,7 +340,13 @@ private class HexalyLinearSolverImpl(
                     gap = Flt64(hexalySolution.getObjectiveGap(0))
                 )
 
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, optimizer, hexalyVars, hexalyConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    hexaly = optimizer,
+                    variables = hexalyVars,
+                    constraints = hexalyConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -337,7 +355,13 @@ private class HexalyLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, optimizer, hexalyVars, hexalyConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    hexaly = optimizer,
+                    variables = hexalyVars,
+                    constraints = hexalyConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }

@@ -102,9 +102,19 @@ private class CoptLinearSolverImpl(
         val processes = arrayOf(
             {
                 if (server != null && port != null && password != null && connectionTime != null) {
-                    it.init(server, port, password, connectionTime, model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        server = server,
+                        port = port,
+                        password = password,
+                        connectionTime = connectionTime,
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 } else {
-                    it.init(model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 }
             },
             { it.dump(model) },
@@ -190,7 +200,7 @@ private class CoptLinearSolverImpl(
                             lhs,
                             CoptConstraintSign(model.constraints.signs[i]).toCoptConstraintSign(),
                             model.constraints.rhs[i].toDouble(),
-                            model.constraints.names[i]
+                             model.constraints.names[i]
                         )
                     }
                 }
@@ -199,7 +209,7 @@ private class CoptLinearSolverImpl(
             coptConstraints = constraints
 
             val obj = Expr()
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 obj.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
             }
             obj.addConstant(model.objective.constant.toDouble())
@@ -216,7 +226,13 @@ private class CoptLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, coptModel, coptVars, coptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                copt = coptModel,
+                variables = coptVars,
+                constraints = coptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -307,7 +323,13 @@ private class CoptLinearSolverImpl(
                 }, COPT.CALL_BACK_CONTEXT_MIP_NODE)
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, coptModel, coptVars, coptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                copt = coptModel,
+                variables = coptVars,
+                constraints = coptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -352,7 +374,13 @@ private class CoptLinearSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    copt = coptModel,
+                    variables = coptVars,
+                    constraints = coptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -361,7 +389,13 @@ private class CoptLinearSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    copt = coptModel,
+                    variables = coptVars,
+                    constraints = coptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }

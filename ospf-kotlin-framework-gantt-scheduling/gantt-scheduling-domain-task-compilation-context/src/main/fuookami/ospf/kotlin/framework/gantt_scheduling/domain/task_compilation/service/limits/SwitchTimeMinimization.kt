@@ -56,7 +56,10 @@ class SwitchTimeMinimization<
                 }
             }
         }
-        when (val result = model.minimize(cost, "switch time")) {
+        when (val result = model.minimize(
+            polynomial = cost,
+            name = "switch time"
+        )) {
             is Ok -> {}
 
             is Failed -> {

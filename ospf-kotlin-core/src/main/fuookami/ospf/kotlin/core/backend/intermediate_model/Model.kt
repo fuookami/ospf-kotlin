@@ -132,10 +132,10 @@ abstract class Constraint<Cell>(
 
 class Objective<Cell : Copyable<Cell>>(
     val category: ObjectCategory,
-    val obj: List<Cell>,
+    val objective: List<Cell>,
     val constant: Flt64 = Flt64(0.0)
 ) : Cloneable, Copyable<Objective<Cell>> {
-    override fun copy() = Objective(category, obj.toList())
+    override fun copy() = Objective(category, objective.toList())
     override fun clone() = copy()
 }
 

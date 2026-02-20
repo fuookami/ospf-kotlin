@@ -228,14 +228,22 @@ data class ValueRange<T>(
             lb: T,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return geq(lb, lbInterval, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return geq(
+                lb = lb,
+                lbInterval = lbInterval,
+                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            )
         }
 
         @Suppress("UNCHECKED_CAST")
         inline fun <reified T> gr(
             lb: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return geq(lb, Interval.Open, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return geq(
+                lb = lb,
+                lbInterval = Interval.Open,
+                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            )
         }
 
         fun <T> geq(
@@ -266,14 +274,22 @@ data class ValueRange<T>(
             ub: T,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return leq(ub, lbInterval, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return leq(
+                ub = ub,
+                lbInterval = lbInterval,
+                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            )
         }
 
         @Suppress("UNCHECKED_CAST")
         inline fun <reified T> ls(
             ub: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return leq(ub, Interval.Open, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return leq(
+                ub = ub,
+                lbInterval = Interval.Open,
+                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            )
         }
 
         fun <T> leq(
@@ -545,20 +561,34 @@ data class ValueRange<T>(
     operator fun times(rhs: T): ValueRange<T>? {
         return if (rhs gr constants.zero) {
             try {
-                ValueRange(lowerBound * rhs, upperBound * rhs, constants)
+                ValueRange(
+                    lowerBound = lowerBound * rhs,
+                    upperBound = upperBound * rhs,
+                    constants = constants
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
             }
         } else if (rhs ls constants.zero) {
             try {
-                ValueRange(upperBound * rhs, lowerBound * rhs, constants)
+                ValueRange(
+                    lowerBound = upperBound * rhs,
+                    upperBound = lowerBound * rhs,
+                    constants = constants
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
             }
         } else {
-            when (val result = ValueRange(constants.zero, constants.zero, lowerBound.interval, upperBound.interval, constants)) {
+            when (val result = ValueRange(
+                lb = constants.zero,
+                ub = constants.zero,
+                lbInterval = lowerBound.interval,
+                ubInterval = upperBound.interval,
+                constants = constants
+            )) {
                 is Ok -> {
                     result.value
                 }
@@ -650,56 +680,56 @@ fun <T> T.coerceIn(valueRange: ValueRange<T>): T where T : RealNumber<T>, T : Nu
 
 @JvmName("negValueRangeFlt32")
 operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    Flt32
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = Flt32
 )
 
 @JvmName("negValueRangeFlt64")
 operator fun ValueRange<Flt64>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    Flt64
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = Flt64
 )
 
 @JvmName("negValueRangeFltX")
 operator fun ValueRange<FltX>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    FltX
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = FltX
 )
 
 @JvmName("negValueRangeInt8")
 operator fun ValueRange<Int8>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    Int8
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = Int8
 )
 
 @JvmName("negValueRangeInt16")
 operator fun ValueRange<Int16>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    Int16
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = Int16
 )
 
 @JvmName("negValueRangeInt32")
 operator fun ValueRange<Int32>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    Int32
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = Int32
 )
 
 @JvmName("negValueRangeInt64")
 operator fun ValueRange<Int64>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    Int64
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = Int64
 )
 
 @JvmName("negValueRangeIntX")
 operator fun ValueRange<IntX>.unaryMinus() = ValueRange(
-    -upperBound,
-    -lowerBound,
-    IntX
+    upperBound = -upperBound,
+    lowerBound = -lowerBound,
+    constants = IntX
 )

@@ -165,7 +165,10 @@ class FloorFunction(
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
-                x.evaluate(values, tokenTable)
+                x.evaluate(
+                    values = values,
+                    tokenTable = tokenTable
+                )
             } ?: return null
 
             val qValue = (xValue / d).let {
@@ -201,7 +204,7 @@ class FloorFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq (d * q + r),
+            constraint = x eq (d * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -226,12 +229,15 @@ class FloorFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val xValue = x.evaluate(fixedValues, model.tokens) ?: return register(model)
+        val xValue = x.evaluate(
+            values = fixedValues,
+            tokenTable = model.tokens
+        ) ?: return register(model)
         val qValue = (xValue / d).floor()
         val rValue = xValue - qValue * d
 
         when (val result = model.addConstraint(
-            x eq (d * q + r),
+            constraint = x eq (d * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -243,7 +249,7 @@ class FloorFunction(
         }
 
         when (val result = model.addConstraint(
-            q eq qValue,
+            constraint = q eq qValue,
             name = "${name}_q",
             from = parent ?: this
         )) {
@@ -303,7 +309,11 @@ class FloorFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).floor()
         }
     }
@@ -313,7 +323,11 @@ class FloorFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).floor()
         }
     }
@@ -332,7 +346,11 @@ class FloorFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).floor()
         }
     }
@@ -342,7 +360,11 @@ class FloorFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             (it / d).floor()
         }
     }

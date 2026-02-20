@@ -120,8 +120,8 @@ class PreciseAssignment(
 
         if (!::u.isInitialized) {
             u = LinearIntermediateSymbols2(
-                "u",
-                Shape2(bins.size, layers.size)
+                name = "u",
+                shape = Shape2(bins.size, layers.size)
             ) { _, v ->
                 BinaryzationFunction(
                     x = LinearPolynomial(x[v[0], v[1]]),
@@ -139,8 +139,8 @@ class PreciseAssignment(
 
         if (!::v.isInitialized) {
             v = LinearIntermediateSymbols1(
-                "v",
-                Shape1(bins.size)
+                name = "v",
+                shape = Shape1(bins.size)
             ) { i, _ ->
                 BinaryzationFunction(
                     x = sum(x[i, _a]),

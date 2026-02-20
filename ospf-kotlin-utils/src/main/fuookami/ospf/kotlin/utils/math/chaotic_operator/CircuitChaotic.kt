@@ -38,7 +38,12 @@ data class CircuitChaoticGenerator(
             )
         ) : CircuitChaoticGenerator {
             return CircuitChaoticGenerator(
-                CircuitChaotic(a, b, c, d),
+                CircuitChaotic(
+                    a = a,
+                    b = b,
+                    c = c,
+                    d = d
+                ),
                 x
             )
         }

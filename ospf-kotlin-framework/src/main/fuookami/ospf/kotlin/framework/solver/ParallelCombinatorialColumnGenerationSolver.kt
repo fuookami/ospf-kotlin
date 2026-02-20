@@ -48,7 +48,11 @@ class ParallelCombinatorialColumnGenerationSolver(
                     coroutineScope {
                         val promises = solvers.map {
                             launch(Dispatchers.Default) {
-                                when (val ret = it.value.solveMILP(name, metaModel, toLogModel)) {
+                                when (val ret = it.value.solveMILP(
+                                    name = name,
+                                    metaModel = metaModel,
+                                    toLogModel = toLogModel
+                                )) {
                                     is Ok -> {
                                         logger.info { "Solver ${it.value.name} found a solution." }
                                         synchronized(lock) {
@@ -83,7 +87,11 @@ class ParallelCombinatorialColumnGenerationSolver(
                 coroutineScope {
                     val promises = solvers.map {
                         async(Dispatchers.Default) {
-                            val result = it.value.solveMILP(name, metaModel, toLogModel)
+                            val result = it.value.solveMILP(
+                                name = name,
+                                metaModel = metaModel,
+                                toLogModel = toLogModel
+                            )
                             when (result) {
                                 is Ok -> {
                                     logger.info { "Solver ${it.value.name} found a solution." }
@@ -142,7 +150,11 @@ class ParallelCombinatorialColumnGenerationSolver(
                     coroutineScope {
                         val promises = solvers.map {
                             launch(Dispatchers.Default) {
-                                when (val ret = it.value.solveLP(name, metaModel, toLogModel)) {
+                                when (val ret = it.value.solveLP(
+                                    name = name,
+                                    metaModel = metaModel,
+                                    toLogModel = toLogModel
+                                )) {
                                     is Ok -> {
                                         logger.info { "Solver ${it.value.name} found a solution." }
                                         synchronized(lock) {
@@ -177,7 +189,11 @@ class ParallelCombinatorialColumnGenerationSolver(
                 coroutineScope {
                     val promises = solvers.map {
                         async(Dispatchers.Default) {
-                            val result = it.value.solveLP(name, metaModel, toLogModel)
+                            val result = it.value.solveLP(
+                                name = name,
+                                metaModel = metaModel,
+                                toLogModel = toLogModel
+                            )
                             when (result) {
                                 is Ok -> {
                                     logger.info { "Solver ${it.value.name} found a solution." }

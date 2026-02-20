@@ -63,8 +63,8 @@ class TaskDelayLastEndTimeMinimization<
             }
 
             when (val result = model.minimize(
-                cost,
-                "task delay last end time"
+                polynomial = cost,
+                name = "task delay last end time"
             )) {
                 is Ok -> {}
 

@@ -78,7 +78,15 @@ class LinearConstraint(
     name: String = "",
     origin: MetaConstraint<*>? = null,
     from: Pair<IntermediateSymbol, Boolean>? = null,
-) : Constraint(lhs, sign, rhs, lazy, name, origin, from) {
+) : Constraint(
+    lhs = lhs,
+    sign = sign,
+    rhs = rhs,
+    lazy = lazy,
+    name = name,
+    origin = origin,
+    from = from
+) {
     companion object {
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
             inequality: MetaConstraint<Ineq>,
@@ -91,7 +99,13 @@ class LinearConstraint(
                     is Either.Left -> {
                         val token = tokens.find(temp.value.variable)
                         if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(LinearCell(tokens, temp.value.coefficient, token))
+                            lhs.add(
+                                LinearCell(
+                                    tokenTable = tokens,
+                                    coefficient = temp.value.coefficient,
+                                    token = token
+                                )
+                            )
                         }
                     }
 
@@ -122,7 +136,13 @@ class LinearConstraint(
                     is Either.Left -> {
                         val token = tokens.find(temp.value.variable)
                         if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(LinearCell(tokens, temp.value.coefficient, token))
+                            lhs.add(
+                                LinearCell(
+                                    tokenTable = tokens,
+                                    coefficient = temp.value.coefficient,
+                                    token = token
+                                )
+                            )
                         }
                     }
 
@@ -151,7 +171,15 @@ class QuadraticConstraint(
     name: String = "",
     origin: MetaConstraint<*>? = null,
     from: Pair<IntermediateSymbol, Boolean>? = null
-) : Constraint(lhs, sign, rhs, lazy, name, origin, from) {
+) : Constraint(
+    lhs = lhs,
+    sign = sign,
+    rhs = rhs,
+    lazy = lazy,
+    name = name,
+    origin = origin,
+    from = from
+) {
     companion object {
         @JvmName("constructByLinearInequality")
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
@@ -165,7 +193,13 @@ class QuadraticConstraint(
                     is Either.Left -> {
                         val token = tokens.find(temp.value.variable)
                         if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(QuadraticCell(tokens, temp.value.coefficient, token))
+                            lhs.add(
+                                QuadraticCell(
+                                    tokenTable = tokens,
+                                    coefficient = temp.value.coefficient,
+                                    token1 = token
+                                )
+                            )
                         }
                     }
 
@@ -198,7 +232,13 @@ class QuadraticConstraint(
                     is Either.Left -> {
                         val token = tokens.find(temp.value.variable)
                         if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(QuadraticCell(tokens, temp.value.coefficient, token))
+                            lhs.add(
+                                QuadraticCell(
+                                    tokenTable = tokens,
+                                    coefficient = temp.value.coefficient,
+                                    token1 = token
+                                )
+                            )
                         }
                     }
 
@@ -234,7 +274,14 @@ class QuadraticConstraint(
                             null
                         }
                         if (token1 != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(QuadraticCell(tokens, temp.value.coefficient, token1, token2))
+                            lhs.add(
+                                QuadraticCell(
+                                    tokenTable = tokens,
+                                    coefficient = temp.value.coefficient,
+                                    token1 = token1,
+                                    token2 = token2
+                                )
+                            )
                         }
                     }
 
@@ -271,7 +318,14 @@ class QuadraticConstraint(
                             null
                         }
                         if (token1 != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(QuadraticCell(tokens, temp.value.coefficient, token1, token2))
+                            lhs.add(
+                                QuadraticCell(
+                                    tokenTable = tokens,
+                                    coefficient = temp.value.coefficient,
+                                    token1 = token1,
+                                    token2 = token2
+                                )
+                            )
                         }
                     }
 

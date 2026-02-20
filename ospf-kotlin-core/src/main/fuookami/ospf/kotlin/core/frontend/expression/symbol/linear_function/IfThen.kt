@@ -282,7 +282,7 @@ class IfThenFunction(
 
         if (constraint) {
             when (val result = model.addConstraint(
-                pu leq qu,
+                constraint = pu leq qu,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -294,7 +294,7 @@ class IfThenFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                u eq (qu - pu + Flt64.one),
+                constraint = u eq (qu - pu + Flt64.one),
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -427,8 +427,16 @@ class IfThenFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(results, tokenList, zeroIfNone) ?: return null
-        val qv = q.isTrue(results, tokenList, zeroIfNone) ?: return null
+        val pv = p.isTrue(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qv = q.isTrue(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -441,8 +449,16 @@ class IfThenFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(values, tokenList, zeroIfNone) ?: return null
-        val qv = q.isTrue(values, tokenList, zeroIfNone) ?: return null
+        val pv = p.isTrue(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qv = q.isTrue(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -468,8 +484,16 @@ class IfThenFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(results, tokenTable, zeroIfNone) ?: return null
-        val qv = q.isTrue(results, tokenTable, zeroIfNone) ?: return null
+        val pv = p.isTrue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qv = q.isTrue(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -482,8 +506,16 @@ class IfThenFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(values, tokenTable, zeroIfNone) ?: return null
-        val qv = q.isTrue(values, tokenTable, zeroIfNone) ?: return null
+        val pv = p.isTrue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val qv = q.isTrue(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {

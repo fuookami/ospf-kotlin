@@ -63,8 +63,8 @@ class TaskAdvanceEarliestEndTimeMinimization<
             }
 
             when (val result = model.minimize(
-                cost,
-                "task advance earliest end time"
+                polynomial = cost,
+                name = "task advance earliest end time"
             )) {
                 is Ok -> {}
 

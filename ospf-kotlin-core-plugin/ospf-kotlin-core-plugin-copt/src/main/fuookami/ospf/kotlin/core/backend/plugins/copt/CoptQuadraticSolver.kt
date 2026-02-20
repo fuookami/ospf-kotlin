@@ -28,7 +28,11 @@ class CoptQuadraticSolver(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput> {
-        val impl = CoptQuadraticSolverImpl(config, callBack, solvingStatusCallBack)
+        val impl = CoptQuadraticSolverImpl(
+            config = config,
+            callBack = callBack,
+            statusCallBack = solvingStatusCallBack
+        )
         val result = impl(model)
         System.gc()
         return result
@@ -96,9 +100,19 @@ private class CoptQuadraticSolverImpl(
         val processes = arrayOf(
             {
                 if (server != null && port != null && password != null && connectionTime != null) {
-                    it.init(server, port, password, connectionTime, model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        server = server,
+                        port = port,
+                        password = password,
+                        connectionTime = connectionTime,
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 } else {
-                    it.init(model.name, callBack?.creatingEnvironmentFunction)
+                    it.init(
+                        name = model.name,
+                        callBack = callBack?.creatingEnvironmentFunction
+                    )
                 }
             },
             { it.dump(model) },
@@ -201,7 +215,7 @@ private class CoptQuadraticSolverImpl(
             coptConstraints = constraints
 
             val obj = QuadExpr()
-            for (cell in model.objective.obj) {
+            for (cell in model.objective.objective) {
                 if (cell.colIndex2 != null) {
                     obj.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toDouble())
                 } else {
@@ -222,7 +236,13 @@ private class CoptQuadraticSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AfterModeling, null, coptModel, coptVars, coptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterModeling,
+                status = null,
+                copt = coptModel,
+                variables = coptVars,
+                constraints = coptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -313,7 +333,13 @@ private class CoptQuadraticSolverImpl(
                 }, COPT.CALL_BACK_CONTEXT_MIP_NODE)
             }
 
-            when (val result = callBack?.execIfContain(Point.Configuration, null, coptModel, coptVars, coptConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.Configuration,
+                status = null,
+                copt = coptModel,
+                variables = coptVars,
+                constraints = coptConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -358,7 +384,13 @@ private class CoptQuadraticSolverImpl(
                         }
                     )
                 )
-                when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AnalyzingSolution,
+                    status = status,
+                    copt = coptModel,
+                    variables = coptVars,
+                    constraints = coptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }
@@ -367,7 +399,13 @@ private class CoptQuadraticSolverImpl(
                 }
                 ok
             } else {
-                when (val result = callBack?.execIfContain(Point.AfterFailure, status, coptModel, coptVars, coptConstraints)) {
+                when (val result = callBack?.execIfContain(
+                    point = Point.AfterFailure,
+                    status = status,
+                    copt = coptModel,
+                    variables = coptVars,
+                    constraints = coptConstraints
+                )) {
                     is Failed -> {
                         return Failed(result.error)
                     }

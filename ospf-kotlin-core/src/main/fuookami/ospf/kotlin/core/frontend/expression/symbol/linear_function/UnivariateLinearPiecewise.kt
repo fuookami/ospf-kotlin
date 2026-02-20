@@ -178,7 +178,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
+            constraint = x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
             name = "${name}_x",
             from = parent ?: this
         )) {
@@ -190,7 +190,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
 
         when (val result = model.addConstraint(
-            sum(k) eq Flt64.one,
+            constraint = sum(k) eq Flt64.one,
             name = "${name}_k",
             from = parent ?: this
         )) {
@@ -201,7 +201,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             }
         }
         when (val result = model.addConstraint(
-            sum(b) eq Flt64.one,
+            constraint = sum(b) eq Flt64.one,
             name = "${name}_b",
             from = parent ?: this
         )) {
@@ -221,7 +221,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
                 poly += b[i]
             }
             when (val result = model.addConstraint(
-                k[i] leq poly,
+                constraint = k[i] leq poly,
                 name = "${name}_kb_${i}",
                 from = parent ?: this
             )) {
@@ -363,7 +363,11 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             y(it)
         }
     }
@@ -373,7 +377,11 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenList, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        )?.let {
             y(it)
         }
     }
@@ -392,7 +400,11 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(results, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             y(it)
         }
     }
@@ -402,7 +414,11 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return x.evaluate(values, tokenTable, zeroIfNone)?.let {
+        return x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        )?.let {
             y(it)
         }
     }

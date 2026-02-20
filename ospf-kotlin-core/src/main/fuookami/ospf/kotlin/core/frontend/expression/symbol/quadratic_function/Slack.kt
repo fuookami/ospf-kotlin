@@ -246,7 +246,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             if (threshold) {
                 if (withNegative) {
                     when (val result = model.addConstraint(
-                        polyX geq y,
+                        constraint = polyX geq y,
                         name = name,
                         from = (parent ?: this) to true
                     )) {
@@ -258,7 +258,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     }
                 } else if (withPositive) {
                     when (val result = model.addConstraint(
-                        polyX leq y,
+                        constraint = polyX leq y,
                         name = name,
                         from = (parent ?: this) to true
                     )) {
@@ -271,7 +271,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    polyX eq y,
+                    constraint = polyX eq y,
                     name = name,
                     from = parent ?: this
                 )) {
@@ -402,8 +402,16 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenList, zeroIfNone) ?: return null
-        val yValue = y.evaluate(results, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val yValue = y.evaluate(
+            results = results,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {
@@ -420,8 +428,16 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenList, zeroIfNone) ?: return null
-        val yValue = y.evaluate(values, tokenList, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val yValue = y.evaluate(
+            values = values,
+            tokenList = tokenList,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {
@@ -455,8 +471,16 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(results, tokenTable, zeroIfNone) ?: return null
-        val yValue = y.evaluate(results, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val yValue = y.evaluate(
+            results = results,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {
@@ -473,8 +497,16 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val xValue = x.evaluate(values, tokenTable, zeroIfNone) ?: return null
-        val yValue = y.evaluate(values, tokenTable, zeroIfNone) ?: return null
+        val xValue = x.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
+        val yValue = y.evaluate(
+            values = values,
+            tokenTable = tokenTable,
+            zeroIfNone = zeroIfNone
+        ) ?: return null
         return if (withNegative && withPositive) {
             abs(xValue - yValue)
         } else if (withNegative) {

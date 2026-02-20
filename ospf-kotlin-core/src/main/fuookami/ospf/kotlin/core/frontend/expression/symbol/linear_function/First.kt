@@ -42,9 +42,12 @@ class FirstFunction(
     override val args get() = _args ?: parent?.args
     
     private val bins: SymbolCombination<BinaryzationFunction, Shape1> by lazy {
-        SymbolCombination("${name}_bin", Shape1(polynomials.size)) { i, _ ->
+        SymbolCombination(
+            name = "${name}_bin",
+            shape = Shape1(polynomials.size)
+        ) { i, _ ->
             BinaryzationFunction(
-                polynomials[i], 
+                x = polynomials[i],
                 parent = parent ?: this,
                 args = parent?.args ?: args,
                 name = "${name}_bin_$i"
@@ -138,7 +141,10 @@ class FirstFunction(
                     val value = if (values.isNullOrEmpty()) {
                         polynomial.evaluate(tokenTable)
                     } else {
-                        polynomial.evaluate(values, tokenTable)
+                        polynomial.evaluate(
+                            values = values,
+                            tokenTable = tokenTable
+                        )
                     } ?: return@forEach
 
                     val bin = value gr Flt64.zero
@@ -210,7 +216,7 @@ class FirstFunction(
 
         for (i in polynomials.indices) {
             when (val result = model.addConstraint(
-                y[i] leq bins[i],
+                constraint = y[i] leq bins[i],
                 name = "${name}_ub1_$i",
                 from = parent ?: this
             )) {
@@ -223,7 +229,7 @@ class FirstFunction(
 
             if (i == 0) {
                 when (val result = model.addConstraint(
-                    y[i] geq bins[i],
+                    constraint = y[i] geq bins[i],
                     name = "${name}_lb_0",
                     from = parent ?: this
                 )) {
@@ -292,7 +298,10 @@ class FirstFunction(
         fixedValues: Map<Symbol, Flt64>
     ): Try {
         val first = bins.indexOfFirst {
-            val bin = it.evaluate(fixedValues, model.tokens) ?: return register(model)
+            val bin = it.evaluate(
+                values = fixedValues,
+                tokenTable = model.tokens
+            ) ?: return register(model)
             bin gr Flt64.zero
         }
 
@@ -385,7 +394,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }
@@ -399,7 +412,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }
@@ -426,7 +443,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }
@@ -440,7 +461,11 @@ class FirstFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         for ((i, polynomial) in polynomials.withIndex()) {
-            val value = polynomial.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            val value = polynomial.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             if (value neq Flt64.zero) {
                 return Flt64(i)
             }

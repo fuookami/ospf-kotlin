@@ -21,7 +21,7 @@ enum class Point {
 class MindOPTLinearSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, MutableList<LinearFunction>> = HashMap()
+    private val map: MutableMap<Point, MutableList<LinearFunction>> = EnumMap(Point::class.java)
 ) : Copyable<MindOPTLinearSolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
@@ -51,7 +51,13 @@ class MindOPTLinearSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOConstr>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        mindopt: MDOModel,
+        variables: List<MDOVar>,
+        constraints: List<MDOConstr>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, mindopt, variables, constraints) }
@@ -62,14 +68,18 @@ class MindOPTLinearSolverCallBack(
     }
 
     override fun copy(): MindOPTLinearSolverCallBack {
-        return MindOPTLinearSolverCallBack(nativeCallback, creatingEnvironmentFunction, map.toMutableMap())
+        return MindOPTLinearSolverCallBack(
+            nativeCallback = nativeCallback,
+            creatingEnvironmentFunction = creatingEnvironmentFunction,
+            map = map.toMutableMap()
+        )
     }
 }
 
 class MindOPTQuadraticSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
-    private val map: MutableMap<Point, MutableList<QuadraticFunction>> = HashMap()
+    private val map: MutableMap<Point, MutableList<QuadraticFunction>> = EnumMap(Point::class.java)
 ) : Copyable<MindOPTQuadraticSolverCallBack> {
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
@@ -99,7 +109,13 @@ class MindOPTQuadraticSolverCallBack(
         return creatingEnvironmentFunction?.invoke(env)
     }
 
-    suspend fun execIfContain(point: Point, status: SolverStatus?, mindopt: MDOModel, variables: List<MDOVar>, constraints: List<MDOQConstr>): Try? {
+    suspend fun execIfContain(
+        point: Point,
+        status: SolverStatus?,
+        mindopt: MDOModel,
+        variables: List<MDOVar>,
+        constraints: List<MDOQConstr>
+    ): Try? {
         return if (!map[point].isNullOrEmpty()) {
             syncRun(map[point]!!.map {
                 { it(status, mindopt, variables, constraints) }
@@ -110,6 +126,10 @@ class MindOPTQuadraticSolverCallBack(
     }
 
     override fun copy(): MindOPTQuadraticSolverCallBack {
-        return MindOPTQuadraticSolverCallBack(nativeCallback, creatingEnvironmentFunction, map.toMutableMap())
+        return MindOPTQuadraticSolverCallBack(
+            nativeCallback = nativeCallback,
+            creatingEnvironmentFunction = creatingEnvironmentFunction,
+            map = map.toMutableMap()
+        )
     }
 }

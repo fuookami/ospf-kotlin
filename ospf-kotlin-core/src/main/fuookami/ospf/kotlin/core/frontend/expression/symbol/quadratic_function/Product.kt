@@ -182,7 +182,7 @@ class ProductFunction(
         for (i in y.indices) {
             if (i == 0) {
                 when (val result = model.addConstraint(
-                    polynomials[0] * polynomials[1] eq y[0],
+                    constraint = polynomials[0] * polynomials[1] eq y[0],
                     name = "${name}_0",
                     from = parent ?: this
                 )) {
@@ -194,7 +194,7 @@ class ProductFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    y[i - 1] * polynomials[i + 1] eq y[i],
+                    constraint = y[i - 1] * polynomials[i + 1] eq y[i],
                     name = "${name}_$i",
                     from = parent ?: this
                 )) {
@@ -231,7 +231,7 @@ class ProductFunction(
                 yValue *= values[0] * values[1]
 
                 when (val result = model.addConstraint(
-                    polynomials[0] * polynomials[1] eq y[0],
+                    constraint = polynomials[0] * polynomials[1] eq y[0],
                     name = "${name}_$0",
                     from = parent ?: this
                 )) {
@@ -243,7 +243,7 @@ class ProductFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    y[0] eq yValue,
+                    constraint = y[0] eq yValue,
                     name = "${name}_y_0",
                     from = parent ?: this
                 )) {
@@ -261,7 +261,7 @@ class ProductFunction(
                 yValue *= values[i + 1]
 
                 when (val result = model.addConstraint(
-                    y[i - 1] * polynomials[i + 1] eq y[i],
+                    constraint = y[i - 1] * polynomials[i + 1] eq y[i],
                     name = "${name}_$i",
                     from = parent ?: this
                 )) {
@@ -273,8 +273,8 @@ class ProductFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    y[i] eq yValue,
-                    name  = "${name}_y_$i",
+                    constraint = y[i] eq yValue,
+                    name = "${name}_y_$i",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
@@ -321,7 +321,11 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(results, tokenList, zeroIfNone) ?: return null
+            val thisValue = rhs.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             lhs * thisValue
         }
     }
@@ -332,7 +336,11 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(values, tokenList, zeroIfNone) ?: return null
+            val thisValue = rhs.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             lhs * thisValue
         }
     }
@@ -353,7 +361,11 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            val thisValue = rhs.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             lhs * thisValue
         }
     }
@@ -364,7 +376,11 @@ class ProductFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.fold(Flt64.one) { lhs, rhs ->
-            val thisValue = rhs.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            val thisValue = rhs.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
             lhs * thisValue
         }
     }

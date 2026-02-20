@@ -63,8 +63,8 @@ class TaskDelayTimeMinimization<
             }
 
             when (val result = model.minimize(
-                cost,
-                "task delay time"
+                polynomial = cost,
+                name = "task delay time"
             )) {
                 is Ok -> {}
 

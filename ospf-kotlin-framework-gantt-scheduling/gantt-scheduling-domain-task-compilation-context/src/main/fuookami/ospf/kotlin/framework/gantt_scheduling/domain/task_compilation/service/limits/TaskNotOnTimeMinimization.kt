@@ -26,8 +26,8 @@ class TaskNotOnTimeMinimization<
     override fun invoke(model: AbstractLinearMetaModel): Try {
         if (threshold eq UInt64.zero) {
             when (val result = model.minimize(
-                coefficient * sum(taskTime.notOnTime[_a]),
-                "task not on time"
+                polynomial = coefficient * sum(taskTime.notOnTime[_a]),
+                name = "task not on time"
             )) {
                 is Ok -> {}
 
@@ -50,8 +50,8 @@ class TaskNotOnTimeMinimization<
                 }
             }
             when (val result = model.minimize(
-                coefficient * slack,
-                "task not on time"
+                monomial = coefficient * slack,
+                name = "task not on time"
             )
             ) {
                 is Ok -> {}

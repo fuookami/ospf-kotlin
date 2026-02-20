@@ -53,8 +53,8 @@ class ConsumptionLessQuantityMinimization<
                 }
             }
             when (val result = model.minimize(
-                cost,
-                "consumption less quantity"
+                polynomial = cost,
+                name = "consumption less quantity"
             )) {
                 is Ok -> {}
 

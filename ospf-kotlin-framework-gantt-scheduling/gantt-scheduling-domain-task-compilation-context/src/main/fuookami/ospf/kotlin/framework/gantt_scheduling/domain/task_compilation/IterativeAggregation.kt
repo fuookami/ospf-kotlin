@@ -32,7 +32,11 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
     private val logger = org.apache.logging.log4j.kotlin.logger("IterativeTaskSchedulingAggregation")
 
-    val compilation: IterativeTaskCompilation<IT, T, E, A> = IterativeTaskCompilation(tasks, executors, lockedCancelTasks)
+    val compilation: IterativeTaskCompilation<IT, T, E, A> = IterativeTaskCompilation(
+        originTasks = tasks,
+        executors = executors,
+        lockedCancelTasks = lockedCancelTasks
+    )
     abstract val policy: Policy<IT, E, A>
 
     val tasksIteration: List<List<IT>> by compilation::tasksIteration
@@ -224,7 +228,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         }
 
         for (obj in model.subObjects) {
-            logger.debug { "${obj.name} = ${obj.value()}" }
+            logger.debug { "${obj.name} = ${obj.evaluate()}" }
         }
 
         return ok
@@ -317,8 +321,12 @@ open class IterativeTaskCompilationAggregation<
     tasks: List<T>,
     executors: List<E>,
     override val policy: Policy<IT, E, A>,
-    lockCancelTask: Set<T> = emptySet()
-) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(tasks, executors, lockCancelTask)
+    lockedCancelTasks: Set<T> = emptySet()
+) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(
+    tasks = tasks,
+    executors = executors,
+    lockedCancelTasks = lockedCancelTasks
+)
 
 open class IterativeTaskCompilationAggregationWithTime<
     IT : IterativeAbstractTask<E, A>,
@@ -333,10 +341,23 @@ open class IterativeTaskCompilationAggregationWithTime<
     lockCancelTasks: Set<T> = emptySet(),
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(tasks, executors, lockCancelTasks) {
-    val taskTime: IterativeTaskSchedulingTaskTime<IT, T, E, A> =
-        IterativeTaskSchedulingTaskTime(timeWindow, tasks, compilation, redundancyRange)
-    val makespan: Makespan<T, E, A> = Makespan(tasks, taskTime, makespanExtra)
+) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(
+    tasks = tasks,
+    executors = executors,
+    lockedCancelTasks = lockCancelTasks
+) {
+    val taskTime: IterativeTaskSchedulingTaskTime<IT, T, E, A> = IterativeTaskSchedulingTaskTime(
+        timeWindow = timeWindow,
+        tasks = tasks,
+        compilation = compilation,
+        redundancyRange = redundancyRange
+    )
+
+    val makespan: Makespan<T, E, A> = Makespan(
+        tasks = tasks,
+        taskTime = taskTime,
+        extra = makespanExtra
+    )
 
     override fun register(model: MetaModel): Try {
         when (val result = super.register(model)) {
@@ -371,7 +392,11 @@ open class IterativeTaskCompilationAggregationWithTime<
         newTasks: List<IT>,
         model: AbstractLinearMetaModel
     ): Ret<List<IT>> {
-        val unduplicatedBunches = when (val result = super.addColumns(iteration, newTasks, model)) {
+        val unduplicatedBunches = when (val result = super.addColumns(
+            iteration = iteration,
+            newTasks = newTasks,
+            model = model
+        )) {
             is Ok -> {
                 result.value
             }
@@ -381,7 +406,11 @@ open class IterativeTaskCompilationAggregationWithTime<
             }
         }
 
-        when (val result = taskTime.addColumns(iteration, unduplicatedBunches, model)) {
+        when (val result = taskTime.addColumns(
+            iteration = iteration,
+            newTasks = unduplicatedBunches,
+            model = model
+        )) {
             is Ok -> {
                 result.value
             }

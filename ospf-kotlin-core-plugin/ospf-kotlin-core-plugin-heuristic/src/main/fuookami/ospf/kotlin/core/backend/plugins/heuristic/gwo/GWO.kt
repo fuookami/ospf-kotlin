@@ -44,7 +44,11 @@ class GWOPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-) : HeuristicPolicy(iterationLimit, notBetterIterationLimit, timeLimit), AbstractGWOPolicy<V> {
+) : HeuristicPolicy(
+    iterationLimit = iterationLimit,
+    notBetterIterationLimit = notBetterIterationLimit,
+    timeLimit = timeLimit
+), AbstractGWOPolicy<V> {
     override fun a(iteration: Iteration): List<Flt64> {
         val iterationCoefficient = min(
             ((iteration.iteration.toFlt64() * Flt64.pi)
@@ -218,7 +222,12 @@ class GreyWolfOptimizer<Obj, V>(
                     model.compareObjective(lhs.fitness, rhs.fitness)
                 }
             val newBestWolf = newWolfs.first()
-            refreshGoodIndividuals(goodWolfs, newWolfs, model, solutionAmount)
+            refreshGoodIndividuals(
+                goodIndividuals = goodWolfs,
+                newIndividuals = newWolfs,
+                model = model,
+                solutionAmount = solutionAmount
+            )
             if (model.compareObjective(newBestWolf.fitness, bestWolf.fitness) is Order.Less) {
                 bestWolf = newBestWolf
                 globalBetter = true

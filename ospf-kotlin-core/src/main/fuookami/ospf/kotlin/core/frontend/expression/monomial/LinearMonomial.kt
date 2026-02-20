@@ -577,7 +577,11 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                symbol.value.evaluate(results, tokenList, zeroIfNone)
+                symbol.value.evaluate(
+                    results = results,
+                    tokenList = tokenList,
+                    zeroIfNone = zeroIfNone
+                )
             }
         } ?: if (zeroIfNone) {
             Flt64.zero
@@ -603,7 +607,11 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                symbol.value.evaluate(results, tokenTable, zeroIfNone)
+                symbol.value.evaluate(
+                    results = results,
+                    tokenTable = tokenTable,
+                    zeroIfNone = zeroIfNone
+                )
             }
         } ?: if (zeroIfNone) {
             Flt64.zero
@@ -641,7 +649,11 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                values[symbol.value] ?: symbol.value.evaluate(values, tokenList, zeroIfNone)
+                values[symbol.value] ?: symbol.value.evaluate(
+                    values = values,
+                    tokenList = tokenList,
+                    zeroIfNone = zeroIfNone
+                )
             }
         } ?: if (zeroIfNone) {
             Flt64.zero
@@ -679,7 +691,11 @@ data class LinearMonomialSymbol(
             }
 
             is Either.Right -> {
-                values[symbol.value] ?: symbol.value.evaluate(values, tokenTable, zeroIfNone)
+                values[symbol.value] ?: symbol.value.evaluate(
+                    values = values,
+                    tokenTable = tokenTable,
+                    zeroIfNone = zeroIfNone
+                )
             }
         } ?: if (zeroIfNone) {
             Flt64.zero

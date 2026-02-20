@@ -21,11 +21,11 @@ class ExecutorCostMinimization<
     override operator fun invoke(model: AbstractLinearMetaModel): Try {
         coefficient?.let {
             when (val result = model.minimize(
-                sum(executors.map { e ->
+                polynomial = sum(executors.map { e ->
                     val penalty = it(e) ?: Flt64.infinity
                     penalty * compilation.executorCompilation[e]
                 }),
-                "executor"
+                name = "executor"
             )) {
                 is Ok -> {}
 

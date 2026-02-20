@@ -53,8 +53,8 @@ class ConsumptionOverQuantityMinimization<
                 }
             }
             when (val result = model.minimize(
-                cost,
-                "consumption over quantity"
+                polynomial = cost,
+                name = "consumption over quantity"
             )) {
                 is Ok -> {}
 

@@ -18,10 +18,10 @@ class TailBinLoadingRateMinimization(
 ) : Pipeline<AbstractLinearMetaModel> {
     override fun invoke(model: AbstractLinearMetaModel): Try {
         when (val result = model.minimize(
-            sum(bins.mapIndexed { i, bin ->
+            polynomial = sum(bins.mapIndexed { i, bin ->
                 coefficient(bin) * capacity.tailLoadingRate[i]
             }),
-            "tail bin loading rate"
+            name = "tail bin loading rate"
         )) {
             is Ok -> {}
 

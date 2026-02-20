@@ -164,7 +164,7 @@ sealed class AbstractMinFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                maxmin leq polynomial,
+                constraint = maxmin leq polynomial,
                 name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -179,7 +179,7 @@ sealed class AbstractMinFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
-                    maxmin geq (polynomial - m * (Flt64.one - u[i])),
+                    constraint = maxmin geq (polynomial - m * (Flt64.one - u[i])),
                     name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -192,7 +192,7 @@ sealed class AbstractMinFunction(
             }
 
             when (val result = model.addConstraint(
-                sum(u) eq Flt64.one,
+                constraint = sum(u) eq Flt64.one,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -264,7 +264,7 @@ sealed class AbstractMinFunction(
 
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                maxmin leq polynomial,
+                constraint = maxmin leq polynomial,
                 name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -277,7 +277,7 @@ sealed class AbstractMinFunction(
         }
 
         when (val result = model.addConstraint(
-            maxmin eq minValue,
+            constraint = maxmin eq minValue,
             name = "${name}_min",
             from = parent ?: this
         )) {
@@ -360,7 +360,11 @@ sealed class AbstractMinFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(results, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -370,7 +374,11 @@ sealed class AbstractMinFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(values, tokenList, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -388,7 +396,11 @@ sealed class AbstractMinFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(results, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 
@@ -398,7 +410,11 @@ sealed class AbstractMinFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         return polynomials.minOfOrNull {
-            it.evaluate(values, tokenTable, zeroIfNone) ?: return null
+            it.evaluate(
+                values = values,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ) ?: return null
         } ?: Flt64.zero
     }
 }

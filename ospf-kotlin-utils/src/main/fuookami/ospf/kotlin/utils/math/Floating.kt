@@ -743,14 +743,32 @@ value class FltX(internal val value: BigDecimal) :
     override fun log(base: FloatingNumber<*>): FltX? = when (base) {
         is Flt32 -> log(base, decimalDigits)
         is Flt64 -> log(base, decimalDigits)
-        is FltX -> log(base, maxOf(value.scale(), base.value.scale(), decimalDigits))
+        is FltX -> log(
+            base = base,
+            digits = maxOf(
+                value.scale(),
+                base.value.scale(),
+                decimalDigits
+            )
+        )
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
     fun log(
         base: FloatingNumber<*>,
         digits: Int
-    ): FltX? = log(base, digits + 1, min(pow(FltX(10), -digits, FltX, digits + 1), epsilon))
+    ): FltX? = log(
+        base = base,
+        digits = digits + 1,
+        precision = min(
+            pow(
+                base = FltX(10),
+                index = -digits,
+                digits = digits + 1
+            ),
+            epsilon
+        )
+    )
 
     @Throws(IllegalArgumentException::class)
     override fun log(
@@ -758,9 +776,24 @@ value class FltX(internal val value: BigDecimal) :
         digits: Int,
         precision: FloatingNumber<*>
     ): FltX? = when (base) {
-        is Flt32 -> log(this.withScale(digits), base.toFltX().withScale(digits), FltX, digits, precision.toFltX())
-        is Flt64 -> log(this.withScale(digits), base.toFltX().withScale(digits), FltX, digits, precision.toFltX())
-        is FltX -> log(this.withScale(digits), base.withScale(digits), FltX, digits, precision.toFltX())
+        is Flt32 -> log(
+            x = this.withScale(digits),
+            base = base.toFltX().withScale(digits),
+            digits = digits,
+            precision = precision.toFltX()
+        )
+        is Flt64 -> log(
+            x = this.withScale(digits),
+            base = base.toFltX().withScale(digits),
+            digits = digits,
+            precision = precision.toFltX()
+        )
+        is FltX -> log(
+            x = this.withScale(digits),
+            base = base.withScale(digits),
+            digits = digits,
+            precision = precision.toFltX()
+        )
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
@@ -770,14 +803,32 @@ value class FltX(internal val value: BigDecimal) :
     override fun pow(index: FloatingNumber<*>): FltX = when (index) {
         is Flt32 -> pow(index, decimalDigits)
         is Flt64 -> pow(index, decimalDigits)
-        is FltX -> pow(index, maxOf(value.scale(), index.value.scale(), decimalDigits))
+        is FltX -> pow(
+            index = index,
+            digits = maxOf(
+                value.scale(),
+                index.value.scale(),
+                decimalDigits
+            )
+        )
         else -> throw IllegalArgumentException("Unknown argument type to FltX.pow: ${index.javaClass}")
     }
 
     fun pow(
         index: FloatingNumber<*>,
         digits: Int
-    ): FltX = pow(index, digits + 1, min(pow(FltX(10), -digits, FltX, digits + 1), epsilon))
+    ): FltX = pow(
+        index = index,
+        digits = digits + 1,
+        precision = min(
+            pow(
+                base = FltX(10),
+                index = -digits,
+                digits = digits + 1
+            ),
+            epsilon
+        )
+    )
 
     @Throws(IllegalArgumentException::class)
     override fun pow(
@@ -786,31 +837,76 @@ value class FltX(internal val value: BigDecimal) :
         precision: FloatingNumber<*>
     ): FltX = when (index) {
         is Flt32 -> if (index.round() eq index) {
-            pow(this, index.round().toInt32().value, FltX, digits, precision.toFltX())
+            pow(
+                base = this,
+                index = index.round().toInt32().value,
+                digits = digits,
+                precision = precision.toFltX()
+            )
         } else {
-            pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+            powf(
+                base = this.withScale(digits),
+                index = index.toFltX().withScale(digits),
+                digits = digits,
+                precision = precision.toFltX()
+            )
         }
         is Flt64 -> if (index.round() eq index) {
-            pow(this, index.round().toInt32().value, FltX, digits, precision.toFltX())
+            pow(
+                base = this,
+                index = index.round().toInt32().value,
+                digits = digits,
+                precision = precision.toFltX()
+            )
         } else {
-            pow(this.withScale(digits), index.toFltX().withScale(digits), FltX, digits, precision.toFltX())
+            powf(
+                base = this.withScale(digits),
+                index = index.toFltX().withScale(digits),
+                digits = digits,
+                precision = precision.toFltX()
+            )
         }
         is FltX -> if (index.stripTrailingZeros() eq index) {
-            pow(this, index.round().toInt32().value, FltX, digits, precision.toFltX())
+            pow(
+                base = this,
+                index = index.round().toInt32().value,
+                digits = digits,
+                precision = precision.toFltX()
+            )
         } else {
-            pow(this.withScale(digits), index.withScale(digits), FltX, digits, precision.toFltX())
+            powf(
+                base = this.withScale(digits),
+                index = index.withScale(digits),
+                digits = digits,
+                precision = precision.toFltX()
+            )
         }
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
     }
 
     override fun exp() = exp(decimalDigits)
 
-    fun exp(digits: Int) = exp(this, FltX, digits + 1, min(pow(FltX(10), -digits, FltX, digits + 1), epsilon))
+    fun exp(digits: Int) = exp(
+        index = this,
+        digits = digits + 1,
+        precision = min(
+            pow(
+                base = FltX(10),
+                index = -digits,
+                digits = digits + 1
+            ),
+            epsilon
+        )
+    )
 
     override fun exp(
         digits: Int,
         precision: FloatingNumber<*>
-    ): FloatingNumber<*> = exp(this, FltX, digits, precision.toFltX())
+    ): FloatingNumber<*> = exp(
+        index = this,
+        digits = digits,
+        precision = precision.toFltX()
+    )
 
     override fun sin() = toFlt64().sin().toFltX()
     override fun cos() = toFlt64().cos().toFltX()

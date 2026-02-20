@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.model.callback.*
 interface Cross<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
-        parent: List<T>,
+        parents: List<T>,
         model: AbstractCallBackModelInterface<*, V>
     ): List<Solution>
 }

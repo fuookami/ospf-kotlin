@@ -132,7 +132,11 @@ private class CplexLinearSolverImpl(
         logger.trace { "Dumping to cplex model for $model" }
 
         cplexVars = model.variables.map {
-            cplex.numVar(it.lowerBound.toDouble(), it.upperBound.toDouble(), CplexVariable(it.type).toCplexVar())
+            cplex.numVar(
+                it.lowerBound.toDouble(),
+                it.upperBound.toDouble(),
+                CplexVariable(it.type).toCplexVar()
+            )
         }.toList()
 
         if (cplex.isMIP && model.variables.any { it.initialResult != null }) {
@@ -186,11 +190,16 @@ private class CplexLinearSolverImpl(
                 }
                 promises.flatMap { promise ->
                     val result = promise.await().map {
-                        val (lb, lhs, ub) = it.second
-                        val constraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[it.first])
-                        cplex.add(constraint)
-                        constraint
-                    }
+                            val (lb, lhs, ub) = it.second
+                            val constraint = cplex.range(
+                                lb.toDouble(),
+                                lhs,
+                                ub.toDouble(),
+                                model.constraints.names[it.first]
+                            )
+                            cplex.add(constraint)
+                            constraint
+                        }
                     if (memoryUseOver()) {
                         System.gc()
                     }
@@ -218,7 +227,12 @@ private class CplexLinearSolverImpl(
                     for (cell in model.constraints.lhs[i]) {
                         lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
                     }
-                    val constraint = cplex.range(lb.toDouble(), lhs, ub.toDouble(), model.constraints.names[i])
+                    val constraint = cplex.range(
+                        lb.toDouble(),
+                        lhs,
+                        ub.toDouble(),
+                        model.constraints.names[i]
+                    )
                     cplex.add(constraint)
                     constraint
                 }
@@ -228,7 +242,7 @@ private class CplexLinearSolverImpl(
         cplexConstraints = constraints
 
         val objective = cplex.linearNumExpr()
-        for (cell in model.objective.obj) {
+        for (cell in model.objective.objective) {
             objective.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
         }
         when (model.objective.category) {
@@ -241,7 +255,13 @@ private class CplexLinearSolverImpl(
             }
         }
 
-        when (val result = callBack?.execIfContain(Point.AfterModeling, null, cplex, cplexVars, cplexConstraints)) {
+        when (val result = callBack?.execIfContain(
+            point = Point.AfterModeling,
+            status = null,
+            cplex = cplex,
+            variables = cplexVars,
+            constraints = cplexConstraints
+        )) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -328,7 +348,13 @@ private class CplexLinearSolverImpl(
             })
         }
 
-        when (val result = callBack?.execIfContain(Point.Configuration, null, cplex, cplexVars, cplexConstraints)) {
+        when (val result = callBack?.execIfContain(
+            point = Point.Configuration,
+            status = null,
+            cplex = cplex,
+            variables = cplexVars,
+            constraints = cplexConstraints
+        )) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -339,7 +365,13 @@ private class CplexLinearSolverImpl(
     }
 
     private suspend fun solve(): Try {
-        when (val result = callBack?.execIfContain(Point.Solving, null, cplex, cplexVars, cplexConstraints)) {
+        when (val result = callBack?.execIfContain(
+            point = Point.Solving,
+            status = null,
+            cplex = cplex,
+            variables = cplexVars,
+            constraints = cplexConstraints
+        )) {
             is Failed -> {
                 return Failed(result.error)
             }
@@ -374,7 +406,13 @@ private class CplexLinearSolverImpl(
                 }
             )
 
-            when (val result = callBack?.execIfContain(Point.AnalyzingSolution, status, cplex, cplexVars, cplexConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AnalyzingSolution,
+                status = status,
+                cplex = cplex,
+                variables = cplexVars,
+                constraints = cplexConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }
@@ -383,7 +421,13 @@ private class CplexLinearSolverImpl(
             }
             ok
         } else {
-            when (val result = callBack?.execIfContain(Point.AfterFailure, status, cplex, cplexVars, cplexConstraints)) {
+            when (val result = callBack?.execIfContain(
+                point = Point.AfterFailure,
+                status = status,
+                cplex = cplex,
+                variables = cplexVars,
+                constraints = cplexConstraints
+            )) {
                 is Failed -> {
                     return Failed(result.error)
                 }

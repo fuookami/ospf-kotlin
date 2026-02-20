@@ -33,11 +33,11 @@ class PreciseLoadCapacity(
     fun register(model: MetaModel): Try {
         if (!::loadWeight.isInitialized) {
             loadWeight = LinearIntermediateSymbols1(
-                "load_weight",
-                Shape1(bins.size)
+                name = "load_weight",
+                shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
-                    sum(layers.mapIndexed { j, layer ->
+                    polynomial = sum(layers.mapIndexed { j, layer ->
                         layer.weight * assignment.x[i, j]
                     }),
                     name = "load_weight_${i}"
@@ -54,11 +54,11 @@ class PreciseLoadCapacity(
 
         if (!::loadVolume.isInitialized) {
             loadVolume = LinearIntermediateSymbols1(
-                "load_volume",
-                Shape1(bins.size)
+                name = "load_volume",
+                shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
-                    sum(layers.mapIndexed { j, layer ->
+                    polynomial = sum(layers.mapIndexed { j, layer ->
                         layer.volume * assignment.x[i, j]
                     }),
                     name = "load_volume_${i}"
@@ -74,11 +74,15 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadDepth.isInitialized) {
-            loadDepth = LinearIntermediateSymbols1("load_depth", Shape1(bins.size)) { i, _ ->
+            loadDepth = LinearIntermediateSymbols1(
+                name = "load_depth",
+                shape = Shape1(bins.size)
+            ) { i, _ ->
                 LinearExpressionSymbol(
-                    sum(layers.mapIndexed { j, layer ->
+                    polynomial = sum(layers.mapIndexed { j, layer ->
                         layer.depth * assignment.x[i, j]
-                    })
+                    }),
+                    name = "load_depth_${i}"
                 )
             }
         }
@@ -92,11 +96,11 @@ class PreciseLoadCapacity(
 
         if (!::loadingRate.isInitialized) {
             loadingRate = LinearIntermediateSymbols1(
-                "loading_rate",
-                Shape1(bins.size)
+                name = "loading_rate",
+                shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
-                    sum(layers.mapIndexed { j, layer ->
+                    polynomial = sum(layers.mapIndexed { j, layer ->
                         layer.volume * assignment.x[i, j]
                     }) / bins[i].volume,
                     name = "loading_rate_${i}"
@@ -113,8 +117,8 @@ class PreciseLoadCapacity(
 
         if (!::tailLoadingRate.isInitialized) {
             tailLoadingRate = LinearIntermediateSymbols1(
-                "tail_loading_rate",
-                Shape1(bins.size)
+                name = "tail_loading_rate",
+                shape = Shape1(bins.size)
             ) { i, _ ->
                 MaskingFunction(
                     x = loadingRate[i],

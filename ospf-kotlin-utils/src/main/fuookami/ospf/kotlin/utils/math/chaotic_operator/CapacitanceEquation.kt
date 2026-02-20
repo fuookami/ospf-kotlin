@@ -54,8 +54,14 @@ data class CapacitanceEquationGenerator(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ) : CapacitanceEquationGenerator {
-            return CapacitanceEquationGenerator(
-                CapacitanceEquation(a, b, c, d, e, h),
+            return CapacitanceEquationGenerator(CapacitanceEquation(
+                    a = a,
+                    b = b,
+                    c = c,
+                    d = d,
+                    e = e,
+                    h = h
+                ),
                 x
             )
         }
