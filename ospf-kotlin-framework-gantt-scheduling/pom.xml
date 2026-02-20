@@ -19,11 +19,10 @@
         <module>gantt-scheduling-domain-task-context</module>
         <module>gantt-scheduling-domain-task-compilation-context</module>
         <module>gantt-scheduling-domain-task-generation-context</module>
-        <module>gantt-scheduling-domain-task-selection-context</module>
         <module>gantt-scheduling-domain-bunch-compilation-context</module>
         <module>gantt-scheduling-domain-bunch-generation-context</module>
-        <module>gantt-scheduling-domain-bunch-selection-context</module>
         <module>gantt-scheduling-domain-capacity-scheduling-context</module>
+        <module>gantt-scheduling-domain-resource-context</module>
         <module>gantt-scheduling-domain-produce-context</module>
         <module>gantt-scheduling-application</module>
     </modules>

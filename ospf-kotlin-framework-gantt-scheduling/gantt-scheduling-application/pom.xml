@@ -12,6 +12,24 @@
     <name>ospf-kotlin-framework-gantt-scheduling-application-jdk8</name>
     <artifactId>ospf-kotlin-framework-gantt-scheduling-application-jdk8</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context-jdk8</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context-jdk8</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context-jdk8</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <sourceDirectory>src/main</sourceDirectory>
     </build>

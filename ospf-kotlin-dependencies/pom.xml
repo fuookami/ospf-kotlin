@@ -394,11 +394,6 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-selection-context-jdk8</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
                 <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-generation-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -409,12 +404,17 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-selection-context-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-capacity-scheduling-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
                 <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-produce-context-jdk8</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+                <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-resource-context-jdk8</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

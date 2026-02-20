@@ -161,7 +161,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
         override val e: Flt32 get() = Flt32(E.toFloat())
         @JvmStatic
         override val lg2: Flt32 by lazy {
-            ln(two, this)!!
+            ln(two)!!
         }
     }
 
@@ -422,7 +422,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
         override val e: Flt64 get() = Flt64(E)
         @JvmStatic
         override val lg2: Flt64 by lazy {
-            ln(two, this)!!
+            ln(two)!!
         }
     }
 
@@ -697,7 +697,7 @@ value class FltX(internal val value: BigDecimal) :
         override val e: FltX get() = FltX(E.toBigDecimal())
         @JvmStatic
         override val lg2: FltX by lazy {
-            ln(two, this)!!
+            ln(two)!!
         }
     }
 
@@ -797,7 +797,7 @@ value class FltX(internal val value: BigDecimal) :
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
-    override fun pow(index: Int) = pow(this, index, FltX)
+    override fun pow(index: Int) = pow(copy(), index, FltX)
 
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FltX = when (index) {

@@ -60,7 +60,6 @@ private tailrec fun <T : TimesGroup<T>> powNegImpl(
     }
 }
 
-
 @Throws(IllegalArgumentException::class)
 fun <T> pow(
     base: T,
@@ -116,13 +115,29 @@ fun <T> pow(
 inline fun <reified T> pow(
     base: T,
     index: Int,
-    digits: Int = (T::class::companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class::companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
+    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
+): T where T : TimesSemiGroup<T>, T : RealNumber<T> {
+    return pow(
+        base = base,
+        index = index,
+        constants = T::class.companionObjectInstance as RealNumberConstants<T>,
+        digits = digits,
+        precision = precision
+    )
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> pow(
+    base: T,
+    index: Int,
+    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
+    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
 ): T where T : TimesGroup<T>, T : RealNumber<T> {
     return pow(
         base = base,
         index = index,
-        constants = T::class::companionObjectInstance as RealNumberConstants<T>,
+        constants = T::class.companionObjectInstance as RealNumberConstants<T>,
         digits = digits,
         precision = precision
     )
@@ -153,13 +168,13 @@ fun <T : FloatingNumber<T>> powf(
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
-    digits: Int = (T::class::companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class::companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
+    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
 ): T {
     return powf(
         base = base,
         index = index,
-        constants = T::class::companionObjectInstance as FloatingNumberConstants<T>,
+        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
         digits = digits,
         precision = precision
     )
@@ -194,12 +209,12 @@ fun <T : FloatingNumber<T>> exp(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
-    digits: Int = (T::class::companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class::companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
+    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
 ): T {
     return exp(
         index = index,
-        constants = T::class::companionObjectInstance as FloatingNumberConstants<T>,
+        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
         digits = digits,
         precision = precision
     )

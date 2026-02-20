@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-gantt-scheduling-domain-bunch-selection-context-jdk8</name>
-    <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-selection-context-jdk8</artifactId>
+    <name>ospf-kotlin-framework-gantt-scheduling-domain-resource-context-jdk8</name>
+    <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-resource-context-jdk8</artifactId>
 
     <dependencies>
         <dependency>

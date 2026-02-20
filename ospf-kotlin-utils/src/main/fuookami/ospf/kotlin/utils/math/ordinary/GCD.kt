@@ -55,7 +55,10 @@ fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
-    return gcdImpl(numbers.map { it.abs() }.sortedDescending(), I::class.companionObjectInstance as RealNumberConstants<I>)
+    return gcdImpl(
+        numbers.map { it.abs() }.sortedDescending(),
+        I::class.companionObjectInstance as RealNumberConstants<I>
+    )
 }
 
 inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
@@ -85,7 +88,11 @@ fun gcd(numbers: Iterable<FltX>): FltX {
             break
         }
     }
-    return gcdImpl(integerNumbers.sortedDescending(), IntX).toFltX() / FltX.ten.pow(factor)
+    val integerGCD = gcdImpl(
+        integerNumbers.sortedDescending(),
+        IntX
+    ).toFltX()
+    return integerGCD / FltX.ten.pow(factor)
 }
 
 fun <F: FltX> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
