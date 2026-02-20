@@ -22,7 +22,7 @@
         <module>gantt-scheduling-domain-bunch-compilation-context</module>
         <module>gantt-scheduling-domain-bunch-generation-context</module>
         <module>gantt-scheduling-domain-capacity-scheduling-context</module>
-        <module>gantt-shceduling-domain-resource-context</module>
+        <module>gantt-scheduling-domain-resource-context</module>
         <module>gantt-scheduling-domain-produce-context</module>
         <module>gantt-scheduling-application</module>
     </modules>
