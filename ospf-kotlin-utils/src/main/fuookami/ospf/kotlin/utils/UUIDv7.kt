@@ -28,4 +28,9 @@ data object UUIDv7 {
 
         return value
     }
+
+    @Synchronized
+    fun generateSync(): ByteArray {
+        return generate()
+    }
 }

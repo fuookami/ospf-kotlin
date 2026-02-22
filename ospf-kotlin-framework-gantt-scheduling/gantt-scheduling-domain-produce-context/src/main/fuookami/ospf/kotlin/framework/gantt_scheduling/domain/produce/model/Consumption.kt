@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
+import fuookami.ospf.kotlin.framework.model.refresh
 
 interface Consumption {
     val quantity: LinearIntermediateSymbols1
@@ -104,6 +106,52 @@ abstract class AbstractConsumption<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+            }
+        }
+
+        return ok
+    }
+
+    /**
+     * 提取影子价格
+     * Extract shadow prices from slack variables
+     *
+     * @param Map              影子价格表类型
+     * @param shadowPriceMap   影子价格表 / Shadow price map
+     * @param shadowPrices     原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
+     * @return                 成功与否 / Success or failure
+     */
+    fun <Map : AbstractShadowPriceMap<*, Map>> refresh(
+        shadowPriceMap: Map,
+        shadowPrices: MetaDualSolution
+    ): Try {
+        if (::overQuantity.isInitialized) {
+            for (overQuantity in this.overQuantity) {
+                when (val result = overQuantity.refresh(
+                    shadowPriceMap = shadowPriceMap,
+                    shadowPrices = shadowPrices
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+                }
+            }
+        }
+
+        if (::lessQuantity.isInitialized) {
+            for (lessQuantity in this.lessQuantity) {
+                when (val result = lessQuantity.refresh(
+                    shadowPriceMap = shadowPriceMap,
+                    shadowPrices = shadowPrices
+                )) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
                 }
             }
         }

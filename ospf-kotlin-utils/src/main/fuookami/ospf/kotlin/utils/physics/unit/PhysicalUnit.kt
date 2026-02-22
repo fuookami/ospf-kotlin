@@ -4,6 +4,10 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.dimension.*
 
+/**
+ * 物理单位抽象类
+ * 支持单位转换、量纲检查和单位制
+ */
 abstract class PhysicalUnit {
     abstract val name: String?
     abstract val symbol: String?
@@ -12,28 +16,69 @@ abstract class PhysicalUnit {
     abstract val quantity: DerivedQuantity
     abstract val scale: Scale
 
-    fun to(system: UnitSystem): PhysicalUnit {
-        if (system == this.system) {
-            return this
-        } else {
-            TODO("not implemented yet")
-        }
+    /**
+     * 检查量纲是否相同
+     */
+    fun sameDimension(other: PhysicalUnit): Boolean {
+        return this.quantity == other.quantity
     }
 
+    /**
+     * 转换到另一个单位
+     * @param unit 目标单位
+     * @return 转换因子，如果量纲不同返回 null
+     */
     fun to(unit: PhysicalUnit): Scale? {
         return if (quantity == unit.quantity) {
+            // 相同量纲，计算转换因子
             if (system == unit.system) {
                 scale / unit.scale
             } else {
-                TODO("not implemented yet")
+                // 不同单位制，需要找到标准单位进行转换
+                convertAcrossSystems(unit)
             }
         } else {
             null
         }
     }
 
+    /**
+     * 转换到指定单位制的标准单位
+     * @param system 目标单位制
+     * @return 转换后的单位，如果无法转换返回 null
+     */
+    fun to(system: UnitSystem): PhysicalUnit? {
+        if (system == this.system) {
+            return this
+        }
+        // 尝试在目标单位制中找到等效单位
+        return system.getUnitForQuantity(quantity)
+    }
+
+    /**
+     * 从另一个单位转换过来
+     */
     fun from(unit: PhysicalUnit): Scale? {
         return unit.to(this)
+    }
+
+    /**
+     * 跨单位制转换
+     */
+    protected open fun convertAcrossSystems(other: PhysicalUnit): Scale? {
+        // 获取两个单位制的比例
+        val thisScaleFactor = system.getScaleFactor(quantity)
+        val otherScaleFactor = other.system.getScaleFactor(quantity)
+        
+        // 计算转换因子 = (this.scale * thisScaleFactor) / (other.scale * otherScaleFactor)
+        return (scale * thisScaleFactor) / (other.scale * otherScaleFactor)
+    }
+
+    /**
+     * 检查是否可以转换到目标单位
+     */
+    fun canConvertTo(unit: PhysicalUnit): Boolean {
+        return quantity == unit.quantity
     }
 
     override fun equals(other: Any?): Boolean {
@@ -55,7 +100,7 @@ abstract class PhysicalUnit {
     }
 
     override fun toString(): String {
-        return symbol ?: TODO("not implemented yet")
+        return symbol ?: name ?: "${quantity.dimensionSymbol()}(${scale})"
     }
 }
 

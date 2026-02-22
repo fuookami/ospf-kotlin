@@ -77,7 +77,7 @@ val Volume = DerivedQuantity(
 )
 // f = t^-1
 val Frequency = DerivedQuantity(
-    quantity = Length.unaryMinus(),
+    quantity = Time.unaryMinus(),
     name = "frequency",
     symbol = "f"
 )
@@ -167,7 +167,7 @@ val Torque = DerivedQuantity(
 )
 // ρ = M / V
 val MassDensity = DerivedQuantity(
-    quantity = Momentum / Volume,
+    quantity = Mass / Volume,
     name = "mass density",
     symbol = "ρ"
 )
@@ -382,9 +382,9 @@ val Impedance = DerivedQuantity(
 )
 // G = R^-1
 val Conductance = DerivedQuantity(
-    quantity = -Resistance,
+    quantity = Resistance.reciprocal(),
     name = "conductance",
-    symbol = "R"
+    symbol = "G"
 )
 // κ = G / L
 val Conductivity = DerivedQuantity(
@@ -441,7 +441,7 @@ val MagneticFieldIntensity = DerivedQuantity(
 )
 // φ = BS
 val MagneticFlux = DerivedQuantity(
-    quantity = MagneticFieldIntensity * Area,
+    quantity = MagneticFieldDensity * Area,
     name = "magnetic flux",
     symbol = "φ"
 )
@@ -453,7 +453,7 @@ val MagneticPermeability = DerivedQuantity(
 )
 // λ = μ^-1
 val MagneticReluctance = DerivedQuantity(
-    quantity = -MagneticPermeability,
+    quantity = MagneticPermeability.reciprocal(),
     name = "magnetic reluctance",
     symbol = "λ"
 )
@@ -493,7 +493,7 @@ val Luminance = DerivedQuantity(
 // Radiology
 // A = t^-1
 val Activity = DerivedQuantity(
-    quantity = -Time,
+    quantity = Time.reciprocal(),
     name = "activity",
     symbol = "A"
 )
