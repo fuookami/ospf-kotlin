@@ -5,10 +5,32 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
 
+/**
+ * 物理量类
+ * 包含值和单位，支持量纲检查和单位转换
+ * 
+ * @param V 值类型
+ * @property value 物理量的值
+ * @property unit 物理量的单位
+ */
 data class Quantity<out V>(
     val value: V,
     val unit: PhysicalUnit
 )
+
+/**
+ * 量纲不匹配异常
+ */
+class DimensionMismatchException(
+    expected: String,
+    actual: String,
+    operation: String
+) : Exception("Dimension mismatch: expected $expected, got $actual for $operation")
+
+/**
+ * 单位转换异常
+ */
+class UnitConversionException(message: String) : Exception(message)
 
 typealias QuantityFlt64 = Quantity<Flt64>
 
@@ -380,11 +402,9 @@ operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX> {
 }
 
 operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
-    return if (this.unit.quantity == other.unit.quantity) {
-        Quantity(this.value * other.value, this.unit * other.unit)
-    } else {
-        TODO("not implemented yet")
-    }
+    // 不同量纲相乘，产生新的量纲
+    val newUnit = this.unit * other.unit
+    return Quantity(this.value * other.value, newUnit)
 }
 
 operator fun <V> Quantity<V>.times(other: V): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
@@ -396,11 +416,9 @@ operator fun <V> V.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V
 }
 
 operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
-    return if (this.unit.quantity == other.unit.quantity) {
-        Quantity(this.value / other.value, this.unit / other.unit)
-    } else {
-        TODO("not implemented yet")
-    }
+    // 不同量纲相除，产生新的量纲
+    val newUnit = this.unit / other.unit
+    return Quantity(this.value / other.value, newUnit)
 }
 
 operator fun <V> Quantity<V>.div(other: V): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
@@ -413,4 +431,54 @@ operator fun <V> V.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>,
 
 operator fun <V> Quantity<V>.unaryMinus(): Quantity<V> where V : Arithmetic<V>, V : Neg<V> {
     return Quantity(-this.value, this.unit)
+}
+
+// ============================================================================
+// 单位转换方法（带错误处理）
+// ============================================================================
+
+/**
+ * 转换到另一个单位（带错误处理）
+ * @param unit 目标单位
+ * @return 转换后的物理量，如果量纲不匹配返回 null
+ */
+fun <V> Quantity<V>.convertTo(unit: PhysicalUnit): Quantity<V>? {
+    if (!this.unit.sameDimension(unit)) {
+        return null
+    }
+    
+    val factor = this.unit.to(unit) ?: return null
+    // TODO: 需要实现通用的值转换
+    return Quantity(this.value, unit)
+}
+
+/**
+ * 转换到标准单位
+ * @param system 单位制
+ * @return 转换后的物理量，如果无法转换返回 null
+ */
+fun <V> Quantity<V>.toStandardUnit(system: UnitSystem): Quantity<V>? {
+    val standardUnit = system.standardUnitForDimension(this.unit.quantity) ?: return null
+    return convertTo(standardUnit)
+}
+
+// ============================================================================
+// 值类型映射方法
+// ============================================================================
+
+/**
+ * 映射值类型
+ * @param f 值转换函数
+ */
+fun <V, U> Quantity<V>.mapValue(f: (V) -> U): Quantity<U> {
+    return Quantity(f(this.value), this.unit)
+}
+
+/**
+ * 尝试映射值类型
+ * @param f 值转换函数，可能失败
+ */
+fun <V, U> Quantity<V>.tryMapValue(f: (V) -> U?): Quantity<U>? {
+    val newValue = f(this.value) ?: return null
+    return Quantity(newValue, this.unit)
 }

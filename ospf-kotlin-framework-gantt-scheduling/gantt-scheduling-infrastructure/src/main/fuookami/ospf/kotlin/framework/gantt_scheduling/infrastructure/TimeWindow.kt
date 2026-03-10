@@ -211,7 +211,11 @@ data class TimeWindow(
         var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
         val end1 = start.truncatedTo(upper.durationUnit) + ceil(upper.interval / currentInterval).toInt() * currentInterval
         while (current != end1) {
-            val duration = min(end1 - current, currentInterval)
+            val duration = if (current == start) {
+                (end1 - start) - floor((end1 - start) / currentInterval) * currentInterval
+            } else {
+                min(end1 - current, currentInterval)
+            }
             timeSlots.add(
                 TimeRange(
                     start = max(start, current),
