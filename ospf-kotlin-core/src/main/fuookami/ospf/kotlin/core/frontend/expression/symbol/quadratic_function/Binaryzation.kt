@@ -216,11 +216,7 @@ class BinaryzationFunctionImpl(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -234,8 +230,6 @@ class BinaryzationFunctionImpl(
             }
 
             yValue
-        } else {
-            null
         }
     }
 
@@ -340,11 +334,7 @@ class BinaryzationFunctionLinearImpl(
             linearX.prepareAndCache(values, tokenTable)
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 linearX.evaluate(tokenTable)
             } else {
@@ -363,8 +353,6 @@ class BinaryzationFunctionLinearImpl(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

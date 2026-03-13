@@ -115,6 +115,22 @@ open class ExpressionRange<V>(
         )
     }
 
+    /**
+     * 设置上限
+     * Set upper bound
+     */
+    fun setUb(value: Invariant<V>): Boolean {
+        return leq(value)
+    }
+
+    /**
+     * 设置下限
+     * Set lower bound
+     */
+    fun setLb(value: Invariant<V>): Boolean {
+        return geq(value)
+    }
+
     override fun toString(): String {
         return range?.toString() ?: "empty"
     }

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 
 /**
@@ -36,16 +37,15 @@ interface CapacityActionProduce<
  */
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial> 
     CapacityColumn<E, A>.produce(product: P): Flt64 {
-    return allocations.mapNotNull { (action, amount) ->
-        when (action) {
-            is CapacityActionProduce<*, *> -> {
-                (action as CapacityActionProduce<P, *>).produce[product]?.let { 
-                    it * Flt64(amount.toDouble()) 
-                }
-            }
-            else -> null
+    var result = Flt64.zero
+    for ((action, amount) in allocations) {
+        if (action is CapacityActionProduce<*, *>) {
+            @Suppress("UNCHECKED_CAST")
+            val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
+            result += unitProduce * amount.toFlt64()
         }
-    }.sumOf { it }
+    }
+    return result
 }
 
 /**
@@ -57,14 +57,13 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
  */
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial> 
     CapacityColumn<E, A>.consumption(material: C): Flt64 {
-    return allocations.mapNotNull { (action, amount) ->
-        when (action) {
-            is CapacityActionProduce<*, *> -> {
-                (action as CapacityActionProduce<*, C>).consumption[material]?.let { 
-                    it * Flt64(amount.toDouble()) 
-                }
-            }
-            else -> null
+    var result = Flt64.zero
+    for ((action, amount) in allocations) {
+        if (action is CapacityActionProduce<*, *>) {
+            @Suppress("UNCHECKED_CAST")
+            val unitConsumption = (action as CapacityActionProduce<*, C>).consumption[material] ?: Flt64.zero
+            result += unitConsumption * amount.toFlt64()
         }
-    }.sumOf { it }
+    }
+    return result
 }

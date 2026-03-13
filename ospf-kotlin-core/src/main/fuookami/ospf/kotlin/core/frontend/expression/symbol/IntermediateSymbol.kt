@@ -124,6 +124,129 @@ interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomia
     }
 }
 
+internal fun IntermediateSymbol.shouldPrepare(
+    cacheKey: IntermediateSymbol,
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable
+): Boolean {
+    return (!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
+        tokenTable.cached(cacheKey)
+    } else {
+        tokenTable.cached(cacheKey, values)
+    } == false
+}
+
+internal fun IntermediateSymbol.shouldPrepare(
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable
+): Boolean {
+    return shouldPrepare(this, values, tokenTable)
+}
+
+internal inline fun <T> IntermediateSymbol.prepareIfNotCached(
+    cacheKey: IntermediateSymbol,
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable,
+    block: () -> T?
+): T? {
+    return if (shouldPrepare(cacheKey, values, tokenTable)) {
+        block()
+    } else {
+        null
+    }
+}
+
+internal inline fun <T> IntermediateSymbol.prepareIfNotCached(
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable,
+    block: () -> T?
+): T? {
+    return prepareIfNotCached(this, values, tokenTable, block)
+}
+
+private fun IntermediateSymbol.evaluateWithCachedTokenTable(
+    tokenTable: AbstractTokenTable,
+    zeroIfNone: Boolean,
+    calculator: () -> Flt64?
+): Flt64? {
+    return if (tokenTable.cachedSolution) {
+        tokenTable.cacheIfNotCached(this, null) {
+            for (dependency in dependencies) {
+                if (tokenTable.cachedSolution) {
+                    dependency.evaluate(
+                        tokenTable = tokenTable,
+                        zeroIfNone = zeroIfNone
+                    )
+                }
+            }
+            calculator()
+        }
+    } else {
+        tokenTable.cachedValue(this, null)
+    }
+}
+
+private fun IntermediateSymbol.evaluateWithCachedTokenTable(
+    results: List<Flt64>,
+    tokenTable: AbstractTokenTable,
+    zeroIfNone: Boolean,
+    calculator: () -> Flt64?
+): Flt64? {
+    return if (tokenTable.cachedSolution) {
+        tokenTable.cacheIfNotCached(this, results) {
+            for (dependency in dependencies) {
+                if (tokenTable.cachedSolution) {
+                    dependency.evaluate(
+                        results = results,
+                        tokenTable = tokenTable,
+                        zeroIfNone = zeroIfNone
+                    )
+                }
+            }
+            calculator()
+        }
+    } else {
+        tokenTable.cachedValue(this, results)
+    }
+}
+
+private fun IntermediateSymbol.evaluateWithCachedTokenTable(
+    values: Map<Symbol, Flt64>,
+    tokenTable: AbstractTokenTable?,
+    zeroIfNone: Boolean,
+    calculator: () -> Flt64?
+): Flt64? {
+    values[this]?.let { value ->
+        tokenTable?.cache(
+            symbol = this,
+            fixedValues = values,
+            value = value
+        )
+        return value
+    }
+
+    if (tokenTable == null) {
+        return calculator()
+    }
+
+    return if (values.isNotEmpty() || tokenTable.cachedSolution) {
+        tokenTable.cacheIfNotCached(this, values) {
+            for (dependency in dependencies) {
+                if (values.isNotEmpty() || tokenTable.cachedSolution) {
+                    dependency.evaluate(
+                        values = values,
+                        tokenTable = tokenTable,
+                        zeroIfNone = zeroIfNone
+                    )
+                }
+            }
+            calculator()
+        }
+    } else {
+        tokenTable.cachedValue(this, values)
+    }
+}
+
 abstract class ExpressionSymbol(
     open val _polynomial: MutablePolynomial<*, *, *>,
     override val category: Category = _polynomial.category,
@@ -172,23 +295,11 @@ abstract class ExpressionSymbol(
     }
 
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution) {
-            tokenTable.cacheIfNotCached(this, null) {
-                for (dependency in dependencies) {
-                    if (tokenTable.cachedSolution) {
-                        dependency.evaluate(
-                            tokenTable = tokenTable,
-                            zeroIfNone = zeroIfNone
-                        )
-                    }
-                }
-                polynomial.evaluate(
-                    tokenTable = tokenTable,
-                    zeroIfNone = zeroIfNone
-                )
-            }
-        } else {
-            tokenTable.cachedValue(this, null)
+        return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
+            polynomial.evaluate(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         }
     }
 
@@ -201,25 +312,12 @@ abstract class ExpressionSymbol(
     }
 
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution) {
-            tokenTable.cacheIfNotCached(this, results) {
-                for (dependency in dependencies) {
-                    if (tokenTable.cachedSolution) {
-                        dependency.evaluate(
-                            results = results,
-                            tokenTable = tokenTable,
-                            zeroIfNone = zeroIfNone
-                        )
-                    }
-                }
-                polynomial.evaluate(
-                    results = results,
-                    tokenTable = tokenTable,
-                    zeroIfNone = zeroIfNone
-                )
-            }
-        } else {
-            tokenTable.cachedValue(this, results)
+        return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
+            polynomial.evaluate(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         }
     }
 
@@ -236,38 +334,10 @@ abstract class ExpressionSymbol(
     }
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
-        return if (values.containsKey(this)) {
-            tokenTable?.cache(
-                symbol = this,
-                fixedValues = values,
-                value = values[this]!!
-            )
-            values[this]!!
-        } else if (tokenTable != null) {
-            if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                tokenTable.cacheIfNotCached(this, values) {
-                    for (dependency in dependencies) {
-                        if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                            dependency.evaluate(
-                                values = values,
-                                tokenTable = tokenTable,
-                                zeroIfNone = zeroIfNone
-                            )
-                        }
-                    }
-                    polynomial.evaluate(
-                        values = values,
-                        tokenTable = tokenTable,
-                        zeroIfNone = zeroIfNone
-                    )
-                }
-            } else {
-                tokenTable.cachedValue(this, values)
-            }
-        } else {
+        return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
             polynomial.evaluate(
                 values = values,
-                tokenTable = tokenTable as AbstractTokenTable?,
+                tokenTable = tokenTable,
                 zeroIfNone = zeroIfNone
             )
         }
@@ -860,79 +930,26 @@ interface FunctionSymbol : IntermediateSymbol {
     }
 
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution) {
-            tokenTable.cacheIfNotCached(this, null) {
-                for (dependency in dependencies) {
-                    if (tokenTable.cachedSolution) {
-                        dependency.evaluate(
-                            tokenTable = tokenTable,
-                            zeroIfNone = zeroIfNone
-                        )
-                    }
-                }
-                calculateValue(
-                    tokenTable = tokenTable,
-                    zeroIfNone = zeroIfNone
-                )
-            }
-        } else {
-            tokenTable.cachedValue(this, null)
+        return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
+            calculateValue(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         }
     }
 
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return if (tokenTable.cachedSolution) {
-            tokenTable.cacheIfNotCached(this, results) {
-                for (dependency in dependencies) {
-                    if (tokenTable.cachedSolution) {
-                        dependency.evaluate(
-                            results = results,
-                            tokenTable = tokenTable,
-                            zeroIfNone = zeroIfNone
-                        )
-                    }
-                }
-                calculateValue(
-                    results = results,
-                    tokenTable = tokenTable,
-                    zeroIfNone = zeroIfNone
-                )
-            }
-        } else {
-            tokenTable.cachedValue(this, results)
+        return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
+            calculateValue(
+                results = results,
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            )
         }
     }
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
-        return if (values.containsKey(this)) {
-            tokenTable?.cache(
-                symbol = this,
-                fixedValues = values,
-                value = values[this]!!
-            )
-            values[this]!!
-        } else if (tokenTable != null) {
-            if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                tokenTable.cacheIfNotCached(this, values) {
-                    for (dependency in dependencies) {
-                        if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                            dependency.evaluate(
-                                values = values,
-                                tokenTable = tokenTable,
-                                zeroIfNone = zeroIfNone
-                            )
-                        }
-                    }
-                    calculateValue(
-                        values = values,
-                        tokenTable = tokenTable,
-                        zeroIfNone = zeroIfNone
-                    )
-                }
-            } else {
-                tokenTable.cachedValue(this, values)
-            }
-        } else {
+        return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
             calculateValue(
                 values = values,
                 tokenTable = tokenTable,

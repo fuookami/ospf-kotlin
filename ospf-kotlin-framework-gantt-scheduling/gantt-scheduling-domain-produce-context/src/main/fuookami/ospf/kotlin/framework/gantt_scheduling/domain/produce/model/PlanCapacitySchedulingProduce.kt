@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
@@ -38,7 +39,10 @@ class PlanCapacitySchedulingProduce<
                     val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
                     if (unitProduce neq Flt64.zero) {
                         for ((s, _) in slots.withIndex()) {
-                            quantity[product].asMutable() += unitProduce * compilation.operationTime[action, s]
+                            val actionIndex = actions.indexOf(action)
+                            if (actionIndex >= 0) {
+                                quantity[product].asMutable() += unitProduce * compilation.operationTime[actionIndex, s].toLinearPolynomial()
+                            }
                         }
                     }
                 }

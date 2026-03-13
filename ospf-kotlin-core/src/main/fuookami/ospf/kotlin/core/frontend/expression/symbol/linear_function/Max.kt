@@ -92,11 +92,7 @@ sealed class AbstractMaxFunction(
             polynomial.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val values = polynomials.map {
                 if (values.isNullOrEmpty()) {
                     it.evaluate(tokenTable)
@@ -133,8 +129,6 @@ sealed class AbstractMaxFunction(
             } else {
                 null
             }
-        } else {
-            null
         }
     }
 

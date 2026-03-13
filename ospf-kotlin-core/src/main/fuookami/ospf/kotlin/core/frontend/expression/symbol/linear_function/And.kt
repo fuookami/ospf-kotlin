@@ -251,18 +251,12 @@ class AndFunctionOnePolynomialImpl(
         polynomial.cells
         bin.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             if (values.isNullOrEmpty()) {
                 bin.evaluate(tokenTable)
             } else {
                 bin.evaluate(values, tokenTable)
             }
-        } else {
-            null
         }
     }
 
@@ -391,18 +385,12 @@ private class AndFunctionMultiPolynomialImpl(
         maxmin.prepareAndCache(values, tokenTable)
         bin.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             if (values.isNullOrEmpty()) {
                 bin.evaluate(tokenTable)
             } else {
                 bin.evaluate(values, tokenTable)
             }
-        } else {
-            null
         }
     }
 
@@ -547,11 +535,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
             polynomial.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val yValue = polynomials.all { polynomial ->
                 val thisValue = if (values.isNullOrEmpty()) {
                     polynomial.evaluate(tokenTable)
@@ -570,8 +554,6 @@ private class AndFunctionMultiPolynomialBinaryImpl(
             } else {
                 Flt64.zero
             }
-        } else {
-            null
         }
     }
 

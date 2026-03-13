@@ -4,6 +4,8 @@ import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -19,7 +21,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 class BunchCapacitySchedulingResourceUsage<
     E : Executor,
     A : ProductionAction,
-    R : CapacityActionResource<C>,
+    R,
     C : AbstractResourceCapacity
 >(
     timeWindow: TimeWindow,
@@ -29,7 +31,7 @@ class BunchCapacitySchedulingResourceUsage<
     interval: Duration = timeWindow.interval
 ) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
     timeWindow, resources, actions, interval
-) {
+) where R : Resource<C>, R : CapacityActionResource<C> {
 
     override val name: String = "bunch_capacity_scheduling_resource"
     override lateinit var quantity: LinearExpressionSymbols1
@@ -47,8 +49,8 @@ class BunchCapacitySchedulingResourceUsage<
                     val thisTimes = times.filter { it.time.withIntersection(capacity.time) }
                     for (time in thisTimes) {
                         val thisTime = TimeRange(
-                            max(time.start, capacity.time.start),
-                            min(time.end, capacity.time.end)
+                            maxOf(time.start, capacity.time.start),
+                            minOf(time.end, capacity.time.end)
                         )
                         time.subOf(thisTime)?.let {
                             timeSlots.add(
@@ -108,18 +110,17 @@ class BunchCapacitySchedulingResourceUsage<
     suspend fun addColumns(
         iteration: UInt64,
         columns: List<CapacityColumn<E, A>>,
-        compilation: IterativeCapacityCompilation<E, A>
+        compilation: IterativeCapacityCompilation<A>
     ): Try {
         for (slot in timeSlots) {
             for (column in columns) {
                 for ((action, amount) in column.allocations) {
                     val unitUsage = slot.resource.usedBy(action, slot.time)
                     if (unitUsage neq Flt64.zero) {
-                        val columnUsage = unitUsage * Flt64(amount.toDouble())
-                        val x = compilation.x[column.executor]
-                        if (x != null) {
-                            val columnIndex = iteration.toInt()
-                            quantity[slot].asMutable() += columnUsage * x[columnIndex, column.index]
+                        val actionIndex = actions.indexOf(action)
+                        if (actionIndex >= 0) {
+                            val columnUsage = unitUsage * amount.toFlt64()
+                            quantity[slot].asMutable() += columnUsage * compilation.x[actionIndex, column.slotIndex]
                         }
                     }
                 }

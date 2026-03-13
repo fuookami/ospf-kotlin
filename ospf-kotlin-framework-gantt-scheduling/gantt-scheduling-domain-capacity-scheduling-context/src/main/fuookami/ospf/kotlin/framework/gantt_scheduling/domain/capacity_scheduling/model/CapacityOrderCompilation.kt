@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import kotlin.time.*
+import kotlinx.datetime.Instant
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -14,11 +15,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 /**
- * 产能编译决策对象（有顺序）
+ * 产能编译决策对象（带顺序）
  * Capacity Compilation Decision Object (With Order)
  *
- * Three-dimensional integer variable: x[action, slot, order] -> amount
- * 三维整型变量：x[action, slot, order] -> 数量
+ * Three-dimensional variables:
+ * 三维变量：
+ * - x[action, slot, order] -> amount (integer)
+ * - x[action, slot, order] -> 数量（整型）
+ * - b[action, slot, order] -> is_selected (binary)
+ * - b[action, slot, order] -> 是否选中（二进制）
  */
 class CapacityOrderCompilation<A : ProductionAction>(
     private val actions: List<A>,
@@ -28,10 +33,11 @@ class CapacityOrderCompilation<A : ProductionAction>(
 ) : Capacity<A> {
 
     init {
-        if (!actions.all { it.indexed }) {
-            ManualIndexed.flush(ProductionAction::class)
-            for (action in actions) {
-                action.setIndexed(ProductionAction::class)
+        // Index actions if they implement ManualIndexed
+        // 如果动作实现了 ManualIndexed，则进行索引
+        for (action in actions.filterIsInstance<ManualIndexed>()) {
+            if (!action.indexed) {
+                action.setIndexed()
             }
         }
     }
@@ -58,10 +64,10 @@ class CapacityOrderCompilation<A : ProductionAction>(
     lateinit var cost: LinearExpressionSymbol
         private set
 
-    override lateinit var operationTime: LinearIntermediateSymbols2
+    override lateinit var operationTime: LinearExpressionSymbols2
         private set
 
-    override lateinit var capacity: LinearIntermediateSymbols2
+    override lateinit var capacity: LinearExpressionSymbols2
         private set
 
     /**
@@ -72,12 +78,12 @@ class CapacityOrderCompilation<A : ProductionAction>(
         // Register x variable
         // 注册 x 变量
         if (!::x.isInitialized) {
-            x = UIntVariable1("x", Shape3(actions.size, slots.size, maxOrderPerSlot.toInt()))
+            x = UIntVariable3("x", Shape3(actions.size, slots.size, maxOrderPerSlot.toInt()))
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
                     for (o in 0 until maxOrderPerSlot.toInt()) {
                         x[a, s, o].name = "x_${action.id}_${s}_$o"
-                        x[a, s, o].range.leq(action.upperBound(slot, timeWindow))
+                        x[a, s, o].range.setUb(action.upperBound(slot, timeWindow))
                     }
                 }
             }
@@ -90,7 +96,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         // Register b variable
         // 注册 b 变量
         if (!::b.isInitialized) {
-            b = BinVariable1("b", Shape3(actions.size, slots.size, maxOrderPerSlot.toInt()))
+            b = BinVariable3("b", Shape3(actions.size, slots.size, maxOrderPerSlot.toInt()))
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
                     for (o in 0 until maxOrderPerSlot.toInt()) {
@@ -107,45 +113,40 @@ class CapacityOrderCompilation<A : ProductionAction>(
         // Register cost expression
         // 注册成本表达式
         if (!::cost.isInitialized) {
-            cost = LinearExpressionSymbol(name = "cost")
+            val costPoly = MutableLinearPolynomial(name = "cost")
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
-                    val unitCost = action.unitCost(slot.time)
+                    val unitCost = action.unitCost(slot.time.start)
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        cost.asMutable() += unitCost * x[a, s, o]
+                        costPoly += unitCost * x[a, s, o]
                     }
                 }
             }
+            cost = LinearExpressionSymbol(costPoly, name = "cost")
         }
         when (val result = model.add(cost)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
         }
 
-        // Register operationTime symbol (aggregated over orders)
-        // 注册 operationTime 符号（在顺序维度上聚合）
+        // Register operationTime symbol
+        // 注册 operationTime 符号
         if (!::operationTime.isInitialized) {
-            operationTime = LinearIntermediateSymbols2(
-                name = "operation_time",
-                shape = Shape2(actions.size, slots.size)
-            ) { _, (a, s) ->
-                val action = actions[a]
-                val slot = slots[s]
-                LinearIntermediateSymbol(name = "operation_time_${action.id}_$s")
-            }
-
-            // Build operationTime expression: sum over orders
-            // 构建 operationTime 表达式：在顺序维度上求和
-            for ((a, action) in actions.withIndex()) {
-                for ((s, slot) in slots.withIndex()) {
-                    val opTime = operationTime[a, s]
-                    opTime.flush()
-                    val unitCap = Flt64(action.unitCapacity(timeWindow) / timeWindow.interval)
+            operationTime = flatMap(
+                name = "operationTime",
+                objs1 = actions,
+                objs2 = slots,
+                ctor = { action, slot ->
+                    val a = actions.indexOf(action)
+                    val s = slots.indexOf(slot)
+                    val unitCap = action.unitCapacity(timeWindow) / Flt64(timeWindow.interval.inWholeMilliseconds.toDouble())
+                    val poly = MutableLinearPolynomial()
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        opTime.asMutable() += unitCap * x[a, s, o]
+                        poly += unitCap * x[a, s, o]
                     }
+                    poly
                 }
-            }
+            )
         }
         when (val result = model.add(operationTime)) {
             is Ok -> {}
@@ -156,28 +157,21 @@ class CapacityOrderCompilation<A : ProductionAction>(
         // 注册 capacity 符号
         val executors = actions.map { it.executor }.distinct()
         if (!::capacity.isInitialized) {
-            capacity = LinearIntermediateSymbols2(
+            capacity = flatMap(
                 name = "capacity",
-                shape = Shape2(executors.size, slots.size)
-            ) { _, (e, s) ->
-                val executor = executors[e]
-                val slot = slots[s]
-                LinearIntermediateSymbol(name = "capacity_${executor.id}_$s")
-            }
-
-            // Build capacity expression: sum of operationTime for each executor's actions
-            // 构建 capacity 表达式：每个设备的所有动作 operationTime 之和
-            for ((e, executor) in executors.withIndex()) {
-                val executorActions = actions.filter { it.executor == executor }
-                for ((s, slot) in slots.withIndex()) {
-                    val cap = capacity[e, s]
-                    cap.flush()
+                objs1 = executors,
+                objs2 = slots,
+                ctor = { executor, slot ->
+                    val s = slots.indexOf(slot)
+                    val executorActions = actions.filter { it.executor == executor }
+                    val poly = MutableLinearPolynomial()
                     for (action in executorActions) {
                         val a = actions.indexOf(action)
-                        cap.asMutable() += operationTime[a, s]
+                        poly += operationTime[a, s].toLinearPolynomial()
                     }
+                    poly
                 }
-            }
+            )
         }
         when (val result = model.add(capacity)) {
             is Ok -> {}
@@ -198,10 +192,14 @@ class CapacityOrderCompilation<A : ProductionAction>(
         for ((a, action) in actions.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
                 for (o in 0 until maxOrderPerSlot.toInt()) {
-                    val amount = model.solution[x[a, s, o]]?.let { UInt64(it.toBigDecimal().toLong()) } ?: UInt64.zero
+                    val token = model.tokens.find(x[a, s, o]) ?: continue
+                    val amount = token.result?.round()?.toUInt64() ?: UInt64.zero
                     if (amount > UInt64.zero) {
-                        val unitCap = action.unitCapacity(timeWindow)
-                        val duration = unitCap * amount.toDouble()
+                        val duration = if (action.discrete && action.batchDuration != null) {
+                            action.batchDuration!! * amount.toLong().toDouble()
+                        } else {
+                            timeWindow.interval * amount.toLong().toDouble()
+                        }
                         actionAllocations.add(
                             ActionAllocation(
                                 action = action,
@@ -220,10 +218,13 @@ class CapacityOrderCompilation<A : ProductionAction>(
         val executorCapacities = mutableListOf<ExecutorCapacityResult>()
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
-                val totalDuration = model.solution[capacity[e, s]]?.let {
-                    timeWindow.interval * it
-                } ?: Duration.ZERO
-                if (totalDuration > Duration.ZERO) {
+                val capValue = capacity[e, s].evaluate(model.tokens)
+                val totalDuration = if (capValue != null && capValue > Flt64.zero) {
+                    timeWindow.interval * capValue.toDouble()
+                } else {
+                    Duration.ZERO
+                }
+                if (totalDuration.inWholeMilliseconds > 0) {
                     executorCapacities.add(
                         ExecutorCapacityResult(
                             executor = executor,

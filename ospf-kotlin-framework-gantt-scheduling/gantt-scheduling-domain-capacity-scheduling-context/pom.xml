@@ -18,6 +18,16 @@
             <artifactId>ospf-kotlin-framework-gantt-scheduling-infrastructure</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

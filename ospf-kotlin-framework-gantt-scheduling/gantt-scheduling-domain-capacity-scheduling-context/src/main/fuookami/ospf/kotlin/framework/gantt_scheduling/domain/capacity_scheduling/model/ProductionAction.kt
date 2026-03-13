@@ -1,25 +1,30 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import kotlin.time.*
-import kotlinx.datetime.*
+import kotlinx.datetime.Instant
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 生产动作接口
  * Production Action Interface
  *
  * A production action represents a way to produce capacity.
- * It can be discrete (fixed batch duration) or continuous (variable duration).
+ * 生产动作表示产能的生产方式。
  *
- * 生产动作表示产能的生产方式，分为离散型和连续型。
+ * It can be:
+ * - **Discrete**: Has fixed batch duration, decision variable represents batch count
+ * - **Continuous**: No fixed batch duration, decision variable represents duration units
+ *
+ * 分为：
+ * - **离散型**：有固定批次时长，决策变量表示批次数
+ * - **连续型**：无固定批次时长，决策变量表示时长单位数
  */
-interface ProductionAction : Indexed {
+interface ProductionAction {
     /**
      * 动作唯一标识
-     * Unique identifier of the action
+     * Unique identifier for the action
      */
     val id: String
 
@@ -28,10 +33,11 @@ interface ProductionAction : Indexed {
      * Name of the action
      */
     val name: String
+    val displayName: String get() = name
 
     /**
-     * 执行该动作的设备
-     * Executor that performs this action
+     * 执行器
+     * The executor that performs this action
      */
     val executor: Executor
 
@@ -51,43 +57,33 @@ interface ProductionAction : Indexed {
      * 批次时长（仅离散型有效）
      * Batch duration (only for discrete actions)
      */
-    val batchDuration: Duration?
-        get() = null
+    val batchDuration: Duration? get() = null
 
     /**
-     * 每个单位 x 对应的产能（时长）
-     * Unit capacity (duration) per x value
+     * 每个单位 x 对应的产能
+     * Unit capacity per x value
      *
-     * @param timeWindow Time window for calculation / 计算所用的时间窗
-     * @return Duration per unit x / 每单位 x 对应的时长
+     * @param timeWindow Time window / 时间窗口
+     * @return Unit capacity as Flt64 / 单位产能
      */
-    fun unitCapacity(timeWindow: TimeWindow): Duration
+    fun unitCapacity(timeWindow: TimeWindow): Flt64
 
     /**
-     * 单位负荷/成本
-     * Unit load/cost
+     * 单位成本
+     * Unit cost
      *
-     * @param timeRange Time range for calculation / 计算所用的时间范围
-     * @return Cost per unit / 每单位的成本
+     * @param time Time instant / 时间点
+     * @return Unit cost / 单位成本
      */
-    fun unitCost(timeRange: TimeRange): Flt64
+    fun unitCost(time: Instant): Flt64
 
     /**
      * x 变量的上界
      * Upper bound for x variable
      *
      * @param slot Time slot / 时隙
-     * @param timeWindow Time window / 时间窗
-     * @return Maximum value for x / x 的最大值
+     * @param timeWindow Time window / 时间窗口
+     * @return Upper bound value / 上界值
      */
     fun upperBound(slot: TimeSlot, timeWindow: TimeWindow): UInt64
-
-    /**
-     * 判断是否可用于指定时隙
-     * Check if the action is available for the given slot
-     *
-     * @param slot Time slot / 时隙
-     * @return Whether the action is available / 是否可用
-     */
-    fun isAvailable(slot: TimeSlot): Boolean = true
 }

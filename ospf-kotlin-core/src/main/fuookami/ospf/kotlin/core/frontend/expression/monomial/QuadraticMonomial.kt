@@ -10,10 +10,13 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
+import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
 
 data class QuadraticMonomialCell internal constructor(
     val cell: Either<QuadraticCellTriple, Flt64>
@@ -1963,6 +1966,60 @@ class QuadraticMonomial(
 
     override fun div(rhs: Flt64): QuadraticMonomial {
         return QuadraticMonomial(coefficient / rhs, symbol.copy())
+    }
+
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return toUtilsMonomial().evaluate(
+            provider = tokenList.toUtilsValueProvider(zeroIfNone),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return toUtilsMonomial().evaluate(
+            provider = tokenTable.toUtilsValueProvider(zeroIfNone),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return toUtilsMonomial().evaluate(
+            provider = results.toUtilsValueProvider(
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return toUtilsMonomial().evaluate(
+            provider = results.toUtilsValueProvider(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        return toUtilsMonomial().evaluate(
+            provider = values.toUtilsValueProvider(
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return toUtilsMonomial().evaluate(
+            provider = values.toUtilsValueProvider(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
     }
 
     override fun toString(): String {

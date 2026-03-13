@@ -201,20 +201,36 @@ data class TimeWindow(
         roundTimeSlotsOf(upper.interval)
     }
 
-    fun roundTimeSlotsOf(interval: Duration): List<TimeRange> {
-        return roundTimeSlotsOf(mapOf(null to interval))
+    fun roundTimeSlotsOf(
+        interval: Duration,
+        excludedTimes: List<TimeRange> = emptyList()
+    ): List<TimeRange> {
+        return roundTimeSlotsOf(
+            intervals = mapOf(null to interval),
+            excludedTimes = excludedTimes
+        )
     }
 
-    fun roundTimeSlotsOf(intervals: Map<TimeRange?, Duration>): List<TimeRange> {
+    fun roundTimeSlotsOf(
+        intervals: Map<TimeRange?, Duration>,
+        excludedTimes: List<TimeRange> = emptyList()
+    ): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
+        val slotIntervals = ArrayList<Duration>()
         var current = start
         var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
         val end1 = start.truncatedTo(upper.durationUnit) + ceil(upper.interval / currentInterval).toInt() * currentInterval
         while (current != end1) {
-            val duration = if (current == start) {
+            var duration = if (current == start) {
                 (end1 - start) - floor((end1 - start) / currentInterval) * currentInterval
             } else {
                 min(end1 - current, currentInterval)
+            }
+            if (duration == Duration.ZERO) {
+                duration = min(end1 - current, currentInterval)
+            }
+            if (duration == Duration.ZERO) {
+                break
             }
             timeSlots.add(
                 TimeRange(
@@ -222,6 +238,7 @@ data class TimeWindow(
                     end = current + duration
                 )
             )
+            slotIntervals.add(currentInterval)
             current += duration
             currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
         }
@@ -234,6 +251,7 @@ data class TimeWindow(
                     end = current + duration
                 )
             )
+            slotIntervals.add(currentInterval)
             current += duration
             currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
         }
@@ -245,10 +263,80 @@ data class TimeWindow(
                     end = current + duration
                 )
             )
+            slotIntervals.add(currentInterval)
             current += duration
             currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
         }
-        return timeSlots
+        if (excludedTimes.isEmpty()) {
+            return timeSlots
+        }
+        val normalizedExcludedTimes = excludedTimes
+            .filter { it.withIntersection(window) }
+            .map {
+                TimeRange(
+                    start = max(it.start, start),
+                    end = min(it.end, end)
+                )
+            }.merge()
+        if (normalizedExcludedTimes.isEmpty()) {
+            return timeSlots
+        }
+
+        data class SlotPiece(
+            val time: TimeRange,
+            val shouldMerge: Boolean
+        )
+
+        val pieces = ArrayList<SlotPiece>()
+        for (i in timeSlots.indices) {
+            val slot = timeSlots[i]
+            val interval = slotIntervals[i]
+            val availablePieces = slot.differenceWith(normalizedExcludedTimes)
+            for ((j, piece) in availablePieces.withIndex()) {
+                val edgePiece = (j == 0 || j == availablePieces.lastIndex)
+                val shouldMerge = piece.duration < interval && (availablePieces.size < 3 || edgePiece)
+                pieces.add(
+                    SlotPiece(
+                        time = piece,
+                        shouldMerge = shouldMerge
+                    )
+                )
+            }
+        }
+        if (pieces.isEmpty()) {
+            return emptyList()
+        }
+
+        val mergedBoundary = BooleanArray(max(0, pieces.size - 1))
+        for (i in pieces.indices) {
+            if (!pieces[i].shouldMerge) {
+                continue
+            }
+            val piece = pieces[i].time
+            if (i > 0 && pieces[i - 1].time.end == piece.start) {
+                mergedBoundary[i - 1] = true
+            }
+            if (i < pieces.lastIndex && piece.end == pieces[i + 1].time.start) {
+                mergedBoundary[i] = true
+            }
+        }
+
+        val mergedTimeSlots = ArrayList<TimeRange>()
+        var currentPiece = pieces.first().time
+        for (i in mergedBoundary.indices) {
+            val nextPiece = pieces[i + 1].time
+            if (mergedBoundary[i]) {
+                currentPiece = TimeRange(
+                    start = currentPiece.start,
+                    end = nextPiece.end
+                )
+            } else {
+                mergedTimeSlots.add(currentPiece)
+                currentPiece = nextPiece
+            }
+        }
+        mergedTimeSlots.add(currentPiece)
+        return mergedTimeSlots
     }
 
     fun withIntersection(ano: TimeRange): Boolean {

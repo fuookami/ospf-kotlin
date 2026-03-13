@@ -158,11 +158,7 @@ class MaskingRangeFunction(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         mask.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val maskValue = if (values.isNullOrEmpty()) {
                 mask.evaluate(tokenTable)
             } else {
@@ -188,8 +184,6 @@ class MaskingRangeFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

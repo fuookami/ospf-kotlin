@@ -6,10 +6,14 @@ import fuookami.ospf.kotlin.utils.physics.unit.*
 import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
 import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
+import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
 
 @JvmName("calculateLinearPolynomialCells")
 private fun cells(
@@ -99,6 +103,60 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
 
     abstract operator fun minus(rhs: LinearIntermediateSymbol): Self
     abstract operator fun minus(rhs: Iterable<LinearIntermediateSymbol>): Self
+
+    final override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return toUtilsPolynomial().evaluate(
+            provider = tokenList.toUtilsValueProvider(zeroIfNone),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    final override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return toUtilsPolynomial().evaluate(
+            provider = tokenTable.toUtilsValueProvider(zeroIfNone),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    final override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return toUtilsPolynomial().evaluate(
+            provider = results.toUtilsValueProvider(
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    final override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return toUtilsPolynomial().evaluate(
+            provider = results.toUtilsValueProvider(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    final override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        return toUtilsPolynomial().evaluate(
+            provider = values.toUtilsValueProvider(
+                tokenList = tokenList,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
+
+    final override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return toUtilsPolynomial().evaluate(
+            provider = values.toUtilsValueProvider(
+                tokenTable = tokenTable,
+                zeroIfNone = zeroIfNone
+            ),
+            policy = MissingValuePolicy.ReturnNull
+        )
+    }
 
     override fun toMutable(): MutableLinearPolynomial {
         return MutableLinearPolynomial(

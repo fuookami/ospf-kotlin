@@ -19,7 +19,7 @@ interface Capacity<A : ProductionAction> {
      * Represents capacity (duration) allocated to each action in each time slot.
      * 表示每个动作在每个时隙分配的产能（时长）。
      */
-    val operationTime: LinearIntermediateSymbols2  // [action, slot] -> duration
+    val operationTime: LinearExpressionSymbols2  // [action, slot] -> duration
 
     /**
      * 设备-时隙的总产能
@@ -28,7 +28,7 @@ interface Capacity<A : ProductionAction> {
      * Represents total capacity (duration) per executor in each time slot.
      * 表示每个设备在每个时隙的总产能（时长）。
      */
-    val capacity: LinearIntermediateSymbols2  // [executor, slot] -> duration
+    val capacity: LinearExpressionSymbols2  // [executor, slot] -> duration
 
     /**
      * 解析解

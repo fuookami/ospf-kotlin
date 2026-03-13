@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * 此接口定义了生产动作与资源消耗之间的关系
  * This interface defines the relationship between production actions and resource consumption
  */
-interface CapacityActionResource<out C : AbstractResourceCapacity> : Resource<C> {
+interface CapacityActionResource<out C : AbstractResourceCapacity> {
 
     /**
      * 计算动作在指定时间范围内的资源消耗（单位操作时间的消耗）
@@ -32,14 +32,15 @@ interface CapacityActionResource<out C : AbstractResourceCapacity> : Resource<C>
  * Time slot for CapacityActionResource
  */
 data class CapacityActionResourceTimeSlot<
-    out R : CapacityActionResource<C>,
+    out R,
     out C : AbstractResourceCapacity
 >(
     override val origin: TimeSlot,
     override val resource: R,
     override val resourceCapacity: C,
     override val indexInRule: UInt64
-) : ResourceTimeSlot<R, C>, AutoIndexed(CapacityActionResourceTimeSlot::class) {
+) : ResourceTimeSlot<R, C>, AutoIndexed(CapacityActionResourceTimeSlot::class)
+where R : Resource<C>, R : CapacityActionResource<C> {
 
     /**
      * 计算动作在此时隙的资源消耗

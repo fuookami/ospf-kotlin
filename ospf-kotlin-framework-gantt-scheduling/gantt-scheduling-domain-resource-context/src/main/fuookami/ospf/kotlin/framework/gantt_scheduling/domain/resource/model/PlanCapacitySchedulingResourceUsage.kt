@@ -4,6 +4,8 @@ import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
@@ -24,7 +26,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  */
 class PlanCapacitySchedulingResourceUsage<
     A : ProductionAction,
-    R : CapacityActionResource<C>,
+    R,
     C : AbstractResourceCapacity
 >(
     resources: List<R>,
@@ -35,7 +37,7 @@ class PlanCapacitySchedulingResourceUsage<
     interval: Duration = timeWindow.interval
 ) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
     timeWindow, resources, actions, interval
-) {
+) where R : Resource<C>, R : CapacityActionResource<C> {
 
     override val name: String = "plan_capacity_scheduling_resource"
     override lateinit var quantity: LinearExpressionSymbols1
@@ -53,8 +55,8 @@ class PlanCapacitySchedulingResourceUsage<
                     val thisTimes = times.filter { it.time.withIntersection(capacity.time) }
                     for (time in thisTimes) {
                         val thisTime = TimeRange(
-                            max(time.start, capacity.time.start),
-                            min(time.end, capacity.time.end)
+                            maxOf(time.start, capacity.time.start),
+                            minOf(time.end, capacity.time.end)
                         )
                         time.subOf(thisTime)?.let {
                             timeSlots.add(
@@ -100,7 +102,11 @@ class PlanCapacitySchedulingResourceUsage<
             for (action in actions) {
                 val unitUsage = slot.resource.usedBy(action, slot.time)
                 if (unitUsage neq Flt64.zero) {
-                    quantity[slot].asMutable() += unitUsage * compilation.operationTime[action, slot]
+                    val actionIndex = actions.indexOf(action)
+                    val slotIndex = times.indexOfFirst { it.time.contains(slot.time) }
+                    if (actionIndex >= 0 && slotIndex >= 0) {
+                        quantity[slot].asMutable() += unitUsage * compilation.operationTime[actionIndex, slotIndex].toLinearPolynomial()
+                    }
                 }
             }
         }

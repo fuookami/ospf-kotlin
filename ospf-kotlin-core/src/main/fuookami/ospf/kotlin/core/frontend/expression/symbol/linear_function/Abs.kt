@@ -106,11 +106,7 @@ class AbsFunction(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -142,8 +138,6 @@ class AbsFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

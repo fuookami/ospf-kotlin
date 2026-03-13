@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.inequality.adapter.*
 
 interface ToQuadraticInequality {
     fun toQuadraticInequality(): QuadraticInequality
@@ -92,14 +93,10 @@ class QuadraticInequality(
     override fun normalize(): QuadraticInequality {
         return QuadraticInequality(
             lhs = QuadraticPolynomial(
-                (lhs.monomials.map { it to true } + rhs.monomials.map { it to false })
-                    .groupBy { it.first.symbol }
-                    .map { (symbol, monomials) ->
-                        QuadraticMonomial(
-                            monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
-                            symbol
-                        )
-                    }
+                mergeQuadraticMonomialsByUtils(
+                    positiveMonomials = lhs.monomials,
+                    negativeMonomials = rhs.monomials
+                )
             ),
             rhs = QuadraticPolynomial(-lhs.constant + rhs.constant),
             sign = sign,
@@ -114,14 +111,10 @@ class QuadraticInequality(
 
             Sign.Greater, Sign.GreaterEqual -> QuadraticInequality(
                 lhs = QuadraticPolynomial(
-                    (lhs.monomials.map { it to false } + rhs.monomials.map { it to true })
-                        .groupBy { it.first.symbol }
-                        .map { (symbol, monomials) ->
-                            QuadraticMonomial(
-                                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
-                                symbol
-                            )
-                        }
+                    mergeQuadraticMonomialsByUtils(
+                        positiveMonomials = rhs.monomials,
+                        negativeMonomials = lhs.monomials
+                    )
                 ),
                 rhs = QuadraticPolynomial(lhs.constant - rhs.constant),
                 sign = sign.reverse,

@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 
 /**
@@ -25,7 +26,13 @@ abstract class CapacitySchedulingProduce<
     protected val actions: List<A>,
     protected val slots: List<TimeSlot>,
     protected val timeWindow: TimeWindow
-) : AbstractProduce<ProductionTask<*, *, P, C>, *, *, P, C>(products.sortedBy { it.first.index }) {
+) : AbstractProduce<
+    ProductionTask<Executor, AssignmentPolicy<Executor>, P, C>,
+    Executor,
+    AssignmentPolicy<Executor>,
+    P,
+    C
+>(products.sortedBy { it.first.index }) {
 
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -27,7 +28,7 @@ class BunchCapacitySchedulingProduce<
 ) : CapacitySchedulingProduce<A, P, C>(products, actions, slots, timeWindow) {
 
     override fun register(model: LinearMetaModel): Try {
-        return initQuantity(model)
+        return addQuantityToModel(model)
     }
 
     /**
@@ -45,16 +46,21 @@ class BunchCapacitySchedulingProduce<
     suspend fun addColumns(
         iteration: UInt64,
         columns: List<CapacityColumn<E, A>>,
-        compilation: IterativeCapacityCompilation<E, A>
+        compilation: IterativeCapacityCompilation<A>
     ): Try {
         for ((product, _) in products) {
             for (column in columns) {
-                val columnProduce = column.produce(product)
-                if (columnProduce neq Flt64.zero) {
-                    val x = compilation.x[column.executor]
-                    if (x != null) {
-                        val columnIndex = iteration.toInt()
-                        quantity[product].asMutable() += columnProduce * x[columnIndex, column.index]
+                for ((action, amount) in column.allocations) {
+                    if (action is CapacityActionProduce<*, *>) {
+                        @Suppress("UNCHECKED_CAST")
+                        val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
+                        if (unitProduce neq Flt64.zero) {
+                            val actionIndex = actions.indexOf(action)
+                            if (actionIndex >= 0) {
+                                val produceAmount = unitProduce * amount.toFlt64()
+                                quantity[product].asMutable() += produceAmount * compilation.x[actionIndex, column.slotIndex]
+                            }
+                        }
                     }
                 }
             }

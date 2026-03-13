@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.inequality.adapter.*
 
 interface ToLinearInequality {
     fun toLinearInequality(): LinearInequality
@@ -78,14 +79,10 @@ class LinearInequality(
     override fun normalize(): LinearInequality {
         return LinearInequality(
             lhs = LinearPolynomial(
-                (lhs.monomials.map { it to true } + rhs.monomials.map { it to false })
-                    .groupBy { it.first.symbol }
-                    .map { (symbol, monomials) ->
-                        LinearMonomial(
-                            monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
-                            symbol
-                        )
-                    }
+                mergeLinearMonomialsByUtils(
+                    positiveMonomials = lhs.monomials,
+                    negativeMonomials = rhs.monomials
+                )
             ),
             rhs = LinearPolynomial(-lhs.constant + rhs.constant),
             sign = sign,
@@ -100,14 +97,10 @@ class LinearInequality(
 
             Sign.Greater, Sign.GreaterEqual -> LinearInequality(
                 lhs = LinearPolynomial(
-                    (lhs.monomials.map { it to false } + rhs.monomials.map { it to true })
-                        .groupBy { it.first.symbol }
-                        .map { (symbol, monomials) ->
-                            LinearMonomial(
-                                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
-                                symbol
-                            )
-                        }
+                    mergeLinearMonomialsByUtils(
+                        positiveMonomials = rhs.monomials,
+                        negativeMonomials = lhs.monomials
+                    )
                 ),
                 rhs = LinearPolynomial(lhs.constant - rhs.constant),
                 sign = sign.reverse,
