@@ -94,7 +94,7 @@ sealed class AbstractMinFunction(
         }
 
         return prepareIfNotCached(values, tokenTable) {
-            val values = polynomials.map {
+            val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
                     it.evaluate(tokenTable)
                 } else {
@@ -102,8 +102,8 @@ sealed class AbstractMinFunction(
                 }
             }
 
-            if (values.all { it != null }) {
-                val min = values.withIndex().minByOrNull { it.value!! } ?: return null
+            if (evaluatedValues.all { it != null }) {
+                val min = evaluatedValues.withIndex().minByOrNull { it.value!! } ?: return null
 
                 logger.trace { "Setting MinFunction ${name}.maxmin to ${min.value}" }
                 tokenTable.find(maxmin)?.let { token ->
@@ -221,7 +221,7 @@ sealed class AbstractMinFunction(
                     }
                 }
             }
-            val i = values.withIndex().minBy { it.value }.index
+            values.withIndex().minBy { it.value }.index
         } else {
             null
         }

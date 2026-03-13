@@ -65,6 +65,9 @@ fun UtilsLinearInequality.toCoreInequalityRet(): Ret<CoreLinearInequality> {
     )
 }
 
+@Deprecated(
+    message = "Use toCoreInequalityRet() to keep adapter failures explicit."
+)
 fun UtilsLinearInequality.toCoreInequalityOrNull(): CoreLinearInequality? {
     return when (val result = toCoreInequalityRet()) {
         is Ok -> result.value
@@ -90,6 +93,9 @@ fun UtilsQuadraticInequality.toCoreInequalityRet(): Ret<CoreQuadraticInequality>
     )
 }
 
+@Deprecated(
+    message = "Use toCoreInequalityRet() to keep adapter failures explicit."
+)
 fun UtilsQuadraticInequality.toCoreInequalityOrNull(): CoreQuadraticInequality? {
     return when (val result = toCoreInequalityRet()) {
         is Ok -> result.value

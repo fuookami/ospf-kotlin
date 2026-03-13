@@ -190,11 +190,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
         x.cells
         y.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -224,8 +220,6 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             }
 
             negValue + posValue
-        } else {
-            null
         }
     }
 

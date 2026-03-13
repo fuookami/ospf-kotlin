@@ -495,8 +495,8 @@ ospf-kotlin-core/.../frontend/inequality/adapter/
 | Phase 4 | ✅ 已完成 | core 适配层已落地：`ValueProvider/Monomial/Polynomial/MatrixForm/Inequality` adapters。 |
 | Phase 5 | ✅ 已完成 | `LinearPolynomial`、`LinearMonomial`、`LinearInequality` 关键路径已委托 utils。 |
 | Phase 6 | ✅ 已完成 | `QuadraticPolynomial`、`QuadraticMonomial`、`QuadraticInequality` 关键路径已委托 utils。 |
-| Phase 7 | 🔄 进行中 | 正在收口重复实现（normalize merge helper、IntermediateSymbol cached-evaluate helper 等）。 |
-| Phase 8 | ⏳ 未开始 | Canonical + DSL 扩展暂未启动。 |
+| Phase 7 | ✅ 已完成 | 重复实现收口、告警噪音清理、构建告警收口已完成。 |
+| Phase 8 | 🔄 进行中 | Canonical 数据结构与基础 operation 已启动并完成首批落地。 |
 
 Phase 7 已完成项（截至 2026-03-13）：
 
@@ -508,12 +508,57 @@ Phase 7 已完成项（截至 2026-03-13）：
 6. 已完成一批函数符号 `prepare(values, tokenTable)` 模板收口：  
    `linear_function/And.kt`、`linear_function/Not.kt`、`linear_function/Binaryzation.kt`、`linear_function/MaskingRange.kt`、`quadratic_function/Binaryzation.kt`、`quadratic_function/MaskingRange.kt`。  
 7. 完成上述收口后执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 26, Failures: 0, Errors: 0`（2026-03-13）。  
+8. 继续完成一批 `prepare(values, tokenTable)` 模板收口：  
+   `linear_function/BalanceTernaryzation.kt`、`linear_function/SatisfiedAmount.kt`（Or/And 两个实现）、`linear_function/SatisfiedAmountInequality.kt`；并保留 `SatisfiedAmount.kt` 中只检查 `tokenTable.cached(self)` 的特殊分支以避免语义变化。  
+9. 再次执行 `mvn -pl ospf-kotlin-core test -DskipITs` 验证通过，`Tests run: 26, Failures: 0, Errors: 0`（2026-03-13）。  
+10. 再完成一批线性函数模板收口：  
+    `linear_function/Or.kt`、`linear_function/OneOf.kt`、`linear_function/SameAs.kt`、`linear_function/Semi.kt`、`linear_function/First.kt`。  
+11. 执行回归测试 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 26, Failures: 0, Errors: 0`（2026-03-13）。  
+12. 完成一批线性函数 `prepare(values, tokenTable)` 模板收口：  
+    `linear_function/If.kt`、`linear_function/IfIn.kt`、`linear_function/IfThen.kt`、`linear_function/Mod.kt`、`linear_function/Rounding.kt`、`linear_function/Masking.kt`、`linear_function/InStepRangeFunction.kt`、`linear_function/BivariateLinearPiecewise.kt`、`linear_function/UnivariateLinearPiecewise.kt`、`linear_function/Sigmoid.kt`、`linear_function/Slack.kt`、`linear_function/SlackRange.kt`。  
+13. 完成一批二次函数 `prepare(values, tokenTable)` 模板收口：  
+    `quadratic_function/Linear.kt`、`quadratic_function/Max.kt`、`quadratic_function/Min.kt`、`quadratic_function/Semi.kt`、`quadratic_function/Sigmoid.kt`、`quadratic_function/InStepRangeFunction.kt`、`quadratic_function/Masking.kt`、`quadratic_function/Mod.kt`、`quadratic_function/Product.kt`、`quadratic_function/Rounding.kt`、`quadratic_function/Slack.kt`、`quadratic_function/SlackRange.kt`、`quadratic_function/UnivariateLinearPiecewise.kt`、`quadratic_function/BivariateLinearPiecewise.kt`。  
+14. 再次执行 `mvn -pl ospf-kotlin-core test -DskipITs` 验证通过，`Tests run: 26, Failures: 0, Errors: 0`（2026-03-13）。  
+15. 阶段性检索后，曾仅保留两个特殊缓存分支未统一：`linear_function/SatisfiedAmount.kt`（`cached(self)`）与 `linear_function/Xor.kt`（固定 `cached(this)` 分支）。  
+16. `IntermediateSymbol` 新增 `shouldPrepareWithFixedCacheKey` / `prepareIfNotCachedWithFixedCacheKey`，用于表达“固定 cache key、忽略 values cache key”语义。  
+17. 使用上述 helper 收口 `linear_function/SatisfiedAmount.kt` 与 `linear_function/Xor.kt` 的特殊缓存分支；再次执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 26, Failures: 0, Errors: 0`（2026-03-13）。  
+18. 新增 `cache_regression/PrepareCacheKeyRegressionTest.kt`（2 个用例），覆盖 `values != null` 时 fixed cache key 与普通 cache key 的行为差异；执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 28, Failures: 0, Errors: 0`（2026-03-13）。  
+19. 清理 `symbol/*` 中冗余的 `if (values.isNullOrEmpty()) prepareAndCache(null, tokenTable) else prepareAndCache(values, tokenTable)` 模板，统一为 `prepareAndCache(values, tokenTable)`，减少重复实现（涉及 `IfThen`、`InStepRangeFunction`、`Sigmoid`、`Not`、`SatisfiedAmount`、`quadratic/Binaryzation` 等）。再次执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 28, Failures: 0, Errors: 0`（2026-03-13）。  
+20. 清理一批函数符号中 `values` 变量名遮蔽（shadowing）问题，统一重命名为 `evaluatedValues`（`linear/Max`、`linear/Min`、`linear/OneOf`、`linear/SameAs`、`quadratic/Max`、`quadratic/Min`、`quadratic/Product`），降低可读性和静态告警噪音；执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 28, Failures: 0, Errors: 0`（2026-03-13）。  
+21. 清理 `linear/Min.kt` 与 `linear/Xor.kt` 的剩余局部告警（`unused i`、`bin` 变量遮蔽），保持行为不变；执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 28, Failures: 0, Errors: 0`（2026-03-13）。  
+22. 删除 `inequality/adapter/NormalizeAdapters.kt` 中 `legacyMergeLinearMonomials` / `legacyMergeQuadraticMonomials` 纯代数 fallback，实现完全收口到 utils `combineTerms + adapter` 路径；adapter 回转失败改为显式错误，避免静默退回旧实现。  
+23. 新增中间符号归一化回归用例（`InequalityNormalizeBaselineTest` 新增 2 个测试：线性/二次包含 `LinearIntermediateSymbol` 单项式），验证 adapter-only 路径稳定；执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+24. 在 `expression/adapter/MonomialAdapters.kt` 与 `expression/adapter/PolynomialAdapters.kt` 中，为 `toCore*OrNull` 系列接口补充 `@Deprecated` 标记，明确迁移方向为 `toCore*Ret`（显式错误通道），避免继续扩散 silent-null fallback 风格。  
+25. 清理 `MaskingRange` 线性/二次实现中未使用局部变量，同时保留 `fixedValues` 评估失败时回退 `register(model)` 的既有语义（通过 guard 表达式保持行为等价）；并对两处 `MonotoneUnivariateLinearPiecewiseFunction.x(...)` 的未使用参数加抑制注解，降低迁移期告警噪音。执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+26. 修复 `linear/InStepRangeFunction` companion `invoke` 中 `args` 未透传问题（由“未使用参数”告警暴露），保持函数符号 `args` 透传语义完整。  
+27. 补充 `linear/Inequality.register` 与 `callback/CallBackModel` 中迁移期保留参数的显式 `UNUSED_PARAMETER` 抑制，减少无效告警；执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+28. 清理 backend solver/iis 一批静态告警噪音：  
+    `LinearSolver.kt`、`QuadraticSolver.kt` 中 `computeIIS` 分支 `result` 命名遮蔽已改为 `iisResult`；`iis/Linear.kt` 中 callback 分支命名遮蔽已清理，并为 `performDeletionFiltering`（TODO 占位）添加参数未使用抑制；`iis/Quadratic.kt`（TODO 占位）添加 `UNUSED_PARAMETER` / `UNUSED_VARIABLE` 抑制。执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+29. 清理 `backend/intermediate_model` 与 `frontend/model/mechanism` 的一批告警噪音：  
+    `LinearTriadModel.kt` / `QuadraticTetradModel.kt` 中未使用参数、局部变量遮蔽、未使用索引变量已处理；`MechanismModel.kt` 中 `fixedVariables.mapKeys { it.key as Symbol }` 冗余强转已去除，`foldIndexed` 未使用索引改为 `_`，并为 `QuadraticMechanismModel` 的两个 TODO cut 生成函数补充 `UNUSED_PARAMETER` 抑制。  
+30. `TokenTable.kt` 中为需要保留的 `mapKeys { it.key as IntermediateSymbol }`（用于规避 `cache` 重载歧义）增加函数级 `@Suppress("USELESS_CAST")`；`AdapterRoundTripTest.kt` 三处 `Ok` 强转改为 `when` 分支解包，去除测试侧 `No cast needed` 告警。再次执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+31. 最新一次 `ospf-kotlin-core` 编译阶段 Kotlin 源码告警已收敛为 0（不含构建级 Maven POM 警告），Phase 7 的“告警噪音清理”子目标在 core 范围内阶段完成。  
+32. 为 `inequality/adapter/InequalityAdapters.kt` 中 `toCoreInequalityOrNull`（线性/二次）补齐 `@Deprecated` 标记，与 monomial/polynomial adapter 保持一致，进一步收敛 silent-null fallback 风格到显式 `Ret` 风格。  
+33. 对 `inequality/adapter/NormalizeAdapters.kt` 做结构收口：将线性/二次两套重复的“正负项拼装 + utils combineTerms + adapter 回转”流程抽取为共享 helper，保留异常语义不变（adapter 回转失败仍显式 `error`）。执行 `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+34. 处理构建级 Maven 告警：在 `ospf-kotlin-utils/pom.xml` 为 `maven-surefire-plugin` 增加显式版本 `3.2.5`；再次执行 `mvn -pl ospf-kotlin-core test -DskipITs`，扫描阶段已不再出现 “plugin.version is missing” 警告，`Tests run: 30, Failures: 0, Errors: 0`（2026-03-13）。  
+35. 完成 Phase 7 收口复核：`core/frontend` 内已无 `legacy*` 纯代数 fallback 代码；`toCore*OrNull` 仅作为兼容层保留且仓内无调用，迁移主路径已统一到显式 `Ret` 与 utils operation。  
+36. 执行双模块验证 `mvn -pl ospf-kotlin-utils,ospf-kotlin-core test -DskipITs`：`utils`（256）+`core`（30）测试全部通过，确认 Phase 7 收口后的跨模块可编译与回归稳定性。  
 
 Phase 7 待完成项：
 
-1. `linear_function/*` 与 `quadratic_function/*` 中大量 `prepare(values, tokenTable)` 模板化逻辑继续抽象收敛。  
-2. 进一步删除已被 utils 完整替代的 legacy 纯代数实现片段。  
-3. 完成迁移注释与文档收口（对应 7.2）。  
+无（Phase 7 已完成）。  
+
+Phase 8 当前进展（截至 2026-03-13）：
+
+1. 新增 Canonical 数据层：`monomial/CanonicalMonomial.kt`、`polynomial/CanonicalPolynomial.kt`，支持 `degree`/`category`（线性/二次/非线性）判定。  
+2. 在 `operation/Convert.kt` 增加 canonical 与 linear/quadratic 的双向转换闭环：  
+   `toCanonicalMonomial`、`toCanonicalPolynomial`、`CanonicalMonomial.toLinear/Quadratic*`、`CanonicalPolynomial.toLinear/Quadratic*`（含 `OrNull` 与 `Ret` 两组接口）。  
+3. 在 `operation/CombineTerms.kt` 增加 canonical 合并能力：`Iterable<CanonicalMonomial>.combineCanonicalTerms` 与 `CanonicalPolynomial.combineTerms`。  
+4. 在 `operation/Evaluate.kt` 增加 canonical 求值能力：`CanonicalMonomial`/`CanonicalPolynomial` 的 `evaluate` 与 `evaluateRet`，并沿用 `MissingValuePolicy` 语义。  
+5. 新增回归测试 `operation/CanonicalOperationTest.kt`（5 个用例），覆盖 canonical 合并、求值、线性/二次往返转换、三次项拒绝转换、零次项折叠到常数项。  
+6. 验证通过：  
+   `mvn -pl ospf-kotlin-utils test -DskipITs`，`Tests run: 261, Failures: 0, Errors: 0`；  
+   `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`。  
 
 ---
 
@@ -610,11 +655,11 @@ ospf-kotlin-core/src/test/kotlin/fuookami/ospf/kotlin/core/frontend/symbol_migra
 
 ## 11. 首批执行建议（立即可开工）
 
-说明：本节已作为历史建议，当前执行已推进至 Phase 7。  
+说明：本节已作为历史建议，当前执行已进入 Phase 8。  
 
 当前建议（下一步）：
 
-1. 继续完成 Phase 7 的函数符号 `prepare` 模板收口，优先处理重复最多的 `linear_function` / `quadratic_function` 文件。  
-2. 在每一批收口后执行 `mvn -pl ospf-kotlin-core test -DskipITs`，保持回归闭环。  
-3. Phase 7 完成后，再开启 Phase 8（Canonical + DSL）设计与实现。  
+1. 继续 Phase 8 第二批：补充 Canonical 与 `MatrixForm`/`Differentiate` 的互操作能力。  
+2. 为 Canonical 增加 core adapter 映射策略（优先只读路径，不改现有 core 对外 API）。  
+3. 启动 Symbol DSL 的 MVP（构造器 + 最小测试），并评估 parser/latex 是否进入本轮。  
 

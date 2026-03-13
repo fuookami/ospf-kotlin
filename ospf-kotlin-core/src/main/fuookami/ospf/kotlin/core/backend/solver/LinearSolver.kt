@@ -36,13 +36,13 @@ interface AbstractLinearSolver {
 
             is Failed -> {
                 if (result.error.code == ErrorCode.ORModelInfeasible) {
-                    when (val result = computeIIS(model, this, iisConfig)) {
+                    when (val iisResult = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
-                            Ok(LinearInfeasibleSolverOutput(result.value))
+                            Ok(LinearInfeasibleSolverOutput(iisResult.value))
                         }
 
                         is Failed -> {
-                            Failed(result.error)
+                            Failed(iisResult.error)
                         }
                     }
                 } else {
@@ -109,13 +109,13 @@ interface AbstractLinearSolver {
 
             is Failed -> {
                 if (result.error.code == ErrorCode.ORModelInfeasible) {
-                    when (val result = computeIIS(model, this, iisConfig)) {
+                    when (val iisResult = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
-                            Ok(LinearInfeasibleSolverOutput(result.value) to emptyList())
+                            Ok(LinearInfeasibleSolverOutput(iisResult.value) to emptyList())
                         }
 
                         is Failed -> {
-                            Failed(result.error)
+                            Failed(iisResult.error)
                         }
                     }
                 } else {

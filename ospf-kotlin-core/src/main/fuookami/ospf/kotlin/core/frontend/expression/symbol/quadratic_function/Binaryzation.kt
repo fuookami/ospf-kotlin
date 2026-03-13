@@ -328,11 +328,7 @@ class BinaryzationFunctionLinearImpl(
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        if (values.isNullOrEmpty()) {
-            linearX.prepareAndCache(null, tokenTable)
-        } else {
-            linearX.prepareAndCache(values, tokenTable)
-        }
+        linearX.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {

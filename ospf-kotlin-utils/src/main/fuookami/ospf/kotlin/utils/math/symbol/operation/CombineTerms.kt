@@ -74,3 +74,26 @@ fun QuadraticPolynomial.combineTerms(
 ): QuadraticPolynomial {
     return this.copy(monomials = monomials.combineTerms(symbolComparator))
 }
+
+fun Iterable<CanonicalMonomial>.combineCanonicalTerms(
+    symbolComparator: Comparator<Symbol>? = null
+): List<CanonicalMonomial> {
+    val comparator = symbolComparator ?: defaultSymbolComparator
+    val coefficientOfFactors = LinkedHashMap<List<Symbol>, Flt64>()
+    for (monomial in this) {
+        val normalizedFactors = monomial.factors.sortedWith(comparator)
+        coefficientOfFactors[normalizedFactors] =
+            (coefficientOfFactors[normalizedFactors] ?: Flt64.zero) + monomial.coefficient
+    }
+    return coefficientOfFactors
+        .asSequence()
+        .filter { it.value neq Flt64.zero }
+        .map { CanonicalMonomial(coefficient = it.value, factors = it.key) }
+        .toList()
+}
+
+fun CanonicalPolynomial.combineTerms(
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial {
+    return this.copy(monomials = monomials.combineCanonicalTerms(symbolComparator))
+}

@@ -90,3 +90,58 @@ fun QuadraticPolynomial.gradient(
 ): List<LinearPolynomial> {
     return order.map { derivative(it, combineTerms) }
 }
+
+fun CanonicalMonomial.derivative(
+    symbol: Symbol,
+    combineTerms: Boolean = true
+): CanonicalPolynomial {
+    val matchedAmount = factors.count { it == symbol }
+    if (matchedAmount == 0) {
+        return CanonicalPolynomial()
+    }
+
+    val oneRemovedFactors = factors.toMutableList()
+    oneRemovedFactors.remove(symbol)
+    val derivative = CanonicalPolynomial(
+        monomials = listOf(
+            CanonicalMonomial(
+                coefficient = coefficient * Flt64(matchedAmount.toDouble()),
+                factors = oneRemovedFactors
+            )
+        ),
+        constant = Flt64.zero
+    )
+    return if (combineTerms) {
+        derivative.combineTerms()
+    } else {
+        derivative
+    }
+}
+
+fun CanonicalPolynomial.derivative(
+    symbol: Symbol,
+    combineTerms: Boolean = true
+): CanonicalPolynomial {
+    val derivativeMonomials = ArrayList<CanonicalMonomial>()
+    for (monomial in monomials) {
+        derivativeMonomials.addAll(
+            monomial.derivative(symbol, combineTerms = false).monomials
+        )
+    }
+    val derivative = CanonicalPolynomial(
+        monomials = derivativeMonomials,
+        constant = Flt64.zero
+    )
+    return if (combineTerms) {
+        derivative.combineTerms()
+    } else {
+        derivative
+    }
+}
+
+fun CanonicalPolynomial.gradient(
+    order: List<Symbol>,
+    combineTerms: Boolean = true
+): List<CanonicalPolynomial> {
+    return order.map { derivative(it, combineTerms) }
+}

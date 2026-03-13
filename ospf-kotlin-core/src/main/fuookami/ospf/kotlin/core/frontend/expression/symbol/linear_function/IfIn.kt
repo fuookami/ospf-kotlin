@@ -218,11 +218,7 @@ class IfInFunction(
         lowerBoundInequality.cells
         upperBoundInequality.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val lbBin = if (values.isNullOrEmpty()) {
                 lowerBoundInequality.isTrue(tokenTable)
             } else {
@@ -256,8 +252,6 @@ class IfInFunction(
             }
 
             y.prepare(values, tokenTable)
-        } else {
-            null
         }
     }
 

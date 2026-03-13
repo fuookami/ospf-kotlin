@@ -73,4 +73,46 @@ class DifferentiateTest {
         assertTrue(gradX[x] == Flt64(6.0))
         assertTrue(gradX[y] == Flt64.two)
     }
+
+    @Test
+    fun canonicalDerivativeShouldSupportRepeatedFactors() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val monomial = CanonicalMonomial(
+            coefficient = Flt64(3.0),
+            factors = listOf(x, x, y)
+        )
+
+        val derivativeByX = monomial.derivative(x)
+        assertEquals(1, derivativeByX.monomials.size)
+        assertEquals(Flt64(6.0), derivativeByX.monomials.first().coefficient)
+        assertEquals(listOf(x, y), derivativeByX.monomials.first().factors)
+    }
+
+    @Test
+    fun canonicalGradientShouldFollowSymbolOrder() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = CanonicalPolynomial(
+            monomials = listOf(
+                CanonicalMonomial(Flt64.two, listOf(x, y)),
+                CanonicalMonomial(Flt64(3.0), listOf(x, x)),
+                CanonicalMonomial(Flt64(4.0), listOf(y))
+            )
+        )
+
+        val gradient = polynomial.gradient(listOf(y, x))
+        val gradY = gradient[0].toLinearPolynomialOrNull()
+        val gradX = gradient[1].toLinearPolynomialOrNull()
+
+        assertTrue(gradY != null)
+        assertTrue(gradX != null)
+        val gradYCoefficients = gradY.monomials.associate { it.symbol to it.coefficient }
+        val gradXCoefficients = gradX.monomials.associate { it.symbol to it.coefficient }
+
+        assertTrue(gradYCoefficients[x] == Flt64.two)
+        assertEquals(Flt64(4.0), gradY.constant)
+        assertTrue(gradXCoefficients[x] == Flt64(6.0))
+        assertTrue(gradXCoefficients[y] == Flt64.two)
+    }
 }

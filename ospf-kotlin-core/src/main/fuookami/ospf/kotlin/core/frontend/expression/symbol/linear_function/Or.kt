@@ -98,11 +98,7 @@ class OrFunction(
             polynomial.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             polynomials.forEach { polynomial ->
                 val value = if (values.isNullOrEmpty()) {
                     polynomial.evaluate(tokenTable)
@@ -126,8 +122,6 @@ class OrFunction(
             }
 
             Flt64.zero
-        } else {
-            null
         }
     }
 

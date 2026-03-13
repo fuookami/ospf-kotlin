@@ -221,6 +221,7 @@ class CallBackModel internal constructor(
         tokens.remove(item)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Inequality<*, *>,
         name: String?,
@@ -262,6 +263,7 @@ class CallBackModel internal constructor(
         )
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
         expression: Expression,
@@ -303,6 +305,7 @@ class CallBackModel internal constructor(
         return ok
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
         func: Extractor<Flt64?, Solution>,

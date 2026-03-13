@@ -7,78 +7,63 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLi
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
 
-private fun legacyMergeLinearMonomials(
-    positiveMonomials: List<LinearMonomial>,
-    negativeMonomials: List<LinearMonomial>
-): List<LinearMonomial> {
-    return (positiveMonomials.map { it to true } + negativeMonomials.map { it to false })
-        .groupBy { it.first.symbol }
-        .map { (symbol, monomials) ->
-            LinearMonomial(
-                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
-                symbol
-            )
-        }
-}
+private fun <CoreMonomial, UtilsMonomial> mergeMonomialsByUtils(
+    positiveMonomials: List<CoreMonomial>,
+    negativeMonomials: List<CoreMonomial>,
+    toUtilsMonomial: (CoreMonomial) -> UtilsMonomial,
+    negateUtilsMonomial: (UtilsMonomial) -> UtilsMonomial,
+    combineMonomials: (List<UtilsMonomial>) -> List<UtilsMonomial>,
+    toCoreMonomialRet: (UtilsMonomial) -> Ret<CoreMonomial>,
+    errorPrefix: String
+): List<CoreMonomial> {
+    val allMonomials = ArrayList<UtilsMonomial>(positiveMonomials.size + negativeMonomials.size)
+    for (monomial in positiveMonomials) {
+        allMonomials.add(toUtilsMonomial(monomial))
+    }
+    for (monomial in negativeMonomials) {
+        val utilsMonomial = toUtilsMonomial(monomial)
+        allMonomials.add(negateUtilsMonomial(utilsMonomial))
+    }
 
-private fun legacyMergeQuadraticMonomials(
-    positiveMonomials: List<QuadraticMonomial>,
-    negativeMonomials: List<QuadraticMonomial>
-): List<QuadraticMonomial> {
-    return (positiveMonomials.map { it to true } + negativeMonomials.map { it to false })
-        .groupBy { it.first.symbol }
-        .map { (symbol, monomials) ->
-            QuadraticMonomial(
-                monomials.sumOf { if (it.second) { it.first.coefficient } else { -it.first.coefficient } },
-                symbol
-            )
+    val mergedMonomials = combineMonomials(allMonomials)
+    val coreMonomials = ArrayList<CoreMonomial>(mergedMonomials.size)
+    for (monomial in mergedMonomials) {
+        when (val result = toCoreMonomialRet(monomial)) {
+            is Ok -> coreMonomials.add(result.value)
+            is Failed -> {
+                error("$errorPrefix normalize adapter failed unexpectedly: ${result.error}")
+            }
         }
+    }
+    return coreMonomials
 }
 
 fun mergeLinearMonomialsByUtils(
     positiveMonomials: List<LinearMonomial>,
     negativeMonomials: List<LinearMonomial>
 ): List<LinearMonomial> {
-    val allMonomials = ArrayList<UtilsLinearMonomial>(positiveMonomials.size + negativeMonomials.size)
-    for (monomial in positiveMonomials) {
-        allMonomials.add(monomial.toUtilsMonomial())
-    }
-    for (monomial in negativeMonomials) {
-        val utilsMonomial = monomial.toUtilsMonomial()
-        allMonomials.add(utilsMonomial.copy(coefficient = -utilsMonomial.coefficient))
-    }
-
-    val mergedMonomials = allMonomials.combineTerms()
-    val coreMonomials = ArrayList<LinearMonomial>(mergedMonomials.size)
-    for (monomial in mergedMonomials) {
-        when (val result = monomial.toCoreMonomialRet()) {
-            is Ok -> coreMonomials.add(result.value)
-            is Failed -> return legacyMergeLinearMonomials(positiveMonomials, negativeMonomials)
-        }
-    }
-    return coreMonomials
+    return mergeMonomialsByUtils(
+        positiveMonomials = positiveMonomials,
+        negativeMonomials = negativeMonomials,
+        toUtilsMonomial = { it.toUtilsMonomial() },
+        negateUtilsMonomial = { it.copy(coefficient = -it.coefficient) },
+        combineMonomials = { source: List<UtilsLinearMonomial> -> source.combineTerms() },
+        toCoreMonomialRet = { it.toCoreMonomialRet() },
+        errorPrefix = "Linear"
+    )
 }
 
 fun mergeQuadraticMonomialsByUtils(
     positiveMonomials: List<QuadraticMonomial>,
     negativeMonomials: List<QuadraticMonomial>
 ): List<QuadraticMonomial> {
-    val allMonomials = ArrayList<UtilsQuadraticMonomial>(positiveMonomials.size + negativeMonomials.size)
-    for (monomial in positiveMonomials) {
-        allMonomials.add(monomial.toUtilsMonomial())
-    }
-    for (monomial in negativeMonomials) {
-        val utilsMonomial = monomial.toUtilsMonomial()
-        allMonomials.add(utilsMonomial.copy(coefficient = -utilsMonomial.coefficient))
-    }
-
-    val mergedMonomials = allMonomials.combineTerms()
-    val coreMonomials = ArrayList<QuadraticMonomial>(mergedMonomials.size)
-    for (monomial in mergedMonomials) {
-        when (val result = monomial.toCoreMonomialRet()) {
-            is Ok -> coreMonomials.add(result.value)
-            is Failed -> return legacyMergeQuadraticMonomials(positiveMonomials, negativeMonomials)
-        }
-    }
-    return coreMonomials
+    return mergeMonomialsByUtils(
+        positiveMonomials = positiveMonomials,
+        negativeMonomials = negativeMonomials,
+        toUtilsMonomial = { it.toUtilsMonomial() },
+        negateUtilsMonomial = { it.copy(coefficient = -it.coefficient) },
+        combineMonomials = { source: List<UtilsQuadraticMonomial> -> source.combineTerms() },
+        toCoreMonomialRet = { it.toCoreMonomialRet() },
+        errorPrefix = "Quadratic"
+    )
 }

@@ -139,11 +139,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         x.cells
         y.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty() ) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -203,8 +199,6 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             }
 
             zValue
-        } else {
-            null
         }
     }
 

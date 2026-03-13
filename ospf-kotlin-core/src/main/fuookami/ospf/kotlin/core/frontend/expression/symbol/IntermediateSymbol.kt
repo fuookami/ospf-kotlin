@@ -143,6 +143,21 @@ internal fun IntermediateSymbol.shouldPrepare(
     return shouldPrepare(this, values, tokenTable)
 }
 
+internal fun IntermediateSymbol.shouldPrepareWithFixedCacheKey(
+    cacheKey: IntermediateSymbol,
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable
+): Boolean {
+    return (!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(cacheKey) == false
+}
+
+internal fun IntermediateSymbol.shouldPrepareWithFixedCacheKey(
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable
+): Boolean {
+    return shouldPrepareWithFixedCacheKey(this, values, tokenTable)
+}
+
 internal inline fun <T> IntermediateSymbol.prepareIfNotCached(
     cacheKey: IntermediateSymbol,
     values: Map<Symbol, Flt64>?,
@@ -162,6 +177,27 @@ internal inline fun <T> IntermediateSymbol.prepareIfNotCached(
     block: () -> T?
 ): T? {
     return prepareIfNotCached(this, values, tokenTable, block)
+}
+
+internal inline fun <T> IntermediateSymbol.prepareIfNotCachedWithFixedCacheKey(
+    cacheKey: IntermediateSymbol,
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable,
+    block: () -> T?
+): T? {
+    return if (shouldPrepareWithFixedCacheKey(cacheKey, values, tokenTable)) {
+        block()
+    } else {
+        null
+    }
+}
+
+internal inline fun <T> IntermediateSymbol.prepareIfNotCachedWithFixedCacheKey(
+    values: Map<Symbol, Flt64>?,
+    tokenTable: AbstractTokenTable,
+    block: () -> T?
+): T? {
+    return prepareIfNotCachedWithFixedCacheKey(this, values, tokenTable, block)
 }
 
 private fun IntermediateSymbol.evaluateWithCachedTokenTable(

@@ -247,11 +247,7 @@ class BalanceTernaryzationFunctionImpl(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -272,8 +268,6 @@ class BalanceTernaryzationFunctionImpl(
             }
 
             yValue
-        } else {
-            null
         }
     }
 
@@ -376,18 +370,12 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         x.cells
         piecewiseFunction.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             if (values.isNullOrEmpty()) {
                 piecewiseFunction.evaluate(tokenTable)
             } else {
                 piecewiseFunction.evaluate(values, tokenTable)
             }
-        } else {
-            null
         }
     }
 
@@ -532,11 +520,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -561,8 +545,6 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             } else {
                 Flt64.zero
             }
-        } else {
-            null
         }
     }
 
@@ -844,11 +826,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val xValue =  if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
@@ -891,8 +869,6 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

@@ -457,6 +457,7 @@ sealed class MutableTokenTable(
     }
 }
 
+@Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol>.register(
     tokenTable: MutableTokenTable,
     fixedValues: Map<Symbol, Flt64>? = null,
@@ -948,6 +949,7 @@ sealed class ConcurrentMutableTokenTable(
     }
 }
 
+@Suppress("USELESS_CAST")
 suspend fun Collection<IntermediateSymbol>.register(
     tokenTable: ConcurrentMutableTokenTable,
     fixedValues: Map<Symbol, Flt64>? = null,

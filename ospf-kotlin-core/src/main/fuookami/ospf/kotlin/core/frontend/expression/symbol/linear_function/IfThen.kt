@@ -147,50 +147,44 @@ class IfThenFunction(
         p.rhs.cells
         q.lhs.cells
         q.rhs.cells
-        if (values.isNullOrEmpty()) {
-            y.prepareAndCache(null, tokenTable)
-        } else {
-            y.prepareAndCache(values, tokenTable)
-        }
+        y.prepareAndCache(values, tokenTable)
 
-        return if (!constraint && tokenTable.cachedSolution && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
-            val pBin = if (values.isNullOrEmpty()) {
-                p.isTrue(tokenTable)
-            } else {
-                p.isTrue(values, tokenTable)
-            } ?: return null
+        return if (!constraint && tokenTable.cachedSolution) {
+            prepareIfNotCached(values, tokenTable) {
+                val pBin = if (values.isNullOrEmpty()) {
+                    p.isTrue(tokenTable)
+                } else {
+                    p.isTrue(values, tokenTable)
+                } ?: return null
 
-            val qBin = if (values.isNullOrEmpty()) {
-                q.isTrue(tokenTable)
-            } else {
-                q.isTrue(values, tokenTable)
-            } ?: return null
+                val qBin = if (values.isNullOrEmpty()) {
+                    q.isTrue(tokenTable)
+                } else {
+                    q.isTrue(values, tokenTable)
+                } ?: return null
 
-            logger.trace { "Setting IfThenFunction ${name}.pu initial solution: $pBin" }
-            tokenTable.find(pu)?.let { token ->
-                token._result = pBin.toFlt64()
-            }
+                logger.trace { "Setting IfThenFunction ${name}.pu initial solution: $pBin" }
+                tokenTable.find(pu)?.let { token ->
+                    token._result = pBin.toFlt64()
+                }
 
-            logger.trace { "Setting IfThenFunction ${name}.qu initial solution: $qBin" }
-            tokenTable.find(qu)?.let { token ->
-                token._result = qBin.toFlt64()
-            }
+                logger.trace { "Setting IfThenFunction ${name}.qu initial solution: $qBin" }
+                tokenTable.find(qu)?.let { token ->
+                    token._result = qBin.toFlt64()
+                }
 
-            val uValue = UInt8(qBin).toFlt64() - UInt8(pBin).toFlt64() + Flt64.one
-            logger.trace { "Setting IfThenFunction ${name}.u initial solution: $uValue" }
-            tokenTable.find(u)?.let { token ->
-                token._result = uValue
-            }
+                val uValue = UInt8(qBin).toFlt64() - UInt8(pBin).toFlt64() + Flt64.one
+                logger.trace { "Setting IfThenFunction ${name}.u initial solution: $uValue" }
+                tokenTable.find(u)?.let { token ->
+                    token._result = uValue
+                }
 
-            val bin = uValue neq Flt64.zero
-            if (bin) {
-                Flt64.one
-            } else {
-                Flt64.zero
+                val bin = uValue neq Flt64.zero
+                if (bin) {
+                    Flt64.one
+                } else {
+                    Flt64.zero
+                }
             }
         } else {
             null

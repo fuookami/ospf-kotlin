@@ -38,6 +38,9 @@ fun UtilsLinearPolynomial.toCorePolynomialRet(): Ret<CoreLinearPolynomial> {
     )
 }
 
+@Deprecated(
+    message = "Use toCorePolynomialRet() to keep adapter failures explicit."
+)
 fun UtilsLinearPolynomial.toCorePolynomialOrNull(): CoreLinearPolynomial? {
     return when (val result = toCorePolynomialRet()) {
         is Ok -> result.value
@@ -61,6 +64,9 @@ fun UtilsQuadraticPolynomial.toCorePolynomialRet(): Ret<CoreQuadraticPolynomial>
     )
 }
 
+@Deprecated(
+    message = "Use toCorePolynomialRet() to keep adapter failures explicit."
+)
 fun UtilsQuadraticPolynomial.toCorePolynomialOrNull(): CoreQuadraticPolynomial? {
     return when (val result = toCorePolynomialRet()) {
         is Ok -> result.value

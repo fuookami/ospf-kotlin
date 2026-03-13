@@ -145,11 +145,7 @@ class IfFunction(
         inequality.lhs.cells
         inequality.rhs.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val bin = if (values.isNullOrEmpty()) {
                 inequality.isTrue(tokenTable)
             } else {
@@ -168,8 +164,6 @@ class IfFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

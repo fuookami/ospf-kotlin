@@ -198,11 +198,7 @@ class InStepRange(
             }.toMap()
         )
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val lbValue = if (values.isNullOrEmpty()) {
                 lb.evaluate(tokenTable)
             } else {
@@ -222,8 +218,6 @@ class InStepRange(
             } ?: return null
 
             lbValue + qValue * stepValue
-        } else {
-            null
         }
     }
 

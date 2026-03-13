@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 
 class InequalityNormalizeBaselineTest {
@@ -107,6 +108,52 @@ class InequalityNormalizeBaselineTest {
         val originalTruth = inequalityTruthByValues(inequality, values)
         val normalizedTruth = inequalityTruthByValues(normalized, values)
         assertEquals(originalTruth, normalizedTruth)
+    }
+
+    @Test
+    fun linearNormalizeToLessEqual_shouldSupportLinearIntermediateMonomial() {
+        val x = RealVar("x")
+        val expr = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(
+                monomials = listOf(LinearMonomial(2, x)),
+                constant = Flt64.one
+            ),
+            name = "expr_linear_norm"
+        )
+        val inequality = LinearInequality(
+            lhs = LinearPolynomial(monomials = listOf(LinearMonomial(3, expr))),
+            rhs = LinearPolynomial(monomials = listOf(LinearMonomial(expr))),
+            sign = Sign.GreaterEqual
+        )
+
+        val normalized = inequality.normalizeToLessEqual()
+
+        assertEquals(Sign.Less, normalized.sign)
+        val exprMonomial = normalized.lhs.monomials.firstOrNull { it.symbol.exprSymbol == expr }
+        assertNotNull(exprMonomial)
+        assertTrue(exprMonomial.coefficient eq Flt64(-2.0))
+    }
+
+    @Test
+    fun quadraticNormalizeToLessEqual_shouldSupportLinearIntermediateMonomial() {
+        val x = RealVar("x")
+        val expr = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(monomials = listOf(LinearMonomial(x))),
+            name = "expr_quadratic_norm"
+        )
+        val inequality = QuadraticInequality(
+            lhs = QuadraticPolynomial(monomials = listOf(QuadraticMonomial(3, x, expr))),
+            rhs = QuadraticPolynomial(monomials = listOf(QuadraticMonomial(1, x, expr))),
+            sign = Sign.Greater
+        )
+
+        val normalized = inequality.normalizeToLessEqual()
+
+        assertEquals(Sign.LessEqual, normalized.sign)
+        val target = QuadraticMonomialSymbol(x, expr)
+        val exprMonomial = normalized.lhs.monomials.firstOrNull { it.symbol == target }
+        assertNotNull(exprMonomial)
+        assertTrue(exprMonomial.coefficient eq Flt64(-2.0))
     }
 
     private fun inequalityTruthByValues(

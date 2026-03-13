@@ -48,7 +48,7 @@ suspend fun computeIIS(
     )) {
         is Ok -> {
             if (result.value.first) {
-                when (val result = config.computingStatusCallBack?.invoke(
+                when (val callbackResult = config.computingStatusCallBack?.invoke(
                     true,
                     Clock.System.now() - startTime,
                     IISComputingStatus(
@@ -63,7 +63,7 @@ suspend fun computeIIS(
                     )
                 )) {
                     is Failed -> {
-                        return Failed(result.error)
+                        return Failed(callbackResult.error)
                     }
 
                     else -> {}
@@ -293,6 +293,7 @@ private suspend fun performElasticFiltering(
     return Ok(false to emptyMap())
 }
 
+@Suppress("UNUSED_PARAMETER")
 private suspend fun performDeletionFiltering(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,

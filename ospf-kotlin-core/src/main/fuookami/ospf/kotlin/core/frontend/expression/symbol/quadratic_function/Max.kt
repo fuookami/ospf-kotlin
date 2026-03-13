@@ -94,12 +94,8 @@ sealed class AbstractMaxFunction(
             polynomial.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
-            val values = polynomials.map {
+        return prepareIfNotCached(values, tokenTable) {
+            val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
                     it.evaluate(tokenTable)
                 } else {
@@ -107,8 +103,8 @@ sealed class AbstractMaxFunction(
                 }
             }
 
-            if (values.all { it != null }) {
-                val max = values.withIndex().maxByOrNull {
+            if (evaluatedValues.all { it != null }) {
+                val max = evaluatedValues.withIndex().maxByOrNull {
                     it.value!!
                 } ?: return null
 
@@ -137,8 +133,6 @@ sealed class AbstractMaxFunction(
             } else {
                 null
             }
-        } else {
-            null
         }
     }
 

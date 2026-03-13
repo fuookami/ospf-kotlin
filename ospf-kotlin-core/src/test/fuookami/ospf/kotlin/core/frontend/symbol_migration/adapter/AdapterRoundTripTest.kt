@@ -31,8 +31,15 @@ class AdapterRoundTripTest {
         val utilsMonomial = coreMonomial.toUtilsMonomial()
         val roundTrip = utilsMonomial.toCoreMonomialRet()
 
-        assertTrue(roundTrip is Ok)
-        val converted = (roundTrip as Ok).value
+        val converted = when (roundTrip) {
+            is Ok -> {
+                roundTrip.value
+            }
+
+            is Failed -> {
+                error("linearMonomialAdapterShouldRoundTrip failed: ${roundTrip.error}")
+            }
+        }
         assertEquals(coreMonomial.coefficient, converted.coefficient)
         assertEquals(coreMonomial.symbol.variable, converted.symbol.variable)
     }
@@ -53,8 +60,15 @@ class AdapterRoundTripTest {
         val utilsPolynomial = corePolynomial.toUtilsPolynomial()
         val roundTrip = utilsPolynomial.toCorePolynomialRet()
 
-        assertTrue(roundTrip is Ok)
-        val converted = (roundTrip as Ok).value
+        val converted = when (roundTrip) {
+            is Ok -> {
+                roundTrip.value
+            }
+
+            is Failed -> {
+                error("quadraticPolynomialAdapterShouldKeepEvaluation failed: ${roundTrip.error}")
+            }
+        }
         val originalValue = corePolynomial.evaluate(values, tokenList = null, zeroIfNone = false)
         val utilsValue = utilsPolynomial.evaluate(values, policy = fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy.ReturnNull)
         val convertedValue = converted.evaluate(values, tokenList = null, zeroIfNone = false)
@@ -76,9 +90,16 @@ class AdapterRoundTripTest {
         val roundTrip = utilsInequality.toCoreInequalityRet()
 
         assertEquals(fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison.GE, utilsInequality.comparison)
-        assertTrue(roundTrip is Ok)
 
-        val converted = (roundTrip as Ok).value
+        val converted = when (roundTrip) {
+            is Ok -> {
+                roundTrip.value
+            }
+
+            is Failed -> {
+                error("inequalityAdapterShouldMapComparisonCorrectly failed: ${roundTrip.error}")
+            }
+        }
         val originalTruth = coreInequality.isTrue(values, tokenList = null, zeroIfNone = false)
         val convertedTruth = converted.isTrue(values, tokenList = null, zeroIfNone = false)
         assertEquals(originalTruth, convertedTruth)

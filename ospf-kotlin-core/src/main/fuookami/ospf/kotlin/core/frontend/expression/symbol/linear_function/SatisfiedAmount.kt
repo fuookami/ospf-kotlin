@@ -317,19 +317,10 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        if (values.isNullOrEmpty()) {
-            super.prepareAndCache(null, tokenTable)
-            or.prepareAndCache(null, tokenTable)
-        } else {
-            super.prepareAndCache(values, tokenTable)
-            or.prepareAndCache(values, tokenTable)
-        }
+        super.prepareAndCache(values, tokenTable)
+        or.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val bin = if (values.isNullOrEmpty()) {
                 or.evaluate(tokenTable)
             } else {
@@ -341,8 +332,6 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
             } else {
                 Flt64.zero
             }
-        } else {
-            null
         }
     }
 
@@ -457,19 +446,10 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        if (values.isNullOrEmpty()) {
-            super.prepareAndCache(null, tokenTable)
-            and.prepareAndCache(null, tokenTable)
-        } else {
-            super.prepareAndCache(values, tokenTable)
-            and.prepareAndCache(values, tokenTable)
-        }
+        super.prepareAndCache(values, tokenTable)
+        and.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(self)
-        } else {
-            tokenTable.cached(self, values)
-        } == false) {
+        return prepareIfNotCached(self, values, tokenTable) {
             val bin = if (values.isNullOrEmpty()) {
                 and.evaluate(tokenTable)
             } else {
@@ -481,8 +461,6 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
             } else {
                 Flt64.zero
             }
-        } else {
-            null
         }
     }
 
@@ -633,11 +611,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        if (values.isNullOrEmpty()) {
-            super.prepareAndCache(null, tokenTable)
-        } else {
-            super.prepareAndCache(values, tokenTable)
-        }
+        super.prepareAndCache(values, tokenTable)
         tokenTable.cache(
             bins.mapNotNull {
                 val value = if (values.isNullOrEmpty()) {
@@ -653,7 +627,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
             }.toMap()
         )
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(self) == false) {
+        return prepareIfNotCachedWithFixedCacheKey(self, values, tokenTable) {
             val count = bins.count {
                 val value = it.evaluate(tokenTable) ?: return null
                 value eq Flt64.one
@@ -673,8 +647,6 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

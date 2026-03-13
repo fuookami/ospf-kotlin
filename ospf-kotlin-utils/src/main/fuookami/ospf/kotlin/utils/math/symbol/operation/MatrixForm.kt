@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.utils.math.symbol.operation
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 data class QuadraticMatrixForm(
     val q: Array<DoubleArray>,
@@ -55,4 +56,27 @@ fun QuadraticPolynomial.toMatrixForm(
         d = source.constant,
         order = order
     )
+}
+
+fun CanonicalPolynomial.toMatrixForm(
+    order: List<Symbol>,
+    combineTerms: Boolean = true,
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): QuadraticMatrixForm {
+    val source = if (combineTerms) {
+        this.combineTerms(symbolComparator)
+    } else {
+        this
+    }
+    return when (val quadratic = source.toQuadraticPolynomialRet(symbolComparator)) {
+        is Ok -> {
+            quadratic.value.toMatrixForm(order = order, combineTerms = false)
+        }
+
+        is Failed -> {
+            throw IllegalArgumentException(
+                "Cannot convert canonical polynomial to quadratic matrix form: ${quadratic.error.message}"
+            )
+        }
+    }
 }

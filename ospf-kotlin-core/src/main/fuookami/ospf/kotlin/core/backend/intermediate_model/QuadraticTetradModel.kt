@@ -405,6 +405,7 @@ data class QuadraticTetradModel(
             return tetradModel
         }
 
+        @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
             model: QuadraticMechanismModel,
             tokenIndexes: Map<Token, Int>,
@@ -834,13 +835,13 @@ data class QuadraticTetradModel(
                         QuadraticObjectiveCell(
                             colIndex1 = i,
                             colIndex2 = j,
-                            coefficient = value.let { coefficient ->
-                                if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
+                            coefficient = value.let { cellValue ->
+                                if (cellValue.isInfinity() || cellValue geq Flt64.decimalPrecision.reciprocal()) {
                                     Flt64.decimalPrecision.reciprocal()
-                                } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
+                                } else if (cellValue.isNegativeInfinity() || cellValue leq -Flt64.decimalPrecision.reciprocal()) {
                                     -Flt64.decimalPrecision.reciprocal()
                                 } else {
-                                    coefficient
+                                    cellValue
                                 }
                             }
                         )

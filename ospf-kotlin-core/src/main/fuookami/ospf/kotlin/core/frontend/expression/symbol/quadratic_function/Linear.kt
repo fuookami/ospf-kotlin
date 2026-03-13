@@ -79,11 +79,7 @@ class LinearFunction(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         polynomial.cells
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val yValue = if (values.isNullOrEmpty()) {
                 polynomial.evaluate(tokenTable)
             } else {
@@ -98,8 +94,6 @@ class LinearFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

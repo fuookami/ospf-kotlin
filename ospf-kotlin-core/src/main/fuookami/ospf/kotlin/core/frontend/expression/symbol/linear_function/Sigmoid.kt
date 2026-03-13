@@ -140,24 +140,14 @@ class SigmoidFunction(
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        if (values.isNullOrEmpty()) {
-            impl.prepareAndCache(null, tokenTable)
-        } else {
-            impl.prepareAndCache(values, tokenTable)
-        }
+        impl.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        }== false) {
+        return prepareIfNotCached(values, tokenTable) {
             if (values.isNullOrEmpty()) {
                 impl.evaluate(tokenTable)
             } else {
                 impl.evaluate(values, tokenTable)
             }
-        } else {
-            null
         }
     }
 

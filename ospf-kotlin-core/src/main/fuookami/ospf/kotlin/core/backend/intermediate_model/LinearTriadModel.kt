@@ -411,6 +411,7 @@ data class LinearTriadModel(
             return triadModel
         }
 
+        @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
             model: LinearMechanismModel,
             tokenIndexes: Map<Token, Int>,
@@ -692,13 +693,13 @@ data class LinearTriadModel(
                 objective.add(
                     LinearObjectiveCell(
                         colIndex = i,
-                        coefficient = coefficient[i].let { coefficient ->
-                            if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
+                        coefficient = coefficient[i].let { value ->
+                            if (value.isInfinity() || value geq Flt64.decimalPrecision.reciprocal()) {
                                 Flt64.decimalPrecision.reciprocal()
-                            } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
+                            } else if (value.isNegativeInfinity() || value leq -Flt64.decimalPrecision.reciprocal()) {
                                 -Flt64.decimalPrecision.reciprocal()
                             } else {
-                                coefficient
+                                value
                             }
                         }
                     )
@@ -1572,7 +1573,7 @@ data class LinearTriadModel(
                 }
             }
         }
-        for ((j, variable) in this.variables.withIndex()) {
+        for ((_, variable) in this.variables.withIndex()) {
             if (variable.free || variable.positiveNormalized || variable.negativeNormalized) {
                 slackVariables.add(
                     null to null

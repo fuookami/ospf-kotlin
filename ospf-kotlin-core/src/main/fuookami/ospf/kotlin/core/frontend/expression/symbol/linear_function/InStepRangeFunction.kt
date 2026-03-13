@@ -39,6 +39,7 @@ class InStepRange(
                 ub = ub.toLinearPolynomial(),
                 step = step,
                 parent = parent,
+                args = args,
                 name = name,
                 displayName = displayName
             )
@@ -95,17 +96,9 @@ class InStepRange(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         lb.cells
         ub.cells
-        if (values.isNullOrEmpty()) {
-            q.prepareAndCache(null, tokenTable)
-        } else {
-            q.prepareAndCache(values, tokenTable)
-        }
+        q.prepareAndCache(values, tokenTable)
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val lbValue = if (values.isNullOrEmpty()) {
                 lb.evaluate(tokenTable)
             } else {
@@ -125,8 +118,6 @@ class InStepRange(
             } ?: return null
 
             lbValue + qValue * step
-        } else {
-            null
         }
     }
 

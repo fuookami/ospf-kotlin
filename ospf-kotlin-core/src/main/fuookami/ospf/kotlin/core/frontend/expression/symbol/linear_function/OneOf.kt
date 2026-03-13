@@ -137,12 +137,8 @@ sealed class AbstractOneOfFunction(
             }.toMap()
         )
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
-            val values = branches.mapIndexedNotNull { b, branch ->
+        return prepareIfNotCached(values, tokenTable) {
+            val evaluatedValues = branches.mapIndexedNotNull { b, branch ->
                 val semi = masks[b]
                 val value = if (values.isNullOrEmpty()) {
                     semi.evaluate(tokenTable)
@@ -174,13 +170,11 @@ sealed class AbstractOneOfFunction(
                 }
             }
 
-            if (values.size == 1) {
-                values.first()
+            if (evaluatedValues.size == 1) {
+                evaluatedValues.first()
             } else {
                 null
             }
-        } else {
-            null
         }
     }
 

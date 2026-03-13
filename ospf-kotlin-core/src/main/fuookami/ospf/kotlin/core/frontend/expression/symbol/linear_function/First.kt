@@ -130,11 +130,7 @@ class FirstFunction(
             }.toMap()
         )
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             var first: Int? = null
             polynomials.withIndex().forEach { (i, polynomial) ->
                 if (first == null) {
@@ -169,8 +165,6 @@ class FirstFunction(
             }
 
             Flt64(first ?: polynomials.size)
-        } else {
-            null
         }
     }
 

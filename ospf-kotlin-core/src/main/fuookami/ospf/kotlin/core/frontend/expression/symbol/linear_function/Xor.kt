@@ -190,7 +190,7 @@ class XorFunction(
             )
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(this) == false) {
+        return prepareIfNotCachedWithFixedCacheKey(values, tokenTable) {
             var zero = false
             var one = false
             for (polynomial in polynomials) {
@@ -218,8 +218,6 @@ class XorFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 
@@ -418,8 +416,8 @@ class XorFunction(
             }
         }
 
-        for (bin in bins) {
-            when (val result = bin.register(model, fixedValues)) {
+        for (binSymbol in bins) {
+            when (val result = binSymbol.register(model, fixedValues)) {
                 is Ok -> {}
 
                 is Failed -> {
@@ -428,9 +426,9 @@ class XorFunction(
             }
         }
 
-        for ((i, bin) in bins.withIndex()) {
+        for ((i, binSymbol) in bins.withIndex()) {
             when (val result = model.addConstraint(
-                y geq bin - sum(bins.withIndex().mapNotNull {
+                y geq binSymbol - sum(bins.withIndex().mapNotNull {
                     if (it.index == i) {
                         null
                     } else {

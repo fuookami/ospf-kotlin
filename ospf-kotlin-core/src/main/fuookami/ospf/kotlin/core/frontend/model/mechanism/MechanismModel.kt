@@ -167,7 +167,7 @@ class LinearMechanismModel(
                     if (fixedVariables.isNullOrEmpty()) {
                         sym.register(model)
                     } else {
-                        sym.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        sym.register(model, fixedVariables.mapKeys { it.key })
                     }
                 }
 
@@ -321,7 +321,7 @@ class LinearMechanismModel(
                     val temp = tokens.copy() as MutableTokenTable
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
-                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        fixedValues = fixedVariables?.mapKeys { it.key },
                         callBack = callBack
                     )) {
                         is Ok -> {
@@ -338,7 +338,7 @@ class LinearMechanismModel(
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
-                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        fixedValues = fixedVariables?.mapKeys { it.key },
                         callBack = callBack
                     )) {
                         is Ok -> {
@@ -379,7 +379,7 @@ class LinearMechanismModel(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: LinearDualSolution
     ): List<LinearInequality> {
-        val constants = constraints.foldIndexed(Flt64.zero) { i, acc, constraint ->
+        val constants = constraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -543,14 +543,14 @@ class QuadraticMechanismModel(
                     if (fixedVariables.isNullOrEmpty()) {
                         sym.register(model)
                     } else {
-                        sym.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        sym.register(model, fixedVariables.mapKeys { it.key })
                     }
                 }
                 (symbol as? QuadraticFunctionSymbol)?.let { sym ->
                     if (fixedVariables.isNullOrEmpty()) {
                         sym.register(model)
                     } else {
-                        sym.register(model, fixedVariables.mapKeys { it.key as Symbol })
+                        sym.register(model, fixedVariables.mapKeys { it.key })
                     }
                 }
 
@@ -698,7 +698,7 @@ class QuadraticMechanismModel(
                     val temp = tokens.copy() as MutableTokenTable
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
-                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        fixedValues = fixedVariables?.mapKeys { it.key },
                         callBack = callBack
                     )) {
                         is Ok -> {
@@ -715,7 +715,7 @@ class QuadraticMechanismModel(
                     val temp = tokens.copy() as ConcurrentMutableTokenTable
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
-                        fixedValues = fixedVariables?.mapKeys { it.key as Symbol },
+                        fixedValues = fixedVariables?.mapKeys { it.key },
                         callBack = callBack
                     )) {
                         is Ok -> {
@@ -751,6 +751,7 @@ class QuadraticMechanismModel(
         return ok
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun generateOptimalCut(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
@@ -760,6 +761,7 @@ class QuadraticMechanismModel(
         TODO("not implemented yet")
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: QuadraticDualSolution,

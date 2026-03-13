@@ -133,12 +133,8 @@ class ProductFunction(
             polynomial.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
-            val values = polynomials.map {
+        return prepareIfNotCached(values, tokenTable) {
+            val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
                     it.evaluate(tokenTable)
                 } else {
@@ -146,9 +142,9 @@ class ProductFunction(
                 } ?: return null
             }
 
-            var yValue = values[0]
+            var yValue = evaluatedValues[0]
             for (i in y.indices) {
-                yValue *= values[i + 1]
+                yValue *= evaluatedValues[i + 1]
 
                 logger.trace { "Setting ProductFunction ${name}.y[$i] initial solution: $yValue" }
                 tokenTable.find(y[i])?.let { token ->
@@ -157,8 +153,6 @@ class ProductFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

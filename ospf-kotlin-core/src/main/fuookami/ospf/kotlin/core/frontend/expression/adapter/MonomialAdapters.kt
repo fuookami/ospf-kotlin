@@ -79,6 +79,9 @@ fun UtilsLinearMonomial.toCoreMonomialRet(): Ret<CoreLinearMonomial> {
     }
 }
 
+@Deprecated(
+    message = "Use toCoreMonomialRet() to keep adapter failures explicit."
+)
 fun UtilsLinearMonomial.toCoreMonomialOrNull(): CoreLinearMonomial? {
     return when (val result = toCoreMonomialRet()) {
         is Ok -> result.value
@@ -142,6 +145,9 @@ fun UtilsQuadraticMonomial.toCoreMonomialRet(): Ret<CoreQuadraticMonomial> {
     }
 }
 
+@Deprecated(
+    message = "Use toCoreMonomialRet() to keep adapter failures explicit."
+)
 fun UtilsQuadraticMonomial.toCoreMonomialOrNull(): CoreQuadraticMonomial? {
     return when (val result = toCoreMonomialRet()) {
         is Ok -> result.value

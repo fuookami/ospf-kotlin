@@ -332,11 +332,7 @@ class NotFunctionPiecewiseImpl(
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
         x.cells
-        if (values.isNullOrEmpty()) {
-            piecewiseFunction.prepareAndCache(null, tokenTable)
-        } else {
-            piecewiseFunction.prepareAndCache(values, tokenTable)
-        }
+        piecewiseFunction.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(self, values, tokenTable) {
             if (values.isNullOrEmpty()) {

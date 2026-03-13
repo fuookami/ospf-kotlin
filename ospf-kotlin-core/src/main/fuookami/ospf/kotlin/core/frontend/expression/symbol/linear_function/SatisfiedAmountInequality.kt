@@ -104,11 +104,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             inequality.rhs.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
+        return prepareIfNotCached(values, tokenTable) {
             val count = inequalities.count {
                 if (values.isNullOrEmpty()) {
                     it.isTrue(tokenTable)
@@ -139,8 +135,6 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

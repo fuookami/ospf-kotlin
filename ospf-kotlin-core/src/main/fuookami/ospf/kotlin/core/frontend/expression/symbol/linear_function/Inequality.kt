@@ -68,7 +68,7 @@ internal fun LinearInequality.register(
 }
 
 internal fun LinearInequality.register(
-    parentName: String,
+    @Suppress("UNUSED_PARAMETER") parentName: String,
     k: PctVariableView,
     flag: AbstractVariableItem<*, Binary>?,
     tokenTable: AddableTokenCollection

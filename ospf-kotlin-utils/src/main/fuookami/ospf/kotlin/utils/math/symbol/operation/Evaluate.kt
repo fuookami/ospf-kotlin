@@ -122,6 +122,47 @@ fun QuadraticMonomial.evaluateRet(
     return evaluateRet(MapValueProvider(values), policy)
 }
 
+fun CanonicalMonomial.evaluate(
+    provider: ValueProvider,
+    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
+): Flt64? {
+    var value = coefficient
+    for (symbol in factors) {
+        val factor = resolveValue(symbol, provider, policy) ?: return null
+        value = value * factor
+    }
+    return value
+}
+
+fun CanonicalMonomial.evaluate(
+    values: Map<Symbol, Flt64>,
+    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
+): Flt64? {
+    return evaluate(MapValueProvider(values), policy)
+}
+
+fun CanonicalMonomial.evaluateRet(
+    provider: ValueProvider,
+    policy: MissingValuePolicy = MissingValuePolicy.Fail
+): Ret<Flt64> {
+    var value = coefficient
+    for (symbol in factors) {
+        val factor = when (val result = resolveValueRet(symbol, provider, policy)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+        }
+        value = value * factor
+    }
+    return Ok(value)
+}
+
+fun CanonicalMonomial.evaluateRet(
+    values: Map<Symbol, Flt64>,
+    policy: MissingValuePolicy = MissingValuePolicy.Fail
+): Ret<Flt64> {
+    return evaluateRet(MapValueProvider(values), policy)
+}
+
 fun LinearPolynomial.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -196,6 +237,46 @@ fun QuadraticPolynomial.evaluateRet(
 }
 
 fun QuadraticPolynomial.evaluateRet(
+    values: Map<Symbol, Flt64>,
+    policy: MissingValuePolicy = MissingValuePolicy.Fail
+): Ret<Flt64> {
+    return evaluateRet(MapValueProvider(values), policy)
+}
+
+fun CanonicalPolynomial.evaluate(
+    provider: ValueProvider,
+    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
+): Flt64? {
+    var value = constant
+    for (monomial in monomials) {
+        val monomialValue = monomial.evaluate(provider, policy) ?: return null
+        value += monomialValue
+    }
+    return value
+}
+
+fun CanonicalPolynomial.evaluate(
+    values: Map<Symbol, Flt64>,
+    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
+): Flt64? {
+    return evaluate(MapValueProvider(values), policy)
+}
+
+fun CanonicalPolynomial.evaluateRet(
+    provider: ValueProvider,
+    policy: MissingValuePolicy = MissingValuePolicy.Fail
+): Ret<Flt64> {
+    var value = constant
+    for (monomial in monomials) {
+        when (val result = monomial.evaluateRet(provider, policy)) {
+            is Ok -> value += result.value
+            is Failed -> return Failed(result.error)
+        }
+    }
+    return Ok(value)
+}
+
+fun CanonicalPolynomial.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {

@@ -93,7 +93,7 @@ sealed class AbstractMaxFunction(
         }
 
         return prepareIfNotCached(values, tokenTable) {
-            val values = polynomials.map {
+            val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
                     it.evaluate(tokenTable)
                 } else {
@@ -101,8 +101,8 @@ sealed class AbstractMaxFunction(
                 }
             }
 
-            if (values.all { it != null }) {
-                val max = values.withIndex().maxByOrNull { it.value!! } ?: return null
+            if (evaluatedValues.all { it != null }) {
+                val max = evaluatedValues.withIndex().maxByOrNull { it.value!! } ?: return null
 
                 logger.trace { "Setting MaxFunction ${name}.minmax to ${max.value}" }
                 tokenTable.find(minmax)?.let { token ->

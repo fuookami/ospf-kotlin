@@ -117,12 +117,8 @@ class SameAsFunction(
             inequality.rhs.cells
         }
 
-        return if ((!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-            tokenTable.cached(this)
-        } else {
-            tokenTable.cached(this, values)
-        } == false) {
-            val values = inequalities.map {
+        return prepareIfNotCached(values, tokenTable) {
+            val evaluatedValues = inequalities.map {
                 if (values.isNullOrEmpty()) {
                     it.isTrue(tokenTable)
                 } else {
@@ -131,9 +127,9 @@ class SameAsFunction(
             }
             if (!constraint && inequalities.size > 1) {
                 for (i in inequalities.indices) {
-                    logger.trace { "Setting SameAsFunction ${name}.u[$i] to ${values[i]}" }
+                    logger.trace { "Setting SameAsFunction ${name}.u[$i] to ${evaluatedValues[i]}" }
                     tokenTable.find(u[i])?.let { token ->
-                        token._result = if (values[i]) {
+                        token._result = if (evaluatedValues[i]) {
                             Flt64.one
                         } else {
                             Flt64.zero
@@ -142,7 +138,7 @@ class SameAsFunction(
                 }
             }
 
-            val bin = values.all { it } || values.all { !it }
+            val bin = evaluatedValues.all { it } || evaluatedValues.all { !it }
             val yValue = if (bin) {
                 Flt64.one
             } else {
@@ -154,8 +150,6 @@ class SameAsFunction(
             }
 
             yValue
-        } else {
-            null
         }
     }
 

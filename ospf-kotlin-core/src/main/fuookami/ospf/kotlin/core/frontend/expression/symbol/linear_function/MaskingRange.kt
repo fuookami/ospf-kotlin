@@ -254,11 +254,10 @@ class MaskingRangeFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val maskValue = mask.evaluate(
+        mask.evaluate(
             values = fixedValues,
             tokenTable = model.tokens
         ) ?: return register(model)
-        val maskBin = maskValue gr Flt64.zero
 
         when (val result = model.addConstraint(
             constraint = y leq ub * mask,
