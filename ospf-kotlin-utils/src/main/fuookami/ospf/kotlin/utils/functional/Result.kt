@@ -2,57 +2,47 @@ package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.error.*
 
-sealed class Result<out T, out E : Error> {
-    open val ok = false
-    open val failed = false
-    open val value: T? = null
+// Result: Basic result type with Ok and Failed states / 基础结果类型，包含 Ok 和 Failed 两种状态
+sealed interface Result<out T, out E : Error> {
+    val ok: Boolean get() = false
+    val failed: Boolean get() = false
+    val value: T? get() = null
 
-    abstract fun <U> map(transform: (T) -> U): Result<U, E>
-
-    inline fun ifOk(crossinline func: Ok<T, E>.() -> Unit): Result<T, E> {
-        when (this) {
-            is Ok -> {
-                func(this)
-            }
-
-            is Failed -> {}
-        }
-        return this
-    }
-
-    inline fun ifFailed(crossinline func: Failed<T, E>.() -> Unit): Result<T, E> {
-        when (this) {
-            is Ok -> {}
-
-            is Failed -> {
-                func(this)
-            }
-        }
-        return this
-    }
+    fun <U> map(transform: (T) -> U): Result<U, E>
 }
 
+// ExResult: Extended result type with Ok, Failed, and Warn states / 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态
+sealed interface ExResult<out T, out E : Error> {
+    val ok: Boolean get() = false
+    val failed: Boolean get() = false
+    val warned: Boolean get() = false
+    val value: T? get() = null
+
+    fun <U> map(transform: (T) -> U): ExResult<U, E>
+}
+
+// Ok: Success result with value / 成功结果，包含值
+// Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
 class Ok<out T, out E : Error>(
     override val value: T
-) : Result<T, E>() {
-    override val ok = true
+) : Result<T, E>, ExResult<T, E> {
+    override val ok: Boolean get() = true
+    override val failed: Boolean get() = false
 
     inline fun <reified U> getAs(): U? {
-        return if (value is U) {
-            value
-        } else {
-            null
-        }
+        return if (value is U) value else null
     }
 
-    override fun <U> map(transform: Extractor<U, T>): Result<U, E> {
+    override fun <U> map(transform: (T) -> U): Ok<U, E> {
         return Ok(transform(value))
     }
 }
 
+// Failed: Failed result with error / 失败结果，包含错误
+// Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
 class Failed<out T, out E : Error>(
     val error: E
-) : Result<T, E>() {
+) : Result<T, E>, ExResult<T, E> {
     companion object {
         operator fun <T> invoke(code: ErrorCode, message: String? = null): Failed<T, Error> {
             return Failed(Err(code, message))
@@ -67,7 +57,9 @@ class Failed<out T, out E : Error>(
         }
     }
 
-    override val failed = true
+    override val ok: Boolean get() = false
+    override val failed: Boolean get() = true
+    override val value: T? get() = null
 
     val code by error::code
     val message by error::message
@@ -75,14 +67,80 @@ class Failed<out T, out E : Error>(
     val withValue by error::withValue
     val errValue by error::value
 
-    override fun <U> map(transform: (T) -> U): Result<U, E> {
+    override fun <U> map(transform: (T) -> U): Failed<U, E> {
         return Failed(error)
+    }
+}
+
+// Warn: Warning result with both value and warning error / 警告结果，包含值和警告错误
+// Only implements ExResult / 仅实现 ExResult
+class Warn<out T, out E : Error>(
+    override val value: T,
+    val warning: E
+) : ExResult<T, E> {
+    companion object {
+        operator fun <T> invoke(value: T, code: ErrorCode, message: String? = null): Warn<T, Error> {
+            return Warn(value, Err(code, message))
+        }
+
+        operator fun <T, E> invoke(value: T, code: ErrorCode, warningValue: E): Warn<T, Error> {
+            return Warn(value, ExErr(code, warningValue))
+        }
+
+        operator fun <T, E> invoke(value: T, code: ErrorCode, message: String, warningValue: E): Warn<T, Error> {
+            return Warn(value, ExErr(code, message, warningValue))
+        }
+    }
+
+    override val ok: Boolean get() = false
+    override val failed: Boolean get() = false
+    override val warned: Boolean get() = true
+
+    val code by warning::code
+    val warningMessage by warning::message
+
+    val withWarningValue by warning::withValue
+    val warningValue by warning::value
+
+    inline fun <reified U> getAs(): U? {
+        return if (value is U) value else null
+    }
+
+    override fun <U> map(transform: (T) -> U): Warn<U, E> {
+        return Warn(transform(value), warning)
     }
 }
 
 class Success
 
 val success = Success()
+
+// Extension functions for Result / Result 的扩展函数
+inline fun <T, E : Error> Result<T, E>.ifOk(crossinline func: Ok<T, E>.() -> Unit): Result<T, E> {
+    if (this is Ok) func(this)
+    return this
+}
+
+inline fun <T, E : Error> Result<T, E>.ifFailed(crossinline func: Failed<T, E>.() -> Unit): Result<T, E> {
+    if (this is Failed) func(this)
+    return this
+}
+
+// Extension functions for ExResult / ExResult 的扩展函数
+inline fun <T, E : Error> ExResult<T, E>.ifOk(crossinline func: Ok<T, E>.() -> Unit): ExResult<T, E> {
+    if (this is Ok) func(this)
+    return this
+}
+
+inline fun <T, E : Error> ExResult<T, E>.ifFailed(crossinline func: Failed<T, E>.() -> Unit): ExResult<T, E> {
+    if (this is Failed) func(this)
+    return this
+}
+
+inline fun <T, E : Error> ExResult<T, E>.ifWarned(crossinline func: Warn<T, E>.() -> Unit): ExResult<T, E> {
+    if (this is Warn) func(this)
+    return this
+}
 
 typealias Try = Result<Success, Error>
 typealias TryWith<E> = Result<Success, E>
@@ -97,10 +155,7 @@ fun run(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
     return ok
@@ -112,10 +167,7 @@ suspend fun syncRun(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
     return ok
@@ -127,10 +179,7 @@ fun run(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
     return ok
@@ -142,10 +191,7 @@ suspend fun syncRun(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
     return ok
@@ -158,13 +204,9 @@ fun <T> run(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
-
     return lastBlock()
 }
 
@@ -175,13 +217,9 @@ suspend fun <T> syncRun(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
-
     return lastBlock()
 }
 
@@ -192,13 +230,9 @@ fun <T> run(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
-
     return lastBlock()
 }
 
@@ -209,12 +243,124 @@ suspend fun <T> syncRun(
     for (block in blocks) {
         when (val result = block()) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
+            is Failed -> return Failed(result.error)
         }
     }
+    return lastBlock()
+}
 
+// Type aliases for ExResult / ExResult 的类型别名
+typealias ExTry = ExResult<Success, Error>
+typealias ExTryWith<E> = ExResult<Success, E>
+typealias ExRet<T> = ExResult<T, Error>
+
+val exOk = Ok<Success, Error>(success)
+fun <E : Error> exOk(): ExResult<Success, E> = Ok(success)
+
+fun exRun(
+    vararg blocks: () -> ExTry
+): ExTry {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return exOk
+}
+
+suspend fun exSyncRun(
+    vararg blocks: suspend () -> ExTry
+): ExTry {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return exOk
+}
+
+fun exRun(
+    blocks: Iterable<() -> ExTry>
+): ExTry {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return exOk
+}
+
+suspend fun exSyncRun(
+    blocks: Iterable<suspend () -> ExTry>
+): ExTry {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return exOk
+}
+
+fun <T> exRun(
+    vararg blocks: () -> ExTry,
+    lastBlock: () -> ExRet<T>
+): ExRet<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return lastBlock()
+}
+
+suspend fun <T> exSyncRun(
+    vararg blocks: suspend () -> ExTry,
+    lastBlock: suspend () -> ExRet<T>
+): ExRet<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return lastBlock()
+}
+
+fun <T> exRun(
+    blocks: Iterable<() -> ExTry>,
+    lastBlock: () -> ExRet<T>
+): ExRet<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
+    return lastBlock()
+}
+
+suspend fun <T> exSyncRun(
+    blocks: Iterable<suspend () -> ExTry>,
+    lastBlock: suspend () -> ExRet<T>
+): ExRet<T> {
+    for (block in blocks) {
+        when (val result = block()) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Warn -> {}
+        }
+    }
     return lastBlock()
 }
