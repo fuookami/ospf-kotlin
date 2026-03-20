@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.utils
 
 import kotlin.time.*
+import kotlin.time.Instant
 import kotlin.time.Duration.Companion.days
 import kotlinx.datetime.*
 
+@OptIn(ExperimentalTime::class)
 fun max(lhs: Instant, rhs: Instant): Instant {
     return if (lhs <= rhs) {
         rhs
@@ -12,6 +14,7 @@ fun max(lhs: Instant, rhs: Instant): Instant {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 fun min(lhs: Instant, rhs: Instant): Instant {
     return if (lhs <= rhs) {
         lhs
@@ -36,6 +39,7 @@ fun min(lhs: Duration, rhs: Duration): Duration {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 fun Instant.truncatedTo(unit: DurationUnit): Instant {
     return this
         .toJavaInstant()
@@ -51,10 +55,12 @@ fun<T> Iterable<T>.sumOf(extractor: (T) -> Duration): Duration {
     return this.fold(Duration.ZERO) { acc, duration -> acc + extractor(duration) }
 }
 
+@OptIn(ExperimentalTime::class)
 fun Instant.nextDay(): Instant {
     return this + 1.days
 }
 
+@OptIn(ExperimentalTime::class)
 fun Instant.lastDay(): Instant {
     return this - 1.days
 }

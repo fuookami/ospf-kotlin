@@ -198,6 +198,7 @@ class GAPolicy<V>(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 class GeneAlgorithm<Obj, V>(
     val population: List<PopulationBuilder>,
     val migrationPeriod: UInt64,

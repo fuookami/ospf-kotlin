@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework
 
 import kotlin.time.*
+import kotlin.time.Clock
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -19,6 +20,7 @@ data class RunningHeartBeat(
     val progress: String? = null,
     val message: String? = null
 ) {
+    @OptIn(ExperimentalTime::class)
     val time: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 }
 
@@ -28,6 +30,7 @@ data class FinnishHeartBeat(
     val code: UInt64,
     val message: String
 ) {
+    @OptIn(ExperimentalTime::class)
     val time: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
     companion object {

@@ -1,12 +1,13 @@
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
 import kotlin.time.*
-import kotlinx.datetime.*
+import kotlin.time.Instant
 import com.hexaly.optimizer.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 
+@OptIn(ExperimentalTime::class)
 abstract class HexalySolver : AutoCloseable {
     protected lateinit var optimizer: HexalyOptimizer
     protected lateinit var hexalyModel: HxModel

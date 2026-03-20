@@ -23,7 +23,7 @@
         <module>ospf-kotlin-starters</module>
     </modules>
     <groupId>io.github.fuookami.ospf.kotlin</groupId>
-    <version>1.0.72</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>ospf-kotlin</name>
     <description>operation research algorithm software framework</description>
@@ -62,12 +62,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
-        <kotlin.version>1.9.24</kotlin.version>
+        <kotlin.version>2.2.20</kotlin.version>
         <!-- kotlinx -->
-        <kotlinx-datetime.version>0.6.0</kotlinx-datetime.version>
-        <kotlinx-coroutines.version>1.8.1</kotlinx-coroutines.version>
-        <kotlinx-serialization.version>1.6.3</kotlinx-serialization.version>
-        <kotlinx-serialization-csv.version>2.0.0</kotlinx-serialization-csv.version>
+        <kotlinx-datetime.version>0.7.1</kotlinx-datetime.version>
+        <kotlinx-coroutines.version>1.10.2</kotlinx-coroutines.version>
+        <kotlinx-serialization.version>1.9.0</kotlinx-serialization.version>
+        <kotlinx-serialization-csv.version>2.1.3</kotlinx-serialization-csv.version>
         <!-- 3rd-party -->
         <annotations.version>23.0.0</annotations.version>
         <log4j.version>2.22.0</log4j.version>
@@ -77,7 +77,7 @@
         <complex-numbers.version>1.0</complex-numbers.version>
         <apache-commons-math3.version>3.6.1</apache-commons-math3.version>
         <ktorm.version>4.1.1</ktorm.version>
-        <http4k.version>5.13.7.0</http4k.version>
+        <http4k.version>6.18.1.0</http4k.version>
     </properties>
 
     <build>

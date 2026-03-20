@@ -64,11 +64,9 @@ class IntegerRange<I>(
     private val constants: RealNumberConstants<I>
 ) : Iterable<I>, ClosedRange<I> where I : Integer<I>, I : PlusGroup<I>, I : Rem<I, I> {
     init {
-        @Throws(IllegalArgumentException::class)
         if (step == step.constants.zero) {
             throw IllegalArgumentException("Step must be non-zero.")
         }
-        @Throws(IllegalArgumentException::class)
         if (step == step.constants.minimum) {
             throw IllegalArgumentException("Step must be greater than ${step.javaClass}.minimum to avoid overflow on negation.")
         }
@@ -149,11 +147,9 @@ class NumericUIntegerRange<NI, I>(
     val step: I by lazy { converter(_step) }
 
     init {
-        @Throws(IllegalArgumentException::class)
         if (step == step.constants.zero) {
             throw IllegalArgumentException("Step must be non-zero.")
         }
-        @Throws(IllegalArgumentException::class)
         if (step == step.constants.minimum) {
             throw IllegalArgumentException("Step must be greater than ${step.javaClass}.minimum to avoid overflow on negation.")
         }

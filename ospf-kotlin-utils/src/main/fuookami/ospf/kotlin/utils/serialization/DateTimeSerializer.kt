@@ -2,11 +2,14 @@ package fuookami.ospf.kotlin.utils.serialization
 
 import java.time.format.*
 import java.time.temporal.*
+import kotlin.time.*
+import kotlin.time.Instant
 import kotlinx.datetime.*
 import kotlinx.serialization.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
 
+@OptIn(ExperimentalTime::class)
 data object DateTimeSerializer : KSerializer<Instant> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         .withZone(TimeZone.currentSystemDefault().toJavaZoneId())

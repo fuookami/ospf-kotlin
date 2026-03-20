@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import kotlin.time.*
-import kotlinx.datetime.*
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
@@ -92,6 +91,7 @@ class ScipQuadraticSolver(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 private class ScipQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: ScipSolverCallBack? = null,
