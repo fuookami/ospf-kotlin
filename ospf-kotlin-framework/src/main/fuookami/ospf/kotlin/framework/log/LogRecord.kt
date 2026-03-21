@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.log
 
 import java.io.*
 import kotlin.time.*
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.reflect.*
 import kotlinx.datetime.*
@@ -27,6 +28,7 @@ interface LogRecord {
     val availableTime: LocalDateTime
 }
 
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class LogRecordPO<T : Any>(
     override val app: String,

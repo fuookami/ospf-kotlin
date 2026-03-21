@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
 import kotlin.time.*
-import kotlinx.datetime.*
 import kotlinx.coroutines.*
 import com.hexaly.optimizer.*
 import fuookami.ospf.kotlin.utils.*
@@ -229,6 +228,7 @@ private class HexalyLinearSolverImpl(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)

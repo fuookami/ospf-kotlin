@@ -30,7 +30,7 @@ class Ok<out T, out E : Error>(
     override val failed: Boolean get() = false
 
     inline fun <reified U> getAs(): U? {
-        return if (value is U) value else null
+        return value as? U
     }
 
     override fun <U> map(transform: (T) -> U): Ok<U, E> {
@@ -72,6 +72,50 @@ class Failed<out T, out E : Error>(
     }
 }
 
+// Fatal: Fatal result with multiple errors / 致命结果，包含多个错误
+// Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
+class Fatal<out T, out E : Error>(
+    val errors: List<E>
+) : Result<T, E>, ExResult<T, E> {
+    companion object {
+        operator fun <T> invoke(vararg errors: Error): Fatal<T, Error> {
+            return Fatal(errors.toList())
+        }
+
+        operator fun <T> invoke(code: ErrorCode, message: String? = null): Fatal<T, Error> {
+            return Fatal(listOf(Err(code, message)))
+        }
+
+        operator fun <T, E> invoke(code: ErrorCode, value: E): Fatal<T, Error> {
+            return Fatal(listOf(ExErr(code, value)))
+        }
+
+        operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Fatal<T, Error> {
+            return Fatal(listOf(ExErr(code, message, value)))
+        }
+    }
+
+    override val ok: Boolean get() = false
+    override val failed: Boolean get() = true
+    override val value: T? get() = null
+
+    val firstError: E? get() = errors.firstOrNull()
+    val size: Int get() = errors.size
+    val isEmpty: Boolean get() = errors.isEmpty()
+
+    override fun <U> map(transform: (T) -> U): Fatal<U, E> {
+        return Fatal(errors)
+    }
+
+    fun <U : Error> merge(other: Fatal<*, U>): Fatal<T, Error> {
+        return Fatal(errors + other.errors)
+    }
+
+    inline fun forEach(action: (E) -> Unit) {
+        errors.forEach(action)
+    }
+}
+
 // Warn: Warning result with both value and warning error / 警告结果，包含值和警告错误
 // Only implements ExResult / 仅实现 ExResult
 class Warn<out T, out E : Error>(
@@ -103,7 +147,7 @@ class Warn<out T, out E : Error>(
     val warningValue by warning::value
 
     inline fun <reified U> getAs(): U? {
-        return if (value is U) value else null
+        return value as? U
     }
 
     override fun <U> map(transform: (T) -> U): Warn<U, E> {
@@ -126,6 +170,11 @@ inline fun <T, E : Error> Result<T, E>.ifFailed(crossinline func: Failed<T, E>.(
     return this
 }
 
+inline fun <T, E : Error> Result<T, E>.ifFatal(crossinline func: Fatal<T, E>.() -> Unit): Result<T, E> {
+    if (this is Fatal) func(this)
+    return this
+}
+
 // Extension functions for ExResult / ExResult 的扩展函数
 inline fun <T, E : Error> ExResult<T, E>.ifOk(crossinline func: Ok<T, E>.() -> Unit): ExResult<T, E> {
     if (this is Ok) func(this)
@@ -134,6 +183,11 @@ inline fun <T, E : Error> ExResult<T, E>.ifOk(crossinline func: Ok<T, E>.() -> U
 
 inline fun <T, E : Error> ExResult<T, E>.ifFailed(crossinline func: Failed<T, E>.() -> Unit): ExResult<T, E> {
     if (this is Failed) func(this)
+    return this
+}
+
+inline fun <T, E : Error> ExResult<T, E>.ifFatal(crossinline func: Fatal<T, E>.() -> Unit): ExResult<T, E> {
+    if (this is Fatal) func(this)
     return this
 }
 
@@ -156,6 +210,7 @@ fun run(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return ok
@@ -168,6 +223,7 @@ suspend fun syncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return ok
@@ -180,6 +236,7 @@ fun run(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return ok
@@ -192,6 +249,7 @@ suspend fun syncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return ok
@@ -205,6 +263,7 @@ fun <T> run(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return lastBlock()
@@ -218,6 +277,7 @@ suspend fun <T> syncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return lastBlock()
@@ -231,6 +291,7 @@ fun <T> run(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return lastBlock()
@@ -244,6 +305,7 @@ suspend fun <T> syncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return lastBlock()
@@ -264,6 +326,7 @@ fun exRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -277,6 +340,7 @@ suspend fun exSyncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -290,6 +354,7 @@ fun exRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -303,6 +368,7 @@ suspend fun exSyncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -317,6 +383,7 @@ fun <T> exRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -331,6 +398,7 @@ suspend fun <T> exSyncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -345,6 +413,7 @@ fun <T> exRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }
@@ -359,6 +428,7 @@ suspend fun <T> exSyncRun(
         when (val result = block()) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
             is Warn -> {}
         }
     }

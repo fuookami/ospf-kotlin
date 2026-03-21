@@ -4,13 +4,13 @@ import java.util.*
 import java.io.*
 import jscip.*
 import kotlin.time.*
-import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.backend.solver.output.*
 import fuookami.ospf.kotlin.utils.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 
+@OptIn(ExperimentalTime::class)
 abstract class ScipSolver : AutoCloseable {
     companion object {
         internal var loadedLibrary = false

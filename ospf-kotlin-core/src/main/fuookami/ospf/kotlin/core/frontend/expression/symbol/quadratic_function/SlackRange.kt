@@ -103,6 +103,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             is URealVar -> {
                 (_neg as URealVar).range.set(ValueRange(neg.lowerBound!!.value.unwrap(), neg.upperBound!!.value.unwrap()).value!!)
             }
+
+            else -> {}
         }
 
         when (_pos) {
@@ -113,6 +115,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             is URealVar -> {
                 (_pos as URealVar).range.set(ValueRange(pos.lowerBound!!.value.unwrap(), pos.upperBound!!.value.unwrap()).value!!)
             }
+
+            else -> {}
         }
     }
 

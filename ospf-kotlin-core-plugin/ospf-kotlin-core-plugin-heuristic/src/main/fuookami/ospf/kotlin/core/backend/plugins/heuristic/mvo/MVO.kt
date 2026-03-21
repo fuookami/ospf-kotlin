@@ -159,6 +159,7 @@ open class MVOPolicy<V>(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 class MultiVerseOptimizer<Obj, V>(
     val universeAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,

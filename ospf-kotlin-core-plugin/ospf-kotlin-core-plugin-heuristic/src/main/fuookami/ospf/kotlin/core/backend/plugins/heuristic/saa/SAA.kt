@@ -147,6 +147,7 @@ open class SAAPolicy<V>(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 class SimulatedAnnealingAlgorithm<Obj, V>(
     val policy: AbstractSAAPolicy<V>
 ) {

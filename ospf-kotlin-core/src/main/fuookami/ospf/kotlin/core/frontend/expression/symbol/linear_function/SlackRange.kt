@@ -113,6 +113,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
                     ).value!!
                 )
             }
+
+            else -> {}
         }
 
         when (_pos) {
@@ -133,6 +135,8 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
                     ).value!!
                 )
             }
+
+            else -> {}
         }
     }
 

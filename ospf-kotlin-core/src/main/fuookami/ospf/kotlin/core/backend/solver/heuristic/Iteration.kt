@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import kotlinx.datetime.*
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 
+@OptIn(ExperimentalTime::class)
 open class Iteration(
     private var _iteration: UInt64 = UInt64.zero,
     private var _notBetterIteration: UInt64 = UInt64.zero,

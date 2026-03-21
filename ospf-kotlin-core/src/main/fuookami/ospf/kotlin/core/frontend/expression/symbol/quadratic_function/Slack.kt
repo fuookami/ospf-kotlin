@@ -160,6 +160,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                         ).value!!
                     )
                 }
+
+                else -> {}
             }
         }
 
@@ -182,6 +184,8 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                         ).value!!
                     )
                 }
+
+                else -> {}
             }
         }
     }

@@ -42,11 +42,11 @@ interface UnitSystem {
             // 幂次运算：scale^power
             val powerScale = if (fq.index > 0) {
                 var s = Scale()
-                for (i in 1..fq.index) s = s * baseScale
+                for (i in 1..fq.index) s *= baseScale
                 s
             } else {
                 var s = Scale()
-                for (i in 1..-fq.index) s = s / baseScale
+                for (i in 1..-fq.index) s /= baseScale
                 s
             }
             result = result * powerScale
@@ -135,6 +135,10 @@ data object SI : UnitSystem {
             put(Frequency, Hertz)
             put(Force, Newton)
             put(Pressure, Pascal)
+            put(Energy, Joule)
+            put(Voltage, Volt)
+            put(ElectricCharge, Coulomb)
+            put(Capacitance, Farad)
             put(Resistance, Ohm)
         }
     }

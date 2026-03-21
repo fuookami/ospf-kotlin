@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.persistence
 
 import java.io.*
+import kotlin.time.Clock
 import kotlin.reflect.*
 import kotlinx.datetime.*
 import kotlinx.serialization.*
@@ -11,6 +12,7 @@ import org.ktorm.schema.*
 import org.ktorm.database.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.serialization.*
+import kotlin.time.ExperimentalTime
 
 interface RequestRecordRPO : Entity<RequestRecordRPO> {
     companion object : Entity.Factory<RequestRecordRPO>()
@@ -58,6 +60,7 @@ open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tabl
     val response = blob("response").bindTo { it.response }
 }
 
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class RequestRecordPO<T>(
     val id: String,
@@ -219,6 +222,7 @@ data object RequestRecordDAO {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Serializable
 data class ResponseRecordPO<T>(
     val id: String,

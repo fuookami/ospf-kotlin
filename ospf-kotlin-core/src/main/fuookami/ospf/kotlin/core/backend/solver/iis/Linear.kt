@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
 import java.io.*
-import kotlinx.datetime.*
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -25,6 +25,7 @@ data class LinearIISModel(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 suspend fun computeIIS(
     model: LinearTriadModelView,
     solver: AbstractLinearSolver,
@@ -294,6 +295,7 @@ private suspend fun performElasticFiltering(
 }
 
 @Suppress("UNUSED_PARAMETER")
+@OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,

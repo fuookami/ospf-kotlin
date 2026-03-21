@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
 import kotlin.time.*
-import kotlinx.datetime.*
+import kotlin.time.Clock
 import kotlinx.coroutines.*
 import com.hexaly.optimizer.*
 import fuookami.ospf.kotlin.utils.*
@@ -258,6 +258,7 @@ private class HexalyQuadraticSolverImpl(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)

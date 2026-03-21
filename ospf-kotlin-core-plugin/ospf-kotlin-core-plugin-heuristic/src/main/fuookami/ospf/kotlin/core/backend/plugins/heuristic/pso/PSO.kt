@@ -66,6 +66,7 @@ open class PSOPolicy<V>(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 class ParticleSwarmOptimizationAlgorithm<Obj, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,

@@ -121,6 +121,7 @@ class GWOPolicy<V>(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 class GreyWolfOptimizer<Obj, V>(
     val population: List<PopulationBuilder>,
     val solutionAmount: UInt64 = UInt64.one,

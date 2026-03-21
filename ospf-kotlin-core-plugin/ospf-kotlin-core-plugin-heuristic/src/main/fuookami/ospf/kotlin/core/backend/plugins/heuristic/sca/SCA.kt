@@ -213,6 +213,7 @@ class SCAPolicy<V>(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 class SineCosineAlgorithm<Obj, V>(
     val populationAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
