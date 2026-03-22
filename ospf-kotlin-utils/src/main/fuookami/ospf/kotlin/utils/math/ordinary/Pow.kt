@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import java.math.*
 import fuookami.ospf.kotlin.utils.math.*
+import java.math.RoundingMode
 import kotlin.reflect.full.companionObjectInstance
 
 private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(
@@ -187,7 +187,7 @@ fun <T : FloatingNumber<T>> exp(
     digits: Int = constants.decimalDigits ?: 0,
     precision: T = constants.epsilon
 ): T {
-    var value  = constants.one
+    var value = constants.one
     var term = constants.one
     var i = constants.one
     while (true) {

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 data class Circle<P : Point<D>, V : Vector<D>, D : Dimension>(
     val center: P,

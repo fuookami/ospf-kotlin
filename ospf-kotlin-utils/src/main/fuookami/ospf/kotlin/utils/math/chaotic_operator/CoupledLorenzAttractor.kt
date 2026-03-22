@@ -1,9 +1,12 @@
 package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
-import kotlin.random.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point3
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.math.nextFlt64
+import kotlin.random.Random
 
 data class CoupledLorenzAttractor(
     val beta: Flt64 = Flt64(8.0 / 3.0),
@@ -72,7 +75,7 @@ data class CoupledLorenzAttractorGenerator(
                 Random.nextFlt64(Flt64.zero, Flt64.one),
                 Random.nextFlt64(Flt64.zero, Flt64.one)
             )
-        ) : CoupledLorenzAttractorGenerator {
+        ): CoupledLorenzAttractorGenerator {
             return CoupledLorenzAttractorGenerator(
                 CoupledLorenzAttractor(
                     beta = beta,

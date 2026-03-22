@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 
 @JvmInline
 @Serializable

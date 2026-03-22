@@ -1,11 +1,16 @@
 package fuookami.ospf.kotlin.core.frontend.inequality.adapter
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCoreMonomialRet
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
 
 private fun <CoreMonomial, UtilsMonomial> mergeMonomialsByUtils(
     positiveMonomials: List<CoreMonomial>,
@@ -32,6 +37,10 @@ private fun <CoreMonomial, UtilsMonomial> mergeMonomialsByUtils(
             is Ok -> coreMonomials.add(result.value)
             is Failed -> {
                 error("$errorPrefix normalize adapter failed unexpectedly: ${result.error}")
+            }
+
+            is Fatal -> {
+                error("$errorPrefix normalize adapter failed unexpectedly: ${result.errors}")
             }
         }
     }

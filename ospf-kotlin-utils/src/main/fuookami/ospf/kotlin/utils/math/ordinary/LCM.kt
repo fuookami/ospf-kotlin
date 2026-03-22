@@ -1,10 +1,13 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.operator.Div
+import fuookami.ospf.kotlin.utils.operator.Minus
+import fuookami.ospf.kotlin.utils.operator.Pow
+import fuookami.ospf.kotlin.utils.operator.Rem
+import kotlin.reflect.full.companionObjectInstance
 
-fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I: Integer<I>, I: Pow<I>, I: Div<I, I>, I: Rem<I, I> {
+fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     val factors = numbers.map { factorizeImpl(it, constants) }
     if (factors.isEmpty()) {
         return constants.one
@@ -23,7 +26,7 @@ fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
     }
 }
 
-inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I: Div<I, I> {
+inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I : Div<I, I> {
     val px = x.abs()
     val py = y.abs()
     val thisGCD = gcd(px, py)
@@ -31,11 +34,11 @@ inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I
 }
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I: Pow<I>, I : Rem<I, I>, I : Div<I, I> {
+inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
     return lcmImpl(numbers, (I::class.companionObjectInstance as RealNumberConstants<I>))
 }
 
-inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I: Pow<I>, I : Rem<I, I>, I : Div<I, I> {
+inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
     return lcm(listOf(x, y, z) + numbers.toList())
 }
 
@@ -68,7 +71,7 @@ fun lcm(numbers: Iterable<FltX>): FltX {
     return lcmImpl(integerNumbers.sortedDescending(), IntX).toFltX() / FltX.ten.pow(factor)
 }
 
-fun <F: FltX> lcm(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
+fun <F : FltX> lcm(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
     return lcm(listOf(x, y, z) + numbers.toList())
 }
 

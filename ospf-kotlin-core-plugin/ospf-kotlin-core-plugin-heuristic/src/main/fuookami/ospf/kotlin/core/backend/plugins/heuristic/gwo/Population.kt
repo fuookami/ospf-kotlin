@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gwo
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
+import fuookami.ospf.kotlin.core.backend.solver.heuristic.SolutionWithFitness
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 typealias Wolf<V> = SolutionWithFitness<V>
+
 val <V> Wolf<V>.location: List<Flt64> get() = solution
 
 typealias AbstractPopulation<V> = fuookami.ospf.kotlin.core.backend.solver.heuristic.Population<Wolf<V>, V>

@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 data class CostItem(
     val tag: String,

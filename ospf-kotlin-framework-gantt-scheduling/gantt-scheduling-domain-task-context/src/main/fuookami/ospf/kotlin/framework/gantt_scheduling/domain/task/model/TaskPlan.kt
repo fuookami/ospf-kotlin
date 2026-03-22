@@ -1,9 +1,11 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import kotlin.time.*
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.datetime.Instant
+import kotlin.time.Duration
 
 enum class TaskStatus {
     NotAdvance,
@@ -151,18 +153,18 @@ open class SingleStepTaskPlan<out E : Executor>(
 ) : AbstractTaskPlan<E>
 
 interface AbstractTaskStepPlan<
-    out Self : AbstractTaskStepPlan<Self, T, E>,
-    out T : AbstractMultiStepTask<T, Self, E>,
-    out E : Executor
-> : AbstractTaskPlan<E> {
+        out Self : AbstractTaskStepPlan<Self, T, E>,
+        out T : AbstractMultiStepTask<T, Self, E>,
+        out E : Executor
+        > : AbstractTaskPlan<E> {
     val parent: AbstractMultiStepTask<T, Self, E>
     val step: TaskStep<T, Self, E>
 }
 
 open class TaskStepPlan<
-    out T : AbstractMultiStepTask<T, TaskStepPlan<T, E>, E>,
-    out E : Executor
->(
+        out T : AbstractMultiStepTask<T, TaskStepPlan<T, E>, E>,
+        out E : Executor
+        >(
     final override val parent: T,
     final override val step: TaskStep<T, TaskStepPlan<T, E>, E>,
     status: Set<TaskStatus> = parent.status
@@ -174,10 +176,10 @@ open class TaskStepPlan<
 }
 
 interface AbstractMultiStepTask<
-    out Self : AbstractMultiStepTask<Self, S, E>, 
-    out S : AbstractTaskStepPlan<S, Self, E>,
-    out E : Executor
-> {
+        out Self : AbstractMultiStepTask<Self, S, E>,
+        out S : AbstractTaskStepPlan<S, Self, E>,
+        out E : Executor
+        > {
     val id: String
     val name: String
     val stepGraph: TaskStepGraph<Self, S, E>
@@ -187,14 +189,14 @@ interface AbstractMultiStepTask<
 }
 
 open class MultiStepTask<
-    out E : Executor
->(
+        out E : Executor
+        >(
     override val id: String,
     override val name: String,
     final override val stepGraph: TaskStepGraph<
-        MultiStepTask<E>,
-        TaskStepPlan<MultiStepTask<E>, E>, E
-    >,
+            MultiStepTask<E>,
+            TaskStepPlan<MultiStepTask<E>, E>, E
+            >,
     override val status: Set<TaskStatus>,
 ) : AbstractMultiStepTask<MultiStepTask<E>, TaskStepPlan<MultiStepTask<E>, E>, E> {
     override val steps: List<TaskStepPlan<MultiStepTask<E>, E>> by lazy {

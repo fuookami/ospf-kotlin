@@ -1,12 +1,20 @@
 package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.inequality.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 
 private val canonicalSymbolComparator: java.util.Comparator<Symbol> = java.util.Comparator { lhs, rhs ->
     val byName = lhs.name.compareTo(rhs.name)

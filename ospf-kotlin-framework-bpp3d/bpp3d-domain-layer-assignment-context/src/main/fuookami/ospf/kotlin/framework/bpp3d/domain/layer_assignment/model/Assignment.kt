@@ -1,15 +1,25 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols2
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.BinaryzationFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
+import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable1
+import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable2
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.multi_array.Shape2
+import fuookami.ospf.kotlin.utils.multi_array._a
 
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,
@@ -32,6 +42,10 @@ class ImpreciseAssignment(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -64,6 +78,10 @@ class ImpreciseAssignment(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -113,6 +131,10 @@ class PreciseAssignment(
                         is Failed -> {
                             return Failed(result.error)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                 }
             }
@@ -135,6 +157,10 @@ class PreciseAssignment(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::v.isInitialized) {
@@ -154,6 +180,10 @@ class PreciseAssignment(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::tail.isInitialized) {
@@ -167,6 +197,10 @@ class PreciseAssignment(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

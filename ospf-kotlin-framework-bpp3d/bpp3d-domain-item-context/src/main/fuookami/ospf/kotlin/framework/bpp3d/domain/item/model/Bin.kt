@@ -1,15 +1,20 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.combinatorics.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.combinatorics.permuteAsync
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.operator.ord
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 
 class BinType(
     // inherited from Container3Shape

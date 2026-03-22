@@ -1,14 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 /**
  * 分时隙任务束编译上下文接口
@@ -21,17 +26,17 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  * Provides capacity pre-solving functionality to obtain slot-level intermediate values.
  */
 interface SlotBasedBunchCompilationContext<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    B,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    Action : ProductionAction,
-    M,
-    R,
-    C : Capacity<Action>
-> : BunchCompilationContext<Args, B, T, E, A>
-where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        B,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        Action : ProductionAction,
+        M,
+        R,
+        C : Capacity<Action>
+        > : BunchCompilationContext<Args, B, T, E, A>
+        where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
 
     /**
      * 时隙列表

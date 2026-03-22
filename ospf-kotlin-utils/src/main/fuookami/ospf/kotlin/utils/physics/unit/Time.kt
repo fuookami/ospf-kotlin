@@ -1,14 +1,13 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Time
 
 object Second : PhysicalUnit() {
     override val name: String = "second"
     override val symbol: String = "s"
 
     override val quantity = Time
-    override val system = SI
     override val scale: Scale = Scale()
 }
 

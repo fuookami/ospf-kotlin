@@ -1,18 +1,24 @@
 package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
-import java.util.*
-import kotlinx.coroutines.*
-import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import com.alibaba.damo.mindopt.MDO
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.solveFarkasDual
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
+import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import kotlinx.coroutines.*
 
 class MindOPTLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -48,6 +54,16 @@ class MindOPTLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -77,6 +93,11 @@ class MindOPTLinearBendersDecompositionSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -114,6 +135,16 @@ class MindOPTLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -149,6 +180,10 @@ class MindOPTLinearBendersDecompositionSolver(
 
                                     is Failed -> {
                                         return@afterFailure Failed(result.error)
+                                    }
+
+                                    is Fatal -> {
+                                        return@afterFailure Fatal(result.errors)
                                     }
                                 }
                             }
@@ -190,6 +225,11 @@ class MindOPTLinearBendersDecompositionSolver(
                         } else {
                             Failed(result.error)
                         }
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -250,6 +290,16 @@ class MindOPTQuadraticBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -279,6 +329,11 @@ class MindOPTQuadraticBendersDecompositionSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -337,6 +392,16 @@ class MindOPTQuadraticBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -373,6 +438,10 @@ class MindOPTQuadraticBendersDecompositionSolver(
                                     is Failed -> {
                                         return@afterFailure Failed(result.error)
                                     }
+
+                                    is Fatal -> {
+                                        return@afterFailure Fatal(result.errors)
+                                    }
                                 }
                             }
                             ok
@@ -399,6 +468,18 @@ class MindOPTQuadraticBendersDecompositionSolver(
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                         Ok(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
@@ -424,6 +505,18 @@ class MindOPTQuadraticBendersDecompositionSolver(
                                 is Failed -> {
                                     return Failed(result.error)
                                 }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                             Ok(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
@@ -435,6 +528,11 @@ class MindOPTQuadraticBendersDecompositionSolver(
                         } else {
                             Failed(result.error)
                         }
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }

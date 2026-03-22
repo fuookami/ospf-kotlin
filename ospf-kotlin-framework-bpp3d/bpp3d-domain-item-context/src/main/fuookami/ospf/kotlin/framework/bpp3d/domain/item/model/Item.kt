@@ -1,12 +1,15 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import kotlinx.coroutines.*
 
 data class PriorityAttribute(
     val key: String,
@@ -86,13 +89,14 @@ interface Item : Cuboid<Item>, Indexed {
 
     val packageType get() = packageAttribute.packageType
     val packageBottomShape get() = packageShape.bottomShape
-    val packageShape get() = PackageShape(
-        width = width,
-        height = height,
-        depth = depth,
-        weight = weight,
-        packageType = packageType
-    )
+    val packageShape
+        get() = PackageShape(
+            width = width,
+            height = height,
+            depth = depth,
+            weight = weight,
+            packageType = packageType
+        )
     val type: ItemType get() = ItemType(packageType)
     val packageCategory get() = packageType.category
     val maxLayer get() = packageAttribute.maxLayer
@@ -220,8 +224,9 @@ open class PatternedItem(
             val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
             val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
             val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume)
-            return Triple(PatternedItem(
-                actualItems = actualItems,
+            return Triple(
+                PatternedItem(
+                    actualItems = actualItems,
                 width = pattern.shape.width + deformation.x,
                 height = pattern.shape.height + deformation.y,
                 depth = pattern.shape.depth + deformation.z,
@@ -431,7 +436,7 @@ val ItemPlacement3.type: ItemType
     }
 
 @get:JvmName("itemProjectionPackageType")
-val ItemProjection<*,>.packageType: PackageType
+val ItemProjection<*>.packageType: PackageType
     get() {
         return unit.packageType
     }

@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 /**
  * 支持 ProductionAction 的产量/消耗接口
@@ -12,9 +13,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * This interface defines the relationship between production actions and product output/material consumption
  */
 interface CapacityActionProduce<
-    P : AbstractMaterial,
-    C : AbstractMaterial
-> {
+        P : AbstractMaterial,
+        C : AbstractMaterial
+        > {
     /**
      * 生产动作对应的产品产量（单位操作时间的产量）
      * Product produce per unit operation time
@@ -35,8 +36,8 @@ interface CapacityActionProduce<
  * @param product 产品 / Product
  * @return 产量 / Produce amount
  */
-fun <E : Executor, A : ProductionAction, P : AbstractMaterial> 
-    CapacityColumn<E, A>.produce(product: P): Flt64 {
+fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
+        CapacityColumn<E, A>.produce(product: P): Flt64 {
     var result = Flt64.zero
     for ((action, amount) in allocations) {
         if (action is CapacityActionProduce<*, *>) {
@@ -55,8 +56,8 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
  * @param material 原料 / Material
  * @return 消耗量 / Consumption amount
  */
-fun <E : Executor, A : ProductionAction, C : AbstractMaterial> 
-    CapacityColumn<E, A>.consumption(material: C): Flt64 {
+fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
+        CapacityColumn<E, A>.consumption(material: C): Flt64 {
     var result = Flt64.zero
     for ((action, amount) in allocations) {
         if (action is CapacityActionProduce<*, *>) {

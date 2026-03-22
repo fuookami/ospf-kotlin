@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
-import ilog.cplex.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import ilog.cplex.IloCplex
 
 abstract class CplexSolver : AutoCloseable {
     protected lateinit var cplex: IloCplex

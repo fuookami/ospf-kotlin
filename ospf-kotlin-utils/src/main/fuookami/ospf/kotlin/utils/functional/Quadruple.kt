@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 
 typealias Pair2<T> = Pair<T, T>
 typealias Triple3<T> = Triple<T, T, T>

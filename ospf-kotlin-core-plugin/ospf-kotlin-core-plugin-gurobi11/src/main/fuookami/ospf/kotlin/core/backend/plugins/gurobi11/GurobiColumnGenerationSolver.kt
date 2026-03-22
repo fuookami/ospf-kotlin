@@ -1,16 +1,21 @@
 package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
 
-import java.util.*
-import kotlinx.coroutines.*
-import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.utils.math.*
+import com.gurobi.gurobi.GRB
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.coroutines.*
 
 class GurobiColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -46,6 +51,16 @@ class GurobiColumnGenerationSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             val model = LinearTriadModel(
                 model = mechanismModel,
@@ -75,6 +90,11 @@ class GurobiColumnGenerationSolver(
                 is Failed -> {
                     jobs.joinAll()
                     Failed(result.error)
+                }
+
+                is Fatal -> {
+                    jobs.joinAll()
+                    Fatal(result.errors)
                 }
             }
         }
@@ -108,6 +128,16 @@ class GurobiColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
             }
         }.use { mechanismModel ->
             LinearTriadModel(
@@ -159,6 +189,11 @@ class GurobiColumnGenerationSolver(
                         jobs.joinAll()
                         Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -191,6 +226,16 @@ class GurobiColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
             }
         }.use { mechanismModel ->
             LinearTriadModel(
@@ -229,6 +274,11 @@ class GurobiColumnGenerationSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }

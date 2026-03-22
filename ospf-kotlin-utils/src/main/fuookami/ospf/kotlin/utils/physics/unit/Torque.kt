@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Torque
 
 object NewtonMeter : DerivedPhysicalUnit(Newton * Meter) {
     override val symbol = "newton meter"

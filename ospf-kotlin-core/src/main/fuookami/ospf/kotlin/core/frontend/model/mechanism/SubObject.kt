@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 sealed class SubObject(
     val category: ObjectCategory,

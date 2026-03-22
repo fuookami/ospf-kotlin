@@ -1,13 +1,18 @@
 package fuookami.ospf.kotlin.utils.math
 
-import java.math.*
-import kotlin.math.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.ordinary.pow
+import fuookami.ospf.kotlin.utils.operator.orderOf
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.math.BigInteger
+import kotlin.math.log
+import kotlin.math.pow
 
 interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self> {
     override fun abs() = copy()
@@ -63,18 +68,25 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     companion object : RealNumberConstants<UInt8> {
         @JvmStatic
         override val zero: UInt8 get() = UInt8(0U)
+
         @JvmStatic
         override val one: UInt8 get() = UInt8(1U)
+
         @JvmStatic
         override val two: UInt8 get() = UInt8(2U)
+
         @JvmStatic
         override val three: UInt8 get() = UInt8(3U)
+
         @JvmStatic
         override val five: UInt8 get() = UInt8(5U)
+
         @JvmStatic
         override val ten: UInt8 get() = UInt8(10U)
+
         @JvmStatic
         override val minimum: UInt8 get() = UInt8(UByte.MIN_VALUE)
+
         @JvmStatic
         override val maximum: UInt8 get() = UInt8(UByte.MAX_VALUE)
     }
@@ -178,18 +190,25 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
     companion object : RealNumberConstants<UInt16> {
         @JvmStatic
         override val zero: UInt16 get() = UInt16(0U)
+
         @JvmStatic
         override val one: UInt16 get() = UInt16(1U)
+
         @JvmStatic
         override val two: UInt16 get() = UInt16(2U)
+
         @JvmStatic
         override val three: UInt16 get() = UInt16(3U)
+
         @JvmStatic
         override val five: UInt16 get() = UInt16(5U)
+
         @JvmStatic
         override val ten: UInt16 get() = UInt16(10U)
+
         @JvmStatic
         override val minimum: UInt16 get() = UInt16(UShort.MIN_VALUE)
+
         @JvmStatic
         override val maximum: UInt16 get() = UInt16(UShort.MAX_VALUE)
     }
@@ -293,18 +312,25 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
     companion object : RealNumberConstants<UInt32> {
         @JvmStatic
         override val zero: UInt32 get() = UInt32(0U)
+
         @JvmStatic
         override val one: UInt32 get() = UInt32(1U)
+
         @JvmStatic
         override val two: UInt32 get() = UInt32(2U)
+
         @JvmStatic
         override val three: UInt32 get() = UInt32(3U)
+
         @JvmStatic
         override val five: UInt32 get() = UInt32(5U)
+
         @JvmStatic
         override val ten: UInt32 get() = UInt32(10U)
+
         @JvmStatic
         override val minimum: UInt32 get() = UInt32(UInt.MIN_VALUE)
+
         @JvmStatic
         override val maximum: UInt32 get() = UInt32(UInt.MAX_VALUE)
     }
@@ -413,18 +439,25 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     companion object : RealNumberConstants<UInt64> {
         @JvmStatic
         override val zero: UInt64 get() = UInt64(0UL)
+
         @JvmStatic
         override val one: UInt64 get() = UInt64(1UL)
+
         @JvmStatic
         override val two: UInt64 get() = UInt64(2UL)
+
         @JvmStatic
         override val three: UInt64 get() = UInt64(3UL)
+
         @JvmStatic
         override val five: UInt64 get() = UInt64(5UL)
+
         @JvmStatic
         override val ten: UInt64 get() = UInt64(10UL)
+
         @JvmStatic
         override val minimum: UInt64 get() = UInt64(ULong.MIN_VALUE)
+
         @JvmStatic
         override val maximum: UInt64 get() = UInt64(ULong.MAX_VALUE)
     }
@@ -533,18 +566,25 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     companion object : RealNumberConstants<UIntX> {
         @JvmStatic
         override val zero: UIntX get() = UIntX(0L)
+
         @JvmStatic
         override val one: UIntX get() = UIntX(1L)
+
         @JvmStatic
         override val two: UIntX get() = UIntX(2L)
+
         @JvmStatic
         override val three: UIntX get() = UIntX(3L)
+
         @JvmStatic
         override val five: UIntX get() = UIntX(5L)
+
         @JvmStatic
         override val ten: UIntX get() = UIntX(10L)
+
         @JvmStatic
         override val minimum: UIntX get() = UIntX(0L)
+
         @JvmStatic
         override val maximum: UIntX get() = UIntX(Double.MAX_VALUE.toString())
     }

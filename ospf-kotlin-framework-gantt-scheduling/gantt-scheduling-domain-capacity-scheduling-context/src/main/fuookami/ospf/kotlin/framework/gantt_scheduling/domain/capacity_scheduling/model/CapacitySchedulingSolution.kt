@@ -1,10 +1,11 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.time.Duration
 
 /**
  * 动作分配结果

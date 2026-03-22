@@ -1,10 +1,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlin.reflect.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.Int64
+import kotlin.reflect.KClass
 
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>

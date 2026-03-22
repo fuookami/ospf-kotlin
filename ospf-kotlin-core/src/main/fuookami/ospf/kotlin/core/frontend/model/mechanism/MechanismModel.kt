@@ -1,19 +1,22 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.usize
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.pow
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
 
-sealed interface MechanismModel: AutoCloseable {
+sealed interface MechanismModel : AutoCloseable {
     val name: String
     val constraints: List<Constraint>
     val objectFunction: Object
@@ -114,6 +117,10 @@ class LinearMechanismModel(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             logger.trace { "Tokens unfolded for $metaModel" }
@@ -331,6 +338,10 @@ class LinearMechanismModel(
                         is Failed -> {
                             Failed(result.error)
                         }
+
+                        is Fatal -> {
+                            Fatal(result.errors)
+                        }
                     }
                 }
 
@@ -347,6 +358,10 @@ class LinearMechanismModel(
 
                         is Failed -> {
                             Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            Fatal(result.errors)
                         }
                     }
                 }
@@ -490,6 +505,10 @@ class QuadraticMechanismModel(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             logger.trace { "Tokens unfolded for $metaModel" }
@@ -708,6 +727,10 @@ class QuadraticMechanismModel(
                         is Failed -> {
                             Failed(result.error)
                         }
+
+                        is Fatal -> {
+                            Fatal(result.errors)
+                        }
                     }
                 }
 
@@ -724,6 +747,10 @@ class QuadraticMechanismModel(
 
                         is Failed -> {
                             Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            Fatal(result.errors)
                         }
                     }
                 }

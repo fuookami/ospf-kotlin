@@ -1,7 +1,11 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 
 /**
  * 分时隙任务束接口
@@ -14,17 +18,17 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * The slot correspondence is ensured by the bunch generator.
  */
 interface SlotBasedBunch<
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
-> {
-    
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        > {
+
     /**
      * 所属时隙
      * The time slot this bunch belongs to
      */
     val slot: TimeSlot
-    
+
     /**
      * 时隙索引
      * Slot index in the time window

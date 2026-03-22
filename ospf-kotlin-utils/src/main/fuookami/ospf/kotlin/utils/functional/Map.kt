@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.get
 
 typealias MultiMap2<K1, K2, V> = Map<K1, Map<K2, V>>
 typealias MultiMap3<K1, K2, K3, V> = Map<K1, Map<K2, Map<K3, V>>>

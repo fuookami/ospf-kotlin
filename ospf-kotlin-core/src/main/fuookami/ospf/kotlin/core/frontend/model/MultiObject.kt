@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 data class MultiObjectLocation(
     val priority: UInt64,

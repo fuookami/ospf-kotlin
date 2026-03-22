@@ -1,17 +1,25 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     private val x: AbstractQuadraticPolynomial<*>,
@@ -130,7 +138,7 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
                 x.evaluate(tokenTable)
             } else {
                 x.evaluate(values, tokenTable)
-            }  ?: return null
+            } ?: return null
 
             val lbValue = if (values.isNullOrEmpty()) {
                 lb.evaluate(tokenTable)
@@ -175,6 +183,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -192,6 +208,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -203,6 +227,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -246,6 +278,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -257,6 +297,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -270,6 +318,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -286,6 +342,14 @@ sealed class AbstractSlackRangeFunction<V : Variable<*>>(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -498,9 +562,9 @@ object SlackRangeFunction {
     }
 
     operator fun <
-        T : ToQuadraticPolynomial<Poly>,
-        Poly : AbstractQuadraticPolynomial<Poly>
-    > invoke(
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+            > invoke(
         x: T,
         lb: Int,
         ub: Int,
@@ -530,9 +594,9 @@ object SlackRangeFunction {
     }
 
     operator fun <
-        T : ToQuadraticPolynomial<Poly>,
-        Poly : AbstractQuadraticPolynomial<Poly>
-    > invoke(
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+            > invoke(
         x: T,
         lb: Double,
         ub: Double,
@@ -557,9 +621,9 @@ object SlackRangeFunction {
     }
 
     operator fun <
-        T : ToQuadraticPolynomial<Poly>,
-        Poly : AbstractQuadraticPolynomial<Poly>
-    > invoke(
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+            > invoke(
         x: T,
         lb: Trivalent,
         ub: Trivalent,
@@ -589,9 +653,9 @@ object SlackRangeFunction {
     }
 
     operator fun <
-        T : ToQuadraticPolynomial<Poly>,
-        Poly : AbstractQuadraticPolynomial<Poly>
-    > invoke(
+            T : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>
+            > invoke(
         x: T,
         lb: BalancedTrivalent,
         ub: BalancedTrivalent,
@@ -621,11 +685,11 @@ object SlackRangeFunction {
     }
 
     operator fun <
-        T1 : ToQuadraticPolynomial<Poly>,
-        Poly : AbstractQuadraticPolynomial<Poly>,
-        T2 : RealNumber<T2>,
-        T3 : RealNumber<T3>
-    > invoke(
+            T1 : ToQuadraticPolynomial<Poly>,
+            Poly : AbstractQuadraticPolynomial<Poly>,
+            T2 : RealNumber<T2>,
+            T3 : RealNumber<T3>
+            > invoke(
         x: T1,
         lb: T2,
         ub: T3,
@@ -650,13 +714,13 @@ object SlackRangeFunction {
     }
 
     operator fun <
-        T1 : ToQuadraticPolynomial<Poly1>,
-        Poly1 : AbstractQuadraticPolynomial<Poly1>,
-        T2 : ToQuadraticPolynomial<Poly2>,
-        Poly2 : AbstractQuadraticPolynomial<Poly2>,
-        T3 : ToQuadraticPolynomial<Poly3>,
-        Poly3 : AbstractQuadraticPolynomial<Poly3>
-    > invoke(
+            T1 : ToQuadraticPolynomial<Poly1>,
+            Poly1 : AbstractQuadraticPolynomial<Poly1>,
+            T2 : ToQuadraticPolynomial<Poly2>,
+            Poly2 : AbstractQuadraticPolynomial<Poly2>,
+            T3 : ToQuadraticPolynomial<Poly3>,
+            Poly3 : AbstractQuadraticPolynomial<Poly3>
+            > invoke(
         x: T1,
         lb: T2,
         ub: T3,

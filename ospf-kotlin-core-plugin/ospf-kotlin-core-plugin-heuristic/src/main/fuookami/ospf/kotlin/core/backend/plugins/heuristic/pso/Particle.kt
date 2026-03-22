@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
+import fuookami.ospf.kotlin.core.backend.solver.heuristic.AbstractHeuristicPolicy
+import fuookami.ospf.kotlin.core.backend.solver.heuristic.Individual
+import fuookami.ospf.kotlin.core.backend.solver.heuristic.Iteration
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.functional.ifNull
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.operator.Order
 
 data class Particle<V>(
     override val fitness: V,

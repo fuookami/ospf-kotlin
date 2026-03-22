@@ -1,8 +1,11 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.functional.MultiMap2
+import fuookami.ospf.kotlin.utils.functional.MultiMap3
+import fuookami.ospf.kotlin.utils.functional.MultiMap4
+import fuookami.ospf.kotlin.utils.functional.get
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 operator fun <K, T : Any> Map<K, T>.get(k: DummyIndex.All): Iterable<T> {
     return this.values
@@ -72,15 +75,15 @@ operator fun <K, T : Any, S : Shape> Map<K, MutableMultiArray<T, S>>.set(k: K, v
     this[k]!![v.map { it.index }.toIntArray()] = value
 }
 
-operator fun <K1, K2, T: Any> MultiMap2<K1, K2, T>.get(k1: DummyIndex.All, k2: K2): Iterable<T> {
+operator fun <K1, K2, T : Any> MultiMap2<K1, K2, T>.get(k1: DummyIndex.All, k2: K2): Iterable<T> {
     return this.values.mapNotNull { it[k2] }
 }
 
-operator fun <K1, K2, T: Any> MultiMap2<K1, K2, T>.get(k1: K1, k2: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, T : Any> MultiMap2<K1, K2, T>.get(k1: K1, k2: DummyIndex.All): Iterable<T> {
     return this[k1]?.values ?: emptyList()
 }
 
-operator fun <K1, K2, T: Any> MultiMap2<K1, K2, T>.get(k1: DummyIndex.All, k2: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, T : Any> MultiMap2<K1, K2, T>.get(k1: DummyIndex.All, k2: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it.values }
 }
 
@@ -148,31 +151,31 @@ operator fun <K1, K2, T : Any, S : Shape> MultiMap2<K1, K2, MutableMultiArray<T,
     this[k1, k2]!![v.map { it.index }.toIntArray()] = value
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: K2, k3: K3): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: K2, k3: K3): Iterable<T> {
     return this.values.mapNotNull { it[k2, k3] }
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: DummyIndex.All, k3: K3): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: DummyIndex.All, k3: K3): Iterable<T> {
     return this[k1]?.get(k2, k3) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: K2, k3: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: K2, k3: DummyIndex.All): Iterable<T> {
     return this[k1]?.get(k2, k3) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: K3): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: K3): Iterable<T> {
     return this.values.flatMap { it[k2, k3] }
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: K2, k3: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: K2, k3: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it[k2, k3] }
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: DummyIndex.All, k3: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: K1, k2: DummyIndex.All, k3: DummyIndex.All): Iterable<T> {
     return this[k1]?.get(k2, k3) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, T: Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, T : Any> MultiMap3<K1, K2, K3, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it[k2, k3] }
 }
 
@@ -240,7 +243,7 @@ operator fun <K1, K2, K3, T : Any, S : Shape> MultiMap3<K1, K2, K3, MutableMulti
     this[k1, k2, k3]!![v.map { it.index }.toIntArray()] = value
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: K3, k4: K4): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: K3, k4: K4): Iterable<T> {
     return this.values.mapNotNull { it[k2, k3, k4] }
 }
 
@@ -248,55 +251,55 @@ operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, 
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: K2, k3: DummyIndex.All, k4: K4): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: K2, k3: DummyIndex.All, k4: K4): Iterable<T> {
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: K2, k3: K3, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: K2, k3: K3, k4: DummyIndex.All): Iterable<T> {
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: K3, k4: K4): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: K3, k4: K4): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: DummyIndex.All, k4: K4): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: DummyIndex.All, k4: K4): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: K3, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: K3, k4: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: DummyIndex.All, k3: DummyIndex.All, k4: K4): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: DummyIndex.All, k3: DummyIndex.All, k4: K4): Iterable<T> {
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: DummyIndex.All, k3: K3, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: DummyIndex.All, k3: K3, k4: DummyIndex.All): Iterable<T> {
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: K2, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: K2, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: DummyIndex.All, k4: K4): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: DummyIndex.All, k4: K4): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: K3, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: K3, k4: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: K2, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: DummyIndex.All, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: K1, k2: DummyIndex.All, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
     return this[k1]?.get(k2, k3, k4) ?: emptyList()
 }
 
-operator fun <K1, K2, K3, K4, T: Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
+operator fun <K1, K2, K3, K4, T : Any> MultiMap4<K1, K2, K3, K4, T>.get(k1: DummyIndex.All, k2: DummyIndex.All, k3: DummyIndex.All, k4: DummyIndex.All): Iterable<T> {
     return this.values.flatMap { it[k2, k3, k4] }
 }
 

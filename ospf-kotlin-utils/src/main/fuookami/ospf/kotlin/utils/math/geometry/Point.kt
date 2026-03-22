@@ -1,7 +1,9 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.operator.Minus
+import fuookami.ospf.kotlin.utils.operator.Plus
 
 data class Point<D : Dimension>(
     val position: List<Flt64>,

@@ -65,6 +65,7 @@ class ContextVar<T>(
 ) {
     @get:Synchronized
     internal val stackValues: MutableMap<ContextKey, T> = hashMapOf()
+
     @get:Synchronized
     internal val customValues: MutableMap<Any, T> = hashMapOf()
 

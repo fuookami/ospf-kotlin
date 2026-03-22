@@ -1,16 +1,26 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import kotlin.collections.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.ExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.FunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.FunctionSymbolRegistrationScope
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.ord
+import fuookami.ospf.kotlin.utils.math.usize
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.Order
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 
 class RepeatedSymbolError(
     val repeatedSymbol: IntermediateSymbol,
@@ -19,7 +29,7 @@ class RepeatedSymbolError(
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
 }
 
-sealed interface AbstractTokenTable: AutoCloseable {
+sealed interface AbstractTokenTable : AutoCloseable {
     val category: Category
     val tokenList: AbstractTokenList
     val tokens: Collection<Token> get() = tokenList.tokens
@@ -370,6 +380,10 @@ sealed class MutableTokenTable(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -506,6 +520,10 @@ fun Collection<IntermediateSymbol>.register(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         when (val result = tokenTable.add(scope)) {
@@ -513,6 +531,10 @@ fun Collection<IntermediateSymbol>.register(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
         if (memoryUseOver()) {
@@ -822,6 +844,10 @@ sealed class ConcurrentMutableTokenTable(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -995,6 +1021,10 @@ suspend fun Collection<IntermediateSymbol>.register(
                     is Failed -> {
                         return@coroutineScope Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return@coroutineScope Fatal(result.errors)
+                    }
                 }
             }
             when (val result = tokenTable.add(scope)) {
@@ -1002,6 +1032,10 @@ suspend fun Collection<IntermediateSymbol>.register(
 
                 is Failed -> {
                     return@coroutineScope Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return@coroutineScope Fatal(result.errors)
                 }
             }
             if (memoryUseOver()) {
@@ -1093,14 +1127,14 @@ suspend fun Collection<IntermediateSymbol>.register(
                 jobs.joinAll()
             } else {
                 tokenTable.cache(
-                symbols = readySymbols.associateWithNotNull {
-                    if (fixedValues.isNullOrEmpty()) {
-                        it.prepare(null, tokenTable)
-                    } else {
-                        it.prepare(fixedValues, tokenTable)
-                    }
-                }.mapKeys { it.key as IntermediateSymbol }
-            )
+                    symbols = readySymbols.associateWithNotNull {
+                        if (fixedValues.isNullOrEmpty()) {
+                            it.prepare(null, tokenTable)
+                        } else {
+                            it.prepare(fixedValues, tokenTable)
+                        }
+                    }.mapKeys { it.key as IntermediateSymbol }
+                )
 
                 callBack?.invoke(
                     RegistrationStatus(

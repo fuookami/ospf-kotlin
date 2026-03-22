@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.persistence
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 interface RequestDTO<T : RequestDTO<T>> {
     val id: String

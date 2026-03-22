@@ -1,7 +1,9 @@
 package fuookami.ospf.kotlin.framework.persistence
 
-import com.mongodb.client.*
-import kotlinx.serialization.*
+import com.mongodb.client.MongoDatabase
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T> MongoDatabase.insertRequest(

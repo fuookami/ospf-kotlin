@@ -1,13 +1,22 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 
 class SigmoidFunction(
     private val x: AbstractLinearPolynomial<*>,
@@ -68,9 +77,9 @@ class SigmoidFunction(
         }
 
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             samplingPoints: List<Point2>,
             parent: IntermediateSymbol? = null,
@@ -89,9 +98,9 @@ class SigmoidFunction(
         }
 
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
@@ -158,6 +167,14 @@ class SigmoidFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -169,6 +186,14 @@ class SigmoidFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -185,6 +210,14 @@ class SigmoidFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -199,6 +232,14 @@ class SigmoidFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

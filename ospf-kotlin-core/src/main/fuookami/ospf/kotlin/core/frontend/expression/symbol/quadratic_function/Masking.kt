@@ -1,18 +1,31 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVar
+import fuookami.ospf.kotlin.core.frontend.variable.RealVar
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.toFlt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.operator.abs
+import org.apache.logging.log4j.kotlin.logger
 
 class MaskingFunction(
     private val x: AbstractQuadraticPolynomial<*>,
@@ -26,9 +39,9 @@ class MaskingFunction(
 
     companion object {
         operator fun <
-            T : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>
-        > invoke(
+                T : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>
+                > invoke(
             x: T,
             mask: AbstractQuadraticPolynomial<*>,
             parent: IntermediateSymbol? = null,
@@ -47,9 +60,9 @@ class MaskingFunction(
         }
 
         operator fun <
-            T : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>
-        > invoke(
+                T : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>
+                > invoke(
             x: AbstractQuadraticPolynomial<*>,
             mask: T,
             parent: IntermediateSymbol? = null,
@@ -68,11 +81,11 @@ class MaskingFunction(
         }
 
         operator fun <
-            T1 : ToQuadraticPolynomial<Poly1>,
-            T2 : ToQuadraticPolynomial<Poly2>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>
-        > invoke(
+                T1 : ToQuadraticPolynomial<Poly1>,
+                T2 : ToQuadraticPolynomial<Poly2>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>
+                > invoke(
             x: T1,
             mask: T2,
             parent: IntermediateSymbol? = null,
@@ -206,6 +219,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -214,6 +235,14 @@ class MaskingFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -236,6 +265,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = x geq -m * mask,
@@ -246,6 +283,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         } else {
@@ -259,6 +304,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = y geq x - m * (Flt64.one - mask),
@@ -269,6 +322,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             when (val result = model.addConstraint(
@@ -281,6 +342,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = y geq -m * mask,
@@ -291,6 +360,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -324,6 +401,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = x geq -m * mask,
@@ -334,6 +419,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         } else {
@@ -347,6 +440,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = y geq x - m * (Flt64.one - mask),
@@ -357,6 +458,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             when (val result = model.addConstraint(
@@ -369,6 +478,14 @@ class MaskingFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = y geq -m * mask,
@@ -379,6 +496,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -395,6 +520,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -417,6 +550,14 @@ class MaskingFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 

@@ -1,13 +1,17 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.math.*
-import kotlin.time.*
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.min
-import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.Instant
+import kotlin.math.ceil
+import kotlin.time.Duration
 
 open class WorkingCalendar(
     val timeWindow: TimeWindow,
@@ -180,20 +184,21 @@ open class WorkingCalendar(
                     } else {
                         null
                     }
-                    val thisAfterConnectionTime = if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end && (afterConnectionTime != null || afterConditionalConnectionTime != null)) {
-                        DurationRange(
-                            max(
-                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
-                                afterConnectionTime?.lb ?: Duration.ZERO
-                            ),
-                            max(
-                                afterConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
-                                afterConnectionTime?.ub ?: Duration.ZERO
+                    val thisAfterConnectionTime =
+                        if (i != -1 && i != 0 && currentTime <= mergedTimes[i].end && (afterConnectionTime != null || afterConditionalConnectionTime != null)) {
+                            DurationRange(
+                                max(
+                                    afterConditionalConnectionTime?.invoke(mergedTimes[i])?.lb ?: Duration.ZERO,
+                                    afterConnectionTime?.lb ?: Duration.ZERO
+                                ),
+                                max(
+                                    afterConditionalConnectionTime?.invoke(mergedTimes[i])?.ub ?: Duration.ZERO,
+                                    afterConnectionTime?.ub ?: Duration.ZERO
+                                )
                             )
-                        )
-                    } else {
-                        null
-                    }
+                        } else {
+                            null
+                        }
 
                     val thisMaxDuration = if (i == -1 && thisBeforeConnectionTime != null) {
                         DurationRange(
@@ -251,7 +256,11 @@ open class WorkingCalendar(
                         end = thisEndTime
                     )
                     currentTime = if (breakTime != null) {
-                        val offset = if (currentTime == time.start) { currentDuration } else { Duration.ZERO }
+                        val offset = if (currentTime == time.start) {
+                            currentDuration
+                        } else {
+                            Duration.ZERO
+                        }
                         val (thisValidTimes, thisBreakTimes) = baseTime.split(
                             unit = breakTime.first,
                             currentDuration = offset,
@@ -519,7 +528,7 @@ open class WorkingCalendar(
                         listOf(
                             time.end,
                             currentTime + (maxDuration ?: Duration.INFINITE) + if (maxDuration != null && breakTime != null) {
-                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                                breakTime.second * ceil(maxDuration / breakTime.first.lb).toInt().toDouble()
                             } else {
                                 Duration.ZERO
                             }
@@ -529,7 +538,7 @@ open class WorkingCalendar(
                             time.end,
                             mergedTimes[i + 1].start - (thisActualBeforeConnectionTime ?: Duration.ZERO),
                             currentTime + (maxDuration ?: Duration.INFINITE) + if (maxDuration != null && breakTime != null) {
-                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                                breakTime.second * ceil(maxDuration / breakTime.first.lb).toInt().toDouble()
                             } else {
                                 Duration.ZERO
                             }
@@ -540,7 +549,11 @@ open class WorkingCalendar(
                         end = thisEndTime
                     )
                     if (breakTime != null) {
-                        val offset = if (currentTime == time.start) { currentDuration } else { Duration.ZERO }
+                        val offset = if (currentTime == time.start) {
+                            currentDuration
+                        } else {
+                            Duration.ZERO
+                        }
                         val (thisValidTimes, thisBreakTimes) = baseTime.split(
                             unit = breakTime.first,
                             currentDuration = offset,
@@ -779,7 +792,7 @@ open class WorkingCalendar(
                         listOf(
                             time.start,
                             currentTime - (maxDuration ?: Duration.INFINITE) - if (maxDuration != null && breakTime != null) {
-                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                                breakTime.second * ceil(maxDuration / breakTime.first.lb).toInt().toDouble()
                             } else {
                                 Duration.ZERO
                             }
@@ -789,7 +802,7 @@ open class WorkingCalendar(
                             time.start,
                             mergedTimes[i - 1].end + (thisActualAfterConnectionTime ?: Duration.ZERO),
                             currentTime - (maxDuration ?: Duration.INFINITE) - if (maxDuration != null && breakTime != null) {
-                                ceil(maxDuration / breakTime.first.lb) * breakTime.second
+                                breakTime.second * ceil(maxDuration / breakTime.first.lb).toInt().toDouble()
                             } else {
                                 Duration.ZERO
                             }
@@ -1072,7 +1085,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
     private val mul: (TimeWindow, Q, Duration) -> Q,
     private val div: (TimeWindow, Q, Duration) -> Q,
     private val floor: Extractor<Q, Flt64>
-) : WorkingCalendar(timeWindow) where P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q: TimesGroup<Q> {
+) : WorkingCalendar(timeWindow) where P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q : TimesGroup<Q> {
     @Suppress("UNCHECKED_CAST")
     val productivity: List<P> by lazy {
         if (unavailableTimes != null) {
@@ -1170,7 +1183,11 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                 afterConnectionTime = afterConnectionTime,
                 beforeConditionalConnectionTime = beforeConditionalConnectionTime,
                 afterConditionalConnectionTime = afterConditionalConnectionTime,
-                currentDuration = if (currentTime == startTime) { currentDuration } else { Duration.ZERO },
+                currentDuration = if (currentTime == startTime) {
+                    currentDuration
+                } else {
+                    Duration.ZERO
+                },
                 maxDuration = Duration.INFINITE,
                 breakTime = breakTime
             )
@@ -1184,9 +1201,9 @@ sealed class ProductivityCalendar<Q, P, T, U>(
             }
             currentTime = (
                     validTimes.times.map { it.end } +
-                    validTimes.breakTimes.map { it.end } +
-                    validTimes.connectionTimes.map { it.end }
-            ).max()
+                            validTimes.breakTimes.map { it.end } +
+                            validTimes.connectionTimes.map { it.end }
+                    ).max()
         }
 
         return Instant.DISTANT_FUTURE
@@ -1630,7 +1647,11 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                 afterConnectionTime = afterConnectionTime,
                 beforeConditionalConnectionTime = beforeConditionalConnectionTime,
                 afterConditionalConnectionTime = afterConditionalConnectionTime,
-                currentDuration = if (currentTime == startTime) { currentDuration } else { Duration.ZERO },
+                currentDuration = if (currentTime == startTime) {
+                    currentDuration
+                } else {
+                    Duration.ZERO
+                },
                 maxDuration = maxDuration,
                 breakTime = breakTime
             )
@@ -1648,9 +1669,9 @@ sealed class ProductivityCalendar<Q, P, T, U>(
             }
             currentTime = (
                     validTimes.times.map { it.end } +
-                    validTimes.breakTimes.map { it.end } +
-                    validTimes.connectionTimes.map { it.end }
-            ).max()
+                            validTimes.breakTimes.map { it.end } +
+                            validTimes.connectionTimes.map { it.end }
+                    ).max()
 
             if (produceQuantity eq quantity.toFlt64()) {
                 break
@@ -1734,9 +1755,9 @@ sealed class ProductivityCalendar<Q, P, T, U>(
             }
             currentTime = (
                     validTimes.times.map { it.start } +
-                    validTimes.breakTimes.map { it.start } +
-                    validTimes.connectionTimes.map { it.start }
-            ).min()
+                            validTimes.breakTimes.map { it.start } +
+                            validTimes.connectionTimes.map { it.start }
+                    ).min()
 
             if (produceQuantity eq quantity.toFlt64()) {
                 break

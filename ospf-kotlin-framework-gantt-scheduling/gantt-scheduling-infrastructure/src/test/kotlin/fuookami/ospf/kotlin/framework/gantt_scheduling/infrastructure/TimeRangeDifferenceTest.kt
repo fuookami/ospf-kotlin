@@ -1,7 +1,8 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlinx.datetime.*
-import kotlinx.coroutines.*
+import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
 
 class TimeRangeDifferenceTest {
@@ -14,7 +15,7 @@ class TimeRangeDifferenceTest {
 
         assert(
             calendar.differenceWith(
-            TimeRange(
+                TimeRange(
                     start = Instant.parse("2020-08-30T12:00:00Z"),
                     end = Instant.parse("2020-08-30T14:00:00Z")
                 )

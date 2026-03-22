@@ -1,8 +1,11 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
-import kotlin.time.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.utils.math.*
 
 data class IISConfig(
     val time: Duration = 30.seconds,

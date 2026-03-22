@@ -1,15 +1,19 @@
 package fuookami.ospf.kotlin.core.frontend.model.callback
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.Expression
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
+import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.utils.math.symbol.Nonlinear
+import fuookami.ospf.kotlin.utils.operator.Order
 
 interface CallBackModelPolicy<V> {
     val comparator: ThreeWayComparator<V>

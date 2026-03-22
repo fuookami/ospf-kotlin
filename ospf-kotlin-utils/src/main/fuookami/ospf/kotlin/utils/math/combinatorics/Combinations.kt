@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.utils.math.combinatorics
 
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.parallel.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import org.apache.logging.log4j.kotlin.logger
 
 fun <T> combine(
     input: List<T>,

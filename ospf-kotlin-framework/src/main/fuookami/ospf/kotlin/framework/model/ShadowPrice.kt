@@ -1,10 +1,13 @@
 package fuookami.ospf.kotlin.framework.model
 
-import kotlin.reflect.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toMeta
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import kotlin.reflect.KClass
 
 open class ShadowPriceKey(
     val limit: KClass<*>
@@ -55,10 +58,10 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
 }
 
 fun <
-    Args : Any,
-    Model : MetaModel,
-    Map : AbstractShadowPriceMap<Args, Map>
-> extractShadowPrice(
+        Args : Any,
+        Model : MetaModel,
+        Map : AbstractShadowPriceMap<Args, Map>
+        > extractShadowPrice(
     shadowPriceMap: Map,
     pipelineList: CGPipelineList<Args, Model, Map>,
     model: Model,
@@ -74,6 +77,10 @@ fun <
             is Failed -> {
                 return Failed(ret.error)
             }
+
+            is Fatal -> {
+                return Fatal(ret.errors)
+            }
         }
         val extractor = pipeline.extractor() ?: continue
         shadowPriceMap.put(extractor)
@@ -82,9 +89,9 @@ fun <
 }
 
 fun <
-    Args : Any,
-    Map : AbstractShadowPriceMap<Args, Map>
-> IntermediateSymbol.refresh(
+        Args : Any,
+        Map : AbstractShadowPriceMap<Args, Map>
+        > IntermediateSymbol.refresh(
     shadowPriceMap: Map,
     shadowPrices: MetaDualSolution
 ): Try {

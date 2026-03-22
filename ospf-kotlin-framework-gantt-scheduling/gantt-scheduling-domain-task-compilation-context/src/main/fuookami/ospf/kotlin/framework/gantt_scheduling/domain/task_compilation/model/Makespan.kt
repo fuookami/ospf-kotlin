@@ -1,17 +1,19 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaxFunction
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MinMaxFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 class Makespan<
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val tasks: List<T>,
     private val taskTime: TaskTime,
     private val extra: Boolean = false
@@ -41,6 +43,10 @@ class Makespan<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

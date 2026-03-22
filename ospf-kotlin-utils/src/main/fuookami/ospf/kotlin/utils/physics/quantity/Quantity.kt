@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.utils.physics.quantity
 
-import java.math.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
+import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * 物理量类
@@ -46,27 +47,27 @@ fun <V> PhysicalUnit.one(constants: ArithmeticConstants<V>): Quantity<V> {
     return Quantity(constants.one, this)
 }
 
-fun <V: RealNumber<V>> PhysicalUnit.two(constants: RealNumberConstants<V>): Quantity<V> {
+fun <V : RealNumber<V>> PhysicalUnit.two(constants: RealNumberConstants<V>): Quantity<V> {
     return Quantity(constants.two, this)
 }
 
-fun <V: RealNumber<V>> PhysicalUnit.three(constants: RealNumberConstants<V>): Quantity<V> {
+fun <V : RealNumber<V>> PhysicalUnit.three(constants: RealNumberConstants<V>): Quantity<V> {
     return Quantity(constants.three, this)
 }
 
-fun <V: RealNumber<V>> PhysicalUnit.five(constants: RealNumberConstants<V>): Quantity<V> {
+fun <V : RealNumber<V>> PhysicalUnit.five(constants: RealNumberConstants<V>): Quantity<V> {
     return Quantity(constants.five, this)
 }
 
-fun <V: RealNumber<V>> PhysicalUnit.ten(constants: RealNumberConstants<V>): Quantity<V> {
+fun <V : RealNumber<V>> PhysicalUnit.ten(constants: RealNumberConstants<V>): Quantity<V> {
     return Quantity(constants.ten, this)
 }
 
-fun <V: FloatingNumber<V>> PhysicalUnit.pi(constants: FloatingNumberConstants<V>): Quantity<V> {
+fun <V : FloatingNumber<V>> PhysicalUnit.pi(constants: FloatingNumberConstants<V>): Quantity<V> {
     return Quantity(constants.pi, this)
 }
 
-fun <V: FloatingNumber<V>> PhysicalUnit.e(constants: FloatingNumberConstants<V>): Quantity<V> {
+fun <V : FloatingNumber<V>> PhysicalUnit.e(constants: FloatingNumberConstants<V>): Quantity<V> {
     return Quantity(constants.e, this)
 }
 
@@ -140,23 +141,23 @@ infix fun <V> Quantity<V>.geq(other: Quantity<V>): Boolean? where V : Ord<V> {
     }
 }
 
-fun <V: RealNumber<V>> Quantity<V>.toInt64(): Quantity<Int64> {
+fun <V : RealNumber<V>> Quantity<V>.toInt64(): Quantity<Int64> {
     return Quantity(this.value.toInt64(), this.unit)
 }
 
-fun <V: RealNumber<V>> Quantity<V>.toUInt64(): Quantity<UInt64> {
+fun <V : RealNumber<V>> Quantity<V>.toUInt64(): Quantity<UInt64> {
     return Quantity(this.value.toUInt64(), this.unit)
 }
 
-fun <V: RealNumber<V>> Quantity<V>.toIntX(): Quantity<IntX> {
+fun <V : RealNumber<V>> Quantity<V>.toIntX(): Quantity<IntX> {
     return Quantity(this.value.toIntX(), this.unit)
 }
 
-fun <V: RealNumber<V>> Quantity<V>.toFlt64(): Quantity<Flt64> {
+fun <V : RealNumber<V>> Quantity<V>.toFlt64(): Quantity<Flt64> {
     return Quantity(this.value.toFlt64(), this.unit)
 }
 
-fun <V: RealNumber<V>> Quantity<V>.toFltX(): Quantity<FltX> {
+fun <V : RealNumber<V>> Quantity<V>.toFltX(): Quantity<FltX> {
     return Quantity(this.value.toFltX(), this.unit)
 }
 
@@ -446,7 +447,7 @@ fun <V> Quantity<V>.convertTo(unit: PhysicalUnit): Quantity<V>? {
     if (!this.unit.sameDimension(unit)) {
         return null
     }
-    
+
     val factor = this.unit.to(unit) ?: return null
     // TODO: 需要实现通用的值转换
     return Quantity(this.value, unit)

@@ -1,16 +1,22 @@
 package fuookami.ospf.kotlin.framework.solver
 
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import org.apache.logging.log4j.kotlin.logger
 
 class ParallelCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best
-): ColumnGenerationSolver {
+) : ColumnGenerationSolver {
     private val logger = logger()
 
     companion object {
@@ -64,6 +70,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${it.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${it.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -100,6 +110,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${it.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${it.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -112,6 +126,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }
@@ -166,6 +184,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${it.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${it.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -202,6 +224,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${it.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${it.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -214,6 +240,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }

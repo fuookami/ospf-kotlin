@@ -1,18 +1,26 @@
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.adapter
 
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCoreMonomialRet
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCorePolynomialRet
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign
+import fuookami.ospf.kotlin.core.frontend.inequality.adapter.toCoreInequalityRet
+import fuookami.ospf.kotlin.core.frontend.inequality.adapter.toUtilsInequality
+import fuookami.ospf.kotlin.core.frontend.variable.RealVar
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.operation.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.inequality.adapter.*
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 

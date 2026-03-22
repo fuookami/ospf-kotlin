@@ -1,14 +1,19 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 data class TaskAggregation<
-    T : IterativeAbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        T : IterativeAbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val _tasksIteration: MutableList<List<T>> = ArrayList(),
     private val _tasks: MutableList<T> = ArrayList(),
     private val _removedTasks: MutableSet<T> = HashSet()

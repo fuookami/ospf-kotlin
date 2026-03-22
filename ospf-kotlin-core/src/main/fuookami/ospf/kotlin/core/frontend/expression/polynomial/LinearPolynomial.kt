@@ -1,19 +1,33 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.physics.unit.*
-import fuookami.ospf.kotlin.utils.physics.quantity.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
+import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsValueProvider
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.to
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.math.BalancedTrivalent
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.Trivalent
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
+import fuookami.ospf.kotlin.utils.physics.quantity.to
+import fuookami.ospf.kotlin.utils.physics.quantity.toFlt64
+import fuookami.ospf.kotlin.utils.physics.unit.*
 
 @JvmName("calculateLinearPolynomialCells")
 private fun cells(
@@ -937,7 +951,7 @@ fun Quantity<MutableLinearPolynomial>.plusAssign(rhs: Quantity<AbstractLinearPol
 }
 
 @JvmName("quantityPolynomialPlusAssignQuantity")
-fun<V : RealNumber<V>> Quantity<MutableLinearPolynomial>.plusAssign(rhs: Quantity<V>) {
+fun <V : RealNumber<V>> Quantity<MutableLinearPolynomial>.plusAssign(rhs: Quantity<V>) {
     value.plusAssign(rhs.toFlt64().to(this.unit)!!.value)
 }
 
@@ -976,17 +990,17 @@ fun Quantity<MutableLinearPolynomial>.minusAssign(rhs: Quantity<AbstractLinearPo
 }
 
 @JvmName("quantityPolynomialMinusAssignQuantity")
-fun<V : RealNumber<V>> Quantity<MutableLinearPolynomial>.minusAssign(rhs: Quantity<V>) {
+fun <V : RealNumber<V>> Quantity<MutableLinearPolynomial>.minusAssign(rhs: Quantity<V>) {
     value.minusAssign(rhs.toFlt64().to(this.unit)!!.value)
 }
 
 @JvmName("quantityPolynomialTimesAssign")
-fun<V: RealNumber<V>> Quantity<MutableLinearPolynomial>.timesAssign(rhs: V) {
+fun <V : RealNumber<V>> Quantity<MutableLinearPolynomial>.timesAssign(rhs: V) {
     value.timesAssign(rhs.toFlt64())
 }
 
 @JvmName("quantityPolynomialDivAssign")
-fun<V: RealNumber<V>> Quantity<MutableLinearPolynomial>.divAssign(rhs: V) {
+fun <V : RealNumber<V>> Quantity<MutableLinearPolynomial>.divAssign(rhs: V) {
     value.divAssign(rhs.toFlt64())
 }
 

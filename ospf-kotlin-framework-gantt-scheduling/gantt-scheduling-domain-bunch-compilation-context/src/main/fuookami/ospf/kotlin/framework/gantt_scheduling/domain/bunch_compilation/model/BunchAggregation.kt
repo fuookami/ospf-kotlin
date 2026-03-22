@@ -1,15 +1,21 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 data class BunchAggregation<
-    B : AbstractTaskBunch<T, E, A>,
-    out T : AbstractTask<E, A>, 
-    out E : Executor, 
-    out A : AssignmentPolicy<E>
->(
+        B : AbstractTaskBunch<T, E, A>,
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val _bunchesIteration: MutableList<List<B>> = ArrayList(),
     private val _bunches: MutableList<B> = ArrayList(),
     private val _removedBunches: MutableSet<B> = HashSet()

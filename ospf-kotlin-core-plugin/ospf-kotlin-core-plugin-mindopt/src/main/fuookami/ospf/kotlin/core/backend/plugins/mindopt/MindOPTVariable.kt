@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
-import com.alibaba.damo.mindopt.*
+import com.alibaba.damo.mindopt.MDO
 import fuookami.ospf.kotlin.core.frontend.variable.*
 
 enum class MindOPTVariable {

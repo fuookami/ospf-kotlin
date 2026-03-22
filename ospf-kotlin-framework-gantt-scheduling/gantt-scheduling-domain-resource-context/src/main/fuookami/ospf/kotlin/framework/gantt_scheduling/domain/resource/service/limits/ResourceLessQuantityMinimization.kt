@@ -1,23 +1,31 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.UContinuous
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Resource
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceTimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceUsage
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 class ResourceLessQuantityMinimization<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    S : ResourceTimeSlot<R, C>,
-    R : Resource<C>,
-    C : AbstractResourceCapacity
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        S : ResourceTimeSlot<R, C>,
+        R : Resource<C>,
+        C : AbstractResourceCapacity
+        >(
     private val quantity: ResourceUsage<S, R, C>,
     private val threshold: (S) -> Flt64 = { Flt64.zero },
     private val coefficient: (S) -> Flt64 = { Flt64.one },
@@ -50,6 +58,10 @@ class ResourceLessQuantityMinimization<
                         is Failed -> {
                             return Failed(result.error)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     cost += thisCoefficient * slack
                 }
@@ -62,6 +74,10 @@ class ResourceLessQuantityMinimization<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

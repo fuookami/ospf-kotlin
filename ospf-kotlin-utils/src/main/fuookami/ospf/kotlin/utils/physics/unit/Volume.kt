@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Volume
 
 object CubicMillimeter : DerivedPhysicalUnit(SquareMillimeter * Millimeter) {
     override val name = "cubic millimeter"

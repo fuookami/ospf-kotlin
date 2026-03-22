@@ -1,6 +1,11 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.utils.math
 
-import kotlin.time.*
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.times
+import kotlin.time.toDuration
 
 fun Int32.toDuration(unit: DurationUnit): Duration {
     return toLong().toDuration(unit)

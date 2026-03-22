@@ -1,18 +1,24 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import kotlin.time.*
-import kotlinx.datetime.Instant
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols2
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.flatMap
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable3
+import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable3
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.multi_array.Shape3
+import kotlin.time.Duration
 
 /**
  * 产能编译决策对象（带顺序）
@@ -91,6 +97,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         when (val result = model.add(x)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Register b variable
@@ -108,6 +115,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         when (val result = model.add(b)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Register cost expression
@@ -127,6 +135,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         when (val result = model.add(cost)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Register operationTime symbol
@@ -151,6 +160,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         when (val result = model.add(operationTime)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Register capacity symbol
@@ -176,6 +186,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         when (val result = model.add(capacity)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         return ok

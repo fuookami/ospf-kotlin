@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.utils.math.combinatorics
 
+import fuookami.ospf.kotlin.utils.parallel.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.parallel.*
 
 fun <T> cross(
     input: List<List<T>>,
@@ -22,10 +22,10 @@ fun <T> cross(
             row.add(input[i][indices[i]])
         }
         result.add(row)
-        if (callBack!= null) {
+        if (callBack != null) {
             callBack(row)
         }
-        if (stopped!= null && stopped(row)) {
+        if (stopped != null && stopped(row)) {
             break
         }
         var i = n - 1

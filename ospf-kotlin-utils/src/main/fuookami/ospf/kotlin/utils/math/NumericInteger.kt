@@ -1,11 +1,15 @@
 package fuookami.ospf.kotlin.utils.math
 
-import java.math.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.operator.orderOf
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.math.BigInteger
 
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {

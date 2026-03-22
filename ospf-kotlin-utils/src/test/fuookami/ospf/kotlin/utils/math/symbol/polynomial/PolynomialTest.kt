@@ -1,10 +1,13 @@
 package fuookami.ospf.kotlin.utils.math.symbol.polynomial
 
-import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
 
 class PolynomialTest {
     private data class TestSymbol(

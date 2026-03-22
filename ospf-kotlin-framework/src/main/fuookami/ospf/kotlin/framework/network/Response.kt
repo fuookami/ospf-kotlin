@@ -1,14 +1,18 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.network
 
-import kotlin.time.*
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import org.apache.logging.log4j.kotlin.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import org.apache.logging.log4j.kotlin.logger
+import org.http4k.client.ApacheClient
 import org.http4k.core.*
-import org.http4k.client.*
 import org.http4k.filter.ClientFilters.CustomBasicAuth.withBasicAuth
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 interface Authorization {
     suspend operator fun invoke(request: Request): Request
@@ -35,7 +39,7 @@ data class ResponseRetry(
 )
 
 @OptIn(InternalSerializationApi::class)
-suspend inline fun <reified T: Any> response(
+suspend inline fun <reified T : Any> response(
     result: T,
     url: String,
     retry: ResponseRetry? = null,

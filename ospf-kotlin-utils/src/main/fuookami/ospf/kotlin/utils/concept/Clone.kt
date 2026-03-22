@@ -7,6 +7,7 @@ interface Copyable<Self> : Movable<Self> {
 
 @JvmName("copyNotNull")
 fun <T : Copyable<T>> copy(ele: T) = ele.copy()
+
 @JvmName("copyNullable")
 fun <T : Copyable<T>> copy(ele: T?) = ele?.copy()
 

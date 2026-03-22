@@ -1,19 +1,21 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 class TaskStepConflictConstraint<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     private val compilation: Compilation,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
@@ -31,6 +33,10 @@ class TaskStepConflictConstraint<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

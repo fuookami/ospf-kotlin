@@ -1,18 +1,22 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import kotlin.time.*
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.sumOf
+import kotlinx.datetime.Instant
+import kotlin.time.Duration
 
 open class AbstractTaskBunch<
-    out T : AbstractTask<E, A>, 
-    out E : Executor,
-    out A : AssignmentPolicy<E>
-> internal constructor(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        > internal constructor(
     open val executor: E,
     val time: TimeRange,
     open val tasks: List<T>,
@@ -22,6 +26,9 @@ open class AbstractTaskBunch<
 ) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>> {
     companion object {
         val originIteration = UInt64.maximum
+
+        // DISTANT_FUTURE replacement: represents a far future instant (year 9999)
+        private val DISTANT_FUTURE: Instant = Instant.parse("9999-12-31T23:59:59.999999999Z")
     }
 
     constructor(
@@ -31,7 +38,7 @@ open class AbstractTaskBunch<
         iteration: Int64 = Int64(-1)
     ) : this(
         executor = executor,
-        time = TimeRange(time, Instant.DISTANT_FUTURE),
+        time = TimeRange(time, DISTANT_FUTURE),
         tasks = emptyList(),
         cost = Cost(),
         initialUsability = initialUsability,

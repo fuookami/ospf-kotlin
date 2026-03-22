@@ -1,14 +1,18 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityOrderCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 /**
  * 顺序约束（仅用于 CapacityOrderCompilation）
@@ -43,6 +47,7 @@ class OrderConstraint<A : ProductionAction>(
                 when (val result = model.addConstraint(sumPoly leq Flt64.one, name = "${name}_unique_${t}_$o")) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 for ((a, _) in actions.withIndex()) {
@@ -51,6 +56,7 @@ class OrderConstraint<A : ProductionAction>(
                     when (val result = model.addConstraint(x[a, t, o] geq b[a, t, o], name = "${name}_link_lb_${a}_${t}_$o")) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
                     }
 
                     // Constraint 3: Link b and x (upper bound)
@@ -61,6 +67,7 @@ class OrderConstraint<A : ProductionAction>(
                     when (val result = model.addConstraint(x[a, t, o] leq upperBoundPoly, name = "${name}_link_ub_${a}_${t}_$o")) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
                     }
                 }
             }

@@ -1,16 +1,23 @@
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.inequality_regression
 
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign
+import fuookami.ospf.kotlin.core.frontend.variable.RealVar
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
 
 class InequalityNormalizeBaselineTest {
     @Test
@@ -74,32 +81,32 @@ class InequalityNormalizeBaselineTest {
         val lhsCells = normalized.lhs.cells
         val xxCell = lhsCells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable1 == x &&
-                it.triple!!.variable2 == x
+                    it.triple!!.variable1 == x &&
+                    it.triple!!.variable2 == x
         }
         assertNotNull(xxCell)
         assertTrue(xxCell.triple!!.coefficient eq Flt64(-1.0))
 
         val yyCell = lhsCells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable1 == y &&
-                it.triple!!.variable2 == y
+                    it.triple!!.variable1 == y &&
+                    it.triple!!.variable2 == y
         }
         assertNotNull(yyCell)
         assertTrue(yyCell.triple!!.coefficient eq Flt64(1.0))
 
         val xyCell = lhsCells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable2 != null &&
-                setOf(it.triple!!.variable1, it.triple!!.variable2!!) == setOf(x, y)
+                    it.triple!!.variable2 != null &&
+                    setOf(it.triple!!.variable1, it.triple!!.variable2!!) == setOf(x, y)
         }
         assertNotNull(xyCell)
         assertTrue(xyCell.triple!!.coefficient eq Flt64(-2.0))
 
         val linearXCell = lhsCells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable1 == x &&
-                it.triple!!.variable2 == null
+                    it.triple!!.variable1 == x &&
+                    it.triple!!.variable2 == null
         }
         assertNotNull(linearXCell)
         assertTrue(linearXCell.triple!!.coefficient eq Flt64(-3.0))

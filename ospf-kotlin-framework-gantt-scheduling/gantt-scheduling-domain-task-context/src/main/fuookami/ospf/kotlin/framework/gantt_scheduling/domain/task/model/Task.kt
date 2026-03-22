@@ -1,15 +1,22 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import kotlin.time.*
-import kotlin.reflect.*
-import kotlin.reflect.jvm.*
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.operator.eq
+import kotlinx.datetime.Instant
+import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmName
+import kotlin.time.Duration
 
 open class TaskType(
     val cls: KClass<*>
@@ -174,26 +181,30 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
         return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
     }
 
-    val advance: Duration get() = advance(
-        time = time,
-        timeWindow = timeWindow,
-        targetTime = scheduledTime
-    )
-    val actualAdvance: Duration get() = advance(
-        time = time,
-        timeWindow = timeWindow,
-        targetTime = scheduledTime
-    )
-    val delay: Duration get() = delay(
-        time = time,
-        timeWindow = timeWindow,
-        targetTime = scheduledTime
-    )
-    val actualDelay: Duration get() = delay(
-        time = time,
-        timeWindow = timeWindow,
-        targetTime = scheduledTime
-    )
+    val advance: Duration
+        get() = advance(
+            time = time,
+            timeWindow = timeWindow,
+            targetTime = scheduledTime
+        )
+    val actualAdvance: Duration
+        get() = advance(
+            time = time,
+            timeWindow = timeWindow,
+            targetTime = scheduledTime
+        )
+    val delay: Duration
+        get() = delay(
+            time = time,
+            timeWindow = timeWindow,
+            targetTime = scheduledTime
+        )
+    val actualDelay: Duration
+        get() = delay(
+            time = time,
+            timeWindow = timeWindow,
+            targetTime = scheduledTime
+        )
 
     val overMaxDelay: Duration
         get() {
@@ -296,7 +307,7 @@ open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     }
 }
 
-open class AbstractPlannedTask<out P: AbstractTaskPlan<E>, out E : Executor, out A : AssignmentPolicy<E>>(
+open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, out A : AssignmentPolicy<E>>(
     open val plan: P,
     override val assignmentPolicy: A?,
 ) : AbstractTask<E, A>, ManualIndexed() {
@@ -457,8 +468,8 @@ open class AbstractPlannedTask<out P: AbstractTaskPlan<E>, out E : Executor, out
 typealias Task<P, E> = AbstractPlannedTask<P, E, AssignmentPolicy<E>>
 
 interface IterativeAbstractTask<
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->: AbstractTask<E, A> {
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        > : AbstractTask<E, A> {
     val iteration: Int64
 }

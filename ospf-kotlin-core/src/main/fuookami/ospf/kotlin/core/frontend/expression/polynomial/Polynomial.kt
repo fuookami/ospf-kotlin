@@ -1,15 +1,21 @@
 package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.core.frontend.expression.Expression
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.Monomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.MonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 
 sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
     : Expression, Copyable<Self>, Neg<Self>,

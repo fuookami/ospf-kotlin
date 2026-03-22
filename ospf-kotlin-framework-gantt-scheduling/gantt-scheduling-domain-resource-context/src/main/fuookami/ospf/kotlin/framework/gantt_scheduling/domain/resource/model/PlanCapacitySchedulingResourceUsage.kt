@@ -1,14 +1,20 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.time.Duration
 
 /**
  * Plan 模式的产能调度资源使用量管理
@@ -25,10 +31,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * @param interval 时间间隔 / Time interval
  */
 class PlanCapacitySchedulingResourceUsage<
-    A : ProductionAction,
-    R,
-    C : AbstractResourceCapacity
->(
+        A : ProductionAction,
+        R,
+        C : AbstractResourceCapacity
+        >(
     resources: List<R>,
     private val compilation: Capacity<A>,
     times: List<TimeSlot>,

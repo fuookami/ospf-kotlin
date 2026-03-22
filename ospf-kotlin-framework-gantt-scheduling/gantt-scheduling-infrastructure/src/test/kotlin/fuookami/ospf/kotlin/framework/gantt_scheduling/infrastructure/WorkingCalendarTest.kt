@@ -1,10 +1,12 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.datetime.Instant
+import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.*
-import org.junit.jupiter.api.*
-import fuookami.ospf.kotlin.utils.math.*
 
 class WorkingCalendarTest {
     @Test

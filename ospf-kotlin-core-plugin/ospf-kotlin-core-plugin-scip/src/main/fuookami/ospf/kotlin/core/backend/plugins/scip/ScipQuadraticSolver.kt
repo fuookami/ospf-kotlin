@@ -1,19 +1,29 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
-import kotlin.time.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.gap
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.pow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlin.time.Clock
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 
 class ScipQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -135,6 +145,10 @@ private class ScipQuadraticSolverImpl(
             when (val result = process(this)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}
@@ -347,6 +361,10 @@ private class ScipQuadraticSolverImpl(
                 return Failed(result.error)
             }
 
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
             else -> {}
         }
         return ok
@@ -371,6 +389,10 @@ private class ScipQuadraticSolverImpl(
         )) {
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
 
             else -> {}
@@ -427,6 +449,10 @@ private class ScipQuadraticSolverImpl(
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
             return ok
@@ -440,6 +466,10 @@ private class ScipQuadraticSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}

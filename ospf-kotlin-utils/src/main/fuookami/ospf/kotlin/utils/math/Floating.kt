@@ -1,14 +1,23 @@
 package fuookami.ospf.kotlin.utils.math
 
-import java.math.*
-import kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.operator.ExpP
+import fuookami.ospf.kotlin.utils.operator.LogP
+import fuookami.ospf.kotlin.utils.operator.PowFP
+import fuookami.ospf.kotlin.utils.operator.orderOf
 import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import java.math.BigDecimal
+import java.math.RoundingMode
+import kotlin.math.*
 
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
     f: F,
@@ -38,7 +47,7 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
     return ctor(converter2(num), converter2(den))
 }
 
-private fun <F: FloatingImpl<F>> bankerRound(value: F): F {
+private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
     val fractional = value - value.floor()
 
     return if (fractional gr value.constants.half) {
@@ -126,39 +135,55 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
     companion object : FloatingNumberConstants<Flt32> {
         @JvmStatic
         override val zero: Flt32 get() = Flt32(0.0F)
+
         @JvmStatic
         override val one: Flt32 get() = Flt32(1.0F)
+
         @JvmStatic
         override val two: Flt32 get() = Flt32(2.0F)
+
         @JvmStatic
         override val three: Flt32 get() = Flt32(3.0F)
+
         @JvmStatic
         override val five: Flt32 get() = Flt32(5.0F)
+
         @JvmStatic
         override val ten: Flt32 get() = Flt32(10.0F)
+
         @JvmStatic
         override val minimum: Flt32 get() = Flt32(-Float.MAX_VALUE)
+
         @JvmStatic
         override val maximum: Flt32 get() = Flt32(Float.MAX_VALUE)
+
         @JvmStatic
         override val decimalDigits: Int get() = 6
+
         @JvmStatic
         override val decimalPrecision: Flt32 get() = Flt32(1.19209e-07F)
+
         @JvmStatic
         override val epsilon: Flt32 get() = Flt32(Float.MIN_VALUE)
+
         @JvmStatic
         override val nan: Flt32 get() = Flt32(Float.NaN)
+
         @JvmStatic
         override val infinity: Flt32 get() = Flt32(Float.POSITIVE_INFINITY)
+
         @JvmStatic
         override val negativeInfinity: Flt32 get() = Flt32(Float.NEGATIVE_INFINITY)
 
         @JvmStatic
         override val half: Flt32 get() = Flt32(0.5f)
+
         @JvmStatic
         override val pi: Flt32 get() = Flt32(PI.toFloat())
+
         @JvmStatic
         override val e: Flt32 get() = Flt32(E.toFloat())
+
         @JvmStatic
         override val lg2: Flt32 by lazy {
             ln(two)!!
@@ -215,6 +240,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             temp.reciprocal()
         }
     }
+
     override fun csc(): Flt32? {
         val temp = this.sin()
         return if (temp eq zero) {
@@ -223,6 +249,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             temp.reciprocal()
         }
     }
+
     override fun tan(): Flt32? {
         val temp = this.cos()
         return if (temp eq zero) {
@@ -231,6 +258,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             this.sin() / temp
         }
     }
+
     override fun cot(): Flt32? {
         val temp = this.sin()
         return if (temp eq zero) {
@@ -247,6 +275,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             Flt32(asin(value))
         }
     }
+
     override fun acos(): Flt32? {
         return if (this ls -one || this gr one) {
             null
@@ -254,6 +283,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             Flt32(acos(value))
         }
     }
+
     override fun asec(): Flt32? {
         return if (this eq zero) {
             null
@@ -261,6 +291,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             this.reciprocal().acos()
         }
     }
+
     override fun acsc(): Flt32? {
         return if (this eq zero) {
             null
@@ -268,6 +299,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             this.reciprocal().asin()
         }
     }
+
     override fun atan() = Flt32(atan(value))
     override fun acot(): Flt32? {
         return if (this eq zero) {
@@ -287,6 +319,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             this.sinh().reciprocal()
         }
     }
+
     override fun tanh() = Flt32(tanh(value))
     override fun coth(): Flt32? {
         return if (this eq zero) {
@@ -304,6 +337,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             Flt32(acosh(value))
         }
     }
+
     override fun asech(): Flt32? {
         return if (this eq zero) {
             null
@@ -311,6 +345,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             this.reciprocal().acosh()
         }
     }
+
     override fun acsch(): Flt32? {
         return if (this eq zero) {
             null
@@ -318,6 +353,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             this.reciprocal().asinh()
         }
     }
+
     override fun atanh(): Flt32? {
         return if (this leq -one || this geq one) {
             null
@@ -325,6 +361,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
             Flt32(atanh(value))
         }
     }
+
     override fun acoth(): Flt32? {
         return if (this eq zero) {
             null
@@ -387,39 +424,55 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
     companion object : FloatingNumberConstants<Flt64> {
         @JvmStatic
         override val zero: Flt64 get() = Flt64(0.0)
+
         @JvmStatic
         override val one: Flt64 get() = Flt64(1.0)
+
         @JvmStatic
         override val two: Flt64 get() = Flt64(2.0)
+
         @JvmStatic
         override val three: Flt64 get() = Flt64(3.0)
+
         @JvmStatic
         override val five: Flt64 get() = Flt64(5.0)
+
         @JvmStatic
         override val ten: Flt64 get() = Flt64(10.0)
+
         @JvmStatic
         override val minimum: Flt64 get() = Flt64(-Double.MAX_VALUE)
+
         @JvmStatic
         override val maximum: Flt64 get() = Flt64(Double.MAX_VALUE)
+
         @JvmStatic
         override val decimalDigits: Int get() = 15
+
         @JvmStatic
         override val decimalPrecision: Flt64 get() = Flt64(2.22045e-16)
+
         @JvmStatic
         override val nan: Flt64 get() = Flt64(Double.NaN)
+
         @JvmStatic
         override val epsilon: Flt64 get() = Flt64(Double.MIN_VALUE)
+
         @JvmStatic
         override val infinity: Flt64 get() = Flt64(Double.POSITIVE_INFINITY)
+
         @JvmStatic
         override val negativeInfinity: Flt64 get() = Flt64(Double.NEGATIVE_INFINITY)
 
         @JvmStatic
         override val half: Flt64 get() = Flt64(0.5)
+
         @JvmStatic
         override val pi: Flt64 get() = Flt64(PI)
+
         @JvmStatic
         override val e: Flt64 get() = Flt64(E)
+
         @JvmStatic
         override val lg2: Flt64 by lazy {
             ln(two)!!
@@ -476,6 +529,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             temp.reciprocal()
         }
     }
+
     override fun csc(): Flt64? {
         val temp = this.sin()
         return if (temp eq zero) {
@@ -484,6 +538,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             temp.reciprocal()
         }
     }
+
     override fun tan(): Flt64? {
         val temp = this.cos()
         return if (temp eq zero) {
@@ -492,6 +547,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             this.sin() / temp
         }
     }
+
     override fun cot(): Flt64? {
         val temp = this.sin()
         return if (temp eq zero) {
@@ -508,6 +564,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             Flt64(asin(value))
         }
     }
+
     override fun acos(): Flt64? {
         return if (this ls -one || this gr one) {
             null
@@ -515,6 +572,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             Flt64(acos(value))
         }
     }
+
     override fun asec(): Flt64? {
         return if (this eq zero) {
             null
@@ -522,6 +580,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             this.reciprocal().acos()
         }
     }
+
     override fun acsc(): Flt64? {
         return if (this eq zero) {
             null
@@ -529,6 +588,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             this.reciprocal().asin()
         }
     }
+
     override fun atan() = Flt64(atan(value))
     override fun acot(): Flt64? {
         return if (this eq zero) {
@@ -548,6 +608,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             this.sinh().reciprocal()
         }
     }
+
     override fun tanh() = Flt64(tanh(value))
     override fun coth(): Flt64? {
         return if (this eq zero) {
@@ -565,6 +626,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             Flt64(acosh(value))
         }
     }
+
     override fun asech(): Flt64? {
         return if (this eq zero) {
             null
@@ -572,6 +634,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             this.reciprocal().acosh()
         }
     }
+
     override fun acsch(): Flt64? {
         return if (this eq zero) {
             null
@@ -579,6 +642,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             this.reciprocal().asinh()
         }
     }
+
     override fun atanh(): Flt64? {
         return if (this leq -one || this geq one) {
             null
@@ -586,6 +650,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
             Flt64(atanh(value))
         }
     }
+
     override fun acoth(): Flt64? {
         return if (this eq zero) {
             null
@@ -663,38 +728,50 @@ interface FltXInterface {
 @Serializable(with = FltXSerializer::class)
 value class FltX(internal val value: BigDecimal) :
     FltXInterface, FloatingImpl<FltX>, Copyable<FltX>,
-    LogP<FloatingNumber<*>, FloatingNumber<*>>, PowFP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>>
-{
+    LogP<FloatingNumber<*>, FloatingNumber<*>>, PowFP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>> {
     companion object : FloatingNumberConstants<FltX> {
         @JvmStatic
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
+
         @JvmStatic
         override val one: FltX get() = FltX(BigDecimal.ONE)
+
         @JvmStatic
         override val two: FltX get() = FltX(2L)
+
         @JvmStatic
         override val three: FltX get() = FltX(3L)
+
         @JvmStatic
         override val five: FltX get() = FltX(5L)
+
         @JvmStatic
         override val ten: FltX get() = FltX(10L)
+
         @JvmStatic
         override val minimum: FltX get() = FltX(-Double.MAX_VALUE)
+
         @JvmStatic
         override val maximum: FltX get() = FltX(Double.MAX_VALUE)
+
         @JvmStatic
         override val decimalDigits: Int get() = 18
+
         @JvmStatic
         override val decimalPrecision: FltX get() = FltX(1e-18)
+
         @JvmStatic
         override val epsilon: FltX get() = decimalPrecision
 
         @JvmStatic
         override val half: FltX get() = FltX("0.5", 1)
+
         @JvmStatic
         override val pi: FltX get() = FltX(PI.toBigDecimal())
+
         @JvmStatic
         override val e: FltX get() = FltX(E.toBigDecimal())
+
         @JvmStatic
         override val lg2: FltX by lazy {
             ln(two)!!
@@ -712,6 +789,7 @@ value class FltX(internal val value: BigDecimal) :
     } else {
         this
     }
+
     fun withScale(scale: Int) = FltX(value.setScale(scale))
     fun withScale(scale: Int, roundingMode: RoundingMode) = FltX(value.setScale(scale, roundingMode))
 
@@ -733,9 +811,11 @@ value class FltX(internal val value: BigDecimal) :
     override fun plus(rhs: FltX) = FltX(value + rhs.value)
     override fun minus(rhs: FltX) = FltX(value - rhs.value)
     override fun times(rhs: FltX) = FltX(value * rhs.value)
-    override fun div(rhs: FltX) = FltX(value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
-            / rhs.value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
+    override fun div(rhs: FltX) = FltX(
+        value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
+                / rhs.value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
     )
+
     override fun intDiv(rhs: FltX) = FltX(value - value % rhs.value)
     override fun rem(rhs: FltX) = FltX(value % rhs.value)
 
@@ -751,6 +831,7 @@ value class FltX(internal val value: BigDecimal) :
                 decimalDigits
             )
         )
+
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
@@ -782,18 +863,21 @@ value class FltX(internal val value: BigDecimal) :
             digits = digits,
             precision = precision.toFltX()
         )
+
         is Flt64 -> log(
             x = this.withScale(digits),
             base = base.toFltX().withScale(digits),
             digits = digits,
             precision = precision.toFltX()
         )
+
         is FltX -> log(
             x = this.withScale(digits),
             base = base.withScale(digits),
             digits = digits,
             precision = precision.toFltX()
         )
+
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
     }
 
@@ -811,6 +895,7 @@ value class FltX(internal val value: BigDecimal) :
                 decimalDigits
             )
         )
+
         else -> throw IllegalArgumentException("Unknown argument type to FltX.pow: ${index.javaClass}")
     }
 
@@ -851,6 +936,7 @@ value class FltX(internal val value: BigDecimal) :
                 precision = precision.toFltX()
             )
         }
+
         is Flt64 -> if (index.round() eq index) {
             pow(
                 base = this,
@@ -866,6 +952,7 @@ value class FltX(internal val value: BigDecimal) :
                 precision = precision.toFltX()
             )
         }
+
         is FltX -> if (index.stripTrailingZeros() eq index) {
             pow(
                 base = this,
@@ -881,6 +968,7 @@ value class FltX(internal val value: BigDecimal) :
                 precision = precision.toFltX()
             )
         }
+
         else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
     }
 

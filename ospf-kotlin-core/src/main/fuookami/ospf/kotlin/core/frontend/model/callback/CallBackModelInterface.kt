@@ -1,10 +1,16 @@
 package fuookami.ospf.kotlin.core.frontend.model.callback
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.Model
+import fuookami.ospf.kotlin.core.frontend.model.MulObj
+import fuookami.ospf.kotlin.core.frontend.model.MultiObjectLocation
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.operator.Order
 
 interface AbstractCallBackModelInterface<Obj, V> : Model, AutoCloseable {
     val defaultObjective: V

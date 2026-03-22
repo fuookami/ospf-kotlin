@@ -1,12 +1,14 @@
 package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
 
 class MatrixFormTest {
     private data class TestSymbol(

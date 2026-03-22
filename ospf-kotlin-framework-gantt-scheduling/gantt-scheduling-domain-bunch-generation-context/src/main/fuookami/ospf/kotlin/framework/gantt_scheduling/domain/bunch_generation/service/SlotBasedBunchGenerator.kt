@@ -1,11 +1,21 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.service
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 /**
  * 分时隙任务束生成器接口
@@ -18,12 +28,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  * Each bunch can only belong to one time slot, ensured by concrete implementation.
  */
 interface SlotBasedBunchGenerator<
-    B : SlotBasedBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    Action : ProductionAction
-> {
+        B : SlotBasedBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        Action : ProductionAction
+        > {
     /**
      * 支持的执行器列表
      * List of supported executors
@@ -43,7 +53,7 @@ interface SlotBasedBunchGenerator<
     suspend fun generate(
         iteration: UInt64,
         slot: TimeSlot,
-        constraints: SlotConstraints,
+        constraints: SlotConstraints<*, *>,
         shadowPrices: Map<T, Flt64>
     ): Ret<List<B>>
 
@@ -58,21 +68,26 @@ interface SlotBasedBunchGenerator<
      */
     suspend fun generateAll(
         iteration: UInt64,
-        intermediateValues: CapacityIntermediateValues<Action>,
+        intermediateValues: CapacityIntermediateValues<Action, *, *>,
         shadowPrices: Map<T, Flt64>
     ): Ret<List<B>> {
         val allBunches = mutableListOf<B>()
 
-        for (slot in intermediateValues.slots) {
+        for ((slot, _) in intermediateValues.results) {
             val constraints = intermediateValues.slotConstraints(slot)
             if (constraints != null) {
                 when (val result = generate(iteration, slot, constraints, shadowPrices)) {
                     is Ok -> {
                         allBunches.addAll(result.value)
                     }
+
                     is Failed -> {
                         // Log error but continue with other slots
                         // 记录错误但继续处理其他时隙
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -101,12 +116,12 @@ interface SlotBasedBunchGenerator<
  * Used to create bunch generators for specific executors.
  */
 interface SlotBasedBunchGeneratorFactory<
-    B : SlotBasedBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    Action : ProductionAction
-> {
+        B : SlotBasedBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        Action : ProductionAction
+        > {
     /**
      * 创建指定执行器的生成器
      * Create generator for specified executor

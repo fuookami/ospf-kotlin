@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.FlowRate
 
 object CubicMeterPerSecond : DerivedPhysicalUnit(CubicMeter / Second) {
     override val name = "cubic meter per second"

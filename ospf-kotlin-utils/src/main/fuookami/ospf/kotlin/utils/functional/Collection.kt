@@ -1,14 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.utils.functional
 
+import fuookami.ospf.kotlin.utils.math.Arithmetic
+import fuookami.ospf.kotlin.utils.math.ArithmeticConstants
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOfWith
+import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOfWithOrNull
+import fuookami.ospf.kotlin.utils.operator.Div
+import fuookami.ospf.kotlin.utils.operator.Plus
 import java.util.*
-import kotlin.*
-import kotlin.time.*
 import kotlin.random.Random
-import kotlin.collections.*
-import kotlin.reflect.full.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.operator.*
+import kotlin.reflect.full.companionObjectInstance
+import kotlin.time.Duration
 
 operator fun <K, V> List<Pair<K, V>>.get(key: K): V? {
     return this.firstOrNull { it.first == key }?.second

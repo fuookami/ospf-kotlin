@@ -1,12 +1,22 @@
 package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.MapValueProvider
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.ValueProvider
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 
 private fun missingValueFailed(symbol: Symbol): Failed<Flt64, Error> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")
@@ -66,6 +76,7 @@ fun LinearMonomial.evaluateRet(
     return when (val valueResult = resolveValueRet(symbol, provider, policy)) {
         is Ok -> Ok(coefficient * valueResult.value)
         is Failed -> Failed(valueResult.error)
+        is Fatal -> Fatal(valueResult.errors)
     }
 }
 
@@ -103,6 +114,7 @@ fun QuadraticMonomial.evaluateRet(
     val value1 = when (val result = resolveValueRet(symbol1, provider, policy)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
     }
     return if (symbol2 == null) {
         Ok(coefficient * value1)
@@ -110,6 +122,7 @@ fun QuadraticMonomial.evaluateRet(
         val value2 = when (val result = resolveValueRet(symbol2, provider, policy)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
         Ok(coefficient * value1 * value2)
     }
@@ -150,6 +163,7 @@ fun CanonicalMonomial.evaluateRet(
         val factor = when (val result = resolveValueRet(symbol, provider, policy)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
         value = value * factor
     }
@@ -191,6 +205,7 @@ fun LinearPolynomial.evaluateRet(
         when (val result = monomial.evaluateRet(provider, policy)) {
             is Ok -> value += result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return Ok(value)
@@ -231,6 +246,7 @@ fun QuadraticPolynomial.evaluateRet(
         when (val result = monomial.evaluateRet(provider, policy)) {
             is Ok -> value += result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return Ok(value)
@@ -271,6 +287,7 @@ fun CanonicalPolynomial.evaluateRet(
         when (val result = monomial.evaluateRet(provider, policy)) {
             is Ok -> value += result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return Ok(value)

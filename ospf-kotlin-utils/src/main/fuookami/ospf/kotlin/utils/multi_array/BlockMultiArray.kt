@@ -1,7 +1,5 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.concept.Indexed
-
 /**
  * BlockMultiArray - 分块存储的多维数组
  * 
@@ -15,14 +13,14 @@ class BlockMultiArray<T : Any, S : Shape>(
     val shape: S,
     private val blocks: MutableMap<List<Int>, T> = mutableMapOf()
 ) : Collection<T> {
-    
+
     /**
      * 获取元素
      */
     operator fun get(vararg indices: Int): T? {
         return blocks[indices.toList()]
     }
-    
+
     /**
      * 设置元素
      * Set element
@@ -30,69 +28,69 @@ class BlockMultiArray<T : Any, S : Shape>(
     operator fun set(indices: IntArray, value: T) {
         blocks[indices.toList()] = value
     }
-    
+
     /**
      * 获取或设置默认值
      */
     fun getOrSet(indices: IntArray, defaultValue: () -> T): T {
         return blocks.getOrPut(indices.toList()) { defaultValue() }
     }
-    
+
     /**
      * 检查是否包含值
      */
     fun contains(indices: IntArray): Boolean {
         return blocks.containsKey(indices.toList())
     }
-    
+
     /**
      * 移除元素
      */
     fun remove(indices: IntArray): T? {
         return blocks.remove(indices.toList())
     }
-    
+
     /**
      * 清除所有元素
      */
     fun clear() {
         blocks.clear()
     }
-    
+
     /**
      * 获取已存储的元素数量
      */
     override val size: Int get() = blocks.size
-    
+
     /**
      * 检查是否为空
      */
     override fun isEmpty(): Boolean = blocks.isEmpty()
-    
+
     /**
      * 迭代器 - 只迭代已存储的值
      */
     override fun iterator(): Iterator<T> = blocks.values.iterator()
-    
+
     /**
      * 检查是否包含所有元素
      */
     override fun containsAll(elements: Collection<T>): Boolean {
         return blocks.values.containsAll(elements)
     }
-    
+
     /**
      * 检查是否包含元素
      */
     override fun contains(element: T): Boolean {
         return blocks.values.contains(element)
     }
-    
+
     /**
      * 获取所有已存储的索引
      */
     fun indices(): Set<List<Int>> = blocks.keys
-    
+
     /**
      * 转换为 MultiArray
      */
@@ -110,7 +108,7 @@ class BlockMultiArray<T : Any, S : Shape>(
         }
         return array.toImmutable()
     }
-    
+
     companion object {
         /**
          * 从 MultiArray 创建 BlockMultiArray
@@ -129,7 +127,7 @@ class BlockMultiArray<T : Any, S : Shape>(
             }
             return BlockMultiArray(array.shape, blocks)
         }
-        
+
         /**
          * 创建空的 BlockMultiArray
          */

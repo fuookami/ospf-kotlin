@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.utils.math.symbol.monomial
 
-import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
 
 class MonomialTest {
     private data class TestSymbol(

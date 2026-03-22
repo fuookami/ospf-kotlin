@@ -1,15 +1,17 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import kotlin.time.Duration
 
 /**
  * 产能调度场景的资源使用量管理抽象基类
@@ -19,11 +21,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * Provides a common framework for resource usage calculation in capacity scheduling scenarios
  */
 abstract class CapacitySchedulingResourceUsage<
-    A : ProductionAction,
-    S : ResourceTimeSlot<R, C>,
-    R : Resource<C>,
-    C : AbstractResourceCapacity
->(
+        A : ProductionAction,
+        S : ResourceTimeSlot<R, C>,
+        R : Resource<C>,
+        C : AbstractResourceCapacity
+        >(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
     protected val actions: List<A>,
@@ -79,6 +81,10 @@ abstract class CapacitySchedulingResourceUsage<
                 is Ok -> {}
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

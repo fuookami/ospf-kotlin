@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Acceleration
 
 object MeterPerSquareSecond : DerivedPhysicalUnit(MeterPerSecond / Second) {
     override val name = "meter per square second"

@@ -1,17 +1,25 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.UInt8
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import org.apache.logging.log4j.kotlin.logger
 
 class IfFunction(
     inequality: LinearInequality,
@@ -25,8 +33,8 @@ class IfFunction(
 
     companion object {
         operator fun <
-            T : ToLinearInequality
-        > invoke(
+                T : ToLinearInequality
+                > invoke(
             condition: T,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
@@ -179,6 +187,14 @@ class IfFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -197,6 +213,14 @@ class IfFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -227,6 +251,14 @@ class IfFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

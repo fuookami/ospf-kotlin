@@ -60,7 +60,7 @@ class DerivedQuantity(
      */
     fun addPower(dimension: FundamentalQuantityDimension, power: Int): DerivedQuantity {
         if (power == 0) return this
-        
+
         val existingIndex = quantities.indexOfFirst { it.dimension == dimension }
         return if (existingIndex >= 0) {
             val newQuantities = quantities.toMutableList()

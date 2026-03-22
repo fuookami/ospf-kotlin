@@ -34,15 +34,15 @@ class DataFrame<T>(
     val ncols: Int,
     val columnNames: List<String>
 ) : Collection<Collection<T?>> {
-    
+
     // 底层存储：List<List<T?>>
     // Underlying storage: List<List<T?>>
     private val data: List<MutableList<T?>>
-    
+
     // 列名到索引的映射
     // Column name to index mapping
     private val columnIndex: Map<String, Int>
-    
+
     init {
         require(columnNames.size == ncols) {
             "列名数量 ($columnNames.size) 必须等于列数 ($ncols) / Column name count must equal column count"
@@ -50,26 +50,26 @@ class DataFrame<T>(
         data = List(nrows) { MutableList(ncols) { null } }
         columnIndex = columnNames.mapIndexed { index, name -> name to index }.toMap()
     }
-    
+
     /**
      * 获取行数
      * Get number of rows
      */
     fun getNRows(): Int = nrows
-    
+
     /**
      * 获取列数
      * Get number of columns
      */
     fun getNCols(): Int = ncols
-    
-    
+
+
     /**
      * 通过列名获取列索引
      * Get column index by column name
      */
     fun getColumnIndex(name: String): Int? = columnIndex[name]
-    
+
     /**
      * 获取指定位置的值
      * Get value at specified position
@@ -80,7 +80,7 @@ class DataFrame<T>(
         }
         return data[row][col]
     }
-    
+
     /**
      * 通过行和列名获取值
      * Get value by row and column name
@@ -89,7 +89,7 @@ class DataFrame<T>(
         val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
         return get(row, col)
     }
-    
+
     /**
      * 设置指定位置的值
      * Set value at specified position
@@ -100,7 +100,7 @@ class DataFrame<T>(
         }
         data[row][col] = value
     }
-    
+
     /**
      * 通过行和列名设置值
      * Set value by row and column name
@@ -109,7 +109,7 @@ class DataFrame<T>(
         val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
         set(row, col, value)
     }
-    
+
     /**
      * 获取指定行的所有值
      * Get all values in a row
@@ -118,7 +118,7 @@ class DataFrame<T>(
         require(row in 0 until nrows) { "行索引越界：$row / Row index out of bounds" }
         return data[row].toList()
     }
-    
+
     /**
      * 获取指定列的所有值
      * Get all values in a column
@@ -127,7 +127,7 @@ class DataFrame<T>(
         require(col in 0 until ncols) { "列索引越界：$col / Column index out of bounds" }
         return (0 until nrows).map { data[it][col] }
     }
-    
+
     /**
      * 通过列名获取列
      * Get column by column name
@@ -136,7 +136,7 @@ class DataFrame<T>(
         val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
         return getColumn(col)
     }
-    
+
     /**
      * 转换为可空元素的 MultiArray
      * Convert to MultiArray with nullable elements
@@ -153,7 +153,7 @@ class DataFrame<T>(
         }
         return array.toImmutable()
     }
-    
+
     /**
      * 获取指定范围的视图
      * Get view of specified range
@@ -174,7 +174,7 @@ class DataFrame<T>(
         }
         return newDf
     }
-    
+
     /**
      * 选择指定列
      * Select specified columns
@@ -195,7 +195,7 @@ class DataFrame<T>(
         }
         return newDf
     }
-    
+
     /**
      * 过滤行
      * Filter rows
@@ -216,7 +216,7 @@ class DataFrame<T>(
         }
         return newDf
     }
-    
+
     /**
      * 复制并添加行
      * Copy and add a row
@@ -242,7 +242,7 @@ class DataFrame<T>(
         }
         return newDf
     }
-    
+
     /**
      * 转换为 Map 表示
      * Convert to Map representation
@@ -250,7 +250,7 @@ class DataFrame<T>(
     fun toMap(): Map<String, List<T?>> {
         return columnNames.associateWith { name -> getColumnByName(name) }
     }
-    
+
     /**
      * 迭代器 - 按行迭代
      * Iterator - iterate by row
@@ -258,9 +258,9 @@ class DataFrame<T>(
     override fun iterator(): Iterator<Collection<T?>> {
         return data.map { it.toList() }.iterator()
     }
-    
+
     override val size: Int get() = nrows
-    
+
     /**
      * 检查是否包含元素
      * Check if contains all elements
@@ -268,13 +268,13 @@ class DataFrame<T>(
     override fun containsAll(elements: Collection<Collection<T?>>): Boolean {
         return elements.all { row -> data.contains(row) }
     }
-    
+
     override fun contains(element: Collection<T?>): Boolean {
         return data.any { it == element }
     }
-    
+
     override fun isEmpty(): Boolean = nrows == 0
-    
+
     /**
      * 字符串表示
      * String representation
@@ -292,8 +292,8 @@ class DataFrame<T>(
         // 数据行 / Data rows
         for (i in 0 until nrows.coerceAtMost(10)) {
             sb.append("| ")
-            sb.append(data[i].joinToString(" | ") { 
-                it?.toString()?.padEnd(12) ?: "null".padEnd(12) 
+            sb.append(data[i].joinToString(" | ") {
+                it?.toString()?.padEnd(12) ?: "null".padEnd(12)
             })
             sb.append(" |\n")
         }
@@ -302,7 +302,7 @@ class DataFrame<T>(
         }
         return sb.toString()
     }
-    
+
     companion object {
         /**
          * 从 Map 创建 DataFrame
@@ -312,14 +312,14 @@ class DataFrame<T>(
             val columnNames = data.keys.toList()
             val nrows = data.values.firstOrNull()?.size ?: 0
             val ncols = columnNames.size
-            
+
             // 验证所有列长度相同 / Verify all columns have same length
             for ((name, values) in data) {
                 require(values.size == nrows) {
                     "列 '$name' 的长度 (${values.size}) 与其他列不匹配 / Column length mismatch"
                 }
             }
-            
+
             val df = DataFrame<T>(nrows, ncols, columnNames)
             for ((colIdx, columnName) in columnNames.withIndex()) {
                 for ((rowIdx, value) in data[columnName]!!.withIndex()) {
@@ -328,7 +328,7 @@ class DataFrame<T>(
             }
             return df
         }
-        
+
         /**
          * 创建空 DataFrame
          * Create empty DataFrame
@@ -336,7 +336,7 @@ class DataFrame<T>(
         fun <T> empty(vararg columnNames: String): DataFrame<T> {
             return DataFrame(0, columnNames.size, columnNames.toList())
         }
-        
+
         /**
          * 使用构建器创建 DataFrame
          * Create DataFrame using builder
@@ -360,14 +360,14 @@ class DataFrameBuilder<T>(
     private val columnNames: List<String>
 ) {
     private val rows = mutableListOf<List<T?>>()
-    
+
     fun row(vararg values: T?) {
         require(values.size == columnNames.size) {
             "值的数量 (${values.size}) 必须等于列数 (${columnNames.size}) / Value count must equal column count"
         }
         rows.add(values.toList())
     }
-    
+
     fun rows(values: List<List<T?>>) {
         for (row in values) {
             require(row.size == columnNames.size) {
@@ -376,7 +376,7 @@ class DataFrameBuilder<T>(
         }
         rows.addAll(values)
     }
-    
+
     fun build(): DataFrame<T> {
         val df = DataFrame<T>(rows.size, columnNames.size, columnNames)
         for ((rowIdx, row) in rows.withIndex()) {

@@ -1,9 +1,11 @@
 # Capacity Scheduling Context Design
+
 # 产能调度上下文设计
 
 ## Overview / 概述
 
-This module provides a generic framework for capacity scheduling, supporting both discrete and continuous production actions with time-slot-based scheduling and optional in-slot ordering.
+This module provides a generic framework for capacity scheduling, supporting both discrete and continuous production actions with time-slot-based scheduling and optional in-slot
+ordering.
 
 本模块提供通用的产能调度框架，支持离散型和连续型生产动作，基于时隙调度，并可选支持时隙内顺序控制。
 
@@ -14,16 +16,19 @@ This module provides a generic framework for capacity scheduling, supporting bot
 ### Production Action / 生产动作
 
 A production action represents a way to produce capacity. It can be:
+
 - **Discrete**: Has fixed batch duration, decision variable represents batch count
 - **Continuous**: No fixed batch duration, decision variable represents duration units
 
 生产动作表示产能的生产方式，分为：
+
 - **离散型**：有固定批次时长，决策变量表示批次数
 - **连续型**：无固定批次时长，决策变量表示时长单位数
 
 ### Time Slot / 时隙
 
 Uses `TimeSlot` interface from `infrastructure` module, defined by:
+
 - Time range
 - Duration
 
@@ -74,17 +79,17 @@ interface Capacity<A : ProductionAction> {
 
 ### Class Overview / 类概览
 
-| Class | Purpose | Variable Dimensions |
-|-------|---------|---------------------|
-| `CapacityCompilation` | Non-column generation, no order | `x[action, slot]` 2D |
-| `CapacityOrderCompilation` | Non-column generation, with order | `x[action, slot, order]` 3D |
-| `IterativeCapacityCompilation` | Column generation master problem | `x[executor][iteration, columnIndex]` 2D per executor |
+| Class                          | Purpose                           | Variable Dimensions                                   |
+|--------------------------------|-----------------------------------|-------------------------------------------------------|
+| `CapacityCompilation`          | Non-column generation, no order   | `x[action, slot]` 2D                                  |
+| `CapacityOrderCompilation`     | Non-column generation, with order | `x[action, slot, order]` 3D                           |
+| `IterativeCapacityCompilation` | Column generation master problem  | `x[executor][iteration, columnIndex]` 2D per executor |
 
-| 类 | 用途 | 变量维度 |
-|----|------|---------|
-| `CapacityCompilation` | 非列生成，无顺序 | `x[action, slot]` 二维 |
-| `CapacityOrderCompilation` | 非列生成，有顺序 | `x[action, slot, order]` 三维 |
-| `IterativeCapacityCompilation` | 列生成主问题 | `x[executor][iteration, columnIndex]` 每设备二维 |
+| 类                              | 用途       | 变量维度                                        |
+|--------------------------------|----------|---------------------------------------------|
+| `CapacityCompilation`          | 非列生成，无顺序 | `x[action, slot]` 二维                        |
+| `CapacityOrderCompilation`     | 非列生成，有顺序 | `x[action, slot, order]` 三维                 |
+| `IterativeCapacityCompilation` | 列生成主问题   | `x[executor][iteration, columnIndex]` 每设备二维 |
 
 ---
 
@@ -493,42 +498,42 @@ class ExecutorCapacityConstraint<A : ProductionAction>(
 
 ## Variable Summary / 变量总结
 
-| Class | Variable | Dimensions | Type | Description |
-|-------|----------|------------|------|-------------|
-| `CapacityCompilation` | `x` | `[action, slot]` | `UIntVariable2` | Allocation amount |
-| `CapacityOrderCompilation` | `x` | `[action, slot, order]` | `UIntVariable3` | Allocation amount |
-| `CapacityOrderCompilation` | `b` | `[action, slot, order]` | `BinVariable3` | Order occupation flag |
-| `IterativeCapacityCompilation` | `x[executor]` | `[iteration, columnIndex]` | `UIntVariable2` | Allocation per column |
-| All | `operationTime` | `[action, slot]` | `LinearIntermediateSymbols2` | Operation time |
-| All | `capacity` | `[executor, slot]` | `LinearIntermediateSymbols2` | Total capacity |
+| Class                          | Variable        | Dimensions                 | Type                         | Description           |
+|--------------------------------|-----------------|----------------------------|------------------------------|-----------------------|
+| `CapacityCompilation`          | `x`             | `[action, slot]`           | `UIntVariable2`              | Allocation amount     |
+| `CapacityOrderCompilation`     | `x`             | `[action, slot, order]`    | `UIntVariable3`              | Allocation amount     |
+| `CapacityOrderCompilation`     | `b`             | `[action, slot, order]`    | `BinVariable3`               | Order occupation flag |
+| `IterativeCapacityCompilation` | `x[executor]`   | `[iteration, columnIndex]` | `UIntVariable2`              | Allocation per column |
+| All                            | `operationTime` | `[action, slot]`           | `LinearIntermediateSymbols2` | Operation time        |
+| All                            | `capacity`      | `[executor, slot]`         | `LinearIntermediateSymbols2` | Total capacity        |
 
 ---
 
 ## Implementation Steps / 实施步骤
 
-| Step | Task | File |
-|------|------|------|
-| 1 | Create production action interface | `model/ProductionAction.kt` |
-| 2 | Create capacity abstract interface | `model/Capacity.kt` |
-| 3 | Implement CapacityCompilation | `model/CapacityCompilation.kt` |
-| 4 | Implement CapacityOrderCompilation | `model/CapacityOrderCompilation.kt` |
-| 5 | Implement IterativeCapacityCompilation | `model/IterativeCapacityCompilation.kt` |
-| 6 | Implement CapacityColumn | `model/CapacityColumn.kt` |
-| 7 | Implement CapacityColumnAggregation | `model/CapacityColumnAggregation.kt` |
-| 8 | Implement CapacitySchedulingSolution | `model/CapacitySchedulingSolution.kt` |
-| 9 | Implement aggregation class | `Aggregation.kt` |
-| 10 | Implement context interface | `CapacitySchedulingContext.kt` |
-| 11 | Implement order constraint | `service/limits/OrderConstraint.kt` |
-| 12 | Implement other constraints | `service/limits/*.kt` |
+| Step | Task                                   | File                                    |
+|------|----------------------------------------|-----------------------------------------|
+| 1    | Create production action interface     | `model/ProductionAction.kt`             |
+| 2    | Create capacity abstract interface     | `model/Capacity.kt`                     |
+| 3    | Implement CapacityCompilation          | `model/CapacityCompilation.kt`          |
+| 4    | Implement CapacityOrderCompilation     | `model/CapacityOrderCompilation.kt`     |
+| 5    | Implement IterativeCapacityCompilation | `model/IterativeCapacityCompilation.kt` |
+| 6    | Implement CapacityColumn               | `model/CapacityColumn.kt`               |
+| 7    | Implement CapacityColumnAggregation    | `model/CapacityColumnAggregation.kt`    |
+| 8    | Implement CapacitySchedulingSolution   | `model/CapacitySchedulingSolution.kt`   |
+| 9    | Implement aggregation class            | `Aggregation.kt`                        |
+| 10   | Implement context interface            | `CapacitySchedulingContext.kt`          |
+| 11   | Implement order constraint             | `service/limits/OrderConstraint.kt`     |
+| 12   | Implement other constraints            | `service/limits/*.kt`                   |
 
 ---
 
 ## Context Responsibilities / 上下文职责划分
 
-| Context / 上下文 | Responsibility / 职责 |
-|------------------|----------------------|
+| Context / 上下文                   | Responsibility / 职责                                                                              |
+|---------------------------------|--------------------------------------------------------------------------------------------------|
 | **capacity-scheduling-context** | Master problem modeling, adding columns, solving, extracting shadow prices / 主问题建模、添加列、求解、提取影子价格 |
-| **capacity-generation-context** | Subproblem solving, generating new columns / 子问题求解、生成新列 |
+| **capacity-generation-context** | Subproblem solving, generating new columns / 子问题求解、生成新列                                          |
 
 ---
 
@@ -912,42 +917,42 @@ class BunchCapacitySchedulingResourceUsage<
 
 ### Produce Calculation / 产量计算
 
-| Scenario | Formula |
-|----------|---------|
-| Plan mode | `quantity[product] = Σ_action Σ_slot operationTime[action, slot] × unitProduce` |
+| Scenario   | Formula                                                                                     |
+|------------|---------------------------------------------------------------------------------------------|
+| Plan mode  | `quantity[product] = Σ_action Σ_slot operationTime[action, slot] × unitProduce`             |
 | Bunch mode | `quantity[product] = Σ_column Σ_action columnAllocations[action] × unitProduce × x[column]` |
 
 ### Resource Usage Calculation / 资源消耗计算
 
-| Scenario | Formula |
-|----------|---------|
-| Plan mode | `quantity[slot] = Σ_action operationTime[action, slot] × unitResourceUsage` |
+| Scenario   | Formula                                                                                        |
+|------------|------------------------------------------------------------------------------------------------|
+| Plan mode  | `quantity[slot] = Σ_action operationTime[action, slot] × unitResourceUsage`                    |
 | Bunch mode | `quantity[slot] = Σ_column Σ_action columnAllocations[action] × unitResourceUsage × x[column]` |
 
 ---
 
 ## Implementation Steps (Extended) / 实施步骤（扩展）
 
-| Step | Task | File |
-|------|------|------|
-| 1 | Add CapacityActionProduce interface | `produce-context/model/CapacityActionProduce.kt` |
-| 2 | Add CapacityActionResource interface | `resource-context/model/CapacityActionResource.kt` |
-| 3 | Implement CapacitySchedulingProduce | `produce-context/model/CapacitySchedulingProduce.kt` |
-| 4 | Implement PlanCapacitySchedulingProduce | `produce-context/model/PlanCapacitySchedulingProduce.kt` |
-| 5 | Implement BunchCapacitySchedulingProduce | `produce-context/model/BunchCapacitySchedulingProduce.kt` |
-| 6 | Implement CapacitySchedulingResourceUsage | `resource-context/model/CapacitySchedulingResourceUsage.kt` |
-| 7 | Implement PlanCapacitySchedulingResourceUsage | `resource-context/model/PlanCapacitySchedulingResourceUsage.kt` |
-| 8 | Implement BunchCapacitySchedulingResourceUsage | `resource-context/model/BunchCapacitySchedulingResourceUsage.kt` |
-| 9 | Update pom.xml dependencies | Both modules' pom.xml |
-| 10 | Compile and verify | - |
+| Step | Task                                           | File                                                             |
+|------|------------------------------------------------|------------------------------------------------------------------|
+| 1    | Add CapacityActionProduce interface            | `produce-context/model/CapacityActionProduce.kt`                 |
+| 2    | Add CapacityActionResource interface           | `resource-context/model/CapacityActionResource.kt`               |
+| 3    | Implement CapacitySchedulingProduce            | `produce-context/model/CapacitySchedulingProduce.kt`             |
+| 4    | Implement PlanCapacitySchedulingProduce        | `produce-context/model/PlanCapacitySchedulingProduce.kt`         |
+| 5    | Implement BunchCapacitySchedulingProduce       | `produce-context/model/BunchCapacitySchedulingProduce.kt`        |
+| 6    | Implement CapacitySchedulingResourceUsage      | `resource-context/model/CapacitySchedulingResourceUsage.kt`      |
+| 7    | Implement PlanCapacitySchedulingResourceUsage  | `resource-context/model/PlanCapacitySchedulingResourceUsage.kt`  |
+| 8    | Implement BunchCapacitySchedulingResourceUsage | `resource-context/model/BunchCapacitySchedulingResourceUsage.kt` |
+| 9    | Update pom.xml dependencies                    | Both modules' pom.xml                                            |
+| 10   | Compile and verify                             | -                                                                |
 
 ---
 
 ## Class Naming Convention / 类命名规范
 
-| Scenario | produce-context | resource-context |
-|----------|-----------------|------------------|
-| Task scheduling | `TaskSchedulingProduce` | `TaskSchedulingExecutionResourceUsage` |
-| Bunch scheduling (column generation) | `BunchSchedulingProduce` | `BunchSchedulingExecutionResourceUsage` |
-| Capacity scheduling - Plan mode | `PlanCapacitySchedulingProduce` | `PlanCapacitySchedulingResourceUsage` |
-| Capacity scheduling - Bunch mode | `BunchCapacitySchedulingProduce` | `BunchCapacitySchedulingResourceUsage` |
+| Scenario                             | produce-context                  | resource-context                        |
+|--------------------------------------|----------------------------------|-----------------------------------------|
+| Task scheduling                      | `TaskSchedulingProduce`          | `TaskSchedulingExecutionResourceUsage`  |
+| Bunch scheduling (column generation) | `BunchSchedulingProduce`         | `BunchSchedulingExecutionResourceUsage` |
+| Capacity scheduling - Plan mode      | `PlanCapacitySchedulingProduce`  | `PlanCapacitySchedulingResourceUsage`   |
+| Capacity scheduling - Bunch mode     | `BunchCapacitySchedulingProduce` | `BunchCapacitySchedulingResourceUsage`  |

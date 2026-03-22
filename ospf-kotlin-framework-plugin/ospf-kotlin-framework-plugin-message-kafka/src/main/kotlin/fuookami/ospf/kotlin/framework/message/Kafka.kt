@@ -1,15 +1,26 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.message
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromHexString
+import kotlinx.serialization.encodeToHexString
+import kotlinx.serialization.protobuf.ProtoBuf
+import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
-import java.util.regex.*
-import kotlin.time.*
+import java.util.regex.Pattern
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import kotlinx.serialization.protobuf.*
-import org.apache.kafka.common.serialization.*
-import org.apache.kafka.clients.consumer.*
-import org.apache.kafka.clients.producer.*
+import kotlin.time.toJavaDuration
 
 data class KafkaConfigBuilder(
     val urls: List<String>? = null,

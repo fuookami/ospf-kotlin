@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils
 
-import java.io.*
+import java.io.File
+import java.io.FileOutputStream
 
 data object Library {
     fun loadInJar(path: String, toPath: String) {

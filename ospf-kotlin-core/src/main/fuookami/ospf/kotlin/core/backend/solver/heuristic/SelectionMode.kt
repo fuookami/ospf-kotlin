@@ -1,11 +1,12 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
+import fuookami.ospf.kotlin.utils.operator.abs
 
 interface SelectionMode<V> {
     operator fun <T : Individual<V>> invoke(

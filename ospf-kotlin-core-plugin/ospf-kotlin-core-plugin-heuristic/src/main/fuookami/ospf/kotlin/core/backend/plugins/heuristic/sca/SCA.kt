@@ -1,30 +1,39 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.sca
 
-import kotlin.time.*
-import kotlin.time.Duration.Companion.minutes
-import kotlin.random.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
+import fuookami.ospf.kotlin.core.frontend.model.MulObj
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.nextFlt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.operator.abs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 
 interface AbstractSCAPolicy<V> : AbstractHeuristicPolicy {
     fun r1(iteration: Iteration): Flt64
 
     fun r2(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*,V>
+        model: AbstractCallBackModelInterface<*, V>
     ): List<Flt64>
 
     fun r3(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*,V>
+        model: AbstractCallBackModelInterface<*, V>
     ): List<Flt64>
 
     fun move(
@@ -34,7 +43,7 @@ interface AbstractSCAPolicy<V> : AbstractHeuristicPolicy {
         r1: Flt64,
         r2: List<Flt64>,
         r3: List<Flt64>,
-        model: AbstractCallBackModelInterface<*,V>
+        model: AbstractCallBackModelInterface<*, V>
     ): SolutionWithFitness<V>
 }
 
@@ -50,7 +59,7 @@ data class QLearningState(
         } else {
             UInt64.two
         }
-        val distanceLevel = if (distance leq  Flt64.three.reciprocal()) {
+        val distanceLevel = if (distance leq Flt64.three.reciprocal()) {
             UInt64.zero
         } else if (distance leq (Flt64.one - Flt64.three.reciprocal())) {
             UInt64.one
@@ -76,13 +85,14 @@ class SCAPolicy<V>(
     private val qTable = mutableMapOf<UInt64, MutableList<Flt64>>()
     private var currentState: UInt64 = UInt64.zero
 
-    private val r1Range: Pair<Flt64, Flt64> get() {
-        return when (currentState / UInt64.three) {
-            UInt64.one -> Flt64.zero to (Flt64.one - Flt64.three.reciprocal())
-            UInt64.two -> (Flt64.one - Flt64.three.reciprocal()) to (Flt64.one + Flt64.three.reciprocal())
-            else -> (Flt64.one + Flt64.three.reciprocal()) to Flt64.two
+    private val r1Range: Pair<Flt64, Flt64>
+        get() {
+            return when (currentState / UInt64.three) {
+                UInt64.one -> Flt64.zero to (Flt64.one - Flt64.three.reciprocal())
+                UInt64.two -> (Flt64.one - Flt64.three.reciprocal()) to (Flt64.one + Flt64.three.reciprocal())
+                else -> (Flt64.one + Flt64.three.reciprocal()) to Flt64.two
+            }
         }
-    }
 
     override fun r1(iteration: Iteration): Flt64 {
         val iterationCoefficient = max(
@@ -104,17 +114,18 @@ class SCAPolicy<V>(
         }
     }
 
-    private val r3Range: Pair<Flt64, Flt64> get() {
-        return when (currentState % UInt64.three) {
-            UInt64.one -> Flt64.zero to (Flt64.one - Flt64.three.reciprocal())
-            UInt64.two -> (Flt64.one - Flt64.three.reciprocal()) to (Flt64.one + Flt64.three.reciprocal())
-            else -> (Flt64.one + Flt64.three.reciprocal()) to Flt64.two
+    private val r3Range: Pair<Flt64, Flt64>
+        get() {
+            return when (currentState % UInt64.three) {
+                UInt64.one -> Flt64.zero to (Flt64.one - Flt64.three.reciprocal())
+                UInt64.two -> (Flt64.one - Flt64.three.reciprocal()) to (Flt64.one + Flt64.three.reciprocal())
+                else -> (Flt64.one + Flt64.three.reciprocal()) to Flt64.two
+            }
         }
-    }
 
     override fun r3(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*,V>
+        model: AbstractCallBackModelInterface<*, V>
     ): List<Flt64> {
         val (minR3, maxR3) = r3Range
         return model.tokens.tokens.indices.map {

@@ -1,11 +1,18 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.copt
 
-import kotlin.time.*
 import copt.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 abstract class CoptSolver : AutoCloseable {
     protected lateinit var env: Envr
@@ -36,6 +43,10 @@ abstract class CoptSolver : AutoCloseable {
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
             val env = Envr(config)
@@ -57,6 +68,10 @@ abstract class CoptSolver : AutoCloseable {
             when (val result = callBack?.invoke(config)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}

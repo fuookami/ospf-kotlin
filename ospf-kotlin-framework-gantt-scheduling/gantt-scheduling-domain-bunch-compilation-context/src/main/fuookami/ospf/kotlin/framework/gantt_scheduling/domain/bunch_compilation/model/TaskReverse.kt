@@ -1,14 +1,16 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import kotlin.time.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import kotlin.time.Duration
 
 open class TaskReverseBuilder<
-    out B : AbstractTaskBunch<T, E, A>,
-    out T : AbstractPlannedTask<*, E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
-> {
+        out B : AbstractTaskBunch<T, E, A>,
+        out T : AbstractPlannedTask<*, E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        > {
     operator fun invoke(
         pairs: List<Pair<@UnsafeVariance T, @UnsafeVariance T>>,
         originBunches: List<@UnsafeVariance B>,
@@ -137,19 +139,19 @@ open class TaskReverseBuilder<
 }
 
 class TaskReverse<
-    out T : AbstractPlannedTask<*, E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
-> internal constructor(
+        out T : AbstractPlannedTask<*, E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        > internal constructor(
     private val symmetricalPairs: List<ReversiblePair<T, E, A>> = ArrayList(),
     private val leftMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>,
     private val rightMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>
 ) {
     data class ReversiblePair<
-        out T : AbstractTask<E, A>,
-        out E : Executor,
-        out A : AssignmentPolicy<E>
-    >(
+            out T : AbstractTask<E, A>,
+            out E : Executor,
+            out A : AssignmentPolicy<E>
+            >(
         val prevTask: T,
         val succTask: T,
         val symmetrical: Boolean

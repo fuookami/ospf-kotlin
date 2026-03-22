@@ -55,7 +55,7 @@ class MultiIndexIterator(
     private val shape: Shape,
     private val accessOrder: AccessOrder = AccessOrder.Default
 ) : Iterator<IntArray> {
-    
+
     private var current: IntArray? = null
     private var exhausted = false
     private var count = 0
@@ -113,6 +113,7 @@ class MultiIndexIterator(
                 }
                 return null
             }
+
             AccessOrder.ColumnMajor -> {
                 // 从前向后推进
                 for (i in v.indices) {
@@ -184,19 +185,19 @@ fun DummyVector.iterateWithOrder(
 ): Sequence<IntArray> = sequence {
     val iteratorVector = shape.dummyToIteratorVector(this@iterateWithOrder)
     val lengths = iteratorVector.map { it.len() }.toIntArray()
-    
+
     if (lengths.isEmpty() || lengths.any { it == 0 }) {
         return@sequence
     }
-    
+
     val current = IntArray(lengths.size)
     var exhausted = false
-    
+
     // 初始化
     for (i in current.indices) {
         current[i] = 0
     }
-    
+
     while (!exhausted) {
         // 计算当前向量
         val vector = IntArray(shape.dimension)
@@ -204,7 +205,7 @@ fun DummyVector.iterateWithOrder(
             vector[i] = iteratorVector[i].get(current[i]) ?: 0
         }
         yield(vector)
-        
+
         // 推进
         when (accessOrder) {
             AccessOrder.RowMajor -> {
@@ -222,6 +223,7 @@ fun DummyVector.iterateWithOrder(
                     exhausted = true
                 }
             }
+
             AccessOrder.ColumnMajor -> {
                 var i = 0
                 while (i < current.size) {
@@ -300,7 +302,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
     require(list.size == shape.size) {
         "List size (${list.size}) must match shape size (${shape.size})"
     }
-    
+
     return MultiArray(shape) { i, _ -> list[i] }
 }
 
@@ -316,6 +318,6 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
     require(list.size == shape.size) {
         "List size (${list.size}) must match shape size (${shape.size})"
     }
-    
+
     return MutableMultiArray(shape) { i, _ -> list[i] }
 }

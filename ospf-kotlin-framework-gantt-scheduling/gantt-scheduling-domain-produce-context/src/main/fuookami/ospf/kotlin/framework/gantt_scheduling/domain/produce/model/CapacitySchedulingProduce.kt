@@ -1,14 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
 
 /**
  * 产能调度场景的产品产量管理抽象基类
@@ -18,21 +23,21 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * Provides a common framework for product quantity calculation in capacity scheduling scenarios
  */
 abstract class CapacitySchedulingProduce<
-    A : ProductionAction,
-    P : AbstractMaterial,
-    C : AbstractMaterial
->(
+        A : ProductionAction,
+        P : AbstractMaterial,
+        C : AbstractMaterial
+        >(
     products: List<Pair<P, MaterialDemand?>>,
     protected val actions: List<A>,
     protected val slots: List<TimeSlot>,
     protected val timeWindow: TimeWindow
 ) : AbstractProduce<
-    ProductionTask<Executor, AssignmentPolicy<Executor>, P, C>,
-    Executor,
-    AssignmentPolicy<Executor>,
-    P,
-    C
->(products.sortedBy { it.first.index }) {
+        ProductionTask<Executor, AssignmentPolicy<Executor>, P, C>,
+        Executor,
+        AssignmentPolicy<Executor>,
+        P,
+        C
+        >(products.sortedBy { it.first.index }) {
 
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
@@ -76,6 +81,10 @@ abstract class CapacitySchedulingProduce<
                 is Ok -> {}
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

@@ -1,18 +1,27 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
+import fuookami.ospf.kotlin.core.frontend.variable.PctVariable1
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.geometry.x
+import fuookami.ospf.kotlin.utils.math.geometry.y
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractUnivariateLinearPiecewiseFunction(
     private val x: AbstractQuadraticPolynomial<*>,
@@ -157,6 +166,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(b)) {
@@ -164,6 +181,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -181,6 +206,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -193,6 +226,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
         when (val result = model.addConstraint(
             sum(b) eq Flt64.one,
@@ -203,6 +244,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -223,6 +272,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -260,6 +317,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -291,6 +356,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -302,6 +375,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -321,6 +402,14 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -435,9 +524,9 @@ open class UnivariateLinearPiecewiseFunction(
 ) {
     companion object {
         operator fun <
-            T : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>
-        > invoke(
+                T : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>
+                > invoke(
             x: T,
             points: List<Point2>,
             parent: IntermediateSymbol? = null,
@@ -474,9 +563,9 @@ open class MonotoneUnivariateLinearPiecewiseFunction(
 ) {
     companion object {
         operator fun <
-            T : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>
-        > invoke(
+                T : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>
+                > invoke(
             x: T,
             points: List<Point2>,
             parent: IntermediateSymbol? = null,

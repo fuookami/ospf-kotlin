@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import kotlin.reflect.full.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.operator.Minus
+import fuookami.ospf.kotlin.utils.operator.Rem
+import kotlin.reflect.full.companionObjectInstance
 
 fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     val zero = x.constants.zero
@@ -95,7 +96,7 @@ fun gcd(numbers: Iterable<FltX>): FltX {
     return integerGCD / FltX.ten.pow(factor)
 }
 
-fun <F: FltX> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
+fun <F : FltX> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
     return gcd(listOf(x, y, z) + numbers.toList())
 }
 

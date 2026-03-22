@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import org.junit.jupiter.api.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.UInt64
+import org.junit.jupiter.api.Test
 
 class LCMTest {
     @Test

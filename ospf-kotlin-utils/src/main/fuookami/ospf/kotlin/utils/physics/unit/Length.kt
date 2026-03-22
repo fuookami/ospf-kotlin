@@ -1,14 +1,13 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Length
 
 object Meter : PhysicalUnit() {
     override val name = "meter"
     override val symbol = "m"
 
     override val quantity = Length
-    override val system = SI
     override val scale = Scale()
 }
 

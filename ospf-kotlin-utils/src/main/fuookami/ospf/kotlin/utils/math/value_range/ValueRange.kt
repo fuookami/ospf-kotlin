@@ -1,17 +1,23 @@
 package fuookami.ospf.kotlin.utils.math.value_range
 
-import java.util.*
-import kotlin.reflect.full.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.operator.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.descriptors.elementNames
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.*
+import java.util.*
+import kotlin.reflect.full.companionObjectInstance
 
 open class ValueRangeSerializer<T>(
     private val valueSerializer: ValueWrapperSerializer<T>
@@ -154,6 +160,10 @@ data class ValueRange<T>(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             val upperBound = when (val result = ValueWrapper(ub, constants)) {
                 is Ok -> {
@@ -162,6 +172,10 @@ data class ValueRange<T>(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             return ValueRange(
@@ -188,6 +202,10 @@ data class ValueRange<T>(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             return ValueRange(
                 lb = lowerBound,
@@ -212,6 +230,10 @@ data class ValueRange<T>(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             return ValueRange(
@@ -259,6 +281,10 @@ data class ValueRange<T>(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             return invoke(
                 lb = lowerBound,
@@ -304,6 +330,10 @@ data class ValueRange<T>(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
             return invoke(
@@ -425,6 +455,10 @@ data class ValueRange<T>(
             is Failed -> {
                 null
             }
+
+            is Fatal -> {
+                null
+            }
         }
     }
 
@@ -465,6 +499,10 @@ data class ValueRange<T>(
             }
 
             is Failed -> {
+                null
+            }
+
+            is Fatal -> {
                 null
             }
         }
@@ -594,6 +632,10 @@ data class ValueRange<T>(
                 }
 
                 is Failed -> {
+                    null
+                }
+
+                is Fatal -> {
                     null
                 }
             }

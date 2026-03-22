@@ -1,16 +1,25 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVar
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.toFlt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import org.apache.logging.log4j.kotlin.logger
 
 data class SatisfiedAmountPolynomialFunctionImplBuilderParams(
     val polynomials: List<AbstractLinearPolynomial<*>>,
@@ -342,6 +351,14 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -353,6 +370,14 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -369,6 +394,14 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -383,6 +416,14 @@ private class SatisfiedAmountPolynomialFunctionAnyImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -471,6 +512,14 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -482,6 +531,14 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -496,7 +553,15 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
             is Ok -> {}
 
             is Failed -> {
-            return Failed(result.error)
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -512,6 +577,14 @@ private class SatisfiedAmountPolynomialFunctionAllImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -565,7 +638,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
         params: SatisfiedAmountPolynomialFunctionImplBuilderParams,
         amount: UInt64?,
         extract: Boolean
-    ): this(
+    ) : this(
         amount = amount,
         polynomials = params.polynomials,
         extract = extract,
@@ -658,6 +731,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -667,6 +748,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -682,6 +771,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -696,6 +793,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             if (extract) {
@@ -708,6 +813,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -739,6 +852,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -755,6 +876,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             if (extract) {
@@ -768,6 +897,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
 
@@ -780,6 +917,14 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -867,6 +1012,14 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -878,6 +1031,14 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -894,6 +1055,14 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -908,6 +1077,14 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

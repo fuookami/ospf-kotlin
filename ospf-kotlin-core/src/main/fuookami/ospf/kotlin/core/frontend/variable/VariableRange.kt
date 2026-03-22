@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
+import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
+import fuookami.ospf.kotlin.utils.math.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 data class Range<T, V>(
     val type: T,

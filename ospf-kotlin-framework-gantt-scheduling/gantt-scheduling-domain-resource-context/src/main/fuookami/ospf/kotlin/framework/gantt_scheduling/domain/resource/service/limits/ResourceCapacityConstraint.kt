@@ -1,27 +1,32 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.model.ShadowPrice
+import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : AbstractResourceCapacity>(
     val slot: ResourceTimeSlot<R, C>
 ) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class)
 
 class ResourceCapacityConstraint<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    S : ResourceTimeSlot<R, C>,
-    R : StorageResource<C>,
-    C : AbstractResourceCapacity
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        S : ResourceTimeSlot<R, C>,
+        R : StorageResource<C>,
+        C : AbstractResourceCapacity
+        >(
     private val usage: ResourceUsage<S, R, C>,
     private val quantity: Extractor<ValueRange<Flt64>, S> = { it.resourceCapacity.quantity },
     private val withSlack: Boolean = true,
@@ -44,6 +49,10 @@ class ResourceCapacityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -58,6 +67,10 @@ class ResourceCapacityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -71,6 +84,10 @@ class ResourceCapacityConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -88,6 +105,10 @@ class ResourceCapacityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -102,6 +123,10 @@ class ResourceCapacityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -115,6 +140,10 @@ class ResourceCapacityConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }

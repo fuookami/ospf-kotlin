@@ -1,14 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 /**
  * 分时隙任务束编译类
@@ -21,18 +26,18 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * Each bunch can only belong to one time slot, ensured by the bunch generator.
  */
 open class SlotBasedBunchCompilation<
-    B,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        B,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val tasks: List<T>,
     private val executors: List<E>,
     private val slots: List<TimeSlot>,
     private val lockCancelTasks: Set<T> = emptySet(),
     override val withExecutorLeisure: Boolean = true
 ) : BunchCompilation<B, T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure)
-where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
+        where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
 
     /**
      * 按时隙分组的 bunches
@@ -68,6 +73,7 @@ where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
         val unduplicatedBunches = when (val result = addColumns(iteration, newBunches, model)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Group by slot and track variables

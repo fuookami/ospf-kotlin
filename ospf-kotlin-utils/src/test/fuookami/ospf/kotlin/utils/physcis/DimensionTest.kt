@@ -1,7 +1,10 @@
 package fuookami.ospf.kotlin.utils.physcis
 
-import org.junit.jupiter.api.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Acceleration
+import fuookami.ospf.kotlin.utils.physics.dimension.Force
+import fuookami.ospf.kotlin.utils.physics.dimension.Mass
+import fuookami.ospf.kotlin.utils.physics.dimension.times
+import org.junit.jupiter.api.Test
 
 class DimensionTest {
     @Test

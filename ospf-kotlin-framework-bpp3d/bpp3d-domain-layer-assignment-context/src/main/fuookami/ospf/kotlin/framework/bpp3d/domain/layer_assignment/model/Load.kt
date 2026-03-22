@@ -1,13 +1,17 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
 
 interface Load {
     val load: LinearIntermediateSymbols1
@@ -49,6 +53,10 @@ class ImpreciseLoad(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -103,6 +111,10 @@ class PreciseLoad(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

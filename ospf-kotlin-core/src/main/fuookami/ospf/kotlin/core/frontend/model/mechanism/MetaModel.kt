@@ -1,19 +1,33 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import java.io.FileWriter
-import java.nio.file.Path
-import kotlin.io.path.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuantityIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
-import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.LinearModel
+import fuookami.ospf.kotlin.core.frontend.model.Model
+import fuookami.ospf.kotlin.core.frontend.model.QuadraticModel
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import java.io.FileWriter
+import java.nio.file.Path
+import kotlin.io.path.Path
+import kotlin.io.path.isDirectory
 
 sealed interface MetaModel : Model, AutoCloseable {
     class SubObject<Poly : Polynomial<Poly, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>(
@@ -103,6 +117,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -117,6 +135,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -133,6 +155,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -147,6 +173,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -163,6 +193,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -178,6 +212,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -192,6 +230,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -220,6 +262,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -234,6 +280,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -250,6 +300,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -264,6 +318,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -280,6 +338,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -295,6 +357,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return ok
@@ -309,6 +375,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -365,7 +435,13 @@ sealed interface MetaModel : Model, AutoCloseable {
     }
 
     suspend fun export(path: String, unfold: Boolean): Try {
-        return export(Path(".").resolve(name), if (unfold) { UInt64.zero } else { UInt64.maximum })
+        return export(
+            Path(".").resolve(name), if (unfold) {
+                UInt64.zero
+            } else {
+                UInt64.maximum
+            }
+        )
     }
 
     suspend fun export(path: String, unfold: UInt64): Try {
@@ -414,6 +490,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                     is Failed -> {
                         Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        Fatal(result.errors)
+                    }
                 }
             }
 
@@ -428,6 +508,10 @@ sealed interface MetaModel : Model, AutoCloseable {
                         is Failed -> {
                             Failed(result.error)
                         }
+
+                        is Fatal -> {
+                            Fatal(result.errors)
+                        }
                     }
                 }
             }
@@ -436,6 +520,10 @@ sealed interface MetaModel : Model, AutoCloseable {
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -862,7 +950,7 @@ class LinearMetaModel(
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
         _constraints.add(MetaConstraint(constraint, lazy = lazy))
-        
+
         if (withRangeSet ?: this.configuration.withRangeSet
             && constraint.lhs.monomials.size == 1
             && !constraint.lhs.monomials.first().pure
@@ -899,11 +987,13 @@ class LinearMetaModel(
         val obj = LinearPolynomial(polynomial)
         name?.let { obj.name = it }
         displayName?.let { obj.displayName = it }
-        _subObjects.add(MetaModel.SubObject(
-            parent = this,
-            category = category,
-            polynomial = obj
-        ))
+        _subObjects.add(
+            MetaModel.SubObject(
+                parent = this,
+                category = category,
+                polynomial = obj
+            )
+        )
         return ok
     }
 
@@ -922,12 +1012,14 @@ class LinearMetaModel(
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
-        _constraints.add(MetaConstraint(
-            constraint = constraint,
-            group = group,
-            lazy = lazy,
-            args = args
-        ))
+        _constraints.add(
+            MetaConstraint(
+                constraint = constraint,
+                group = group,
+                lazy = lazy,
+                args = args
+            )
+        )
 
         if (withRangeSet ?: this.configuration.withRangeSet
             && constraint.lhs.monomials.size == 1
@@ -1037,12 +1129,14 @@ class QuadraticMetaModel(
     ): Try {
         name?.let { constraint.name = it }
         displayName?.let { constraint.name = it }
-        _constraints.add(MetaConstraint(
-            constraint = constraint,
-            group = group,
-            lazy = lazy,
-            args = args
-        ))
+        _constraints.add(
+            MetaConstraint(
+                constraint = constraint,
+                group = group,
+                lazy = lazy,
+                args = args
+            )
+        )
 
         if (withRangeSet ?: this.configuration.withRangeSet
             && !constraint.lhs.monomials.first().pure
@@ -1081,11 +1175,13 @@ class QuadraticMetaModel(
         val obj = QuadraticPolynomial(polynomial)
         name?.let { obj.name = it }
         displayName?.let { obj.displayName = it }
-        _subObjects.add(MetaModel.SubObject(
-            parent = this,
-            category = category,
-            polynomial = obj
-        ))
+        _subObjects.add(
+            MetaModel.SubObject(
+                parent = this,
+                category = category,
+                polynomial = obj
+            )
+        )
         return ok
     }
 }

@@ -1,8 +1,11 @@
 package fuookami.ospf.kotlin.utils.meta_programming
 
-import java.util.concurrent.atomic.*
-import kotlin.reflect.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
 
 fun <T, U : Any> lazyDelegate(lazyFunc: () -> U): LazyDelegate<T, U> {
     return LazyDelegate(lazyFunc)

@@ -1,11 +1,18 @@
 package fuookami.ospf.kotlin.utils.serialization
 
+import fuookami.ospf.kotlin.utils.meta_programming.NameTransfer
+import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNamingStrategy
+import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.encodeToStream
+import kotlinx.serialization.serializer
 import java.io.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import kotlinx.serialization.builtins.*
-import kotlinx.serialization.descriptors.*
-import fuookami.ospf.kotlin.utils.meta_programming.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class JsonNamingPolicy(

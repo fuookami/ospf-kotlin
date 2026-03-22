@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils
 
-import java.time.*
-import java.security.*
+import java.security.SecureRandom
+import java.time.Instant
 
 data object UUIDv7 {
     private val random = SecureRandom()

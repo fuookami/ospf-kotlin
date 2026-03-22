@@ -1,21 +1,26 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.UContinuous
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 class ConsumptionLessQuantityMinimization<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    C : AbstractMaterial
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        C : AbstractMaterial
+        >(
     products: List<Pair<C, MaterialReserves?>>,
     private val consumption: Consumption,
     private val threshold: (C) -> Flt64 = { Flt64.zero },
@@ -48,6 +53,10 @@ class ConsumptionLessQuantityMinimization<
                         is Failed -> {
                             return Failed(result.error)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     cost += coefficient(material) * slack
                 }
@@ -60,6 +69,10 @@ class ConsumptionLessQuantityMinimization<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

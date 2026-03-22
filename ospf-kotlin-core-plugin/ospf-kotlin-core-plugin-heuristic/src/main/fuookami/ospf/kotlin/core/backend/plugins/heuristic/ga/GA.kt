@@ -1,19 +1,25 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.ga
 
-import kotlin.time.*
-import kotlin.time.Duration.Companion.minutes
-import kotlin.random.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.Cross
+import fuookami.ospf.kotlin.core.frontend.model.MulObj
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.nextFlt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.Order
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.ExperimentalTime
 
 interface AbstractGAPolicy<V> : AbstractHeuristicPolicy {
     suspend fun migrate(
@@ -73,14 +79,14 @@ class GAPolicy<V>(
         )
             .map { (population, newIndividuals) ->
                 val individuals = (population.individuals + newIndividuals)
-                        .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                            model.compareObjective(lhs.fitness, rhs.fitness)
-                        }
+                    .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                        model.compareObjective(lhs.fitness, rhs.fitness)
+                    }
                 AbstractPopulation(
                     individuals = individuals,
                     elites = individuals.take(population.eliteAmount.toInt()),
                     best = individuals.first(),
-                    eliteAmount =  population.eliteAmount,
+                    eliteAmount = population.eliteAmount,
                     densityRange = population.densityRange,
                     mutationRateRange = population.mutationRateRange,
                     parentAmountRange = population.parentAmountRange
@@ -230,7 +236,7 @@ class GeneAlgorithm<Obj, V>(
                 individuals = thisIndividuals,
                 elites = thisIndividuals.take(thisPopulation.eliteAmount.toInt()),
                 best = thisIndividuals.first(),
-                eliteAmount =  thisPopulation.eliteAmount,
+                eliteAmount = thisPopulation.eliteAmount,
                 densityRange = thisPopulation.densityRange,
                 mutationRateRange = thisPopulation.mutationRateRange,
                 parentAmountRange = thisPopulation.parentAmountRange
@@ -288,7 +294,7 @@ class GeneAlgorithm<Obj, V>(
                             individuals = combined,
                             elites = combined.take(population.eliteAmount.toInt()),
                             best = combined.first(),
-                            eliteAmount =  population.eliteAmount,
+                            eliteAmount = population.eliteAmount,
                             densityRange = population.densityRange,
                             mutationRateRange = population.mutationRateRange,
                             parentAmountRange = population.parentAmountRange

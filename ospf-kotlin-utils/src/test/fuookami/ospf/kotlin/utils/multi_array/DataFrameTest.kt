@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * 数据框测试
@@ -22,7 +22,7 @@ class DataFrameTest {
         // 测试数据框创建
         // Test DataFrame creation
         val df = DataFrame<String>(3, 2, listOf("Name", "Value"))
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(2, df.getNCols())
         assertEquals(listOf("Name", "Value"), df.columnNames)
@@ -33,7 +33,7 @@ class DataFrameTest {
         // 测试列索引
         // Test column index
         val df = DataFrame<String>(3, 2, listOf("A", "B"))
-        
+
         assertEquals(0, df.getColumnIndex("A"))
         assertEquals(1, df.getColumnIndex("B"))
         assertEquals(null, df.getColumnIndex("C"))
@@ -58,11 +58,11 @@ class DataFrameTest {
         // 测试获取和设置
         // Test get and set
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 10)
         df.set(0, 1, 20)
         df.set(1, 0, 30)
-        
+
         assertEquals(10, df.get(0, 0))
         assertEquals(20, df.get(0, 1))
         assertEquals(30, df.get(1, 0))
@@ -74,10 +74,10 @@ class DataFrameTest {
         // 测试通过列名获取和设置
         // Test get and set by column name
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.setByName(0, "A", 100)
         df.setByName(0, "B", 200)
-        
+
         assertEquals(100, df.getByName(0, "A"))
         assertEquals(200, df.getByName(0, "B"))
     }
@@ -87,7 +87,7 @@ class DataFrameTest {
         // 测试无效列名
         // Test invalid column name
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.getByName(0, "C")
         }
@@ -98,11 +98,11 @@ class DataFrameTest {
         // 测试索引越界
         // Test index out of bounds
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.get(5, 0)
         }
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.get(0, 5)
         }
@@ -118,12 +118,12 @@ class DataFrameTest {
         // 测试获取行
         // Test get row
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
         df.set(1, 0, 3)
         df.set(1, 1, 4)
-        
+
         assertEquals(listOf(1, 2), df.getRow(0))
         assertEquals(listOf(3, 4), df.getRow(1))
         assertEquals(listOf(null, null), df.getRow(2))
@@ -134,14 +134,14 @@ class DataFrameTest {
         // 测试获取列
         // Test get column
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(1, 0, 2)
         df.set(2, 0, 3)
         df.set(0, 1, 4)
         df.set(1, 1, 5)
         df.set(2, 1, 6)
-        
+
         assertEquals(listOf(1, 2, 3), df.getColumn(0))
         assertEquals(listOf(4, 5, 6), df.getColumn(1))
     }
@@ -151,11 +151,11 @@ class DataFrameTest {
         // 测试通过列名获取列
         // Test get column by name
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(1, 0, 2)
         df.set(2, 0, 3)
-        
+
         assertEquals(listOf(1, 2, 3), df.getColumnByName("A"))
     }
 
@@ -164,7 +164,7 @@ class DataFrameTest {
         // 测试行索引越界
         // Test row index out of bounds
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.getRow(5)
         }
@@ -175,7 +175,7 @@ class DataFrameTest {
         // 测试列索引越界
         // Test column index out of bounds
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.getColumn(5)
         }
@@ -191,16 +191,16 @@ class DataFrameTest {
         // 测试子数据框
         // Test sub-DataFrame
         val df = DataFrame<Int>(5, 4, listOf("A", "B", "C", "D"))
-        
+
         // 填充数据
         for (i in 0 until 5) {
             for (j in 0 until 4) {
                 df.set(i, j, i * 10 + j)
             }
         }
-        
+
         val subDf = df.subDataFrame(rows = 1..3, cols = 1..2)
-        
+
         assertEquals(3, subDf.getNRows())
         assertEquals(2, subDf.getNCols())
         assertEquals(listOf("B", "C"), subDf.columnNames)
@@ -211,15 +211,15 @@ class DataFrameTest {
         // 测试子数据框值
         // Test sub-DataFrame values
         val df = DataFrame<Int>(5, 4, listOf("A", "B", "C", "D"))
-        
+
         for (i in 0 until 5) {
             for (j in 0 until 4) {
                 df.set(i, j, i * 10 + j)
             }
         }
-        
+
         val subDf = df.subDataFrame(rows = 1..2, cols = 1..2)
-        
+
         assertEquals(11, subDf.get(0, 0))  // 原 [1, 1]
         assertEquals(12, subDf.get(0, 1))  // 原 [1, 2]
         assertEquals(21, subDf.get(1, 0))  // 原 [2, 1]
@@ -236,15 +236,15 @@ class DataFrameTest {
         // 测试选择列
         // Test select columns
         val df = DataFrame<Int>(3, 4, listOf("A", "B", "C", "D"))
-        
+
         for (i in 0 until 3) {
             for (j in 0 until 4) {
                 df.set(i, j, i * 10 + j)
             }
         }
-        
+
         val selected = df.select("A", "C")
-        
+
         assertEquals(3, selected.getNRows())
         assertEquals(2, selected.getNCols())
         assertEquals(listOf("A", "C"), selected.columnNames)
@@ -257,7 +257,7 @@ class DataFrameTest {
         // 测试选择无效列
         // Test select invalid column
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.select("A", "C")
         }
@@ -273,19 +273,19 @@ class DataFrameTest {
         // 测试过滤行
         // Test filter rows
         val df = DataFrame<Int>(5, 2, listOf("A", "B"))
-        
+
         for (i in 0 until 5) {
             df.set(i, 0, i)
             df.set(i, 1, i * 2)
         }
-        
+
         // 过滤出 A > 2 的行
         // Filter rows where A > 2
         val filtered = df.filter { row ->
             val a = row[0] as? Int ?: 0
             a > 2
         }
-        
+
         assertEquals(2, filtered.getNRows())  // 只有 3 和 4 满足条件
         assertEquals(3, filtered.get(0, 0))
         assertEquals(4, filtered.get(1, 0))
@@ -296,14 +296,14 @@ class DataFrameTest {
         // 测试过滤所有行匹配
         // Test filter all rows match
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         for (i in 0 until 3) {
             df.set(i, 0, i)
             df.set(i, 1, i * 2)
         }
-        
+
         val filtered = df.filter { true }
-        
+
         assertEquals(3, filtered.getNRows())
     }
 
@@ -312,14 +312,14 @@ class DataFrameTest {
         // 测试过滤没有行匹配
         // Test filter no rows match
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         for (i in 0 until 3) {
             df.set(i, 0, i)
             df.set(i, 1, i * 2)
         }
-        
+
         val filtered = df.filter { false }
-        
+
         assertEquals(0, filtered.getNRows())
     }
 
@@ -333,14 +333,14 @@ class DataFrameTest {
         // 测试添加行
         // Test add row
         val df = DataFrame<Int>(2, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
         df.set(1, 0, 3)
         df.set(1, 1, 4)
-        
+
         val newDf = df.copyWithAddedRow(listOf(5, 6))
-        
+
         assertEquals(2, df.getNRows())  // 原数据框不变
         assertEquals(3, newDf.getNRows())
         assertEquals(5, newDf.get(2, 0))
@@ -352,7 +352,7 @@ class DataFrameTest {
         // 测试添加行大小不匹配
         // Test add row size mismatch
         val df = DataFrame<Int>(2, 2, listOf("A", "B"))
-        
+
         assertFailsWith<IllegalArgumentException> {
             df.copyWithAddedRow(listOf(1, 2, 3))  // 值数量不等于列数
         }
@@ -368,16 +368,16 @@ class DataFrameTest {
         // 测试转换为 Map
         // Test convert to Map
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(1, 0, 2)
         df.set(2, 0, 3)
         df.set(0, 1, 4)
         df.set(1, 1, 5)
         df.set(2, 1, 6)
-        
+
         val map = df.toMap()
-        
+
         assertEquals(2, map.size)
         assertEquals(listOf(1, 2, 3), map["A"])
         assertEquals(listOf(4, 5, 6), map["B"])
@@ -391,9 +391,9 @@ class DataFrameTest {
             "A" to listOf(1, 2, 3),
             "B" to listOf(4, 5, 6)
         )
-        
+
         val df = DataFrame.fromMap(map)
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(2, df.getNCols())
         assertEquals(listOf("A", "B"), df.columnNames)
@@ -409,7 +409,7 @@ class DataFrameTest {
             "A" to listOf(1, 2, 3),
             "B" to listOf(4, 5)  // 长度不同
         )
-        
+
         assertFailsWith<IllegalArgumentException> {
             DataFrame.fromMap(map)
         }
@@ -420,9 +420,9 @@ class DataFrameTest {
         // 测试从空 Map 创建
         // Test create from empty Map
         val map = emptyMap<String, List<Int>>()
-        
+
         val df = DataFrame.fromMap(map)
-        
+
         assertEquals(0, df.getNRows())
         assertEquals(0, df.getNCols())
     }
@@ -441,7 +441,7 @@ class DataFrameTest {
             row(3, 4)
             row(5, 6)
         }
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(2, df.getNCols())
         assertEquals(1, df.get(0, 0))
@@ -453,13 +453,15 @@ class DataFrameTest {
         // 测试构建器多行
         // Test builder multiple rows
         val df = DataFrame.build<Int>("A", "B") {
-            rows(listOf(
-                listOf(1, 2),
-                listOf(3, 4),
-                listOf(5, 6)
-            ))
+            rows(
+                listOf(
+                    listOf(1, 2),
+                    listOf(3, 4),
+                    listOf(5, 6)
+                )
+            )
         }
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(1, df.get(0, 0))
         assertEquals(6, df.get(2, 1))
@@ -489,7 +491,7 @@ class DataFrameTest {
             "A" to listOf(1, 2, 3),
             "B" to listOf(4, 5, 6)
         )
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(2, df.getNCols())
         assertEquals(1, df.get(0, 0))
@@ -508,7 +510,7 @@ class DataFrameTest {
                 listOf(5, 6)
             )
         )
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(2, df.getNCols())
         assertEquals(1, df.get(0, 0))
@@ -539,14 +541,14 @@ class DataFrameTest {
         // 测试迭代器
         // Test iterator
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
         df.set(1, 0, 3)
         df.set(1, 1, 4)
         df.set(2, 0, 5)
         df.set(2, 1, 6)
-        
+
         val rows = df.toList()
         assertEquals(3, rows.size)
     }
@@ -556,10 +558,10 @@ class DataFrameTest {
         // 测试包含检查
         // Test contains check
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
-        
+
         // 测试 containsAll
         // Test containsAll
         assertTrue(df.containsAll(listOf(listOf(1, 2), listOf(null, null))))
@@ -570,10 +572,10 @@ class DataFrameTest {
         // 测试包含元素
         // Test contains element
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
-        
+
         assertTrue(df.contains(listOf(1, 2)))
         assertFalse(df.contains(listOf(3, 4)))
     }
@@ -584,7 +586,7 @@ class DataFrameTest {
         // Test empty check
         val df1 = DataFrame<Int>(3, 2, listOf("A", "B"))
         val df2 = DataFrame.empty<Int>("A", "B")
-        
+
         assertFalse(df1.isEmpty())
         assertTrue(df2.isEmpty())
     }
@@ -599,10 +601,10 @@ class DataFrameTest {
         // 测试 toString 方法
         // Test toString method
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
-        
+
         val str = df.toString()
         assertTrue(str.contains("A"))
         assertTrue(str.contains("B"))
@@ -613,12 +615,12 @@ class DataFrameTest {
         // 测试大数据框 toString
         // Test large DataFrame toString
         val df = DataFrame<Int>(15, 2, listOf("A", "B"))
-        
+
         for (i in 0 until 15) {
             df.set(i, 0, i)
             df.set(i, 1, i * 2)
         }
-        
+
         val str = df.toString()
         assertTrue(str.contains("..."))  // 应该有省略号
     }
@@ -633,7 +635,7 @@ class DataFrameTest {
         // 测试空值包装
         // Test null value wrapper
         val nv = NullableValue<String>(null)
-        
+
         assertEquals(null, nv.value)
         assertEquals("null", nv.toString())
     }
@@ -643,7 +645,7 @@ class DataFrameTest {
         // 测试有值包装
         // Test value wrapper
         val nv = NullableValue("Hello")
-        
+
         assertEquals("Hello", nv.value)
         assertEquals("Hello", nv.toString())
     }
@@ -655,7 +657,7 @@ class DataFrameTest {
         val nv1 = NullableValue("Hello")
         val nv2 = NullableValue("Hello")
         val nv3 = NullableValue<String>(null)
-        
+
         assertEquals(nv1, nv2)
         assertTrue(nv1 != nv3)
     }
@@ -670,16 +672,16 @@ class DataFrameTest {
         // 测试转换为 NullableMultiArray
         // Test convert to NullableMultiArray
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
         df.set(1, 0, 3)
         df.set(1, 1, null)
         df.set(2, 0, null)
         df.set(2, 1, 6)
-        
+
         val array = df.toNullableMultiArray()
-        
+
         assertEquals(6, array.size)
     }
 
@@ -693,10 +695,10 @@ class DataFrameTest {
         // 测试单行数据框
         // Test single row DataFrame
         val df = DataFrame<Int>(1, 2, listOf("A", "B"))
-        
+
         df.set(0, 0, 1)
         df.set(0, 1, 2)
-        
+
         assertEquals(1, df.getNRows())
         assertEquals(2, df.getRow(0).size)
     }
@@ -706,11 +708,11 @@ class DataFrameTest {
         // 测试单列数据框
         // Test single column DataFrame
         val df = DataFrame<Int>(3, 1, listOf("A"))
-        
+
         df.set(0, 0, 1)
         df.set(1, 0, 2)
         df.set(2, 0, 3)
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(1, df.getNCols())
         assertEquals(listOf(1, 2, 3), df.getColumn(0))
@@ -721,7 +723,7 @@ class DataFrameTest {
         // 测试零行数据框
         // Test zero row DataFrame
         val df = DataFrame<Int>(0, 2, listOf("A", "B"))
-        
+
         assertEquals(0, df.getNRows())
         assertEquals(2, df.getNCols())
         assertTrue(df.isEmpty())
@@ -732,7 +734,7 @@ class DataFrameTest {
         // 测试零列数据框
         // Test zero column DataFrame
         val df = DataFrame<Int>(3, 0, emptyList())
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(0, df.getNCols())
     }
@@ -747,7 +749,7 @@ class DataFrameTest {
         // 测试类型别名
         // Test type alias
         val df: DataFrame2<Int> = DataFrame(3, 2, listOf("A", "B"))
-        
+
         assertEquals(3, df.getNRows())
         assertEquals(2, df.getNCols())
     }

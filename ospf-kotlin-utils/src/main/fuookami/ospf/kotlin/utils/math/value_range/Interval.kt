@@ -1,10 +1,15 @@
 package fuookami.ospf.kotlin.utils.math.value_range
 
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.operator.PartialOrd
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.util.*
-import kotlinx.serialization.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.descriptors.*
-import fuookami.ospf.kotlin.utils.operator.*
 
 private data object IntervalSerializer : KSerializer<Interval> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntervalType", PrimitiveKind.STRING)
@@ -14,8 +19,9 @@ private data object IntervalSerializer : KSerializer<Interval> {
     }
 
     override fun deserialize(decoder: Decoder): Interval {
-        return Interval.valueOf(decoder.decodeString()
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
+        return Interval.valueOf(
+            decoder.decodeString()
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() })
     }
 }
 

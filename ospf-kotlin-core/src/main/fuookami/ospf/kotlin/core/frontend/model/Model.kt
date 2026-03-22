@@ -1,14 +1,23 @@
 package fuookami.ospf.kotlin.core.frontend.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.quantity.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.utils.functional.MultiMap2
+import fuookami.ospf.kotlin.utils.functional.MultiMap3
+import fuookami.ospf.kotlin.utils.functional.MultiMap4
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
 
 typealias Solution = List<Flt64>
 
@@ -615,7 +624,7 @@ interface QuadraticModel : LinearModel {
         polynomial: AbstractLinearPolynomial<*>,
         name: String?,
         displayName: String?
-    ) : Try {
+    ): Try {
         return addObject(
             category = category,
             polynomial = QuadraticPolynomial(polynomial),

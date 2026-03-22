@@ -1,11 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
-import kotlin.time.*
-import kotlin.time.Instant
 import com.hexaly.optimizer.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 abstract class HexalySolver : AutoCloseable {
@@ -30,6 +38,10 @@ abstract class HexalySolver : AutoCloseable {
             when (val result = callBack?.invoke(optimizer)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}

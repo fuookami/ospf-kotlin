@@ -1,8 +1,9 @@
 package  fuookami.ospf.kotlin.core.frontend.variable
 
-import kotlin.random.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import kotlin.random.Random
+import kotlin.random.nextULong
 
 data class Token(
     val variable: AbstractVariableItem<*, *>,

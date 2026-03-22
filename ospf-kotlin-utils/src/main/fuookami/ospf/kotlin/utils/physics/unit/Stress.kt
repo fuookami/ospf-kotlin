@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Stress
 
 object PoundForcePerSquareInch : DerivedPhysicalUnit(PoundForce / SquareInch) {
     override val name = "pound force per square inch"

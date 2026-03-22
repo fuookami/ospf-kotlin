@@ -1,19 +1,23 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskCompilation
+import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 class TaskTimeConflictConstraint<
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
@@ -38,6 +42,10 @@ class TaskTimeConflictConstraint<
 
                             is Failed -> {
                                 return Failed(result.error)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                     } else {

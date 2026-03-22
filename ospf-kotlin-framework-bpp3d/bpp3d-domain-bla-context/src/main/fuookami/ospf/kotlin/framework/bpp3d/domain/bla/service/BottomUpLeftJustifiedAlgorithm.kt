@@ -1,16 +1,19 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
+import fuookami.ospf.kotlin.utils.functional.not
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import org.apache.logging.log4j.kotlin.logger
 
 private fun compareWithPosition(
     lhs: Point2,
@@ -112,7 +115,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             }
         }
     }
-    
+
     @OptIn(DelicateCoroutinesApi::class)
     operator fun invoke(
         originProjections: List<Projection<*, P>>,
@@ -142,7 +145,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         return ChannelGuard(promise)
     }
-    
+
     @JvmName("invokeT")
     @Suppress("UNCHECKED_CAST")
     @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
@@ -177,7 +180,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         return ChannelGuard(promiseWrapper)
     }
-    
+
     @OptIn(DelicateCoroutinesApi::class)
     private suspend fun bla(
         promise: Channel<List<Placement2<*, P>?>>,
@@ -268,7 +271,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             }
         }
     }
-    
+
     private suspend fun feasiblePoints(
         placements: List<Placement2<*, P>?>,
         reverse: Boolean = true
@@ -279,7 +282,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             reverse = reverse
         )
     }
-    
+
     private suspend fun feasiblePoints(
         targetPlacements: List<Placement2<*, P>?>,
         fixedPlacements: List<Placement2<*, P>?>,
@@ -333,7 +336,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             ret.sortedWithThreeWayComparator { lhs, rhs -> config.positionComparator(lhs, rhs) }
         }
     }
-    
+
     private fun actualFeasiblePoints(
         point: Point2,
         placement: Placement2<*, *>,
@@ -369,7 +372,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         return points
     }
-    
+
     private fun actualFeasiblePointOnX(
         point: Point2,
         placement: Placement2<*, *>,
@@ -398,7 +401,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             point2(x = maxX, y = point.y)
         }
     }
-    
+
     private fun actualFeasiblePointOnY(
         point: Point2,
         placement: Placement2<*, *>,
@@ -427,7 +430,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             point2(x = point.x, y = maxY)
         }
     }
-    
+
     @Suppress("UNCHECKED_CAST")
     private suspend fun feasible(
         placement: Placement2<*, P>,

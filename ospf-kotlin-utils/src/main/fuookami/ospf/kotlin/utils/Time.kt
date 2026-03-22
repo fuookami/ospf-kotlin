@@ -1,9 +1,13 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.utils
 
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.plus
 import kotlin.time.*
-import kotlin.time.Instant
 import kotlin.time.Duration.Companion.days
-import kotlinx.datetime.*
 
 @OptIn(ExperimentalTime::class)
 fun max(lhs: Instant, rhs: Instant): Instant {
@@ -51,7 +55,7 @@ fun Iterable<Duration>.sum(): Duration {
     return this.fold(Duration.ZERO) { acc, duration -> acc + duration }
 }
 
-fun<T> Iterable<T>.sumOf(extractor: (T) -> Duration): Duration {
+fun <T> Iterable<T>.sumOf(extractor: (T) -> Duration): Duration {
     return this.fold(Duration.ZERO) { acc, duration -> acc + extractor(duration) }
 }
 

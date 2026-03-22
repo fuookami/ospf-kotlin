@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
+import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
 class BinLoadingOrderConstraint(
     private val bins: List<Bin<BinLayer>>,
@@ -29,6 +31,10 @@ class BinLoadingOrderConstraint(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
 
                 when (val result = model.addConstraint(
@@ -39,6 +45,10 @@ class BinLoadingOrderConstraint(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }

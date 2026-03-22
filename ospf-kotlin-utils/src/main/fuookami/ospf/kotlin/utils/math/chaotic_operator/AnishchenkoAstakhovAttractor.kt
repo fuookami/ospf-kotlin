@@ -1,9 +1,12 @@
 package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
-import kotlin.random.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point3
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.math.nextFlt64
+import kotlin.random.Random
 
 data class AnishchenkoAstakhovAttractor(
     val mu: Flt64 = Flt64(1.2),

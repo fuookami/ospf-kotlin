@@ -1,23 +1,33 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols2
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
+import fuookami.ospf.kotlin.core.frontend.variable.eq
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.multi_array.Shape2
 
 open class BunchCompilation<
-    B : AbstractTaskBunch<T, E, A>,
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        B : AbstractTaskBunch<T, E, A>,
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val tasks: List<T>,
     private val executors: List<E>,
     private val lockCancelTasks: Set<T> = emptySet(),
@@ -74,6 +84,10 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::bunchCost.isInitialized) {
@@ -84,6 +98,10 @@ open class BunchCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -105,6 +123,10 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::taskCompilation.isInitialized) {
@@ -125,6 +147,10 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (withExecutorLeisure) {
@@ -136,6 +162,10 @@ open class BunchCompilation<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -162,6 +192,10 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -183,6 +217,10 @@ open class BunchCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
         _x.add(xi)

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Velocity
 
 object CentimeterPerSecond : DerivedPhysicalUnit(Centimeter / Second) {
     override val name = "centimeter per second"
@@ -51,21 +51,21 @@ object FRKnot : DerivedPhysicalUnit(FRNauticalMile / Hour) {
     override val quantity = Velocity
 }
 
-object UKKnot: DerivedPhysicalUnit(UKNauticalMile / Hour) {
+object UKKnot : DerivedPhysicalUnit(UKNauticalMile / Hour) {
     override val name = "uk knot"
     override val symbol = "uk.kn"
 
     override val quantity = Velocity
 }
 
-object RUKnot: DerivedPhysicalUnit(RUNauticalMile / Hour) {
+object RUKnot : DerivedPhysicalUnit(RUNauticalMile / Hour) {
     override val name = "ru knot"
     override val symbol = "ru.kn"
 
     override val quantity = Velocity
 }
 
-object USKnot: DerivedPhysicalUnit(USNauticalMile / Hour) {
+object USKnot : DerivedPhysicalUnit(USNauticalMile / Hour) {
     override val name = "us knot"
     override val symbol = "us.kn"
 

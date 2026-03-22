@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import kotlin.reflect.full.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.math.Integer
+import fuookami.ospf.kotlin.utils.math.RealNumberConstants
+import fuookami.ospf.kotlin.utils.operator.Div
+import fuookami.ospf.kotlin.utils.operator.Rem
+import kotlin.reflect.full.companionObjectInstance
 
-fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I: Integer<I>, I: Div<I, I>, I: Rem<I, I> {
+fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     if (num <= constants.one) {
         return emptyList()
     }
@@ -35,6 +37,6 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
 }
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I: Integer<I>, I: Div<I, I>, I: Rem<I, I> {
+inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     return factorizeImpl(num, (I::class.companionObjectInstance as RealNumberConstants<I>))
 }

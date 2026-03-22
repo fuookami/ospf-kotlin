@@ -1,17 +1,30 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.RealVariable1
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import org.apache.logging.log4j.kotlin.logger
 
 class ProductFunction(
     val polynomials: List<AbstractQuadraticPolynomial<*>>,
@@ -40,11 +53,11 @@ class ProductFunction(
         }
 
         operator fun <
-            T1 : AbstractQuadraticPolynomial<Poly1>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            T2 : AbstractQuadraticPolynomial<Poly2>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>
-        > invoke(
+                T1 : AbstractQuadraticPolynomial<Poly1>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                T2 : AbstractQuadraticPolynomial<Poly2>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>
+                > invoke(
             x: T1,
             y: T2,
             parent: IntermediateSymbol? = null,
@@ -167,6 +180,14 @@ class ProductFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -185,6 +206,14 @@ class ProductFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             } else {
                 when (val result = model.addConstraint(
@@ -196,6 +225,14 @@ class ProductFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -234,6 +271,14 @@ class ProductFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
 
                 when (val result = model.addConstraint(
@@ -245,6 +290,14 @@ class ProductFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
 
@@ -264,6 +317,14 @@ class ProductFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
 
                 when (val result = model.addConstraint(
@@ -275,6 +336,14 @@ class ProductFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
 

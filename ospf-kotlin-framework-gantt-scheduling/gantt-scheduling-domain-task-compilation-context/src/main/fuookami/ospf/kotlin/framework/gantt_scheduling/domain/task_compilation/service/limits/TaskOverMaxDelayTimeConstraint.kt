@@ -1,26 +1,30 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.framework.model.ShadowPrice
+import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 data class TaskOverMaxDelayShadowPriceKey<
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     val task: AbstractTask<E, A>
 ) : ShadowPriceKey(TaskOverMaxDelayShadowPriceKey::class)
 
 class TaskOverMaxDelayTimeConstraint<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val timeWindow: TimeWindow,
     tasks: List<AbstractTask<E, A>>,
     private val taskTime: TaskTime,
@@ -44,6 +48,10 @@ class TaskOverMaxDelayTimeConstraint<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

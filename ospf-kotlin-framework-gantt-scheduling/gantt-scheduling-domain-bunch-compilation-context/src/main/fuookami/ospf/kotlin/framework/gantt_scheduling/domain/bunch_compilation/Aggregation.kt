@@ -1,23 +1,30 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.Binary
+import fuookami.ospf.kotlin.core.frontend.variable.eq
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSchedulingTaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import kotlin.time.Duration
 
 abstract class AbstractBunchCompilationAggregation<
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     protected val tasks: List<T>,
     protected val executors: List<E>,
     protected val lockCancelTasks: Set<T> = emptySet(),
@@ -44,6 +51,10 @@ abstract class AbstractBunchCompilationAggregation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -65,6 +76,10 @@ abstract class AbstractBunchCompilationAggregation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -322,11 +337,11 @@ abstract class AbstractBunchCompilationAggregation<
 }
 
 open class BunchCompilationAggregation<
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
@@ -339,11 +354,11 @@ open class BunchCompilationAggregation<
 )
 
 open class BunchCompilationAggregationWithTime<
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     timeWindow: TimeWindow,
     tasks: List<T>,
     executors: List<E>,
@@ -377,6 +392,10 @@ open class BunchCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = taskTime.register(model)) {
@@ -385,6 +404,10 @@ open class BunchCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = makespan.register(model)) {
@@ -392,6 +415,10 @@ open class BunchCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -415,6 +442,10 @@ open class BunchCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = taskTime.addColumns(
@@ -428,6 +459,10 @@ open class BunchCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

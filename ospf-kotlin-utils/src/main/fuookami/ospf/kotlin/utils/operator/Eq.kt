@@ -54,7 +54,7 @@ infix fun <T : Eq<T>> T.eq(rhs: T?): Boolean {
 }
 
 @JvmName("nullableEqNotNull")
-infix fun <T: Eq<T>> T?.eq(rhs: T): Boolean {
+infix fun <T : Eq<T>> T?.eq(rhs: T): Boolean {
     return if (this == null) {
         false
     } else {

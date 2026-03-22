@@ -1,20 +1,22 @@
 package fuookami.ospf.kotlin.framework.solver
 
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.solver.AbstractLinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
 
 class ParallelCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best
-): AbstractLinearSolver {
+) : AbstractLinearSolver {
     private val logger = logger()
 
     companion object {
@@ -86,6 +88,10 @@ class ParallelCombinatorialLinearSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${solver.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${solver.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -141,6 +147,10 @@ class ParallelCombinatorialLinearSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${solver.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -153,6 +163,10 @@ class ParallelCombinatorialLinearSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }
@@ -226,6 +240,10 @@ class ParallelCombinatorialLinearSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${solver.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${solver.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -281,6 +299,10 @@ class ParallelCombinatorialLinearSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${solver.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -293,6 +315,10 @@ class ParallelCombinatorialLinearSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Comparator
+import fuookami.ospf.kotlin.utils.operator.Ord
 
 private typealias InequalitySign = fuookami.ospf.kotlin.core.frontend.inequality.Sign
 

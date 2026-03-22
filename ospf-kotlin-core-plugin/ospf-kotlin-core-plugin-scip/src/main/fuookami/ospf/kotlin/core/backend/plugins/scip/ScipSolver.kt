@@ -1,14 +1,22 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.Library
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.math.UInt64
+import jscip.SCIP_Stage
+import jscip.SCIP_Status
+import jscip.Scip
+import java.io.File
 import java.util.*
-import java.io.*
-import jscip.*
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 abstract class ScipSolver : AutoCloseable {

@@ -1,17 +1,25 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractOneOfFunction.Branch
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVar
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.multi_array._a
+import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractOneOfFunction(
     protected val branches: List<Branch>,
@@ -27,11 +35,11 @@ sealed class AbstractOneOfFunction(
     ) {
         companion object {
             operator fun <
-                T1 : ToLinearPolynomial<Poly1>,
-                Poly1 : AbstractLinearPolynomial<Poly1>,
-                T2 : ToLinearPolynomial<Poly2>,
-                Poly2 : AbstractLinearPolynomial<Poly2>
-            > invoke(
+                    T1 : ToLinearPolynomial<Poly1>,
+                    Poly1 : AbstractLinearPolynomial<Poly1>,
+                    T2 : ToLinearPolynomial<Poly2>,
+                    Poly2 : AbstractLinearPolynomial<Poly2>
+                    > invoke(
                 condition: T1?,
                 polynomial: T2,
                 name: String
@@ -185,6 +193,14 @@ sealed class AbstractOneOfFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         masks.forEach {
@@ -193,6 +209,14 @@ sealed class AbstractOneOfFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -216,13 +240,21 @@ sealed class AbstractOneOfFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
         when (val result = model.addConstraint(
             constraint = sum(branches.mapIndexed { b, branch ->
-                    branch.condition ?: LinearPolynomial(u[b]!!)
-                }) eq Flt64.one,
+                branch.condition ?: LinearPolynomial(u[b]!!)
+            }) eq Flt64.one,
             name = "${name}_condition",
             from = parent ?: this
         )) {
@@ -230,6 +262,14 @@ sealed class AbstractOneOfFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -253,7 +293,8 @@ sealed class AbstractOneOfFunction(
                 tokenTable = model.tokens
             ) ?: return register(model)
             val polynomialValue = branch.polynomial.evaluate(
-                fixedValues, model.tokens) ?: return register(model)
+                fixedValues, model.tokens
+            ) ?: return register(model)
             (conditionValue gr Flt64.zero) to polynomialValue
         }
 
@@ -264,13 +305,21 @@ sealed class AbstractOneOfFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
         when (val result = model.addConstraint(
             constraint = sum(branches.mapIndexed { b, branch ->
-                    branch.condition ?: LinearPolynomial(u[b]!!)
-                }) eq Flt64.one,
+                branch.condition ?: LinearPolynomial(u[b]!!)
+            }) eq Flt64.one,
             name = "${name}_condition",
             from = parent ?: this
         )) {
@@ -278,6 +327,14 @@ sealed class AbstractOneOfFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -292,6 +349,14 @@ sealed class AbstractOneOfFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -433,9 +498,9 @@ class IfElseFunction(
     ) {
         companion object {
             operator fun <
-                T : ToLinearPolynomial<Poly>,
-                Poly : AbstractLinearPolynomial<Poly>
-            > invoke(
+                    T : ToLinearPolynomial<Poly>,
+                    Poly : AbstractLinearPolynomial<Poly>
+                    > invoke(
                 polynomial: T,
                 name: String
             ): Branch {
@@ -449,9 +514,9 @@ class IfElseFunction(
 
     companion object {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             branch: Branch,
             elseBranch: Branch,
             condition: T,

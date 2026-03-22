@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.math
 
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Either
 
 private typealias ScaleBase = Either<FltX, RtnX>
 
@@ -26,7 +26,7 @@ data class Scale(
         val exa = Scale(10, 18)
 
         operator fun invoke(base: FltX, index: FltX): Scale {
-            val base : ScaleBase = Either.Left(base)
+            val base: ScaleBase = Either.Left(base)
             return Scale(listOf(base to index))
         }
 
@@ -43,12 +43,12 @@ data class Scale(
         }
 
         operator fun invoke(base: RtnX, index: FltX): Scale {
-            val base : ScaleBase = Either.Right(base)
+            val base: ScaleBase = Either.Right(base)
             return Scale(listOf(base to index))
         }
 
         operator fun invoke(base: RtnX, index: Int = 1): Scale {
-            val base : ScaleBase = Either.Right(base)
+            val base: ScaleBase = Either.Right(base)
             return Scale(listOf(base to FltX(index.toLong())))
         }
 
@@ -88,7 +88,7 @@ data class Scale(
             }
         }
         val newScales = if (index == -1) {
-            val newBase : ScaleBase = Either.Left(other)
+            val newBase: ScaleBase = Either.Left(other)
             scales + listOf(newBase to FltX.one)
         } else {
             scales.mapIndexed { i, it ->
@@ -113,7 +113,7 @@ data class Scale(
             }
         }
         val newScales = if (index == -1) {
-            val newBase : ScaleBase = Either.Right(other)
+            val newBase: ScaleBase = Either.Right(other)
             scales + listOf(newBase to FltX.one)
         } else {
             scales.mapIndexed { i, it ->
@@ -146,7 +146,7 @@ data class Scale(
                 }
             }
         } else {
-            val newBase : ScaleBase = Either.Left(other)
+            val newBase: ScaleBase = Either.Left(other)
             scales + listOf(newBase to -FltX.one)
         }
         return Scale(newScales.tidy())
@@ -171,7 +171,7 @@ data class Scale(
                 }
             }
         } else {
-            val newBase : ScaleBase = Either.Right(other)
+            val newBase: ScaleBase = Either.Right(other)
             scales + listOf(newBase to -FltX.one)
         }
         return Scale(newScales.tidy())
@@ -187,6 +187,7 @@ data class Scale(
                         is Either.Left -> lBase.value eq rBase.value
                         is Either.Right -> false
                     }
+
                     is Either.Right -> when (val rBase = scale.first) {
                         is Either.Left -> false
                         is Either.Right -> lBase.value eq rBase.value
@@ -212,6 +213,7 @@ data class Scale(
                         is Either.Left -> lBase.value eq rBase.value
                         is Either.Right -> false
                     }
+
                     is Either.Right -> when (val rBase = scale.first) {
                         is Either.Left -> false
                         is Either.Right -> lBase.value eq rBase.value

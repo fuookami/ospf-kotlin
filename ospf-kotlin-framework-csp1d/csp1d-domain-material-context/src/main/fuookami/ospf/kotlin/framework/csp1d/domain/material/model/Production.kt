@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.FltX
 
 interface Production {
     val id: String?

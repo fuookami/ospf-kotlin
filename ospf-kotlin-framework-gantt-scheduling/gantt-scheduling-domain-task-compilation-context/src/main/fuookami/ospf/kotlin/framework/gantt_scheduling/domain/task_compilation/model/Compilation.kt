@@ -1,19 +1,30 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.OrFunction
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable2
+import fuookami.ospf.kotlin.core.frontend.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.UInt8
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.multi_array.Shape2
+import fuookami.ospf.kotlin.utils.multi_array._a
 
 interface Compilation {
     val taskCancelEnabled: Boolean
@@ -30,10 +41,10 @@ interface Compilation {
 }
 
 class TaskCompilation<
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val tasks: List<T>,
     private val executors: List<E>,
     private val lockCancelTasks: Set<T> = emptySet(),
@@ -82,6 +93,10 @@ class TaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::taskAssignment.isInitialized) {
@@ -108,6 +123,10 @@ class TaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (taskCancelEnabled) {
@@ -131,6 +150,10 @@ class TaskCompilation<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -159,6 +182,10 @@ class TaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (withExecutorLeisure) {
@@ -173,6 +200,10 @@ class TaskCompilation<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -192,7 +223,11 @@ class TaskCompilation<
                             is Ok -> {}
 
                             is Failed -> {
-                                throw ApplicationException(result.error)
+                                throw IllegalStateException(result.error.message)
+                            }
+
+                            is Fatal -> {
+                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                             }
                         }
                         LinearExpressionSymbol(
@@ -206,8 +241,8 @@ class TaskCompilation<
                         )
                     }
                 }
-            } catch (e: ApplicationException) {
-                return Failed(e.error)
+            } catch (e: IllegalStateException) {
+                return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
             }
         }
         when (val result = model.add(executorCompilation)) {
@@ -216,6 +251,10 @@ class TaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -223,11 +262,11 @@ class TaskCompilation<
 }
 
 open class IterativeTaskCompilation<
-    IT: IterativeAbstractTask<E, A>,
-    out T: AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        IT : IterativeAbstractTask<E, A>,
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val originTasks: List<T>,
     private val executors: List<E>,
     private val lockedCancelTasks: Set<T> = emptySet(),
@@ -288,6 +327,10 @@ open class IterativeTaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::taskCost.isInitialized) {
@@ -300,6 +343,10 @@ open class IterativeTaskCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -318,6 +365,10 @@ open class IterativeTaskCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -338,6 +389,10 @@ open class IterativeTaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::xor.isInitialized) {
@@ -348,6 +403,10 @@ open class IterativeTaskCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -360,6 +419,10 @@ open class IterativeTaskCompilation<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -385,6 +448,10 @@ open class IterativeTaskCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -408,6 +475,10 @@ open class IterativeTaskCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
         _x.add(xi)
@@ -449,6 +520,10 @@ open class IterativeTaskCompilation<
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -465,6 +540,10 @@ open class IterativeTaskCompilation<
 
                             is Failed -> {
                                 return Failed(result.error)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                     }

@@ -1,6 +1,8 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.solver.config
 
-import kotlin.time.*
+import kotlin.time.Duration
 
 data class GurobiSolverConfig(
     val server: String? = null,

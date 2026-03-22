@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.value_range
 
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.*
 
@@ -10,8 +10,7 @@ class Bound<T>(
 ) : Cloneable, Copyable<Bound<T>>, Ord<Bound<T>>, Eq<Bound<T>>,
     Plus<Bound<T>, Bound<T>>, Minus<Bound<T>, Bound<T>>,
     Times<Bound<T>, Bound<T>>, Div<Bound<T>, Bound<T>>
-        where T : RealNumber<T>, T : NumberField<T>
-{
+        where T : RealNumber<T>, T : NumberField<T> {
     val interval: Interval = if (value.isInfinityOrNegativeInfinity) {
         Interval.Open
     } else {

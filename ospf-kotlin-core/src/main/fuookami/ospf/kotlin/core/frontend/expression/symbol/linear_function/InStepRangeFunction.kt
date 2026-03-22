@@ -1,14 +1,23 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 class InStepRange(
     private val lb: AbstractLinearPolynomial<*>,
@@ -21,11 +30,11 @@ class InStepRange(
 ) : LinearFunctionSymbol() {
     companion object {
         operator fun <
-            T1 : ToLinearPolynomial<Poly1>,
-            Poly1 : AbstractLinearPolynomial<Poly1>,
-            T2 : ToLinearPolynomial<Poly2>,
-            Poly2 : AbstractLinearPolynomial<Poly2>
-        > invoke (
+                T1 : ToLinearPolynomial<Poly1>,
+                Poly1 : AbstractLinearPolynomial<Poly1>,
+                T2 : ToLinearPolynomial<Poly2>,
+                Poly2 : AbstractLinearPolynomial<Poly2>
+                > invoke(
             lb: T1,
             ub: T2,
             step: Flt64,
@@ -128,6 +137,14 @@ class InStepRange(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -139,6 +156,14 @@ class InStepRange(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -155,6 +180,14 @@ class InStepRange(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -169,6 +202,14 @@ class InStepRange(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

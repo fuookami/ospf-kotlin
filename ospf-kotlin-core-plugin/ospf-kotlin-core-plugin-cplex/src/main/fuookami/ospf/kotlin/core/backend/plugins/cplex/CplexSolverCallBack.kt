@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.syncRun
+import ilog.concert.IloNumVar
+import ilog.concert.IloRange
+import ilog.cplex.IloCplex
 import java.util.*
-import ilog.concert.*
-import ilog.cplex.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias NativeCallback = IloCplex.Callback.() -> Unit
 typealias Function = suspend (SolverStatus?, IloCplex, List<IloNumVar>, List<IloRange>) -> Try

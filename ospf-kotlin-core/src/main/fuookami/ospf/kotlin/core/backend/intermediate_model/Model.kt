@@ -1,13 +1,17 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-import java.io.*
-import java.nio.file.*
-import kotlin.io.path.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.frontend.variable.VariableType
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.math.Flt64
+import java.io.FileWriter
+import java.io.OutputStreamWriter
+import java.nio.file.Path
+import kotlin.io.path.Path
+import kotlin.io.path.isDirectory
 
 typealias OriginConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.Constraint
 
@@ -139,7 +143,7 @@ class Objective<Cell : Copyable<Cell>>(
     override fun clone() = copy()
 }
 
-interface BasicModelView<ConCell>: AutoCloseable
+interface BasicModelView<ConCell> : AutoCloseable
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell> {
     val variables: List<Variable>
     val constraints: Constraint<ConCell>

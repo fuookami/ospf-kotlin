@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 /**
  * 抽象多维数组基类
@@ -15,7 +14,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     val shape: S,
     ctor: ((Int, IntArray) -> @UnsafeVariance T)? = null
 ) : Collection<T> {
-    
+
     internal lateinit var list: MutableList<@UnsafeVariance T>
 
     init {
@@ -29,13 +28,13 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      * Number of dimensions
      */
     val dimension by shape::dimension
-    
+
     /**
      * 存储顺序
      * Storage order
      */
     val storageOrder: StorageOrder get() = shape.storageOrder
-    
+
     /**
      * 元素总数
      * Total number of elements
@@ -176,7 +175,7 @@ open class MultiArray<out T : Any, S : Shape>(
          * Create multi-dimensional array with default values
          */
         inline fun <reified T : Any, S : Shape> new(shape: S): MultiArray<T, S> {
-            return MultiArray(shape) { _, _ -> 
+            return MultiArray(shape) { _, _ ->
                 @Suppress("UNCHECKED_CAST")
                 when (T::class) {
                     Int::class -> 0 as T
@@ -217,7 +216,7 @@ open class MultiArray<out T : Any, S : Shape>(
     fun toStorageOrder(order: StorageOrder): MultiArray<T, DynShape> {
         val dims = (0 until shape.dimension).map { shape[it] }.toIntArray()
         val newShape = DynShape.withOrder(dims, order)
-        
+
         return MultiArray(newShape) { i, _ ->
             list[i]
         }

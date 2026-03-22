@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import kotlinx.serialization.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.operator.*
+import kotlinx.serialization.Serializable
 
 enum class OrientationCategory {
     Upright,

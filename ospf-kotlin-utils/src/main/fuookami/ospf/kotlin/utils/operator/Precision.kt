@@ -1,7 +1,9 @@
 package fuookami.ospf.kotlin.utils.operator
 
-import kotlin.reflect.full.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.PlusGroup
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.RealNumberConstants
+import kotlin.reflect.full.companionObjectInstance
 
 class Precision<T>(
     precision: T

@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 interface Migration<V> {
-    operator fun <T: Individual<V>> invoke(
+    operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
@@ -15,7 +15,7 @@ interface Migration<V> {
 data class RandomMigration<V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<V> {
-    override operator fun <T: Individual<V>> invoke(
+    override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
@@ -27,7 +27,7 @@ data class RandomMigration<V>(
 data class BetterToWorseMigration<V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<V> {
-    override operator fun <T: Individual<V>> invoke(
+    override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
@@ -39,7 +39,7 @@ data class BetterToWorseMigration<V>(
 data class MoreToLessMigration<V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<V> {
-    override operator fun <T: Individual<V>> invoke(
+    override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
@@ -51,7 +51,7 @@ data class MoreToLessMigration<V>(
 data class MigrationMigration<V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<V> {
-    override operator fun <T: Individual<V>> invoke(
+    override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
@@ -115,7 +115,7 @@ data class MigrationMigration<V>(
 data class RingExchangeMigration<V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<V> {
-    override operator fun <T: Individual<V>> invoke(
+    override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>
@@ -146,7 +146,7 @@ data class RingExchangeMigration<V>(
 data class RandomDiffusionMigration<V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<V> {
-    override operator fun <T: Individual<V>> invoke(
+    override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
         model: AbstractCallBackModelInterface<*, V>

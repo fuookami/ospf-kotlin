@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
-import kotlin.random.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.geometry.point2
+import fuookami.ospf.kotlin.utils.math.nextFlt64
+import kotlin.random.Random
 
 data class DoublePendulumSystem(
     val m: Flt64 = Flt64(10.0),

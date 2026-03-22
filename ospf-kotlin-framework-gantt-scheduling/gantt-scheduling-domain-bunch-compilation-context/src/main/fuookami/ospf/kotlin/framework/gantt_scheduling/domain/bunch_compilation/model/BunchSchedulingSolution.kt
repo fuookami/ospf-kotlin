@@ -1,24 +1,27 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
 
 data class BunchSolution<
-    out B : AbstractTaskBunch<T, E, A>,
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out B : AbstractTaskBunch<T, E, A>,
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     val bunches: List<B>,
     val canceledTasks: List<T>
 )
 
 fun <
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
-> TaskSolution.Companion.invoke(
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        > TaskSolution.Companion.invoke(
     bunchSolution: BunchSolution<B, T, E, A>
 ): TaskSolution<T, E, A> {
     val assignedTasks = ArrayList<T>()

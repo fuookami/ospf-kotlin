@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
-import jscip.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
+import jscip.SCIP_Vartype
 
 enum class ScipVariable {
     Binary {

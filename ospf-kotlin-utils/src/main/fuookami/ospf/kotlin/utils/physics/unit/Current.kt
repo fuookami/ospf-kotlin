@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Current
 
 /**
  * Electric current units - 电流单位
@@ -20,7 +20,6 @@ object Ampere : PhysicalUnit() {
     override val symbol = "A"
 
     override val quantity = Current
-    override val system = SI
     override val scale = Scale()
 }
 

@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.usize
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.operator.Order
 
 interface Individual<V> {
     val solution: Solution
@@ -18,7 +20,7 @@ data class PopulationBuilder(
     val parentAmountRange: ValueRange<UInt64>
 )
 
-data class Population<T: Individual<V>, V>(
+data class Population<T : Individual<V>, V>(
     val individuals: List<T>,
     val elites: List<T>,
     val best: T,
@@ -35,7 +37,7 @@ data class SolutionWithFitness<V>(
     override val fitness: V
 ) : Individual<V>
 
-fun <T: Individual<V>, V> refreshGoodIndividuals(
+fun <T : Individual<V>, V> refreshGoodIndividuals(
     goodIndividuals: MutableList<T>,
     newIndividuals: List<T>,
     model: AbstractCallBackModelInterface<*, V>,

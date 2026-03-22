@@ -1,16 +1,19 @@
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
 
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AutoTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.RealVar
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function.LinearFunction as QuadraticLinearFunction
 
 class QuadraticPolynomialBaselineTest {
@@ -255,24 +258,24 @@ class QuadraticPolynomialBaselineTest {
 
         val xyCell = cells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable2 != null &&
-                setOf(it.triple!!.variable1, it.triple!!.variable2!!) == setOf(x, y)
+                    it.triple!!.variable2 != null &&
+                    setOf(it.triple!!.variable1, it.triple!!.variable2!!) == setOf(x, y)
         }
         assertNotNull(xyCell)
         assertTrue(xyCell.triple!!.coefficient eq Flt64(2.0))
 
         val xxCell = cells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable1 == x &&
-                it.triple!!.variable2 == x
+                    it.triple!!.variable1 == x &&
+                    it.triple!!.variable2 == x
         }
         assertNotNull(xxCell)
         assertTrue(xxCell.triple!!.coefficient eq Flt64(2.0))
 
         val linearXCell = cells.firstOrNull {
             it.isTriple &&
-                it.triple!!.variable1 == x &&
-                it.triple!!.variable2 == null
+                    it.triple!!.variable1 == x &&
+                    it.triple!!.variable2 == null
         }
         assertNotNull(linearXCell)
         assertTrue(linearXCell.triple!!.coefficient eq Flt64(3.0))

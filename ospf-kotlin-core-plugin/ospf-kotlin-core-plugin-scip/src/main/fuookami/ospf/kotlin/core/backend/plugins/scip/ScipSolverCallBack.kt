@@ -1,10 +1,13 @@
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.syncRun
+import jscip.Constraint
+import jscip.Scip
+import jscip.Variable
 import java.util.*
-import jscip.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
 
 typealias Function = suspend (SolverStatus?, Scip, List<Variable>, List<Constraint>) -> Try
 

@@ -1,7 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.usize
 
 data class MechanismModelDumpingStatus(
     val readyConstraintAmount: UInt64,
@@ -9,17 +11,19 @@ data class MechanismModelDumpingStatus(
     val readySymbolAmount: UInt64,
     val totalSymbolAmount: UInt64
 ) {
-    val constraintProgress: Flt64 get() = if (totalConstraintAmount neq UInt64.zero) {
-        readyConstraintAmount.toFlt64() / totalConstraintAmount.toFlt64()
-    } else {
-        Flt64.one
-    }
+    val constraintProgress: Flt64
+        get() = if (totalConstraintAmount neq UInt64.zero) {
+            readyConstraintAmount.toFlt64() / totalConstraintAmount.toFlt64()
+        } else {
+            Flt64.one
+        }
 
-    val symbolProgress: Flt64 get() = if (totalSymbolAmount != UInt64.zero) {
-        readySymbolAmount.toFlt64() / totalSymbolAmount.toFlt64()
-    } else {
-        Flt64.one
-    }
+    val symbolProgress: Flt64
+        get() = if (totalSymbolAmount != UInt64.zero) {
+            readySymbolAmount.toFlt64() / totalSymbolAmount.toFlt64()
+        } else {
+            Flt64.one
+        }
 
     companion object {
         fun dumpingConstrains(ready: UInt64, model: MetaModel): MechanismModelDumpingStatus {

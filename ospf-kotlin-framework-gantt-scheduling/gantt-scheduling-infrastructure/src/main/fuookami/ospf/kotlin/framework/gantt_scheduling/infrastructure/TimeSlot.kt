@@ -1,7 +1,9 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.time.*
-import kotlinx.datetime.*
+import kotlinx.datetime.Instant
+import kotlin.time.Duration
 
 interface TimeSlot {
     val time: TimeRange

@@ -1,18 +1,21 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.log
 
-import java.util.*
-import kotlin.time.*
-import kotlin.time.Duration.Companion.days
-import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.context.*
+import fuookami.ospf.kotlin.utils.context.ContextVar
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.serialization.*
+import fuookami.ospf.kotlin.utils.serialization.writeJson
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import org.apache.logging.log4j.kotlin.logger
+import java.util.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 interface Pushing {
-    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try {
+    operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try {
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -21,32 +24,32 @@ interface Pushing {
         }
     }
 
-    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: (LogRecordPO<T>) -> String): Try
+    operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (LogRecordPO<T>) -> String): Try
 }
 
 @OptIn(InternalSerializationApi::class)
-inline operator fun <reified T: Any> Pushing.invoke(value: LogRecordPO<T>): Try {
+inline operator fun <reified T : Any> Pushing.invoke(value: LogRecordPO<T>): Try {
     return this(value, T::class.serializer())
 }
 
 interface Saving {
-    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try
+    operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsString")
-    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: (T) -> String): Try {
+    operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (T) -> String): Try {
         return ok
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsBytes")
-    operator fun <T: Any> invoke(value: LogRecordPO<T>, serializer: (T) -> ByteArray): Try {
+    operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (T) -> ByteArray): Try {
         return ok
     }
 }
 
 @OptIn(InternalSerializationApi::class)
-inline operator fun <reified T: Any> Saving.invoke(value: LogRecordPO<T>): Try {
+inline operator fun <reified T : Any> Saving.invoke(value: LogRecordPO<T>): Try {
     return this(value, T::class.serializer())
 }
 
@@ -180,6 +183,10 @@ class LogContext private constructor(
                 is Failed -> {
                     logger.info { "pushing log failed: ${result.error.message}" }
                 }
+
+                is Fatal -> {
+                    logger.error { "pushing log fatal: ${result.errors.joinToString { it.message }}" }
+                }
             }
         }
     }
@@ -230,6 +237,10 @@ class LogContext private constructor(
                 is Failed -> {
                     logger.info { "saving log failed: ${result.error.message}" }
                 }
+
+                is Fatal -> {
+                    logger.error { "saving log fatal: ${result.errors.joinToString { it.message }}" }
+                }
             }
         }
     }
@@ -265,6 +276,10 @@ class LogContext private constructor(
                 is Failed -> {
                     logger.info { "saving log failed: ${result.error.message}" }
                 }
+
+                is Fatal -> {
+                    logger.error { "saving log fatal: ${result.errors.joinToString { it.message }}" }
+                }
             }
         }
     }
@@ -299,6 +314,10 @@ class LogContext private constructor(
 
                 is Failed -> {
                     logger.info { "saving log failed: ${result.error.message}" }
+                }
+
+                is Fatal -> {
+                    logger.error { "saving log fatal: ${result.errors.joinToString { it.message }}" }
                 }
             }
         }

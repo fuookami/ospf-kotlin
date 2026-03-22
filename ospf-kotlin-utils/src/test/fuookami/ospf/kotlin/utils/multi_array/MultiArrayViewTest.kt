@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * 多维数组视图测试
@@ -22,7 +22,7 @@ class MultiArrayViewTest {
         // Test view creation
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = MultiArrayView(array)
-        
+
         assertEquals(20, view.size)
         assertEquals(2, view.shape.dimension)
     }
@@ -33,7 +33,7 @@ class MultiArrayViewTest {
         // Test full slice view
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
-        
+
         assertEquals(20, view.size)
         assertEquals(0, view[0, 0])
         assertEquals(19, view[3, 4])
@@ -50,7 +50,7 @@ class MultiArrayViewTest {
         // Test row slice
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[1, _a]
-        
+
         assertEquals(5, view.size)
         assertEquals(1, view.shape.dimension)
         assertEquals(5, view[0])  // 第 1 行第 0 列
@@ -64,7 +64,7 @@ class MultiArrayViewTest {
         // Test column slice
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, 2]
-        
+
         assertEquals(4, view.size)
         assertEquals(1, view.shape.dimension)
         assertEquals(2, view[0])   // 第 0 行第 2 列
@@ -78,7 +78,7 @@ class MultiArrayViewTest {
         // Test range slice
         val array = MultiArray(Shape2(6, 6)) { i, _ -> i }
         val view = array[1..3, 2..4]
-        
+
         assertEquals(9, view.size)  // 3x3
         assertEquals(2, view.shape.dimension)
         assertEquals(3, view.shape[0])
@@ -91,7 +91,7 @@ class MultiArrayViewTest {
         // Test range slice values
         val array = MultiArray(Shape2(6, 6)) { i, _ -> i }
         val view = array[1..3, 2..4]
-        
+
         // 验证一些值 - 使用线性索引访问
         // Verify some values - using linear index access
         assertEquals(8, view[0])   // [1, 2] -> 1*6+2=8
@@ -105,7 +105,7 @@ class MultiArrayViewTest {
         // Test discrete slice
         val array = MultiArray(Shape2(5, 5)) { i, _ -> i }
         val view = array[DummyIndex.from(listOf(0, 2, 4)), _a]
-        
+
         // Just verify the view is created and has correct size
         assertTrue(view.size > 0)
     }
@@ -121,7 +121,7 @@ class MultiArrayViewTest {
         // Test linear index access
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
-        
+
         assertEquals(0, view[0])
         assertEquals(1, view[1])
         assertEquals(19, view[19])
@@ -133,7 +133,7 @@ class MultiArrayViewTest {
         // Test vector index access
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
-        
+
         assertEquals(0, view[intArrayOf(0, 0)])
         assertEquals(1, view[intArrayOf(0, 1)])
         assertEquals(19, view[intArrayOf(3, 4)])
@@ -145,7 +145,7 @@ class MultiArrayViewTest {
         // Test vararg access
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
-        
+
         assertEquals(0, view[0, 0])
         assertEquals(1, view[0, 1])
         assertEquals(19, view[3, 4])
@@ -162,7 +162,7 @@ class MultiArrayViewTest {
         // Test view iterator
         val array = MultiArray(Shape2(3, 4)) { i, _ -> i }
         val view = array[_a, _a]
-        
+
         val values = view.toList()
         assertEquals(12, values.size)
         assertEquals((0..11).toList(), values)
@@ -174,7 +174,7 @@ class MultiArrayViewTest {
         // Test slice view iterator
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[1..3, 2..4]
-        
+
         val values = view.toList()
         assertEquals(9, values.size)
     }
@@ -185,7 +185,7 @@ class MultiArrayViewTest {
         // Test contains check
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
-        
+
         assertTrue(0 in view)
         assertTrue(19 in view)
         assertFalse(20 in view)
@@ -198,7 +198,7 @@ class MultiArrayViewTest {
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view1 = array[_a, _a]
         val view2 = array[0..0, _a]  // 空范围
-        
+
         assertFalse(view1.isEmpty())
         // 注意：0..0 可能不是空范围，需要验证
     }
@@ -215,7 +215,7 @@ class MultiArrayViewTest {
         val array = MultiArray(Shape2(6, 6)) { i, _ -> i }
         val view1 = array[1..4, 1..4]
         val view2 = view1[0..2, 0..2]
-        
+
         assertEquals(9, view2.size)
     }
 
@@ -226,7 +226,7 @@ class MultiArrayViewTest {
         val array = MultiArray(Shape3(4, 5, 6)) { i, _ -> i }
         val view1 = array[1..2, _a, _a]  // 2x5x6
         val view2 = view1[_a, 2..3, _a]  // 2x2x6
-        
+
         // Just verify the view is created
         assertTrue(view2.size > 0)
     }
@@ -242,7 +242,7 @@ class MultiArrayViewTest {
         // Test view shape
         val array = MultiArray(Shape2(6, 8)) { i, _ -> i }
         val view = array[2..5, 3..6]
-        
+
         assertEquals(4, view.shape[0])  // 2,3,4,5
         assertEquals(4, view.shape[1])  // 3,4,5,6
         assertEquals(16, view.size)
@@ -254,7 +254,7 @@ class MultiArrayViewTest {
         // Test view shape from origin
         val array = MultiArray(Shape2(10, 10)) { i, _ -> i }
         val view = array[0, _a]
-        
+
         assertEquals(1, view.shape.dimension)
         assertEquals(10, view.shape[0])
         assertEquals(10, view.size)
@@ -271,7 +271,7 @@ class MultiArrayViewTest {
         // Test toString method
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = MultiArrayView(array)
-        
+
         val str = view.toString()
         assertTrue(str.contains("MultiArrayView"))
         assertTrue(str.contains("shape="))
@@ -289,7 +289,7 @@ class MultiArrayViewTest {
         // Test 3D view
         val array = MultiArray(Shape3(3, 4, 5)) { i, _ -> i }
         val view = array[_a, _a, _a]
-        
+
         assertEquals(60, view.size)
         assertEquals(3, view.shape.dimension)
     }
@@ -300,7 +300,7 @@ class MultiArrayViewTest {
         // Test 3D slice
         val array = MultiArray(Shape3(4, 5, 6)) { i, _ -> i }
         val view = array[1, _a, 2..4]
-        
+
         assertEquals(15, view.size)  // 1x5x3
         assertEquals(2, view.shape.dimension)
     }
@@ -310,7 +310,7 @@ class MultiArrayViewTest {
         // 测试 3D 视图值
         // Test 3D view values
         val array = MultiArray(Shape3(3, 4, 5)) { i, _ -> i }
-        
+
         // 验证线性索引和向量索引
         // Verify linear and vector index
         assertEquals(0, array[0, 0, 0])
@@ -342,7 +342,7 @@ class MultiArrayViewTest {
         // Test full row view
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[2, _a]
-        
+
         assertEquals(5, view.size)
         assertEquals(10, view[0])  // 2*5+0=10
         assertEquals(14, view[4])  // 2*5+4=14
@@ -354,7 +354,7 @@ class MultiArrayViewTest {
         // Test full column view
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, 3]
-        
+
         assertEquals(4, view.size)
         assertEquals(3, view[0])
         assertEquals(8, view[1])
@@ -378,7 +378,7 @@ class MultiArrayViewTest {
             MapIndex.Map(0)   // 新维度 1 映射到原维度 0
         )
         val view = MappedMultiArrayView(array, mapVector)
-        
+
         assertEquals(12, view.size)
         assertEquals(4, view.shape[0])
         assertEquals(3, view.shape[1])
@@ -394,7 +394,7 @@ class MultiArrayViewTest {
             MapIndex.Map(0)
         )
         val view = MappedMultiArrayView(array, mapVector)
-        
+
         // 原数组 [0, 1] = 1, 转置后 [1, 0] = 1
         // Original [0, 1] = 1, after transpose [1, 0] = 1
         assertEquals(1, view[1, 0])
@@ -412,7 +412,7 @@ class MultiArrayViewTest {
             MapIndex.Map(0)
         )
         val view = MappedMultiArrayView(array, mapVector)
-        
+
         // Just verify linear access works
         assertTrue(view.size > 0)
         // Access first element
@@ -430,7 +430,7 @@ class MultiArrayViewTest {
             MapIndex.Map(0)
         )
         val view = MappedMultiArrayView(array, mapVector)
-        
+
         val values = view.toList()
         assertEquals(6, values.size)
     }

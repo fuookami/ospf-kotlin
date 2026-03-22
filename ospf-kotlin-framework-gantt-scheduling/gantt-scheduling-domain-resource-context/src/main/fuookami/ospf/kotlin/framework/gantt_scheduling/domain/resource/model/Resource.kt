@@ -1,18 +1,29 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.UContinuous
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
+import fuookami.ospf.kotlin.framework.model.refresh
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import kotlin.time.Duration
 
 interface AbstractResourceCapacity {
     val time: TimeRange
@@ -32,7 +43,7 @@ open class ResourceCapacity(
     override val overQuantity: Flt64? = null,
     override val interval: Duration = Duration.INFINITE,
     override val name: String? = null
-): AbstractResourceCapacity {
+) : AbstractResourceCapacity {
     override fun toString() = name ?: "${quantity}_${interval}"
 }
 
@@ -49,9 +60,9 @@ abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
 }
 
 interface ResourceTimeSlot<
-    out R : Resource<C>,
-    out C : AbstractResourceCapacity
-> : TimeSlot, Indexed {
+        out R : Resource<C>,
+        out C : AbstractResourceCapacity
+        > : TimeSlot, Indexed {
     val origin: TimeSlot
     val resource: R
     val resourceCapacity: C
@@ -80,10 +91,10 @@ interface ResourceTimeSlot<
 }
 
 interface ResourceUsage<
-    out S : ResourceTimeSlot<R, C>,
-    out R : Resource<C>,
-    out C : AbstractResourceCapacity
-> {
+        out S : ResourceTimeSlot<R, C>,
+        out R : Resource<C>,
+        out C : AbstractResourceCapacity
+        > {
     val name: String
 
     val timeSlots: List<S>
@@ -98,10 +109,10 @@ interface ResourceUsage<
 }
 
 abstract class AbstractResourceUsage<
-    out S : ResourceTimeSlot<R, C>,
-    out R : Resource<C>,
-    out C : AbstractResourceCapacity
-> : ResourceUsage<S, R, C> {
+        out S : ResourceTimeSlot<R, C>,
+        out R : Resource<C>,
+        out C : AbstractResourceCapacity
+        > : ResourceUsage<S, R, C> {
     override lateinit var overQuantity: LinearIntermediateSymbols1
     override lateinit var lessQuantity: LinearIntermediateSymbols1
 
@@ -139,6 +150,10 @@ abstract class AbstractResourceUsage<
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
 
@@ -174,6 +189,10 @@ abstract class AbstractResourceUsage<
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -205,6 +224,10 @@ abstract class AbstractResourceUsage<
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -219,6 +242,10 @@ abstract class AbstractResourceUsage<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }

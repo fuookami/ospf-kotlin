@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.utils.math.symbol.inequality
 
-import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
 
 class InequalityTest {
     private data class TestSymbol(

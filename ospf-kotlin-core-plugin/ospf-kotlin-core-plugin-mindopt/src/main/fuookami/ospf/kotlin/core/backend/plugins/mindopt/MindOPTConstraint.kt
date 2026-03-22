@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
-import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import com.alibaba.damo.mindopt.MDO
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 
 enum class MindOPTConstraintSign {
     GreaterEqual {

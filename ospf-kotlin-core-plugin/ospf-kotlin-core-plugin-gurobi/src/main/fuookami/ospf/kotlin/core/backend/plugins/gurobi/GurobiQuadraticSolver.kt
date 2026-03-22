@@ -1,21 +1,31 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.gurobi
 
-import kotlin.time.*
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.*
-import gurobi.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.GurobiSolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.pow
+import gurobi.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 class GurobiQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -127,6 +137,10 @@ private class GurobiQuadraticSolverImpl(
             when (val result = process(this)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}
@@ -270,6 +284,14 @@ private class GurobiQuadraticSolverImpl(
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
             ok
@@ -351,6 +373,10 @@ private class GurobiQuadraticSolverImpl(
                                     is Failed -> {
                                         abort()
                                     }
+
+                                    is Fatal -> {
+                                        abort()
+                                    }
                                 }
                             }
                         }
@@ -367,6 +393,10 @@ private class GurobiQuadraticSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}
@@ -416,6 +446,10 @@ private class GurobiQuadraticSolverImpl(
                         return Failed(result.error)
                     }
 
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
                     else -> {}
                 }
                 ok
@@ -429,6 +463,10 @@ private class GurobiQuadraticSolverImpl(
                 )) {
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
 
                     else -> {}

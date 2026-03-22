@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Predicate
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.operator.Eq
 
 private fun merge(
     counter: MutableMap<AbstractCuboid, UInt64>,
@@ -66,9 +68,9 @@ class Container2Shape<P : ProjectivePlane>(
 }
 
 interface Container2<
-    S : Container2<S, P>,
-    P : ProjectivePlane
-> : Copyable<S> {
+        S : Container2<S, P>,
+        P : ProjectivePlane
+        > : Copyable<S> {
     val shape: AbstractContainer2Shape<P>
     val units: List<Placement2<*, P>>
     val amounts: Map<AbstractCuboid, UInt64> get() = count(units)
@@ -92,7 +94,7 @@ interface Container2<
     fun contains(predicate: Predicate<AbstractCuboid>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
-interface AbstractContainer3Shape: Eq<AbstractContainer3Shape> {
+interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
     val width: Flt64
     val height: Flt64
     val depth: Flt64

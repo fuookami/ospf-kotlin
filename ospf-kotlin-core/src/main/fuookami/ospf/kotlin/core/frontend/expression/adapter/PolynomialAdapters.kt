@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.expression.adapter
 
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial as CoreAbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial as CoreAbstractQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
@@ -28,6 +31,7 @@ fun UtilsLinearPolynomial.toCorePolynomialRet(): Ret<CoreLinearPolynomial> {
         when (val result = monomial.toCoreMonomialRet()) {
             is Ok -> coreMonomials.add(result.value)
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return Ok(
@@ -45,6 +49,7 @@ fun UtilsLinearPolynomial.toCorePolynomialOrNull(): CoreLinearPolynomial? {
     return when (val result = toCorePolynomialRet()) {
         is Ok -> result.value
         is Failed -> null
+        is Fatal -> null
     }
 }
 
@@ -54,6 +59,7 @@ fun UtilsQuadraticPolynomial.toCorePolynomialRet(): Ret<CoreQuadraticPolynomial>
         when (val result = monomial.toCoreMonomialRet()) {
             is Ok -> coreMonomials.add(result.value)
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
     }
     return Ok(
@@ -71,5 +77,6 @@ fun UtilsQuadraticPolynomial.toCorePolynomialOrNull(): CoreQuadraticPolynomial? 
     return when (val result = toCorePolynomialRet()) {
         is Ok -> result.value
         is Failed -> null
+        is Fatal -> null
     }
 }

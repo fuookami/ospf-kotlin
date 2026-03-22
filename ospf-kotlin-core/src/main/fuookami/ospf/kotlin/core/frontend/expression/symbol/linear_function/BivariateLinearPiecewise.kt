@@ -1,20 +1,29 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
+import fuookami.ospf.kotlin.core.frontend.variable.PctVariable1
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.*
+import fuookami.ospf.kotlin.utils.math.ordinary.minMax
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.operator.Order
+import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractBivariateLinearPiecewiseFunction(
     private val x: AbstractLinearPolynomial<*>,
@@ -46,9 +55,9 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
         infix fun <P : Point<D>, D : Dimension> Triangle<P, D>.ord(rhs: Triangle<P, D>): Order {
             val lhsLestPoint = listOf(p1, p2, p3)
-                    .sortedWithThreeWayComparator { lhsPoint, rhsPoint ->
-                        lhsPoint ord rhsPoint
-                    }.first()
+                .sortedWithThreeWayComparator { lhsPoint, rhsPoint ->
+                    lhsPoint ord rhsPoint
+                }.first()
             val rhsLestPoint = listOf(rhs.p1, rhs.p2, rhs.p3)
                 .sortedWithThreeWayComparator { lhsPoint, rhsPoint ->
                     lhsPoint ord rhsPoint
@@ -215,6 +224,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(v)) {
@@ -223,6 +240,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(w)) {
@@ -230,6 +255,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -251,6 +284,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = (u[i] + m * w[i] - m) leq rhs,
@@ -261,6 +302,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -277,6 +326,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
             when (val result = model.addConstraint(
                 constraint = (v[i] + m * w[i] - m) leq rhs,
@@ -287,6 +344,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -301,6 +366,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         for (i in indices) {
@@ -313,6 +386,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -367,6 +448,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -417,6 +506,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 when (val result = model.addConstraint(
                     (u[i] - m * w[i] - m) leq uPoly,
@@ -428,6 +525,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 when (val result = model.addConstraint(
                     u[i] eq uValue,
@@ -438,6 +543,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
 
@@ -455,6 +568,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 when (val result = model.addConstraint(
                     (v[i] - m * w[i] - m) leq vPoly,
@@ -466,6 +587,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 when (val result = model.addConstraint(
                     v[i] eq vValue,
@@ -476,6 +605,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
 
@@ -493,6 +630,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
 
                 model.tokens.find(w[i])?.let { token ->
@@ -509,6 +654,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 when (val result = model.addConstraint(
                     constraint = -m leq uPoly,
@@ -519,6 +672,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
 
@@ -532,6 +693,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 when (val result = model.addConstraint(
                     constraint = -m leq vPoly,
@@ -542,6 +711,14 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -827,11 +1004,11 @@ class BivariateLinearPiecewiseFunction(
         }
 
         operator fun <
-            T1 : ToLinearPolynomial<Poly1>,
-            T2 : ToLinearPolynomial<Poly2>,
-            Poly1 : AbstractLinearPolynomial<Poly1>,
-            Poly2 : AbstractLinearPolynomial<Poly2>
-        > invoke(
+                T1 : ToLinearPolynomial<Poly1>,
+                T2 : ToLinearPolynomial<Poly2>,
+                Poly1 : AbstractLinearPolynomial<Poly1>,
+                Poly2 : AbstractLinearPolynomial<Poly2>
+                > invoke(
             x: T1,
             y: T2,
             points: List<Point3>,
@@ -898,11 +1075,11 @@ class IsolineBivariateLinearPiecewiseFunction(
         }
 
         operator fun <
-            T1 : ToLinearPolynomial<Poly1>,
-            T2 : ToLinearPolynomial<Poly2>,
-            Poly1 : AbstractLinearPolynomial<Poly1>,
-            Poly2 : AbstractLinearPolynomial<Poly2>
-        > invoke(
+                T1 : ToLinearPolynomial<Poly1>,
+                T2 : ToLinearPolynomial<Poly2>,
+                Poly1 : AbstractLinearPolynomial<Poly1>,
+                Poly2 : AbstractLinearPolynomial<Poly2>
+                > invoke(
             x: T1,
             y: T2,
             isolines: List<Pair<Flt64, List<Point2>>>,

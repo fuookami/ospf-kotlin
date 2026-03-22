@@ -1,13 +1,15 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
 
 interface Capacity {
     val loadWeight: LinearIntermediateSymbols1
@@ -50,6 +52,10 @@ class PreciseLoadCapacity(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::loadVolume.isInitialized) {
@@ -70,6 +76,10 @@ class PreciseLoadCapacity(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -92,6 +102,10 @@ class PreciseLoadCapacity(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::loadingRate.isInitialized) {
@@ -107,11 +121,15 @@ class PreciseLoadCapacity(
                 )
             }
         }
-        when (val result = model.add(loadDepth)) {
+        when (val result = model.add(loadingRate)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -132,6 +150,10 @@ class PreciseLoadCapacity(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

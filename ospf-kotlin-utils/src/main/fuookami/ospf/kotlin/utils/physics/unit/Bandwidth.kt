@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Bandwidth
 
 object BitPerSecond : DerivedPhysicalUnit(Bit / Second) {
     override val name = "bit per second"

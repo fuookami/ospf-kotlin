@@ -1,10 +1,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.operator.Order
 
 class LoadingOrderCalculator(
     private val maxBlockDepth: Flt64?,
@@ -68,13 +69,15 @@ class LoadingOrderCalculator(
     }
 
     private fun merge(oldPlacements: List<Placement3<*>>): List<Placement3<*>> {
-        return merge(merge(merge(oldPlacements)
-        { lhs, rhs, placements ->
-            lhs.width == rhs.width && lhs.depth == rhs.depth
-                    && lhs.absoluteX eq rhs.absoluteX && lhs.absoluteZ eq rhs.absoluteZ
-                    && (lhs.maxAbsoluteY eq rhs.absoluteY || placements.any { it.maxAbsoluteY eq rhs.absoluteY })
-                    && isSameType(lhs.unit, rhs.unit)
-        }) { lhs, rhs, placements ->
+        return merge(
+            merge(
+            merge(oldPlacements)
+            { lhs, rhs, placements ->
+                lhs.width == rhs.width && lhs.depth == rhs.depth
+                        && lhs.absoluteX eq rhs.absoluteX && lhs.absoluteZ eq rhs.absoluteZ
+                        && (lhs.maxAbsoluteY eq rhs.absoluteY || placements.any { it.maxAbsoluteY eq rhs.absoluteY })
+                        && isSameType(lhs.unit, rhs.unit)
+            }) { lhs, rhs, placements ->
             lhs.height == rhs.height && lhs.depth == rhs.depth
                     && lhs.absoluteY eq rhs.absoluteY && lhs.absoluteZ eq rhs.absoluteZ
                     && (lhs.maxAbsoluteX eq rhs.absoluteX || placements.any { it.maxAbsoluteX eq rhs.absoluteX })

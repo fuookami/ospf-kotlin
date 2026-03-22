@@ -1,17 +1,21 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.combinatorics.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractContainer3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3
+import fuookami.ospf.kotlin.utils.functional.minWithThreeWayComparatorOrNull
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.combinatorics.permuteAsync
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import org.apache.logging.log4j.kotlin.logger
 
 class MultiLayerHeuristicSearchAlgorithm(
     val config: Config
@@ -89,7 +93,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                     if (spaces == null) {
                         break
                     }
-                    
+
                     val bin = Bin(binType, spaces.map { Placement3(it.block!!.view()!!, it.position) })
                     for ((item, amount) in bin.amounts) {
                         restItems[item as Item] = restItems[item]!! - amount

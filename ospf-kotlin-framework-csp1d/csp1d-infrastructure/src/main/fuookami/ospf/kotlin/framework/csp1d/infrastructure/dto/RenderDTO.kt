@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
 
-import kotlinx.serialization.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.serialization.Serializable
 
 enum class RenderProductionType {
     Product,

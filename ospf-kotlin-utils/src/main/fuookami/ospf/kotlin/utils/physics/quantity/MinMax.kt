@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils.physics.quantity
 
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.operator.PartialOrd
 
 fun <T : PartialOrd<T>> min(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = when (lhs partialOrd rhs) {
     is Order.Less, is Order.Equal -> {
@@ -16,7 +17,7 @@ fun <T : PartialOrd<T>> min(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = 
     }
 }
 
-fun <T: PartialOrd<T>> max(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = when (lhs partialOrd rhs) {
+fun <T : PartialOrd<T>> max(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = when (lhs partialOrd rhs) {
     is Order.Greater, is Order.Equal -> {
         lhs
     }

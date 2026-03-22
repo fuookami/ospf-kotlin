@@ -1,10 +1,9 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
-import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
  * 虚拟索引和向量测试
@@ -67,22 +66,22 @@ class VectorTest {
         // 测试 lenOf 方法
         // Test lenOf method
         val shape = Shape2(3, 4)
-        
+
         // 单个索引长度为 1
         // Single index length is 1
         val single = DummyIndex.from(1)
         assertEquals(1, single.lenOf(shape, 0))
-        
+
         // 范围索引长度
         // Range index length
         val range = DummyIndex.from(0..2)
         assertEquals(3, range.lenOf(shape, 0))
-        
+
         // 索引数组长度
         // Index array length
         val array = DummyIndex.from(listOf(0, 2))
         assertEquals(2, array.lenOf(shape, 0))
-        
+
         // 全范围长度为维度大小
         // Full range length is dimension size
         val all = DummyIndex.all()
@@ -106,7 +105,7 @@ class VectorTest {
         val shape = Shape2(5, 3)
         val index = DummyIndex.from(2)
         val iterator = index.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Single)
         assertEquals(2, (iterator as DummyIndexIterator.Single).index)
     }
@@ -118,7 +117,7 @@ class VectorTest {
         val shape = Shape2(5, 3)
         val index = DummyIndex.from(-1)
         val iterator = index.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Single)
         // -1 应该是最后一个元素，即索引 4
         // -1 should be last element, index 4
@@ -132,7 +131,7 @@ class VectorTest {
         val shape = Shape2(5, 3)
         val range = DummyIndex.from(1..3)
         val iterator = range.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Continuous)
         val continuous = iterator as DummyIndexIterator.Continuous
         assertEquals(1..3, continuous.range)
@@ -145,7 +144,7 @@ class VectorTest {
         val shape = Shape2(5, 3)
         val array = DummyIndex.from(listOf(0, 2, 4))
         val iterator = array.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Discrete)
         val discrete = iterator as DummyIndexIterator.Discrete
         assertEquals(listOf(0, 2, 4), discrete.indices)
@@ -158,7 +157,7 @@ class VectorTest {
         val shape = Shape2(5, 3)
         val all = DummyIndex.all()
         val iterator = all.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Continuous)
         val continuous = iterator as DummyIndexIterator.Continuous
         assertEquals(0 until 5, continuous.range)
@@ -174,7 +173,7 @@ class VectorTest {
         // 测试单个索引迭代器的 get 方法
         // Test get method for single index iterator
         val iterator = DummyIndexIterator.Single(5)
-        
+
         assertEquals(5, iterator.get(0))
         assertEquals(null, iterator.get(1))
         assertEquals(null, iterator.get(-1))
@@ -194,7 +193,7 @@ class VectorTest {
         // 测试连续范围迭代器的 get 方法
         // Test get method for continuous range iterator
         val iterator = DummyIndexIterator.Continuous(2..5)
-        
+
         assertEquals(2, iterator.get(0))
         assertEquals(3, iterator.get(1))
         assertEquals(4, iterator.get(2))
@@ -209,7 +208,7 @@ class VectorTest {
         val iterator1 = DummyIndexIterator.Continuous(2..5)
         assertEquals(4, iterator1.len())
         assertFalse(iterator1.isEmpty())
-        
+
         val iterator2 = DummyIndexIterator.Continuous(3..2)  // 空范围
         assertEquals(0, iterator2.len())
         assertTrue(iterator2.isEmpty())
@@ -220,7 +219,7 @@ class VectorTest {
         // 测试离散索引迭代器的 get 方法
         // Test get method for discrete index iterator
         val iterator = DummyIndexIterator.Discrete(listOf(0, 2, 4))
-        
+
         assertEquals(0, iterator.get(0))
         assertEquals(2, iterator.get(1))
         assertEquals(4, iterator.get(2))
@@ -234,7 +233,7 @@ class VectorTest {
         val iterator = DummyIndexIterator.Discrete(listOf(0, 2, 4))
         assertEquals(3, iterator.len())
         assertFalse(iterator.isEmpty())
-        
+
         val emptyIterator = DummyIndexIterator.Discrete(emptyList())
         assertEquals(0, emptyIterator.len())
         assertTrue(emptyIterator.isEmpty())
@@ -260,7 +259,7 @@ class VectorTest {
         // Test dummy map index
         val dummy = DummyIndex.from(5)
         val mapIndex = MapIndex.from(dummy)
-        
+
         assertTrue(mapIndex is MapIndex.Dummy)
         assertEquals(dummy, (mapIndex as MapIndex.Dummy).dummy)
     }
@@ -270,7 +269,7 @@ class VectorTest {
         // 测试映射占位符
         // Test map placeholder
         val mapIndex = MapIndex.map(2)
-        
+
         assertTrue(mapIndex is MapIndex.Map)
         assertEquals(2, (mapIndex as MapIndex.Map).index)
     }
@@ -289,7 +288,7 @@ class VectorTest {
             DummyIndex.all(),
             DummyIndex.from(1..3)
         )
-        
+
         assertEquals(3, vector.size)
         assertTrue(vector[0] is DummyIndex.Index)
         assertTrue(vector[1] is DummyIndex.All)
@@ -308,7 +307,7 @@ class VectorTest {
         val shape = Shape1(10)
         val index = DummyIndex.from(-1)
         val iterator = index.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Single)
         assertEquals(9, (iterator as DummyIndexIterator.Single).index)
     }
@@ -320,7 +319,7 @@ class VectorTest {
         val shape = Shape1(10)
         val index = DummyIndex.from(-2)
         val iterator = index.iteratorOf(shape, 0)
-        
+
         assertEquals(8, (iterator as DummyIndexIterator.Single).index)
     }
 
@@ -333,7 +332,7 @@ class VectorTest {
         // -3..-1 should correspond to 7,8
         val range = DummyIndex.from(-3..-1)
         val iterator = range.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Continuous)
         val continuous = iterator as DummyIndexIterator.Continuous
         // 范围应该是 7..9（不包含 9）
@@ -356,7 +355,7 @@ class VectorTest {
         val shape = Shape1(5)
         val index = DummyIndex.from(10)
         val iterator = index.iteratorOf(shape, 0)
-        
+
         // 越界索引应该回退到 0
         // Out of bounds index should fallback to 0
         assertTrue(iterator is DummyIndexIterator.Single)
@@ -369,7 +368,7 @@ class VectorTest {
         val shape = Shape1(5)
         val index = DummyIndex.from(-10)
         val iterator = index.iteratorOf(shape, 0)
-        
+
         // 大负索引应该回退到 0
         // Large negative index should fallback to 0
         assertTrue(iterator is DummyIndexIterator.Single)
@@ -382,7 +381,7 @@ class VectorTest {
         val shape = Shape1(5)
         val range = DummyIndex.from(0..10)
         val iterator = range.iteratorOf(shape, 0)
-        
+
         assertTrue(iterator is DummyIndexIterator.Continuous)
         val continuous = iterator as DummyIndexIterator.Continuous
         // 范围应该被截断到维度大小
@@ -403,7 +402,7 @@ class VectorTest {
         val index1 = DummyIndex.from(5)
         val index2 = DummyIndex.from(5)
         val index3 = DummyIndex.from(3)
-        
+
         assertEquals(index1, index2)
         assertTrue(index1 != index3)
     }
@@ -415,7 +414,7 @@ class VectorTest {
         val array1 = DummyIndex.from(listOf(1, 2, 3))
         val array2 = DummyIndex.from(listOf(1, 2, 3))
         val array3 = DummyIndex.from(listOf(1, 2, 4))
-        
+
         assertEquals(array1, array2)
         assertTrue(array1 != array3)
     }
@@ -427,7 +426,7 @@ class VectorTest {
         val all1 = DummyIndex.all()
         val all2 = DummyIndex.all()
         val all3 = _a
-        
+
         assertEquals(all1, all2)
         assertEquals(all1, all3)
     }

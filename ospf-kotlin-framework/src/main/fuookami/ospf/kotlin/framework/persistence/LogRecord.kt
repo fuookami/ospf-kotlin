@@ -1,18 +1,29 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.persistence
 
-import java.io.*
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.*
+import fuookami.ospf.kotlin.framework.log.LogRecordPO
+import fuookami.ospf.kotlin.framework.log.LogRecordType
+import fuookami.ospf.kotlin.framework.log.Saving
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
-import kotlinx.serialization.*
-import org.ktorm.entity.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
+import org.ktorm.database.Database
+import org.ktorm.database.use
+import org.ktorm.entity.Entity
+import org.ktorm.entity.add
+import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.*
-import org.ktorm.database.*
-import org.ktorm.support.sqlite.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.serialization.*
-import fuookami.ospf.kotlin.framework.log.*
+import org.ktorm.support.sqlite.SQLiteDialect
+import java.io.ByteArrayInputStream
+import kotlin.time.Duration.Companion.seconds
 
 interface LogRecordByteRPO : Entity<LogRecordByteRPO> {
     companion object : Entity.Factory<LogRecordByteRPO>()

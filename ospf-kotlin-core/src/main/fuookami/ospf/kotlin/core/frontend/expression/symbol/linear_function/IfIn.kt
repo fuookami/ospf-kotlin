@@ -1,16 +1,29 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVar
+import fuookami.ospf.kotlin.core.frontend.variable.PctVariable1
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import org.apache.logging.log4j.kotlin.logger
 
 class IfInFunction(
     private val x: AbstractLinearPolynomial<*>,
@@ -26,9 +39,9 @@ class IfInFunction(
 
     companion object {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             lowerBound: Int,
             upperBound: Int,
@@ -51,9 +64,9 @@ class IfInFunction(
         }
 
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             lowerBound: Double,
             upperBound: Double,
@@ -76,11 +89,11 @@ class IfInFunction(
         }
 
         operator fun <
-            T1 : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>,
-            T2 : RealNumber<T2>,
-            T3 : RealNumber<T3>
-        > invoke (
+                T1 : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>,
+                T2 : RealNumber<T2>,
+                T3 : RealNumber<T3>
+                > invoke(
             x: T1,
             lowerBound: T2,
             upperBound: T3,
@@ -103,13 +116,13 @@ class IfInFunction(
         }
 
         operator fun <
-            T1 : ToLinearPolynomial<Poly1>,
-            Poly1 : AbstractLinearPolynomial<Poly1>,
-            T2 : ToLinearPolynomial<Poly2>,
-            Poly2 : AbstractLinearPolynomial<Poly2>,
-            T3 : ToLinearPolynomial<Poly3>,
-            Poly3 : AbstractLinearPolynomial<Poly3>
-        > invoke(
+                T1 : ToLinearPolynomial<Poly1>,
+                Poly1 : AbstractLinearPolynomial<Poly1>,
+                T2 : ToLinearPolynomial<Poly2>,
+                Poly2 : AbstractLinearPolynomial<Poly2>,
+                T3 : ToLinearPolynomial<Poly3>,
+                Poly3 : AbstractLinearPolynomial<Poly3>
+                > invoke(
             x: T1,
             lowerBound: T2,
             upperBound: T3,
@@ -267,6 +280,14 @@ class IfInFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = upperBoundInequality.register(
@@ -280,6 +301,14 @@ class IfInFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = y.register(tokenTable)) {
@@ -287,6 +316,14 @@ class IfInFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -307,6 +344,14 @@ class IfInFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = upperBoundInequality.register(
@@ -322,6 +367,14 @@ class IfInFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = y.register(model)) {
@@ -329,6 +382,14 @@ class IfInFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -360,6 +421,14 @@ class IfInFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = upperBoundInequality.register(
@@ -376,6 +445,14 @@ class IfInFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = y.register(model, fixedValues)) {
@@ -383,6 +460,14 @@ class IfInFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

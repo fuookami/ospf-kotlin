@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.symbol.adapter
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 
 fun interface ValueProvider {
     operator fun get(symbol: Symbol): Flt64?

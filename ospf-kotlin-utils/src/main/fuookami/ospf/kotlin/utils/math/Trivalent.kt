@@ -30,11 +30,12 @@ enum class Trivalent(val value: URtn8) {
         }
     }
 
-    val isTrue: Boolean? get() = when (this) {
-        True -> true
-        False -> false
-        Unknown -> null
-    }
+    val isTrue: Boolean?
+        get() = when (this) {
+            True -> true
+            False -> false
+            Unknown -> null
+        }
 }
 
 enum class BalancedTrivalent(val value: Int8) {
@@ -67,9 +68,10 @@ enum class BalancedTrivalent(val value: Int8) {
         }
     }
 
-    val isTrue: Boolean? get() = when (this) {
-        True -> true
-        False -> false
-        Unknown -> null
-    }
+    val isTrue: Boolean?
+        get() = when (this) {
+            True -> true
+            False -> false
+            Unknown -> null
+        }
 }

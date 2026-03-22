@@ -1,11 +1,12 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 typealias DualSolution = Map<Constraint, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>

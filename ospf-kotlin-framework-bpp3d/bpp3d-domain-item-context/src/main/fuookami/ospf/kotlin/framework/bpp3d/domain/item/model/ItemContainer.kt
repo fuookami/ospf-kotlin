@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point3
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.operator.ord
+import kotlinx.coroutines.*
 
 sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, Eq<ItemContainer<S>> {
     val items: List<ItemPlacement3> get() = dump()

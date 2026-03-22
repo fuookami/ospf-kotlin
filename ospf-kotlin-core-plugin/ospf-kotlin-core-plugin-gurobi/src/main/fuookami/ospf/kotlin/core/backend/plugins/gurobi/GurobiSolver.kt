@@ -1,10 +1,20 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.gurobi
 
-import kotlin.time.*
-import gurobi.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import gurobi.GRB
+import gurobi.GRBEnv
+import gurobi.GRBException
+import gurobi.GRBModel
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 abstract class GurobiSolver : AutoCloseable {
     protected lateinit var env: GRBEnv
@@ -34,6 +44,10 @@ abstract class GurobiSolver : AutoCloseable {
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
             env.start()
@@ -57,6 +71,10 @@ abstract class GurobiSolver : AutoCloseable {
             when (val result = callBack?.invoke(env)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}

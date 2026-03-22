@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.utils.concept
 
-import java.util.concurrent.*
-import java.util.concurrent.atomic.*
-import kotlin.reflect.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.reflect.KClass
 
 private val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
 

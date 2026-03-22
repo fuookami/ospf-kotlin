@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.Area
 
 object SquareMillimeter : DerivedPhysicalUnit(Millimeter * Millimeter) {
     override val name = "square millimeter"

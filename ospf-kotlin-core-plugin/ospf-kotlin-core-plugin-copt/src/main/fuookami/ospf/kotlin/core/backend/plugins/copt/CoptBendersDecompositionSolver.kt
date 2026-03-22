@@ -1,18 +1,24 @@
 package fuookami.ospf.kotlin.core.backend.plugins.copt
 
-import java.util.*
-import kotlinx.coroutines.*
-import copt.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import copt.COPT
+import copt.get
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
+import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import kotlinx.coroutines.*
 
 class CplexLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -48,6 +54,16 @@ class CplexLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -77,6 +93,11 @@ class CplexLinearBendersDecompositionSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -113,6 +134,16 @@ class CplexLinearBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
             }
         }.use { mechanismModel ->
             LinearTriadModel(
@@ -185,6 +216,11 @@ class CplexLinearBendersDecompositionSolver(
                             Failed(result.error)
                         }
                     }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -244,6 +280,16 @@ class CoptLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -273,6 +319,11 @@ class CoptLinearBendersDecompositionSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -331,6 +382,16 @@ class CoptLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -386,6 +447,18 @@ class CoptLinearBendersDecompositionSolver(
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                         Ok(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
@@ -411,6 +484,18 @@ class CoptLinearBendersDecompositionSolver(
                                 is Failed -> {
                                     return Failed(result.error)
                                 }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                             Ok(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
@@ -422,6 +507,11 @@ class CoptLinearBendersDecompositionSolver(
                         } else {
                             Failed(result.error)
                         }
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }

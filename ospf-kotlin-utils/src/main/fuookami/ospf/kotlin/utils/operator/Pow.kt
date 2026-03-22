@@ -81,7 +81,7 @@ interface PowFFun<in Self, in Index, out Ret> {
     fun Self.cbrt(): Ret
 }
 
-interface PowFP<in Index, Ret>: PowF<Index, Ret> {
+interface PowFP<in Index, Ret> : PowF<Index, Ret> {
     fun pow(index: Index, digits: Int, precision: Ret): Ret {
         return pow(index)
     }

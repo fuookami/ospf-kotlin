@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOf
 
 data object Delaunay {
     // Bowyer-Watson algorithm

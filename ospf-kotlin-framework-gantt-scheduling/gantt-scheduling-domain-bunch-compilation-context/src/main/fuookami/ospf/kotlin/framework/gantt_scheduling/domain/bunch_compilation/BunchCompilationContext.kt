@@ -1,22 +1,26 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.BunchSolutionAnalyzer
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.TaskSolutionAnalyzer
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
+import fuookami.ospf.kotlin.framework.model.invoke
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 interface BunchCompilationContext<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
-> {
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        > {
     val aggregation: BunchCompilationAggregation<B, T, E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
@@ -29,6 +33,10 @@ interface BunchCompilationContext<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = pipelineList(model)) {
@@ -36,6 +44,10 @@ interface BunchCompilationContext<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -58,6 +70,10 @@ interface BunchCompilationContext<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -92,6 +108,10 @@ interface BunchCompilationContext<
                 is Ok -> {}
                 is Failed -> {
                     return Failed(ret.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(ret.errors)
                 }
             }
             val extractor = pipeline.extractor() ?: continue
@@ -208,12 +228,12 @@ interface BunchCompilationContext<
 }
 
 interface ExtractBunchCompilationContext<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    B : AbstractTaskBunch<T, E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
-> {
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        B : AbstractTaskBunch<T, E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        > {
     val baseContext: BunchCompilationContext<Args, B, T, E, A>
 
     fun register(model: MetaModel): Try

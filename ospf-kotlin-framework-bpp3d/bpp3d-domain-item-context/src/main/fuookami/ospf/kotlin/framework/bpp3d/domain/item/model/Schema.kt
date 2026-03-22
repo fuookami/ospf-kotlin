@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 class Scheme(
     val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>> = emptyList(),

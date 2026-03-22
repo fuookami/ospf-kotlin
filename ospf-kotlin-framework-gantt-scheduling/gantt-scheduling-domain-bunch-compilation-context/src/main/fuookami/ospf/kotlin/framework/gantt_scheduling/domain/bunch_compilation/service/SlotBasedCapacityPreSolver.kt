@@ -1,11 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel) -> Ret<*>
 
@@ -66,6 +74,7 @@ class SlotBasedCapacityPreSolver<A : ProductionAction, M, R, C : Capacity<A>>(
         when (val result = solver(model)) {
             is Ok<*, *> -> {}
             is Failed<*, *> -> return Failed(result.error)
+            is Fatal<*, *> -> return Fatal(result.errors)
         }
 
         // Extract intermediate values
@@ -93,6 +102,7 @@ class SlotBasedCapacityPreSolver<A : ProductionAction, M, R, C : Capacity<A>>(
         val capacitySolution = when (val result = compilation.extractSolution(model)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Group action allocations by slot

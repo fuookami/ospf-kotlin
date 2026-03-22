@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.symbol
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.operator.Order
 
 sealed class Category {
     abstract val code: UInt64

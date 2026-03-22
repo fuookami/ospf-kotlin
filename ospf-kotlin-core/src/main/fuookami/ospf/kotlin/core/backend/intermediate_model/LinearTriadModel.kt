@@ -1,28 +1,35 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-import java.io.*
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
-import fuookami.ospf.kotlin.core.backend.solver.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.math.ordinary.pow
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.abs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import org.apache.logging.log4j.kotlin.logger
+import java.io.OutputStreamWriter
 
 typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraint
 
 private fun OriginLinearConstraint.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
-            // && from?.second != true
+    // && from?.second != true
 }
 
 class LinearConstraintCell(
@@ -46,6 +53,7 @@ class LinearConstraintCell(
         colIndex = colIndex,
         coefficient = coefficient.copy()
     )
+
     override fun clone() = copy()
 
     override fun toString(): String {
@@ -265,7 +273,7 @@ class BasicLinearTriadModel(
     }
 }
 
-interface LinearTriadModelView: ModelView<LinearConstraintCell, LinearObjectiveCell> {
+interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjectiveCell> {
     override val constraints: LinearConstraint
     val dual: Boolean
 
@@ -723,6 +731,7 @@ data class LinearTriadModel(
         tokensInSolver = tokensInSolver,
         objective = objective.copy()
     )
+
     override fun clone() = copy()
 
     override fun linearRelax(): LinearTriadModel {
@@ -2062,6 +2071,10 @@ data class LinearTriadModel(
             is Ok -> {
                 ok
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -2089,6 +2102,10 @@ suspend fun solveDual(
         is Failed -> {
             Failed(result.error)
         }
+
+        is Fatal -> {
+            Fatal(result.errors)
+        }
     }
 }
 
@@ -2105,6 +2122,10 @@ suspend fun solveFarkasDual(
 
         is Failed -> {
             Failed(result.error)
+        }
+
+        is Fatal -> {
+            Fatal(result.errors)
         }
     }
 }

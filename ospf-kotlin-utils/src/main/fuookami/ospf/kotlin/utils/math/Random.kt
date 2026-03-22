@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.math
 
-import kotlin.random.*
+import kotlin.random.Random
+import kotlin.random.nextLong
+import kotlin.random.nextULong
 
 fun Random.nextInt64() = Int64(nextLong())
 fun Random.nextInt64(until: Int64) = Int64(nextLong(until.value))

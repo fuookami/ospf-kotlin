@@ -1,12 +1,18 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point3
+import fuookami.ospf.kotlin.utils.math.geometry.Vector3
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.math.geometry.vector3
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.operator.abs
 
 data object ItemMerger {
     data class Config(
@@ -374,6 +380,8 @@ data object ItemMerger {
                     }
 
                     is Failed -> {}
+
+                    is Fatal -> {}
                 }
             }
 
@@ -519,39 +527,43 @@ data object ItemMerger {
                 )
 
                 val placements = ArrayList<ItemPlacement3>()
-                placements.addAll((UInt64.zero until amount)
-                    .flatMap { i ->
-                        (UInt64.zero until heightAmount)
-                            .map { j -> Placement3(item.view(orientation).copy(), point3(x = i.toFlt64() * width, y = j.toFlt64() * height)) }
-                    }
+                placements.addAll(
+                    (UInt64.zero until amount)
+                        .flatMap { i ->
+                            (UInt64.zero until heightAmount)
+                                .map { j -> Placement3(item.view(orientation).copy(), point3(x = i.toFlt64() * width, y = j.toFlt64() * height)) }
+                        }
                 )
-                placements.addAll((UInt64.zero until rotatedAmount)
-                    .flatMap { i ->
-                        (UInt64.zero until heightAmount)
-                            .map { j ->
-                                Placement3(
-                                    item.view(orientation.rotation).copy(),
-                                    point3(x = amount.toFlt64() * width, y = j.toFlt64() * height, z = i.toFlt64() * width)
-                                )
-                            }
-                    }
+                placements.addAll(
+                    (UInt64.zero until rotatedAmount)
+                        .flatMap { i ->
+                            (UInt64.zero until heightAmount)
+                                .map { j ->
+                                    Placement3(
+                                        item.view(orientation.rotation).copy(),
+                                        point3(x = amount.toFlt64() * width, y = j.toFlt64() * height, z = i.toFlt64() * width)
+                                    )
+                                }
+                        }
                 )
-                placements.addAll((UInt64.zero until rotatedAmount)
-                    .flatMap { i ->
-                        (UInt64.zero until heightAmount)
-                            .map { j -> Placement3(item.view(orientation.rotation).copy(), point3(y = j.toFlt64() * height, z = depth + i.toFlt64() * width)) }
-                    }
+                placements.addAll(
+                    (UInt64.zero until rotatedAmount)
+                        .flatMap { i ->
+                            (UInt64.zero until heightAmount)
+                                .map { j -> Placement3(item.view(orientation.rotation).copy(), point3(y = j.toFlt64() * height, z = depth + i.toFlt64() * width)) }
+                        }
                 )
-                placements.addAll((UInt64.zero until amount)
-                    .flatMap { i ->
-                        (UInt64.zero until heightAmount)
-                            .map { j ->
-                                Placement3(
-                                    item.view(orientation).copy(),
-                                    point3(x = depth + i.toFlt64() * width, y = j.toFlt64() * height, z = rotatedAmount.toFlt64() * width)
-                                )
-                            }
-                    }
+                placements.addAll(
+                    (UInt64.zero until amount)
+                        .flatMap { i ->
+                            (UInt64.zero until heightAmount)
+                                .map { j ->
+                                    Placement3(
+                                        item.view(orientation).copy(),
+                                        point3(x = depth + i.toFlt64() * width, y = j.toFlt64() * height, z = rotatedAmount.toFlt64() * width)
+                                    )
+                                }
+                        }
                 )
                 mergedItems.add(HollowSquareBlock(placements))
                 if (thisRestAmount == UInt64.maximum) {

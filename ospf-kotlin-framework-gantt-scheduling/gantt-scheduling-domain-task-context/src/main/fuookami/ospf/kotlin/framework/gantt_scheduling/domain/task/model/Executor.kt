@@ -1,13 +1,15 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import kotlinx.datetime.Instant
 
 open class ExecutorInitialUsability<
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     open val lastTask: T?,
     val enabledTime: Instant
 ) {

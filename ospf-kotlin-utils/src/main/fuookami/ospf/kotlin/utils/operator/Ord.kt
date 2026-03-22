@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.operator
 
-sealed interface Order: Neg<Order> {
+sealed interface Order : Neg<Order> {
     val value: Int
 
     fun ifEqual(f: () -> Order): Order = this

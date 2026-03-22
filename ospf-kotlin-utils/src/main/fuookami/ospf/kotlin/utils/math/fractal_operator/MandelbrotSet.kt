@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.utils.math.fractal_operator
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.geometry.point2
 
 class MandelbrotSet(
     val c: Point2 = Point2(Flt64.one, Flt64.one)
@@ -23,7 +24,7 @@ class MandelbrotSet(
 data class MandelbrotSetGenerator(
     val mandelbrotSet: MandelbrotSet = MandelbrotSet(),
     private var _z: Point2 = point2()
-): Generator<Point2> {
+) : Generator<Point2> {
     companion object {
         operator fun invoke(
             real: Flt64,

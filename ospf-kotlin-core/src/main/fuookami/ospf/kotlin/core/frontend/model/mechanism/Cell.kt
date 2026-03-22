@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.frontend.variable.Token
+import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 sealed interface Cell {
     fun evaluate(): Flt64?

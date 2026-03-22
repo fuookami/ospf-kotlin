@@ -1,19 +1,27 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.geometry.originPoint2
+import fuookami.ospf.kotlin.utils.math.geometry.point2
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.math.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.operator.abs
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import org.apache.logging.log4j.kotlin.logger
 
 private data class PatternItemInfo(
     val item: Item,
@@ -56,6 +64,10 @@ abstract class Pattern {
 
                     is Failed -> {
                         return Failed(ret.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(ret.errors)
                     }
                 }
             }
@@ -304,6 +316,11 @@ abstract class Pattern {
                         promise.close()
                         return@coroutineScope Failed(planePlacement.error)
                     }
+
+                    is Fatal -> {
+                        promise.close()
+                        return@coroutineScope Fatal(planePlacement.errors)
+                    }
                 }
             }
             promise.close()
@@ -403,6 +420,13 @@ abstract class Pattern {
                         }
                         return
                     }
+
+                    is Fatal -> {
+                        if (!promise.isClosedForSend) {
+                            promise.send(Fatal(ret.errors))
+                        }
+                        return
+                    }
                 }
 
                 if (projection != null) {
@@ -451,6 +475,13 @@ abstract class Pattern {
                         is Failed -> {
                             if (!promise.isClosedForSend) {
                                 promise.send(Failed(ret.error))
+                            }
+                            return
+                        }
+
+                        is Fatal -> {
+                            if (!promise.isClosedForSend) {
+                                promise.send(Fatal(ret.errors))
                             }
                             return
                         }
@@ -539,6 +570,13 @@ abstract class Pattern {
                                 is Failed -> {
                                     if (!promise.isClosedForSend) {
                                         promise.send(Failed(ret.error))
+                                    }
+                                    return
+                                }
+
+                                is Fatal -> {
+                                    if (!promise.isClosedForSend) {
+                                        promise.send(Fatal(ret.errors))
                                     }
                                     return
                                 }

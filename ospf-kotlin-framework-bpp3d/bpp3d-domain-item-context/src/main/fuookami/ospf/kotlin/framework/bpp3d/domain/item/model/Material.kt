@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 enum class MaterialType {
     RawMaterial,

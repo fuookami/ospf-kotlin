@@ -1,17 +1,27 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVar
+import fuookami.ospf.kotlin.core.frontend.variable.PctVar
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import org.apache.logging.log4j.kotlin.logger
 
 data class NotFunctionImplBuilderParams(
     val x: AbstractLinearPolynomial<*>,
@@ -21,9 +31,9 @@ data class NotFunctionImplBuilderParams(
 ) {
     companion object {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: NotFunction,
             name: String,
@@ -188,9 +198,9 @@ class NotFunctionImpl(
 ) : AbstractNotFunctionImpl(x, self) {
     companion object : NotFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: NotFunction,
             name: String,
@@ -271,9 +281,9 @@ class NotFunctionPiecewiseImpl(
 ) : AbstractNotFunctionImpl(x, self) {
     companion object : NotFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: NotFunction,
             epsilon: Flt64,
@@ -297,7 +307,7 @@ class NotFunctionPiecewiseImpl(
     constructor(
         params: NotFunctionImplBuilderParams,
         epsilon: Flt64
-    ): this(
+    ) : this(
         x = params.x,
         self = params.self,
         epsilon = epsilon,
@@ -350,6 +360,14 @@ class NotFunctionPiecewiseImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -361,6 +379,14 @@ class NotFunctionPiecewiseImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -377,6 +403,14 @@ class NotFunctionPiecewiseImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -391,6 +425,14 @@ class NotFunctionPiecewiseImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -409,9 +451,9 @@ class NotFunctionDiscreteImpl(
 
     companion object : NotFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: NotFunction,
             extract: Boolean,
@@ -435,7 +477,7 @@ class NotFunctionDiscreteImpl(
     constructor(
         params: NotFunctionImplBuilderParams,
         extract: Boolean
-    ): this(
+    ) : this(
         x = params.x,
         self = params.self,
         extract = extract,
@@ -491,6 +533,14 @@ class NotFunctionDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -507,6 +557,14 @@ class NotFunctionDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (extract) {
@@ -519,6 +577,14 @@ class NotFunctionDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -553,6 +619,14 @@ class NotFunctionDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (extract) {
@@ -566,6 +640,14 @@ class NotFunctionDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -578,6 +660,14 @@ class NotFunctionDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -596,9 +686,9 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
     companion object : NotFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: NotFunction,
             epsilon: Flt64,
@@ -622,7 +712,7 @@ class NotFunctionExtractAndNotDiscreteImpl(
     constructor(
         params: NotFunctionImplBuilderParams,
         epsilon: Flt64
-    ): this(
+    ) : this(
         x = params.x,
         self = params.self,
         epsilon = epsilon,
@@ -687,6 +777,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(y)) {
@@ -694,6 +792,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -711,6 +817,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -723,6 +837,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -734,6 +856,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -750,6 +880,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(y)) {
@@ -757,6 +895,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -784,6 +930,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -795,6 +949,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -808,6 +970,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -819,6 +989,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -835,6 +1013,14 @@ class NotFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -861,9 +1047,9 @@ class NotFunction(
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
 
         operator fun <
-           T : ToLinearPolynomial<Poly>,
-           Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             extract: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
@@ -954,6 +1140,14 @@ class NotFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -965,6 +1159,14 @@ class NotFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -981,6 +1183,14 @@ class NotFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -995,6 +1205,14 @@ class NotFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

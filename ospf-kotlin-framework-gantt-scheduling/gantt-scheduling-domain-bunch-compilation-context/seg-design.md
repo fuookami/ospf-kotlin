@@ -1,32 +1,38 @@
 # Slot-Based Bunch Compilation Design
+
 # 分时隙任务束编译设计
 
 ## Overview / 概述
 
 本文档描述了分时隙任务束编排模型的设计，该模型通过预先求解 capacity scheduling 问题获取时隙级的资源与产量中间值，从而简化 bunch compilation 主问题的计算复杂度。
 
-This document describes the design of slot-based bunch compilation model, which pre-solves the capacity scheduling problem to obtain slot-level resource and produce intermediate values, thereby simplifying the computational complexity of the bunch compilation master problem.
+This document describes the design of slot-based bunch compilation model, which pre-solves the capacity scheduling problem to obtain slot-level resource and produce intermediate
+values, thereby simplifying the computational complexity of the bunch compilation master problem.
 
 ---
 
 ## Motivation / 动机
 
 在传统的 bunch compilation 中，resource 和 produce 约束需要在主问题中动态计算，这导致了：
+
 1. 主问题规模大，求解时间长
 2. 约束复杂度高
 3. 列生成迭代效率低
 
 In traditional bunch compilation, resource and produce constraints need to be dynamically calculated in the master problem, which leads to:
+
 1. Large master problem scale and long solving time
 2. High constraint complexity
 3. Low column generation iteration efficiency
 
 通过分时隙预计算中间值，可以：
+
 1. 减小主问题规模
 2. 将 resource/produce 约束计算移至预求解阶段
 3. 提供明确的时隙约束边界给 bunch 生成器
 
 By pre-calculating intermediate values per time slot, we can:
+
 1. Reduce master problem scale
 2. Move resource/produce constraint calculation to pre-solving phase
 3. Provide clear slot constraint boundaries to bunch generators
@@ -629,17 +635,17 @@ gantt-scheduling-domain-bunch-generation-context/
 
 ## Implementation Steps / 实施步骤
 
-| Step | Task | Module | File |
-|------|------|--------|------|
-| 1 | Create SlotBasedBunch interface | bunch-compilation-context | `model/SlotBasedBunch.kt` |
-| 2 | Create SlotBasedCapacityResult | bunch-compilation-context | `model/SlotBasedCapacityResult.kt` |
-| 3 | Create CapacityIntermediateValues | bunch-compilation-context | `model/SlotBasedCapacityResult.kt` |
-| 4 | Create SlotConstraints | bunch-compilation-context | `model/SlotBasedCapacityResult.kt` |
-| 5 | Create SlotBasedBunchCompilation | bunch-compilation-context | `model/SlotBasedBunchCompilation.kt` |
-| 6 | Create SlotBasedCapacityPreSolver | bunch-compilation-context | `service/SlotBasedCapacityPreSolver.kt` |
-| 7 | Create SlotBasedBunchCompilationContext | bunch-compilation-context | `service/SlotBasedBunchCompilationContext.kt` |
-| 8 | Create SlotBasedBunchGenerator interface | bunch-generation-context | `service/SlotBasedBunchGenerator.kt` |
-| 9 | Update pom.xml dependencies | both modules | `pom.xml` |
+| Step | Task                                     | Module                    | File                                          |
+|------|------------------------------------------|---------------------------|-----------------------------------------------|
+| 1    | Create SlotBasedBunch interface          | bunch-compilation-context | `model/SlotBasedBunch.kt`                     |
+| 2    | Create SlotBasedCapacityResult           | bunch-compilation-context | `model/SlotBasedCapacityResult.kt`            |
+| 3    | Create CapacityIntermediateValues        | bunch-compilation-context | `model/SlotBasedCapacityResult.kt`            |
+| 4    | Create SlotConstraints                   | bunch-compilation-context | `model/SlotBasedCapacityResult.kt`            |
+| 5    | Create SlotBasedBunchCompilation         | bunch-compilation-context | `model/SlotBasedBunchCompilation.kt`          |
+| 6    | Create SlotBasedCapacityPreSolver        | bunch-compilation-context | `service/SlotBasedCapacityPreSolver.kt`       |
+| 7    | Create SlotBasedBunchCompilationContext  | bunch-compilation-context | `service/SlotBasedBunchCompilationContext.kt` |
+| 8    | Create SlotBasedBunchGenerator interface | bunch-generation-context  | `service/SlotBasedBunchGenerator.kt`          |
+| 9    | Update pom.xml dependencies              | both modules              | `pom.xml`                                     |
 
 ---
 

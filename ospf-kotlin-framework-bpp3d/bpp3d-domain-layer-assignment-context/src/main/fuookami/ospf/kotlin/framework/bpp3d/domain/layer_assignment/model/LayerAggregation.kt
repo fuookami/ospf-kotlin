@@ -1,9 +1,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.math.usize
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class LayerAggregation(
     val layersIteration: MutableList<List<BinLayer>> = ArrayList(),
@@ -51,14 +54,14 @@ class LayerAggregation(
         return unduplicatedLayers
     }
 
-    fun removeColumn(layer: BinLayer)  {
+    fun removeColumn(layer: BinLayer) {
         if (!removedLayers.contains(layer)) {
             removedLayers.add(layer)
             layers.remove(layer)
         }
     }
 
-    fun removeColumns(layers: List<BinLayer>)  {
+    fun removeColumns(layers: List<BinLayer>) {
         for (layer in layers) {
             removeColumn(layer)
         }

@@ -1,11 +1,15 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 /**
  * Plan 模式的产能调度产品产量管理
@@ -18,10 +22,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * @param compilation Capacity 编译对象 / Capacity compilation object
  */
 class PlanCapacitySchedulingProduce<
-    A : ProductionAction,
-    P : AbstractMaterial,
-    C : AbstractMaterial
->(
+        A : ProductionAction,
+        P : AbstractMaterial,
+        C : AbstractMaterial
+        >(
     products: List<Pair<P, MaterialDemand?>>,
     private val compilation: Capacity<A>,
     actions: List<A>,

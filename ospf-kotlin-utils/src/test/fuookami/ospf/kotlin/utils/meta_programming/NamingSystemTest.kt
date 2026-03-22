@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.meta_programming
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 
 class NamingSystemTest {
     @Test

@@ -1,18 +1,24 @@
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
-import java.util.*
-import kotlinx.coroutines.*
-import ilog.cplex.*
-import ilog.concert.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import ilog.concert.IloException
+import ilog.cplex.IloCplex
+import kotlinx.coroutines.*
 
 class CplexColumnGenerationSolver(
     val config: SolverConfig = SolverConfig(),
@@ -48,6 +54,16 @@ class CplexColumnGenerationSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -77,6 +93,11 @@ class CplexColumnGenerationSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -111,6 +132,16 @@ class CplexColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
             }
         }.use { mechanismModel ->
             LinearTriadModel(
@@ -172,6 +203,11 @@ class CplexColumnGenerationSolver(
                         jobs.joinAll()
                         Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -204,6 +240,16 @@ class CplexColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
             }
         }.use { mechanismModel ->
             LinearTriadModel(
@@ -246,6 +292,11 @@ class CplexColumnGenerationSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }

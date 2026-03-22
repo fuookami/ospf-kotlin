@@ -1,8 +1,10 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.operator.Minus
+import fuookami.ospf.kotlin.utils.operator.Plus
+import fuookami.ospf.kotlin.utils.operator.Times
 
 private fun normOf(vector: List<Flt64>): Flt64 {
     return (vector.sumOf { it.sqr() }).sqrt()

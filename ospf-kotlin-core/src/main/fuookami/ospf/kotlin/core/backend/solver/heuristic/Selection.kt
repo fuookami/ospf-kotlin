@@ -1,10 +1,15 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.functional.sum
 import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 interface Selection {
     operator fun invoke(
@@ -245,9 +250,9 @@ data class BoltzmannSelection(
             decayRate: Flt64,
             randomGenerator: Generator<Flt64>
         ): BoltzmannSelection {
-           return BoltzmannSelection(
-               { iteration -> initialTemperature * (-decayRate * iteration.iteration.toFlt64()).exp() },
-               randomGenerator
+            return BoltzmannSelection(
+                { iteration -> initialTemperature * (-decayRate * iteration.iteration.toFlt64()).exp() },
+                randomGenerator
             )
         }
     }

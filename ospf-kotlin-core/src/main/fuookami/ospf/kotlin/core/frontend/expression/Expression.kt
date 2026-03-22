@@ -1,11 +1,12 @@
 package fuookami.ospf.kotlin.core.frontend.expression
 
-import kotlin.reflect.full.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import kotlin.reflect.full.companionObjectInstance
 
 open class ExpressionRange<V>(
     private var _range: ValueRange<V>?,

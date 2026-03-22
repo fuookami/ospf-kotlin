@@ -1,8 +1,12 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.datetime.Instant
 
 sealed class Node(val index: UInt64) {
     companion object {
@@ -14,18 +18,18 @@ sealed class Node(val index: UInt64) {
 }
 
 object RootNode : Node(root) {
-    override val time = Instant.DISTANT_PAST
+    override val time: Instant = Instant.fromEpochSeconds(Long.MIN_VALUE)
 
     override fun toString() = "Root"
 }
 
 object EndNode : Node(end) {
-    override val time = Instant.DISTANT_FUTURE
+    override val time: Instant = Instant.fromEpochSeconds(Long.MAX_VALUE)
 
     override fun toString() = "End"
 }
 
-class TaskNode<T: AbstractTask<E, A>, E : Executor, A: AssignmentPolicy<E>, Arg>(
+class TaskNode<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, Arg>(
     val task: T,
     val arg: Arg,
     override val time: Instant,

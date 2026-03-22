@@ -1,20 +1,27 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
-import java.io.*
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.*
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.math.ordinary.pow
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.abs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import org.apache.logging.log4j.kotlin.logger
+import java.io.OutputStreamWriter
 
 typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticConstraint
 
@@ -22,7 +29,7 @@ private fun OriginQuadraticConstraint.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
             && lhs.first().token2 == null
-            // && from?.second != true
+    // && from?.second != true
 }
 
 class QuadraticConstraintCell(
@@ -49,6 +56,7 @@ class QuadraticConstraintCell(
         colIndex2 = colIndex2,
         coefficient = coefficient.copy()
     )
+
     override fun clone() = copy()
 }
 
@@ -105,6 +113,7 @@ class QuadraticObjectiveCell(
         colIndex2 = colIndex2,
         coefficient = coefficient.copy()
     )
+
     override fun clone() = copy()
 }
 
@@ -857,6 +866,7 @@ data class QuadraticTetradModel(
         tokensInSolver = tokensInSolver,
         objective = objective.copy()
     )
+
     override fun clone() = copy()
 
     override fun linearRelax(): QuadraticTetradModel {
@@ -1083,6 +1093,10 @@ data class QuadraticTetradModel(
             is Ok -> {
                 ok
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -1110,6 +1124,10 @@ suspend fun solveDual(
         is Failed -> {
             Failed(result.error)
         }
+
+        is Fatal -> {
+            Fatal(result.errors)
+        }
     }
 }
 
@@ -1126,6 +1144,10 @@ suspend fun solveFarkasDual(
 
         is Failed -> {
             Failed(result.error)
+        }
+
+        is Fatal -> {
+            Fatal(result.errors)
         }
     }
 }

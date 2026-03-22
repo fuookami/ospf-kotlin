@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.expression.adapter
 
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.operation.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.operation.QuadraticMatrixForm
+import fuookami.ospf.kotlin.utils.math.symbol.operation.toMatrixForm
 
 fun AbstractQuadraticPolynomial<*>.toUtilsMatrixForm(
     order: List<Symbol>,

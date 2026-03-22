@@ -1,21 +1,13 @@
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.cache_regression
 
-import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.core.frontend.variable.RealVar
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoTokenTable
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCachedWithFixedCacheKey
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.shouldPrepare
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.shouldPrepareWithFixedCacheKey
+import kotlin.test.*
 
 class PrepareCacheKeyRegressionTest {
     @Test

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import org.junit.jupiter.api.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import org.junit.jupiter.api.Test
 
 class TriangulationTest {
     @Test

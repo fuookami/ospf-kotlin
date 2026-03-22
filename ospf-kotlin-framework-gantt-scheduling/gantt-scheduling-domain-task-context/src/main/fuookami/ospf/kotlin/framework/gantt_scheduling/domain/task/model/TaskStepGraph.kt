@@ -1,8 +1,13 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import kotlin.time.Duration
 
 enum class StepRelation {
     And,
@@ -10,10 +15,10 @@ enum class StepRelation {
 }
 
 abstract class TaskStep<
-    out T : AbstractMultiStepTask<T, S, E>,
-    out S : AbstractTaskStepPlan<S, T, E>,
-    out E : Executor
->(
+        out T : AbstractMultiStepTask<T, S, E>,
+        out S : AbstractTaskStepPlan<S, T, E>,
+        out E : Executor
+        >(
     val id: String,
     val name: String,
     val enabledExecutors: Set<E>,
@@ -29,43 +34,43 @@ abstract class TaskStep<
 }
 
 data class ForwardTaskStepVector<
-    out T : AbstractMultiStepTask<T, S, E>,
-    out S : AbstractTaskStepPlan<S, T, E>,
-    out E : Executor
->(
+        out T : AbstractMultiStepTask<T, S, E>,
+        out S : AbstractTaskStepPlan<S, T, E>,
+        out E : Executor
+        >(
     val from: TaskStep<T, S, E>,
     val to: List<TaskStep<T, S, E>>,
     val relation: StepRelation
 )
 
 data class BackwardTaskStepVector<
-    out T : AbstractMultiStepTask<T, S, E>,
-    out S : AbstractTaskStepPlan<S, T, E>,
-    out E : Executor
->(
+        out T : AbstractMultiStepTask<T, S, E>,
+        out S : AbstractTaskStepPlan<S, T, E>,
+        out E : Executor
+        >(
     val from: List<TaskStep<T, S, E>>,
     val to: TaskStep<T, S, E>,
     val relation: StepRelation
 )
 
 open class TaskStepGraph<
-    out T : AbstractMultiStepTask<T, S, E>,
-    out S : AbstractTaskStepPlan<S, T, E>,
-    out E : Executor
->(
+        out T : AbstractMultiStepTask<T, S, E>,
+        out S : AbstractTaskStepPlan<S, T, E>,
+        out E : Executor
+        >(
     val id: String,
     val name: String,
     val steps: List<TaskStep<T, S, E>>,
     val startSteps: Pair<List<TaskStep<T, S, E>>, StepRelation>,
     // must be a DAG
     val forwardTaskStepVector: Map<
-        TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
-        ForwardTaskStepVector<T, S, E>
-    >,
+            TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
+            ForwardTaskStepVector<T, S, E>
+            >,
     val backwardStepRelation: Map<
-        TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
-        BackwardTaskStepVector<T, S, E>
-    >
+            TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>,
+            BackwardTaskStepVector<T, S, E>
+            >
 ) {
     companion object {
         fun <T : AbstractMultiStepTask<T, S, E>, S : AbstractTaskStepPlan<S, T, E>, E : Executor> build(
@@ -79,10 +84,10 @@ open class TaskStepGraph<
 }
 
 data class TaskStepGraphBuilder<
-    out T : AbstractMultiStepTask<T, S, E>,
-    out S : AbstractTaskStepPlan<S, T, E>,
-    out E : Executor
->(
+        out T : AbstractMultiStepTask<T, S, E>,
+        out S : AbstractTaskStepPlan<S, T, E>,
+        out E : Executor
+        >(
     var id: String? = null,
     var name: String? = null,
     val steps: MutableList<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>> = ArrayList(),

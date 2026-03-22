@@ -1,15 +1,28 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.physics.unit.*
-import fuookami.ospf.kotlin.utils.physics.quantity.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.Expression
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
+import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
+import fuookami.ospf.kotlin.utils.physics.unit.reciprocal
 
 internal fun Polynomial<*, *, *>.toTidyRawString(unfold: UInt64): String {
     return if (monomials.isEmpty()) {

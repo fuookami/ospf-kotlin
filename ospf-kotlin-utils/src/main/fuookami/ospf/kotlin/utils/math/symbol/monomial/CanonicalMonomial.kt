@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.symbol.monomial
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.*
 
 data class CanonicalMonomial(

@@ -1,10 +1,11 @@
 package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
 
-import java.util.*
 import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.syncRun
+import java.util.*
 
 typealias CreatingEnvironmentFunction = (GRBEnv) -> Try
 typealias NativeCallback = GRBCallback.() -> Unit

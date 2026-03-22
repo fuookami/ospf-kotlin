@@ -1,19 +1,26 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gwo
 
-import kotlin.time.*
-import kotlin.random.*
-import kotlin.collections.mapIndexed
-import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
+import fuookami.ospf.kotlin.core.frontend.model.MulObj
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.nextFlt64
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.Order
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 
 interface AbstractGWOPolicy<V> : AbstractHeuristicPolicy {
     fun a(iteration: Iteration): List<Flt64>
@@ -152,7 +159,7 @@ class GreyWolfOptimizer<Obj, V>(
                 individuals = thisIndividuals,
                 elites = thisIndividuals.take(thisPopulation.eliteAmount.toInt()),
                 best = thisIndividuals.first(),
-                eliteAmount =  thisPopulation.eliteAmount,
+                eliteAmount = thisPopulation.eliteAmount,
                 densityRange = thisPopulation.densityRange,
                 mutationRateRange = thisPopulation.mutationRateRange,
                 parentAmountRange = thisPopulation.parentAmountRange
@@ -208,7 +215,7 @@ class GreyWolfOptimizer<Obj, V>(
                             individuals = wolfs,
                             elites = wolfs.take(population.eliteAmount.toInt()),
                             best = wolfs.first(),
-                            eliteAmount =  population.eliteAmount,
+                            eliteAmount = population.eliteAmount,
                             densityRange = population.densityRange,
                             mutationRateRange = population.mutationRateRange,
                             parentAmountRange = population.parentAmountRange

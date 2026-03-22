@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.utils.math.combinatorics
 
-import kotlinx.coroutines.*
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 
 class PermutationsTests {
     @Test

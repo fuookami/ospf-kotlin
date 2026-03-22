@@ -14,7 +14,7 @@ interface LogFun<in Self, in Base, out Ret> {
     fun Self.ln(): Ret?
 }
 
-interface LogP<in Base, Ret>: Log<Base, Ret> {
+interface LogP<in Base, Ret> : Log<Base, Ret> {
     fun log(base: Base, digits: Int, precision: Ret): Ret? {
         return log(base)
     }

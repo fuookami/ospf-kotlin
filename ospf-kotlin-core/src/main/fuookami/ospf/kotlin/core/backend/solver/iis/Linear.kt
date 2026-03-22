@@ -1,14 +1,18 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
-import java.io.*
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearConstraint
+import fuookami.ospf.kotlin.core.backend.solver.AbstractLinearSolver
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import java.io.OutputStreamWriter
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 data class LinearIISModel(
     private val impl: BasicLinearTriadModel,
@@ -63,11 +67,15 @@ suspend fun computeIIS(
                         totalConstraintAmount = constraintAmount,
                     )
                 )) {
+                    null -> {}
+                    is Ok -> {}
                     is Failed -> {
                         return Failed(callbackResult.error)
                     }
 
-                    else -> {}
+                    is Fatal -> {
+                        return Fatal(callbackResult.errors)
+                    }
                 }
                 return Ok(dump(model, result.value.second))
             }
@@ -76,6 +84,10 @@ suspend fun computeIIS(
 
         is Failed -> {
             return Failed(result.error)
+        }
+
+        is Fatal -> {
+            return Fatal(result.errors)
         }
     }
 
@@ -103,6 +115,10 @@ suspend fun computeIIS(
 
         is Failed -> {
             return Failed(result.error)
+        }
+
+        is Fatal -> {
+            return Fatal(result.errors)
         }
     }
     return Ok(dump(model, misConstraints, guardConstraints))
@@ -242,6 +258,10 @@ private suspend fun performElasticFiltering(
         is Failed -> {
             return Failed(result.error)
         }
+
+        is Fatal -> {
+            return Fatal(result.errors)
+        }
     }
     if (relaxVariableBoundsResult.first) {
         return Ok(true to relaxVariableBoundsResult.second)
@@ -269,6 +289,10 @@ private suspend fun performElasticFiltering(
         is Failed -> {
             return Failed(result.error)
         }
+
+        is Fatal -> {
+            return Fatal(result.errors)
+        }
     }
     if (relaxInequalitiesAndVariableBoundsResult.first) {
         return Ok(true to relaxInequalitiesAndVariableBoundsResult.second)
@@ -285,6 +309,10 @@ private suspend fun performElasticFiltering(
 
         is Failed -> {
             return Failed(result.error)
+        }
+
+        is Fatal -> {
+            return Fatal(result.errors)
         }
     }
     if (relaxAllResult.first) {
@@ -334,6 +362,10 @@ private suspend fun relaxSpecificComponents(
             } else {
                 Failed(result.error)
             }
+        }
+
+        is Fatal -> {
+            return Fatal(result.errors)
         }
     }
 

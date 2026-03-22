@@ -1,15 +1,18 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 
 class TaskCostMinimization<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     private val compilation: IterativeTaskCompilation<*, *, E, A>,
     override val name: String = "task_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
@@ -22,6 +25,10 @@ class TaskCostMinimization<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

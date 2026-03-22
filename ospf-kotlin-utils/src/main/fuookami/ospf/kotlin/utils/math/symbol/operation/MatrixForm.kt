@@ -1,9 +1,12 @@
 package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 
 data class QuadraticMatrixForm(
     val q: Array<DoubleArray>,
@@ -76,6 +79,12 @@ fun CanonicalPolynomial.toMatrixForm(
         is Failed -> {
             throw IllegalArgumentException(
                 "Cannot convert canonical polynomial to quadratic matrix form: ${quadratic.error.message}"
+            )
+        }
+
+        is Fatal -> {
+            throw IllegalArgumentException(
+                "Cannot convert canonical polynomial to quadratic matrix form: ${quadratic.errors.joinToString { it.message }}"
             )
         }
     }

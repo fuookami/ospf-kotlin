@@ -1,22 +1,35 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service
 
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingTaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.concept.findOrGet
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.time.Instant
 
 data object SolutionAnalyzer {
     @Suppress("UNCHECKED_CAST")
     operator fun <
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > invoke(
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
         tasks: List<T>,
         executors: List<E>,
         compilation: TaskCompilation<T, E, A>,
@@ -52,6 +65,10 @@ data object SolutionAnalyzer {
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
             if (assignedTask != null) {
@@ -66,10 +83,10 @@ data object SolutionAnalyzer {
 
     @Suppress("UNCHECKED_CAST")
     operator fun <
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > invoke(
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
         timeWindow: TimeWindow,
         tasks: List<T>,
         executors: List<E>,
@@ -139,6 +156,10 @@ data object SolutionAnalyzer {
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
             if (assignedTask != null) {
@@ -153,11 +174,11 @@ data object SolutionAnalyzer {
 
     @Suppress("UNCHECKED_CAST")
     operator fun <
-        IT : IterativeAbstractTask<E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > invoke(
+            IT : IterativeAbstractTask<E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
         iteration: UInt64,
         originTasks: List<T>,
         tasks: List<List<IT>>,

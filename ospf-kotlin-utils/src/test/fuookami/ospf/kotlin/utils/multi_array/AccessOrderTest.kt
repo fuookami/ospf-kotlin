@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * 访问顺序和迭代器测试
@@ -57,7 +57,7 @@ class AccessOrderTest {
         val pos1 = IteratorPosition(intArrayOf(1, 2, 3), false)
         val pos2 = IteratorPosition(intArrayOf(1, 2, 3), false)
         val pos3 = IteratorPosition(intArrayOf(1, 2, 4), false)
-        
+
         assertEquals(pos1, pos2)
         assertEquals(pos1.hashCode(), pos2.hashCode())
         assertTrue(pos1 != pos3)
@@ -69,7 +69,7 @@ class AccessOrderTest {
         // Test exhausted flag
         val position1 = IteratorPosition(intArrayOf(0, 0), false)
         val position2 = IteratorPosition(intArrayOf(0, 0), true)
-        
+
         assertFalse(position1.exhausted)
         assertTrue(position2.exhausted)
         // exhausted 不参与 equals 比较，只比较 positions

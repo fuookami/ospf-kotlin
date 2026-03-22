@@ -1,8 +1,10 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import kotlin.reflect.full.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.Integer
+import fuookami.ospf.kotlin.utils.math.RealNumberConstants
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.reflect.full.companionObjectInstance
 
 class PrimeCache {
     private var current = UInt64.zero

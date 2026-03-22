@@ -1,21 +1,36 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import kotlin.time.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.multi_array.Shape2
+import fuookami.ospf.kotlin.utils.multi_array.Shape3
+import fuookami.ospf.kotlin.utils.multi_array._a
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.time.Duration
 
 abstract class StorageResource<out C : AbstractResourceCapacity>(
     override val id: String,
@@ -117,9 +132,9 @@ abstract class StorageResource<out C : AbstractResourceCapacity>(
 }
 
 data class StorageResourceTimeSlot<
-    out R : StorageResource<C>,
-    out C : AbstractResourceCapacity
->(
+        out R : StorageResource<C>,
+        out C : AbstractResourceCapacity
+        >(
     private val timeWindow: TimeWindow,
     override val origin: TimeSlot,
     override val resource: R,
@@ -165,10 +180,10 @@ data class StorageResourceTimeSlot<
 typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, C>, R, C>
 
 abstract class AbstractStorageResourceUsage<
-    out E : Executor,
-    out R : StorageResource<C>,
-    out C : AbstractResourceCapacity
->(
+        out E : Executor,
+        out R : StorageResource<C>,
+        out C : AbstractResourceCapacity
+        >(
     protected val timeWindow: TimeWindow,
     protected val executors: List<E>,
     protected val resources: List<R>,
@@ -258,6 +273,10 @@ abstract class AbstractStorageResourceUsage<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (timeSlots.isNotEmpty()) {
@@ -289,6 +308,10 @@ abstract class AbstractStorageResourceUsage<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -297,10 +320,10 @@ abstract class AbstractStorageResourceUsage<
 }
 
 class TaskSchedulingStorageResourceUsage<
-    out E : Executor,
-    out R : StorageResource<C>,
-    out C : AbstractResourceCapacity
->(
+        out E : Executor,
+        out R : StorageResource<C>,
+        out C : AbstractResourceCapacity
+        >(
     timeWindow: TimeWindow,
     executors: List<E>,
     resources: List<R>,
@@ -363,10 +386,10 @@ class TaskSchedulingStorageResourceUsage<
 }
 
 class IterativeTaskSchedulingStorageResourceUsage<
-    out E : Executor,
-    out R : StorageResource<C>,
-    out C : AbstractResourceCapacity
-> private constructor(
+        out E : Executor,
+        out R : StorageResource<C>,
+        out C : AbstractResourceCapacity
+        > private constructor(
     timeWindow: TimeWindow,
     executors: List<E>,
     resources: List<R>,
@@ -436,6 +459,10 @@ class IterativeTaskSchedulingStorageResourceUsage<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::cost.isInitialized) {
@@ -458,6 +485,10 @@ class IterativeTaskSchedulingStorageResourceUsage<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -532,10 +563,10 @@ class IterativeTaskSchedulingStorageResourceUsage<
 }
 
 class BunchSchedulingStorageResourceUsage<
-    out E : Executor,
-    out R : StorageResource<C>,
-    out C : AbstractResourceCapacity
->(
+        out E : Executor,
+        out R : StorageResource<C>,
+        out C : AbstractResourceCapacity
+        >(
     timeWindow: TimeWindow,
     executors: List<E>,
     resources: List<R>,
@@ -605,6 +636,10 @@ class BunchSchedulingStorageResourceUsage<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::cost.isInitialized) {
@@ -628,17 +663,21 @@ class BunchSchedulingStorageResourceUsage<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return super.register(model)
     }
 
     suspend fun <
-        B : AbstractTaskBunch<T, E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > addColumns(
+            B : AbstractTaskBunch<T, E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > addColumns(
         iteration: UInt64,
         bunches: List<B>,
         compilation: BunchCompilation<B, T, E, A>

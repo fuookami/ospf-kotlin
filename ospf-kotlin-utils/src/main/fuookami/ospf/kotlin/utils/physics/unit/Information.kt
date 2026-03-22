@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Information
 
 /**
  * 信息单位
@@ -20,7 +20,6 @@ object Bit : PhysicalUnit() {
     override val symbol = "bit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale()
 }
 
@@ -33,7 +32,6 @@ object Kilobit : PhysicalUnit() {
     override val symbol = "kbit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.kilo
 }
 
@@ -46,7 +44,6 @@ object Megabit : PhysicalUnit() {
     override val symbol = "Mbit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.mega
 }
 
@@ -59,7 +56,6 @@ object Gigabit : PhysicalUnit() {
     override val symbol = "Gbit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.giga
 }
 
@@ -72,7 +68,6 @@ object Terabit : PhysicalUnit() {
     override val symbol = "Tbit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.tera
 }
 
@@ -85,7 +80,6 @@ object Petabit : PhysicalUnit() {
     override val symbol = "Pbit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.peta
 }
 
@@ -98,7 +92,6 @@ object Exabit : PhysicalUnit() {
     override val symbol = "Ebit"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.exa
 }
 
@@ -111,7 +104,6 @@ object Byte : PhysicalUnit() {
     override val symbol = "B"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale(8)
 }
 
@@ -124,7 +116,6 @@ object Kilobyte : PhysicalUnit() {
     override val symbol = "KB"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.kilo * Scale(8)
 }
 
@@ -137,7 +128,6 @@ object Megabyte : PhysicalUnit() {
     override val symbol = "MB"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.mega * Scale(8)
 }
 
@@ -150,7 +140,6 @@ object Gigabyte : PhysicalUnit() {
     override val symbol = "GB"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.giga * Scale(8)
 }
 
@@ -163,7 +152,6 @@ object Terabyte : PhysicalUnit() {
     override val symbol = "TB"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.tera * Scale(8)
 }
 
@@ -176,7 +164,6 @@ object Petabyte : PhysicalUnit() {
     override val symbol = "PB"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.peta * Scale(8)
 }
 
@@ -189,6 +176,5 @@ object Exabyte : PhysicalUnit() {
     override val symbol = "EB"
 
     override val quantity = Information
-    override val system = SI
     override val scale = Scale.exa * Scale(8)
 }

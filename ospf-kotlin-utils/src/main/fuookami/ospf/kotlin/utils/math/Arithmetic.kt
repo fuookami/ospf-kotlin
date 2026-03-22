@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.math
 
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.operator.*
 
 interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
@@ -119,8 +119,7 @@ interface RationalNumber<Self : RationalNumber<Self, I>, I> : RealNumber<Self>, 
         where I : Integer<I>, I : NumberField<I>
 
 interface RationalNumberConstants<Self : RationalNumber<Self, I>, I> : RealNumberConstants<Self>
-        where I : Integer<I>, I : NumberField<I>
-{
+        where I : Integer<I>, I : NumberField<I> {
     val half: Self
 }
 

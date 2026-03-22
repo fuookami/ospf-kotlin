@@ -1,10 +1,22 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.time.*
-import kotlin.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.toDuration
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import fuookami.ospf.kotlin.utils.truncatedTo
 import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.round
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 data class TimeWindow(
     val window: TimeRange,
@@ -146,7 +158,7 @@ data class TimeWindow(
     }
 
     fun upperIntervalByScale(scale: UInt64): Duration {
-        val upperInterval = scale.toInt() * interval
+        val upperInterval = interval * scale.toInt().toDouble()
         return if (upperInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
             1.toDuration(DurationUnit.DAYS)
         } else if (upperInterval > 1.toDuration(DurationUnit.HOURS) && durationUnit.ordinal < DurationUnit.HOURS.ordinal) {
@@ -159,7 +171,7 @@ data class TimeWindow(
     }
 
     fun upperByScale(scale: UInt64): TimeWindow {
-        val scaleInterval = scale.toInt() * interval
+        val scaleInterval = interval * scale.toInt().toDouble()
         val (upperUnit, upperInterval) = if (scaleInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
             Pair(DurationUnit.DAYS, 1.toDuration(DurationUnit.DAYS))
         } else if (scaleInterval > 1.toDuration(DurationUnit.HOURS) && durationUnit.ordinal < DurationUnit.HOURS.ordinal) {
@@ -219,10 +231,14 @@ data class TimeWindow(
         val slotIntervals = ArrayList<Duration>()
         var current = start
         var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
-        val end1 = start.truncatedTo(upper.durationUnit) + ceil(upper.interval / currentInterval).toInt() * currentInterval
+        val ratio: Double = kotlin.math.ceil(upper.interval / currentInterval)
+        val multipliedDuration: Duration = (currentInterval.toDouble(DurationUnit.SECONDS) * ratio).toDuration(DurationUnit.SECONDS)
+        val end1 = start.truncatedTo(upper.durationUnit) + multipliedDuration
         while (current != end1) {
             var duration = if (current == start) {
-                (end1 - start) - floor((end1 - start) / currentInterval) * currentInterval
+                val durationDiff = (end1 - start)
+                val floorRatio = kotlin.math.floor(durationDiff / currentInterval)
+                durationDiff - (floorRatio * currentInterval.toDouble(DurationUnit.SECONDS)).toDuration(DurationUnit.SECONDS)
             } else {
                 min(end1 - current, currentInterval)
             }
@@ -382,7 +398,7 @@ data class TimeWindow(
             breakTime = breakTime
         )
     }
-    
+
     fun date(
         time: LocalDateTime,
         timeZone: TimeZone = TimeZone.currentSystemDefault()

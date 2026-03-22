@@ -1,24 +1,30 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.model.ShadowPrice
+import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 data class ProduceQuantityShadowPriceKey<P : AbstractMaterial>(
     val product: P
 ) : ShadowPriceKey(ProduceQuantityShadowPriceKey::class)
 
 class ProduceQuantityConstraint<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    P : AbstractMaterial
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        P : AbstractMaterial
+        >(
     products: List<Pair<P, MaterialDemand?>>,
     private val produce: Produce,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
@@ -43,6 +49,10 @@ class ProduceQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -57,6 +67,10 @@ class ProduceQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -70,6 +84,10 @@ class ProduceQuantityConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -87,6 +105,10 @@ class ProduceQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -101,6 +123,10 @@ class ProduceQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -114,6 +140,10 @@ class ProduceQuantityConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }

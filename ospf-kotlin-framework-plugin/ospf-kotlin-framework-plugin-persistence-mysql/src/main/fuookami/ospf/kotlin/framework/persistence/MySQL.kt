@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.persistence
 
-import kotlinx.serialization.*
-import org.ktorm.database.*
-import org.ktorm.support.mysql.*
-import org.apache.commons.dbcp2.*
-import org.apache.logging.log4j.kotlin.*
+import kotlinx.serialization.Serializable
+import org.apache.commons.dbcp2.BasicDataSource
+import org.apache.logging.log4j.kotlin.logger
+import org.ktorm.database.Database
+import org.ktorm.support.mysql.MySqlDialect
 
 data class MySQLClientKey(
     val name: String,
@@ -129,7 +129,7 @@ object MySQL {
         } else {
             null
         } ?: clients.filterKeys { it.name == name }.entries.firstOrNull()?.value)?.let {
-                Database.connect(it, MySqlDialect())
+            Database.connect(it, MySqlDialect())
         }
     }
 }

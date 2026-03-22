@@ -1,16 +1,22 @@
 package fuookami.ospf.kotlin.framework.solver
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.UInt64
+import org.apache.logging.log4j.kotlin.logger
 
 class SerialCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
     private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
-): ColumnGenerationSolver {
+) : ColumnGenerationSolver {
     private val logger = logger()
 
     companion object {
@@ -61,6 +67,10 @@ class SerialCombinatorialColumnGenerationSolver(
                         logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                     }
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return Failed(ErrorCode.SolverNotFound, "No solver valid.")
@@ -93,6 +103,10 @@ class SerialCombinatorialColumnGenerationSolver(
                     } else {
                         logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                     }
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

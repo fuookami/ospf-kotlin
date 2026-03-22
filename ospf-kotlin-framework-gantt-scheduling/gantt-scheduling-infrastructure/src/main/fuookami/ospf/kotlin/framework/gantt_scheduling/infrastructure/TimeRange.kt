@@ -1,12 +1,21 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.time.*
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlin.reflect.KProperty1
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.reflect.*
-import kotlinx.datetime.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 // [b, e)
 data class TimeRange(
@@ -131,7 +140,7 @@ data class TimeRange(
 
     fun differenceWith(ano: List<TimeRange>): List<TimeRange> {
         val mergedTimes = ano
-            .filter{ it.withIntersection(this) }
+            .filter { it.withIntersection(this) }
             .map {
                 TimeRange(
                     max(it.start, start),
@@ -263,7 +272,11 @@ data class TimeRange(
                 }
             } else {
                 val duration = listOf(
-                    unit.lb - if (breakTime != null && currentTime == start) { currentDuration } else { Duration.ZERO },
+                    unit.lb - if (breakTime != null && currentTime == start) {
+                        currentDuration
+                    } else {
+                        Duration.ZERO
+                    },
                     end - currentTime,
                     maxDuration?.let { it - totalDuration } ?: Duration.INFINITE
                 ).min()
@@ -283,7 +296,11 @@ data class TimeRange(
                     totalDuration += extraDuration
                     currentTime = currentTime + extraDuration
                 } else if (breakTime != null
-                    && duration + if (currentTime == start) { currentDuration } else { Duration.ZERO } == unit.lb
+                    && duration + if (currentTime == start) {
+                        currentDuration
+                    } else {
+                        Duration.ZERO
+                    } == unit.lb
                     && (currentTime + duration) != end
                 ) {
                     if (currentTime + duration + breakTime + (unit.ub - unit.lb) >= end

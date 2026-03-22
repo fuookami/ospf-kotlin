@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import kotlin.reflect.*
-import kotlin.collections.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.concept.Movable
+import kotlin.reflect.KClass
 
 sealed class Variant2<T1, T2>() {
     data class V1<T1, T2>(val value: T1) : Variant2<T1, T2>() {}

@@ -1,24 +1,30 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.model.ShadowPrice
+import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(
     val material: C,
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
 
 class ConsumptionQuantityConstraint<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    C : AbstractMaterial
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        C : AbstractMaterial
+        >(
     materials: List<Pair<C, MaterialReserves?>>,
     private val consumption: Consumption,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
@@ -43,6 +49,10 @@ class ConsumptionQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -57,6 +67,10 @@ class ConsumptionQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -70,6 +84,10 @@ class ConsumptionQuantityConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -87,6 +105,10 @@ class ConsumptionQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -101,6 +123,10 @@ class ConsumptionQuantityConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -114,6 +140,10 @@ class ConsumptionQuantityConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }

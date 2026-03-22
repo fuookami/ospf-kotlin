@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 fun memoryUseOver(threshold: Flt64 = Flt64(0.8)): Boolean {
     val memoryThreshold = Flt64(Runtime.getRuntime().maxMemory().toDouble()) * threshold

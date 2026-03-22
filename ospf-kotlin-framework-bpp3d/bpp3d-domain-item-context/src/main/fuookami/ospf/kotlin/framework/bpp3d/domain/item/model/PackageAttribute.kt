@@ -1,13 +1,16 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.Vector
+import fuookami.ospf.kotlin.utils.math.geometry.Vector3
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.operator.abs
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 interface AbstractWeightAttribute {
     val maxLayer: UInt64
@@ -315,7 +318,7 @@ data class PackageAttribute(
 
     companion object {
         @Suppress("UNCHECKED_CAST")
-        private suspend fun  layerLayer(
+        private suspend fun layerLayer(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
         ): UInt64 {
@@ -343,7 +346,7 @@ data class PackageAttribute(
         }
 
         @Suppress("UNCHECKED_CAST")
-        private suspend fun  layerHeight(
+        private suspend fun layerHeight(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
         ): Flt64 {
@@ -369,7 +372,7 @@ data class PackageAttribute(
             }
         }
 
-        suspend fun  layer(
+        suspend fun layer(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
         ): Pair<UInt64, Flt64> {

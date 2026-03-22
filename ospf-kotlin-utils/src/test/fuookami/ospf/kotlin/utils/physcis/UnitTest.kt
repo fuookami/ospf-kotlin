@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.utils.physcis
 
-import org.junit.jupiter.api.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.FltX
 import fuookami.ospf.kotlin.utils.physics.unit.*
+import org.junit.jupiter.api.Test
 
 class UnitTest {
     @Test

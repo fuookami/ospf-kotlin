@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 /**
  * 列聚合（按迭代分组）
@@ -26,7 +28,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
      */
     val columns: List<CapacityColumn<E, A>> by ::_columns
 
-    
+
     val removedColumns: Set<CapacityColumn<E, A>> by ::_removedColumns
 
     /**

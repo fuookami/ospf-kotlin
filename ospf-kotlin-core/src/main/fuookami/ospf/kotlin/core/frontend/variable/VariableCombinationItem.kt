@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.unit.*
-import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
+import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
 
 interface CombinationVariableItemParent<S : Shape> {
     val dimension: Int
@@ -170,7 +170,8 @@ class QuantityBTerVariable1(name: String = "", shape: Shape1, unit: PhysicalUnit
 class QuantityBTerVariable2(name: String = "", shape: Shape2, unit: PhysicalUnit) : QuantityVariableCombination2<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape, unit)
 class QuantityBTerVariable3(name: String = "", shape: Shape3, unit: PhysicalUnit) : QuantityVariableCombination3<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape, unit)
 class QuantityBTerVariable4(name: String = "", shape: Shape4, unit: PhysicalUnit) : QuantityVariableCombination4<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape, unit)
-class DynQuantityBTerVariable(name: String = "", shape: DynShape, unit: PhysicalUnit) : DynQuantityVariableCombination<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape, unit)
+class DynQuantityBTerVariable(name: String = "", shape: DynShape, unit: PhysicalUnit) :
+    DynQuantityVariableCombination<Int8, BalancedTernary>(BalancedTernary, name, Int8, shape, unit)
 typealias QuantityBTerVariableView = QuantityVariableCombinationView<Int8, BalancedTernary>
 typealias QuantityBTerVariableView1 = QuantityVariableCombinationView1<Int8, BalancedTernary>
 typealias QuantityBTerVariableView2 = QuantityVariableCombinationView2<Int8, BalancedTernary>

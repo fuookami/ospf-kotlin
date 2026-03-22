@@ -1,24 +1,38 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
-import kotlin.math.*
-import kotlin.time.*
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import ilog.concert.*
-import ilog.cplex.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.gap
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.pow
+import ilog.concert.IloException
+import ilog.concert.IloNumVar
+import ilog.concert.IloObjectiveSense
+import ilog.concert.IloRange
+import ilog.cplex.IloCplex
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import org.apache.logging.log4j.kotlin.logger
+import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 class CplexLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -122,6 +136,10 @@ private class CplexLinearSolverImpl(
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
         }
@@ -190,16 +208,16 @@ private class CplexLinearSolverImpl(
                 }
                 promises.flatMap { promise ->
                     val result = promise.await().map {
-                            val (lb, lhs, ub) = it.second
-                            val constraint = cplex.range(
-                                lb.toDouble(),
-                                lhs,
-                                ub.toDouble(),
-                                model.constraints.names[it.first]
-                            )
-                            cplex.add(constraint)
-                            constraint
-                        }
+                        val (lb, lhs, ub) = it.second
+                        val constraint = cplex.range(
+                            lb.toDouble(),
+                            lhs,
+                            ub.toDouble(),
+                            model.constraints.names[it.first]
+                        )
+                        cplex.add(constraint)
+                        constraint
+                    }
                     if (memoryUseOver()) {
                         System.gc()
                     }
@@ -264,6 +282,10 @@ private class CplexLinearSolverImpl(
         )) {
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
 
             else -> {}
@@ -340,6 +362,10 @@ private class CplexLinearSolverImpl(
                             is Failed -> {
                                 abort()
                             }
+
+                            is Fatal -> {
+                                abort()
+                            }
                         }
                     }
 
@@ -359,6 +385,10 @@ private class CplexLinearSolverImpl(
                 return Failed(result.error)
             }
 
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
             else -> {}
         }
         return ok
@@ -374,6 +404,10 @@ private class CplexLinearSolverImpl(
         )) {
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
 
             null -> {
@@ -417,6 +451,10 @@ private class CplexLinearSolverImpl(
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
             ok
@@ -430,6 +468,10 @@ private class CplexLinearSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}

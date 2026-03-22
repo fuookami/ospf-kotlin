@@ -1,8 +1,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.operator.abs
 
 enum class PackageClassification {
     Outer,

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.copt
 
-import copt.*
+import copt.COPT
 import fuookami.ospf.kotlin.core.frontend.variable.*
 
 enum class CoptVariable {

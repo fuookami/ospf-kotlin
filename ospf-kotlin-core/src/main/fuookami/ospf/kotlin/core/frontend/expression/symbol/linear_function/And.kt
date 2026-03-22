@@ -1,16 +1,31 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.BinVar
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.toFlt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import org.apache.logging.log4j.kotlin.logger
 
 data class AndFunctionImplBuilderParams(
     val polynomials: List<AbstractLinearPolynomial<*>>,
@@ -90,9 +105,9 @@ abstract class AbstractAndFunctionImpl(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.all {
-            val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
-            thisValue neq Flt64.zero
-        }) {
+                val thisValue = it.evaluate(tokenList, zeroIfNone) ?: return null
+                thisValue neq Flt64.zero
+            }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -105,13 +120,13 @@ abstract class AbstractAndFunctionImpl(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.all {
-            val thisValue = it.evaluate(
-                results = results,
-                tokenList = tokenList,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
-            thisValue neq Flt64.zero
-        }) {
+                val thisValue = it.evaluate(
+                    results = results,
+                    tokenList = tokenList,
+                    zeroIfNone = zeroIfNone
+                ) ?: return null
+                thisValue neq Flt64.zero
+            }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -124,13 +139,13 @@ abstract class AbstractAndFunctionImpl(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.all {
-            val thisValue = it.evaluate(
-                values = values,
-                tokenList = tokenList,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
-            thisValue neq Flt64.zero
-        }) {
+                val thisValue = it.evaluate(
+                    values = values,
+                    tokenList = tokenList,
+                    zeroIfNone = zeroIfNone
+                ) ?: return null
+                thisValue neq Flt64.zero
+            }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -142,9 +157,9 @@ abstract class AbstractAndFunctionImpl(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.all {
-            val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
-            thisValue neq Flt64.zero
-        }) {
+                val thisValue = it.evaluate(tokenTable, zeroIfNone) ?: return null
+                thisValue neq Flt64.zero
+            }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -157,13 +172,13 @@ abstract class AbstractAndFunctionImpl(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.all {
-            val thisValue = it.evaluate(
-                results = results,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
-            thisValue neq Flt64.zero
-        }) {
+                val thisValue = it.evaluate(
+                    results = results,
+                    tokenTable = tokenTable,
+                    zeroIfNone = zeroIfNone
+                ) ?: return null
+                thisValue neq Flt64.zero
+            }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -176,13 +191,13 @@ abstract class AbstractAndFunctionImpl(
         zeroIfNone: Boolean
     ): Flt64? {
         return if (polynomials.all {
-            val thisValue = it.evaluate(
-                values = values,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
-            thisValue neq Flt64.zero
-        }) {
+                val thisValue = it.evaluate(
+                    values = values,
+                    tokenTable = tokenTable,
+                    zeroIfNone = zeroIfNone
+                ) ?: return null
+                thisValue neq Flt64.zero
+            }) {
             Flt64.one
         } else {
             Flt64.zero
@@ -198,9 +213,9 @@ class AndFunctionOnePolynomialImpl(
 ) : AbstractAndFunctionImpl(listOf(polynomial), self) {
     companion object : AndFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             polynomial: T,
             self: AndFunction,
             name: String,
@@ -267,6 +282,14 @@ class AndFunctionOnePolynomialImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -278,6 +301,14 @@ class AndFunctionOnePolynomialImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -294,6 +325,14 @@ class AndFunctionOnePolynomialImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -308,6 +347,14 @@ class AndFunctionOnePolynomialImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -401,6 +448,14 @@ private class AndFunctionMultiPolynomialImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = bin.register(tokenTable)) {
@@ -408,6 +463,14 @@ private class AndFunctionMultiPolynomialImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -421,6 +484,14 @@ private class AndFunctionMultiPolynomialImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = bin.register(model)) {
@@ -428,6 +499,14 @@ private class AndFunctionMultiPolynomialImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -444,6 +523,14 @@ private class AndFunctionMultiPolynomialImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = bin.register(tokenTable, fixedValues)) {
@@ -451,6 +538,14 @@ private class AndFunctionMultiPolynomialImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -467,6 +562,14 @@ private class AndFunctionMultiPolynomialImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = bin.register(model, fixedValues)) {
@@ -474,6 +577,14 @@ private class AndFunctionMultiPolynomialImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -564,6 +675,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -582,6 +701,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         // if all polynomial are not zero, y will be not zero
@@ -594,6 +721,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -625,6 +760,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -638,6 +781,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -649,6 +800,14 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -751,6 +910,14 @@ class AndFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -762,6 +929,14 @@ class AndFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -778,6 +953,14 @@ class AndFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -792,6 +975,14 @@ class AndFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

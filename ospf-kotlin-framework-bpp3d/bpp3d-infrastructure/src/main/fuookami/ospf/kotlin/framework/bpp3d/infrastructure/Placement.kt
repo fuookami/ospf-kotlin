@@ -1,16 +1,19 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.math.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.operator.Ord
+import fuookami.ospf.kotlin.utils.operator.Order
 
 data class Placement2<
-    T : Cuboid<T>,
-    P : ProjectivePlane
->(
+        T : Cuboid<T>,
+        P : ProjectivePlane
+        >(
     val projection: Projection<T, P>,
     val position: Point2
 ) : Copyable<Placement2<T, P>> {

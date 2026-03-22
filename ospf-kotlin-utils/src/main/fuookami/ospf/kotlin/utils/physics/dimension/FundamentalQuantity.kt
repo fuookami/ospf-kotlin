@@ -7,7 +7,7 @@ package fuookami.ospf.kotlin.utils.physics.dimension
 interface FundamentalQuantityDimension {
     val symbol: String
     val name: String
-    
+
     override fun toString(): String
 }
 
@@ -79,15 +79,15 @@ fun CustomDimension(symbol: String, name: String): FundamentalQuantityDimension 
  */
 data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val index: Int = 1) {
     operator fun plus(rhs: FundamentalQuantity): FundamentalQuantity {
-        require(dimension == rhs.dimension) { 
-            "Cannot add quantities with different dimensions: ${dimension.symbol} vs ${rhs.dimension.symbol}" 
+        require(dimension == rhs.dimension) {
+            "Cannot add quantities with different dimensions: ${dimension.symbol} vs ${rhs.dimension.symbol}"
         }
         return FundamentalQuantity(dimension, this.index + rhs.index)
     }
 
     operator fun minus(rhs: FundamentalQuantity): FundamentalQuantity {
-        require(dimension == rhs.dimension) { 
-            "Cannot subtract quantities with different dimensions: ${dimension.symbol} vs ${rhs.dimension.symbol}" 
+        require(dimension == rhs.dimension) {
+            "Cannot subtract quantities with different dimensions: ${dimension.symbol} vs ${rhs.dimension.symbol}"
         }
         return FundamentalQuantity(dimension, this.index - rhs.index)
     }

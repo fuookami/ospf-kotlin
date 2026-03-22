@@ -1,17 +1,31 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.frontend.variable.IntVar
+import fuookami.ospf.kotlin.core.frontend.variable.URealVar
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import org.apache.logging.log4j.kotlin.logger
 
 class FloorFunction(
     private val x: AbstractQuadraticPolynomial<*>,
@@ -25,9 +39,9 @@ class FloorFunction(
 
     companion object {
         operator fun <
-            T : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>
-        > invoke(
+                T : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>
+                > invoke(
             x: T,
             d: Int,
             parent: IntermediateSymbol? = null,
@@ -46,9 +60,9 @@ class FloorFunction(
         }
 
         operator fun <
-            T : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>
-        > invoke(
+                T : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>
+                > invoke(
             x: T,
             d: Double,
             parent: IntermediateSymbol? = null,
@@ -67,10 +81,10 @@ class FloorFunction(
         }
 
         operator fun <
-            T1 : ToQuadraticPolynomial<Poly>,
-            Poly : AbstractQuadraticPolynomial<Poly>,
-            T2 : RealNumber<T2>
-        > invoke(
+                T1 : ToQuadraticPolynomial<Poly>,
+                Poly : AbstractQuadraticPolynomial<Poly>,
+                T2 : RealNumber<T2>
+                > invoke(
             x: T1,
             d: T2,
             parent: IntermediateSymbol? = null,
@@ -89,11 +103,11 @@ class FloorFunction(
         }
 
         operator fun <
-            T1 : ToQuadraticPolynomial<Poly1>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            T2 : ToQuadraticPolynomial<Poly2>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>
-        > invoke(
+                T1 : ToQuadraticPolynomial<Poly1>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                T2 : ToQuadraticPolynomial<Poly2>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>
+                > invoke(
             x: T1,
             d: T2,
             parent: IntermediateSymbol? = null,
@@ -250,6 +264,14 @@ class FloorFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(listOf(q, r))) {
@@ -257,6 +279,14 @@ class FloorFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -270,6 +300,14 @@ class FloorFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -281,6 +319,14 @@ class FloorFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -297,6 +343,14 @@ class FloorFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(listOf(q, r))) {
@@ -304,6 +358,14 @@ class FloorFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -325,6 +387,14 @@ class FloorFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -337,6 +407,14 @@ class FloorFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -348,6 +426,14 @@ class FloorFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -364,6 +450,14 @@ class FloorFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

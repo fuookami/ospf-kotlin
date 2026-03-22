@@ -1,17 +1,29 @@
 package fuookami.ospf.kotlin.core.backend.solver
 
-import java.util.concurrent.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.future.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.iis.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.iis.IISConfig
+import fuookami.ospf.kotlin.core.backend.solver.iis.computeIIS
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.QuadraticInfeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MechanismModelDumpingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.future.future
+import java.util.concurrent.CompletableFuture
 
 interface AbstractQuadraticSolver {
     val name: String
@@ -41,10 +53,18 @@ interface AbstractQuadraticSolver {
                         is Failed -> {
                             Failed(iisResult.error)
                         }
+
+                        is Fatal -> {
+                            Fatal(iisResult.errors)
+                        }
                     }
                 } else {
                     Failed(result.error)
                 }
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
             }
         }
     }
@@ -114,11 +134,19 @@ interface AbstractQuadraticSolver {
                         is Failed -> {
                             return Failed(iisResult.error)
                         }
+
+                        is Fatal -> {
+                            return Fatal(iisResult.errors)
+                        }
                     }
                 } else {
                     Failed(result.error)
                 }
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -306,6 +334,10 @@ interface AbstractQuadraticSolver {
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }.use {
             this(
                 model = it,
@@ -332,6 +364,10 @@ interface AbstractQuadraticSolver {
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }.use {
             this(
@@ -403,6 +439,10 @@ interface AbstractQuadraticSolver {
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }.use {
             this(
                 model = it,
@@ -431,6 +471,10 @@ interface AbstractQuadraticSolver {
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }.use {
             this(

@@ -1,8 +1,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 data class MaterialAttributeValue(
     val deformationCoefficient: Flt64?,

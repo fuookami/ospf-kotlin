@@ -1,21 +1,35 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
-import kotlin.time.*
-import kotlin.time.Clock
-import kotlinx.coroutines.*
-import com.hexaly.optimizer.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
+import com.hexaly.optimizer.HxCallbackType
+import com.hexaly.optimizer.HxException
+import com.hexaly.optimizer.HxExpression
+import com.hexaly.optimizer.HxObjectiveDirection
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.utils.operator.pow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
 
 class HexalyQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -95,6 +109,10 @@ private class HexalyQuadraticSolverImpl(
             when (val result = process(this)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}
@@ -248,6 +266,10 @@ private class HexalyQuadraticSolverImpl(
                     return Failed(result.error)
                 }
 
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
                 else -> {}
             }
             ok
@@ -328,6 +350,18 @@ private class HexalyQuadraticSolverImpl(
                                 is Failed -> {
                                     optimizer.stop()
                                 }
+
+                                is Fatal -> {
+                                    optimizer.stop()
+                                }
+
+                                is Fatal -> {
+                                    optimizer.stop()
+                                }
+
+                                is Fatal -> {
+                                    optimizer.stop()
+                                }
                             }
                         }
                     }
@@ -335,7 +369,7 @@ private class HexalyQuadraticSolverImpl(
             }
 
             when (val result = callBack?.execIfContain(
-                point = Point.Configuration,
+                point = Point.AfterModeling,
                 status = null,
                 hexaly = optimizer,
                 variables = hexalyVars,
@@ -343,6 +377,14 @@ private class HexalyQuadraticSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}
@@ -381,6 +423,10 @@ private class HexalyQuadraticSolverImpl(
                         return Failed(result.error)
                     }
 
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+
                     else -> {}
                 }
                 ok
@@ -394,6 +440,10 @@ private class HexalyQuadraticSolverImpl(
                 )) {
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
 
                     else -> {}

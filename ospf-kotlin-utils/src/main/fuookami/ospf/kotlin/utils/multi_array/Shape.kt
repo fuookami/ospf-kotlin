@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import kotlin.reflect.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.math.Integer
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.reflect.KClass
 
 /**
  * 维度不匹配异常
@@ -245,21 +246,27 @@ interface Shape {
                 _a -> {
                     vector.add(DummyIndex.all())
                 }
+
                 is IntRange -> {
                     vector.add(DummyIndex.from(index))
                 }
+
                 is Int -> {
                     vector.add(DummyIndex.from(index))
                 }
+
                 is Indexed -> {
                     vector.add(DummyIndex.from(index.index))
                 }
+
                 is DummyIndex -> {
                     vector.add(index)
                 }
+
                 is Integer<*> -> {
                     vector.add(DummyIndex.from((index as RealNumber<*>).toUInt64().toInt()))
                 }
+
                 else -> {
                     throw UnknownDummyIndexTypeException(
                         cls = index.javaClass.kotlin
@@ -313,6 +320,7 @@ data class Shape1 private constructor(
             } else {
                 vector[0] * offsets[0]
             }
+
             else -> throw DimensionMismatchingException(
                 dimension = 1,
                 vectorDimension = vector.size
@@ -388,6 +396,7 @@ data class Shape2 private constructor(
                     vector[0] * offsets[0] + vector[1] * offsets[1]
                 }
             }
+
             else -> throw DimensionMismatchingException(
                 dimension = 2,
                 vectorDimension = vector.size
@@ -404,6 +413,7 @@ data class Shape2 private constructor(
                 StorageOrder.RowMajor -> {
                     intArrayOf(index / offsets[0], index % offsets[0] / offsets[1])
                 }
+
                 StorageOrder.ColumnMajor -> {
                     // For ColumnMajor: index = v[0] + v[1] * d1
                     // So: v[0] = index % d1, v[1] = index / d1
@@ -480,6 +490,7 @@ data class Shape3 private constructor(
                     vector[0] * offsets[0] + vector[1] * offsets[1] + vector[2] * offsets[2]
                 }
             }
+
             else -> throw DimensionMismatchingException(
                 dimension = 3,
                 vectorDimension = vector.size
@@ -501,6 +512,7 @@ data class Shape3 private constructor(
                         currentIndex % offsets[1]
                     )
                 }
+
                 StorageOrder.ColumnMajor -> {
                     intArrayOf(
                         index % offsets[0],
@@ -587,6 +599,7 @@ data class Shape4 private constructor(
                     vector[0] * offsets[0] + vector[1] * offsets[1] + vector[2] * offsets[2] + vector[3] * offsets[3]
                 }
             }
+
             else -> throw DimensionMismatchingException(
                 dimension = 4,
                 vectorDimension = vector.size
@@ -609,6 +622,7 @@ data class Shape4 private constructor(
                         currentIndex % offsets[2]
                     )
                 }
+
                 StorageOrder.ColumnMajor -> {
                     intArrayOf(
                         index % offsets[0],
@@ -728,6 +742,7 @@ data class DynShape private constructor(
                         result
                     }
                 }
+
                 StorageOrder.ColumnMajor -> {
                     var currentIndex = index
                     IntArray(dimension) { i ->

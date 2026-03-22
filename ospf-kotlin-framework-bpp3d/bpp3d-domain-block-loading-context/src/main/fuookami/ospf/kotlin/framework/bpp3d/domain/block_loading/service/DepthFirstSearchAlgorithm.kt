@@ -1,17 +1,24 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.math.geometry.x
+import fuookami.ospf.kotlin.utils.math.geometry.y
+import fuookami.ospf.kotlin.utils.math.geometry.z
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.operator.ord
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import org.apache.logging.log4j.kotlin.logger
 
 internal fun fitness(space: Space, block: Block): Flt64 {
     return when (space.forwardLink?.first ?: Side) {
@@ -80,7 +87,7 @@ class DepthFirstSearchAlgorithm(
         val availableBins = bins.toMutableMap()
 
         val usedBins = ArrayList<Bin<Block>>()
-        try{
+        try {
             coroutineScope {
                 while (!finished(restItems)) {
                     val binType = availableBins.asSequence().find { it.value != UInt64.zero }?.key ?: break
@@ -371,7 +378,8 @@ class DepthFirstSearchAlgorithm(
                                     )
                                 })
                             }
-                            results.addAll(promises
+                            results.addAll(
+                                promises
                                 .mapNotNull { it.await() }
                                 .flatMap { listOf(it, Pair(merge(it.first).toMutableList(), it.second)) }
                             )

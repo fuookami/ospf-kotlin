@@ -1,14 +1,23 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 class InStepRange(
     private val lb: AbstractQuadraticPolynomial<*>,
@@ -21,11 +30,11 @@ class InStepRange(
 ) : QuadraticFunctionSymbol() {
     companion object {
         operator fun <
-            T1 : AbstractQuadraticPolynomial<Poly1>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            T2 : AbstractQuadraticPolynomial<Poly2>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>
-        > invoke(
+                T1 : AbstractQuadraticPolynomial<Poly1>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                T2 : AbstractQuadraticPolynomial<Poly2>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>
+                > invoke(
             lb: T1,
             ub: T2,
             step: Int,
@@ -46,11 +55,11 @@ class InStepRange(
         }
 
         operator fun <
-            T1 : AbstractQuadraticPolynomial<Poly1>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            T2 : AbstractQuadraticPolynomial<Poly2>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>
-        > invoke(
+                T1 : AbstractQuadraticPolynomial<Poly1>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                T2 : AbstractQuadraticPolynomial<Poly2>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>
+                > invoke(
             lb: T1,
             ub: T2,
             step: Double,
@@ -71,12 +80,12 @@ class InStepRange(
         }
 
         operator fun <
-            T1 : AbstractQuadraticPolynomial<Poly1>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            T2 : AbstractQuadraticPolynomial<Poly2>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>,
-            T3 : RealNumber<T3>
-        > invoke(
+                T1 : AbstractQuadraticPolynomial<Poly1>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                T2 : AbstractQuadraticPolynomial<Poly2>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>,
+                T3 : RealNumber<T3>
+                > invoke(
             lb: T1,
             ub: T2,
             step: T3,
@@ -97,13 +106,13 @@ class InStepRange(
         }
 
         operator fun <
-            T1 : AbstractQuadraticPolynomial<Poly1>,
-            Poly1 : AbstractQuadraticPolynomial<Poly1>,
-            T2 : AbstractQuadraticPolynomial<Poly2>,
-            Poly2 : AbstractQuadraticPolynomial<Poly2>,
-            T3 : AbstractQuadraticPolynomial<Poly3>,
-            Poly3 : AbstractQuadraticPolynomial<Poly3>
-        > invoke(
+                T1 : AbstractQuadraticPolynomial<Poly1>,
+                Poly1 : AbstractQuadraticPolynomial<Poly1>,
+                T2 : AbstractQuadraticPolynomial<Poly2>,
+                Poly2 : AbstractQuadraticPolynomial<Poly2>,
+                T3 : AbstractQuadraticPolynomial<Poly3>,
+                Poly3 : AbstractQuadraticPolynomial<Poly3>
+                > invoke(
             lb: T1,
             ub: T2,
             step: T3,
@@ -228,6 +237,14 @@ class InStepRange(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = q.register(tokenTable)) {
@@ -235,6 +252,14 @@ class InStepRange(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -248,6 +273,14 @@ class InStepRange(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = q.register(model)) {
@@ -255,6 +288,14 @@ class InStepRange(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

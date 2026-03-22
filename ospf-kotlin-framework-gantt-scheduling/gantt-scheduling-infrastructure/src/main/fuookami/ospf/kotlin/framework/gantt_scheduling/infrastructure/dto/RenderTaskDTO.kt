@@ -1,8 +1,10 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.dto
 
-import kotlinx.datetime.*
-import kotlinx.serialization.*
-import fuookami.ospf.kotlin.utils.serialization.*
+import fuookami.ospf.kotlin.utils.serialization.DateTimeSerializer
+import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
 enum class GanttRenderTaskCategory {
     Normal,
@@ -11,6 +13,7 @@ enum class GanttRenderTaskCategory {
     Unknown
 }
 
+@OptIn(kotlin.time.ExperimentalTime::class)
 @Serializable
 data class GanttRenderSubTaskDTO(
     val name: String,
@@ -22,6 +25,7 @@ data class GanttRenderSubTaskDTO(
     val info: Map<String, String> = emptyMap()
 )
 
+@OptIn(kotlin.time.ExperimentalTime::class)
 @Serializable
 data class GanttRenderTaskDTO(
     val name: String,

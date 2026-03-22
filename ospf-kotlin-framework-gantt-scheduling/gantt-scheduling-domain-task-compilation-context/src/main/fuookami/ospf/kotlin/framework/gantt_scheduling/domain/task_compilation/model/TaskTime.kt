@@ -1,20 +1,37 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.IfFunction
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import kotlin.time.Duration
 
 interface TaskTime {
     val delayEnabled: Boolean
@@ -42,10 +59,10 @@ interface TaskTime {
 }
 
 abstract class TaskTimeImpl<
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     protected val timeWindow: TimeWindow,
     protected val tasks: List<T>
 ) : TaskTime {
@@ -126,6 +143,10 @@ abstract class TaskTimeImpl<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -188,6 +209,10 @@ abstract class TaskTimeImpl<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -229,7 +254,11 @@ abstract class TaskTimeImpl<
                                             is Ok -> {}
 
                                             is Failed -> {
-                                                throw ApplicationException(result.error)
+                                                throw IllegalStateException(result.error.message)
+                                            }
+
+                                            is Fatal -> {
+                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
                                         MaskingFunction(
@@ -244,8 +273,8 @@ abstract class TaskTimeImpl<
                             }
                         }
                     }
-                } catch (e: ApplicationException) {
-                    return Failed(e.error)
+                } catch (e: IllegalStateException) {
+                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
                 }
                 for (task in tasks) {
                     overMaxDelayTime[task].range.leq(
@@ -271,6 +300,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -313,7 +346,11 @@ abstract class TaskTimeImpl<
                                             is Ok -> {}
 
                                             is Failed -> {
-                                                throw ApplicationException(result.error)
+                                                throw IllegalStateException(result.error.message)
+                                            }
+
+                                            is Fatal -> {
+                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
                                         MaskingFunction(
@@ -328,8 +365,8 @@ abstract class TaskTimeImpl<
                             }
                         }
                     }
-                } catch (e: ApplicationException) {
-                    return Failed(e.error)
+                } catch (e: IllegalStateException) {
+                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
                 }
                 for (task in tasks) {
                     overMaxAdvanceTime[task].range.leq(
@@ -355,6 +392,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -397,7 +438,11 @@ abstract class TaskTimeImpl<
                                             is Ok -> {}
 
                                             is Failed -> {
-                                                throw ApplicationException(result.error)
+                                                throw IllegalStateException(result.error.message)
+                                            }
+
+                                            is Fatal -> {
+                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
                                         MaskingFunction(
@@ -412,8 +457,8 @@ abstract class TaskTimeImpl<
                             }
                         }
                     }
-                } catch (e: ApplicationException) {
-                    return Failed(e.error)
+                } catch (e: IllegalStateException) {
+                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
                 }
                 for (task in tasks) {
                     delayLastEndTime[task].range.leq(with(timeWindow) { duration.value })
@@ -435,6 +480,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -477,7 +526,11 @@ abstract class TaskTimeImpl<
                                             is Ok -> {}
 
                                             is Failed -> {
-                                                throw ApplicationException(result.error)
+                                                throw IllegalStateException(result.error.message)
+                                            }
+
+                                            is Fatal -> {
+                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
                                         MaskingFunction(
@@ -492,8 +545,8 @@ abstract class TaskTimeImpl<
                             }
                         }
                     }
-                } catch (e: ApplicationException) {
-                    return Failed(e.error)
+                } catch (e: IllegalStateException) {
+                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
                 }
                 for (task in tasks) {
                     advanceEarliestEndTime[task].range.leq(
@@ -519,6 +572,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -557,6 +614,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -597,6 +658,10 @@ abstract class TaskTimeImpl<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (delayLastEndTimeEnabled || advanceEarliestEndTimeEnabled) {
@@ -625,6 +690,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -663,6 +732,10 @@ abstract class TaskTimeImpl<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -703,6 +776,10 @@ abstract class TaskTimeImpl<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (delayLastEndTimeEnabled || advanceEarliestEndTimeEnabled) {
@@ -732,6 +809,10 @@ abstract class TaskTimeImpl<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -740,10 +821,10 @@ abstract class TaskTimeImpl<
 }
 
 class TaskSchedulingTaskTime<
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     timeWindow: TimeWindow,
     tasks: List<T>,
     override val compilation: TaskCompilation<T, E, A>,
@@ -813,6 +894,10 @@ class TaskSchedulingTaskTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (delayEnabled || advanceEnabled) {
@@ -870,6 +955,10 @@ class TaskSchedulingTaskTime<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -905,6 +994,10 @@ class TaskSchedulingTaskTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -947,6 +1040,10 @@ class TaskSchedulingTaskTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return super.register(model)
@@ -954,11 +1051,11 @@ class TaskSchedulingTaskTime<
 }
 
 open class IterativeTaskSchedulingTaskTime<
-    IT: IterativeAbstractTask<E, A>,
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        IT : IterativeAbstractTask<E, A>,
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     timeWindow: TimeWindow,
     tasks: List<T>,
     override val compilation: IterativeTaskCompilation<IT, T, E, A>,
@@ -1007,6 +1104,10 @@ open class IterativeTaskSchedulingTaskTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::estimateEndTime.isInitialized) {
@@ -1030,6 +1131,10 @@ open class IterativeTaskSchedulingTaskTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -1081,6 +1186,10 @@ open class IterativeTaskSchedulingTaskTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

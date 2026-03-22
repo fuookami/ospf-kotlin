@@ -1,13 +1,19 @@
 package fuookami.ospf.kotlin.utils.math
 
-import java.math.*
-import kotlin.math.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.ordinary.pow
+import fuookami.ospf.kotlin.utils.operator.orderOf
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.math.BigInteger
+import kotlin.math.abs
+import kotlin.math.log
+import kotlin.math.pow
 
 interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
     override fun reciprocal() = constants.zero.copy()

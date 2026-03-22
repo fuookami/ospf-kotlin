@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 sealed interface Object
 
-class SingleObject<Obj: SubObject>(
+class SingleObject<Obj : SubObject>(
     val category: ObjectCategory,
     subObjects: List<Obj>
 ) : Object {

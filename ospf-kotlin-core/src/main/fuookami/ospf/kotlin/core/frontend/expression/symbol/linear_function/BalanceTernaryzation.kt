@@ -1,20 +1,24 @@
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.geometry.Point2
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import fuookami.ospf.kotlin.utils.operator.abs
+import org.apache.logging.log4j.kotlin.logger
 
 data class BalanceTernaryzationFunctionImplBuilderParams(
     val x: AbstractLinearPolynomial<*>,
@@ -24,9 +28,9 @@ data class BalanceTernaryzationFunctionImplBuilderParams(
 ) {
     companion object {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
             name: String,
@@ -208,9 +212,9 @@ class BalanceTernaryzationFunctionImpl(
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<*>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<*>
+                > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
             name: String,
@@ -303,9 +307,9 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 ) : AbstractBalanceTernaryzationFunctionImpl(x, self) {
     companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<*>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<*>
+                > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
             epsilon: Flt64 = self.epsilon,
@@ -329,7 +333,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
     constructor(
         params: BalanceTernaryzationFunctionImplBuilderParams,
         epsilon: Flt64
-    ): this(
+    ) : this(
         x = params.x,
         self = params.self,
         epsilon = epsilon,
@@ -386,6 +390,14 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -397,6 +409,14 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -413,6 +433,14 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -427,6 +455,14 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -446,9 +482,9 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
     companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
             extract: Boolean = self.extract,
@@ -477,7 +513,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         params: BalanceTernaryzationFunctionImplBuilderParams,
         extract: Boolean,
         m: Flt64? = null
-    ): this(
+    ) : this(
         x = params.x,
         self = params.self,
         extract = extract,
@@ -486,10 +522,11 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         displayName = params.displayName
     )
 
-    private val possibleUpperBound get() = max(
-        abs(x.lowerBound!!.value.unwrap()),
-        abs(x.upperBound!!.value.unwrap())
-    )
+    private val possibleUpperBound
+        get() = max(
+            abs(x.lowerBound!!.value.unwrap()),
+            abs(x.upperBound!!.value.unwrap())
+        )
     private val mFixed = m != null
     private var m = m ?: possibleUpperBound
 
@@ -555,6 +592,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -571,6 +616,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -582,6 +635,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -596,6 +657,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -608,6 +677,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -619,6 +696,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -664,6 +749,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         } else if (ter eq -Flt64.one) {
             when (val result = tokenTable.add(y[0])) {
@@ -671,6 +764,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -702,6 +803,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -713,6 +822,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -730,6 +847,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -741,6 +866,14 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -764,9 +897,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
     companion object : BalanceTernaryzationFunctionImplBuilder {
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
             x: T,
             self: BalanceTernaryzationFunction,
             epsilon: Flt64 = self.epsilon,
@@ -790,7 +923,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     constructor(
         params: BalanceTernaryzationFunctionImplBuilderParams,
         epsilon: Flt64
-    ): this(
+    ) : this(
         x = params.x,
         self = params.self,
         epsilon = epsilon,
@@ -827,7 +960,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         x.cells
 
         return prepareIfNotCached(self, values, tokenTable) {
-            val xValue =  if (values.isNullOrEmpty()) {
+            val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
             } else {
                 x.evaluate(values, tokenTable)
@@ -879,6 +1012,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = tokenTable.add(y)) {
@@ -886,6 +1027,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -903,6 +1052,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -914,6 +1071,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -927,6 +1092,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -938,6 +1111,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -951,6 +1132,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -963,6 +1152,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = model.addConstraint(
@@ -974,6 +1171,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -1012,6 +1217,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         } else if (ter eq -Flt64.one) {
             when (val result = tokenTable.add(listOf(y[0], b[0]))) {
@@ -1019,6 +1232,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -1050,6 +1271,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -1061,6 +1290,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -1079,6 +1316,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             model.tokens.find(b[1])?.let { token ->
@@ -1095,6 +1340,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             when (val result = model.addConstraint(
@@ -1106,6 +1359,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
 
@@ -1124,6 +1385,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
 
             model.tokens.find(b[0])?.let { token ->
@@ -1139,6 +1408,14 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -1163,10 +1440,10 @@ class BalanceTernaryzationFunction(
         val piecewiseThreshold: Flt64 = Flt64(1e-5)
 
         operator fun <
-            T : ToLinearPolynomial<Poly>,
-            Poly : AbstractLinearPolynomial<Poly>
-        > invoke(
-            x : T,
+                T : ToLinearPolynomial<Poly>,
+                Poly : AbstractLinearPolynomial<Poly>
+                > invoke(
+            x: T,
             extract: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
@@ -1257,6 +1534,14 @@ class BalanceTernaryzationFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -1268,6 +1553,14 @@ class BalanceTernaryzationFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -1284,6 +1577,14 @@ class BalanceTernaryzationFunction(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -1298,6 +1599,14 @@ class BalanceTernaryzationFunction(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

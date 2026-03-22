@@ -1,22 +1,37 @@
 package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.physics.unit.*
-import fuookami.ospf.kotlin.utils.physics.quantity.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
-import fuookami.ospf.kotlin.core.frontend.expression.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
+import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsValueProvider
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.ExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.functional.Variant3
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.utils.math.value_range.times
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
+import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
+import fuookami.ospf.kotlin.utils.physics.unit.div
+import fuookami.ospf.kotlin.utils.physics.unit.reciprocal
+import fuookami.ospf.kotlin.utils.physics.unit.times
+import org.apache.logging.log4j.kotlin.logger
 
 data class QuadraticMonomialCell internal constructor(
     val cell: Either<QuadraticCellTriple, Flt64>
@@ -2733,7 +2748,8 @@ operator fun LinearMonomial.times(rhs: QuadraticIntermediateSymbol): QuadraticMo
             QuadraticMonomial(
                 coefficient = this.coefficient,
                 item = symbol.value,
-                symbol = rhs)
+                symbol = rhs
+            )
         }
 
         is Either.Right -> {

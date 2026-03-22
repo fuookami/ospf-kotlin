@@ -1,24 +1,27 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
+import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 data class ItemDemandShadowPriceKey<T : Cuboid<T>>(
     val item: T
 ) : ShadowPriceKey(ItemDemandShadowPriceKey::class)
 
 class ItemDemandConstraint<
-    Args : AbstractBPP3DShadowPriceArguments<T>,
-    T : Cuboid<T>
->(
+        Args : AbstractBPP3DShadowPriceArguments<T>,
+        T : Cuboid<T>
+        >(
     private val load: Load,
     private val items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
@@ -38,6 +41,10 @@ class ItemDemandConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -51,6 +58,10 @@ class ItemDemandConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -63,6 +74,10 @@ class ItemDemandConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }
@@ -79,6 +94,10 @@ class ItemDemandConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
 
@@ -92,6 +111,10 @@ class ItemDemandConstraint<
                             is Failed -> {
                                 return Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                     }
                 }
@@ -104,6 +127,10 @@ class ItemDemandConstraint<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
             }

@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.get
 
 typealias List2<T> = List<List<T>>
 typealias List3<T> = List<List2<T>>

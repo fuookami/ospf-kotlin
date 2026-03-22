@@ -1,18 +1,22 @@
 package fuookami.ospf.kotlin.framework.solver
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.solver.AbstractLinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.UInt64
+import org.apache.logging.log4j.kotlin.logger
 
 class SerialCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
     private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
-): AbstractLinearSolver {
+) : AbstractLinearSolver {
     private val logger = logger()
 
     companion object {
@@ -52,6 +56,10 @@ class SerialCombinatorialLinearSolver(
                         logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                     }
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
         return Failed(ErrorCode.SolverNotFound, "No solver valid.")
@@ -74,6 +82,10 @@ class SerialCombinatorialLinearSolver(
                     } else {
                         logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                     }
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

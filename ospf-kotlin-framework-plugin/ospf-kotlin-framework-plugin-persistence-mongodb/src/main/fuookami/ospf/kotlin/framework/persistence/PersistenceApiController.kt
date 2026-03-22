@@ -1,8 +1,13 @@
 package fuookami.ospf.kotlin.framework.persistence
 
-import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import com.mongodb.client.*
+import com.mongodb.client.MongoDatabase
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 interface MongoPersistenceApiController {
     val mongoClient: MongoDatabase?
@@ -26,7 +31,8 @@ interface MongoPersistenceApiController {
                 requester = requester,
                 version = version,
                 serializer = serializer,
-                request = request)
+                request = request
+            )
         }
         val response = process(request)
         GlobalScope.launch(Dispatchers.IO) {
@@ -38,7 +44,8 @@ interface MongoPersistenceApiController {
                 requester = requester,
                 version = version,
                 serializer = serializer,
-                response = response)
+                response = response
+            )
         }
         return response
     }
@@ -64,7 +71,8 @@ interface MongoPersistenceApiController {
                 requester = requester,
                 version = version,
                 serializer = serializer,
-                request = request)
+                request = request
+            )
         }
         GlobalScope.launch(Dispatchers.Default) {
             val response = process(request)
@@ -77,7 +85,8 @@ interface MongoPersistenceApiController {
                     requester = requester,
                     version = version,
                     serializer = serializer,
-                    response = response)
+                    response = response
+                )
             }
             asyncResponse(response)
         }

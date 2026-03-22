@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 /**
  * 多维数组视图
@@ -17,7 +17,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     private val origin: AbstractMultiArray<T, S>,
     private val dummyVector: DummyVector
 ) : Collection<T> {
-    
+
     constructor(origin: AbstractMultiArray<T, S>) : this(
         origin, (0..<origin.dimension).map { DummyIndex.all() }
     )
@@ -27,13 +27,13 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Shape of the view
      */
     val shape: DynShape
-    
+
     /**
      * 迭代器向量
      * Iterator vector
      */
     private val iteratorVector: IteratorVector
-    
+
     /**
      * 虚拟维度（保持为虚拟索引的维度）
      * Dummy dimensions (dimensions that remain as dummy indices)
@@ -43,7 +43,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     init {
         val shapeList = ArrayList<Int>()
         val dummyDims = HashSet<Int>()
-        
+
         for ((dimension, dummyIndex) in dummyVector.withIndex()) {
             val len = dummyIndex.lenOf(origin.shape, dimension)
             if (len > 1) {
@@ -51,7 +51,7 @@ class MultiArrayView<out T : Any, S : Shape>(
                 dummyDims.add(dimension)
             }
         }
-        
+
         shape = DynShape(shapeList.toIntArray())
         iteratorVector = origin.shape.dummyToIteratorVector(dummyVector)
         dummyDimensions = dummyDims
@@ -142,7 +142,7 @@ class MultiArrayView<out T : Any, S : Shape>(
         val newDummyVector = ArrayList<DummyIndex>()
         val subDummyVector = shape.dummyVector(*v)
         var j = 0
-        
+
         for (i in origin.shape.indices) {
             if (i in dummyDimensions) {
                 // 这个维度在视图中保持为虚拟索引
@@ -155,7 +155,7 @@ class MultiArrayView<out T : Any, S : Shape>(
                 newDummyVector.add(dummyVector[i])
             }
         }
-        
+
         return MultiArrayView(origin, newDummyVector)
     }
 
@@ -169,7 +169,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     private fun actualVector(v: IntArray): IntArray {
         val result = IntArray(origin.dimension)
         var viewIndex = 0
-        
+
         for (i in origin.shape.indices) {
             if (i in dummyDimensions) {
                 // 从迭代器向量获取实际索引
@@ -184,7 +184,7 @@ class MultiArrayView<out T : Any, S : Shape>(
                 }
             }
         }
-        
+
         return result
     }
 
@@ -238,7 +238,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     private val origin: AbstractMultiArray<T, S>,
     private val mapVector: MapVector
 ) : Collection<T> {
-    
+
     init {
         require(mapVector.size == origin.dimension) {
             "Map vector size (${mapVector.size}) must match origin dimension (${origin.dimension})"
@@ -246,7 +246,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     val shape: DynShape
-    
+
     init {
         val shapeList = ArrayList<Int>()
         for (mapIndex in mapVector) {
@@ -254,6 +254,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
                 is MapIndex.Dummy -> {
                     shapeList.add(mapIndex.dummy.lenOf(origin.shape, shapeList.size))
                 }
+
                 is MapIndex.Map -> {
                     shapeList.add(origin.shape[mapIndex.index])
                 }
@@ -311,38 +312,40 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         val newMapVector = ArrayList<MapIndex>()
         val subDummyVector = shape.dummyVector(*v)
         var j = 0
-        
+
         for ((i, mapIndex) in mapVector.withIndex()) {
             when (mapIndex) {
                 is MapIndex.Dummy -> {
                     newMapVector.add(MapIndex.Dummy(subDummyVector[j]))
                     j++
                 }
+
                 is MapIndex.Map -> {
                     newMapVector.add(mapIndex)
                 }
             }
         }
-        
+
         return MappedMultiArrayView(origin, newMapVector)
     }
 
     private fun mapVector(v: IntArray): IntArray {
         val result = IntArray(origin.dimension)
         var viewIndex = 0
-        
+
         for ((i, mapIndex) in mapVector.withIndex()) {
             when (mapIndex) {
                 is MapIndex.Dummy -> {
                     val iter = mapIndex.dummy.iteratorOf(origin.shape, i)
                     result[i] = iter.get(v[viewIndex++]) ?: 0
                 }
+
                 is MapIndex.Map -> {
                     result[mapIndex.index] = v[viewIndex++]
                 }
             }
         }
-        
+
         return result
     }
 }

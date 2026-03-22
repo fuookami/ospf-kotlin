@@ -1,11 +1,17 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.OrientationCategory
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.geometry.point3
+import fuookami.ospf.kotlin.utils.math.ordinary.min
 
 class SimpleBlockGenerator(
     val config: Config
@@ -107,6 +113,10 @@ class SimpleBlockGenerator(
                                 }
 
                                 is Failed -> {
+                                    // nothing to do
+                                }
+
+                                is Fatal -> {
                                     // nothing to do
                                 }
                             }
@@ -263,12 +273,14 @@ class SimpleBlockGenerator(
                 } else if (remainderPlacements.isEmpty()) {
                     blocks.add(SimpleBlock(placements))
                 } else {
-                    blocks.add(ComplexBlock(
-                        listOf(
-                            Placement3(SimpleBlock(placements).view()!!, point3()),
-                            Placement3(SimpleBlock(remainderPlacements).view()!!, point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64()))
+                    blocks.add(
+                        ComplexBlock(
+                            listOf(
+                                Placement3(SimpleBlock(placements).view()!!, point3()),
+                                Placement3(SimpleBlock(remainderPlacements).view()!!, point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64()))
+                            )
                         )
-                    ))
+                    )
                 }
             } else if (remainder != UInt64.zero && (remainder / (maxXAmount * maxYAmount)) geq (minZAmount - UInt64.zero)) {
                 val remainderMaxZAmount = remainder / (maxXAmount * maxYAmount)
@@ -304,16 +316,20 @@ class SimpleBlockGenerator(
                 val remainderBlocks = ArrayList<BlockPlacement3>()
                 remainderBlocks.add(Placement3(SimpleBlock(placements).view()!!, point3()))
                 if (remainderPlacements.isEmpty()) {
-                    remainderBlocks.add(Placement3(
-                        SimpleBlock(remainderPlacements).view()!!,
-                        point3(z = orientation.depth(item) * remainderMaxZAmount.toFlt64())
-                    ))
+                    remainderBlocks.add(
+                        Placement3(
+                            SimpleBlock(remainderPlacements).view()!!,
+                            point3(z = orientation.depth(item) * remainderMaxZAmount.toFlt64())
+                        )
+                    )
                 }
                 if (remainderRemainderPlacements.isEmpty()) {
-                    remainderBlocks.add(Placement3(
-                        SimpleBlock(remainderRemainderPlacements).view()!!,
-                        point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64(), z = orientation.depth(item) * remainderMaxZAmount.toFlt64())
-                    ))
+                    remainderBlocks.add(
+                        Placement3(
+                            SimpleBlock(remainderRemainderPlacements).view()!!,
+                            point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64(), z = orientation.depth(item) * remainderMaxZAmount.toFlt64())
+                        )
+                    )
                 }
                 blocks.add(ComplexBlock(remainderBlocks))
             }

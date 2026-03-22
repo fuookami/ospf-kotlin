@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Force
 
 object Newton : DerivedPhysicalUnit(Kilogram * MeterPerSquareSecond) {
     override val name = "newton"

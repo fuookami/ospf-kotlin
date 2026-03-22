@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.math.Scale
+import fuookami.ospf.kotlin.utils.physics.dimension.Capacitance
+import fuookami.ospf.kotlin.utils.physics.dimension.ElectricCharge
 
 /**
  * Electric charge units - 电荷单位

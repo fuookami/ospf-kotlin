@@ -1,9 +1,14 @@
 package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.utils.math.ordinary.minMax
+import fuookami.ospf.kotlin.utils.math.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 data class Rectangle<P : Point<D>, D : Dimension>(
     val p1: P,
@@ -46,15 +51,17 @@ data class Rectangle<P : Point<D>, D : Dimension>(
         minMaxValues.map { it.first } + minMaxValues.map { it.second }
     }
 
-    val leftUpperPoint: Point<D> get() = Point(
-        leftUpperRightBottom.take(p1.dim.size),
-        p1.dim
-    )
+    val leftUpperPoint: Point<D>
+        get() = Point(
+            leftUpperRightBottom.take(p1.dim.size),
+            p1.dim
+        )
 
-    val rightBottomPoint: Point<D> get() = Point(
-        leftUpperRightBottom.subList(p1.dim.size, p1.dim.size * 2),
-        p1.dim
-    )
+    val rightBottomPoint: Point<D>
+        get() = Point(
+            leftUpperRightBottom.subList(p1.dim.size, p1.dim.size * 2),
+            p1.dim
+        )
 }
 
 typealias Rectangle2 = Rectangle<Point2, Dim2>
@@ -85,6 +92,10 @@ fun Rectangle2.contains(
         is Failed -> {
             return false
         }
+
+        is Fatal -> {
+            return false
+        }
     }
     val yRange = when (val result = ValueRange(minY, maxY, lowerInterval, upperInterval)) {
         is Ok -> {
@@ -92,6 +103,10 @@ fun Rectangle2.contains(
         }
 
         is Failed -> {
+            return false
+        }
+
+        is Fatal -> {
             return false
         }
     }

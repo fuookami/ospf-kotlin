@@ -1,10 +1,13 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
 
 interface Material : AbstractMaterial {
     override val material get() = this
@@ -37,21 +40,21 @@ open class MaterialReserves(
 }
 
 interface ProductionTask<
-    out E : Executor,
-    out A : AssignmentPolicy<E>,
-    P: AbstractMaterial,
-    C: AbstractMaterial
-> : AbstractTask<E, A> {
+        out E : Executor,
+        out A : AssignmentPolicy<E>,
+        P : AbstractMaterial,
+        C : AbstractMaterial
+        > : AbstractTask<E, A> {
     val produce: Map<P, Flt64>
     val consumption: Map<C, Flt64>
 }
 
 fun <
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    P: AbstractMaterial
-> AbstractTaskBunch<T, E, A>.produce(product: P): Flt64 {
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        P : AbstractMaterial
+        > AbstractTaskBunch<T, E, A>.produce(product: P): Flt64 {
     return tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *> -> {
@@ -66,11 +69,11 @@ fun <
 }
 
 fun <
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    C: AbstractMaterial
-> AbstractTaskBunch<T, E, A>.consumption(material: C): Flt64 {
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        C : AbstractMaterial
+        > AbstractTaskBunch<T, E, A>.consumption(material: C): Flt64 {
     return tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *> -> {

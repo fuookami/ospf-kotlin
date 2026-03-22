@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.SurfaceDensity
 
 object KilogramPerSquareMeter : DerivedPhysicalUnit(Kilogram / SquareMeter) {
     override val name = "kilogram per square meter"

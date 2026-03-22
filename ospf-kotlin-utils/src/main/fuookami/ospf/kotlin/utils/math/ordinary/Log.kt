@@ -1,7 +1,9 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import java.math.*
-import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.FloatingNumber
+import fuookami.ospf.kotlin.utils.math.FloatingNumberConstants
+import fuookami.ospf.kotlin.utils.math.FltX
+import java.math.RoundingMode
 import kotlin.reflect.full.companionObjectInstance
 
 @Suppress("UNCHECKED_CAST")
@@ -23,7 +25,7 @@ fun <T : FloatingNumber<T>> ln(
             if (yPow is FltX) {
                 yPow = yPow.withScale(digits, RoundingMode.HALF_UP) as T
             }
-            var term =  yPow / (constants.two * i + constants.one)
+            var term = yPow / (constants.two * i + constants.one)
             if (term is FltX) {
                 term = term.withScale(digits, RoundingMode.HALF_UP) as T
             }

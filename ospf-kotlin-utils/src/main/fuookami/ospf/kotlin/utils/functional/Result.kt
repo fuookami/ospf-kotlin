@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.ExErr
 
 // Result: Basic result type with Ok and Failed states / 基础结果类型，包含 Ok 和 Failed 两种状态
 sealed interface Result<out T, out E : Error> {

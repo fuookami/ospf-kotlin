@@ -1,9 +1,16 @@
 package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
-import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
+import com.alibaba.damo.mindopt.MDO
+import com.alibaba.damo.mindopt.MDOEnv
+import com.alibaba.damo.mindopt.MDOException
+import com.alibaba.damo.mindopt.MDOModel
+import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
 
 abstract class MindOPTSolver : AutoCloseable {
     protected lateinit var env: MDOEnv
@@ -24,6 +31,10 @@ abstract class MindOPTSolver : AutoCloseable {
             when (val result = callBack?.invoke(env)) {
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
 
                 else -> {}

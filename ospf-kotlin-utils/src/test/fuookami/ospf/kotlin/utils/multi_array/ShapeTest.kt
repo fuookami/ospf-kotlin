@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * 形状测试
@@ -79,7 +79,7 @@ class ShapeTest {
         // Test 1D shape storage order
         val shape1 = Shape1.withOrder(5, StorageOrder.RowMajor)
         assertEquals(StorageOrder.RowMajor, shape1.storageOrder)
-        
+
         val shape2 = Shape1.withOrder(5, StorageOrder.ColumnMajor)
         assertEquals(StorageOrder.ColumnMajor, shape2.storageOrder)
     }
@@ -123,7 +123,7 @@ class ShapeTest {
         // 测试二维行主序索引计算
         // Test 2D row-major index calculation
         val shape = Shape2(3, 4)
-        
+
         assertEquals(0, shape.index(intArrayOf(0, 0)))
         assertEquals(1, shape.index(intArrayOf(0, 1)))
         assertEquals(2, shape.index(intArrayOf(0, 2)))
@@ -138,7 +138,7 @@ class ShapeTest {
         // 测试二维列主序索引计算
         // Test 2D column-major index calculation
         val shape = Shape2.withOrder(3, 4, StorageOrder.ColumnMajor)
-        
+
         assertEquals(0, shape.index(intArrayOf(0, 0)))
         assertEquals(1, shape.index(intArrayOf(1, 0)))
         assertEquals(2, shape.index(intArrayOf(2, 0)))
@@ -152,7 +152,7 @@ class ShapeTest {
         // 测试二维行主序向量转换
         // Test 2D row-major vector conversion
         val shape = Shape2(3, 4)
-        
+
         assertArrayEquals(intArrayOf(0, 0), shape.vector(0))
         assertArrayEquals(intArrayOf(0, 1), shape.vector(1))
         assertArrayEquals(intArrayOf(0, 3), shape.vector(3))
@@ -166,7 +166,7 @@ class ShapeTest {
         // 测试二维列主序向量转换
         // Test 2D column-major vector conversion
         val shape = Shape2.withOrder(3, 4, StorageOrder.ColumnMajor)
-        
+
         assertArrayEquals(intArrayOf(0, 0), shape.vector(0))
         assertArrayEquals(intArrayOf(1, 0), shape.vector(1))
         assertArrayEquals(intArrayOf(2, 0), shape.vector(2))
@@ -224,7 +224,7 @@ class ShapeTest {
         // 测试三维行主序索引计算
         // Test 3D row-major index calculation
         val shape = Shape3(2, 3, 4)
-        
+
         assertEquals(0, shape.index(intArrayOf(0, 0, 0)))
         assertEquals(1, shape.index(intArrayOf(0, 0, 1)))
         assertEquals(4, shape.index(intArrayOf(0, 1, 0)))
@@ -237,7 +237,7 @@ class ShapeTest {
         // 测试三维行主序向量转换
         // Test 3D row-major vector conversion
         val shape = Shape3(2, 3, 4)
-        
+
         assertArrayEquals(intArrayOf(0, 0, 0), shape.vector(0))
         assertArrayEquals(intArrayOf(0, 0, 1), shape.vector(1))
         assertArrayEquals(intArrayOf(0, 1, 0), shape.vector(4))
@@ -321,7 +321,7 @@ class ShapeTest {
         // 测试动态形状索引计算
         // Test dynamic shape index calculation
         val shape = DynShape(intArrayOf(2, 3, 4))
-        
+
         assertEquals(0, shape.index(intArrayOf(0, 0, 0)))
         assertEquals(1, shape.index(intArrayOf(0, 0, 1)))
         assertEquals(4, shape.index(intArrayOf(0, 1, 0)))
@@ -334,7 +334,7 @@ class ShapeTest {
         // 测试动态形状向量转换
         // Test dynamic shape vector conversion
         val shape = DynShape(intArrayOf(2, 3, 4))
-        
+
         assertArrayEquals(intArrayOf(0, 0, 0), shape.vector(0))
         assertArrayEquals(intArrayOf(0, 0, 1), shape.vector(1))
         assertArrayEquals(intArrayOf(0, 1, 0), shape.vector(4))
@@ -348,7 +348,7 @@ class ShapeTest {
         // Test dynamic shape storage order conversion
         val shapeRow = DynShape.withOrder(intArrayOf(2, 3), StorageOrder.RowMajor)
         val shapeCol = shapeRow.withStorageOrder(StorageOrder.ColumnMajor)
-        
+
         assertEquals(StorageOrder.ColumnMajor, shapeCol.storageOrder)
         assertEquals(6, shapeCol.size)
         assertArrayEquals(intArrayOf(1, 2), shapeCol.offsets)
@@ -361,7 +361,7 @@ class ShapeTest {
         val shape1 = DynShape(intArrayOf(2, 3, 4))
         val shape2 = DynShape(intArrayOf(2, 3, 4))
         val shape3 = DynShape(intArrayOf(2, 3, 5))
-        
+
         assertEquals(shape1, shape2)
         assertEquals(shape1.hashCode(), shape2.hashCode())
         assertTrue(shape1 != shape3)
@@ -373,7 +373,7 @@ class ShapeTest {
         // Test dynamic shape clone
         val shape1 = DynShape(intArrayOf(2, 3, 4))
         val shape2 = shape1.copy()
-        
+
         assertEquals(shape1, shape2)
         assertEquals(shape1.hashCode(), shape2.hashCode())
     }
@@ -399,7 +399,7 @@ class ShapeTest {
         val shape1 = Shape2(3, 4)
         val shape2 = Shape2(0, 4)
         val shape3 = Shape2(3, 0)
-        
+
         assertFalse(shape1.isEmpty())
         assertTrue(shape2.isEmpty())
         assertTrue(shape3.isEmpty())
@@ -419,17 +419,17 @@ class ShapeTest {
         // 测试下一个向量
         // Test next vector
         val shape = Shape2(2, 3)
-        
+
         var vector = intArrayOf(0, 0)
         val results = mutableListOf<IntArray>()
         results.add(vector.clone())
-        
+
         while (true) {
             val next = shape.next(vector) ?: break
             vector = next
             results.add(vector.clone())
         }
-        
+
         assertEquals(6, results.size)
         assertArrayEquals(intArrayOf(0, 0), results[0])
         assertArrayEquals(intArrayOf(0, 1), results[1])
@@ -444,14 +444,14 @@ class ShapeTest {
         // 测试实际索引计算（处理负索引）
         // Test actual index calculation (negative indices)
         val shape = Shape1(5)
-        
+
         // 正索引
         // Positive indices
         assertEquals(0, shape.actualIndex(0, 0))
         assertEquals(2, shape.actualIndex(0, 2))
         assertEquals(4, shape.actualIndex(0, 4))
         assertEquals(null, shape.actualIndex(0, 5))
-        
+
         // 负索引
         // Negative indices
         assertEquals(4, shape.actualIndex(0, -1))
@@ -465,11 +465,11 @@ class ShapeTest {
         // 测试二维实际索引
         // Test 2D actual index
         val shape = Shape2(3, 4)
-        
+
         assertEquals(0, shape.actualIndex(0, 0))
         assertEquals(2, shape.actualIndex(0, -1))
         assertEquals(null, shape.actualIndex(0, -4))
-        
+
         assertEquals(0, shape.actualIndex(1, 0))
         assertEquals(3, shape.actualIndex(1, -1))
         assertEquals(null, shape.actualIndex(1, -5))
@@ -480,11 +480,11 @@ class ShapeTest {
         // 测试维度偏移量
         // Test dimension offset
         val shape = Shape3(2, 3, 4)
-        
+
         assertEquals(12, shape.offset(0))
         assertEquals(4, shape.offset(1))
         assertEquals(1, shape.offset(2))
-        
+
         assertFailsWith<DimensionMismatchingException> { shape.offset(3) }
         assertFailsWith<DimensionMismatchingException> { shape.offset(-1) }
     }

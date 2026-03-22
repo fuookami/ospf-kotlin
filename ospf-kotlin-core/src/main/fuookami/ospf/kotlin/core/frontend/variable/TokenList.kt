@@ -1,12 +1,11 @@
 package fuookami.ospf.kotlin.core.frontend.variable
 
-import kotlin.collections.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
-sealed class AbstractTokenList: AutoCloseable {
+sealed class AbstractTokenList : AutoCloseable {
     abstract val tokens: Collection<Token>
     abstract val tokensInSolver: List<Token>
     open val cachedSolution: Boolean get() = tokens.any { it.result != null }
@@ -202,6 +201,10 @@ sealed class MutableTokenList(
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

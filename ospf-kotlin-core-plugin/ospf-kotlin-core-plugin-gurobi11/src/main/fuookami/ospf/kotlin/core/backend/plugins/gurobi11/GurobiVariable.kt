@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
 
-import com.gurobi.gurobi.*
+import com.gurobi.gurobi.GRB
 import fuookami.ospf.kotlin.core.frontend.variable.*
 
 enum class GurobiVariable {

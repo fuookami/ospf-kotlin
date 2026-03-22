@@ -1,11 +1,15 @@
 package fuookami.ospf.kotlin.framework.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.frontend.model.Model
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaConstraintGroup
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
 
 interface Pipeline<in M : Model> : MetaConstraintGroup {
     fun register(model: M) {
@@ -30,15 +34,15 @@ interface Pipeline<in M : Model> : MetaConstraintGroup {
 }
 
 interface CGPipeline<
-    in Args : Any,
-    in Model : MetaModel,
-    in Map : AbstractShadowPriceMap<Args, Map>
-> : Pipeline<Model> {
+        in Args : Any,
+        in Model : MetaModel,
+        in Map : AbstractShadowPriceMap<Args, Map>
+        > : Pipeline<Model> {
     companion object {
         fun <
-            Model : MetaModel,
-            Map : AbstractShadowPriceMap<*, Map>
-        > refreshByKeyAsArgs(
+                Model : MetaModel,
+                Map : AbstractShadowPriceMap<*, Map>
+                > refreshByKeyAsArgs(
             pipeline: CGPipeline<*, Model, Map>,
             shadowPriceMap: Map,
             model: Model,
@@ -109,6 +113,8 @@ interface HAPipeline<in M : Model> : Pipeline<M> {
             }
 
             is Failed -> Failed(obj.error)
+
+            is Fatal -> Fatal(obj.errors)
         }
 
     fun calculate(model: M, solution: List<Flt64>): Ret<Flt64?>
@@ -121,6 +127,8 @@ interface HAPipeline<in M : Model> : Pipeline<M> {
         }
 
         is Failed -> Failed(obj.error)
+
+        is Fatal -> Fatal(obj.errors)
     }
 }
 
@@ -133,6 +141,10 @@ operator fun <M : Model> PipelineList<M>.invoke(model: M): Try {
             is Ok -> {}
             is Failed -> {
                 return Failed(ret.error)
+            }
+
+            is Fatal -> {
+                return Fatal(ret.errors)
             }
         }
     }

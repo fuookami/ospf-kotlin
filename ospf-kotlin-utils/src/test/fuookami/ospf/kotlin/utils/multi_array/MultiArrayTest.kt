@@ -1,17 +1,17 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class MultiArrayTest {
 
     @Test
     fun testMultiArray1Creation() {
         val array = MultiArray(Shape1(5)) { i, _ -> i * 2 }
-        
+
         assertEquals(5, array.size)
         assertEquals(1, array.dimension)
         assertEquals(0, array[0])
@@ -22,7 +22,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArray2Creation() {
         val array = MultiArray(Shape2(3, 4)) { i, v -> v[0] * 4 + v[1] }
-        
+
         assertEquals(12, array.size)
         assertEquals(2, array.dimension)
         assertEquals(0, array[0, 0])
@@ -34,7 +34,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArray3Creation() {
         val array = MultiArray(Shape3(2, 3, 4)) { i, _ -> i }
-        
+
         assertEquals(24, array.size)
         assertEquals(3, array.dimension)
         assertEquals(0, array[0, 0, 0])
@@ -45,7 +45,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayNewWithDefault() {
         val array = MultiArray.new<Int, Shape1>(Shape1(5))
-        
+
         assertEquals(5, array.size)
         assertEquals(0, array[0])
         assertEquals(0, array[4])
@@ -54,7 +54,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayNewWith() {
         val array = MultiArray.newWith(Shape2(3, 3), 42)
-        
+
         assertEquals(9, array.size)
         for (i in 0 until 3) {
             for (j in 0 until 3) {
@@ -66,7 +66,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayNewBy() {
         val array = MultiArray.newBy(Shape2(3, 4)) { i, v -> v[0] + v[1] }
-        
+
         assertEquals(0, array[0, 0])
         assertEquals(1, array[0, 1])
         assertEquals(1, array[1, 0])
@@ -76,7 +76,7 @@ class MultiArrayTest {
     @Test
     fun testMutableMultiArrayCreation() {
         val array = MutableMultiArray(Shape2(3, 4)) { _, _ -> 0 }
-        
+
         assertEquals(12, array.size)
         assertEquals(0, array[0, 0])
     }
@@ -84,11 +84,11 @@ class MultiArrayTest {
     @Test
     fun testMutableMultiArraySet() {
         val array = MutableMultiArray.newWith(Shape2(3, 4), 0)
-        
+
         array[0, 0] = 1
         array[1, 2] = 5
         array[2, 3] = 10
-        
+
         assertEquals(1, array[0, 0])
         assertEquals(5, array[1, 2])
         assertEquals(10, array[2, 3])
@@ -98,7 +98,7 @@ class MultiArrayTest {
     @Test
     fun testMutableMultiArraySetByIntArray() {
         val array = MutableMultiArray.newWith(Shape2(3, 4), 0)
-        
+
         array.set(intArrayOf(1, 2), 5)
         assertEquals(5, array[1, 2])
     }
@@ -106,9 +106,9 @@ class MultiArrayTest {
     @Test
     fun testMutableMultiArrayFill() {
         val array = MutableMultiArray.newWith(Shape2(3, 4), 0)
-        
+
         array.fill(42)
-        
+
         for (i in 0 until 3) {
             for (j in 0 until 4) {
                 assertEquals(42, array[i, j])
@@ -119,9 +119,9 @@ class MultiArrayTest {
     @Test
     fun testMutableMultiArrayFillBy() {
         val array = MutableMultiArray.newWith(Shape2(3, 4), 0)
-        
+
         array.fillBy { i, v -> v[0] * 4 + v[1] }
-        
+
         assertEquals(0, array[0, 0])
         assertEquals(1, array[0, 1])
         assertEquals(4, array[1, 0])
@@ -132,7 +132,7 @@ class MultiArrayTest {
     fun testMutableMultiArrayToImmutable() {
         val mutable = MutableMultiArray.newWith(Shape2(2, 2), 5)
         val immutable = mutable.toImmutable()
-        
+
         assertTrue(immutable is MultiArray)
         assertEquals(5, immutable[0, 0])
         assertEquals(5, immutable[1, 1])
@@ -141,7 +141,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayGetByLinearIndex() {
         val array = MultiArray(Shape2(3, 4)) { i, _ -> i }
-        
+
         assertEquals(0, array[0])
         assertEquals(1, array[1])
         assertEquals(11, array[11])
@@ -150,7 +150,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayGetByVectorIndex() {
         val array = MultiArray(Shape2(3, 4)) { i, _ -> i }
-        
+
         assertEquals(0, array[intArrayOf(0, 0)])
         assertEquals(1, array[intArrayOf(0, 1)])
         assertEquals(4, array[intArrayOf(1, 0)])
@@ -160,7 +160,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayGetByVararg() {
         val array = MultiArray(Shape2(3, 4)) { i, _ -> i }
-        
+
         assertEquals(0, array[0, 0])
         assertEquals(1, array[0, 1])
         assertEquals(4, array[1, 0])
@@ -170,9 +170,9 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayEnumerate() {
         val array = MultiArray(Shape2(2, 3)) { i, _ -> i * 10 }
-        
+
         val results = array.enumerate().toList()
-        
+
         assertEquals(6, results.size)
         for ((linearIdx, vec, value) in results) {
             assertEquals(linearIdx * 10, value)
@@ -183,7 +183,7 @@ class MultiArrayTest {
     fun testMultiArrayToMutable() {
         val immutable = MultiArray.newWith(Shape2(2, 2), 5)
         val mutable = immutable.toMutable()
-        
+
         mutable[0, 0] = 10
         assertEquals(10, mutable[0, 0])
         assertEquals(5, immutable[0, 0])
@@ -193,7 +193,7 @@ class MultiArrayTest {
     fun testMultiArrayToList() {
         val array = MultiArray(Shape2(2, 3)) { i, _ -> i }
         val list = array.toList()
-        
+
         assertEquals(6, list.size)
         assertEquals(listOf(0, 1, 2, 3, 4, 5), list)
     }
@@ -202,7 +202,7 @@ class MultiArrayTest {
     fun testMultiArrayToStorageOrder() {
         val arrayRow = MultiArray(Shape2(2, 3)) { i, _ -> i }
         val arrayCol = arrayRow.toStorageOrder(StorageOrder.ColumnMajor)
-        
+
         assertEquals(6, arrayCol.size)
         assertEquals(StorageOrder.ColumnMajor, arrayCol.shape.storageOrder)
     }
@@ -211,7 +211,7 @@ class MultiArrayTest {
     fun testMultiArrayReshape() {
         val array = MultiArray(Shape2(2, 3)) { i, _ -> i }
         val reshaped = array.reshape(Shape1(6), 0)
-        
+
         assertEquals(6, reshaped.size)
         assertEquals(0, reshaped[0])
         assertEquals(5, reshaped[5])
@@ -221,7 +221,7 @@ class MultiArrayTest {
     fun testMultiArrayReshapeWithFill() {
         val array = MultiArray(Shape1(3)) { i, _ -> i }
         val reshaped = array.reshape(Shape1(5), 99)
-        
+
         assertEquals(5, reshaped.size)
         assertEquals(0, reshaped[0])
         assertEquals(2, reshaped[2])
@@ -233,7 +233,7 @@ class MultiArrayTest {
     fun testMultiArrayReshapeBy() {
         val array = MultiArray(Shape1(3)) { i, _ -> i }
         val reshaped = array.reshapeBy(Shape1(5)) { i, _ -> i * 10 }
-        
+
         assertEquals(0, reshaped[0])
         assertEquals(2, reshaped[2])
         assertEquals(30, reshaped[3])
@@ -243,7 +243,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayContains() {
         val array = MultiArray(Shape2(2, 3)) { i, _ -> i }
-        
+
         assertTrue(0 in array)
         assertTrue(5 in array)
         assertFalse(6 in array)
@@ -252,7 +252,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayContainsAll() {
         val array = MultiArray(Shape2(2, 3)) { i, _ -> i }
-        
+
         assertTrue(array.containsAll(listOf(0, 1, 2)))
         assertFalse(array.containsAll(listOf(0, 6)))
     }
@@ -261,7 +261,7 @@ class MultiArrayTest {
     fun testMultiArrayIsEmpty() {
         val array1 = MultiArray.newWith(Shape2(2, 3), 0)
         val array2 = MultiArray.newWith(Shape2(0, 3), 0)
-        
+
         assertFalse(array1.isEmpty())
         assertTrue(array2.isEmpty())
     }
@@ -269,7 +269,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayIterator() {
         val array = MultiArray(Shape2(2, 3)) { i, _ -> i }
-        
+
         val values = array.toList()
         assertEquals(listOf(0, 1, 2, 3, 4, 5), values)
     }
@@ -279,11 +279,11 @@ class MultiArrayTest {
         val array1 = multiArrayOf(5, 42)
         assertEquals(5, array1.size)
         assertEquals(42, array1[0])
-        
+
         val array2 = multiArrayOf(3, 4, 42)
         assertEquals(12, array2.size)
         assertEquals(42, array2[0, 0])
-        
+
         val array3 = multiArrayOf(2, 3, 4, 42)
         assertEquals(24, array3.size)
         assertEquals(42, array3[0, 0, 0])
@@ -295,7 +295,7 @@ class MultiArrayTest {
         assertEquals(5, array1.size)
         array1[0] = 100
         assertEquals(100, array1[0])
-        
+
         val array2 = mutableMultiArrayOf(3, 4, 42)
         assertEquals(12, array2.size)
         array2[0, 0] = 100
@@ -306,16 +306,16 @@ class MultiArrayTest {
     fun testTypeAliases() {
         val array1: MultiArray1<Int> = MultiArray.newWith(Shape1(5), 0)
         assertEquals(5, array1.size)
-        
+
         val array2: MultiArray2<Int> = MultiArray.newWith(Shape2(3, 4), 0)
         assertEquals(12, array2.size)
-        
+
         val array3: MultiArray3<Int> = MultiArray.newWith(Shape3(2, 3, 4), 0)
         assertEquals(24, array3.size)
-        
+
         val array4: MultiArray4<Int> = MultiArray.newWith(Shape4(2, 2, 2, 2), 0)
         assertEquals(16, array4.size)
-        
+
         val dynArray: DynMultiArray<Int> = MultiArray.newWith(DynShape(intArrayOf(3, 4)), 0)
         assertEquals(12, dynArray.size)
     }
@@ -324,7 +324,7 @@ class MultiArrayTest {
     fun testMutableTypeAliases() {
         val array1: MutableMultiArray1<Int> = MutableMultiArray.newWith(Shape1(5), 0)
         assertEquals(5, array1.size)
-        
+
         val array2: MutableMultiArray2<Int> = MutableMultiArray.newWith(Shape2(3, 4), 0)
         assertEquals(12, array2.size)
     }
@@ -332,7 +332,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayZeroSize() {
         val array = MultiArray.newWith(Shape2(0, 5), 0)
-        
+
         assertEquals(0, array.size)
         assertTrue(array.isEmpty())
     }
@@ -340,7 +340,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayLargeSize() {
         val array = MultiArray(Shape2(100, 100)) { i, _ -> i }
-        
+
         assertEquals(10000, array.size)
         assertEquals(0, array[0, 0])
         assertEquals(9999, array[99, 99])
@@ -349,7 +349,7 @@ class MultiArrayTest {
     @Test
     fun testMultiArrayIndexOutOfBounds() {
         val array = MultiArray(Shape2(3, 4)) { i, _ -> i }
-        
+
         assertFailsWith<OutOfShapeException> { array[3, 0] }
         assertFailsWith<OutOfShapeException> { array[0, 4] }
     }

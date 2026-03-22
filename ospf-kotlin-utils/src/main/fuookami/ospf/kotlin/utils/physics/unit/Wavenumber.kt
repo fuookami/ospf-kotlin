@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.physics.dimension.*
+import fuookami.ospf.kotlin.utils.physics.dimension.WaveNumber
 
 object ReciprocalMeter : DerivedPhysicalUnit(Meter.reciprocal()) {
     override val name = "reciprocal meter"

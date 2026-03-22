@@ -1,31 +1,39 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.frontend.variable.Binary
+import fuookami.ospf.kotlin.core.frontend.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskSchedulingTaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.ordinary.max
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import kotlin.time.Duration
 
 abstract class AbstractIterativeTaskCompilationAggregation<
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     executors: List<E>,
     lockedCancelTasks: Set<T> = emptySet()
 ) {
     data class Policy<
-        IT : IterativeAbstractTask<E, A>,
-        out E : Executor,
-        out A : AssignmentPolicy<E>
-    >(
+            IT : IterativeAbstractTask<E, A>,
+            out E : Executor,
+            out A : AssignmentPolicy<E>
+            >(
         val cost: (IT) -> Cost,
         val conflict: (IT, IT) -> Boolean
     )
@@ -51,6 +59,10 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -74,6 +86,10 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -313,11 +329,11 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 }
 
 open class IterativeTaskCompilationAggregation<
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     executors: List<E>,
     override val policy: Policy<IT, E, A>,
@@ -329,11 +345,11 @@ open class IterativeTaskCompilationAggregation<
 )
 
 open class IterativeTaskCompilationAggregationWithTime<
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     timeWindow: TimeWindow,
     tasks: List<T>,
     executors: List<E>,
@@ -366,6 +382,10 @@ open class IterativeTaskCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = taskTime.register(model)) {
@@ -374,6 +394,10 @@ open class IterativeTaskCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = makespan.register(model)) {
@@ -381,6 +405,10 @@ open class IterativeTaskCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -404,6 +432,10 @@ open class IterativeTaskCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = taskTime.addColumns(
@@ -417,6 +449,10 @@ open class IterativeTaskCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

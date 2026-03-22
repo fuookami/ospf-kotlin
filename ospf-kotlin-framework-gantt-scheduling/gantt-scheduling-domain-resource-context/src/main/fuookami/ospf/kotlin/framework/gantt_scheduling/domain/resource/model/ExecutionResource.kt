@@ -1,19 +1,30 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import fuookami.ospf.kotlin.utils.multi_array.Shape1
+import kotlin.time.Duration
 
 abstract class ExecutionResource<out C : AbstractResourceCapacity>(
     override val id: String,
@@ -39,9 +50,9 @@ abstract class ExecutionResource<out C : AbstractResourceCapacity>(
 }
 
 data class ExecutionResourceTimeSlot<
-    out R : ExecutionResource<C>,
-    out C : AbstractResourceCapacity
->(
+        out R : ExecutionResource<C>,
+        out C : AbstractResourceCapacity
+        >(
     override val origin: TimeSlot,
     override val resource: R,
     override val resourceCapacity: C,
@@ -83,9 +94,9 @@ data class ExecutionResourceTimeSlot<
 typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot<R, C>, R, C>
 
 abstract class AbstractExecutionResourceUsage<
-    out R : ExecutionResource<C>,
-    out C : AbstractResourceCapacity
->(
+        out R : ExecutionResource<C>,
+        out C : AbstractResourceCapacity
+        >(
     protected val timeWindow: TimeWindow,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -144,9 +155,9 @@ abstract class AbstractExecutionResourceUsage<
 }
 
 class TaskSchedulingExecutionResourceUsage<
-    out R : ExecutionResource<C>,
-    out C : AbstractResourceCapacity
-> private constructor(
+        out R : ExecutionResource<C>,
+        out C : AbstractResourceCapacity
+        > private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -202,9 +213,9 @@ class TaskSchedulingExecutionResourceUsage<
 }
 
 class BunchSchedulingExecutionResourceUsage<
-    out R : ExecutionResource<C>,
-    out C : AbstractResourceCapacity
-> private constructor(
+        out R : ExecutionResource<C>,
+        out C : AbstractResourceCapacity
+        > private constructor(
     timeWindow: TimeWindow,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -277,6 +288,10 @@ class BunchSchedulingExecutionResourceUsage<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
@@ -284,11 +299,11 @@ class BunchSchedulingExecutionResourceUsage<
     }
 
     fun <
-        B : AbstractTaskBunch<T, E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > addColumns(
+            B : AbstractTaskBunch<T, E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > addColumns(
         iteration: UInt64,
         bunches: List<B>,
         compilation: BunchCompilation<B, T, E, A>

@@ -1,9 +1,12 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import kotlin.time.*
+import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.core.frontend.model.callback.*
 
 interface AbstractHeuristicPolicy {
     fun coerceIn(
@@ -23,7 +26,8 @@ interface AbstractHeuristicPolicy {
         goodIndividuals: List<Individual<*>>,
         populations: List<List<Individual<*>>>,
         model: AbstractCallBackModelInterface<*, *>
-    ) {}
+    ) {
+    }
 
     fun finished(iteration: Iteration): Boolean
 }

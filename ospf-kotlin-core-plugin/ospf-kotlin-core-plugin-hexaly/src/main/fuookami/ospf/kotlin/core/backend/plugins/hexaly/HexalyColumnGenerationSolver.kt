@@ -1,16 +1,21 @@
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
-import java.util.*
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
+import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.utils.math.UInt64
+import kotlinx.coroutines.*
 
 class HexalyColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -46,6 +51,16 @@ class HexalyColumnGenerationSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -75,6 +90,11 @@ class HexalyColumnGenerationSolver(
                     is Failed -> {
                         jobs.joinAll()
                         Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
                     }
                 }
             }
@@ -109,6 +129,16 @@ class HexalyColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
             }
         }.use { mechanismModel ->
             LinearTriadModel(
@@ -148,6 +178,11 @@ class HexalyColumnGenerationSolver(
                         jobs.joinAll()
                         Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        jobs.joinAll()
+                        Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -181,6 +216,16 @@ class HexalyColumnGenerationSolver(
                 jobs.joinAll()
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
+
+            is Fatal -> {
+                jobs.joinAll()
+                return Fatal(result.errors)
+            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -197,6 +242,7 @@ class HexalyColumnGenerationSolver(
                 }
 
                 var error: Error? = null
+                var errors: List<Error>? = null
                 try {
                     coroutineScope {
                         val solver = HexalyLinearSolver(
@@ -227,6 +273,13 @@ class HexalyColumnGenerationSolver(
                                         jobs.joinAll()
                                         Failed(dualResult.error)
                                     }
+
+                                    is Fatal -> {
+                                        errors = dualResult.errors
+                                        cancel()
+                                        jobs.joinAll()
+                                        Fatal(dualResult.errors)
+                                    }
                                 }
                             }
 
@@ -236,10 +289,18 @@ class HexalyColumnGenerationSolver(
                                 jobs.joinAll()
                                 Failed(result.error)
                             }
+
+                            is Fatal -> {
+                                errors = result.errors
+                                cancel()
+                                jobs.joinAll()
+                                Fatal(result.errors)
+                            }
                         }
                     }
                 } catch (_: CancellationException) {
-                    error?.let { Failed(it) }
+                    errors?.let { Fatal(it) }
+                        ?: error?.let { Failed(it) }
                         ?: Failed(Err(ErrorCode.OREngineSolvingException))
                 }
             }

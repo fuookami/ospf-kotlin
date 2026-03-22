@@ -1,19 +1,27 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch
 
-import kotlin.time.*
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toMeta
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.ExtractBunchCompilationContext
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.*
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
+import org.apache.logging.log4j.kotlin.logger
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class BranchAndPriceAlgorithm<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
@@ -84,7 +92,7 @@ class BranchAndPriceAlgorithm<
 
     suspend operator fun invoke(
         id: String,
-        heartBeatCallBack: ((Instant, Duration, Flt64) -> Try)? = null
+        heartBeatCallBack: ((kotlinx.datetime.Instant, Duration, Flt64) -> Try)? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
@@ -101,6 +109,10 @@ class BranchAndPriceAlgorithm<
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
 
                 // solve ip with initial column
@@ -113,6 +125,10 @@ class BranchAndPriceAlgorithm<
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
                 logIpResults(iteration.iteration, model)
 
@@ -123,6 +139,10 @@ class BranchAndPriceAlgorithm<
 
                     is Failed -> {
                         return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
                 refresh(ipRet)
@@ -414,6 +434,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         for (extractContext in extractContexts) {
@@ -422,6 +446,10 @@ class BranchAndPriceAlgorithm<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -434,6 +462,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         for (extractContext in extractContexts) {
@@ -442,6 +474,10 @@ class BranchAndPriceAlgorithm<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -464,6 +500,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         refresh(lpRet)
@@ -473,6 +513,10 @@ class BranchAndPriceAlgorithm<
 
                 is Failed -> {
                     return Failed(ret.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(ret.errors)
                 }
             }
         }
@@ -484,6 +528,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 return Failed(ret.error)
+            }
+
+            is Fatal -> {
+                return Fatal(ret.errors)
             }
         }
 
@@ -505,6 +553,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(results.error)
             }
+
+            is Fatal -> {
+                return Fatal(results.errors)
+            }
         }
         subProblemSolvingTimes += UInt64.one
         subProblemSolvingTime = Clock.System.now() - beginTime
@@ -525,6 +577,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         for (extractContext in extractContexts) {
@@ -533,6 +589,10 @@ class BranchAndPriceAlgorithm<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -555,6 +615,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (unduplicatedBunches.isNotEmpty()) {
@@ -567,6 +631,10 @@ class BranchAndPriceAlgorithm<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -597,6 +665,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -631,6 +703,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = context.extractKeptBunchesWithRatio(iteration, model)) {
@@ -640,6 +716,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -704,6 +784,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
         return Ok(fixedBunches)
     }
@@ -731,6 +815,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 return Failed(ret.error)
+            }
+
+            is Fatal -> {
+                return Fatal(ret.errors)
             }
         }
 
@@ -761,6 +849,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         for (extractContext in extractContexts) {
@@ -769,6 +861,10 @@ class BranchAndPriceAlgorithm<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }
@@ -783,6 +879,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = context.logBunchCost(iteration, model)) {
@@ -790,6 +890,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

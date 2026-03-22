@@ -1,7 +1,5 @@
 package fuookami.ospf.kotlin.utils.multi_array
 
-import fuookami.ospf.kotlin.utils.math.*
-
 /**
  * 虚拟索引范围接口
  * Dummy index range interface
@@ -15,19 +13,19 @@ interface DummyIndexRange {
      * Get the start bound of the range
      */
     fun start(): Int?
-    
+
     /**
      * 获取范围的结束边界
      * Get the end bound of the range
      */
     fun end(): Int?
-    
+
     /**
      * 是否包含结束边界
      * Whether the end bound is inclusive
      */
     fun isInclusive(): Boolean = false
-    
+
     /**
      * 检查值是否在范围内
      * Check if a value is contained in the range
@@ -57,25 +55,25 @@ sealed class DummyIndex {
      * Single index
      */
     data class Index(val index: Int) : DummyIndex()
-    
+
     /**
      * 范围索引
      * Range index
      */
     data class Range(val range: DummyIndexRange) : DummyIndex()
-    
+
     /**
      * 索引数组
      * Index array
      */
     data class IndexArray(val indices: List<Int>) : DummyIndex()
-    
+
     /**
      * 全范围索引
      * Full range index
      */
     data object All : DummyIndex()
-    
+
     /**
      * 计算虚拟索引在给定维度上的长度
      * Calculate the length of dummy index in a given dimension
@@ -93,11 +91,12 @@ sealed class DummyIndex {
                 val end = actualBound(range.end(), len) ?: len
                 maxOf(0, end - start)
             }
+
             is IndexArray -> indices.size
             is All -> shape[dimension]
         }
     }
-    
+
     /**
      * 将虚拟索引转换为迭代器
      * Convert dummy index to an iterator
@@ -116,6 +115,7 @@ sealed class DummyIndex {
                     DummyIndexIterator.Single(0)
                 }
             }
+
             is Range -> {
                 val len = shape[dimension]
                 val start = actualBound(range.start(), len) ?: 0
@@ -126,16 +126,18 @@ sealed class DummyIndex {
                     DummyIndexIterator.Continuous(0 until 0)
                 }
             }
+
             is IndexArray -> {
                 val validIndices = indices.mapNotNull { shape.actualIndex(dimension, it) }
                 DummyIndexIterator.Discrete(validIndices)
             }
+
             is All -> {
                 DummyIndexIterator.Continuous(0 until shape[dimension])
             }
         }
     }
-    
+
     private fun actualBound(bound: Int?, len: Int): Int? {
         if (bound == null) return null
         return if (bound >= 0) {
@@ -144,14 +146,14 @@ sealed class DummyIndex {
             (len + bound).coerceAtLeast(0)
         }
     }
-    
+
     companion object {
         /**
          * 从整数值创建单索引
          * Create single index from integer value
          */
         fun from(value: Int): DummyIndex = Index(value)
-        
+
         /**
          * 从 IntRange 创建范围索引
          * Create range index from IntRange
@@ -161,13 +163,13 @@ sealed class DummyIndex {
             override fun end() = range.last + 1
             override fun contains(v: Int, len: Int) = v in range
         })
-        
+
         /**
          * 从整数列表创建索引数组
          * Create index array from integer list
          */
         fun from(indices: List<Int>): DummyIndex = IndexArray(indices)
-        
+
         /**
          * 创建全范围索引
          * Create full range index
@@ -189,19 +191,19 @@ sealed class DummyIndexIterator {
      * Single index
      */
     data class Single(val index: Int) : DummyIndexIterator()
-    
+
     /**
      * 连续范围索引
      * Continuous range indices
      */
     data class Continuous(val range: IntRange) : DummyIndexIterator()
-    
+
     /**
      * 离散索引集合
      * Discrete index collection
      */
     data class Discrete(val indices: List<Int>) : DummyIndexIterator()
-    
+
     /**
      * 获取指定位置的索引值
      * Get the index value at the specified position
@@ -216,7 +218,7 @@ sealed class DummyIndexIterator {
             is Discrete -> indices.getOrNull(i)
         }
     }
-    
+
     /**
      * 获取迭代器的长度
      * Get the length of the iterator
@@ -228,7 +230,7 @@ sealed class DummyIndexIterator {
             is Discrete -> indices.size
         }
     }
-    
+
     /**
      * 检查迭代器是否为空
      * Check if the iterator is empty
@@ -249,7 +251,7 @@ sealed class MapIndex {
      * Dummy index
      */
     data class Dummy(val dummy: DummyIndex) : MapIndex()
-    
+
     /**
      * 映射占位符
      * Map placeholder
@@ -257,14 +259,14 @@ sealed class MapIndex {
      * @param index 映射到的目标维度索引
      */
     data class Map(val index: Int) : MapIndex()
-    
+
     companion object {
         /**
          * 从 DummyIndex 创建 MapIndex
          * Create MapIndex from DummyIndex
          */
         fun from(dummy: DummyIndex): MapIndex = Dummy(dummy)
-        
+
         /**
          * 创建映射占位符
          * Create map placeholder

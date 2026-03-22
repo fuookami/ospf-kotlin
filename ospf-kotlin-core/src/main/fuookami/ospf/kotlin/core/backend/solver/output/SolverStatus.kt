@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.backend.solver.output
 
-import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 
 enum class SolverStatus {
     Optimal,

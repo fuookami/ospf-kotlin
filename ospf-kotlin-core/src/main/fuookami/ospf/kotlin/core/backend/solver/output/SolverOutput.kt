@@ -1,9 +1,12 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.core.backend.solver.output
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.BasicLinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.utils.math.Flt64
+import kotlin.time.Duration
 
 sealed interface SolverOutput {}
 sealed interface LinearSolverOutput : SolverOutput {}
