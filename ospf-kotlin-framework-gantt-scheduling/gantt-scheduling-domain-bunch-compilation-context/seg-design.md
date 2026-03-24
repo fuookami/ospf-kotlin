@@ -97,7 +97,14 @@ interface SlotBasedBunch<
     T : AbstractTask<E, A>,
     E : Executor,
     A : AssignmentPolicy<E>
-> : AbstractTaskBunch<T, E, A> {
+> {
+    // Note: AbstractTaskBunch is an open class, not an interface.
+    // Kotlin does not support multiple inheritance, so SlotBasedBunch
+    // is defined as a separate interface. Implementation classes should
+    // extend AbstractTaskBunch and implement this interface.
+    // 注意：AbstractTaskBunch 是 open class 而非 interface。
+    // Kotlin 不支持多继承，因此 SlotBasedBunch 作为独立接口定义。
+    // 实现类需要同时继承 AbstractTaskBunch 并实现本接口。
     
     /**
      * 所属时隙
@@ -124,8 +131,12 @@ interface SlotBasedBunch<
  *
  * 存储单个时隙的产能分配结果和中间值
  * Stores capacity allocation results and intermediate values for a single time slot
+ *
+ * @param A 生产动作类型 / Production action type
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
  */
-data class SlotBasedCapacityResult<A : ProductionAction>(
+data class SlotBasedCapacityResult<A : ProductionAction, M, R>(
     /**
      * 所属时隙
      * The time slot
@@ -181,8 +192,12 @@ data class SlotBasedCapacityResult<A : ProductionAction>(
  *
  * 聚合所有时隙的产能结果，提供查询接口
  * Aggregates capacity results for all slots, provides query interface
+ *
+ * @param A 生产动作类型 / Production action type
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
  */
-class CapacityIntermediateValues<A : ProductionAction>(
+class CapacityIntermediateValues<A : ProductionAction, M, R>(
     /**
      * 时隙列表
      * List of time slots
@@ -193,7 +208,7 @@ class CapacityIntermediateValues<A : ProductionAction>(
      * 各时隙的产能结果
      * Capacity results by slot
      */
-    val results: Map<TimeSlot, SlotBasedCapacityResult<A>>
+    val results: Map<TimeSlot, SlotBasedCapacityResult<A, M, R>>
 ) {
     /**
      * 获取指定时隙的产品产量
@@ -238,8 +253,11 @@ class CapacityIntermediateValues<A : ProductionAction>(
  *
  * 描述单个时隙的资源、产量、消耗约束边界
  * Describes resource, produce, consumption constraint boundaries for a single slot
+ *
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
  */
-data class SlotConstraints(
+data class SlotConstraints<M, R>(
     /**
      * 所属时隙
      * The time slot
@@ -312,13 +330,24 @@ data class SlotConstraints(
  *
  * 负责求解 capacity scheduling 问题并提取中间值
  * Responsible for solving capacity scheduling problem and extracting intermediate values
+ *
+ * @param E 执行器类型 / Executor type
+ * @param A 生产动作类型 / Production action type
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
  */
-class SlotBasedCapacityPreSolver<A : ProductionAction>(
+class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
     /**
      * 生产动作列表
      * List of production actions
      */
     private val actions: List<A>,
+    
+    /**
+     * 执行器列表
+     * List of executors
+     */
+    private val executors: List<E>,
     
     /**
      * 时隙列表
@@ -331,6 +360,18 @@ class SlotBasedCapacityPreSolver<A : ProductionAction>(
      * Time window
      */
     private val timeWindow: TimeWindow,
+    
+    /**
+     * 产品列表及其需求量
+     * Products with their demand quantities
+     */
+    private val products: List<Pair<M, Flt64>> = emptyList(),
+    
+    /**
+     * 资源容量列表
+     * List of resource capacities
+     */
+    private val resourceCapacities: List<R> = emptyList(),
     
     /**
      * 是否使用列生成模式

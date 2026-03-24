@@ -3,16 +3,17 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.Flt64
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel) -> Ret<*>
@@ -27,23 +28,35 @@ typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel) -> Ret<*>
  * 中间值用于给 bunch 生成器提供时隙约束。
  * Intermediate values are used to provide slot constraints to bunch generators.
  *
+ * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
- * @param C 产能编译类型 / Capacity compilation type
  */
-class SlotBasedCapacityPreSolver<A : ProductionAction, M, R, C : Capacity<A>>(
+class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
     /**
-     * 产能编译对象
-     * Capacity compilation object
+     * 生产动作列表
+     * List of production actions
      */
-    private val compilation: C,
+    private val actions: List<A>,
+
+    /**
+     * 执行器列表
+     * List of executors
+     */
+    private val executors: List<E>,
 
     /**
      * 时隙列表
      * List of time slots
      */
     private val slots: List<TimeSlot>,
+
+    /**
+     * 时间窗口
+     * Time window
+     */
+    private val timeWindow: TimeWindow,
 
     /**
      * 产品列表及其需求量
@@ -55,8 +68,34 @@ class SlotBasedCapacityPreSolver<A : ProductionAction, M, R, C : Capacity<A>>(
      * 资源容量列表
      * List of resource capacities
      */
-    private val resourceCapacities: List<R> = emptyList()
+    private val resourceCapacities: List<R> = emptyList(),
+
+    /**
+     * 是否使用列生成
+     * Whether to use column generation
+     */
+    private val useColumnGeneration: Boolean = false
 ) {
+    /**
+     * 产能编译对象
+     * Capacity compilation object
+     */
+    private val compilation: Capacity<A> = CapacityCompilation(
+        actions = actions,
+        slots = slots,
+        timeWindow = timeWindow
+    )
+
+    /**
+     * 注册到模型
+     * Register to model
+     *
+     * @param model Linear meta model / 线性元模型
+     * @return Try result / Try 结果
+     */
+    fun register(model: LinearMetaModel): Try {
+        return compilation.register(model)
+    }
     /**
      * 执行预求解
      * Execute pre-solving

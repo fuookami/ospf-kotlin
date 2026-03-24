@@ -223,6 +223,17 @@ data class TimeWindow(
         )
     }
 
+    /**
+     * Generate rounded time slots based on intervals and excluded times.
+     * 生成基于时间粒度和排除时间的舍入时间段。
+     *
+     * @param intervals Time intervals mapping, key is the time range for specific interval, null for default.
+     *                  时间粒度映射，键为特定时间粒度的时间范围，null 表示默认值。
+     * @param excludedTimes Time ranges to be excluded from the generated slots.
+     *                      需要从生成的时段中排除的时间范围。
+     * @return List of time slots without merging. The caller should handle merging if needed.
+     *         未合并的时段列表，调用方应根据需要进行合并。
+     */
     fun roundTimeSlotsOf(
         intervals: Map<TimeRange?, Duration>,
         excludedTimes: List<TimeRange> = emptyList()
@@ -231,9 +242,14 @@ data class TimeWindow(
         val slotIntervals = ArrayList<Duration>()
         var current = start
         var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
-        val ratio: Double = kotlin.math.ceil(upper.interval / currentInterval)
-        val multipliedDuration: Duration = (currentInterval.toDouble(DurationUnit.SECONDS) * ratio).toDuration(DurationUnit.SECONDS)
-        val end1 = start.truncatedTo(upper.durationUnit) + multipliedDuration
+        val end1 = (start.truncatedTo(upper.durationUnit) + kotlin.math.ceil(upper.interval / currentInterval).toInt() * currentInterval)
+            .let {
+                if ((it - start) < currentInterval) {
+                    it + upper.interval
+                } else {
+                    it
+                }
+            }
         while (current != end1) {
             var duration = if (current == start) {
                 val durationDiff = (end1 - start)
@@ -298,61 +314,13 @@ data class TimeWindow(
             return timeSlots
         }
 
-        data class SlotPiece(
-            val time: TimeRange,
-            val shouldMerge: Boolean
-        )
-
-        val pieces = ArrayList<SlotPiece>()
+        val pieces = ArrayList<TimeRange>()
         for (i in timeSlots.indices) {
             val slot = timeSlots[i]
-            val interval = slotIntervals[i]
             val availablePieces = slot.differenceWith(normalizedExcludedTimes)
-            for ((j, piece) in availablePieces.withIndex()) {
-                val edgePiece = (j == 0 || j == availablePieces.lastIndex)
-                val shouldMerge = piece.duration < interval && (availablePieces.size < 3 || edgePiece)
-                pieces.add(
-                    SlotPiece(
-                        time = piece,
-                        shouldMerge = shouldMerge
-                    )
-                )
-            }
+            pieces.addAll(availablePieces)
         }
-        if (pieces.isEmpty()) {
-            return emptyList()
-        }
-
-        val mergedBoundary = BooleanArray(max(0, pieces.size - 1))
-        for (i in pieces.indices) {
-            if (!pieces[i].shouldMerge) {
-                continue
-            }
-            val piece = pieces[i].time
-            if (i > 0 && pieces[i - 1].time.end == piece.start) {
-                mergedBoundary[i - 1] = true
-            }
-            if (i < pieces.lastIndex && piece.end == pieces[i + 1].time.start) {
-                mergedBoundary[i] = true
-            }
-        }
-
-        val mergedTimeSlots = ArrayList<TimeRange>()
-        var currentPiece = pieces.first().time
-        for (i in mergedBoundary.indices) {
-            val nextPiece = pieces[i + 1].time
-            if (mergedBoundary[i]) {
-                currentPiece = TimeRange(
-                    start = currentPiece.start,
-                    end = nextPiece.end
-                )
-            } else {
-                mergedTimeSlots.add(currentPiece)
-                currentPiece = nextPiece
-            }
-        }
-        mergedTimeSlots.add(currentPiece)
-        return mergedTimeSlots
+        return pieces
     }
 
     fun withIntersection(ano: TimeRange): Boolean {

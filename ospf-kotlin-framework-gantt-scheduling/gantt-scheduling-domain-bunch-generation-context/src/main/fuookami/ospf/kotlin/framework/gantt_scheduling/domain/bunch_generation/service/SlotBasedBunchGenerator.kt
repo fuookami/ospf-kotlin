@@ -26,13 +26,23 @@ import fuookami.ospf.kotlin.utils.math.UInt64
  *
  * 每个 bunch 只能属于一个时隙，时隙对应关系由具体实现保证。
  * Each bunch can only belong to one time slot, ensured by concrete implementation.
+ *
+ * @param B 任务束类型 / Task bunch type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param Action 生产动作类型 / Production action type
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
  */
 interface SlotBasedBunchGenerator<
         B : SlotBasedBunch<T, E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        Action : ProductionAction
+        Action : ProductionAction,
+        M,
+        R
         > {
     /**
      * 支持的执行器列表
@@ -53,7 +63,7 @@ interface SlotBasedBunchGenerator<
     suspend fun generate(
         iteration: UInt64,
         slot: TimeSlot,
-        constraints: SlotConstraints<*, *>,
+        constraints: SlotConstraints<M, R>,
         shadowPrices: Map<T, Flt64>
     ): Ret<List<B>>
 

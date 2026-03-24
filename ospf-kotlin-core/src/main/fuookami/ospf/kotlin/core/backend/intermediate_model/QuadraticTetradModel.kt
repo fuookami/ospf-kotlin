@@ -1086,16 +1086,16 @@ data class QuadraticTetradModel(
         writer.append("\n\n")
 
         return when (val result = impl.exportLP(writer)) {
-            is Failed -> {
-                Failed(result.error)
-            }
-
             is Ok -> {
                 ok
             }
 
+            is Failed -> {
+                Failed(result.error)
+            }
+
             is Fatal -> {
-                Fatal(result.errors)
+                result
             }
         }
     }
@@ -1126,7 +1126,7 @@ suspend fun solveDual(
         }
 
         is Fatal -> {
-            Fatal(result.errors)
+            result
         }
     }
 }
@@ -1147,7 +1147,7 @@ suspend fun solveFarkasDual(
         }
 
         is Fatal -> {
-            Fatal(result.errors)
+            result
         }
     }
 }

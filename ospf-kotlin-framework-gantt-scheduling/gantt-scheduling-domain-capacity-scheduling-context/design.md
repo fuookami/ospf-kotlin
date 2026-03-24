@@ -374,38 +374,68 @@ gantt-scheduling-domain-capacity-scheduling-context/src/main/fuookami/ospf/kotli
 
 ```kotlin
 interface ProductionAction {
-    val id: String
-    val name: String
-    val executor: Executor
-    
     /**
+     * 动作唯一标识
+     * Unique identifier for the action
+     */
+    val id: String
+
+    /**
+     * 动作名称
+     * Name of the action
+     */
+    val name: String
+    val displayName: String get() = name
+
+    /**
+     * 执行器
+     * The executor that performs this action
+     */
+    val executor: Executor
+
+    /**
+     * 是否为离散型动作
      * Whether the action is discrete
-     * true: discrete, x represents batch count
-     * false: continuous, x represents duration units
+     *
+     * - true: discrete, x represents batch count
+     * - false: continuous, x represents duration units
+     *
+     * - true: 离散型，x 表示批次数
+     * - false: 连续型，x 表示时长单位数
      */
     val discrete: Boolean
-    
+
     /**
-     * Batch duration (only for discrete actions)
      * 批次时长（仅离散型有效）
+     * Batch duration (only for discrete actions)
      */
-    val batchDuration: Duration?
-    
+    val batchDuration: Duration? get() = null
+
     /**
-     * Unit capacity per x value
      * 每个单位 x 对应的产能
+     * Unit capacity per x value
+     *
+     * @param timeWindow Time window / 时间窗口
+     * @return Unit capacity as Flt64 / 单位产能
      */
     fun unitCapacity(timeWindow: TimeWindow): Flt64
-    
+
     /**
-     * Unit load/cost
-     * 单位负荷/成本
+     * 单位成本
+     * Unit cost
+     *
+     * @param time Time instant / 时间点
+     * @return Unit cost / 单位成本
      */
-    fun unitLoad(timeRange: TimeRange): Flt64
-    
+    fun unitCost(time: Instant): Flt64
+
     /**
-     * Upper bound for x variable
      * x 变量的上界
+     * Upper bound for x variable
+     *
+     * @param slot Time slot / 时隙
+     * @param timeWindow Time window / 时间窗口
+     * @return Upper bound value / 上界值
      */
     fun upperBound(slot: TimeSlot, timeWindow: TimeWindow): UInt64
 }
