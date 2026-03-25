@@ -78,12 +78,12 @@ interface SlotBasedBunchGenerator<
      */
     suspend fun generateAll(
         iteration: UInt64,
-        intermediateValues: CapacityIntermediateValues<Action, *, *>,
+        intermediateValues: CapacityIntermediateValues<Action, M, R>,
         shadowPrices: Map<T, Flt64>
     ): Ret<List<B>> {
         val allBunches = mutableListOf<B>()
 
-        for ((slot, _) in intermediateValues.results) {
+        for (slot in intermediateValues.slots) {
             val constraints = intermediateValues.slotConstraints(slot)
             if (constraints != null) {
                 when (val result = generate(iteration, slot, constraints, shadowPrices)) {
@@ -92,8 +92,7 @@ interface SlotBasedBunchGenerator<
                     }
 
                     is Failed -> {
-                        // Log error but continue with other slots
-                        // 记录错误但继续处理其他时隙
+                        return Failed(result.error)
                     }
 
                     is Fatal -> {
@@ -130,7 +129,9 @@ interface SlotBasedBunchGeneratorFactory<
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        Action : ProductionAction
+        Action : ProductionAction,
+        M,
+        R
         > {
     /**
      * 创建指定执行器的生成器
@@ -139,5 +140,5 @@ interface SlotBasedBunchGeneratorFactory<
      * @param executor The executor / 执行器
      * @return Bunch generator / 任务束生成器
      */
-    fun create(executor: E): SlotBasedBunchGenerator<B, T, E, A, Action>?
+    fun create(executor: E): SlotBasedBunchGenerator<B, T, E, A, Action, M, R>?
 }

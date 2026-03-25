@@ -1,15 +1,14 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityOrderCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -66,27 +65,24 @@ class CapacityCostMinimization<A : ProductionAction>(
      * @return Try result / Try 结果
      */
     operator fun invoke(model: LinearMetaModel): Try {
-        // Build cost polynomial
-        // 构建成本多项式
-        val costPoly = MutableLinearPolynomial(name = name)
-
-        for ((a, action) in actions.withIndex()) {
-            val unitCost = action.unitCost(timeWindow)
-            for ((t, slot) in slots.withIndex()) {
-                // cost += unitCost * x[a, t]
-                // 成本 += 单位成本 * 变量[a, t]
-                costPoly += unitCost * capacity.x[a, t]
-            }
-        }
+        val costSymbol = when (capacity) {
+            is CapacityCompilation<*> -> capacity.cost
+            is CapacityOrderCompilation<*> -> capacity.cost
+            is IterativeCapacityCompilation<*, *> -> capacity.cost
+            else -> null
+        } ?: return Failed(
+            ErrorCode.IllegalArgument,
+            "capacity_cost_minimization requires a registered concrete capacity compilation. " +
+                "actions=${actions.size}, slots=${slots.size}, durationUnit=${timeWindow.durationUnit}."
+        )
 
         // Set objective to minimize cost
         // 设置目标为最小化成本
-        when (val result = model.minimize(costPoly, name = name)) {
+        when (val result = model.minimize(symbol = costSymbol, name = name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
-
         return ok
     }
 }

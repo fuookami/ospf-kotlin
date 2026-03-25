@@ -90,7 +90,9 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
             _columnsIteration.add(ArrayList())
         }
 
-        _columnsIteration[iteration.toInt()] = unduplicatedColumns
+        val mergedIterationColumns = _columnsIteration[iteration.toInt()].toMutableList()
+        mergedIterationColumns.addAll(unduplicatedColumns)
+        _columnsIteration[iteration.toInt()] = mergedIterationColumns
         _columns.addAll(unduplicatedColumns)
 
         return unduplicatedColumns

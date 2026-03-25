@@ -31,7 +31,8 @@ open class BunchCompilation<
     private val tasks: List<T>,
     private val executors: List<E>,
     private val lockCancelTasks: Set<T> = emptySet(),
-    override val withExecutorLeisure: Boolean = true
+    override val withExecutorLeisure: Boolean = true,
+    bunchAggregation: BunchAggregation<B, T, E, A> = BunchAggregation()
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -50,7 +51,7 @@ open class BunchCompilation<
 
     override val taskCancelEnabled: Boolean = true
 
-    internal val aggregation = BunchAggregation<B, T, E, A>()
+    internal val aggregation: BunchAggregation<B, T, E, A> = bunchAggregation
     val bunchesIteration: List<List<B>> by aggregation::bunchesIteration
     val bunches: List<B> by aggregation::bunches
     val removedBunches: Set<B> by aggregation::removedBunches
@@ -225,7 +226,6 @@ open class BunchCompilation<
         }
         _x.add(xi)
 
-        bunchCost.flush()
         for (bunch in unduplicatedBunches) {
             bunchCost.asMutable() += (bunch.cost.sum ?: Flt64.infinity) * xi[bunch]
         }
@@ -235,7 +235,6 @@ open class BunchCompilation<
                 val thisBunches = unduplicatedBunches.filter { it.contains(task) && it.executor == executor }
                 if (thisBunches.isNotEmpty()) {
                     val assign = taskAssignment[task, executor]
-                    assign.flush()
                     assign.asMutable() += sum(thisBunches.map { xi[it] })
                 }
             }
@@ -245,7 +244,6 @@ open class BunchCompilation<
             val thisBunches = unduplicatedBunches.filter { it.contains(task) }
             if (thisBunches.isNotEmpty()) {
                 val compilation = taskCompilation[task]
-                compilation.flush()
                 compilation.asMutable() += sum(thisBunches.map { xi[it] })
             }
         }
@@ -254,7 +252,6 @@ open class BunchCompilation<
             val thisBunches = unduplicatedBunches.filter { it.executor == executor }
             if (thisBunches.isNotEmpty()) {
                 val compilation = executorCompilation[executor]
-                compilation.flush()
                 compilation.asMutable() += sum(thisBunches.map { xi[it] })
             }
         }

@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.frontend.inequality.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
@@ -20,7 +19,6 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 class ExecutorCapacityConstraint<A : ProductionAction>(
     private val capacity: Capacity<A>,
-    private val executors: List<Executor>,
     private val slots: List<TimeSlot>,
     private val timeWindow: TimeWindow,
     val name: String = "executor_capacity"
@@ -30,7 +28,7 @@ class ExecutorCapacityConstraint<A : ProductionAction>(
      * Apply constraint to model
      */
     operator fun invoke(model: LinearMetaModel): Try {
-        for ((e, executor) in executors.withIndex()) {
+        for ((e, executor) in capacity.executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
                 // capacity[executor, slot] <= availableDuration
                 // capacity[executor, slot] <= 可用时长

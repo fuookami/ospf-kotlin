@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
@@ -12,6 +13,12 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * 提供统一的产能计算接口，用于约束和目标函数。
  */
 interface Capacity<A : ProductionAction> {
+    /**
+     * 执行器列表（与 capacity 第一维索引一致）
+     * Executor list (aligned with the first dimension index of capacity)
+     */
+    val executors: List<Executor>
+
     /**
      * 动作-时隙的操作时间
      * Operation time per action-slot

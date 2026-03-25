@@ -22,7 +22,7 @@ interface IterativeTaskCompilationContext<
     val aggregation: IterativeTaskCompilationAggregation<IT, T, E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
-    val columnAmount get() = UInt64(aggregation.tasks.size - aggregation.removedTasks.size)
+    val columnAmount get() = UInt64(aggregation.tasks.size)
 
     fun register(model: AbstractLinearMetaModel): Try {
         when (val result = aggregation.register(model)) {

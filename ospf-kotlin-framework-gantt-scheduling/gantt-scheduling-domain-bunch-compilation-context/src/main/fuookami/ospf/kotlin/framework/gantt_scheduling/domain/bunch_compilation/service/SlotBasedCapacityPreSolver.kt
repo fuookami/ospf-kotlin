@@ -8,13 +8,17 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.UInt64
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel) -> Ret<*>
 
@@ -74,17 +78,63 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * 是否使用列生成
      * Whether to use column generation
      */
-    private val useColumnGeneration: Boolean = false
+    private val useColumnGeneration: Boolean = false,
+
+    /**
+     * 计算动作单位操作时间的产品产量
+     * Calculate product produce per unit operation time for action
+     */
+    private val unitProduceOfAction: ((A, M) -> Flt64)? = null,
+
+    /**
+     * 计算动作单位操作时间的原料消耗
+     * Calculate material consumption per unit operation time for action
+     */
+    private val unitConsumptionOfAction: ((A, M) -> Flt64)? = null,
+
+    /**
+     * 计算动作在时隙内单位操作时间的资源使用量
+     * Calculate resource usage per unit operation time for action in slot
+     */
+    private val unitResourceUsageOfAction: ((A, R, TimeSlot) -> Flt64)? = null,
+
+    /**
+     * 原料列表
+     * Material list
+     */
+    private val materials: List<M> = emptyList()
 ) {
     /**
      * 产能编译对象
      * Capacity compilation object
      */
-    private val compilation: Capacity<A> = CapacityCompilation(
-        actions = actions,
-        slots = slots,
-        timeWindow = timeWindow
-    )
+    private val capacityCompilation: CapacityCompilation<A>? = if (!useColumnGeneration) {
+        CapacityCompilation(
+            actions = actions,
+            slots = slots,
+            timeWindow = timeWindow
+        )
+    } else {
+        null
+    }
+
+    private val iterativeCompilation: IterativeCapacityCompilation<E, A>? = if (useColumnGeneration) {
+        IterativeCapacityCompilation(
+            executors = executors,
+            actions = actions,
+            slots = slots,
+            timeWindow = timeWindow
+        )
+    } else {
+        null
+    }
+
+    private val compilation: Capacity<A>
+        get() = if (useColumnGeneration) {
+            iterativeCompilation!!
+        } else {
+            capacityCompilation!!
+        }
 
     /**
      * 注册到模型
@@ -94,20 +144,64 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * @return Try result / Try 结果
      */
     fun register(model: LinearMetaModel): Try {
-        return compilation.register(model)
+        return if (useColumnGeneration) {
+            iterativeCompilation!!.register(model)
+        } else {
+            capacityCompilation!!.register(model)
+        }
     }
+
+    /**
+     * 在列生成模式下添加预求解列
+     * Add pre-solving columns in column-generation mode
+     *
+     * @param iteration Iteration number / 迭代编号
+     * @param columns Columns to add / 待添加列
+     * @param model Linear meta model / 线性元模型
+     * @return Added columns / 实际添加的列
+     */
+    suspend fun addColumns(
+        iteration: UInt64,
+        columns: List<CapacityColumn<E, A>>,
+        model: AbstractLinearMetaModel
+    ): Ret<List<CapacityColumn<E, A>>> {
+        if (!useColumnGeneration) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "slot_based_capacity_presolver.addColumns is only available when useColumnGeneration=true."
+            )
+        }
+        if (columns.isEmpty()) {
+            return Ok(emptyList())
+        }
+        return iterativeCompilation!!.addColumns(iteration, columns, model)
+    }
+
     /**
      * 执行预求解
      * Execute pre-solving
      *
      * @param model Linear meta model / 线性元模型
      * @param solver Solver / 求解器
+     * @param initialColumnsByIteration Initial columns grouped by iteration / 按迭代分组的初始列
      * @return Intermediate values / 中间值
      */
     suspend fun solve(
         model: AbstractLinearMetaModel,
-        solver: CapacityPreSolveSolver
+        solver: CapacityPreSolveSolver,
+        initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A>>> = emptyMap()
     ): Ret<CapacityIntermediateValues<A, M, R>> {
+        if (useColumnGeneration && initialColumnsByIteration.isNotEmpty()) {
+            val initialColumnEntries = initialColumnsByIteration.entries.sortedBy { it.key }
+            for ((iteration, columns) in initialColumnEntries) {
+                when (val result = addColumns(iteration, columns, model)) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+            }
+        }
+
         // Solve the model
         // 求解模型
         when (val result = solver(model)) {
@@ -168,27 +262,35 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
             val consumptionByMaterial = HashMap<M, Flt64>()
             val resourceUsageByResource = HashMap<R, Flt64>()
 
-            // Calculate total duration for ratio calculation
-            // 计算总时长用于比例计算
-            var totalDuration = 0L
-            for (allocation in capacitySolution.actionAllocations) {
-                totalDuration += allocation.duration.inWholeMilliseconds
-            }
-            var slotDuration = 0L
-            for (allocation in allocations) {
-                slotDuration += allocation.duration.inWholeMilliseconds
-            }
-            val slotRatio = if (totalDuration > 0 && slotDuration > 0) {
-                Flt64(slotDuration.toDouble() / totalDuration.toDouble())
+            val productSet = products.map { it.first }.toSet()
+            val materialSet = if (materials.isNotEmpty()) {
+                materials.toSet()
             } else {
-                Flt64.zero
+                productSet
             }
 
-            // Populate produce and consumption from allocations
-            // 从分配中填充产量和消耗量
-            for ((product, demandQuantity) in products) {
-                if (demandQuantity neq Flt64.zero && slotRatio neq Flt64.zero) {
-                    produceByProduct[product] = demandQuantity * slotRatio
+            for (allocation in allocations) {
+                val operationTime = timeWindow.valueOf(allocation.duration)
+
+                for (product in productSet) {
+                    val unitProduce = unitProduceOfAction?.invoke(allocation.action, product) ?: Flt64.zero
+                    if (unitProduce neq Flt64.zero) {
+                        produceByProduct[product] = (produceByProduct[product] ?: Flt64.zero) + (unitProduce * operationTime)
+                    }
+                }
+
+                for (material in materialSet) {
+                    val unitConsumption = unitConsumptionOfAction?.invoke(allocation.action, material) ?: Flt64.zero
+                    if (unitConsumption neq Flt64.zero) {
+                        consumptionByMaterial[material] = (consumptionByMaterial[material] ?: Flt64.zero) + (unitConsumption * operationTime)
+                    }
+                }
+
+                for (resource in resourceCapacities) {
+                    val unitUsage = unitResourceUsageOfAction?.invoke(allocation.action, resource, slot) ?: Flt64.zero
+                    if (unitUsage neq Flt64.zero) {
+                        resourceUsageByResource[resource] = (resourceUsageByResource[resource] ?: Flt64.zero) + (unitUsage * operationTime)
+                    }
                 }
             }
 

@@ -1,189 +1,100 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
+import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 
-// allParallelly: Check if all elements match the predicate in parallel / 并行检查所有元素是否匹配谓词
 suspend inline fun <T> Iterable<T>.allParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Boolean {
-    return try {
-        coroutineScope {
-            val channel = Channel<Boolean>()
-            for (element in this@allParallelly.iterator()) {
-                launch(Dispatchers.Default) {
-                    channel.send(predicate(element))
-                }
-            }
-            for (value in channel) {
-                if (!value) {
-                    cancel()
-                }
-            }
-            true
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Boolean>>()
+        for (element in this@allParallelly) {
+            promises.add(async(Dispatchers.Default) { predicate(element) })
         }
-    } catch (e: CancellationException) {
-        false
+        promises.all { it.await() }
     }
 }
 
-// tryAllParallelly: Try version of allParallelly / allParallelly 的 try 版本
 suspend inline fun <T> Iterable<T>.tryAllParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
-    var error: Error? = null
-
-    return try {
-        coroutineScope {
-            val channel = Channel<Ret<Boolean>>()
-            for (element in this@tryAllParallelly.iterator()) {
-                launch(Dispatchers.Default) {
-                    channel.send(predicate(element))
-                }
-            }
-            for (result in channel) {
-                when (result) {
-                    is Ok -> {
-                        if (!result.value) {
-                            cancel()
-                        }
-                    }
-
-                    is Failed -> {
-                        error = result.error
-                        cancel()
-                    }
-                }
-            }
-
-            Ok(true)
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Boolean>>>()
+        for (element in this@tryAllParallelly) {
+            promises.add(async(Dispatchers.Default) { predicate(element) })
         }
-    } catch (e: CancellationException) {
-        error?.let { Failed(it) }
-            ?: Ok(false)
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    if (!ret.value) {
+                        return@coroutineScope Ok(false)
+                    }
+                }
+
+                is Failed -> return@coroutineScope Failed(ret.error)
+                is Fatal -> return@coroutineScope Fatal(ret.errors)
+            }
+        }
+        Ok(true)
     }
 }
 
-// anyParallelly: Check if any element matches the predicate in parallel / 并行检查是否有元素匹配谓词
 suspend inline fun <T> Iterable<T>.anyParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Boolean {
-    return try {
-        coroutineScope {
-            val channel = Channel<Boolean>()
-            for (element in this@anyParallelly.iterator()) {
-                launch(Dispatchers.Default) {
-                    channel.send(predicate(element))
-                }
-            }
-            for (value in channel) {
-                if (value) {
-                    cancel()
-                }
-            }
-            false
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Boolean>>()
+        for (element in this@anyParallelly) {
+            promises.add(async(Dispatchers.Default) { predicate(element) })
         }
-    } catch (e: CancellationException) {
-        true
+        promises.any { it.await() }
     }
 }
 
-// tryAnyParallelly: Try version of anyParallelly / anyParallelly 的 try 版本
 suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
-    var error: Error? = null
-
-    return try {
-        coroutineScope {
-            val channel = Channel<Ret<Boolean>>()
-            for (element in this@tryAnyParallelly.iterator()) {
-                launch(Dispatchers.Default) {
-                    channel.send(predicate(element))
-                }
-            }
-            for (result in channel) {
-                when (result) {
-                    is Ok -> {
-                        if (result.value) {
-                            cancel()
-                        }
-                    }
-
-                    is Failed -> {
-                        error = result.error
-                        cancel()
-                    }
-                }
-            }
-
-            Ok(false)
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Boolean>>>()
+        for (element in this@tryAnyParallelly) {
+            promises.add(async(Dispatchers.Default) { predicate(element) })
         }
-    } catch (e: CancellationException) {
-        error?.let { Failed(it) }
-            ?: Ok(true)
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    if (ret.value) {
+                        return@coroutineScope Ok(true)
+                    }
+                }
+
+                is Failed -> return@coroutineScope Failed(ret.error)
+                is Fatal -> return@coroutineScope Fatal(ret.errors)
+            }
+        }
+        Ok(false)
     }
 }
 
-// noneParallelly: Check if no element matches the predicate in parallel / 并行检查是否没有元素匹配谓词
 suspend inline fun <T> Iterable<T>.noneParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Boolean {
-    return try {
-        coroutineScope {
-            val channel = Channel<Boolean>()
-            for (element in this@noneParallelly.iterator()) {
-                launch(Dispatchers.Default) {
-                    channel.send(predicate(element))
-                }
-            }
-            for (value in channel) {
-                if (value) {
-                    cancel()
-                }
-            }
-            true
-        }
-    } catch (e: CancellationException) {
-        false
-    }
+    return !anyParallelly(predicate)
 }
 
-// tryNoneParallelly: Try version of noneParallelly / noneParallelly 的 try 版本
 suspend inline fun <T> Iterable<T>.tryNoneParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
-    var error: Error? = null
-
-    return try {
-        coroutineScope {
-            val channel = Channel<Ret<Boolean>>()
-            for (element in this@tryNoneParallelly.iterator()) {
-                launch(Dispatchers.Default) {
-                    channel.send(predicate(element))
-                }
-            }
-            for (result in channel) {
-                when (result) {
-                    is Ok -> {
-                        if (result.value) {
-                            cancel()
-                        }
-                    }
-
-                    is Failed -> {
-                        error = result.error
-                        cancel()
-                    }
-                }
-            }
-
-            Ok(true)
-        }
-    } catch (e: CancellationException) {
-        error?.let { Failed(it) }
-            ?: Ok(false)
+    return when (val ret = tryAnyParallelly(predicate)) {
+        is Ok -> Ok(!ret.value)
+        is Failed -> Failed(ret.error)
+        is Fatal -> Fatal(ret.errors)
     }
 }

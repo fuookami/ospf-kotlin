@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.map
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable2
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
@@ -32,6 +33,7 @@ class CapacityCompilation<A : ProductionAction>(
     private val slots: List<TimeSlot>,
     private val timeWindow: TimeWindow
 ) : Capacity<A> {
+    override val executors: List<Executor> = actions.map { it.executor }.distinct()
 
     init {
         // Index actions if they implement ManualIndexed
@@ -112,8 +114,12 @@ class CapacityCompilation<A : ProductionAction>(
                 objs1 = actions,
                 objs2 = slots,
                 ctor = { action, slot ->
-                    val unitCap = action.unitCapacity(timeWindow) / Flt64(timeWindow.interval.inWholeMilliseconds.toDouble())
-                    unitCap * x[actions.indexOf(action), slots.indexOf(slot)]
+                    val unitOperationTime = if (action.discrete && action.batchDuration != null) {
+                        timeWindow.valueOf(action.batchDuration!!)
+                    } else {
+                        timeWindow.valueOf(timeWindow.interval)
+                    }
+                    unitOperationTime * x[actions.indexOf(action), slots.indexOf(slot)]
                 }
             )
         }
@@ -125,7 +131,6 @@ class CapacityCompilation<A : ProductionAction>(
 
         // Register capacity symbol
         // 注册 capacity 符号
-        val executors = actions.map { it.executor }.distinct()
         if (!::capacity.isInitialized) {
             capacity = flatMap(
                 name = "capacity",
@@ -158,7 +163,6 @@ class CapacityCompilation<A : ProductionAction>(
      */
     override fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
-        val executors = actions.map { it.executor }.distinct()
 
         for ((a, action) in actions.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
@@ -188,7 +192,7 @@ class CapacityCompilation<A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 val capValue = capacity[e, s].evaluate(model.tokens)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
-                    timeWindow.interval * capValue.toDouble()
+                    timeWindow.durationOf(capValue)
                 } else {
                     Duration.ZERO
                 }

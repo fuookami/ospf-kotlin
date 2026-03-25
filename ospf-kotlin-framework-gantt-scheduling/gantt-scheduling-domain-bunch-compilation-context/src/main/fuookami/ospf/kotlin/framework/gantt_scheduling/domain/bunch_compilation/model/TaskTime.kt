@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTimeImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.Int64
@@ -116,7 +117,7 @@ open class BunchSchedulingTaskTime<
             ) { i, _ ->
                 val task = tasks[i]
                 LinearExpressionSymbol(
-                    polynomial = if (!::estRedundancy.isInitialized) {
+                    polynomial = if (::estRedundancy.isInitialized) {
                         LinearPolynomial(estRedundancy[task])
                     } else {
                         LinearPolynomial()
@@ -144,7 +145,7 @@ open class BunchSchedulingTaskTime<
             ) { i, _ ->
                 val task = tasks[i]
                 LinearExpressionSymbol(
-                    polynomial = if (!::estRedundancy.isInitialized) {
+                    polynomial = if (::estRedundancy.isInitialized) {
                         LinearPolynomial(estRedundancy[task])
                     } else {
                         LinearPolynomial()
@@ -230,7 +231,11 @@ open class BunchSchedulingTaskTime<
     ): Try {
         assert(bunches.isNotEmpty())
 
-        val xi = compilation.x.last()
+        val xi = compilation.x.getOrNull(iteration.toInt())
+            ?: return Failed(
+                ErrorCode.IllegalArgument,
+                "TaskTime.addColumns iteration $iteration is out of range."
+            )
         for (task in tasks) {
             val thisBunches = bunches.filter { it.contains(task) }
             if (thisBunches.isNotEmpty()) {

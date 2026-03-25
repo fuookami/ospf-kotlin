@@ -24,7 +24,7 @@ interface BunchCompilationContext<
     val aggregation: BunchCompilationAggregation<B, T, E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
-    val columnAmount get() = UInt64(aggregation.bunches.size - aggregation.removedBunches.size)
+    val columnAmount get() = UInt64(aggregation.bunches.size)
 
     fun register(model: AbstractLinearMetaModel): Try {
         when (val result = aggregation.register(model)) {

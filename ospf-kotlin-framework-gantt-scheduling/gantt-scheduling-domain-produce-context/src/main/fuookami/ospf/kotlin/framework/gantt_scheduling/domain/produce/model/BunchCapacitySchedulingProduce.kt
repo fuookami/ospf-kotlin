@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
@@ -50,25 +50,30 @@ class BunchCapacitySchedulingProduce<
      * @param compilation 迭代编译对象 / Iterative compilation object
      * @return 成功与否 / Success or failure
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,
         columns: List<CapacityColumn<E, A>>,
-        compilation: IterativeCapacityCompilation<A>
+        compilation: IterativeCapacityCompilation<E, A>
     ): Try {
+        // Rebuild from operationTime to keep consistency when iterative x variables are reshaped.
+        // 基于 operationTime 重建，避免迭代扩容后 x 变量重建导致的表达式引用失配。
         for ((product, _) in products) {
-            for (column in columns) {
-                for ((action, amount) in column.allocations) {
-                    if (action is CapacityActionProduce<*, *>) {
-                        @Suppress("UNCHECKED_CAST")
-                        val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
-                        if (unitProduce neq Flt64.zero) {
-                            val actionIndex = actions.indexOf(action)
-                            if (actionIndex >= 0) {
-                                val produceAmount = unitProduce * amount.toFlt64()
-                                quantity[product].asMutable() += produceAmount * compilation.x[actionIndex, column.slotIndex]
-                            }
-                        }
-                    }
+            quantity[product].asMutable().let {
+                it.monomials.clear()
+                it.constant = Flt64.zero
+            }
+            for ((actionIndex, action) in actions.withIndex()) {
+                if (action !is CapacityActionProduce<*, *>) {
+                    continue
+                }
+                @Suppress("UNCHECKED_CAST")
+                val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
+                if (unitProduce eq Flt64.zero) {
+                    continue
+                }
+                for ((slotIndex, _) in slots.withIndex()) {
+                    quantity[product].asMutable() += unitProduce * compilation.operationTime[actionIndex, slotIndex].toLinearPolynomial()
                 }
             }
         }

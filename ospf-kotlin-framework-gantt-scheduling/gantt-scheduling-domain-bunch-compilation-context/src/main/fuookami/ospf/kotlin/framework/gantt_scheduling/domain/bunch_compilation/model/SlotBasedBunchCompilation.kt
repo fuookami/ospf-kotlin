@@ -36,7 +36,13 @@ open class SlotBasedBunchCompilation<
     private val slots: List<TimeSlot>,
     private val lockCancelTasks: Set<T> = emptySet(),
     override val withExecutorLeisure: Boolean = true
-) : BunchCompilation<B, T, E, A>(tasks, executors, lockCancelTasks, withExecutorLeisure)
+) : BunchCompilation<B, T, E, A>(
+    tasks = tasks,
+    executors = executors,
+    lockCancelTasks = lockCancelTasks,
+    withExecutorLeisure = withExecutorLeisure,
+    bunchAggregation = SlotBasedBunchAggregation()
+)
         where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
 
     /**
@@ -82,15 +88,18 @@ open class SlotBasedBunchCompilation<
         for (bunch in unduplicatedBunches) {
             bunchesBySlot.getOrPut(bunch.slot) { mutableListOf() }.add(bunch)
         }
+        if (bunchesBySlot.isEmpty()) {
+            @Suppress("UNCHECKED_CAST")
+            return Ok(bunchesBySlot.mapValues { it.value.toList() } as Map<TimeSlot, List<B>>)
+        }
 
         // Update xBySlot tracking
         // 更新 xBySlot 跟踪
-        for ((slot, slotBunches) in bunchesBySlot) {
+        val currentX = x.lastOrNull()
+        for ((slot, _) in bunchesBySlot) {
             val slotVariables = _xBySlot.getOrPut(slot) { ArrayList() }
-            // Find the last added x variable (corresponding to this iteration)
-            // 找到最后添加的 x 变量（对应此迭代）
-            if (x.isNotEmpty()) {
-                slotVariables.add(x.last())
+            if (currentX != null && slotVariables.lastOrNull() !== currentX) {
+                slotVariables.add(currentX)
             }
         }
 

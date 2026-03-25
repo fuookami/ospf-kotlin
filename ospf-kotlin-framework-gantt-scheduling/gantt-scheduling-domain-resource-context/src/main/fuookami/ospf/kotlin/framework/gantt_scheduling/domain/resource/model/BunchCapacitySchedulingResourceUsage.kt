@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
@@ -40,6 +40,7 @@ class BunchCapacitySchedulingResourceUsage<
 ) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
     timeWindow, resources, actions, interval
 ) where R : Resource<C>, R : CapacityActionResource<C> {
+    private val capacitySlots: List<TimeSlot> = times
 
     override val name: String = "bunch_capacity_scheduling_resource"
     override lateinit var quantity: LinearExpressionSymbols1
@@ -53,8 +54,8 @@ class BunchCapacitySchedulingResourceUsage<
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
-                if (times.isNotEmpty()) {
-                    val thisTimes = times.filter { it.time.withIntersection(capacity.time) }
+                if (capacitySlots.isNotEmpty()) {
+                    val thisTimes = capacitySlots.filter { it.time.withIntersection(capacity.time) }
                     for (time in thisTimes) {
                         val thisTime = TimeRange(
                             maxOf(time.start, capacity.time.start),
@@ -115,25 +116,37 @@ class BunchCapacitySchedulingResourceUsage<
      * @param compilation 迭代编译对象 / Iterative compilation object
      * @return 成功与否 / Success or failure
      */
+    @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,
         columns: List<CapacityColumn<E, A>>,
-        compilation: IterativeCapacityCompilation<A>
+        compilation: IterativeCapacityCompilation<E, A>
     ): Try {
+        // Rebuild from operationTime to keep consistency when iterative x variables are reshaped.
+        // 基于 operationTime 重建，避免迭代扩容后 x 变量重建导致的表达式引用失配。
         for (slot in timeSlots) {
-            for (column in columns) {
-                for ((action, amount) in column.allocations) {
-                    val unitUsage = slot.resource.usedBy(action, slot.time)
-                    if (unitUsage neq Flt64.zero) {
-                        val actionIndex = actions.indexOf(action)
-                        if (actionIndex >= 0) {
-                            val columnUsage = unitUsage * amount.toFlt64()
-                            quantity[slot].asMutable() += columnUsage * compilation.x[actionIndex, column.slotIndex]
-                        }
-                    }
+            quantity[slot].asMutable().let {
+                it.monomials.clear()
+                it.constant = Flt64.zero
+            }
+            val slotIndex = resolveCapacitySlotIndex(slot)
+            if (slotIndex < 0 || slotIndex >= compilation.operationTime.shape[1]) {
+                continue
+            }
+            for ((actionIndex, action) in actions.withIndex()) {
+                val unitUsage = slot.resource.usedBy(action, slot.time)
+                if (unitUsage neq Flt64.zero) {
+                    quantity[slot].asMutable() += unitUsage * compilation.operationTime[actionIndex, slotIndex].toLinearPolynomial()
                 }
             }
         }
         return ok
+    }
+
+    private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C>): Int {
+        if (capacitySlots.isNotEmpty()) {
+            return capacitySlots.indexOfFirst { it.time.contains(slot.time) }
+        }
+        return slot.indexInRule.toInt()
     }
 }

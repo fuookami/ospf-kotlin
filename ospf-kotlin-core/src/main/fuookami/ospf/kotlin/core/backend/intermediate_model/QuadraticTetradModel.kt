@@ -1126,7 +1126,7 @@ suspend fun solveDual(
         }
 
         is Fatal -> {
-            result
+            Fatal(result.errors)
         }
     }
 }
@@ -1147,7 +1147,7 @@ suspend fun solveFarkasDual(
         }
 
         is Fatal -> {
-            result
+            Fatal(result.errors)
         }
     }
 }

@@ -273,7 +273,7 @@ class BunchSchedulingConsumption<
 
             if (thisBunches.isNotEmpty()) {
                 quantity[material].flush()
-                for (bunch in bunches) {
+                for (bunch in thisBunches) {
                     quantity[material].asMutable() += bunch.consumption(material) * xi[bunch]
                 }
             }

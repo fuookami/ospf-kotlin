@@ -242,7 +242,7 @@ data class TimeWindow(
         val slotIntervals = ArrayList<Duration>()
         var current = start
         var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
-        val end1 = (start.truncatedTo(upper.durationUnit) + kotlin.math.ceil(upper.interval / currentInterval).toInt() * currentInterval)
+        val end1 = (start.truncatedTo(upper.durationUnit) + currentInterval * kotlin.math.ceil(upper.interval / currentInterval).toInt())
             .let {
                 if ((it - start) < currentInterval) {
                     it + upper.interval

@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-data class BunchAggregation<
+open class BunchAggregation<
         B : AbstractTaskBunch<T, E, A>,
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -33,7 +33,7 @@ data class BunchAggregation<
                 promises.add(async(Dispatchers.Default) {
                     val unduplicatedNewBunches = ArrayList<B>()
                     for (bunch in bunches) {
-                        if (unduplicatedNewBunches.all { bunch neq it }) {
+                        if (unduplicatedNewBunches.none { bunch sameColumnAs it }) {
                             unduplicatedNewBunches.add(bunch)
                         }
                     }
@@ -47,7 +47,7 @@ data class BunchAggregation<
             val promises = ArrayList<Deferred<B?>>()
             for (bunch in unduplicatedNewBunches) {
                 promises.add(async(Dispatchers.Default) {
-                    if (_bunches.all { bunch neq it }) {
+                    if (_bunches.none { bunch sameColumnAs it }) {
                         bunch
                     } else {
                         null
@@ -65,6 +65,10 @@ data class BunchAggregation<
         _bunches.addAll(unduplicatedBunches)
 
         return unduplicatedBunches
+    }
+
+    protected open infix fun B.sameColumnAs(other: B): Boolean {
+        return !(this neq other)
     }
 
     fun removeColumn(bunch: B) {

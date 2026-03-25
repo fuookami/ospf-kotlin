@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -33,8 +32,7 @@ interface SlotBasedBunchCompilationContext<
         A : AssignmentPolicy<E>,
         Action : ProductionAction,
         M,
-        R,
-        C : Capacity<Action>
+        R
         > : BunchCompilationContext<Args, B, T, E, A>
         where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
 
@@ -48,7 +46,7 @@ interface SlotBasedBunchCompilationContext<
      * 产能预求解器
      * Capacity pre-solver
      */
-    val capacityPreSolver: SlotBasedCapacityPreSolver<Action, M, R, C>
+    val capacityPreSolver: SlotBasedCapacityPreSolver<E, Action, M, R>
 
     /**
      * 产能中间值（预求解后填充）

@@ -1089,7 +1089,7 @@ open class IterativeTaskSchedulingTaskTime<
             ) { t, _ ->
                 val task = tasks[t]
                 LinearExpressionSymbol(
-                    if (!::estRedundancy.isInitialized) {
+                    if (::estRedundancy.isInitialized) {
                         LinearPolynomial(estRedundancy[t])
                     } else {
                         LinearPolynomial()
@@ -1117,7 +1117,7 @@ open class IterativeTaskSchedulingTaskTime<
             ) { t, _ ->
                 val task = tasks[t]
                 LinearExpressionSymbol(
-                    if (!::estRedundancy.isInitialized) {
+                    if (::estRedundancy.isInitialized) {
                         LinearPolynomial(estRedundancy[t])
                     } else {
                         LinearPolynomial()
@@ -1203,7 +1203,11 @@ open class IterativeTaskSchedulingTaskTime<
     ): Try {
         assert(tasks.isNotEmpty())
 
-        val xi = compilation.x.last()
+        val xi = compilation.x.getOrNull(iteration.toInt())
+            ?: return Failed(
+                ErrorCode.IllegalArgument,
+                "TaskTime.addColumns iteration $iteration is out of range."
+            )
         for (task in tasks) {
             val thisNewTasks = newTasks.filter { it.key == task.key }
             if (thisNewTasks.isNotEmpty()) {

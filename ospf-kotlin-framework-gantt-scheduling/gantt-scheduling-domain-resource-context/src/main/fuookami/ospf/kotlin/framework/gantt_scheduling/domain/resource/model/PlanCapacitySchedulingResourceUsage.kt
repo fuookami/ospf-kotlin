@@ -44,6 +44,7 @@ class PlanCapacitySchedulingResourceUsage<
 ) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
     timeWindow, resources, actions, interval
 ) where R : Resource<C>, R : CapacityActionResource<C> {
+    private val capacitySlots: List<TimeSlot> = times
 
     override val name: String = "plan_capacity_scheduling_resource"
     override lateinit var quantity: LinearExpressionSymbols1
@@ -57,8 +58,8 @@ class PlanCapacitySchedulingResourceUsage<
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
-                if (times.isNotEmpty()) {
-                    val thisTimes = times.filter { it.time.withIntersection(capacity.time) }
+                if (capacitySlots.isNotEmpty()) {
+                    val thisTimes = capacitySlots.filter { it.time.withIntersection(capacity.time) }
                     for (time in thisTimes) {
                         val thisTime = TimeRange(
                             maxOf(time.start, capacity.time.start),
@@ -109,8 +110,8 @@ class PlanCapacitySchedulingResourceUsage<
                 val unitUsage = slot.resource.usedBy(action, slot.time)
                 if (unitUsage neq Flt64.zero) {
                     val actionIndex = actions.indexOf(action)
-                    val slotIndex = times.indexOfFirst { it.time.contains(slot.time) }
-                    if (actionIndex >= 0 && slotIndex >= 0) {
+                    val slotIndex = resolveCapacitySlotIndex(slot)
+                    if (actionIndex >= 0 && slotIndex >= 0 && slotIndex < compilation.operationTime.shape[1]) {
                         quantity[slot].asMutable() += unitUsage * compilation.operationTime[actionIndex, slotIndex].toLinearPolynomial()
                     }
                 }
@@ -120,5 +121,12 @@ class PlanCapacitySchedulingResourceUsage<
 
     override fun register(model: LinearMetaModel): Try {
         return addQuantityToModel(model, timeSlots)
+    }
+
+    private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C>): Int {
+        if (capacitySlots.isNotEmpty()) {
+            return capacitySlots.indexOfFirst { it.time.contains(slot.time) }
+        }
+        return slot.indexInRule.toInt()
     }
 }

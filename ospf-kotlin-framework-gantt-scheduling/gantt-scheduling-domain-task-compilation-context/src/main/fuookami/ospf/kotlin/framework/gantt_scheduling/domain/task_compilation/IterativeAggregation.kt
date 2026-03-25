@@ -123,7 +123,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             model.remove(xi[task])
         }
 
-        val remainingAmount = UInt64((tasks.size - removedTasks.size).toULong())
+        val remainingAmount = UInt64(tasks.size.toULong())
         return if (remainingAmount > maximumColumnAmount) {
             Ok(max((maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)).toFlt64(), Flt64(5.0)))
         } else {

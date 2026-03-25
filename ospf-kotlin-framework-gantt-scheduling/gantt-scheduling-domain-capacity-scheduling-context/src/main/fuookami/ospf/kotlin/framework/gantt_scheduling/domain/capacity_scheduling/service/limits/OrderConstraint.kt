@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityOrderCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.UInt64
@@ -61,9 +62,14 @@ class OrderConstraint<A : ProductionAction>(
 
                     // Constraint 3: Link b and x (upper bound)
                     // 约束3: 关联 b 和 x（上界）
-                    // x <= M * b where M is a large constant
-                    // x <= M * b，其中 M 是一个大常数
-                    val upperBoundPoly = 10000.0 * b[a, t, o]
+                    // x <= M * b where M uses x's own upper bound
+                    // x <= M * b，其中 M 使用 x 自身上界
+                    val upperBound = x[a, t, o].upperBound?.value?.unwrap()
+                        ?: return Failed(
+                            ErrorCode.IllegalArgument,
+                            "${name}_link_ub_${a}_${t}_$o requires finite upper bound of x[$a,$t,$o]."
+                        )
+                    val upperBoundPoly = upperBound * b[a, t, o]
                     when (val result = model.addConstraint(x[a, t, o] leq upperBoundPoly, name = "${name}_link_ub_${a}_${t}_$o")) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)

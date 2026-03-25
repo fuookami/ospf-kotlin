@@ -113,7 +113,7 @@ abstract class AbstractBunchCompilationAggregation<
             model.remove(xi[bunch])
         }
 
-        val remainingAmount = UInt64((bunches.size - removedBunches.size).toULong())
+        val remainingAmount = UInt64(bunches.size.toULong())
         return if (remainingAmount > maximumColumnAmount) {
             Ok(
                 max(

@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaMode
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.variable.BinVariable3
 import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable3
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
@@ -37,6 +38,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
     private val timeWindow: TimeWindow,
     private val maxOrderPerSlot: UInt64
 ) : Capacity<A> {
+    override val executors: List<Executor> = actions.map { it.executor }.distinct()
 
     init {
         // Index actions if they implement ManualIndexed
@@ -148,10 +150,14 @@ class CapacityOrderCompilation<A : ProductionAction>(
                 ctor = { action, slot ->
                     val a = actions.indexOf(action)
                     val s = slots.indexOf(slot)
-                    val unitCap = action.unitCapacity(timeWindow) / Flt64(timeWindow.interval.inWholeMilliseconds.toDouble())
+                    val unitOperationTime = if (action.discrete && action.batchDuration != null) {
+                        timeWindow.valueOf(action.batchDuration!!)
+                    } else {
+                        timeWindow.valueOf(timeWindow.interval)
+                    }
                     val poly = MutableLinearPolynomial()
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        poly += unitCap * x[a, s, o]
+                        poly += unitOperationTime * x[a, s, o]
                     }
                     poly
                 }
@@ -165,7 +171,6 @@ class CapacityOrderCompilation<A : ProductionAction>(
 
         // Register capacity symbol
         // 注册 capacity 符号
-        val executors = actions.map { it.executor }.distinct()
         if (!::capacity.isInitialized) {
             capacity = flatMap(
                 name = "capacity",
@@ -198,7 +203,6 @@ class CapacityOrderCompilation<A : ProductionAction>(
      */
     override fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
-        val executors = actions.map { it.executor }.distinct()
 
         for ((a, action) in actions.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
@@ -231,7 +235,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 val capValue = capacity[e, s].evaluate(model.tokens)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
-                    timeWindow.interval * capValue.toDouble()
+                    timeWindow.durationOf(capValue)
                 } else {
                     Duration.ZERO
                 }

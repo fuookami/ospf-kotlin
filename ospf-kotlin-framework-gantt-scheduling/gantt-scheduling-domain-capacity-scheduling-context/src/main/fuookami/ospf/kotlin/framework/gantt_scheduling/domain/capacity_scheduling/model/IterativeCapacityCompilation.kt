@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.flatMap
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.map
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable2
@@ -40,7 +39,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 执行器列表
      * List of executors
      */
-    private val executors: List<E>,
+    override val executors: List<E>,
 
     /**
      * 生产动作列表
@@ -77,6 +76,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      */
     internal val columnsByExecutor: Map<E, CapacityColumnAggregation<E, A>> =
         executors.associateWith { CapacityColumnAggregation() }
+    private val executorByRef: Map<Executor, E> = executors.associateBy { it }
 
     /**
      * 每台设备的二维整型变量
@@ -136,28 +136,40 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         // Register operationTime symbol
         // 注册 operationTime 符号
         if (!::operationTime.isInitialized) {
-            operationTime = map(
+            operationTime = flatMap(
                 name = "operationTime",
                 objs1 = actions,
                 objs2 = slots,
                 ctor = { action, slot ->
-                    val a = actions.indexOf(action)
                     val s = slots.indexOf(slot)
-                    val executorVar = _x[action.executor]
+                    val executor = executorByRef[action.executor]
+                    val executorVar = if (executor != null) {
+                        _x[executor]
+                    } else {
+                        null
+                    }
                     if (executorVar != null && executorVar.shape[1] > 0) {
-                        val unitCap = action.unitCapacity(timeWindow) /
-                            Flt64(timeWindow.interval.inWholeMilliseconds.toDouble())
+                        val unitOperationTime = if (action.discrete && action.batchDuration != null) {
+                            timeWindow.valueOf(action.batchDuration!!)
+                        } else {
+                            timeWindow.valueOf(timeWindow.interval)
+                        }
                         // Sum over all columns for this action's slot
                         // 对该动作时隙的所有列求和
                         val poly = MutableLinearPolynomial()
-                        val columnAgg = columnsByExecutor[action.executor]
+                        val columnAgg = if (executor != null) {
+                            columnsByExecutor[executor]
+                        } else {
+                            null
+                        }
                         if (columnAgg != null) {
                             for ((iterIdx, columns) in columnAgg.columnsIteration.withIndex()) {
                                 for ((colIdx, column) in columns.withIndex()) {
                                     if (column.slotIndex == s) {
                                         val amount = column.amountFor(action)
                                         if (amount > UInt64.zero) {
-                                            poly += unitCap * executorVar[iterIdx, colIdx]
+                                            val coefficient = unitOperationTime * Flt64(amount.toLong().toDouble())
+                                            poly += coefficient * executorVar[iterIdx, colIdx]
                                         }
                                     }
                                 }
@@ -228,10 +240,19 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
 
         for ((executor, columns) in columnsByExec) {
             val columnAggregation = columnsByExecutor[executor] ?: continue
+            val sanitizedColumns = columns.filter { column ->
+                column.slotIndex in slots.indices &&
+                    column.allocations.keys.all { action ->
+                        action in actions && action.executor == executor
+                    }
+            }
+            if (sanitizedColumns.isEmpty()) {
+                continue
+            }
 
             // Add columns to aggregation (with deduplication)
             // 将列添加到聚合（带去重）
-            val addedColumns = columnAggregation.addColumns(iteration, columns)
+            val addedColumns = columnAggregation.addColumns(iteration, sanitizedColumns)
             if (addedColumns.isEmpty()) continue
 
             // Get or create variable for this executor
@@ -242,7 +263,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                     columnAggregation.columnsIteration.size,
                     columnAggregation.columnsIteration.maxOfOrNull { it.size } ?: 0
                 )
-                UIntVariable2("x_${executor.id}", varShape)
+                UIntVariable2("x_${executor.id}_v${columnAggregation.columns.size}", varShape)
             } else {
                 // Resize variable to accommodate new columns
                 // 调整变量大小以容纳新列
@@ -250,12 +271,14 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                     columnAggregation.columnsIteration.size,
                     columnAggregation.columnsIteration.maxOfOrNull { it.size } ?: 0
                 )
-                UIntVariable2("x_${executor.id}", newShape).also {
+                UIntVariable2("x_${executor.id}_v${columnAggregation.columns.size}", newShape).also {
                     // Copy existing variable bounds
                     // 复制现有变量边界
                     for (i in 0 until existingVar.shape[0]) {
                         for (j in 0 until existingVar.shape[1]) {
-                            it[i, j].range.setUb(existingVar[i, j].range.ub)
+                            existingVar[i, j].range.range?.copy()?.let { range ->
+                                it[i, j].range.set(range)
+                            }
                         }
                     }
                 }
@@ -268,31 +291,168 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                 val colIdx = columnAggregation.columnsIteration[iterIdx].indexOf(column)
                 if (colIdx >= 0) {
                     newVar[iterIdx, colIdx].name = "x_${executor.id}_${iterIdx}_$colIdx"
-                    newVar[iterIdx, colIdx].range.setUb(UInt64(1000))  // Default upper bound
+                    newVar[iterIdx, colIdx].range.setUb(columnUpperBound(column))
                 }
+            }
+
+            if (existingVar != null) {
+                for (item in existingVar) {
+                    model.remove(item)
+                }
+            }
+            when (val result = model.add(newVar)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             _x[executor] = newVar
             allAddedColumns.addAll(addedColumns)
         }
 
-        // Update cost expression with new columns
-        // 用新列更新成本表达式
-        if (allAddedColumns.isNotEmpty() && _cost != null) {
-            val costPoly = MutableLinearPolynomial(name = "cost")
-            for ((executor, columnAgg) in columnsByExecutor) {
-                val executorVar = _x[executor] ?: continue
-                for ((iterIdx, columns) in columnAgg.columnsIteration.withIndex()) {
-                    for ((colIdx, column) in columns.withIndex()) {
-                        costPoly += column.cost * executorVar[iterIdx, colIdx]
-                    }
-                }
+        if (allAddedColumns.isNotEmpty()) {
+            when (val result = rebuildSymbols()) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
-            // Note: In practice, you may need to update the model's cost expression
-            // 注意：实践中，可能需要更新模型的成本表达式
         }
 
         return Ok(allAddedColumns)
+    }
+
+    /**
+     * 定位列对应的决策变量位置
+     * Locate decision variable position for a column
+     */
+    fun locateColumnDecision(
+        iteration: UInt64,
+        column: CapacityColumn<E, A>
+    ): Pair<UIntVariable2, Int>? {
+        val iterIdx = iteration.toInt()
+        val executorVar = _x[column.executor] ?: return null
+        val columnAgg = columnsByExecutor[column.executor] ?: return null
+        val columnsInIteration = columnAgg.columnsIteration.getOrNull(iterIdx) ?: return null
+        val columnIndex = columnsInIteration.indexOf(column)
+        if (columnIndex < 0) {
+            return null
+        }
+        if (iterIdx >= executorVar.shape[0] || columnIndex >= executorVar.shape[1]) {
+            return null
+        }
+        return executorVar to columnIndex
+    }
+
+    /**
+     * 计算列变量上界
+     * Calculate upper bound for a column decision variable
+     */
+    private fun columnUpperBound(column: CapacityColumn<E, A>): UInt64 {
+        if (column.slotIndex !in slots.indices) {
+            return UInt64.zero
+        }
+
+        var columnOperationTime = Flt64.zero
+        for ((action, amount) in column.allocations) {
+            if (amount <= UInt64.zero) {
+                continue
+            }
+            val unitOperationTime = if (action.discrete && action.batchDuration != null) {
+                timeWindow.valueOf(action.batchDuration!!)
+            } else {
+                timeWindow.valueOf(timeWindow.interval)
+            }
+            columnOperationTime += unitOperationTime * amount.toFlt64()
+        }
+        if (columnOperationTime <= Flt64.zero) {
+            return UInt64.zero
+        }
+
+        val available = timeWindow.valueOf(slots[column.slotIndex].duration)
+        if (available <= Flt64.zero) {
+            return UInt64.zero
+        }
+        val upperBound = (available / columnOperationTime).floor()
+        return if (upperBound <= Flt64.zero) {
+            UInt64.zero
+        } else {
+            upperBound.toUInt64()
+        }
+    }
+
+    private fun rebuildSymbols(): Try {
+        if (_cost == null || !::operationTime.isInitialized || !::capacity.isInitialized) {
+            return ok
+        }
+
+        for ((a, _) in actions.withIndex()) {
+            for ((s, _) in slots.withIndex()) {
+                operationTime[a, s].asMutable().let {
+                    it.monomials.clear()
+                    it.constant = Flt64.zero
+                }
+            }
+        }
+
+        for ((executor, columnAgg) in columnsByExecutor) {
+            val executorVar = _x[executor] ?: continue
+            for ((iterIdx, columns) in columnAgg.columnsIteration.withIndex()) {
+                for ((colIdx, column) in columns.withIndex()) {
+                    if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
+                        continue
+                    }
+                    val variable = executorVar[iterIdx, colIdx]
+                    for ((action, amount) in column.allocations) {
+                        if (amount <= UInt64.zero) {
+                            continue
+                        }
+                        val actionIndex = actions.indexOf(action)
+                        if (actionIndex < 0 || column.slotIndex !in slots.indices) {
+                            continue
+                        }
+                        val unitOperationTime = if (action.discrete && action.batchDuration != null) {
+                            timeWindow.valueOf(action.batchDuration!!)
+                        } else {
+                            timeWindow.valueOf(timeWindow.interval)
+                        }
+                        val coefficient = unitOperationTime * Flt64(amount.toLong().toDouble())
+                        operationTime[actionIndex, column.slotIndex].asMutable() += coefficient * variable
+                    }
+                }
+            }
+        }
+
+        for ((e, executor) in executors.withIndex()) {
+            for ((s, _) in slots.withIndex()) {
+                capacity[e, s].asMutable().let {
+                    it.monomials.clear()
+                    it.constant = Flt64.zero
+                }
+                for ((a, action) in actions.withIndex()) {
+                    if (action.executor == executor) {
+                        capacity[e, s].asMutable() += operationTime[a, s].toLinearPolynomial()
+                    }
+                }
+            }
+        }
+
+        _cost!!.asMutable().let {
+            it.monomials.clear()
+            it.constant = Flt64.zero
+        }
+        for ((executor, columnAgg) in columnsByExecutor) {
+            val executorVar = _x[executor] ?: continue
+            for ((iterIdx, columns) in columnAgg.columnsIteration.withIndex()) {
+                for ((colIdx, column) in columns.withIndex()) {
+                    if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
+                        continue
+                    }
+                    _cost!!.asMutable() += column.cost * executorVar[iterIdx, colIdx]
+                }
+            }
+        }
+
+        return ok
     }
 
     /**
@@ -316,15 +476,18 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                     val value = token?.result?.round()?.toUInt64() ?: UInt64.zero
 
                     if (value > UInt64.zero) {
+                        if (column.slotIndex !in slots.indices) {
+                            continue
+                        }
                         // Create action allocations from this column
                         // 从该列创建动作分配
                         for ((action, amount) in column.allocations) {
                             if (amount > UInt64.zero) {
-                                val actualAmount = amount * value.toLong()
+                                val actualAmount = amount * value
                                 val duration = if (action.discrete && action.batchDuration != null) {
-                                    action.batchDuration!! * actualAmount.toDouble()
+                                    action.batchDuration!! * actualAmount.toLong().toDouble()
                                 } else {
-                                    timeWindow.interval * actualAmount.toDouble()
+                                    timeWindow.interval * actualAmount.toLong().toDouble()
                                 }
 
                                 actionAllocations.add(
@@ -350,7 +513,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 val capValue = capacity[e, s].evaluate(model.tokens)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
-                    timeWindow.interval * capValue.toDouble()
+                    timeWindow.durationOf(capValue)
                 } else {
                     Duration.ZERO
                 }
