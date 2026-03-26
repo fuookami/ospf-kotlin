@@ -4,9 +4,12 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
@@ -107,5 +110,68 @@ class ConvertTest {
         assertNull(quadratic.toLinearPolynomialOrNull())
         val ret = quadratic.toLinearPolynomialRet()
         assertTrue(ret is Failed)
+    }
+
+    @Test
+    fun normalizeToLessEqualFormShouldKeepNeUnchanged() {
+        val x = TestSymbol("x")
+        val inequality = LinearInequality(
+            lhs = LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64.one, x)),
+                constant = Flt64.one
+            ),
+            rhs = LinearPolynomial(constant = Flt64.zero),
+            comparison = Comparison.NE
+        )
+
+        val normalized = inequality.normalizeToLessEqualForm()
+
+        assertEquals(inequality, normalized)
+    }
+
+    @Test
+    fun canonicalInequalityShouldSupportConversionAndNormalization() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val linear = LinearInequality(
+            lhs = LinearPolynomial(
+                monomials = listOf(
+                    LinearMonomial(Flt64.two, x),
+                    LinearMonomial(Flt64.one, y)
+                ),
+                constant = Flt64.one
+            ),
+            rhs = LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64(3.0), x)),
+                constant = Flt64(4.0)
+            ),
+            comparison = Comparison.GE
+        )
+
+        val canonical = linear.toCanonicalInequality()
+        val normalized = canonical.normalizeToLessEqualForm()
+
+        assertEquals(Comparison.LE, normalized.comparison)
+        assertEquals(Flt64.zero, normalized.rhs.constant)
+        val roundTripLinear = normalized.toLinearInequalityOrNull()
+        assertNotNull(roundTripLinear)
+        assertEquals(Comparison.LE, roundTripLinear.comparison)
+    }
+
+    @Test
+    fun canonicalInequalityNeShouldKeepOriginalForm() {
+        val x = TestSymbol("x")
+        val inequality = CanonicalInequality(
+            lhs = CanonicalPolynomial(
+                monomials = listOf(CanonicalMonomial(Flt64.one, listOf(x))),
+                constant = Flt64.one
+            ),
+            rhs = CanonicalPolynomial(constant = Flt64.zero),
+            comparison = Comparison.NE
+        )
+
+        val normalized = inequality.normalizeToLessEqualForm()
+
+        assertEquals(inequality, normalized)
     }
 }

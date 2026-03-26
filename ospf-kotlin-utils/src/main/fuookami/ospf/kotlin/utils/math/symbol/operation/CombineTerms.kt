@@ -2,21 +2,13 @@ package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
-
-private val defaultSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
-    val byName = lhs.name.compareTo(rhs.name)
-    if (byName != 0) {
-        byName
-    } else {
-        lhs.hashCode().compareTo(rhs.hashCode())
-    }
-}
 
 private fun normalizeQuadraticSymbols(
     symbol1: Symbol,

@@ -6,12 +6,15 @@ import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.adapter.MapValueProvider
 import fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -111,5 +114,118 @@ class EvaluateTest {
             policy = MissingValuePolicy.Fail
         )
         assertTrue(result is Failed)
+    }
+
+    @Test
+    fun evaluateOrderedShouldMatchMapEvaluate() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val z = TestSymbol("z")
+
+        val linear = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64.two, x),
+                LinearMonomial(Flt64(-1.0), z)
+            ),
+            constant = Flt64.one
+        )
+        val quadratic = QuadraticPolynomial(
+            monomials = listOf(
+                QuadraticMonomial(Flt64(3.0), x, y),
+                QuadraticMonomial(Flt64(-2.0), z, null)
+            ),
+            constant = Flt64(4.0)
+        )
+        val canonical = CanonicalPolynomial(
+            monomials = listOf(
+                CanonicalMonomial(Flt64(5.0), listOf(x, y, z))
+            ),
+            constant = Flt64(-1.0)
+        )
+
+        val order = listOf(z, x, y)
+        val orderedValues = listOf(Flt64(7.0), Flt64(2.0), Flt64(3.0))
+        val mappedValues = mapOf<Symbol, Flt64>(
+            z to Flt64(7.0),
+            x to Flt64(2.0),
+            y to Flt64(3.0)
+        )
+
+        assertEquals(linear.evaluate(mappedValues), linear.evaluateOrdered(order, orderedValues))
+        assertEquals(quadratic.evaluate(mappedValues), quadratic.evaluateOrdered(order, orderedValues))
+        assertEquals(canonical.evaluate(mappedValues), canonical.evaluateOrdered(order, orderedValues))
+    }
+
+    @Test
+    fun evaluateOrderedShouldFailForDimensionMismatch() {
+        val x = TestSymbol("x")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x))
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            polynomial.evaluateOrdered(order = listOf(x), values = emptyList())
+        }
+    }
+
+    @Test
+    fun linearPartialEvaluateShouldFoldKnownSymbols() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64.two, x),
+                LinearMonomial(Flt64(-3.0), y)
+            ),
+            constant = Flt64.one
+        )
+
+        val partial = polynomial.partialEvaluate(mapOf<Symbol, Flt64>(x to Flt64(4.0)))
+
+        assertEquals(Flt64(9.0), partial.constant)
+        assertEquals(1, partial.monomials.size)
+        assertEquals(y, partial.monomials.first().symbol)
+        assertEquals(Flt64(-3.0), partial.monomials.first().coefficient)
+    }
+
+    @Test
+    fun quadraticPartialEvaluateShouldReduceToLinearWhenOneFactorKnown() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = QuadraticPolynomial(
+            monomials = listOf(
+                QuadraticMonomial(Flt64.two, x, y),
+                QuadraticMonomial(Flt64(3.0), x, null)
+            ),
+            constant = Flt64(5.0)
+        )
+
+        val partial = polynomial.partialEvaluate(mapOf<Symbol, Flt64>(x to Flt64(2.0)))
+        val terms = partial.monomials.associate { Pair(it.symbol1, it.symbol2) to it.coefficient }
+
+        assertEquals(Flt64(11.0), partial.constant)
+        assertEquals(Flt64(4.0), terms[y to null])
+    }
+
+    @Test
+    fun canonicalPartialEvaluateShouldBeConsistentBetweenMapAndProvider() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val z = TestSymbol("z")
+        val polynomial = CanonicalPolynomial(
+            monomials = listOf(
+                CanonicalMonomial(Flt64.two, listOf(x, y)),
+                CanonicalMonomial(Flt64(3.0), listOf(y, z))
+            ),
+            constant = Flt64.one
+        )
+        val values = mapOf<Symbol, Flt64>(x to Flt64(4.0))
+
+        val byMap = polynomial.partialEvaluate(values)
+        val byProvider = polynomial.partialEvaluate(MapValueProvider(values))
+
+        assertEquals(byMap, byProvider)
+        assertEquals(Flt64.one, byMap.constant)
+        assertEquals(2, byMap.monomials.size)
     }
 }

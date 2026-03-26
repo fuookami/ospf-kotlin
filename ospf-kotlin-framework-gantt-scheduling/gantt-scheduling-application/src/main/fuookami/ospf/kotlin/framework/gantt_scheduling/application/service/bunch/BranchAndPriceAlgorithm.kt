@@ -158,11 +158,19 @@ class BranchAndPriceAlgorithm<
                     is Failed -> {
                         return Ok(bestSolution)
                     }
+
+                    is Fatal -> {
+                        return Ok(bestSolution)
+                    }
                 }
                 when (keepBunch(iteration.iteration, model)) {
                     is Ok -> {}
 
                     is Failed -> {
+                        return Ok(bestSolution)
+                    }
+
+                    is Fatal -> {
                         return Ok(bestSolution)
                     }
                 }
@@ -181,6 +189,10 @@ class BranchAndPriceAlgorithm<
                         is Failed -> {
                             return Ok(bestSolution)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     logLpResults(iteration.iteration, model)
 
@@ -188,6 +200,10 @@ class BranchAndPriceAlgorithm<
                         is Ok -> {}
 
                         is Failed -> {
+                            return Ok(bestSolution)
+                        }
+
+                        is Fatal -> {
                             return Ok(bestSolution)
                         }
                     }
@@ -206,6 +222,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                         if (newBunches.isEmpty()) {
                             logger.debug { "There is no bunch generated in global column generation of iteration $mainIteration." }
@@ -221,6 +241,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Ok(bestSolution)
+                            }
                         }
 
                         shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
@@ -230,6 +254,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                         logLpResults(iteration.iteration, model)
@@ -251,6 +279,10 @@ class BranchAndPriceAlgorithm<
                                 is Failed -> {
                                     return Ok(bestSolution)
                                 }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                         if (reducedAmount >= configuration.badReducedAmount
@@ -271,6 +303,10 @@ class BranchAndPriceAlgorithm<
                         is Failed -> {
                             return Ok(bestSolution)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     val fixedBunches = when (val result = globallyFix(freeExecutors)) {
                         is Ok -> {
@@ -279,6 +315,10 @@ class BranchAndPriceAlgorithm<
 
                         is Failed -> {
                             return Ok(bestSolution)
+                        }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
                         }
                     }
                     val freeExecutorList = freeExecutors.toMutableList()
@@ -295,6 +335,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                         logLpResults(iteration.iteration, model)
 
@@ -306,6 +350,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                         if (newBunches.isEmpty()) {
@@ -321,6 +369,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Ok(bestSolution)
+                            }
                         }
                         val newFixedBunches = when (val result = locallyFix(iteration.iteration, fixedBunches, model)) {
                             is Ok -> {
@@ -329,6 +381,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                         if (newFixedBunches.isNotEmpty()) {
@@ -358,6 +414,10 @@ class BranchAndPriceAlgorithm<
                                 is Failed -> {
                                     return Ok(bestSolution)
                                 }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -375,6 +435,10 @@ class BranchAndPriceAlgorithm<
                         is Failed -> {
                             return Ok(bestSolution)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     refresh(thisIpRet)
                     logIpResults(iteration.iteration, model)
@@ -389,6 +453,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                     }
@@ -688,6 +756,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 Failed(result.error)
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -736,6 +808,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 Failed(result.error)
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -754,6 +830,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
             }
         }
     }
@@ -806,6 +886,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 Failed(ret.error)
             }
+
+            is Fatal -> {
+                Fatal(ret.errors)
+            }
         }
     }
 
@@ -838,6 +922,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
             }
         }
     }

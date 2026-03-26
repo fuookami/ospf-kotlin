@@ -19,6 +19,10 @@ data class Quantity<out V>(
     val unit: PhysicalUnit
 )
 
+fun <V> PhysicalUnit.of(amount: V): Quantity<V> {
+    return Quantity(amount, this)
+}
+
 /**
  * 量纲不匹配异常
  */

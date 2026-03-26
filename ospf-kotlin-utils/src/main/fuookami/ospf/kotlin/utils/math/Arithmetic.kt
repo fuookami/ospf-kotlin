@@ -1,6 +1,12 @@
 package fuookami.ospf.kotlin.utils.math
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.algebra.concept.AbelianGroup
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Field
+import fuookami.ospf.kotlin.utils.math.algebra.concept.MultiplicativeGroup
+import fuookami.ospf.kotlin.utils.math.algebra.concept.MultiplicativeSemigroup
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Semigroup
 import fuookami.ospf.kotlin.utils.operator.*
 
 interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
@@ -23,16 +29,16 @@ interface Variant<T> {
     fun value(): T? = null
 }
 
-interface PlusSemiGroup<Self> : Plus<Self, Self>, Inc<Self>
-interface PlusGroup<Self> : PlusSemiGroup<Self>,
+interface PlusSemiGroup<Self> : Semigroup<Self>, Plus<Self, Self>, Inc<Self>
+interface PlusGroup<Self> : AbelianGroup<Self>, PlusSemiGroup<Self>,
     Neg<Self>, Minus<Self, Self>, Dec<Self>
 
-interface TimesSemiGroup<Self> : Times<Self, Self>
-interface TimesGroup<Self> : TimesSemiGroup<Self>,
+interface TimesSemiGroup<Self> : MultiplicativeSemigroup<Self>, Times<Self, Self>
+interface TimesGroup<Self> : MultiplicativeGroup<Self>, TimesSemiGroup<Self>,
     Reciprocal<Self>, Div<Self, Self>, IntDiv<Self, Self>, Rem<Self, Self>
 
-interface NumberRing<Self> : PlusGroup<Self>, TimesSemiGroup<Self>
-interface NumberField<Self> : NumberRing<Self>, TimesGroup<Self>
+interface NumberRing<Self> : Ring<Self>, PlusGroup<Self>, TimesSemiGroup<Self>
+interface NumberField<Self> : Field<Self>, NumberRing<Self>, TimesGroup<Self>
 
 interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
     PlusSemiGroup<Self>, TimesSemiGroup<Self>,

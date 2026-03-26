@@ -153,11 +153,19 @@ class BranchAndPriceAlgorithm<
                     is Failed -> {
                         return Ok(bestSolution)
                     }
+
+                    is Fatal -> {
+                        return Ok(bestSolution)
+                    }
                 }
                 when (keepTasks(iteration.iteration, model)) {
                     is Ok -> {}
 
                     is Failed -> {
+                        return Ok(bestSolution)
+                    }
+
+                    is Fatal -> {
                         return Ok(bestSolution)
                     }
                 }
@@ -177,6 +185,10 @@ class BranchAndPriceAlgorithm<
                         is Failed -> {
                             return Ok(bestSolution)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     logLPResults(iteration.iteration, model)
 
@@ -184,6 +196,10 @@ class BranchAndPriceAlgorithm<
                         is Ok -> {}
 
                         is Failed -> {
+                            return Ok(bestSolution)
+                        }
+
+                        is Fatal -> {
                             return Ok(bestSolution)
                         }
                     }
@@ -202,6 +218,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                         if (newTasks.isEmpty()) {
                             logger.debug { "There is no task generated in global column generation of iteration $mainIteration." }
@@ -217,6 +237,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Ok(bestSolution)
+                            }
                         }
 
                         shadowPriceMap = when (val result = solveRMP(id, iteration, model, true)) {
@@ -226,6 +250,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                         logLPResults(iteration.iteration, model)
@@ -240,6 +268,10 @@ class BranchAndPriceAlgorithm<
 
                                     is Failed -> {
                                         return Ok(bestSolution)
+                                    }
+
+                                    is Fatal -> {
+                                        return Fatal(result.errors)
                                     }
                                 }
                         }
@@ -261,6 +293,10 @@ class BranchAndPriceAlgorithm<
                         is Failed -> {
                             return Ok(bestSolution)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     val fixedTasks = when (val result = globallyFix(freeExecutors)) {
                         is Ok -> {
@@ -269,6 +305,10 @@ class BranchAndPriceAlgorithm<
 
                         is Failed -> {
                             return Ok(bestSolution)
+                        }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
                         }
                     }
                     val freeExecutorList = freeExecutors.toMutableList()
@@ -285,6 +325,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
+                            }
                         }
                         logLPResults(iteration.iteration, model)
 
@@ -296,6 +340,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                         if (newTasks.isEmpty()) {
@@ -311,6 +359,10 @@ class BranchAndPriceAlgorithm<
                             is Failed -> {
                                 return Ok(bestSolution)
                             }
+
+                            is Fatal -> {
+                                return Ok(bestSolution)
+                            }
                         }
                         val newFixedTasks = when (val result = locallyFix(iteration.iteration, fixedTasks, model)) {
                             is Ok -> {
@@ -319,6 +371,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                         if (newFixedTasks.isNotEmpty()) {
@@ -348,6 +404,10 @@ class BranchAndPriceAlgorithm<
                                 is Failed -> {
                                     return Ok(bestSolution)
                                 }
+
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -366,6 +426,10 @@ class BranchAndPriceAlgorithm<
                         is Failed -> {
                             return Ok(bestSolution)
                         }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
                     }
                     mainProblemSolvingTimes += UInt64.one
                     mainProblemSolvingTime += thisIpRet.time
@@ -381,6 +445,10 @@ class BranchAndPriceAlgorithm<
 
                             is Failed -> {
                                 return Ok(bestSolution)
+                            }
+
+                            is Fatal -> {
+                                return Fatal(result.errors)
                             }
                         }
                     }
@@ -634,6 +702,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 Failed(result.error)
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -650,6 +722,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 Failed(result.error)
             }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
         }
     }
 
@@ -665,6 +741,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
             }
         }
     }
@@ -685,6 +765,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
             }
         }
     }
@@ -721,6 +805,10 @@ class BranchAndPriceAlgorithm<
             is Failed -> {
                 Failed(ret.error)
             }
+
+            is Fatal -> {
+                Fatal(ret.errors)
+            }
         }
     }
 
@@ -753,6 +841,10 @@ class BranchAndPriceAlgorithm<
 
             is Failed -> {
                 Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
             }
         }
     }

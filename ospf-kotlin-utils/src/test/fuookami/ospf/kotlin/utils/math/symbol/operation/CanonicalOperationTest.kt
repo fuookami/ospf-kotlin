@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
@@ -87,6 +88,10 @@ class CanonicalOperationTest {
             is Failed -> {
                 error("linear round trip failed: ${linearRoundTrip.error}")
             }
+
+            is Fatal -> {
+                error("linear round trip fatal: ${linearRoundTrip.errors}")
+            }
         }
         assertEquals(linear.combineTerms(), linearRoundTripValue)
 
@@ -108,6 +113,10 @@ class CanonicalOperationTest {
 
             is Failed -> {
                 error("quadratic round trip failed: ${quadraticRoundTrip.error}")
+            }
+
+            is Fatal -> {
+                error("quadratic round trip fatal: ${quadraticRoundTrip.errors}")
             }
         }
         assertEquals(quadratic.combineTerms(), quadraticRoundTripValue)

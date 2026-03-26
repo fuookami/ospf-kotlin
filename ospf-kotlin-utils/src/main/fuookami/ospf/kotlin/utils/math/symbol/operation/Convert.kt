@@ -6,6 +6,8 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.QuadraticInequality
@@ -15,26 +17,6 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
-
-private val canonicalSymbolComparator: java.util.Comparator<Symbol> = java.util.Comparator { lhs, rhs ->
-    val byName = lhs.name.compareTo(rhs.name)
-    if (byName != 0) {
-        byName
-    } else {
-        lhs.hashCode().compareTo(rhs.hashCode())
-    }
-}
-
-private fun reversedDirection(comparison: Comparison): Comparison {
-    return when (comparison) {
-        Comparison.LT -> Comparison.GT
-        Comparison.LE -> Comparison.GE
-        Comparison.EQ -> Comparison.EQ
-        Comparison.NE -> Comparison.NE
-        Comparison.GE -> Comparison.LE
-        Comparison.GT -> Comparison.LT
-    }
-}
 
 private fun LinearPolynomial.minus(rhs: LinearPolynomial): LinearPolynomial {
     return LinearPolynomial(
@@ -81,7 +63,7 @@ fun QuadraticMonomial.toCanonicalMonomial(
     } else {
         listOf(symbol1, symbol2)
     }
-    val comparator = symbolComparator ?: canonicalSymbolComparator
+    val comparator = symbolComparator ?: defaultSymbolComparator
     return CanonicalMonomial(
         coefficient = coefficient,
         factors = factors.sortedWith(comparator)
@@ -120,7 +102,7 @@ fun CanonicalMonomial.toQuadraticMonomialOrNull(
     if (degree != 2) {
         return null
     }
-    val comparator = symbolComparator ?: canonicalSymbolComparator
+    val comparator = symbolComparator ?: defaultSymbolComparator
     val normalizedFactors = factors.sortedWith(comparator)
     return QuadraticMonomial(
         coefficient = coefficient,
@@ -281,6 +263,26 @@ fun LinearInequality.toQuadraticInequality(): QuadraticInequality {
     )
 }
 
+fun LinearInequality.toCanonicalInequality(
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): CanonicalInequality {
+    return CanonicalInequality(
+        lhs = lhs.toCanonicalPolynomial().combineTerms(symbolComparator),
+        rhs = rhs.toCanonicalPolynomial().combineTerms(symbolComparator),
+        comparison = comparison
+    )
+}
+
+fun QuadraticInequality.toCanonicalInequality(
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): CanonicalInequality {
+    return CanonicalInequality(
+        lhs = lhs.toCanonicalPolynomial(symbolComparator).combineTerms(symbolComparator),
+        rhs = rhs.toCanonicalPolynomial(symbolComparator).combineTerms(symbolComparator),
+        comparison = comparison
+    )
+}
+
 fun QuadraticInequality.toLinearInequalityOrNull(): LinearInequality? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
@@ -300,6 +302,28 @@ fun QuadraticInequality.toLinearInequalityRet(): Ret<LinearInequality> {
     }
 }
 
+fun CanonicalInequality.toLinearInequalityOrNull(): LinearInequality? {
+    val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
+    val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
+    return LinearInequality(
+        lhs = linearLhs,
+        rhs = linearRhs,
+        comparison = comparison
+    )
+}
+
+fun CanonicalInequality.toQuadraticInequalityOrNull(
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): QuadraticInequality? {
+    val quadraticLhs = lhs.toQuadraticPolynomialOrNull(symbolComparator) ?: return null
+    val quadraticRhs = rhs.toQuadraticPolynomialOrNull(symbolComparator) ?: return null
+    return QuadraticInequality(
+        lhs = quadraticLhs,
+        rhs = quadraticRhs,
+        comparison = comparison
+    )
+}
+
 fun LinearInequality.moveAllToLhs(combineTerms: Boolean = true): LinearInequality {
     val lhsToZeroRhs = lhs.minus(rhs)
     val normalizedLhs = if (combineTerms) {
@@ -315,16 +339,57 @@ fun LinearInequality.moveAllToLhs(combineTerms: Boolean = true): LinearInequalit
 }
 
 fun LinearInequality.normalizeToLessEqualForm(combineTerms: Boolean = true): LinearInequality {
-    val lessLikeInequality = when (comparison) {
-        Comparison.GT, Comparison.GE -> {
-            LinearInequality(
-                lhs = rhs,
-                rhs = lhs,
-                comparison = reversedDirection(comparison)
-            )
-        }
-
-        else -> this
+    if (comparison == Comparison.NE) {
+        return this
+    }
+    val lessLikeInequality = if (comparison.isGreaterLike) {
+        LinearInequality(
+            lhs = rhs,
+            rhs = lhs,
+            comparison = comparison.reverse()
+        )
+    } else {
+        this
     }
     return lessLikeInequality.moveAllToLhs(combineTerms)
+}
+
+fun CanonicalInequality.moveAllToLhs(
+    combineTerms: Boolean = true,
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): CanonicalInequality {
+    val lhsToZeroRhs = CanonicalInequality(
+        lhs = CanonicalPolynomial(
+            monomials = lhs.monomials + rhs.monomials.map {
+                it.copy(coefficient = -it.coefficient)
+            },
+            constant = lhs.constant - rhs.constant
+        ),
+        rhs = CanonicalPolynomial(constant = Flt64.zero),
+        comparison = comparison
+    )
+    return if (combineTerms) {
+        lhsToZeroRhs.copy(lhs = lhsToZeroRhs.lhs.combineTerms(symbolComparator))
+    } else {
+        lhsToZeroRhs
+    }
+}
+
+fun CanonicalInequality.normalizeToLessEqualForm(
+    combineTerms: Boolean = true,
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): CanonicalInequality {
+    if (comparison == Comparison.NE) {
+        return this
+    }
+    val lessLikeInequality = if (comparison.isGreaterLike) {
+        CanonicalInequality(
+            lhs = rhs,
+            rhs = lhs,
+            comparison = comparison.reverse()
+        )
+    } else {
+        this
+    }
+    return lessLikeInequality.moveAllToLhs(combineTerms, symbolComparator)
 }

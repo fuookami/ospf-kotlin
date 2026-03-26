@@ -3,7 +3,9 @@ package fuookami.ospf.kotlin.utils.math.symbol.operation
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
@@ -41,6 +43,49 @@ class MatrixFormTest {
     }
 
     @Test
+    fun linearMatrixFormShouldRoundTrip() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64.two, x),
+                LinearMonomial(Flt64(-3.0), y)
+            ),
+            constant = Flt64(7.0)
+        )
+
+        val matrixForm = polynomial.toMatrixForm(order = listOf(y, x))
+        val rebuilt = linearPolynomialFromMatrixForm(matrixForm).combineTerms()
+
+        assertEquals(-3.0, matrixForm.c[0])
+        assertEquals(2.0, matrixForm.c[1])
+        assertEquals(Flt64(7.0), matrixForm.d)
+        assertEquals(polynomial.constant, rebuilt.constant)
+        assertEquals(polynomial.monomials.toSet(), rebuilt.monomials.toSet())
+    }
+
+    @Test
+    fun quadraticMatrixFormShouldRoundTrip() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = QuadraticPolynomial(
+            monomials = listOf(
+                QuadraticMonomial(Flt64(3.0), x, x),
+                QuadraticMonomial(Flt64.two, x, y),
+                QuadraticMonomial(Flt64(4.0), x, null),
+                QuadraticMonomial(Flt64(-1.0), y, null)
+            ),
+            constant = Flt64(5.0)
+        )
+
+        val matrixForm = polynomial.toMatrixForm(order = listOf(x, y))
+        val rebuilt = quadraticPolynomialFromMatrixForm(matrixForm).combineTerms()
+
+        assertEquals(polynomial.constant, rebuilt.constant)
+        assertEquals(polynomial.monomials.toSet(), rebuilt.monomials.toSet())
+    }
+
+    @Test
     fun matrixFormShouldFailWhenOrderMissesSymbol() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
@@ -52,6 +97,32 @@ class MatrixFormTest {
 
         assertFailsWith<IllegalArgumentException> {
             polynomial.toMatrixForm(order = listOf(x))
+        }
+    }
+
+    @Test
+    fun matrixFormShouldFailWhenOrderContainsDuplicatedSymbols() {
+        val x = TestSymbol("x")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x))
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            polynomial.toMatrixForm(order = listOf(x, x))
+        }
+    }
+
+    @Test
+    fun quadraticFromMatrixFormShouldFailWhenDimensionsMismatch() {
+        val x = TestSymbol("x")
+
+        assertFailsWith<IllegalArgumentException> {
+            quadraticPolynomialFromMatrixForm(
+                q = arrayOf(doubleArrayOf(1.0, 2.0)),
+                c = doubleArrayOf(1.0),
+                d = Flt64.zero,
+                order = listOf(x)
+            )
         }
     }
 

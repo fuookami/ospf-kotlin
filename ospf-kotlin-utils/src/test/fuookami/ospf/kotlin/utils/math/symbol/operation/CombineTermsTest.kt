@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.symbol.IdentifiedSymbol
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -14,6 +16,12 @@ class CombineTermsTest {
         override val name: String,
         override val displayName: String? = null
     ) : Symbol
+
+    private data class TestIdentifiedSymbol(
+        override val name: String,
+        override val symbolId: String,
+        override val displayName: String? = null
+    ) : Symbol, IdentifiedSymbol
 
     @Test
     fun combineLinearMonomialsShouldMergeSameSymbolAndDropZero() {
@@ -65,5 +73,17 @@ class CombineTermsTest {
         assertTrue(only.symbol1 == x || only.symbol1 == y)
         assertTrue(only.symbol2 == x || only.symbol2 == y)
         assertTrue(only.coefficient == Flt64(5.0))
+    }
+
+    @Test
+    fun combineCanonicalTermsShouldUseUnifiedSymbolIdentityOrdering() {
+        val x2 = TestIdentifiedSymbol("x", "02")
+        val x1 = TestIdentifiedSymbol("x", "01")
+        val merged = listOf(
+            fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial(Flt64.one, listOf(x2, x1))
+        ).combineCanonicalTerms(defaultSymbolComparator)
+
+        assertEquals(1, merged.size)
+        assertEquals(listOf(x1, x2), merged.first().factors)
     }
 }
