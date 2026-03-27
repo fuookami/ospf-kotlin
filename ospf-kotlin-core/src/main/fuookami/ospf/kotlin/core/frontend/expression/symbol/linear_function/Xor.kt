@@ -231,7 +231,7 @@ class XorFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        // all polys must be âˆˆ (R - R-)
+        // all polys must be âˆ?(R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 return Failed(Err(ErrorCode.ApplicationFailed, "$name's domain of definition unsatisfied: $polynomial"))
@@ -827,3 +827,4 @@ class XorFunction(
         return Flt64.zero
     }
 }
+

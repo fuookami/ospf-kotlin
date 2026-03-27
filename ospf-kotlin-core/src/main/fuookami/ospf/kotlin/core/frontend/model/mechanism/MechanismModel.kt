@@ -805,3 +805,4 @@ class QuadraticMechanismModel(
         return name
     }
 }
+

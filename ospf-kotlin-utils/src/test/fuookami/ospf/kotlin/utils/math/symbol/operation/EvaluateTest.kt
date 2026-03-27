@@ -28,10 +28,10 @@ class EvaluateTest {
     fun evaluateNullableShouldFollowMissingValuePolicy() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = LinearPolynomial(
+        val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64.one, y)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64.one, y)
             ),
             constant = Flt64.one
         )
@@ -47,7 +47,7 @@ class EvaluateTest {
     @Test
     fun evaluateRetShouldReturnFailedWhenMissingAndPolicyFail() {
         val x = TestSymbol("x")
-        val monomial = LinearMonomial(Flt64.two, x)
+        val monomial = LinearMonomial<Flt64>(Flt64.two, x)
 
         val result = monomial.evaluateRet(
             provider = MapValueProvider(emptyMap()),
@@ -60,10 +60,10 @@ class EvaluateTest {
     fun evaluateRetShouldReturnOkWhenAsZeroPolicy() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = LinearPolynomial(
+        val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64.one, y)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64.one, y)
             ),
             constant = Flt64(2.0)
         )
@@ -81,10 +81,10 @@ class EvaluateTest {
     fun quadraticEvaluateShouldSupportSymmetricAndLinearTerms() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(3.0), x, null)
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, null)
             ),
             constant = Flt64.one
         )
@@ -103,9 +103,9 @@ class EvaluateTest {
     fun quadraticEvaluateRetShouldFailWhenValueMissing() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.one, x, y)
+                QuadraticMonomial<Flt64>(Flt64.one, x, y)
             )
         )
 
@@ -122,23 +122,23 @@ class EvaluateTest {
         val y = TestSymbol("y")
         val z = TestSymbol("z")
 
-        val linear = LinearPolynomial(
+        val linear = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64(-1.0), z)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64(-1.0), z)
             ),
             constant = Flt64.one
         )
-        val quadratic = QuadraticPolynomial(
+        val quadratic = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64(3.0), x, y),
-                QuadraticMonomial(Flt64(-2.0), z, null)
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, y),
+                QuadraticMonomial<Flt64>(Flt64(-2.0), z, null)
             ),
             constant = Flt64(4.0)
         )
-        val canonical = CanonicalPolynomial(
+        val canonical = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64(5.0), listOf(x, y, z))
+                CanonicalMonomial<Flt64>(Flt64(5.0), listOf(x, y, z))
             ),
             constant = Flt64(-1.0)
         )
@@ -159,8 +159,8 @@ class EvaluateTest {
     @Test
     fun evaluateOrderedShouldFailForDimensionMismatch() {
         val x = TestSymbol("x")
-        val polynomial = LinearPolynomial(
-            monomials = listOf(LinearMonomial(Flt64.one, x))
+        val polynomial = LinearPolynomial<Flt64>(
+            monomials = listOf(LinearMonomial<Flt64>(Flt64.one, x))
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -172,10 +172,10 @@ class EvaluateTest {
     fun linearPartialEvaluateShouldFoldKnownSymbols() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = LinearPolynomial(
+        val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64(-3.0), y)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64(-3.0), y)
             ),
             constant = Flt64.one
         )
@@ -192,10 +192,10 @@ class EvaluateTest {
     fun quadraticPartialEvaluateShouldReduceToLinearWhenOneFactorKnown() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(3.0), x, null)
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, null)
             ),
             constant = Flt64(5.0)
         )
@@ -212,10 +212,10 @@ class EvaluateTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val z = TestSymbol("z")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64.two, listOf(x, y)),
-                CanonicalMonomial(Flt64(3.0), listOf(y, z))
+                CanonicalMonomial<Flt64>(Flt64.two, listOf(x, y)),
+                CanonicalMonomial<Flt64>(Flt64(3.0), listOf(y, z))
             ),
             constant = Flt64.one
         )

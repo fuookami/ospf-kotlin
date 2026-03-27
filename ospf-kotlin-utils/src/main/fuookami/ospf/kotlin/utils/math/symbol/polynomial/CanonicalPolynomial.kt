@@ -7,9 +7,14 @@ import fuookami.ospf.kotlin.utils.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 
-data class CanonicalPolynomial(
-    val monomials: List<CanonicalMonomial> = emptyList(),
-    val constant: Flt64 = Flt64.zero
+@Suppress("UNCHECKED_CAST")
+private fun <T> defaultCanonicalConstant(): T {
+    return Flt64.zero as T
+}
+
+data class CanonicalPolynomial<T>(
+    val monomials: List<CanonicalMonomial<T>> = emptyList(),
+    val constant: T = defaultCanonicalConstant()
 ) {
     val category: Category
         get() = when (monomials.maxOfOrNull { it.degree } ?: 0) {
@@ -18,4 +23,3 @@ data class CanonicalPolynomial(
             else -> Nonlinear
         }
 }
-

@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.utils.math
 
+
+import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.ExpP

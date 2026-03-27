@@ -3292,3 +3292,4 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticMonomial>)
 
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
+

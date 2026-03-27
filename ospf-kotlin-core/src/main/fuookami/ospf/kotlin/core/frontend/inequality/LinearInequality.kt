@@ -4653,3 +4653,4 @@ infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<AbstractLinear
         TODO("not implemented yet")
     }
 }
+

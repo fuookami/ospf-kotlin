@@ -32,7 +32,7 @@ class FloorFunction(
     override val parent: IntermediateSymbol? = null,
     args: Any? = parent?.args,
     override var name: String = "floor_${x}_${d}",
-    override var displayName: String? = "⌊$x/$d⌋"
+    override var displayName: String? = "floor(x/$d)"
 ) : LinearFunctionSymbol() {
     private val logger = logger()
 
@@ -47,7 +47,7 @@ class FloorFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "floor_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌋"
+            displayName: String? = "floor(x/$d)"
         ): FloorFunction {
             return FloorFunction(
                 x = x.toLinearPolynomial(),
@@ -70,7 +70,7 @@ class FloorFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "floor_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌋"
+            displayName: String? = "floor(x/$d)"
         ): FloorFunction {
             return FloorFunction(
                 x = x.toLinearPolynomial(),
@@ -94,7 +94,7 @@ class FloorFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "floor_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌋"
+            displayName: String? = "floor(x/$d)"
         ): FloorFunction {
             return FloorFunction(
                 x = x.toLinearPolynomial(),
@@ -338,7 +338,7 @@ class FloorFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "⌊${x.toTidyRawString(unfold - UInt64.one)} / $d⌋"
+            "floor(${x.toTidyRawString(unfold - UInt64.one)} / $d)"
         }
     }
 
@@ -416,3 +416,4 @@ class FloorFunction(
         }
     }
 }
+

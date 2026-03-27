@@ -5,9 +5,14 @@ import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 
-data class LinearPolynomial(
-    val monomials: List<LinearMonomial> = emptyList(),
-    val constant: Flt64 = Flt64.zero
+@Suppress("UNCHECKED_CAST")
+private fun <T> defaultLinearConstant(): T {
+    return Flt64.zero as T
+}
+
+data class LinearPolynomial<T>(
+    val monomials: List<LinearMonomial<T>> = emptyList(),
+    val constant: T = defaultLinearConstant()
 ) {
     val category: Category
         get() = Linear

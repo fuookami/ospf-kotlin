@@ -602,3 +602,4 @@ class MaxFunction(
         }
     }
 }
+

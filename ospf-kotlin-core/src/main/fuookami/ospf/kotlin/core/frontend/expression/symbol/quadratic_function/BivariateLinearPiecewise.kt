@@ -1095,3 +1095,4 @@ class IsolineBivariateLinearPiecewiseFunction(
         }
     }
 }
+

@@ -6411,3 +6411,4 @@ infix fun Quantity<AbstractQuadraticPolynomial<*>>.geq(rhs: Quantity<AbstractQua
         TODO("not implemented yet")
     }
 }
+

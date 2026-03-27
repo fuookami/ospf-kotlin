@@ -2,7 +2,24 @@ package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericCanonicalTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericLinearTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericQuadraticTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineCanonicalTerms as combineGenericCanonicalMonomialTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineLinearTerms as combineGenericLinearMonomialTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineQuadraticTerms as combineGenericQuadraticMonomialTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toCanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toCanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toLinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toLinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toQuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toQuadraticPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
@@ -10,85 +27,68 @@ import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 
-private fun normalizeQuadraticSymbols(
-    symbol1: Symbol,
-    symbol2: Symbol?,
-    symbolComparator: Comparator<Symbol>
-): Pair<Symbol, Symbol?> {
-    if (symbol2 == null) {
-        return symbol1 to null
-    }
-    return if (symbolComparator.compare(symbol1, symbol2) <= 0) {
-        symbol1 to symbol2
-    } else {
-        symbol2 to symbol1
-    }
+fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> {
+    return map { it.toGenericLinearMonomial() }
+        .combineGenericLinearMonomialTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero }
+        )
+        .map { it.toLinearMonomial() }
 }
 
-fun Iterable<LinearMonomial>.combineTerms(): List<LinearMonomial> {
-    val coefficientOfSymbol = LinkedHashMap<Symbol, Flt64>()
-    for (monomial in this) {
-        coefficientOfSymbol[monomial.symbol] =
-            (coefficientOfSymbol[monomial.symbol] ?: Flt64.zero) + monomial.coefficient
-    }
-    return coefficientOfSymbol
-        .asSequence()
-        .filter { it.value neq Flt64.zero }
-        .map { LinearMonomial(coefficient = it.value, symbol = it.key) }
-        .toList()
+fun LinearPolynomial<Flt64>.combineTerms(): LinearPolynomial<Flt64> {
+    return this.toGenericLinearPolynomial()
+        .combineGenericLinearTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero }
+        )
+        .toLinearPolynomial()
 }
 
-fun LinearPolynomial.combineTerms(): LinearPolynomial {
-    return this.copy(monomials = monomials.combineTerms())
-}
-
-fun Iterable<QuadraticMonomial>.combineTerms(
+fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<QuadraticMonomial> {
-    val comparator = symbolComparator ?: defaultSymbolComparator
-    val coefficientOfKey = LinkedHashMap<Pair<Symbol, Symbol?>, Flt64>()
-    for (monomial in this) {
-        val key = normalizeQuadraticSymbols(monomial.symbol1, monomial.symbol2, comparator)
-        coefficientOfKey[key] = (coefficientOfKey[key] ?: Flt64.zero) + monomial.coefficient
-    }
-    return coefficientOfKey
-        .asSequence()
-        .filter { it.value neq Flt64.zero }
-        .map {
-            QuadraticMonomial(
-                coefficient = it.value,
-                symbol1 = it.key.first,
-                symbol2 = it.key.second
-            )
-        }
-        .toList()
+): List<QuadraticMonomial<Flt64>> {
+    return map { it.toGenericQuadraticMonomial() }
+        .combineGenericQuadraticMonomialTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero },
+            symbolComparator = symbolComparator
+        )
+        .map { it.toQuadraticMonomial() }
 }
 
-fun QuadraticPolynomial.combineTerms(
+fun QuadraticPolynomial<Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial {
-    return this.copy(monomials = monomials.combineTerms(symbolComparator))
+): QuadraticPolynomial<Flt64> {
+    return this.toGenericQuadraticPolynomial()
+        .combineGenericQuadraticTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero },
+            symbolComparator = symbolComparator
+        )
+        .toQuadraticPolynomial()
 }
 
-fun Iterable<CanonicalMonomial>.combineCanonicalTerms(
+fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<CanonicalMonomial> {
-    val comparator = symbolComparator ?: defaultSymbolComparator
-    val coefficientOfFactors = LinkedHashMap<List<Symbol>, Flt64>()
-    for (monomial in this) {
-        val normalizedFactors = monomial.factors.sortedWith(comparator)
-        coefficientOfFactors[normalizedFactors] =
-            (coefficientOfFactors[normalizedFactors] ?: Flt64.zero) + monomial.coefficient
-    }
-    return coefficientOfFactors
-        .asSequence()
-        .filter { it.value neq Flt64.zero }
-        .map { CanonicalMonomial(coefficient = it.value, factors = it.key) }
-        .toList()
+): List<CanonicalMonomial<Flt64>> {
+    return map { it.toGenericCanonicalMonomial() }
+        .combineGenericCanonicalMonomialTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero },
+            symbolComparator = symbolComparator
+        )
+        .map { it.toCanonicalMonomial() }
 }
 
-fun CanonicalPolynomial.combineTerms(
+fun CanonicalPolynomial<Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial {
-    return this.copy(monomials = monomials.combineCanonicalTerms(symbolComparator))
+): CanonicalPolynomial<Flt64> {
+    return this.toGenericCanonicalPolynomial()
+        .combineGenericCanonicalTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero },
+            symbolComparator = symbolComparator
+        )
+        .toCanonicalPolynomial()
 }

@@ -689,3 +689,4 @@ class MaskingFunction(
         }
     }
 }
+

@@ -18,7 +18,7 @@ class MonomialTest {
     @Test
     fun linearMonomialDefaultCoefficient() {
         val x = TestSymbol("x")
-        val monomial = LinearMonomial(symbol = x)
+        val monomial = LinearMonomial<Flt64>(symbol = x)
 
         assertEquals(x, monomial.symbol)
         assertTrue(monomial.coefficient == Flt64.one)
@@ -29,11 +29,11 @@ class MonomialTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
 
-        val linearLike = QuadraticMonomial(symbol1 = x)
+        val linearLike = QuadraticMonomial<Flt64>(symbol1 = x)
         assertFalse(linearLike.isQuadratic)
         assertEquals(Linear, linearLike.category)
 
-        val quadratic = QuadraticMonomial(coefficient = Flt64.two, symbol1 = x, symbol2 = y)
+        val quadratic = QuadraticMonomial<Flt64>(coefficient = Flt64.two, symbol1 = x, symbol2 = y)
         assertTrue(quadratic.isQuadratic)
         assertEquals(Quadratic, quadratic.category)
         assertTrue(quadratic.coefficient == Flt64.two)

@@ -33,7 +33,7 @@ class RoundingFunction(
     override val parent: IntermediateSymbol? = null,
     args: Any? = null,
     override var name: String = "round_${x}_${d}",
-    override var displayName: String? = "⌊$x/$d⌉"
+    override var displayName: String? = "round(x/$d)"
 ) : QuadraticFunctionSymbol() {
     private val logger = logger()
 
@@ -47,7 +47,7 @@ class RoundingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "round_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌉"
+            displayName: String? = "round(x/$d)"
         ): RoundingFunction {
             return RoundingFunction(
                 x = x.toQuadraticPolynomial(),
@@ -68,7 +68,7 @@ class RoundingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "round_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌉"
+            displayName: String? = "round(x/$d)"
         ): RoundingFunction {
             return RoundingFunction(
                 x = x.toQuadraticPolynomial(),
@@ -90,7 +90,7 @@ class RoundingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "round_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌉"
+            displayName: String? = "round(x/$d)"
         ): RoundingFunction {
             return RoundingFunction(
                 x = x.toQuadraticPolynomial(),
@@ -113,7 +113,7 @@ class RoundingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "round_${x}_${d}",
-            displayName: String? = "⌊$x/$d⌉"
+            displayName: String? = "round(x/$d)"
         ): RoundingFunction {
             return RoundingFunction(
                 x = x.toQuadraticPolynomial(),
@@ -495,7 +495,7 @@ class RoundingFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "⌊${x.toTidyRawString(unfold - UInt64.one)} / ${d.toTidyRawString(unfold - UInt64.one)}⌉"
+            "round(${x.toTidyRawString(unfold - UInt64.one)} / ${d.toTidyRawString(unfold - UInt64.one)})"
         }
     }
 
@@ -589,3 +589,4 @@ class RoundingFunction(
         return (xValue / dValue).round()
     }
 }
+

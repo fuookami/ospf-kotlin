@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.adapter.toCoreInequalityRet
 import fuookami.ospf.kotlin.core.frontend.inequality.adapter.toUtilsInequality
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
@@ -47,6 +48,10 @@ class AdapterRoundTripTest {
             is Failed -> {
                 error("linearMonomialAdapterShouldRoundTrip failed: ${roundTrip.error}")
             }
+
+            is Fatal -> {
+                error("linearMonomialAdapterShouldRoundTrip failed: ${roundTrip.errors}")
+            }
         }
         assertEquals(coreMonomial.coefficient, converted.coefficient)
         assertEquals(coreMonomial.symbol.variable, converted.symbol.variable)
@@ -75,6 +80,10 @@ class AdapterRoundTripTest {
 
             is Failed -> {
                 error("quadraticPolynomialAdapterShouldKeepEvaluation failed: ${roundTrip.error}")
+            }
+
+            is Fatal -> {
+                error("quadraticPolynomialAdapterShouldKeepEvaluation failed: ${roundTrip.errors}")
             }
         }
         val originalValue = corePolynomial.evaluate(values, tokenList = null, zeroIfNone = false)
@@ -107,6 +116,10 @@ class AdapterRoundTripTest {
             is Failed -> {
                 error("inequalityAdapterShouldMapComparisonCorrectly failed: ${roundTrip.error}")
             }
+
+            is Fatal -> {
+                error("inequalityAdapterShouldMapComparisonCorrectly failed: ${roundTrip.errors}")
+            }
         }
         val originalTruth = coreInequality.isTrue(values, tokenList = null, zeroIfNone = false)
         val convertedTruth = converted.isTrue(values, tokenList = null, zeroIfNone = false)
@@ -138,3 +151,4 @@ class AdapterRoundTripTest {
         assertTrue(converted is Failed)
     }
 }
+

@@ -746,3 +746,4 @@ interface QuadraticModel : LinearModel {
         )
     }
 }
+

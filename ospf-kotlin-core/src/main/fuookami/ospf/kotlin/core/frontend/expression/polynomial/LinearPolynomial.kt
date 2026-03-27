@@ -2440,3 +2440,4 @@ fun <T> flatQtySum(
 ): Quantity<LinearPolynomial> {
     return qtySum(objs.flatMap(extractor).filterNotNull())
 }
+

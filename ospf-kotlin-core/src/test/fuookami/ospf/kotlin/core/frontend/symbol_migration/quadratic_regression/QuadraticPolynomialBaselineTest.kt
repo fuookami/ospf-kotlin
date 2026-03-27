@@ -316,3 +316,4 @@ class QuadraticPolynomialBaselineTest {
         assertTrue(valueFromTokenFallback eq Flt64(28.0))
     }
 }
+

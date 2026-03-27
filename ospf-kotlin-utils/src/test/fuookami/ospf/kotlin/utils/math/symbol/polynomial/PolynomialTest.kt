@@ -18,8 +18,8 @@ class PolynomialTest {
     @Test
     fun linearPolynomialCategoryShouldBeLinear() {
         val x = TestSymbol("x")
-        val polynomial = LinearPolynomial(
-            monomials = listOf(LinearMonomial(Flt64.two, x)),
+        val polynomial = LinearPolynomial<Flt64>(
+            monomials = listOf(LinearMonomial<Flt64>(Flt64.two, x)),
             constant = Flt64.one
         )
 
@@ -31,16 +31,16 @@ class PolynomialTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
 
-        val linearOnly = QuadraticPolynomial(
-            monomials = listOf(QuadraticMonomial(symbol1 = x)),
+        val linearOnly = QuadraticPolynomial<Flt64>(
+            monomials = listOf(QuadraticMonomial<Flt64>(symbol1 = x)),
             constant = Flt64.zero
         )
         assertEquals(Linear, linearOnly.category)
 
-        val hasQuadraticTerm = QuadraticPolynomial(
+        val hasQuadraticTerm = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(symbol1 = x),
-                QuadraticMonomial(symbol1 = x, symbol2 = y)
+                QuadraticMonomial<Flt64>(symbol1 = x),
+                QuadraticMonomial<Flt64>(symbol1 = x, symbol2 = y)
             ),
             constant = Flt64.zero
         )

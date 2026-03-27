@@ -6,8 +6,13 @@ import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 
-data class QuadraticMonomial(
-    val coefficient: Flt64 = Flt64.one,
+@Suppress("UNCHECKED_CAST")
+private fun <T> defaultQuadraticCoefficient(): T {
+    return Flt64.one as T
+}
+
+data class QuadraticMonomial<T>(
+    val coefficient: T = defaultQuadraticCoefficient(),
     val symbol1: Symbol,
     val symbol2: Symbol? = null
 ) {

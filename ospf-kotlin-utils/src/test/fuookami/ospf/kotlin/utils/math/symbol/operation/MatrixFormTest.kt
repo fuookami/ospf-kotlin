@@ -22,11 +22,11 @@ class MatrixFormTest {
     fun matrixFormShouldUseSymmetricQAndLinearVector() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64(3.0), x, x),
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(4.0), x, null)
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(4.0), x, null)
             ),
             constant = Flt64(5.0)
         )
@@ -46,10 +46,10 @@ class MatrixFormTest {
     fun linearMatrixFormShouldRoundTrip() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = LinearPolynomial(
+        val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64(-3.0), y)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64(-3.0), y)
             ),
             constant = Flt64(7.0)
         )
@@ -68,12 +68,12 @@ class MatrixFormTest {
     fun quadraticMatrixFormShouldRoundTrip() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64(3.0), x, x),
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(4.0), x, null),
-                QuadraticMonomial(Flt64(-1.0), y, null)
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(4.0), x, null),
+                QuadraticMonomial<Flt64>(Flt64(-1.0), y, null)
             ),
             constant = Flt64(5.0)
         )
@@ -89,9 +89,9 @@ class MatrixFormTest {
     fun matrixFormShouldFailWhenOrderMissesSymbol() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.one, x, y)
+                QuadraticMonomial<Flt64>(Flt64.one, x, y)
             )
         )
 
@@ -103,8 +103,8 @@ class MatrixFormTest {
     @Test
     fun matrixFormShouldFailWhenOrderContainsDuplicatedSymbols() {
         val x = TestSymbol("x")
-        val polynomial = LinearPolynomial(
-            monomials = listOf(LinearMonomial(Flt64.one, x))
+        val polynomial = LinearPolynomial<Flt64>(
+            monomials = listOf(LinearMonomial<Flt64>(Flt64.one, x))
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -130,11 +130,11 @@ class MatrixFormTest {
     fun canonicalMatrixFormShouldMatchQuadraticMatrixForm() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64(3.0), listOf(x, x)),
-                CanonicalMonomial(Flt64.two, listOf(y, x)),
-                CanonicalMonomial(Flt64(4.0), listOf(x))
+                CanonicalMonomial<Flt64>(Flt64(3.0), listOf(x, x)),
+                CanonicalMonomial<Flt64>(Flt64.two, listOf(y, x)),
+                CanonicalMonomial<Flt64>(Flt64(4.0), listOf(x))
             ),
             constant = Flt64(5.0)
         )
@@ -151,13 +151,40 @@ class MatrixFormTest {
     }
 
     @Test
+    fun hessianShouldMatchTwiceOfMatrixQ() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val z = TestSymbol("z")
+        val order = listOf(x, y, z)
+        val polynomial = QuadraticPolynomial<Flt64>(
+            monomials = listOf(
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64(2.0), x, y),
+                QuadraticMonomial<Flt64>(Flt64(-4.0), y, z),
+                QuadraticMonomial<Flt64>(Flt64(5.0), z, z),
+                QuadraticMonomial<Flt64>(Flt64.one, x, null)
+            ),
+            constant = Flt64(6.0)
+        )
+
+        val matrixForm = polynomial.toMatrixForm(order = order)
+        val hessian = polynomial.hessian(order = order)
+
+        for (i in order.indices) {
+            for (j in order.indices) {
+                assertEquals(2.0 * matrixForm.q[i][j], hessian[i][j])
+            }
+        }
+    }
+
+    @Test
     fun canonicalMatrixFormShouldFailWhenPolynomialContainsHigherOrderTerm() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val z = TestSymbol("z")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64.one, listOf(x, y, z))
+                CanonicalMonomial<Flt64>(Flt64.one, listOf(x, y, z))
             )
         )
 

@@ -1392,3 +1392,4 @@ class BinaryzationFunction(
         )
     }
 }
+

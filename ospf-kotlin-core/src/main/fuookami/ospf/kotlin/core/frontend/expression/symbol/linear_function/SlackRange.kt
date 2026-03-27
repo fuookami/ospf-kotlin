@@ -841,3 +841,4 @@ class URealSlackRangeFunction(
     displayName = displayName,
     ctor = { URealVar(it) }
 )
+

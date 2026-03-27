@@ -21,8 +21,8 @@ class InequalityTest {
     fun linearInequalityShouldKeepArguments() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val lhs = LinearPolynomial(listOf(LinearMonomial(Flt64.two, x)), Flt64.one)
-        val rhs = LinearPolynomial(listOf(LinearMonomial(Flt64.one, y)), Flt64.zero)
+        val lhs = LinearPolynomial<Flt64>(listOf(LinearMonomial<Flt64>(Flt64.two, x)), Flt64.one)
+        val rhs = LinearPolynomial<Flt64>(listOf(LinearMonomial<Flt64>(Flt64.one, y)), Flt64.zero)
 
         val inequality = LinearInequality(lhs, rhs, Comparison.LE)
 
@@ -35,8 +35,8 @@ class InequalityTest {
     fun quadraticInequalityShouldKeepArguments() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val lhs = QuadraticPolynomial(listOf(QuadraticMonomial(symbol1 = x, symbol2 = y)), Flt64.one)
-        val rhs = QuadraticPolynomial(listOf(QuadraticMonomial(symbol1 = x)), Flt64.zero)
+        val lhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(symbol1 = x, symbol2 = y)), Flt64.one)
+        val rhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(symbol1 = x)), Flt64.zero)
 
         val inequality = QuadraticInequality(lhs, rhs, Comparison.GT)
 

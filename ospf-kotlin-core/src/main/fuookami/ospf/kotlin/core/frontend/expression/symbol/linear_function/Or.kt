@@ -160,7 +160,7 @@ class OrFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        // all polys must be âˆˆ (R - R-)
+        // all polys must be âˆ?(R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 return Failed(
@@ -460,3 +460,4 @@ class OrFunction(
         }
     }
 }
+

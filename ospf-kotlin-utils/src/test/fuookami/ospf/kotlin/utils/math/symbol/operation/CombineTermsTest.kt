@@ -28,10 +28,10 @@ class CombineTermsTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val merged = listOf(
-            LinearMonomial(Flt64.two, x),
-            LinearMonomial(Flt64(3.0), x),
-            LinearMonomial(-Flt64.one, y),
-            LinearMonomial(Flt64.one, y)
+            LinearMonomial<Flt64>(Flt64.two, x),
+            LinearMonomial<Flt64>(Flt64(3.0), x),
+            LinearMonomial<Flt64>(-Flt64.one, y),
+            LinearMonomial<Flt64>(Flt64.one, y)
         ).combineTerms()
 
         assertEquals(1, merged.size)
@@ -42,10 +42,10 @@ class CombineTermsTest {
     @Test
     fun combineLinearPolynomialShouldKeepConstant() {
         val x = TestSymbol("x")
-        val polynomial = LinearPolynomial(
+        val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(-Flt64.one, x)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(-Flt64.one, x)
             ),
             constant = Flt64(7.0)
         )
@@ -62,10 +62,10 @@ class CombineTermsTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val merged = listOf(
-            QuadraticMonomial(Flt64.two, x, y),
-            QuadraticMonomial(Flt64(3.0), y, x),
-            QuadraticMonomial(Flt64.one, x, null),
-            QuadraticMonomial(-Flt64.one, x, null)
+            QuadraticMonomial<Flt64>(Flt64.two, x, y),
+            QuadraticMonomial<Flt64>(Flt64(3.0), y, x),
+            QuadraticMonomial<Flt64>(Flt64.one, x, null),
+            QuadraticMonomial<Flt64>(-Flt64.one, x, null)
         ).combineTerms()
 
         assertEquals(1, merged.size)
@@ -80,7 +80,7 @@ class CombineTermsTest {
         val x2 = TestIdentifiedSymbol("x", "02")
         val x1 = TestIdentifiedSymbol("x", "01")
         val merged = listOf(
-            fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial(Flt64.one, listOf(x2, x1))
+            fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial<Flt64>(Flt64.one, listOf(x2, x1))
         ).combineCanonicalTerms(defaultSymbolComparator)
 
         assertEquals(1, merged.size)

@@ -139,7 +139,7 @@ interface Shape {
      * @return 下一个向量索引，如果已到达末尾则返回 null
      */
     fun next(vector: IntArray): IntArray? {
-        val temp = vector.clone()
+        val temp = vector.copyOf()
         var i = dimension - 1
         while (i >= 0) {
             if (this[i] == 0 || temp[i] == (this[i] - 1)) {

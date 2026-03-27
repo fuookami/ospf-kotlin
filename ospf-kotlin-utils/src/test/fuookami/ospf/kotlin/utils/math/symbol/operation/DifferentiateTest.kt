@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class DifferentiateTest {
@@ -22,11 +23,11 @@ class DifferentiateTest {
     fun linearDerivativeShouldReturnConstantCoefficient() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = LinearPolynomial(
+        val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64(3.0), y),
-                LinearMonomial(Flt64(-1.0), x)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64(3.0), y),
+                LinearMonomial<Flt64>(Flt64(-1.0), x)
             ),
             constant = Flt64(5.0)
         )
@@ -39,11 +40,11 @@ class DifferentiateTest {
     fun quadraticDerivativeShouldFollowAnalyticRules() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(3.0), x, x),
-                QuadraticMonomial(Flt64(4.0), y, null)
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64(4.0), y, null)
             ),
             constant = Flt64.one
         )
@@ -60,11 +61,11 @@ class DifferentiateTest {
     fun gradientShouldFollowSymbolOrder() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(3.0), x, x),
-                QuadraticMonomial(Flt64(4.0), y, null)
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64(4.0), y, null)
             )
         )
 
@@ -82,7 +83,7 @@ class DifferentiateTest {
     fun canonicalDerivativeShouldSupportRepeatedFactors() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val monomial = CanonicalMonomial(
+        val monomial = CanonicalMonomial<Flt64>(
             coefficient = Flt64(3.0),
             factors = listOf(x, x, y)
         )
@@ -97,11 +98,11 @@ class DifferentiateTest {
     fun canonicalGradientShouldFollowSymbolOrder() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64.two, listOf(x, y)),
-                CanonicalMonomial(Flt64(3.0), listOf(x, x)),
-                CanonicalMonomial(Flt64(4.0), listOf(y))
+                CanonicalMonomial<Flt64>(Flt64.two, listOf(x, y)),
+                CanonicalMonomial<Flt64>(Flt64(3.0), listOf(x, x)),
+                CanonicalMonomial<Flt64>(Flt64(4.0), listOf(y))
             )
         )
 
@@ -118,5 +119,77 @@ class DifferentiateTest {
         assertEquals(Flt64(4.0), gradY.constant)
         assertTrue(gradXCoefficients[x] == Flt64(6.0))
         assertTrue(gradXCoefficients[y] == Flt64.two)
+    }
+
+    @Test
+    fun quadraticHessianShouldBeZeroForLinearOnlyPolynomial() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = QuadraticPolynomial<Flt64>(
+            monomials = listOf(
+                QuadraticMonomial<Flt64>(Flt64(2.0), x, null),
+                QuadraticMonomial<Flt64>(Flt64(-3.0), y, null)
+            ),
+            constant = Flt64.one
+        )
+
+        val hessian = polynomial.hessian(order = listOf(y, x))
+
+        assertEquals(0.0, hessian[0][0])
+        assertEquals(0.0, hessian[0][1])
+        assertEquals(0.0, hessian[1][0])
+        assertEquals(0.0, hessian[1][1])
+    }
+
+    @Test
+    fun quadraticHessianShouldFollowOrderForMixedTerms() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = QuadraticPolynomial<Flt64>(
+            monomials = listOf(
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64(4.0), y, null)
+            ),
+            constant = Flt64.one
+        )
+
+        val hessian = polynomial.hessian(order = listOf(y, x))
+
+        assertEquals(0.0, hessian[0][0])
+        assertEquals(2.0, hessian[0][1])
+        assertEquals(2.0, hessian[1][0])
+        assertEquals(6.0, hessian[1][1])
+    }
+
+    @Test
+    fun quadraticHessianShouldSupportRepeatedVariableMonomials() {
+        val x = TestSymbol("x")
+        val polynomial = QuadraticPolynomial<Flt64>(
+            monomials = listOf(
+                QuadraticMonomial<Flt64>(Flt64(1.0), x, x),
+                QuadraticMonomial<Flt64>(Flt64(2.0), x, x)
+            )
+        )
+
+        val hessian = polynomial.hessian(order = listOf(x))
+
+        assertEquals(6.0, hessian[0][0])
+    }
+
+    @Test
+    fun canonicalHessianShouldFailForHigherOrderTerm() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val z = TestSymbol("z")
+        val polynomial = CanonicalPolynomial<Flt64>(
+            monomials = listOf(
+                CanonicalMonomial<Flt64>(Flt64.one, listOf(x, y, z))
+            )
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            polynomial.hessian(order = listOf(x, y, z))
+        }
     }
 }

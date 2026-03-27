@@ -80,3 +80,4 @@ fun UtilsQuadraticPolynomial.toCorePolynomialOrNull(): CoreQuadraticPolynomial? 
         is Fatal -> null
     }
 }
+

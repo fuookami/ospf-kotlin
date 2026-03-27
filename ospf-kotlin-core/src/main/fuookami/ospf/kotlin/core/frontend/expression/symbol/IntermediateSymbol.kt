@@ -1134,3 +1134,4 @@ typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol
 typealias QuantityFunctionSymbol = Quantity<FunctionSymbol>
 typealias QuantityLinearFunctionSymbol = Quantity<LinearFunctionSymbol>
 typealias QuantityQuadraticFunctionSymbol = Quantity<QuadraticFunctionSymbol>
+

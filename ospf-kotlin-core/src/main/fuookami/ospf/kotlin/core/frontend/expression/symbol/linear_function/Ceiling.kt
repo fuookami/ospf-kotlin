@@ -32,7 +32,7 @@ class CeilingFunction(
     override val parent: IntermediateSymbol? = null,
     args: Any? = null,
     override var name: String = "ceil_${x}_${d}",
-    override var displayName: String? = "⌈$x/$d⌉"
+    override var displayName: String? = "ceil(x/$d)"
 ) : LinearFunctionSymbol() {
     private val logger = logger()
 
@@ -47,7 +47,7 @@ class CeilingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "ceil_${x}_${d}",
-            displayName: String? = "⌈$x/$d⌉"
+            displayName: String? = "ceil(x/$d)"
         ): CeilingFunction {
             return CeilingFunction(
                 x = x.toLinearPolynomial(),
@@ -70,7 +70,7 @@ class CeilingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "ceil_${x}_${d}",
-            displayName: String? = "⌈$x/$d⌉"
+            displayName: String? = "ceil(x/$d)"
         ): CeilingFunction {
             return CeilingFunction(
                 x = x.toLinearPolynomial(),
@@ -94,7 +94,7 @@ class CeilingFunction(
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String = "ceil_${x}_${d}",
-            displayName: String? = "⌈$x/$d⌉"
+            displayName: String? = "ceil(x/$d)"
         ): CeilingFunction {
             return CeilingFunction(
                 x = x.toLinearPolynomial(),
@@ -339,7 +339,7 @@ class CeilingFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "⌈${x.toTidyRawString(unfold - UInt64.one)} / $d⌉"
+            "ceil(${x.toTidyRawString(unfold - UInt64.one)} / $d)"
         }
     }
 
@@ -417,3 +417,4 @@ class CeilingFunction(
         }
     }
 }
+

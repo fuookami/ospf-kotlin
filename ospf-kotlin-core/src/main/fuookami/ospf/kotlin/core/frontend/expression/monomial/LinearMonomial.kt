@@ -1216,3 +1216,4 @@ operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.times(rhs: Quantity<T>
 operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this.value / rhs.value, this.unit / rhs.unit)
 }
+

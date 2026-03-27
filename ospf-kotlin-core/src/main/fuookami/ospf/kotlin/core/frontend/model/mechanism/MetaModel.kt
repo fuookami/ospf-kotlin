@@ -1185,3 +1185,4 @@ class QuadraticMetaModel(
         return ok
     }
 }
+

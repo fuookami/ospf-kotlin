@@ -3,8 +3,13 @@ package fuookami.ospf.kotlin.utils.math.symbol.monomial
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.*
 
-data class CanonicalMonomial(
-    val coefficient: Flt64 = Flt64.one,
+@Suppress("UNCHECKED_CAST")
+private fun <T> defaultCanonicalCoefficient(): T {
+    return Flt64.one as T
+}
+
+data class CanonicalMonomial<T>(
+    val coefficient: T = defaultCanonicalCoefficient(),
     val factors: List<Symbol> = emptyList()
 ) {
     val degree: Int
@@ -17,4 +22,3 @@ data class CanonicalMonomial(
             else -> Nonlinear
         }
 }
-

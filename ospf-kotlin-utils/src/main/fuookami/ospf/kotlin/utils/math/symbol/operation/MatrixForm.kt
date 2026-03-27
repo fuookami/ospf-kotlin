@@ -5,6 +5,12 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericLinearTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericQuadraticTerms
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toMatrixPair
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toMatrixVector
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
@@ -54,30 +60,25 @@ private fun validateQuadraticMatrixDimensions(
     }
 }
 
-fun LinearPolynomial.toMatrixForm(
+fun LinearPolynomial<Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): LinearMatrixForm {
     validateOrder(order)
 
-    val n = order.size
-    val c = DoubleArray(n)
-    val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     val source = if (combineTerms) {
-        combineTerms()
+        toGenericLinearPolynomial().combineGenericLinearTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero }
+        )
     } else {
-        this
+        toGenericLinearPolynomial()
     }
-
-    for (monomial in source.monomials) {
-        val i = indexOfSymbol[monomial.symbol]
-            ?: throw IllegalArgumentException("Symbol ${monomial.symbol.name} not found in order.")
-        c[i] += monomial.coefficient.toDouble()
-    }
+    val c = source.toMatrixVector(order)
 
     return LinearMatrixForm(
         c = c,
-        d = source.constant,
+        d = constant,
         order = order
     )
 }
@@ -86,28 +87,28 @@ fun linearPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): LinearPolynomial {
+): LinearPolynomial<Flt64> {
     validateOrder(order)
     validateLinearMatrixDimensions(c, order)
 
-    val monomials = ArrayList<LinearMonomial>(order.size)
+    val monomials = ArrayList<LinearMonomial<Flt64>>(order.size)
     for (i in order.indices) {
         if (c[i] != 0.0) {
             monomials.add(
-                LinearMonomial(
+                LinearMonomial<Flt64>(
                     coefficient = Flt64(c[i]),
                     symbol = order[i]
                 )
             )
         }
     }
-    return LinearPolynomial(
+    return LinearPolynomial<Flt64>(
         monomials = monomials,
         constant = d
     )
 }
 
-fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial {
+fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<Flt64> {
     return linearPolynomialFromMatrixForm(
         c = form.c,
         d = form.d,
@@ -115,48 +116,26 @@ fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial {
     )
 }
 
-fun QuadraticPolynomial.toMatrixForm(
+fun QuadraticPolynomial<Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): QuadraticMatrixForm {
     validateOrder(order)
 
-    val n = order.size
-    val q = Array(n) { DoubleArray(n) }
-    val c = DoubleArray(n)
-    val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     val source = if (combineTerms) {
-        combineTerms()
+        toGenericQuadraticPolynomial().combineGenericQuadraticTerms(
+            zero = Flt64.zero,
+            isZero = { it == Flt64.zero }
+        )
     } else {
-        this
+        toGenericQuadraticPolynomial()
     }
-
-    for (monomial in source.monomials) {
-        if (monomial.isQuadratic) {
-            val symbol2 = monomial.symbol2!!
-            val i = indexOfSymbol[monomial.symbol1]
-                ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
-            val j = indexOfSymbol[symbol2]
-                ?: throw IllegalArgumentException("Symbol ${symbol2.name} not found in order.")
-            val coefficient = monomial.coefficient.toDouble()
-            if (i == j) {
-                q[i][j] += coefficient
-            } else {
-                val half = coefficient / 2.0
-                q[i][j] += half
-                q[j][i] += half
-            }
-        } else {
-            val i = indexOfSymbol[monomial.symbol1]
-                ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
-            c[i] += monomial.coefficient.toDouble()
-        }
-    }
+    val (q, c) = source.toMatrixPair(order)
 
     return QuadraticMatrixForm(
         q = q,
         c = c,
-        d = source.constant,
+        d = constant,
         order = order
     )
 }
@@ -166,15 +145,15 @@ fun quadraticPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): QuadraticPolynomial {
+): QuadraticPolynomial<Flt64> {
     validateOrder(order)
     validateQuadraticMatrixDimensions(q, c, order)
 
-    val monomials = ArrayList<QuadraticMonomial>(order.size * (order.size + 1) / 2 + order.size)
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>(order.size * (order.size + 1) / 2 + order.size)
     for (i in order.indices) {
         if (q[i][i] != 0.0) {
             monomials.add(
-                QuadraticMonomial(
+                QuadraticMonomial<Flt64>(
                     coefficient = Flt64(q[i][i]),
                     symbol1 = order[i],
                     symbol2 = order[i]
@@ -183,7 +162,7 @@ fun quadraticPolynomialFromMatrixForm(
         }
         if (c[i] != 0.0) {
             monomials.add(
-                QuadraticMonomial(
+                QuadraticMonomial<Flt64>(
                     coefficient = Flt64(c[i]),
                     symbol1 = order[i],
                     symbol2 = null
@@ -194,7 +173,7 @@ fun quadraticPolynomialFromMatrixForm(
             val coefficient = q[i][j] + q[j][i]
             if (coefficient != 0.0) {
                 monomials.add(
-                    QuadraticMonomial(
+                    QuadraticMonomial<Flt64>(
                         coefficient = Flt64(coefficient),
                         symbol1 = order[i],
                         symbol2 = order[j]
@@ -204,13 +183,13 @@ fun quadraticPolynomialFromMatrixForm(
         }
     }
 
-    return QuadraticPolynomial(
+    return QuadraticPolynomial<Flt64>(
         monomials = monomials,
         constant = d
     )
 }
 
-fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial {
+fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<Flt64> {
     return quadraticPolynomialFromMatrixForm(
         q = form.q,
         c = form.c,
@@ -219,7 +198,7 @@ fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolyn
     )
 }
 
-fun CanonicalPolynomial.toMatrixForm(
+fun CanonicalPolynomial<Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

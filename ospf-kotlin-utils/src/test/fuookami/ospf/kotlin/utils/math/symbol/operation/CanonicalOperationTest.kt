@@ -28,10 +28,10 @@ class CanonicalOperationTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val merged = listOf(
-            CanonicalMonomial(Flt64.two, listOf(x, y)),
-            CanonicalMonomial(Flt64(3.0), listOf(y, x)),
-            CanonicalMonomial(Flt64.one, listOf(x)),
-            CanonicalMonomial(-Flt64.one, listOf(x))
+            CanonicalMonomial<Flt64>(Flt64.two, listOf(x, y)),
+            CanonicalMonomial<Flt64>(Flt64(3.0), listOf(y, x)),
+            CanonicalMonomial<Flt64>(Flt64.one, listOf(x)),
+            CanonicalMonomial<Flt64>(-Flt64.one, listOf(x))
         ).combineCanonicalTerms()
 
         assertEquals(1, merged.size)
@@ -44,10 +44,10 @@ class CanonicalOperationTest {
     fun canonicalPolynomialEvaluateShouldSupportMissingPolicies() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64.two, listOf(x, y)),
-                CanonicalMonomial(Flt64(3.0), listOf(x))
+                CanonicalMonomial<Flt64>(Flt64.two, listOf(x, y)),
+                CanonicalMonomial<Flt64>(Flt64(3.0), listOf(x))
             ),
             constant = Flt64.one
         )
@@ -70,10 +70,10 @@ class CanonicalOperationTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
 
-        val linear = LinearPolynomial(
+        val linear = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64(-1.0), y)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64(-1.0), y)
             ),
             constant = Flt64(3.0)
         )
@@ -95,11 +95,11 @@ class CanonicalOperationTest {
         }
         assertEquals(linear.combineTerms(), linearRoundTripValue)
 
-        val quadratic = QuadraticPolynomial(
+        val quadratic = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.two, x, y),
-                QuadraticMonomial(Flt64(3.0), y, x),
-                QuadraticMonomial(Flt64.one, x, x)
+                QuadraticMonomial<Flt64>(Flt64.two, x, y),
+                QuadraticMonomial<Flt64>(Flt64(3.0), y, x),
+                QuadraticMonomial<Flt64>(Flt64.one, x, x)
             ),
             constant = Flt64(4.0)
         )
@@ -127,9 +127,9 @@ class CanonicalOperationTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val z = TestSymbol("z")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64.one, listOf(x, y, z))
+                CanonicalMonomial<Flt64>(Flt64.one, listOf(x, y, z))
             ),
             constant = Flt64.zero
         )
@@ -142,10 +142,10 @@ class CanonicalOperationTest {
     @Test
     fun canonicalDegreeZeroMonomialShouldFoldIntoPolynomialConstant() {
         val x = TestSymbol("x")
-        val polynomial = CanonicalPolynomial(
+        val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial(Flt64(2.0), emptyList()),
-                CanonicalMonomial(Flt64(3.0), listOf(x))
+                CanonicalMonomial<Flt64>(Flt64(2.0), emptyList()),
+                CanonicalMonomial<Flt64>(Flt64(3.0), listOf(x))
             ),
             constant = Flt64.one
         )

@@ -598,3 +598,4 @@ class MaxFunction(
         }
     }
 }
+

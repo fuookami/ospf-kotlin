@@ -137,3 +137,4 @@ operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<Abstr
 operator fun AbstractVariableItem<*, *>.div(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
     return Quantity(this, rhs.reciprocal())
 }
+

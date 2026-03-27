@@ -434,3 +434,4 @@ class SemiFunction(
         return max(Flt64.zero, xValue)
     }
 }
+

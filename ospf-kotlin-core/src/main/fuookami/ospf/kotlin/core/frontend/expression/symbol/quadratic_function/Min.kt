@@ -600,3 +600,4 @@ class MinFunction(
         }
     }
 }
+

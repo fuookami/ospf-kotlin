@@ -830,3 +830,4 @@ class BinaryzationFunction(
         )
     }
 }
+

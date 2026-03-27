@@ -325,3 +325,4 @@ class LinearPolynomialBaselineTest {
         assertTrue(valueFromTokenFallback eq Flt64(21.0))
     }
 }
+

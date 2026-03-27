@@ -585,6 +585,15 @@ Phase 8 当前进展（截至 2026-03-13）：
    `mvn -pl ospf-kotlin-utils test -DskipITs`，`Tests run: 261, Failures: 0, Errors: 0`；  
    `mvn -pl ospf-kotlin-core test -DskipITs`，`Tests run: 30, Failures: 0, Errors: 0`。
 
+Phase 8 附录：当前约束（2026-03-27）：
+
+1. 破坏性版本约束：本轮以全量替换为目标，不保留兼容层或过渡路径。
+2. `NE` 约束：`normalizeToLessEqualForm` 不对 `NE` 做隐式降级，保留原比较语义。
+3. symbol identity 约束：统一通过 `Symbol.identity()` 与默认 comparator 生效，禁止回退到分散的 `name + hashCode` 排序逻辑。
+4. compile 约束：`compileEval/compileGradient` 主路径按泛型系数约束实现（至少 `Ring`），`Flt64` 不再是唯一实现前提。
+5. parser 约束：解析范围固定覆盖 `polynomial`、`inequality`、`core` 函数符号表达式，统一落到共享 AST 模型。
+6. 跨语言迁移约束：仅因 Rust 语言机制（所有权/借用/生命周期/引用运算）存在的接口，不在 Kotlin 中做同形迁移，改为 Kotlin 语义等价实现。
+
 ---
 
 ## 7. 测试与质量保证

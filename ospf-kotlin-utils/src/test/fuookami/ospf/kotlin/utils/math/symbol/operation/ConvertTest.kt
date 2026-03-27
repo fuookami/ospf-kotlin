@@ -29,12 +29,12 @@ class ConvertTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val inequality = LinearInequality(
-            lhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.two, x)),
+            lhs = LinearPolynomial<Flt64>(
+                monomials = listOf(LinearMonomial<Flt64>(Flt64.two, x)),
                 constant = Flt64.one
             ),
-            rhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, y)),
+            rhs = LinearPolynomial<Flt64>(
+                monomials = listOf(LinearMonomial<Flt64>(Flt64.one, y)),
                 constant = Flt64(-2.0)
             ),
             comparison = Comparison.LE
@@ -55,12 +55,12 @@ class ConvertTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val inequality = LinearInequality(
-            lhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.two, x)),
+            lhs = LinearPolynomial<Flt64>(
+                monomials = listOf(LinearMonomial<Flt64>(Flt64.two, x)),
                 constant = Flt64.one
             ),
-            rhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, y)),
+            rhs = LinearPolynomial<Flt64>(
+                monomials = listOf(LinearMonomial<Flt64>(Flt64.one, y)),
                 constant = Flt64(-2.0)
             ),
             comparison = Comparison.GE
@@ -80,10 +80,10 @@ class ConvertTest {
     fun linearPolynomialShouldConvertToQuadraticAndBack() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val linear = LinearPolynomial(
+        val linear = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial(Flt64.two, x),
-                LinearMonomial(Flt64(-1.0), y)
+                LinearMonomial<Flt64>(Flt64.two, x),
+                LinearMonomial<Flt64>(Flt64(-1.0), y)
             ),
             constant = Flt64(5.0)
         )
@@ -100,9 +100,9 @@ class ConvertTest {
     fun quadraticPolynomialWithQuadraticTermShouldNotConvertToLinear() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val quadratic = QuadraticPolynomial(
+        val quadratic = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial(Flt64.one, x, y)
+                QuadraticMonomial<Flt64>(Flt64.one, x, y)
             ),
             constant = Flt64.zero
         )
@@ -116,11 +116,11 @@ class ConvertTest {
     fun normalizeToLessEqualFormShouldKeepNeUnchanged() {
         val x = TestSymbol("x")
         val inequality = LinearInequality(
-            lhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, x)),
+            lhs = LinearPolynomial<Flt64>(
+                monomials = listOf(LinearMonomial<Flt64>(Flt64.one, x)),
                 constant = Flt64.one
             ),
-            rhs = LinearPolynomial(constant = Flt64.zero),
+            rhs = LinearPolynomial<Flt64>(constant = Flt64.zero),
             comparison = Comparison.NE
         )
 
@@ -134,15 +134,15 @@ class ConvertTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val linear = LinearInequality(
-            lhs = LinearPolynomial(
+            lhs = LinearPolynomial<Flt64>(
                 monomials = listOf(
-                    LinearMonomial(Flt64.two, x),
-                    LinearMonomial(Flt64.one, y)
+                    LinearMonomial<Flt64>(Flt64.two, x),
+                    LinearMonomial<Flt64>(Flt64.one, y)
                 ),
                 constant = Flt64.one
             ),
-            rhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64(3.0), x)),
+            rhs = LinearPolynomial<Flt64>(
+                monomials = listOf(LinearMonomial<Flt64>(Flt64(3.0), x)),
                 constant = Flt64(4.0)
             ),
             comparison = Comparison.GE
@@ -162,11 +162,11 @@ class ConvertTest {
     fun canonicalInequalityNeShouldKeepOriginalForm() {
         val x = TestSymbol("x")
         val inequality = CanonicalInequality(
-            lhs = CanonicalPolynomial(
-                monomials = listOf(CanonicalMonomial(Flt64.one, listOf(x))),
+            lhs = CanonicalPolynomial<Flt64>(
+                monomials = listOf(CanonicalMonomial<Flt64>(Flt64.one, listOf(x))),
                 constant = Flt64.one
             ),
-            rhs = CanonicalPolynomial(constant = Flt64.zero),
+            rhs = CanonicalPolynomial<Flt64>(constant = Flt64.zero),
             comparison = Comparison.NE
         )
 

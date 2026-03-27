@@ -4108,3 +4108,4 @@ fun <T> flatQtyQSum(
 ): Quantity<QuadraticPolynomial> {
     return qtyQSum(objs.flatMap(extractor).filterNotNull())
 }
+

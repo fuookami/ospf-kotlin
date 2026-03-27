@@ -595,3 +595,4 @@ class SameAsFunction(
         return Flt64.one
     }
 }
+
