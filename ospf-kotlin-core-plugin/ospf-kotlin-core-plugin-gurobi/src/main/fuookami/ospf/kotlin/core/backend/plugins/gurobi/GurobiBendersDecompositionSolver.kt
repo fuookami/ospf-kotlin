@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi
+﻿package fuookami.ospf.kotlin.core.backend.plugins.gurobi
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import gurobi.GRB
 import kotlinx.coroutines.*
 
@@ -525,3 +525,6 @@ class GurobiQuadraticBendersDecompositionSolver(
         }
     }
 }
+
+
+

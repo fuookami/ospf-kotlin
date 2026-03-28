@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.gcd
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
 import fuookami.ospf.kotlin.utils.operator.orderOf
@@ -14,6 +17,14 @@ import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
+import kotlin.ConsistentCopyVisibility
+
+private fun <I> ensureNonZeroDenominator(den: I)
+        where I : Integer<I>, I : NumberField<I> {
+    if (den eq den.constants.zero) {
+        throw ArithmeticException("Rational denominator cannot be zero.")
+    }
+}
 
 abstract class RationalSerializer<Self, I>(
     name: String,
@@ -168,9 +179,6 @@ abstract class RationalConstants<Self, I> protected constructor(
 
     override val half: Self get() = ctor(constants.one, constants.two)
 
-    override val nan: Self get() = ctor(constants.zero, constants.zero)
-    override val infinity: Self get() = ctor(constants.one, constants.zero)
-    override val negativeInfinity: Self get() = ctor(-constants.one, constants.zero)
 }
 
 data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke) {
@@ -178,12 +186,14 @@ data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke
 }
 
 @Serializable(with = Rtn8Serializer::class)
+@ConsistentCopyVisibility
 data class Rtn8 internal constructor(
     override val num: Int8,
     override val den: Int8
 ) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8), Copyable<Rtn8> {
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             val negative = (num < Int8.zero) xor (den < Int8.zero);
             return if (negative) {
@@ -209,12 +219,14 @@ data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::i
 }
 
 @Serializable(with = Rtn16Serializer::class)
+@ConsistentCopyVisibility
 data class Rtn16 internal constructor(
     override val num: Int16,
     override val den: Int16
 ) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16), Copyable<Rtn16> {
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return Rtn16(num / divisor, den / divisor)
         }
@@ -235,12 +247,14 @@ data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::i
 }
 
 @Serializable(with = Rtn32Serializer::class)
+@ConsistentCopyVisibility
 data class Rtn32 internal constructor(
     override val num: Int32,
     override val den: Int32
 ) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32), Copyable<Rtn32> {
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return Rtn32(num / divisor, den / divisor)
         }
@@ -261,12 +275,14 @@ data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::i
 }
 
 @Serializable(with = Rtn64Serializer::class)
+@ConsistentCopyVisibility
 data class Rtn64 internal constructor(
     override val num: Int64,
     override val den: Int64
 ) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64) {
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return Rtn64(num / divisor, den / divisor)
         }
@@ -287,6 +303,7 @@ data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke
 }
 
 @Serializable(with = RtnXSerializer::class)
+@ConsistentCopyVisibility
 data class RtnX internal constructor(
     override val num: IntX,
     override val den: IntX
@@ -297,12 +314,16 @@ data class RtnX internal constructor(
         }
 
         operator fun invoke(num: IntX, den: IntX): RtnX {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return RtnX(num / divisor, den / divisor)
         }
     }
 
     override val constants: RealNumberConstants<RtnX> get() = RtnX
+    override val isBounded: Boolean get() = false
+    override val minBound: RtnX? get() = null
+    override val maxBound: RtnX? get() = null
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
@@ -317,12 +338,14 @@ object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::invoke
 }
 
 @Serializable(with = URtn8Serializer::class)
+@ConsistentCopyVisibility
 data class URtn8 internal constructor(
     override val num: UInt8,
     override val den: UInt8
 ) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8), Copyable<URtn8> {
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return URtn8(num / divisor, den / divisor)
         }
@@ -343,12 +366,14 @@ object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::i
 }
 
 @Serializable(with = URtn16Serializer::class)
+@ConsistentCopyVisibility
 data class URtn16 internal constructor(
     override val num: UInt16,
     override val den: UInt16
 ) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16), Copyable<URtn16> {
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return URtn16(num / divisor, den / divisor)
         }
@@ -369,12 +394,14 @@ object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::i
 }
 
 @Serializable(with = URtn32Serializer::class)
+@ConsistentCopyVisibility
 data class URtn32 internal constructor(
     override val num: UInt32,
     override val den: UInt32
 ) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32), Copyable<URtn32> {
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return URtn32(num / divisor, den / divisor)
         }
@@ -395,12 +422,14 @@ object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::i
 }
 
 @Serializable(with = URtn64Serializer::class)
+@ConsistentCopyVisibility
 data class URtn64 internal constructor(
     override val num: UInt64,
     override val den: UInt64
 ) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64), Copyable<URtn64> {
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return URtn64(num / divisor, den / divisor)
         }
@@ -425,18 +454,23 @@ object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::invoke
 }
 
 @Serializable(with = URtnXSerializer::class)
+@ConsistentCopyVisibility
 data class URtnX internal constructor(
     override val num: UIntX,
     override val den: UIntX
 ) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX), Copyable<URtnX> {
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         operator fun invoke(num: UIntX, den: UIntX): URtnX {
+            ensureNonZeroDenominator(den)
             val divisor = gcd(num, den)
             return URtnX(num / divisor, den / divisor)
         }
     }
 
     override val constants: RealNumberConstants<URtnX> get() = URtnX
+    override val isBounded: Boolean get() = false
+    override val minBound: URtnX? get() = null
+    override val maxBound: URtnX? get() = null
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
@@ -445,3 +479,6 @@ data class URtnX internal constructor(
     override fun times(rhs: URtnX) = invoke(num * rhs.num, den * rhs.den)
     override fun div(rhs: URtnX) = invoke(num * rhs.den, rhs.num * den)
 }
+
+
+

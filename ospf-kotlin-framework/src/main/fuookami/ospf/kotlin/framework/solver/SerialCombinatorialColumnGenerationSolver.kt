@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.solver
+﻿package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.apache.logging.log4j.kotlin.logger
 
 class SerialCombinatorialColumnGenerationSolver(
@@ -113,3 +113,5 @@ class SerialCombinatorialColumnGenerationSolver(
         return Failed(ErrorCode.SolverNotFound, "No solver valid.")
     }
 }
+
+

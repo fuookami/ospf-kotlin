@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.monomial
+﻿package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
@@ -14,16 +14,16 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.functional.Variant3
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.utils.math.value_range.times
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.times
 import fuookami.ospf.kotlin.utils.operator.Eq
 import fuookami.ospf.kotlin.utils.operator.Order
 import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
@@ -32,7 +32,9 @@ import fuookami.ospf.kotlin.utils.physics.unit.div
 import fuookami.ospf.kotlin.utils.physics.unit.reciprocal
 import fuookami.ospf.kotlin.utils.physics.unit.times
 import org.apache.logging.log4j.kotlin.logger
+import kotlin.ConsistentCopyVisibility
 
+@ConsistentCopyVisibility
 data class QuadraticMonomialCell internal constructor(
     val cell: Either<QuadraticCellTriple, Flt64>
 ) : MonomialCell<QuadraticMonomialCell> {
@@ -3292,4 +3294,8 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticMonomial>)
 
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
+
+
+
+
 

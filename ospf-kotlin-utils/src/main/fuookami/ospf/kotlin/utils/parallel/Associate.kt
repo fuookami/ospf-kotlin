@@ -6,6 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
@@ -21,6 +22,12 @@ suspend inline fun <K, V, T> Iterable<T>.tryAssociateToParallelly(
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
     return tryAssociateToParallelly(LinkedHashMap(), extractor)
+}
+
+suspend inline fun <K, V, T> Iterable<T>.exTryAssociateToParallelly(
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
+): ExRet<Map<K, V>> {
+    return exTryAssociateToParallelly(LinkedHashMap(), extractor)
 }
 
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateToParallelly(
@@ -64,6 +71,30 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociat
     }
 }
 
+suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssociateToParallelly(
+    destination: M,
+    crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
+): ExRet<M> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<K, V>>>>()
+        for (element in this@exTryAssociateToParallelly) {
+            promises.add(async(Dispatchers.Default) { extractor(element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (key, value) = ret.value
+                    destination[key] = value
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     crossinline keyExtractor: SuspendExtractor<K, T>
 ): Map<K, T> {
@@ -74,6 +105,12 @@ suspend inline fun <K, T> Iterable<T>.tryAssociateByToParallelly(
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): Ret<Map<K, T>> {
     return tryAssociateByToParallelly(LinkedHashMap(), keyExtractor)
+}
+
+suspend inline fun <K, T> Iterable<T>.exTryAssociateByToParallelly(
+    crossinline keyExtractor: SuspendTryExtractor<K, T>
+): ExRet<Map<K, T>> {
+    return exTryAssociateByToParallelly(LinkedHashMap(), keyExtractor)
 }
 
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToParallelly(
@@ -123,6 +160,36 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateBy
     }
 }
 
+suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociateByToParallelly(
+    destination: M,
+    crossinline keyExtractor: SuspendTryExtractor<K, T>
+): ExRet<M> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<K, T>>>>()
+        for (element in this@exTryAssociateByToParallelly) {
+            promises.add(async(Dispatchers.Default) {
+                when (val ret = keyExtractor(element)) {
+                    is Ok -> Ok(ret.value to element)
+                    is Failed -> Failed(ret.error)
+                    is Fatal -> Fatal(ret.errors)
+                }
+            })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (key, value) = ret.value
+                    destination[key] = value
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <V, T> Iterable<T>.associateWithParallelly(
     crossinline valueExtractor: SuspendExtractor<V, T>
 ): Map<T, V> {
@@ -133,6 +200,12 @@ suspend inline fun <V, T> Iterable<T>.tryAssociateWithToParallelly(
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
     return tryAssociateWithToParallelly(LinkedHashMap(), valueExtractor)
+}
+
+suspend inline fun <V, T> Iterable<T>.exTryAssociateWithToParallelly(
+    crossinline valueExtractor: SuspendTryExtractor<V, T>
+): ExRet<Map<T, V>> {
+    return exTryAssociateWithToParallelly(LinkedHashMap(), valueExtractor)
 }
 
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
@@ -179,5 +252,35 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWi
             }
         }
         Ok(destination)
+    }
+}
+
+suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.exTryAssociateWithToParallelly(
+    destination: M,
+    crossinline valueExtractor: SuspendTryExtractor<V, T>
+): ExRet<M> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<T, V>>>>()
+        for (element in this@exTryAssociateWithToParallelly) {
+            promises.add(async(Dispatchers.Default) {
+                when (val ret = valueExtractor(element)) {
+                    is Ok -> Ok(element to ret.value)
+                    is Failed -> Failed(ret.error)
+                    is Fatal -> Fatal(ret.errors)
+                }
+            })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (key, value) = ret.value
+                    destination[key] = value
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
     }
 }

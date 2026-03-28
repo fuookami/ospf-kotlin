@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.intermediate_model
+﻿package fuookami.ospf.kotlin.core.backend.intermediate_model
 
 import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.ordinary.min
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
@@ -755,12 +755,12 @@ data class LinearTriadModel(
                 ObjectCategory.Maximum -> {
                     when (this.constraints.signs[it]) {
                         Sign.LessEqual -> {
-                            // ≤ => y ≥ 0
+                            // �?=> y �?0
                             lowerBound = Flt64.zero
                         }
 
                         Sign.GreaterEqual -> {
-                            // ≥ => y ≤ 0
+                            // �?=> y �?0
                             upperBound = Flt64.zero
                         }
 
@@ -771,12 +771,12 @@ data class LinearTriadModel(
                 ObjectCategory.Minimum -> {
                     when (this.constraints.signs[it]) {
                         Sign.LessEqual -> {
-                            // ≤ => y ≤ 0
+                            // �?=> y �?0
                             upperBound = Flt64.zero
                         }
 
                         Sign.GreaterEqual -> {
-                            // ≥ => y ≥ 0
+                            // �?=> y �?0
                             lowerBound = Flt64.zero
                         }
 
@@ -804,7 +804,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x ≥ lb => λ ≤ 0
+                        // x �?lb => λ �?0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -819,7 +819,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x ≤ ub => λ ≥ 0
+                        // x �?ub => λ �?0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -834,7 +834,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb ≤ x ≤ ub => λ ≤ 0, λ' ≥ 0
+                        // lb �?x �?ub => λ �?0, λ' �?0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -867,7 +867,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x ≥ lb => λ ≥ 0
+                        // x �?lb => λ �?0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -882,7 +882,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x ≤ ub => λ ≤ 0
+                        // x �?ub => λ �?0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -897,7 +897,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb ≤ x ≤ ub => λ ≥ 0, λ' ≤ 0
+                        // lb �?x �?ub => λ �?0, λ' �?0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -958,25 +958,25 @@ data class LinearTriadModel(
             } else if (it.negativeNormalized) {
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
-                        // ≤ 0 => ≤
+                        // �?0 => �?
                         Sign.LessEqual
                     }
 
                     ObjectCategory.Minimum -> {
-                        // ≤ 0 => ≥
+                        // �?0 => �?
                         Sign.GreaterEqual
                     }
                 }
             } else if (it.positiveNormalized) {
-                // ≥ 0
+                // �?0
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
-                        // ≥ 0 => ≥
+                        // �?0 => �?
                         Sign.GreaterEqual
                     }
 
                     ObjectCategory.Minimum -> {
-                        // ≥ 0 => ≤
+                        // �?0 => �?
                         Sign.LessEqual
                     }
                 }
@@ -1123,7 +1123,7 @@ data class LinearTriadModel(
             if (it.free) {
                 null to null
             } else if (it.positiveFree) {
-                // x ≥ lb => λ ≤ 0
+                // x �?lb => λ �?0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -1138,7 +1138,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 variable to null
             } else if (it.negativeFree) {
-                // x ≤ ub => λ ≥ 0
+                // x �?ub => λ �?0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.zero,
@@ -1153,7 +1153,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 null to variable
             } else {
-                // lb ≤ x ≤ ub => λ ≤ 0, λ' ≥ 0
+                // lb �?x �?ub => λ �?0, λ' �?0
                 val variable1 = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -1588,7 +1588,7 @@ data class LinearTriadModel(
                     null to null
                 )
             } else if (variable.positiveFree) {
-                // x ≥ lb
+                // x �?lb
                 slackVariables.add(
                     Variable(
                         index = colIndex,
@@ -1606,7 +1606,7 @@ data class LinearTriadModel(
                 )
                 colIndex += 1
             } else if (variable.negativeFree) {
-                // x ≤ ub
+                // x �?ub
                 slackVariables.add(
                     null to Variable(
                         index = colIndex,
@@ -1624,7 +1624,7 @@ data class LinearTriadModel(
                 )
                 colIndex += 1
             } else {
-                // lb ≤ x ≤ ub
+                // lb �?x �?ub
                 slackVariables.add(
                     Variable(
                         index = colIndex,
@@ -2129,3 +2129,6 @@ suspend fun solveFarkasDual(
         }
     }
 }
+
+
+

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service
 
@@ -19,8 +19,8 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Instant
 
 data object SolutionAnalyzer {
@@ -226,3 +226,6 @@ data object SolutionAnalyzer {
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 }
+
+
+

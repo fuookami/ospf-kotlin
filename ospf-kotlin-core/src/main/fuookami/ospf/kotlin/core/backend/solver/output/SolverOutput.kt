@@ -1,11 +1,11 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.output
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.BasicLinearTriadModelView
 import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import kotlin.time.Duration
 
 sealed interface SolverOutput {}
@@ -27,3 +27,6 @@ data class LinearInfeasibleSolverOutput(
 data class QuadraticInfeasibleSolverOutput(
     val iis: QuadraticTetradModelView
 ) : QuadraticSolverOutput
+
+
+

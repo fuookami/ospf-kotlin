@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.scip
+﻿package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.abs
 import jscip.SCIP_ParamSetting
 import kotlinx.coroutines.*
@@ -335,3 +335,5 @@ class ScipColumnGenerationSolver(
         }
     }
 }
+
+

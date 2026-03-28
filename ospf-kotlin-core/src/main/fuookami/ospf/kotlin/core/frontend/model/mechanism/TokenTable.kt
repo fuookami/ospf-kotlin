@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.model.mechanism
+﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.ExpressionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.FunctionSymbol
@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.ord
@@ -1246,3 +1246,6 @@ class ConcurrentManualAddTokenTable private constructor(
         )
     }
 }
+
+
+

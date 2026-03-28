@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
 import fuookami.ospf.kotlin.utils.operator.orderOf
 import kotlinx.serialization.KSerializer
@@ -15,8 +18,36 @@ import kotlin.math.abs
 import kotlin.math.log
 import kotlin.math.pow
 
+private fun integerLogByFloatingBase(
+    value: Number,
+    base: FloatingNumber<*>,
+    toFltX: () -> FltX,
+    source: String
+): FloatingNumber<*>? = when (base) {
+    is Flt32 -> Flt32(log(value.toFloat(), base.value))
+    is Flt64 -> Flt64(log(value.toDouble(), base.value))
+    is FltX -> toFltX().log(base)
+    else -> throw IllegalArgumentException("Unknown argument type to $source.log: ${base.javaClass}")
+}
+
+private fun integerPowByFloatingIndex(
+    value: Number,
+    index: FloatingNumber<*>,
+    toFltX: () -> FltX,
+    source: String
+): FloatingNumber<*> = when (index) {
+    is Flt32 -> Flt32(value.toFloat().pow(index.value))
+    is Flt64 -> Flt64(value.toDouble().pow(index.value))
+    is FltX -> toFltX().pow(index)
+    else -> throw IllegalArgumentException("Unknown argument type to $source.pow: ${index.javaClass}")
+}
+
 interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
-    override fun reciprocal() = constants.zero.copy()
+    override fun reciprocal() = when (this) {
+        constants.one -> constants.one.copy()
+        -constants.one -> -constants.one
+        else -> throw ArithmeticException("Reciprocal is undefined in Integer domain for non-unit value: $this")
+    }
 
     override fun inc() = this + constants.one
     override fun dec() = this - constants.one
@@ -33,6 +64,36 @@ interface IntegerNumberImpl<Self : IntegerNumber<Self>> : IntegerNumber<Self> {
 
     override fun sqrt() = pow(Flt64.two.reciprocal())
     override fun cbrt() = pow(Flt64.three.reciprocal())
+
+    override fun exp(): FloatingNumber<*> = toFlt64().exp()
+
+    override fun sin(): FloatingNumber<*> = toFlt64().sin()
+    override fun cos(): FloatingNumber<*> = toFlt64().cos()
+    override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+    override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+    override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+    override fun cot(): FloatingNumber<*>? = toFlt64().cot()
+
+    override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+    override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+    override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+    override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+    override fun atan(): FloatingNumber<*> = toFlt64().atan()
+    override fun acot(): FloatingNumber<*>? = toFlt64().acot()
+
+    override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+    override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+    override fun sech(): FloatingNumber<*> = toFlt64().sech()
+    override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+    override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+    override fun coth(): FloatingNumber<*>? = toFlt64().coth()
+
+    override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+    override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+    override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+    override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+    override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+    override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
@@ -84,50 +145,12 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
     override fun rem(rhs: Int8) = Int8((value % rhs.value).toByte())
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> Flt32(log(value.toFloat(), base.value))
-        is Flt64 -> Flt64(log(value.toDouble(), base.value))
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to Int8.log: ${base.javaClass}")
-    }
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        integerLogByFloatingBase(value, base, ::toFltX, "Int8")
 
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> Flt32(value.toFloat().pow(index.value))
-        is Flt64 -> Flt64(value.toDouble().pow(index.value))
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to Int8.log: ${index.javaClass}")
-    }
-
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        integerPowByFloatingIndex(value, index, ::toFltX, "Int8")
 
     override fun toInt8() = copy()
     override fun toInt16() = Int16(value.toShort())
@@ -192,50 +215,12 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
     override fun rem(rhs: Int16) = Int16((value % rhs.value).toShort())
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> Flt32(log(value.toFloat(), base.value))
-        is Flt64 -> Flt64(log(value.toDouble(), base.value))
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to Int16.log: ${base.javaClass}")
-    }
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        integerLogByFloatingBase(value, base, ::toFltX, "Int16")
 
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> Flt32(value.toFloat().pow(index.value))
-        is Flt64 -> Flt64(value.toDouble().pow(index.value))
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to Int16.pow: ${index.javaClass}")
-    }
-
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        integerPowByFloatingIndex(value, index, ::toFltX, "Int16")
 
     override fun toInt8() = Int8(value.toByte())
     override fun toInt16() = copy()
@@ -300,50 +285,12 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
     override fun rem(rhs: Int32) = Int32(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> Flt32(log(value.toFloat(), base.value))
-        is Flt64 -> Flt64(log(value.toDouble(), base.value))
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to Int32.log: ${base.javaClass}")
-    }
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        integerLogByFloatingBase(value, base, ::toFltX, "Int32")
 
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> Flt32(value.toFloat().pow(index.value))
-        is Flt64 -> Flt64(value.toDouble().pow(index.value))
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to Int32.pow: ${index.javaClass}")
-    }
-
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        integerPowByFloatingIndex(value, index, ::toFltX, "Int32")
 
     fun toInt() = value
     fun toLong() = value.toLong()
@@ -411,50 +358,12 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
     override fun rem(rhs: Int64) = Int64(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> Flt32(log(value.toFloat(), base.value))
-        is Flt64 -> Flt64(log(value.toDouble(), base.value))
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to Int64.log: ${base.javaClass}")
-    }
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        integerLogByFloatingBase(value, base, ::toFltX, "Int64")
 
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> Flt32(value.toFloat().pow(index.value))
-        is Flt64 -> Flt64(value.toDouble().pow(index.value))
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to Int64.pow: ${index.javaClass}")
-    }
-
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        integerPowByFloatingIndex(value, index, ::toFltX, "Int64")
 
     fun toInt() = value.toInt()
     fun toLong() = value
@@ -506,6 +415,9 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
     constructor(value: String, radix: Int = 10) : this(BigInteger(value, radix))
 
     override val constants: RealNumberConstants<IntX> get() = Companion
+    override val isBounded: Boolean get() = false
+    override val minBound: IntX? get() = null
+    override val maxBound: IntX? get() = null
 
     override fun copy() = IntX(value)
 
@@ -608,9 +520,7 @@ fun String.toInt32OrNull() = toIntOrNull()?.let { Int32(it) }
 fun String.toInt64() = Int64(toLong())
 fun String.toInt64OrNull() = toLongOrNull()?.let { Int64(it) }
 fun String.toIntX(radix: Int = 10) = IntX(this, radix)
-fun String.toIntXOrNull(radix: Int = 10) = try {
-    IntX(this, radix)
-} catch (e: Exception) {
-    e.printStackTrace()
-    null
-}
+fun String.toIntXOrNull(radix: Int = 10) = runCatching { IntX(this, radix) }.getOrNull()
+
+
+

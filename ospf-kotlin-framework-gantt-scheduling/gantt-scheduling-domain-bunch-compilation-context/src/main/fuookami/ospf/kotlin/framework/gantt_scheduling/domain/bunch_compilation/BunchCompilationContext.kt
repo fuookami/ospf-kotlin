@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
@@ -11,8 +11,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
 import fuookami.ospf.kotlin.framework.model.invoke
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 interface BunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -254,3 +254,6 @@ interface ExtractBunchCompilationContext<
         return ok
     }
 }
+
+
+

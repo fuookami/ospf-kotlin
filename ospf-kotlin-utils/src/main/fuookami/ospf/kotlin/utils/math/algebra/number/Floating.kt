@@ -1,8 +1,9 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math.algebra.number
 
-
-import fuookami.ospf.kotlin.utils.math.Flt64
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.ExpP
 import fuookami.ospf.kotlin.utils.operator.LogP
@@ -796,6 +797,9 @@ value class FltX(internal val value: BigDecimal) :
     fun withScale(scale: Int, roundingMode: RoundingMode) = FltX(value.setScale(scale, roundingMode))
 
     override val constants: FloatingNumberConstants<FltX> get() = Companion
+    override val isBounded: Boolean get() = false
+    override val minBound: FltX? get() = null
+    override val maxBound: FltX? get() = null
 
     override fun copy() = FltX(value)
 
@@ -843,14 +847,7 @@ value class FltX(internal val value: BigDecimal) :
     ): FltX? = log(
         base = base,
         digits = digits + 1,
-        precision = min(
-            pow(
-                base = FltX(10),
-                index = -digits,
-                digits = digits + 1
-            ),
-            epsilon
-        )
+        precision = FltXPowerStrategy.defaultPrecision(digits + 1)
     )
 
     @Throws(IllegalArgumentException::class)
@@ -858,29 +855,20 @@ value class FltX(internal val value: BigDecimal) :
         base: FloatingNumber<*>,
         digits: Int,
         precision: FloatingNumber<*>
-    ): FltX? = when (base) {
-        is Flt32 -> log(
-            x = this.withScale(digits),
-            base = base.toFltX().withScale(digits),
-            digits = digits,
-            precision = precision.toFltX()
-        )
-
-        is Flt64 -> log(
-            x = this.withScale(digits),
-            base = base.toFltX().withScale(digits),
-            digits = digits,
-            precision = precision.toFltX()
-        )
-
-        is FltX -> log(
-            x = this.withScale(digits),
-            base = base.withScale(digits),
-            digits = digits,
-            precision = precision.toFltX()
-        )
-
-        else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
+    ): FltX? {
+        val scaled = this.withScale(digits)
+        val baseFltX = when (base) {
+            is Flt32 -> base.toFltX()
+            is Flt64 -> base.toFltX()
+            is FltX -> base
+            else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
+        }.withScale(digits)
+        val precisionFltX = precision.toFltX()
+        return FltXPowerStrategy.ln(scaled, digits, precisionFltX)?.let { numerator ->
+            FltXPowerStrategy.ln(baseFltX, digits, precisionFltX)?.let { denominator ->
+                numerator / denominator
+            }
+        }
     }
 
     override fun pow(index: Int) = pow(copy(), index, FltX)
@@ -907,14 +895,7 @@ value class FltX(internal val value: BigDecimal) :
     ): FltX = pow(
         index = index,
         digits = digits + 1,
-        precision = min(
-            pow(
-                base = FltX(10),
-                index = -digits,
-                digits = digits + 1
-            ),
-            epsilon
-        )
+        precision = FltXPowerStrategy.defaultPrecision(digits + 1)
     )
 
     @Throws(IllegalArgumentException::class)
@@ -922,56 +903,19 @@ value class FltX(internal val value: BigDecimal) :
         index: FloatingNumber<*>,
         digits: Int,
         precision: FloatingNumber<*>
-    ): FltX = when (index) {
-        is Flt32 -> if (index.round() eq index) {
-            pow(
-                base = this,
-                index = index.round().toInt32().value,
-                digits = digits,
-                precision = precision.toFltX()
-            )
-        } else {
-            powf(
-                base = this.withScale(digits),
-                index = index.toFltX().withScale(digits),
-                digits = digits,
-                precision = precision.toFltX()
-            )
+    ): FltX {
+        val indexFltX = when (index) {
+            is Flt32 -> index.toFltX()
+            is Flt64 -> index.toFltX()
+            is FltX -> index
+            else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
         }
-
-        is Flt64 -> if (index.round() eq index) {
-            pow(
-                base = this,
-                index = index.round().toInt32().value,
-                digits = digits,
-                precision = precision.toFltX()
-            )
-        } else {
-            powf(
-                base = this.withScale(digits),
-                index = index.toFltX().withScale(digits),
-                digits = digits,
-                precision = precision.toFltX()
-            )
-        }
-
-        is FltX -> if (index.stripTrailingZeros() eq index) {
-            pow(
-                base = this,
-                index = index.round().toInt32().value,
-                digits = digits,
-                precision = precision.toFltX()
-            )
-        } else {
-            powf(
-                base = this.withScale(digits),
-                index = index.withScale(digits),
-                digits = digits,
-                precision = precision.toFltX()
-            )
-        }
-
-        else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
+        return FltXPowerStrategy.pow(
+            base = this.withScale(digits),
+            index = indexFltX.withScale(digits),
+            digits = digits,
+            precision = precision.toFltX()
+        )
     }
 
     override fun exp() = exp(decimalDigits)
@@ -979,21 +923,14 @@ value class FltX(internal val value: BigDecimal) :
     fun exp(digits: Int) = exp(
         index = this,
         digits = digits + 1,
-        precision = min(
-            pow(
-                base = FltX(10),
-                index = -digits,
-                digits = digits + 1
-            ),
-            epsilon
-        )
+        precision = FltXPowerStrategy.defaultPrecision(digits + 1)
     )
 
     override fun exp(
         digits: Int,
         precision: FloatingNumber<*>
-    ): FloatingNumber<*> = exp(
-        index = this,
+    ): FloatingNumber<*> = FltXPowerStrategy.exp(
+        index = this.withScale(digits),
         digits = digits,
         precision = precision.toFltX()
     )
@@ -1119,3 +1056,8 @@ fun String.toFlt64() = Flt64(toDouble())
 fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
 fun String.toFltX() = FltX(toBigDecimal())
 fun String.toFltXOrNull() = toBigDecimalOrNull()?.let { FltX(it) }
+
+
+
+
+

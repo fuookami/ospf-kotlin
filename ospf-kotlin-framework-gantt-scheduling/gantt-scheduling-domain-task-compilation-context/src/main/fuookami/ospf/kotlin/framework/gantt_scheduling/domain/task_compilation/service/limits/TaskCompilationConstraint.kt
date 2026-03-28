@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 data class TaskCompilationShadowPriceKey<
         E : Executor,
@@ -91,3 +91,6 @@ class TaskCompilationConstraint<
         return ok
     }
 }
+
+
+

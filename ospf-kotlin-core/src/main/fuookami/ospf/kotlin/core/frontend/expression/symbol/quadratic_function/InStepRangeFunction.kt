@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
+﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
@@ -12,12 +12,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 
 class InStepRange(
     private val lb: AbstractQuadraticPolynomial<*>,
@@ -436,4 +436,8 @@ class InStepRange(
         return lbValue + qValue * stepValue
     }
 }
+
+
+
+
 

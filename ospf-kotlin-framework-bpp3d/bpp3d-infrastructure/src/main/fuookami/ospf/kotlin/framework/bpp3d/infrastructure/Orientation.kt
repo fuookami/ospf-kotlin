@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.operator.*
 import kotlinx.serialization.Serializable
 
@@ -123,3 +123,6 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
         }
     }
 }
+
+
+

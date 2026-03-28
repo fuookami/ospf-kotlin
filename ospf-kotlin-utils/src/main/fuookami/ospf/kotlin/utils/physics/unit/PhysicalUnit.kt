@@ -1,20 +1,20 @@
-package fuookami.ospf.kotlin.utils.physics.unit
+﻿package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.FltX
-import fuookami.ospf.kotlin.utils.math.RtnX
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.utils.math.Scale
 import fuookami.ospf.kotlin.utils.physics.dimension.DerivedQuantity
 import fuookami.ospf.kotlin.utils.physics.dimension.div
 import fuookami.ospf.kotlin.utils.physics.dimension.times
 
 /**
- * 物理单位抽象类
- * 支持单位转换、量纲检查
+ * 物理单位抽象�?
+ * 支持单位转换、量纲检�?
  * 
  * Physical unit abstract class
  * Supports unit conversion and dimension checking
  * 
- * 单位是独立的实体，不绑定到特定单位制。
+ * 单位是独立的实体，不绑定到特定单位制�?
  * Units are independent entities, not bound to any specific unit system.
  */
 abstract class PhysicalUnit {
@@ -25,7 +25,7 @@ abstract class PhysicalUnit {
     abstract val scale: Scale
 
     /**
-     * 检查量纲是否相同
+     * 检查量纲是否相�?
      * Check if dimensions are the same
      */
     fun sameDimension(other: PhysicalUnit): Boolean {
@@ -33,10 +33,10 @@ abstract class PhysicalUnit {
     }
 
     /**
-     * 转换到另一个单位
+     * 转换到另一个单�?
      * Convert to another unit
      * @param unit 目标单位 / Target unit
-     * @return 转换因子，如果量纲不同返回 null / Conversion factor, or null if dimensions differ
+     * @return 转换因子，如果量纲不同返�?null / Conversion factor, or null if dimensions differ
      */
     fun to(unit: PhysicalUnit): Scale? {
         return if (quantity == unit.quantity) {
@@ -47,7 +47,7 @@ abstract class PhysicalUnit {
     }
 
     /**
-     * 从另一个单位转换过来
+     * 从另一个单位转换过�?
      * Convert from another unit
      */
     fun from(unit: PhysicalUnit): Scale? {
@@ -84,10 +84,10 @@ abstract class PhysicalUnit {
 }
 
 /**
- * 导出物理单位抽象类
+ * 导出物理单位抽象�?
  * Derived physical unit abstract class
  * 
- * 通过现有单位组合创建的导出单位
+ * 通过现有单位组合创建的导出单�?
  * Derived units created by combining existing units
  */
 abstract class DerivedPhysicalUnit(
@@ -132,7 +132,7 @@ data class AnonymousPhysicalUnit(
 }
 
 /**
- * 无单位
+ * 无单�?
  * No unit
  */
 object NoneUnit : PhysicalUnit() {
@@ -143,7 +143,7 @@ object NoneUnit : PhysicalUnit() {
 }
 
 /**
- * 量纲单位（无量纲）
+ * 量纲单位（无量纲�?
  * Quantity unit (dimensionless)
  */
 data class QuantityUnit(
@@ -155,7 +155,7 @@ data class QuantityUnit(
 }
 
 // ============================================================================
-// 单位运算符 / Unit Operators
+// 单位运算�?/ Unit Operators
 // ============================================================================
 
 operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
@@ -255,3 +255,5 @@ fun PhysicalUnit.pow(index: Int): PhysicalUnit {
 fun PhysicalUnit.reciprocal(): PhysicalUnit {
     return NoneUnit / this
 }
+
+

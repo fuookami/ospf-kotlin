@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.model
+﻿package fuookami.ospf.kotlin.framework.model
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
 import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 interface Pipeline<in M : Model> : MetaConstraintGroup {
     fun register(model: M) {
@@ -153,3 +153,5 @@ operator fun <M : Model> PipelineList<M>.invoke(model: M): Try {
 
 typealias CGPipelineList<Args, Model, Map> = List<CGPipeline<Args, Model, Map>>
 typealias HAPipelineList<M> = List<HAPipeline<M>>
+
+

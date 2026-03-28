@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.model.mechanism
+﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSym
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.usize
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.utils.operator.pow
@@ -805,4 +805,7 @@ class QuadraticMechanismModel(
         return name
     }
 }
+
+
+
 

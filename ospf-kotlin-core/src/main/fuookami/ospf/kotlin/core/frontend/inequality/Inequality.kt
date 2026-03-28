@@ -1,12 +1,12 @@
-package fuookami.ospf.kotlin.core.frontend.inequality
+﻿package fuookami.ospf.kotlin.core.frontend.inequality
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.MonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 
 abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cell>>(
@@ -138,3 +138,6 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
         return "${lhs.toRawString(unfold)} $sign ${rhs.toRawString(unfold)}"
     }
 }
+
+
+

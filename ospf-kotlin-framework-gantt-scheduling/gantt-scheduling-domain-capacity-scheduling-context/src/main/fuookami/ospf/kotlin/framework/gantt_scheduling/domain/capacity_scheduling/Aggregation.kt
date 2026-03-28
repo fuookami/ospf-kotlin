@@ -1,17 +1,17 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 /**
- * 产能调度聚合类
+ * 产能调度聚合�?
  * Capacity Scheduling Aggregation Class
  *
- * 聚合产能调度相关的数据和逻辑。
+ * 聚合产能调度相关的数据和逻辑�?
  * Aggregates data and logic related to capacity scheduling.
  *
  * @param A 生产动作类型 / Production action type
@@ -36,7 +36,7 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
     val timeWindow: TimeWindow
 ) {
     /**
-     * 按执行器分组的动作
+     * 按执行器分组的动�?
      * Actions grouped by executor
      */
     val actionsByExecutor: Map<String, List<A>> = actions.groupBy { it.executor.id }
@@ -56,7 +56,7 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
         get() = actions.size
 
     /**
-     * 执行器数量
+     * 执行器数�?
      * Number of executors
      */
     val executorCount: Int
@@ -66,8 +66,8 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
      * 获取指定执行器的动作列表
      * Get actions for specified executor
      *
-     * @param executorId Executor identifier / 执行器标识
-     * @return List of actions for the executor / 该执行器的动作列表
+     * @param executorId Executor identifier / 执行器标�?
+     * @return List of actions for the executor / 该执行器的动作列�?
      */
     fun actionsForExecutor(executorId: String): List<A> {
         return actionsByExecutor[executorId] ?: emptyList()
@@ -77,7 +77,7 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
      * 计算总产能（所有动作的最大产能之和）
      * Calculate total capacity (sum of max capacity for all actions)
      *
-     * @return Total capacity / 总产能
+     * @return Total capacity / 总产�?
      */
     fun totalCapacity(): Flt64 {
         var total = Flt64.zero
@@ -92,7 +92,7 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
     }
 
     /**
-     * 获取指定时隙的索引
+     * 获取指定时隙的索�?
      * Get index for specified time slot
      *
      * @param slot Time slot / 时隙
@@ -103,7 +103,7 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
     }
 
     /**
-     * 获取指定动作的索引
+     * 获取指定动作的索�?
      * Get index for specified action
      *
      * @param action Production action / 生产动作
@@ -113,3 +113,5 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
         return actions.indexOf(action)
     }
 }
+
+

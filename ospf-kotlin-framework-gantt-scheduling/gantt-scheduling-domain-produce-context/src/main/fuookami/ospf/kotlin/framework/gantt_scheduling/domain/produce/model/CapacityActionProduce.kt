@@ -1,12 +1,12 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 /**
- * 支持 ProductionAction 的产量/消耗接口
+ * 支持 ProductionAction 的产�?消耗接�?
  * Produce/Consumption interface that supports ProductionAction
  *
  * 此接口定义了生产动作与产品产量、原料消耗之间的关系
@@ -30,7 +30,7 @@ interface CapacityActionProduce<
 }
 
 /**
- * 从 CapacityColumn 计算产量
+ * �?CapacityColumn 计算产量
  * Calculate produce from CapacityColumn
  *
  * @param product 产品 / Product
@@ -50,7 +50,7 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
 }
 
 /**
- * 从 CapacityColumn 计算消耗
+ * �?CapacityColumn 计算消�?
  * Calculate consumption from CapacityColumn
  *
  * @param material 原料 / Material
@@ -68,3 +68,6 @@ fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
     }
     return result
 }
+
+
+

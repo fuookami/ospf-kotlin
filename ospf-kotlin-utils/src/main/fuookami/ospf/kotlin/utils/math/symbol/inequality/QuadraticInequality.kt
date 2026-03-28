@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.symbol.inequality
+﻿package fuookami.ospf.kotlin.utils.math.symbol.inequality
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 
 data class QuadraticInequality(
@@ -8,3 +11,6 @@ data class QuadraticInequality(
     val rhs: QuadraticPolynomial<Flt64>,
     val comparison: Comparison
 )
+
+
+

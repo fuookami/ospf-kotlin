@@ -1,8 +1,8 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.persistence
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.serialization.LocalDateTimeSerializer
 import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import fuookami.ospf.kotlin.utils.serialization.writeJsonToStream
@@ -413,3 +413,6 @@ data object ResponseRecordDAO {
         return query
     }
 }
+
+
+

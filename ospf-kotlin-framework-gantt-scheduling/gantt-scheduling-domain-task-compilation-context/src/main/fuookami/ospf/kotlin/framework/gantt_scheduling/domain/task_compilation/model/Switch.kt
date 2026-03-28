@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.multi_array.Shape2
 import fuookami.ospf.kotlin.utils.multi_array.Shape3
 import fuookami.ospf.kotlin.utils.multi_array._a
@@ -200,3 +200,6 @@ class TaskSchedulingSwitch<
         return ok
     }
 }
+
+
+

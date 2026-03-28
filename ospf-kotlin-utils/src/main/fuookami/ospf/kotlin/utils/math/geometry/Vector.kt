@@ -1,7 +1,10 @@
-package fuookami.ospf.kotlin.utils.math.geometry
+﻿package fuookami.ospf.kotlin.utils.math.geometry
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.operator.Minus
 import fuookami.ospf.kotlin.utils.operator.Plus
 import fuookami.ospf.kotlin.utils.operator.Times
@@ -83,3 +86,9 @@ val Vector3.z get() = this[2]
 fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector3 {
     return Vector3(x, y, z)
 }
+
+
+
+
+
+

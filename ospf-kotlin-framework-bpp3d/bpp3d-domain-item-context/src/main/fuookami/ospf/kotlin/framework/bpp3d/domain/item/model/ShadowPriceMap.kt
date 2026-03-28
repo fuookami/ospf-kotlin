@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 open class BPP3DShadowPriceArguments(
     override val cuboid: Item
@@ -28,3 +28,6 @@ fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): Flt64 {
 typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>;
+
+
+

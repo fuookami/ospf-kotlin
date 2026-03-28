@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.symbol.serde
+﻿package fuookami.ospf.kotlin.utils.math.symbol.serde
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
@@ -290,7 +293,8 @@ fun Expr.toCanonicalPolynomial(
                         coefficient = Flt64.one,
                         factors = listOf(symbolOf(name))
                     )
-                )
+                ),
+                constant = Flt64.zero
             )
         }
 
@@ -368,3 +372,6 @@ fun SymbolExpr.toJsonString(): String {
 fun symbolExprFromJson(json: String): SymbolExpr {
     return readFromJson(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
 }
+
+
+

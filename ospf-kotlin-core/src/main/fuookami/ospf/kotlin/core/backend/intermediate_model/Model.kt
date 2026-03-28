@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.intermediate_model
+﻿package fuookami.ospf.kotlin.core.backend.intermediate_model
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableType
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import java.io.FileWriter
 import java.io.OutputStreamWriter
 import java.nio.file.Path
@@ -208,3 +208,6 @@ interface ModelView<ConCell, ObjCell> : BasicModelView<ConCell>
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell>, ObjCell : Cell<ObjCell>, ObjCell : Copyable<ObjCell> {
     val objective: Objective<ObjCell>
 }
+
+
+

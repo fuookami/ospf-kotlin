@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -15,10 +15,12 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.operator.abs
 import org.apache.logging.log4j.kotlin.logger
 
@@ -1216,4 +1218,6 @@ class URealSlackFunction(
     displayName = displayName,
     ctor = { URealVar(it) }
 )
+
+
 

@@ -1,12 +1,12 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.Eq
 import fuookami.ospf.kotlin.utils.sumOf
 import kotlinx.datetime.Instant
@@ -185,3 +185,6 @@ open class AbstractTaskBunch<
 }
 
 typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A>
+
+
+

@@ -1,12 +1,18 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.generic.derivative as derivativeGeneric
 import fuookami.ospf.kotlin.utils.math.symbol.generic.gradient as gradientGeneric
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toCanonicalPolynomial as toCanonicalPolynomialFromGeneric
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticMonomial
@@ -89,55 +95,42 @@ fun CanonicalMonomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
 ): CanonicalPolynomial<Flt64> {
-    val matchedAmount = factors.count { it == symbol }
-    if (matchedAmount == 0) {
-        return CanonicalPolynomial<Flt64>()
-    }
-
-    val oneRemovedFactors = factors.toMutableList()
-    oneRemovedFactors.remove(symbol)
-    val derivative = CanonicalPolynomial<Flt64>(
-        monomials = listOf(
-            CanonicalMonomial<Flt64>(
-                coefficient = coefficient * Flt64(matchedAmount.toDouble()),
-                factors = oneRemovedFactors
-            )
-        ),
-        constant = Flt64.zero
-    )
-    return if (combineTerms) {
-        derivative.combineTerms()
-    } else {
-        derivative
-    }
+    return toGenericCanonicalMonomial()
+        .derivativeGeneric(
+            symbol = symbol,
+            zero = Flt64.zero,
+            combineTerms = combineTerms,
+            isZero = { it == Flt64.zero }
+        )
+        .toCanonicalPolynomialFromGeneric()
 }
 
 fun CanonicalPolynomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
 ): CanonicalPolynomial<Flt64> {
-    val derivativeMonomials = ArrayList<CanonicalMonomial<Flt64>>()
-    for (monomial in monomials) {
-        derivativeMonomials.addAll(
-            monomial.derivative(symbol, combineTerms = false).monomials
+    return toGenericCanonicalPolynomial()
+        .derivativeGeneric(
+            symbol = symbol,
+            zero = Flt64.zero,
+            combineTerms = combineTerms,
+            isZero = { it == Flt64.zero }
         )
-    }
-    val derivative = CanonicalPolynomial<Flt64>(
-        monomials = derivativeMonomials,
-        constant = Flt64.zero
-    )
-    return if (combineTerms) {
-        derivative.combineTerms()
-    } else {
-        derivative
-    }
+        .toCanonicalPolynomialFromGeneric()
 }
 
 fun CanonicalPolynomial<Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): List<CanonicalPolynomial<Flt64>> {
-    return order.map { derivative(it, combineTerms) }
+    return toGenericCanonicalPolynomial()
+        .gradientGeneric(
+            order = order,
+            zero = Flt64.zero,
+            combineTerms = combineTerms,
+            isZero = { it == Flt64.zero }
+        )
+        .map { it.toCanonicalPolynomialFromGeneric() }
 }
 
 fun CanonicalPolynomial<Flt64>.hessian(
@@ -168,3 +161,6 @@ fun CanonicalPolynomial<Flt64>.hessian(
         }
     }
 }
+
+
+

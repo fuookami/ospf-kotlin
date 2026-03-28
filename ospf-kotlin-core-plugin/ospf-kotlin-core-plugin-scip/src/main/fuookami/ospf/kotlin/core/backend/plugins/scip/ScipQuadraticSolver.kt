@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
@@ -14,16 +14,21 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.utils.operator.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlin.time.Clock
+import jscip.Event
+import jscip.EventHandler
+import jscip.EventHandlerRef
+import jscip.EventMask
+import java.util.UUID
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.seconds
 
 class ScipQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -114,6 +119,10 @@ private class ScipQuadraticSolverImpl(
     private lateinit var scipQuadraticObjectiveVars: List<jscip.Variable>
     private lateinit var scipQuadraticObjectiveTransformers: List<jscip.Constraint>
     private lateinit var output: FeasibleSolverOutput
+    private var initialBestObj: Flt64? = null
+    private var bestObj: Flt64? = null
+    private var bestBound: Flt64? = null
+    private var bestTime = 0.0.seconds
 
     override fun close() {
         for (constraint in scipConstraints) {
@@ -136,7 +145,7 @@ private class ScipQuadraticSolverImpl(
         val processes = arrayOf(
             { it.init(model.name) },
             { it.dump(model) },
-            ScipQuadraticSolverImpl::configure,
+            { it.configure(model) },
             { it.solve(config.threadNum) },
             ScipQuadraticSolverImpl::analyzeStatus,
             { it.analyzeSolution(model) }
@@ -370,14 +379,88 @@ private class ScipQuadraticSolverImpl(
         return ok
     }
 
-    private suspend fun configure(): Try {
+    private suspend fun configure(model: QuadraticTetradModelView): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toDouble())
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
 
-        // todo: use call back to control it
-        if (config.notImprovementTime != null) {
-            scip.setRealParam("limits/stallnodes", config.notImprovementTime!!.toDouble(DurationUnit.MILLISECONDS))
+        if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
+            scip.includeEventHandler("solve-monitor-${UUID.randomUUID()}", "native solving callback", object : EventHandler() {
+                override fun getType(): Long {
+                    return callBack?.nativeEventMask ?: (EventMask.LP_EVENT or EventMask.NODE_EVENT or EventMask.SOL_EVENT)
+                }
+
+                override fun execute(solverModel: jscip.Scip, self: EventHandlerRef, event: Event) {
+                    try {
+                        callBack?.nativeCallback?.invoke(this, solverModel, self, event)
+                    } catch (_: Exception) {
+                        solverModel.interruptSolve()
+                        return
+                    }
+
+                    val bestSolution = solverModel.bestSol
+                    val currentObj = if (bestSolution == null) {
+                        Flt64(solverModel.primalbound)
+                    } else {
+                        Flt64(solverModel.getSolOrigObj(bestSolution))
+                    }
+                    val currentBound = Flt64(solverModel.dualbound)
+                    val currentTime = solverModel.solvingTime.seconds
+
+                    if (initialBestObj == null) {
+                        initialBestObj = currentObj
+                    }
+
+                    if (config.notImprovementTime != null) {
+                        if (bestObj == null
+                            || bestBound == null
+                            || (currentObj - bestObj!!).abs() geq config.improveThreshold
+                            || (currentBound - bestBound!!).abs() geq config.improveThreshold
+                        ) {
+                            bestObj = currentObj
+                            bestBound = currentBound
+                            bestTime = currentTime
+                        } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                            solverModel.interruptSolve()
+                            return
+                        }
+                    }
+
+                    statusCallBack?.let {
+                        val currentBestSolution = if (bestSolution == null) {
+                            null
+                        } else {
+                            scipVars.map { variable -> Flt64(solverModel.getSolVal(bestSolution, variable)) }
+                        }
+                        when (it(
+                            fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus(
+                                solver = "scip",
+                                solverConfig = config,
+                                intermediateModel = model,
+                                solverModel = solverModel,
+                                solverCallBack = this,
+                                objectCategory = model.objective.category,
+                                time = currentTime,
+                                obj = currentObj,
+                                possibleBestObj = currentBound,
+                                initialBestObj = initialBestObj ?: currentObj,
+                                gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
+                                currentBestSolution = currentBestSolution
+                            )
+                        )) {
+                            is Ok -> {}
+
+                            is Failed -> {
+                                solverModel.interruptSolve()
+                            }
+
+                            is Fatal -> {
+                                solverModel.interruptSolve()
+                            }
+                        }
+                    }
+                }
+            })
         }
 
         when (val result = callBack?.execIfContain(
@@ -397,22 +480,6 @@ private class ScipQuadraticSolverImpl(
 
             else -> {}
         }
-        return ok
-    }
-
-    private suspend fun solve(): Try {
-        val begin = Clock.System.now()
-        if (config.threadNum gr UInt64.one) {
-            scip.solveConcurrent()
-            val stage = scip.stage
-            if (stage.swigValue() < jscip.SCIP_Stage.SCIP_STAGE_INITPRESOLVE.swigValue()) {
-                scip.solve()
-            }
-        } else {
-            scip.solve()
-        }
-        solvingTime = Clock.System.now() - begin
-
         return ok
     }
 
@@ -478,3 +545,5 @@ private class ScipQuadraticSolverImpl(
         }
     }
 }
+
+

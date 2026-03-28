@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
@@ -56,9 +56,10 @@ class LinearGenericTest {
         val y = TestSymbol("y")
         val original = LinearPolynomial<Flt64>(
             monomials = listOf(
-                LinearMonomial<Flt64>(symbol = x),
-                LinearMonomial<Flt64>(symbol = y)
-            )
+                LinearMonomial<Flt64>(coefficient = Flt64.one, symbol = x),
+                LinearMonomial<Flt64>(coefficient = Flt64.one, symbol = y)
+            ),
+            constant = Flt64.zero
         )
 
         val restored = original
@@ -90,3 +91,6 @@ class LinearGenericTest {
         assertEquals(y, partial.monomials.first().symbol)
     }
 }
+
+
+

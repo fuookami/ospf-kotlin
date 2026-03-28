@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.scip
+﻿package fuookami.ospf.kotlin.core.backend.plugins.scip
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.*
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.abs
 import jscip.SCIP_ParamSetting
 import kotlinx.coroutines.*
@@ -600,3 +600,5 @@ class ScipQuadraticBendersDecompositionSolver(
         }
     }
 }
+
+

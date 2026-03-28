@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.algebra.concept
+﻿package fuookami.ospf.kotlin.utils.math.algebra.concept
 
-import fuookami.ospf.kotlin.utils.math.NumberField
-import fuookami.ospf.kotlin.utils.math.NumberRing
-import fuookami.ospf.kotlin.utils.math.PlusGroup
-import fuookami.ospf.kotlin.utils.math.PlusSemiGroup
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberRing
+import fuookami.ospf.kotlin.utils.math.algebra.concept.PlusGroup
+import fuookami.ospf.kotlin.utils.math.algebra.concept.PlusSemiGroup
 import org.junit.jupiter.api.Test
 
 class ConceptCompileTest {
@@ -46,4 +46,5 @@ class ConceptCompileTest {
         requireField<TestNumberField>()
     }
 }
+
 

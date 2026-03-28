@@ -1,8 +1,11 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.FloatingNumber
-import fuookami.ospf.kotlin.utils.math.FloatingNumberConstants
-import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.utils.math.algebra.concept.FloatingNumberConstants
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import java.math.RoundingMode
 import kotlin.reflect.full.companionObjectInstance
 
@@ -106,3 +109,9 @@ inline fun <reified T : FloatingNumber<T>> log(
         precision = precision
     )
 }
+
+
+
+
+
+

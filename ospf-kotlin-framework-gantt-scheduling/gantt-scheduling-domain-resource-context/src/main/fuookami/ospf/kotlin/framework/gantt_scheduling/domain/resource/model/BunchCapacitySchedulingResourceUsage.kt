@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -15,15 +15,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Duration
 
 /**
- * Bunch 模式的产能调度资源使用量管理（支持列生成）
+ * Bunch 模式的产能调度资源使用量管理（支持列生成�?
  * Bunch-mode resource usage for Capacity Scheduling (with column generation)
  *
- * 用于列生成场景，通过 CapacityColumn 追加资源使用量贡献
+ * 用于列生成场景，通过 CapacityColumn 追加资源使用量贡�?
  * Used for column generation scenarios, adds resource usage contribution through CapacityColumn
  */
 class BunchCapacitySchedulingResourceUsage<
@@ -95,7 +95,7 @@ class BunchCapacitySchedulingResourceUsage<
         }
         this.timeSlots = timeSlots
 
-        // 初始化 quantity 变量
+        // 初始�?quantity 变量
         // Initialize quantity variables
         initQuantity(this.timeSlots)
     }
@@ -105,14 +105,14 @@ class BunchCapacitySchedulingResourceUsage<
     }
 
     /**
-     * 从 IterativeCapacityCompilation 添加列贡献
+     * �?IterativeCapacityCompilation 添加列贡�?
      * Add column contribution from IterativeCapacityCompilation
      *
      * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献
      * Used for column generation, adds resource usage contribution from new columns in each iteration
      *
      * @param iteration 当前迭代 / Current iteration
-     * @param columns 产能列列表 / Capacity columns
+     * @param columns 产能列列�?/ Capacity columns
      * @param compilation 迭代编译对象 / Iterative compilation object
      * @return 成功与否 / Success or failure
      */
@@ -123,7 +123,7 @@ class BunchCapacitySchedulingResourceUsage<
         compilation: IterativeCapacityCompilation<E, A>
     ): Try {
         // Rebuild from operationTime to keep consistency when iterative x variables are reshaped.
-        // 基于 operationTime 重建，避免迭代扩容后 x 变量重建导致的表达式引用失配。
+        // 基于 operationTime 重建，避免迭代扩容后 x 变量重建导致的表达式引用失配�?
         for (slot in timeSlots) {
             quantity[slot].asMutable().let {
                 it.monomials.clear()
@@ -150,3 +150,6 @@ class BunchCapacitySchedulingResourceUsage<
         return slot.indexInRule.toInt()
     }
 }
+
+
+

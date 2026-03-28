@@ -1,10 +1,10 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.toDuration
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
@@ -225,14 +225,14 @@ data class TimeWindow(
 
     /**
      * Generate rounded time slots based on intervals and excluded times.
-     * 生成基于时间粒度和排除时间的舍入时间段。
+     * 生成基于时间粒度和排除时间的舍入时间段�?
      *
      * @param intervals Time intervals mapping, key is the time range for specific interval, null for default.
-     *                  时间粒度映射，键为特定时间粒度的时间范围，null 表示默认值。
+     *                  时间粒度映射，键为特定时间粒度的时间范围，null 表示默认值�?
      * @param excludedTimes Time ranges to be excluded from the generated slots.
-     *                      需要从生成的时段中排除的时间范围。
+     *                      需要从生成的时段中排除的时间范围�?
      * @return List of time slots without merging. The caller should handle merging if needed.
-     *         未合并的时段列表，调用方应根据需要进行合并。
+     *         未合并的时段列表，调用方应根据需要进行合并�?
      */
     fun roundTimeSlotsOf(
         intervals: Map<TimeRange?, Duration>,
@@ -241,7 +241,12 @@ data class TimeWindow(
         val timeSlots = ArrayList<TimeRange>()
         val slotIntervals = ArrayList<Duration>()
         var current = start
-        var currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(start) }?.value ?: upperInterval
+        fun intervalAt(time: Instant): Duration {
+            return intervals.entries.firstOrNull { it.key != null && it.key!!.contains(time) }?.value
+                ?: intervals[null]
+                ?: upperInterval
+        }
+        var currentInterval = intervalAt(start)
         val end1 = (start.truncatedTo(upper.durationUnit) + currentInterval * kotlin.math.ceil(upper.interval / currentInterval).toInt())
             .let {
                 if ((it - start) < currentInterval) {
@@ -250,18 +255,19 @@ data class TimeWindow(
                     it
                 }
             }
-        while (current != end1) {
+        val firstStageEnd = min(end1, end)
+        while (current < firstStageEnd) {
             var duration = if (current == start) {
                 val durationDiff = (end1 - start)
                 val floorRatio = kotlin.math.floor(durationDiff / currentInterval)
                 durationDiff - (floorRatio * currentInterval.toDouble(DurationUnit.SECONDS)).toDuration(DurationUnit.SECONDS)
             } else {
-                min(end1 - current, currentInterval)
+                min(firstStageEnd - current, currentInterval)
             }
-            if (duration == Duration.ZERO) {
-                duration = min(end1 - current, currentInterval)
+            if (duration <= Duration.ZERO) {
+                duration = min(firstStageEnd - current, currentInterval)
             }
-            if (duration == Duration.ZERO) {
+            if (duration <= Duration.ZERO) {
                 break
             }
             timeSlots.add(
@@ -272,11 +278,14 @@ data class TimeWindow(
             )
             slotIntervals.add(currentInterval)
             current += duration
-            currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
+            currentInterval = intervalAt(current)
         }
         val end2 = end.truncatedTo(upper.durationUnit)
-        while (current != end2) {
+        while (current < end2) {
             val duration = min(end2 - current, currentInterval)
+            if (duration <= Duration.ZERO) {
+                break
+            }
             timeSlots.add(
                 TimeRange(
                     start = current,
@@ -285,10 +294,13 @@ data class TimeWindow(
             )
             slotIntervals.add(currentInterval)
             current += duration
-            currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
+            currentInterval = intervalAt(current)
         }
-        while (current != end) {
+        while (current < end) {
             val duration = min(end - current, currentInterval)
+            if (duration <= Duration.ZERO) {
+                break
+            }
             timeSlots.add(
                 TimeRange(
                     start = current,
@@ -297,7 +309,7 @@ data class TimeWindow(
             )
             slotIntervals.add(currentInterval)
             current += duration
-            currentInterval = intervals.entries.find { it.key == null || it.key!!.contains(current) }?.value ?: upperInterval
+            currentInterval = intervalAt(current)
         }
         if (excludedTimes.isEmpty()) {
             return timeSlots
@@ -386,3 +398,6 @@ data class TimeWindow(
         )
     }
 }
+
+
+

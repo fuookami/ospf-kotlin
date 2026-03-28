@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.backend.solver.heuristic
+﻿package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 interface Mutation<V> {
     operator fun <T : Individual<V>> invoke(
@@ -56,3 +56,6 @@ interface Mutation<V> {
 //        TODO("Not yet implemented")
 //    }
 //}
+
+
+

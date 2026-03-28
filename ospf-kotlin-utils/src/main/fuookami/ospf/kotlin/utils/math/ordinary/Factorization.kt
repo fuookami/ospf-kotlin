@@ -1,7 +1,10 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.Integer
-import fuookami.ospf.kotlin.utils.math.RealNumberConstants
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Integer
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.utils.operator.Div
 import fuookami.ospf.kotlin.utils.operator.Rem
 import kotlin.reflect.full.companionObjectInstance
@@ -40,3 +43,9 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
 inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     return factorizeImpl(num, (I::class.companionObjectInstance as RealNumberConstants<I>))
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
+﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -15,13 +15,13 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.core.frontend.variable.BinVar
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.UInt8
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt8
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.toFlt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import org.apache.logging.log4j.kotlin.logger
 
 data class BinaryzationFunctionImplBuilderParams(
@@ -830,4 +830,8 @@ class BinaryzationFunction(
         )
     }
 }
+
+
+
+
 

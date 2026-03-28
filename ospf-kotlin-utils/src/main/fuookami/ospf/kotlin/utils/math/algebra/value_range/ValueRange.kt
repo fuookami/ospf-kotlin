@@ -1,12 +1,14 @@
-package fuookami.ospf.kotlin.utils.math.value_range
+﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.operator.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -400,8 +402,7 @@ data class ValueRange<T>(
     val gap by lazy {
         try {
             diff / max(constants.decimalPrecision, abs(mean.unwrap()))
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
             constants.nan!!
         }
     }
@@ -606,8 +607,7 @@ data class ValueRange<T>(
                     upperBound = upperBound * rhs,
                     constants = constants
                 )
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (_: Exception) {
                 null
             }
         } else if (rhs ls constants.zero) {
@@ -617,8 +617,7 @@ data class ValueRange<T>(
                     upperBound = lowerBound * rhs,
                     constants = constants
                 )
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (_: Exception) {
                 null
             }
         } else {
@@ -652,8 +651,7 @@ data class ValueRange<T>(
                 Bound(upperBound.value * rhs.lowerBound.value, upperBound.interval intersect rhs.lowerBound.interval),
                 Bound(upperBound.value * rhs.upperBound.value, upperBound.interval intersect rhs.upperBound.interval)
             ).sortedWithThreeWayComparator { l, r -> l ord r }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
             return null
         }
         return ValueRange(
@@ -777,3 +775,7 @@ operator fun ValueRange<IntX>.unaryMinus() = ValueRange(
     lowerBound = -lowerBound,
     constants = IntX
 )
+
+
+
+

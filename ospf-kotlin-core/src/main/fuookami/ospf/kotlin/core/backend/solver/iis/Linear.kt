@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.core.backend.solver.AbstractLinearSolver
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import java.io.OutputStreamWriter
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -378,3 +378,6 @@ private suspend fun relaxSpecificComponents(
     }
     return Ok(true to relaxedComponents)
 }
+
+
+

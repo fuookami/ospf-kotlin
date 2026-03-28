@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+ï»¿package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -18,12 +18,12 @@ import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.core.frontend.variable.BinVar
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.toFlt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import org.apache.logging.log4j.kotlin.logger
 
 class OrFunction(
@@ -160,7 +160,7 @@ class OrFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        // all polys must be âˆ?(R - R-)
+        // all polys must be ï¿½?(R - R-)
         for (polynomial in polynomials) {
             if (polynomial.lowerBound!!.value.unwrap() ls Flt64.zero) {
                 return Failed(
@@ -460,4 +460,8 @@ class OrFunction(
         }
     }
 }
+
+
+
+
 

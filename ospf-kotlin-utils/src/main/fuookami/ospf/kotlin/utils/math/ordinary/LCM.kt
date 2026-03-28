@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.Div
@@ -71,8 +74,8 @@ fun lcm(numbers: Iterable<FltX>): FltX {
     return lcmImpl(integerNumbers.sortedDescending(), IntX).toFltX() / FltX.ten.pow(factor)
 }
 
-fun <F : FltX> lcm(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
-    return lcm(listOf(x, y, z) + numbers.toList())
+fun <F : FloatingNumber<*>> lcm(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
+    return lcm(listOf(x, y, z) + numbers.map { it.toFltX() })
 }
 
 fun lcm(x: RtnX, y: RtnX): RtnX {
@@ -89,3 +92,6 @@ fun lcm(numbers: Iterable<RtnX>): RtnX {
 fun lcm(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return lcm(listOf(x, y, z) + numbers.toList())
 }
+
+
+

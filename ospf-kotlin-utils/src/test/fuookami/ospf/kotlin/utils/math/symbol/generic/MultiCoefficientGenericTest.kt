@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
@@ -112,4 +112,7 @@ class MultiCoefficientGenericTest {
         )
     }
 }
+
+
+
 

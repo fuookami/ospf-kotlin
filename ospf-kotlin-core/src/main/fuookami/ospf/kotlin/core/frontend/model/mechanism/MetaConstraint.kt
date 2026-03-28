@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.model.mechanism
+﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 interface MetaConstraintGroup {
     val lazy: Boolean get() = false
@@ -341,4 +341,7 @@ data class MetaConstraint<Ineq : Inequality<*, *>>(
         return constraint.toString()
     }
 }
+
+
+
 

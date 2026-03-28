@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
+﻿package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 
 data class WidthRange(
     val width: ValueRange<Flt64>,
@@ -28,3 +28,7 @@ data class WidthRange(
         return result
     }
 }
+
+
+
+

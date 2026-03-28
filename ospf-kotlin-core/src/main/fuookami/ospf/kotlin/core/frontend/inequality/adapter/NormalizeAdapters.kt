@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.inequality.adapter
+﻿package fuookami.ospf.kotlin.core.frontend.inequality.adapter
 
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCoreMonomialRet
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
@@ -56,7 +57,7 @@ fun mergeLinearMonomialsByUtils(
         negativeMonomials = negativeMonomials,
         toUtilsMonomial = { it.toUtilsMonomial() },
         negateUtilsMonomial = { it.copy(coefficient = -it.coefficient) },
-        combineMonomials = { source: List<UtilsLinearMonomial> -> source.combineTerms() },
+        combineMonomials = { source: List<UtilsLinearMonomial<Flt64>> -> source.combineTerms() },
         toCoreMonomialRet = { it.toCoreMonomialRet() },
         errorPrefix = "Linear"
     )
@@ -71,9 +72,12 @@ fun mergeQuadraticMonomialsByUtils(
         negativeMonomials = negativeMonomials,
         toUtilsMonomial = { it.toUtilsMonomial() },
         negateUtilsMonomial = { it.copy(coefficient = -it.coefficient) },
-        combineMonomials = { source: List<UtilsQuadraticMonomial> -> source.combineTerms() },
+        combineMonomials = { source: List<UtilsQuadraticMonomial<Flt64>> -> source.combineTerms() },
         toCoreMonomialRet = { it.toCoreMonomialRet() },
         errorPrefix = "Quadratic"
     )
 }
+
+
+
 

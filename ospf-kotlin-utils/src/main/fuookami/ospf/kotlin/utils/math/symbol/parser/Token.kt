@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.parser
+﻿package fuookami.ospf.kotlin.utils.math.symbol.parser
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 enum class TokenType {
     Number,

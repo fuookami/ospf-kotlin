@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.solver
+﻿package fuookami.ospf.kotlin.core.backend.solver
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
@@ -579,3 +579,6 @@ interface LinearSolver : AbstractLinearSolver {
         )
     }
 }
+
+
+

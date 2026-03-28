@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.operator.Eq
 import fuookami.ospf.kotlin.utils.operator.eq
 import kotlinx.datetime.Instant
@@ -473,3 +473,6 @@ interface IterativeAbstractTask<
         > : AbstractTask<E, A> {
     val iteration: Int64
 }
+
+
+

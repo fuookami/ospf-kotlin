@@ -1,9 +1,10 @@
-package fuookami.ospf.kotlin.core.frontend.expression.adapter
+﻿package fuookami.ospf.kotlin.core.frontend.expression.adapter
 
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial as CoreAbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial as CoreAbstractQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
@@ -11,21 +12,21 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynom
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 
-fun CoreAbstractLinearPolynomial<*>.toUtilsPolynomial(): UtilsLinearPolynomial {
+fun CoreAbstractLinearPolynomial<*>.toUtilsPolynomial(): UtilsLinearPolynomial<Flt64> {
     return UtilsLinearPolynomial(
         monomials = monomials.map { it.toUtilsMonomial() },
         constant = constant
     )
 }
 
-fun CoreAbstractQuadraticPolynomial<*>.toUtilsPolynomial(): UtilsQuadraticPolynomial {
+fun CoreAbstractQuadraticPolynomial<*>.toUtilsPolynomial(): UtilsQuadraticPolynomial<Flt64> {
     return UtilsQuadraticPolynomial(
         monomials = monomials.map { it.toUtilsMonomial() },
         constant = constant
     )
 }
 
-fun UtilsLinearPolynomial.toCorePolynomialRet(): Ret<CoreLinearPolynomial> {
+fun UtilsLinearPolynomial<Flt64>.toCorePolynomialRet(): Ret<CoreLinearPolynomial> {
     val coreMonomials = ArrayList<fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial>()
     for (monomial in monomials) {
         when (val result = monomial.toCoreMonomialRet()) {
@@ -45,7 +46,7 @@ fun UtilsLinearPolynomial.toCorePolynomialRet(): Ret<CoreLinearPolynomial> {
 @Deprecated(
     message = "Use toCorePolynomialRet() to keep adapter failures explicit."
 )
-fun UtilsLinearPolynomial.toCorePolynomialOrNull(): CoreLinearPolynomial? {
+fun UtilsLinearPolynomial<Flt64>.toCorePolynomialOrNull(): CoreLinearPolynomial? {
     return when (val result = toCorePolynomialRet()) {
         is Ok -> result.value
         is Failed -> null
@@ -53,7 +54,7 @@ fun UtilsLinearPolynomial.toCorePolynomialOrNull(): CoreLinearPolynomial? {
     }
 }
 
-fun UtilsQuadraticPolynomial.toCorePolynomialRet(): Ret<CoreQuadraticPolynomial> {
+fun UtilsQuadraticPolynomial<Flt64>.toCorePolynomialRet(): Ret<CoreQuadraticPolynomial> {
     val coreMonomials = ArrayList<fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial>()
     for (monomial in monomials) {
         when (val result = monomial.toCoreMonomialRet()) {
@@ -73,11 +74,14 @@ fun UtilsQuadraticPolynomial.toCorePolynomialRet(): Ret<CoreQuadraticPolynomial>
 @Deprecated(
     message = "Use toCorePolynomialRet() to keep adapter failures explicit."
 )
-fun UtilsQuadraticPolynomial.toCorePolynomialOrNull(): CoreQuadraticPolynomial? {
+fun UtilsQuadraticPolynomial<Flt64>.toCorePolynomialOrNull(): CoreQuadraticPolynomial? {
     return when (val result = toCorePolynomialRet()) {
         is Ok -> result.value
         is Failed -> null
         is Fatal -> null
     }
 }
+
+
+
 

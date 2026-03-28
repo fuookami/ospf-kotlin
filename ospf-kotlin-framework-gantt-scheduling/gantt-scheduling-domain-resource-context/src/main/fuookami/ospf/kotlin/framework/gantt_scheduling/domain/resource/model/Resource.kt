@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -19,9 +19,9 @@ import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 import kotlin.time.Duration
 
@@ -204,8 +204,8 @@ abstract class AbstractResourceUsage<
      * 提取影子价格
      * Extract shadow prices from slack variables
      *
-     * @param Map              影子价格表类型
-     * @param shadowPriceMap   影子价格表 / Shadow price map
+     * @param Map              影子价格表类�?
+     * @param shadowPriceMap   影子价格�?/ Shadow price map
      * @param shadowPrices     原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
      * @return                 成功与否 / Success or failure
      */
@@ -254,3 +254,7 @@ abstract class AbstractResourceUsage<
         return ok
     }
 }
+
+
+
+

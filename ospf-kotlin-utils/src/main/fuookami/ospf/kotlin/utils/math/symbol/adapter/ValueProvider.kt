@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.symbol.adapter
+﻿package fuookami.ospf.kotlin.utils.math.symbol.adapter
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 
 fun interface ValueProvider {
@@ -20,3 +23,6 @@ enum class MissingValuePolicy {
     AsZero,
     Fail
 }
+
+
+

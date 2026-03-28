@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol

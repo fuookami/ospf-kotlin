@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch
 
@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.ordinary.min
 import fuookami.ospf.kotlin.utils.operator.abs
@@ -139,3 +139,5 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         return "$iteration"
     }
 }
+
+

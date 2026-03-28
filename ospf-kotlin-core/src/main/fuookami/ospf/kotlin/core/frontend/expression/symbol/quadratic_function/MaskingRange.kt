@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
+﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
@@ -18,12 +18,12 @@ import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import org.apache.logging.log4j.kotlin.logger
 
 class MaskingRangeFunction(
@@ -511,4 +511,8 @@ class MaskingRangeFunction(
         }
     }
 }
+
+
+
+
 

@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.abs
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
@@ -390,3 +390,6 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 }
+
+
+

@@ -1,8 +1,11 @@
-package fuookami.ospf.kotlin.utils.math.chaotic_operator
+﻿package fuookami.ospf.kotlin.utils.math.chaotic_operator
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.nextFlt64
 import kotlin.random.Random
 
@@ -40,3 +43,9 @@ data class ArnoldTongueGenerator(
         return x
     }
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.inequality_regression
+﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.inequality_regression
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -180,4 +180,7 @@ class InequalityNormalizeBaselineTest {
         return inequality.sign(lhs, rhs)
     }
 }
+
+
+
 

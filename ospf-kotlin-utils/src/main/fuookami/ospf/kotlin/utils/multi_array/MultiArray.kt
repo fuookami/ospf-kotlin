@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.utils.multi_array
+﻿package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 /**
  * 抽象多维数组基类
@@ -42,7 +42,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     override val size get() = list.size
 
     /**
-     * 初始化数组
+     * 初始化数�?
      * Initialize the array
      */
     protected fun init(ctor: (Int, IntArray) -> @UnsafeVariance T) {
@@ -68,7 +68,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过线性索引获取元素
+     * 通过线性索引获取元�?
      * Get element by linear index
      */
     operator fun get(i: Int): T {
@@ -76,7 +76,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过 UInt64 线性索引获取元素
+     * 通过 UInt64 线性索引获取元�?
      * Get element by UInt64 linear index
      */
     operator fun get(i: UInt64): T {
@@ -145,10 +145,10 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     }
 
     /**
-     * 获取枚举迭代器
+     * 获取枚举迭代�?
      * Get enumerate iterator
      *
-     * @return 枚举迭代器，产生 (线性索引, 向量坐标, 元素引用) 三元组
+     * @return 枚举迭代器，产生 (线性索�? 向量坐标, 元素引用) 三元�?
      */
     fun enumerate(): Sequence<Triple<Int, IntArray, T>> = sequence {
         for (i in 0 until shape.size) {
@@ -158,7 +158,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
 }
 
 /**
- * 不可变多维数组
+ * 不可变多维数�?
  * Immutable multi-dimensional array
  *
  * @param T 元素类型
@@ -171,7 +171,7 @@ open class MultiArray<out T : Any, S : Shape>(
 
     companion object {
         /**
-         * 使用默认值创建多维数组
+         * 使用默认值创建多维数�?
          * Create multi-dimensional array with default values
          */
         inline fun <reified T : Any, S : Shape> new(shape: S): MultiArray<T, S> {
@@ -190,7 +190,7 @@ open class MultiArray<out T : Any, S : Shape>(
         }
 
         /**
-         * 使用指定值创建多维数组
+         * 使用指定值创建多维数�?
          * Create multi-dimensional array with specified value
          */
         fun <T : Any, S : Shape> newWith(shape: S, value: T): MultiArray<T, S> {
@@ -198,7 +198,7 @@ open class MultiArray<out T : Any, S : Shape>(
         }
 
         /**
-         * 使用生成器创建多维数组
+         * 使用生成器创建多维数�?
          * Create multi-dimensional array with generator
          */
         fun <T : Any, S : Shape> newBy(shape: S, generator: (Int, IntArray) -> T): MultiArray<T, S> {
@@ -226,7 +226,7 @@ open class MultiArray<out T : Any, S : Shape>(
      * 重塑数组形状
      * Reshape array
      *
-     * @param newShape 新形状
+     * @param newShape 新形�?
      * @param fillValue 填充值（如果新形状更大）
      * @return 重塑后的数组
      */
@@ -237,7 +237,7 @@ open class MultiArray<out T : Any, S : Shape>(
     }
 
     /**
-     * 重塑数组形状（使用生成器填充）
+     * 重塑数组形状（使用生成器填充�?
      * Reshape array (fill with generator)
      */
     fun <NS : Shape> reshapeBy(newShape: NS, generator: (Int, IntArray) -> @UnsafeVariance T): MultiArray<T, NS> {
@@ -247,7 +247,7 @@ open class MultiArray<out T : Any, S : Shape>(
     }
 
     /**
-     * 转换为可变数组
+     * 转换为可变数�?
      * Convert to mutable array
      */
     fun toMutable(): MutableMultiArray<@UnsafeVariance T, S> {
@@ -255,7 +255,7 @@ open class MultiArray<out T : Any, S : Shape>(
     }
 
     /**
-     * 转换为列表
+     * 转换为列�?
      * Convert to list
      */
     fun toList(): List<T> = list.toList()
@@ -275,7 +275,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
 
     companion object {
         /**
-         * 使用默认值创建可变多维数组
+         * 使用默认值创建可变多维数�?
          * Create mutable multi-dimensional array with default values
          */
         inline fun <reified T : Any, S : Shape> new(shape: S): MutableMultiArray<T, S> {
@@ -294,7 +294,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
         }
 
         /**
-         * 使用指定值创建可变多维数组
+         * 使用指定值创建可变多维数�?
          * Create mutable multi-dimensional array with specified value
          */
         fun <T : Any, S : Shape> newWith(shape: S, value: T): MutableMultiArray<T, S> {
@@ -302,7 +302,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
         }
 
         /**
-         * 使用生成器创建可变多维数组
+         * 使用生成器创建可变多维数�?
          * Create mutable multi-dimensional array with generator
          */
         fun <T : Any, S : Shape> newBy(shape: S, generator: (Int, IntArray) -> T): MutableMultiArray<T, S> {
@@ -311,7 +311,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
     }
 
     /**
-     * 通过线性索引设置元素
+     * 通过线性索引设置元�?
      * Set element by linear index
      */
     operator fun set(i: Int, value: T) {
@@ -319,7 +319,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
     }
 
     /**
-     * 通过 UInt64 线性索引设置元素
+     * 通过 UInt64 线性索引设置元�?
      * Set element by UInt64 linear index
      */
     operator fun set(i: UInt64, value: T) {
@@ -369,7 +369,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
     }
 
     /**
-     * 填充所有元素
+     * 填充所有元�?
      * Fill all elements
      */
     fun fill(value: T) {
@@ -379,7 +379,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
     }
 
     /**
-     * 使用生成器填充所有元素
+     * 使用生成器填充所有元�?
      * Fill all elements with generator
      */
     fun fillBy(generator: (Int, IntArray) -> T) {
@@ -411,7 +411,7 @@ typealias MutableMultiArray4<T> = MutableMultiArray<T, Shape4>
 typealias DynMutableMultiArray<T> = MutableMultiArray<T, DynShape>
 
 /**
- * 便捷函数：创建一维数组
+ * 便捷函数：创建一维数�?
  * Convenience function: Create 1D array
  */
 fun <T : Any> multiArrayOf(d1: Int, value: T): MultiArray1<T> {
@@ -419,7 +419,7 @@ fun <T : Any> multiArrayOf(d1: Int, value: T): MultiArray1<T> {
 }
 
 /**
- * 便捷函数：创建二维数组
+ * 便捷函数：创建二维数�?
  * Convenience function: Create 2D array
  */
 fun <T : Any> multiArrayOf(d1: Int, d2: Int, value: T): MultiArray2<T> {
@@ -427,7 +427,7 @@ fun <T : Any> multiArrayOf(d1: Int, d2: Int, value: T): MultiArray2<T> {
 }
 
 /**
- * 便捷函数：创建三维数组
+ * 便捷函数：创建三维数�?
  * Convenience function: Create 3D array
  */
 fun <T : Any> multiArrayOf(d1: Int, d2: Int, d3: Int, value: T): MultiArray3<T> {
@@ -435,7 +435,7 @@ fun <T : Any> multiArrayOf(d1: Int, d2: Int, d3: Int, value: T): MultiArray3<T> 
 }
 
 /**
- * 便捷函数：创建可变一维数组
+ * 便捷函数：创建可变一维数�?
  * Convenience function: Create mutable 1D array
  */
 fun <T : Any> mutableMultiArrayOf(d1: Int, value: T): MutableMultiArray1<T> {
@@ -443,7 +443,7 @@ fun <T : Any> mutableMultiArrayOf(d1: Int, value: T): MutableMultiArray1<T> {
 }
 
 /**
- * 便捷函数：创建可变二维数组
+ * 便捷函数：创建可变二维数�?
  * Convenience function: Create mutable 2D array
  */
 fun <T : Any> mutableMultiArrayOf(d1: Int, d2: Int, value: T): MutableMultiArray2<T> {
@@ -451,9 +451,11 @@ fun <T : Any> mutableMultiArrayOf(d1: Int, d2: Int, value: T): MutableMultiArray
 }
 
 /**
- * 便捷函数：创建可变三维数组
+ * 便捷函数：创建可变三维数�?
  * Convenience function: Create mutable 3D array
  */
 fun <T : Any> mutableMultiArrayOf(d1: Int, d2: Int, d3: Int, value: T): MutableMultiArray3<T> {
     return MutableMultiArray.newWith(Shape3(d1, d2, d3), value)
 }
+
+

@@ -6,6 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
@@ -23,6 +24,12 @@ suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
     return tryMapToParallelly(ArrayList(), extractor)
+}
+
+suspend inline fun <R, T> Iterable<T>.exTryMapParallelly(
+    crossinline extractor: SuspendTryExtractor<R, T>
+): ExRet<List<R>> {
+    return exTryMapToParallelly(ArrayList(), extractor)
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
@@ -61,6 +68,26 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapToParal
     }
 }
 
+suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapToParallelly(
+    destination: C,
+    crossinline extractor: SuspendTryExtractor<R, T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<R>>>()
+        for (element in this@exTryMapToParallelly) {
+            promises.add(async(Dispatchers.Default) { extractor(element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> destination.add(ret.value)
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <R : Any, T> Iterable<T>.mapNotNullParallelly(
     crossinline extractor: SuspendExtractor<R?, T>
 ): List<R> {
@@ -71,6 +98,12 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapNotNullParallelly(
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<List<R>> {
     return tryMapNotNullToParallelly(ArrayList(), extractor)
+}
+
+suspend inline fun <R : Any, T> Iterable<T>.exTryMapNotNullParallelly(
+    crossinline extractor: SuspendTryExtractor<R?, T>
+): ExRet<List<R>> {
+    return exTryMapNotNullToParallelly(ArrayList(), extractor)
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapNotNullToParallelly(
@@ -109,6 +142,26 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapN
     }
 }
 
+suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMapNotNullToParallelly(
+    destination: C,
+    crossinline extractor: SuspendTryExtractor<R?, T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<R?>>>()
+        for (element in this@exTryMapNotNullToParallelly) {
+            promises.add(async(Dispatchers.Default) { extractor(element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> ret.value?.let { destination.add(it) }
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
     crossinline extractor: SuspendIndexedExtractor<R, T>
 ): List<R> {
@@ -119,6 +172,12 @@ suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
 ): Ret<List<R>> {
     return tryMapIndexedToParallelly(ArrayList(), extractor)
+}
+
+suspend inline fun <R, T> Iterable<T>.exTryMapIndexedParallelly(
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>
+): ExRet<List<R>> {
+    return exTryMapIndexedToParallelly(ArrayList(), extractor)
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedToParallelly(
@@ -157,6 +216,26 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexed
     }
 }
 
+suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndexedToParallelly(
+    destination: C,
+    crossinline extractor: SuspendTryIndexedExtractor<R, T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<R>>>()
+        for ((index, element) in this@exTryMapIndexedToParallelly.withIndex()) {
+            promises.add(async(Dispatchers.Default) { extractor(index, element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> destination.add(ret.value)
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <R : Any, T> Iterable<T>.mapIndexedNotNullParallelly(
     crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
@@ -167,6 +246,12 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapIndexedNotNullParallelly(
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
     return tryMapIndexedNotNullToParallelly(ArrayList(), extractor)
+}
+
+suspend inline fun <R : Any, T> Iterable<T>.exTryMapIndexedNotNullParallelly(
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
+): ExRet<List<R>> {
+    return exTryMapIndexedNotNullToParallelly(ArrayList(), extractor)
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedNotNullToParallelly(
@@ -202,5 +287,25 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapI
             }
         }
         Ok(destination)
+    }
+}
+
+suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndexedNotNullToParallelly(
+    destination: C,
+    crossinline extractor: SuspendTryIndexedExtractor<R?, T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<R?>>>()
+        for ((index, element) in this@exTryMapIndexedNotNullToParallelly.withIndex()) {
+            promises.add(async(Dispatchers.Default) { extractor(index, element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> ret.value?.let { destination.add(it) }
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
     }
 }

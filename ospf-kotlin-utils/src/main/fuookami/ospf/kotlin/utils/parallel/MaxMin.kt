@@ -8,8 +8,10 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 
@@ -29,6 +31,20 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByParallelly(
 
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
+    }
+}
+
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByParallelly(
+    crossinline selector: SuspendTryExtractor<R, T>
+): ExRet<T> {
+    return when (val result = exTryMaxByOrNullParallelly(selector)) {
+        is Ok -> result.value?.let { Ok(it) }
+            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> result.value?.let { Warn(it, result.warnings) }
+            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
     }
 }
 
@@ -89,6 +105,38 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByOrNullParallelly(
     }
 }
 
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByOrNullParallelly(
+    crossinline selector: SuspendTryExtractor<R, T>
+): ExRet<T?> {
+    val elements = toList()
+    if (elements.isEmpty()) {
+        return Ok(null)
+    }
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<R>>>()
+        for (element in elements) {
+            promises.add(async(Dispatchers.Default) { selector(element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        var bestIndex = 0
+        var bestValue: R? = null
+        for ((index, promise) in promises.withIndex()) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val value = ret.value
+                    if (bestValue == null || value > bestValue!!) {
+                        bestValue = value
+                        bestIndex = index
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(bestValue?.let { elements[bestIndex] }, errors)
+    }
+}
+
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByParallelly(
     crossinline selector: SuspendExtractor<R, T>
 ): T {
@@ -105,6 +153,20 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByParallelly(
 
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
+    }
+}
+
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinByParallelly(
+    crossinline selector: SuspendTryExtractor<R, T>
+): ExRet<T> {
+    return when (val result = exTryMinByOrNullParallelly(selector)) {
+        is Ok -> result.value?.let { Ok(it) }
+            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> result.value?.let { Warn(it, result.warnings) }
+            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
     }
 }
 
@@ -162,5 +224,37 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByOrNullParallelly(
             }
         }
         Ok(elements[bestIndex])
+    }
+}
+
+suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinByOrNullParallelly(
+    crossinline selector: SuspendTryExtractor<R, T>
+): ExRet<T?> {
+    val elements = toList()
+    if (elements.isEmpty()) {
+        return Ok(null)
+    }
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<R>>>()
+        for (element in elements) {
+            promises.add(async(Dispatchers.Default) { selector(element) })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        var bestIndex = 0
+        var bestValue: R? = null
+        for ((index, promise) in promises.withIndex()) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val value = ret.value
+                    if (bestValue == null || value < bestValue!!) {
+                        bestValue = value
+                        bestIndex = index
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(bestValue?.let { elements[bestIndex] }, errors)
     }
 }

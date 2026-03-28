@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 
 class PrimeTest {
@@ -16,3 +16,6 @@ class PrimeTest {
         assert(!isPrime(UInt64(9)))
     }
 }
+
+
+

@@ -1,6 +1,8 @@
-package fuookami.ospf.kotlin.core.frontend.variable
+﻿package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
 
 sealed class IndependentVariableItem<T, Type : VariableType<T>>(
@@ -38,3 +40,4 @@ typealias QuantityIntVar = QuantityVariable<Integer>
 typealias QuantityUIntVar = QuantityVariable<UInteger>
 typealias QuantityRealVar = QuantityVariable<Continuous>
 typealias QuantityURealVar = QuantityVariable<UContinuous>
+

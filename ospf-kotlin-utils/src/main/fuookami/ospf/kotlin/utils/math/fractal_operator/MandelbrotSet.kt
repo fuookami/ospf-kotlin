@@ -1,7 +1,10 @@
-package fuookami.ospf.kotlin.utils.math.fractal_operator
+﻿package fuookami.ospf.kotlin.utils.math.fractal_operator
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.geometry.Point2
 import fuookami.ospf.kotlin.utils.math.geometry.point2
 
@@ -43,3 +46,9 @@ data class MandelbrotSetGenerator(
         return z
     }
 }
+
+
+
+
+
+

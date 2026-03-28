@@ -1,10 +1,10 @@
-package fuookami.ospf.kotlin.utils.physics.quantity
+﻿package fuookami.ospf.kotlin.utils.physics.quantity
 
-import fuookami.ospf.kotlin.utils.math.NumberField
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.value_range.Bound
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.math.value_range.ValueWrapper
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.Bound
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueWrapper
 
 val <V> Quantity<ValueRange<V>>.lowerBound where V : RealNumber<V>, V : NumberField<V>
     get() = Quantity(value.lowerBound, unit)
@@ -27,3 +27,5 @@ fun <V> Quantity<ValueWrapper<V>>.unwrapOrNull(): Quantity<V>? where V : RealNum
         Quantity(it, unit)
     }
 }
+
+

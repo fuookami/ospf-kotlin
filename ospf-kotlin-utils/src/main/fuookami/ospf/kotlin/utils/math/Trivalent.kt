@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 enum class Trivalent(val value: URtn8) {
     True(URtn8.one),
@@ -75,3 +78,6 @@ enum class BalancedTrivalent(val value: Int8) {
             Unknown -> null
         }
 }
+
+
+

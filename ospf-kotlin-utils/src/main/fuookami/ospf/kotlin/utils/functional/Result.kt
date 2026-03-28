@@ -123,19 +123,19 @@ class Fatal<out T, out E : Error>(
 // Only implements ExResult / 仅实现 ExResult
 class Warn<out T, out E : Error>(
     override val value: T,
-    val warning: E
+    val warnings: List<E>
 ) : ExResult<T, E> {
     companion object {
         operator fun <T> invoke(value: T, code: ErrorCode, message: String? = null): Warn<T, Error> {
-            return Warn(value, Err(code, message))
+            return Warn(value, listOf(Err(code, message)))
         }
 
         operator fun <T, E> invoke(value: T, code: ErrorCode, warningValue: E): Warn<T, Error> {
-            return Warn(value, ExErr(code, warningValue))
+            return Warn(value, listOf(ExErr(code, warningValue)))
         }
 
         operator fun <T, E> invoke(value: T, code: ErrorCode, message: String, warningValue: E): Warn<T, Error> {
-            return Warn(value, ExErr(code, message, warningValue))
+            return Warn(value, listOf(ExErr(code, message, warningValue)))
         }
     }
 
@@ -143,18 +143,22 @@ class Warn<out T, out E : Error>(
     override val failed: Boolean get() = false
     override val warned: Boolean get() = true
 
-    val code by warning::code
-    val warningMessage by warning::message
+    val firstWarning: E? get() = warnings.firstOrNull()
+    val size: Int get() = warnings.size
+    val isEmpty: Boolean get() = warnings.isEmpty()
 
-    val withWarningValue by warning::withValue
-    val warningValue by warning::value
+    val code get() = firstWarning?.code
+    val warningMessage get() = firstWarning?.message
+
+    val withWarningValue get() = firstWarning?.withValue ?: false
+    val warningValue get() = firstWarning?.value
 
     inline fun <reified U> getAs(): U? {
         return value as? U
     }
 
     override fun <U> map(transform: (T) -> U): Warn<U, E> {
-        return Warn(transform(value), warning)
+        return Warn(transform(value), warnings)
     }
 }
 

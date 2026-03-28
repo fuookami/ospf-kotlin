@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 import fuookami.ospf.kotlin.utils.multi_array.Shape2
 
@@ -259,3 +259,6 @@ open class BunchCompilation<
         return Ok(unduplicatedBunches)
     }
 }
+
+
+

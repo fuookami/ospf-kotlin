@@ -1,6 +1,8 @@
-package  fuookami.ospf.kotlin.core.frontend.variable
+﻿package  fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberField<T> {
     val name: String
@@ -108,3 +110,4 @@ data object UContinuous : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt
     override val shortName = "ureal"
     override fun toString(): String = "UContinues"
 }
+

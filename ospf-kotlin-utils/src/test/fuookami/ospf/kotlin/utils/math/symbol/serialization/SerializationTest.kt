@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.serialization
+﻿package fuookami.ospf.kotlin.utils.math.symbol.serialization
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
@@ -107,3 +107,6 @@ class SerializationTest {
         )
     }
 }
+
+
+

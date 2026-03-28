@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
@@ -91,9 +91,10 @@ class CanonicalGenericTest {
         val y = TestSymbol("y")
         val original = CanonicalPolynomial<Flt64>(
             monomials = listOf(
-                CanonicalMonomial<Flt64>(factors = listOf(x, y)),
-                CanonicalMonomial<Flt64>(factors = listOf(x))
-            )
+                CanonicalMonomial<Flt64>(coefficient = Flt64.one, factors = listOf(x, y)),
+                CanonicalMonomial<Flt64>(coefficient = Flt64.one, factors = listOf(x))
+            ),
+            constant = Flt64.zero
         )
 
         val restored = original
@@ -103,4 +104,7 @@ class CanonicalGenericTest {
         assertEquals(original, restored)
     }
 }
+
+
+
 

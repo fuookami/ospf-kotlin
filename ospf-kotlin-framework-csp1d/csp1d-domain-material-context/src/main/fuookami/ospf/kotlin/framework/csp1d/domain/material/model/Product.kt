@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
+﻿package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 
 open class Product(
     override val id: String,
@@ -74,6 +74,9 @@ open class Product(
     }
 
     override fun toString(): String {
-        return "$name（${width.joinToString("，")}）"
+        return "$name${width.joinToString("x")}"
     }
 }
+
+
+

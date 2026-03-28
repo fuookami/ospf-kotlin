@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.core.backend.solver.heuristic
+﻿package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
 import fuookami.ospf.kotlin.utils.operator.abs
@@ -84,3 +84,6 @@ data object AdaptiveDynamicSelectionMode : SelectionMode<Flt64> {
         }
     }
 }
+
+
+

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
@@ -16,13 +16,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.multi_array.Shape2
 import kotlin.time.Duration
 
 /**
- * 产能编译决策对象（无顺序）
+ * 产能编译决策对象（无顺序�?
  * Capacity Compilation Decision Object (No Order)
  *
  * Two-dimensional integer variable: x[action, slot] -> amount
@@ -37,7 +37,7 @@ class CapacityCompilation<A : ProductionAction>(
 
     init {
         // Index actions if they implement ManualIndexed
-        // 如果动作实现了 ManualIndexed，则进行索引
+        // 如果动作实现�?ManualIndexed，则进行索引
         for (action in actions.filterIsInstance<ManualIndexed>()) {
             if (!action.indexed) {
                 action.setIndexed()
@@ -54,7 +54,7 @@ class CapacityCompilation<A : ProductionAction>(
         private set
 
     /**
-     * 成本表达式
+     * 成本表达�?
      * Cost expression
      */
     lateinit var cost: LinearExpressionSymbol
@@ -67,7 +67,7 @@ class CapacityCompilation<A : ProductionAction>(
         private set
 
     /**
-     * 注册到模型
+     * 注册到模�?
      * Register to model
      */
     fun register(model: LinearMetaModel): Try {
@@ -89,7 +89,7 @@ class CapacityCompilation<A : ProductionAction>(
         }
 
         // Register cost expression
-        // 注册成本表达式
+        // 注册成本表达�?
         if (!::cost.isInitialized) {
             val costPoly = MutableLinearPolynomial(name = "cost")
             for ((a, action) in actions.withIndex()) {
@@ -158,7 +158,7 @@ class CapacityCompilation<A : ProductionAction>(
     }
 
     /**
-     * 解析解
+     * 解析�?
      * Extract solution from model
      */
     override fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>> {
@@ -219,3 +219,6 @@ class CapacityCompilation<A : ProductionAction>(
         )
     }
 }
+
+
+

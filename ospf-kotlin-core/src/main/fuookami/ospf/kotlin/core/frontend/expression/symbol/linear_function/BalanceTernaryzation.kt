@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
@@ -11,11 +11,16 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt32
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int8
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt8
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.geometry.Point2
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 import fuookami.ospf.kotlin.utils.operator.abs
 import org.apache.logging.log4j.kotlin.logger
@@ -548,8 +553,8 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         if (!mFixed) {
             m = possibleUpperBound
         }
-        y[0].range.set(ValueRange(UInt8.zero, (x.lowerBound!!.value.unwrap() ls Flt64.zero).toUInt8()).value!!)
-        y[1].range.set(ValueRange(UInt8.zero, (x.upperBound!!.value.unwrap() gr Flt64.zero).toUInt8()).value!!)
+        y[0].range.set(ValueRange(UInt8.zero, if (x.lowerBound!!.value.unwrap() ls Flt64.zero) UInt8.one else UInt8.zero).value!!)
+        y[1].range.set(ValueRange(UInt8.zero, if (x.upperBound!!.value.unwrap() gr Flt64.zero) UInt8.one else UInt8.zero).value!!)
         polyY.flush(force)
         polyY.range.set(possibleRange.toFlt64())
     }
@@ -569,10 +574,10 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
             logger.trace { "Setting BalanceTernaryzationFunction ${name}.y initial solution: $pos, $neg" }
             tokenTable.find(y[0])?.let { token ->
-                token._result = pos.toFlt64()
+                token._result = if (pos) Flt64.one else Flt64.zero
             }
             tokenTable.find(y[1])?.let { token ->
-                token._result = neg.toFlt64()
+                token._result = if (neg) Flt64.one else Flt64.zero
             }
 
             if (pos) {
@@ -950,8 +955,8 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun flush(force: Boolean) {
         x.flush(force)
-        y[0].range.set(ValueRange(UInt8.zero, (x.lowerBound!!.value.unwrap() ls Flt64.zero).toUInt8()).value!!)
-        y[1].range.set(ValueRange(UInt8.zero, (x.upperBound!!.value.unwrap() gr Flt64.zero).toUInt8()).value!!)
+        y[0].range.set(ValueRange(UInt8.zero, if (x.lowerBound!!.value.unwrap() ls Flt64.zero) UInt8.one else UInt8.zero).value!!)
+        y[1].range.set(ValueRange(UInt8.zero, if (x.upperBound!!.value.unwrap() gr Flt64.zero) UInt8.one else UInt8.zero).value!!)
         polyY.flush(force)
         polyY.range.set(possibleRange.toFlt64())
     }
@@ -995,10 +1000,10 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
             logger.trace { "Setting BalanceTernaryzationFunction ${name}.y initial solution: $pos, $neg" }
             tokenTable.find(y[0])?.let { token ->
-                token._result = pos.toFlt64()
+                token._result = if (pos) Flt64.one else Flt64.zero
             }
             tokenTable.find(y[1])?.let { token ->
-                token._result = neg.toFlt64()
+                token._result = if (neg) Flt64.one else Flt64.zero
             }
 
             yValue
@@ -1683,3 +1688,5 @@ class BalanceTernaryzationFunction(
         )
     }
 }
+
+

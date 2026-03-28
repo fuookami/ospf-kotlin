@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.monomial
+﻿package fuookami.ospf.kotlin.utils.math.symbol.monomial
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
@@ -16,9 +16,9 @@ class MonomialTest {
     ) : Symbol
 
     @Test
-    fun linearMonomialDefaultCoefficient() {
+    fun linearMonomialShouldKeepArguments() {
         val x = TestSymbol("x")
-        val monomial = LinearMonomial<Flt64>(symbol = x)
+        val monomial = LinearMonomial<Flt64>(coefficient = Flt64.one, symbol = x)
 
         assertEquals(x, monomial.symbol)
         assertTrue(monomial.coefficient == Flt64.one)
@@ -29,7 +29,7 @@ class MonomialTest {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
 
-        val linearLike = QuadraticMonomial<Flt64>(symbol1 = x)
+        val linearLike = QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x)
         assertFalse(linearLike.isQuadratic)
         assertEquals(Linear, linearLike.category)
 
@@ -39,3 +39,6 @@ class MonomialTest {
         assertTrue(quadratic.coefficient == Flt64.two)
     }
 }
+
+
+

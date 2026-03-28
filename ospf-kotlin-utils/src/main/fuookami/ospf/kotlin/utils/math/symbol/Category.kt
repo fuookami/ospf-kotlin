@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.symbol
+﻿package fuookami.ospf.kotlin.utils.math.symbol
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.Order
 
 sealed class Category {
@@ -48,3 +51,9 @@ fun Collection<Category>.max(): Category {
 fun Collection<Category>.maxOrNull(): Category? {
     return this.maxByOrNull { it.code }
 }
+
+
+
+
+
+

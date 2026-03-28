@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
@@ -175,3 +175,6 @@ class ConvertTest {
         assertEquals(inequality, normalized)
     }
 }
+
+
+

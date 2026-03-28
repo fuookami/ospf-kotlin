@@ -1,6 +1,8 @@
-package fuookami.ospf.kotlin.framework.persistence
+﻿package fuookami.ospf.kotlin.framework.persistence
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -46,3 +48,4 @@ fun BaseTable<*>.kotlinDatetime(name: String): Column<LocalDateTime> {
 inline fun <reified T : Enum<T>> BaseTable<*>.enums(name: String): Column<List<T>> {
     return varchar(name).transform({ it.split(',').map { value -> java.lang.Enum.valueOf(T::class.java, value) } }, { it.joinToString(",") { value -> value.name } })
 }
+

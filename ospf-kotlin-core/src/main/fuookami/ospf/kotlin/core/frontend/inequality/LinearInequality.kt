@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.inequality
+﻿package fuookami.ospf.kotlin.core.frontend.inequality
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.math.BalancedTrivalent
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.math.Trivalent
 import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
 import fuookami.ospf.kotlin.utils.physics.quantity.to
@@ -4653,4 +4653,7 @@ infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<AbstractLinear
         TODO("not implemented yet")
     }
 }
+
+
+
 

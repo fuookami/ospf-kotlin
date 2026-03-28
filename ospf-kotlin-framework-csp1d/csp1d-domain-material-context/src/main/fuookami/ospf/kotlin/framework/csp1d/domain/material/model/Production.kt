@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
+﻿package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 
 interface Production {
     val id: String?
@@ -9,3 +9,6 @@ interface Production {
     val length: FltX?
     val unitWeight: FltX?
 }
+
+
+

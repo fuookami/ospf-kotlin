@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
@@ -89,20 +89,23 @@ class LatexTest {
                 constant = Flt64.one
             ),
             rhs = LinearPolynomial<Flt64>(
-                monomials = listOf(LinearMonomial<Flt64>(Flt64.one, y))
+                monomials = listOf(LinearMonomial<Flt64>(Flt64.one, y)),
+                constant = Flt64.zero
             ),
             comparison = Comparison.LE
         )
         val quadratic = QuadraticInequality(
             lhs = QuadraticPolynomial<Flt64>(
-                monomials = listOf(QuadraticMonomial<Flt64>(Flt64.one, x, x))
+                monomials = listOf(QuadraticMonomial<Flt64>(Flt64.one, x, x)),
+                constant = Flt64.zero
             ),
             rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero),
             comparison = Comparison.GE
         )
         val canonical = CanonicalInequality(
             lhs = CanonicalPolynomial<Flt64>(
-                monomials = listOf(CanonicalMonomial<Flt64>(Flt64.one, listOf(x, x)))
+                monomials = listOf(CanonicalMonomial<Flt64>(Flt64.one, listOf(x, x))),
+                constant = Flt64.zero
             ),
             rhs = CanonicalPolynomial<Flt64>(constant = Flt64.zero),
             comparison = Comparison.NE
@@ -115,8 +118,11 @@ class LatexTest {
 
     @Test
     fun emptyPolynomialLatexShouldBeZero() {
-        assertEquals("0", LinearPolynomial<Flt64>().toLatex())
-        assertEquals("0", QuadraticPolynomial<Flt64>().toLatex())
-        assertEquals("0", CanonicalPolynomial<Flt64>().toLatex())
+        assertEquals("0", LinearPolynomial<Flt64>(constant = Flt64.zero).toLatex())
+        assertEquals("0", QuadraticPolynomial<Flt64>(constant = Flt64.zero).toLatex())
+        assertEquals("0", CanonicalPolynomial<Flt64>(constant = Flt64.zero).toLatex())
     }
 }
+
+
+

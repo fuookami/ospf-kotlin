@@ -1,9 +1,9 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -23,3 +23,6 @@ data class IISConfig(
     val slackTolerance: Flt64 = Flt64(1e-6),
     val extraConfig: Any? = null
 )
+
+
+

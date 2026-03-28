@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.mvo
 
@@ -8,9 +8,8 @@ import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.frontend.variable.Token
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.get
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.nextFlt64
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -126,7 +125,7 @@ open class MVOPolicy<V>(
             for ((dimension, value) in solution.solution.withIndex()) {
                 val token = model.tokens[dimension]
                 var newValue = if (randomGenerator()!! ls whiteHoleRates[i]) {
-                    solutions[whiteHoleSelector(iteration, whiteHoleRates)].solution[dimension]
+                    solutions[whiteHoleSelector(iteration, whiteHoleRates).toInt()].solution[dimension]
                 } else {
                     value
                 }
@@ -251,3 +250,5 @@ class MultiVerseOptimizer<Obj, V>(
 
 typealias MVO = MultiVerseOptimizer<Flt64, Flt64>
 typealias MulObjMVO = MultiVerseOptimizer<MulObj, List<Flt64>>
+
+

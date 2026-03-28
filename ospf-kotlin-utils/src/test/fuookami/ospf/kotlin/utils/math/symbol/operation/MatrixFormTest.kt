@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
@@ -92,7 +92,8 @@ class MatrixFormTest {
         val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
                 QuadraticMonomial<Flt64>(Flt64.one, x, y)
-            )
+            ),
+            constant = Flt64.zero
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -104,7 +105,8 @@ class MatrixFormTest {
     fun matrixFormShouldFailWhenOrderContainsDuplicatedSymbols() {
         val x = TestSymbol("x")
         val polynomial = LinearPolynomial<Flt64>(
-            monomials = listOf(LinearMonomial<Flt64>(Flt64.one, x))
+            monomials = listOf(LinearMonomial<Flt64>(Flt64.one, x)),
+            constant = Flt64.zero
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -185,7 +187,8 @@ class MatrixFormTest {
         val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
                 CanonicalMonomial<Flt64>(Flt64.one, listOf(x, y, z))
-            )
+            ),
+            constant = Flt64.zero
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -193,3 +196,6 @@ class MatrixFormTest {
         }
     }
 }
+
+
+

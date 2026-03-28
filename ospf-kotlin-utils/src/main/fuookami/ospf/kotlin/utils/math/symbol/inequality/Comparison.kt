@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.inequality
+﻿package fuookami.ospf.kotlin.utils.math.symbol.inequality
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 enum class Comparison {
     LT,

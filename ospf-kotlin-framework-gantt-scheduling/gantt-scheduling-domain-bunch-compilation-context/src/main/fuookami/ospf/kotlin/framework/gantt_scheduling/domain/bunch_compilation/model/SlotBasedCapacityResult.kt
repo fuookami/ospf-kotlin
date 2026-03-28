@@ -1,17 +1,17 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 /**
- * 分时隙产能结果
+ * 分时隙产能结�?
  * Slot-based capacity result
  *
- * 存储单个时隙的产能分配结果和中间值。
+ * 存储单个时隙的产能分配结果和中间值�?
  * Stores capacity allocation results and intermediate values for a single time slot.
  *
  * @param A 生产动作类型 / Production action type
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.math.Flt64
  */
 data class SlotBasedCapacityResult<A : ProductionAction, M, R>(
     /**
-     * 所属时隙
+     * 所属时�?
      * The time slot
      */
     val slot: TimeSlot,
@@ -32,19 +32,19 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R>(
     val slotIndex: Int,
 
     /**
-     * 该时隙内的动作分配
+     * 该时隙内的动作分�?
      * Action allocations in this slot
      */
     val actionAllocations: List<ActionAllocation<A>>,
 
     /**
-     * 该时隙的总成本
+     * 该时隙的总成�?
      * Total cost for this slot
      */
     val totalCost: Flt64,
 
     /**
-     * 该时隙的产品产量（按产品）
+     * 该时隙的产品产量（按产品�?
      * Product production by product in this slot
      */
     val produceByProduct: Map<M, Flt64>,
@@ -63,10 +63,10 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R>(
 )
 
 /**
- * 产能中间值集合
+ * 产能中间值集�?
  * Capacity intermediate values collection
  *
- * 聚合所有时隙的产能结果，提供查询接口。
+ * 聚合所有时隙的产能结果，提供查询接口�?
  * Aggregates capacity results for all slots, provides query interface.
  *
  * @param A 生产动作类型 / Production action type
@@ -87,7 +87,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R>(
     val results: Map<TimeSlot, SlotBasedCapacityResult<A, M, R>>
 ) {
     /**
-     * 获取指定时隙的产品产量
+     * 获取指定时隙的产品产�?
      * Get product production for specified slot
      *
      * @param slot The time slot / 时隙
@@ -99,7 +99,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R>(
     }
 
     /**
-     * 获取指定时隙的原料消耗
+     * 获取指定时隙的原料消�?
      * Get material consumption for specified slot
      *
      * @param slot The time slot / 时隙
@@ -116,18 +116,18 @@ class CapacityIntermediateValues<A : ProductionAction, M, R>(
      *
      * @param slot The time slot / 时隙
      * @param resource The resource capacity / 资源容量
-     * @return Resource usage amount / 资源使用量
+     * @return Resource usage amount / 资源使用�?
      */
     fun resourceUsage(slot: TimeSlot, resource: R): Flt64 {
         return results[slot]?.resourceUsageByResource?.get(resource) ?: Flt64.zero
     }
 
     /**
-     * 获取指定时隙的所有约束
+     * 获取指定时隙的所有约�?
      * Get all constraints for specified slot
      *
      * @param slot The time slot / 时隙
-     * @param tolerance Tolerance for constraint bounds / 约束边界的容差
+     * @param tolerance Tolerance for constraint bounds / 约束边界的容�?
      * @return Slot constraints / 时隙约束
      */
     fun slotConstraints(slot: TimeSlot, tolerance: Flt64 = Flt64.zero): SlotConstraints<M, R>? {
@@ -140,7 +140,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R>(
  * 时隙约束
  * Slot constraints
  *
- * 描述单个时隙的资源、产量、消耗约束边界。
+ * 描述单个时隙的资源、产量、消耗约束边界�?
  * Describes resource, produce, consumption constraint boundaries for a single slot.
  *
  * @param M 物料类型 / Material type
@@ -148,7 +148,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R>(
  */
 data class SlotConstraints<M, R>(
     /**
-     * 所属时隙
+     * 所属时�?
      * The time slot
      */
     val slot: TimeSlot,
@@ -172,32 +172,32 @@ data class SlotConstraints<M, R>(
     val minProduce: Map<M, Flt64>,
 
     /**
-     * 原料消耗上限
+     * 原料消耗上�?
      * Maximum consumption by material
      */
     val maxConsumption: Map<M, Flt64>,
 
     /**
-     * 原料消耗下限
+     * 原料消耗下�?
      * Minimum consumption by material
      */
     val minConsumption: Map<M, Flt64>,
 
     /**
-     * 资源使用量上限
+     * 资源使用量上�?
      * Maximum resource usage by resource
      */
     val maxResourceUsage: Map<R, Flt64>,
 
     /**
-     * 资源使用量下限
+     * 资源使用量下�?
      * Minimum resource usage by resource
      */
     val minResourceUsage: Map<R, Flt64>
 ) {
     companion object {
         /**
-         * 从产能结果创建约束
+         * 从产能结果创建约�?
          * Create constraints from capacity result
          *
          * @param result The slot capacity result / 时隙产能结果
@@ -228,3 +228,5 @@ data class SlotConstraints<M, R>(
         }
     }
 }
+
+

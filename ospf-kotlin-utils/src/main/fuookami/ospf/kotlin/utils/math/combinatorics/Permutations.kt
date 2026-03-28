@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.combinatorics
+﻿package fuookami.ospf.kotlin.utils.math.combinatorics
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
@@ -85,3 +88,6 @@ fun <T> permuteAsync(
     }
     return ChannelGuard(promise)
 }
+
+
+

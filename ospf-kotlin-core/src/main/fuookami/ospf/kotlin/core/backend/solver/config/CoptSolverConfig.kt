@@ -1,8 +1,8 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.config
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Duration
 
 data class CoptSolverConfig(
@@ -11,3 +11,6 @@ data class CoptSolverConfig(
     val password: String? = null,
     val connectionTime: Duration? = null
 )
+
+
+

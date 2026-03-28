@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
+﻿package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
 
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.AbstractHeuristicPolicy
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.Individual
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.Iteration
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.ifNull
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.operator.Order
 
 data class Particle<V>(
@@ -62,3 +62,6 @@ data class Particle<V>(
         }
     }
 }
+
+
+

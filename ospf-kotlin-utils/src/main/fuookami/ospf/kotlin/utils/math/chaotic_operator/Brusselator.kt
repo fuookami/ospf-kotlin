@@ -1,8 +1,11 @@
-package fuookami.ospf.kotlin.utils.math.chaotic_operator
+﻿package fuookami.ospf.kotlin.utils.math.chaotic_operator
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.geometry.Point2
 import fuookami.ospf.kotlin.utils.math.geometry.point2
 import fuookami.ospf.kotlin.utils.math.nextFlt64
@@ -61,3 +64,8 @@ data class BrusselatorGenerator(
         return x
     }
 }
+
+
+
+
+

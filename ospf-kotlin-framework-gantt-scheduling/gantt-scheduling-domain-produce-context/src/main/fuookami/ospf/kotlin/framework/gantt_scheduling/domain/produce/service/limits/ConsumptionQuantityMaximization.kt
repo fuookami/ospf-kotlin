@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 class ConsumptionQuantityMaximization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -68,3 +68,6 @@ class ConsumptionQuantityMaximization<
         return ok
     }
 }
+
+
+

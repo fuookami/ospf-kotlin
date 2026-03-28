@@ -1,9 +1,11 @@
-package fuookami.ospf.kotlin.core.frontend.variable
+﻿package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.Interval
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 
 data class Range<T, V>(
     val type: T,
@@ -173,3 +175,5 @@ fun Range<BalancedTernary, Int8>.setFalse(): Boolean {
 fun Range<BalancedTernary, Int8>.setUnknown(): Boolean {
     return this.eq(Int8.zero)
 }
+
+

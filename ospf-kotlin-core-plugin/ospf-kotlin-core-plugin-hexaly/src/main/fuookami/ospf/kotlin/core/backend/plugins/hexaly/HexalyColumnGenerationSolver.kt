@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.hexaly
+﻿package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 
 class HexalyColumnGenerationSolver(
@@ -307,3 +307,5 @@ class HexalyColumnGenerationSolver(
         }
     }
 }
+
+

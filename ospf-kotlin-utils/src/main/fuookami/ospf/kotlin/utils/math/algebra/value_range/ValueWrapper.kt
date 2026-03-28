@@ -1,13 +1,15 @@
-package fuookami.ospf.kotlin.utils.math.value_range
+﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
@@ -509,3 +511,7 @@ operator fun ValueWrapper<IntX>.unaryMinus() = when (this) {
     is ValueWrapper.Infinity -> ValueWrapper.NegativeInfinity(constants)
     is ValueWrapper.NegativeInfinity -> ValueWrapper.Infinity(constants)
 }
+
+
+
+

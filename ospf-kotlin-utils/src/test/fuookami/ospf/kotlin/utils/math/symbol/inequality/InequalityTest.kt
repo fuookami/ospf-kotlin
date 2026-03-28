@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.inequality
+﻿package fuookami.ospf.kotlin.utils.math.symbol.inequality
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
@@ -35,8 +35,8 @@ class InequalityTest {
     fun quadraticInequalityShouldKeepArguments() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val lhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(symbol1 = x, symbol2 = y)), Flt64.one)
-        val rhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(symbol1 = x)), Flt64.zero)
+        val lhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x, symbol2 = y)), Flt64.one)
+        val rhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x)), Flt64.zero)
 
         val inequality = QuadraticInequality(lhs, rhs, Comparison.GT)
 
@@ -80,3 +80,6 @@ class InequalityTest {
         assertEquals(Comparison.LT, Comparison.GT.reverse())
     }
 }
+
+
+

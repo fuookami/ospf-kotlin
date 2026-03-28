@@ -1,10 +1,12 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.min
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
@@ -1872,3 +1874,4 @@ open class ContinuousProductivityCalendar<P, T, U>(
     },
     floor = { it }
 ) where P : Productivity<Flt64, T, U>
+

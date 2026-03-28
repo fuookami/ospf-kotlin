@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
@@ -66,7 +66,8 @@ class DifferentiateTest {
                 QuadraticMonomial<Flt64>(Flt64.two, x, y),
                 QuadraticMonomial<Flt64>(Flt64(3.0), x, x),
                 QuadraticMonomial<Flt64>(Flt64(4.0), y, null)
-            )
+            ),
+            constant = Flt64.zero
         )
 
         val gradient = polynomial.gradient(listOf(y, x))
@@ -103,7 +104,8 @@ class DifferentiateTest {
                 CanonicalMonomial<Flt64>(Flt64.two, listOf(x, y)),
                 CanonicalMonomial<Flt64>(Flt64(3.0), listOf(x, x)),
                 CanonicalMonomial<Flt64>(Flt64(4.0), listOf(y))
-            )
+            ),
+            constant = Flt64.zero
         )
 
         val gradient = polynomial.gradient(listOf(y, x))
@@ -169,7 +171,8 @@ class DifferentiateTest {
             monomials = listOf(
                 QuadraticMonomial<Flt64>(Flt64(1.0), x, x),
                 QuadraticMonomial<Flt64>(Flt64(2.0), x, x)
-            )
+            ),
+            constant = Flt64.zero
         )
 
         val hessian = polynomial.hessian(order = listOf(x))
@@ -185,7 +188,8 @@ class DifferentiateTest {
         val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
                 CanonicalMonomial<Flt64>(Flt64.one, listOf(x, y, z))
-            )
+            ),
+            constant = Flt64.zero
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -193,3 +197,6 @@ class DifferentiateTest {
         }
     }
 }
+
+
+

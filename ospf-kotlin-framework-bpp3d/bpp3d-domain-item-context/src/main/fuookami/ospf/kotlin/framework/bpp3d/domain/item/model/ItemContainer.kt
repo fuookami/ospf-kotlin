@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.geometry.Point3
 import fuookami.ospf.kotlin.utils.math.geometry.point3
 import fuookami.ospf.kotlin.utils.operator.Eq
@@ -204,3 +204,6 @@ suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
         return false
     }
 }
+
+
+

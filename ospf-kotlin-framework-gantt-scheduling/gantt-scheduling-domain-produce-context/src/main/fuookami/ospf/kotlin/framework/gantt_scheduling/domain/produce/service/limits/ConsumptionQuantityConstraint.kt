@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
 import fuookami.ospf.kotlin.core.frontend.inequality.geq
@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(
     val material: C,
@@ -208,3 +208,6 @@ class ConsumptionQuantityConstraint<
         return ok
     }
 }
+
+
+

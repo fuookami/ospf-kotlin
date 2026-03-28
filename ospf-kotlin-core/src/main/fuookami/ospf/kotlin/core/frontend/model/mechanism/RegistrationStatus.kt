@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.frontend.model.mechanism
+﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 data class RegistrationStatus(
     val emptySymbolAmount: UInt64,
@@ -28,3 +28,6 @@ data class RegistrationStatus(
 }
 
 typealias RegistrationStatusCallBack = (RegistrationStatus) -> Try
+
+
+

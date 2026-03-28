@@ -1,9 +1,12 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericLinearTerms
 import fuookami.ospf.kotlin.utils.math.symbol.generic.combineTerms as combineGenericQuadraticTerms
@@ -226,3 +229,6 @@ fun CanonicalPolynomial<Flt64>.toMatrixForm(
         }
     }
 }
+
+
+

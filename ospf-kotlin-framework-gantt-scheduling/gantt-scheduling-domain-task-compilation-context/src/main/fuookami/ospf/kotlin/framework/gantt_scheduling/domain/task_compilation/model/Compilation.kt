@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -18,10 +18,10 @@ import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.UInt8
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt8
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 import fuookami.ospf.kotlin.utils.multi_array.Shape2
 import fuookami.ospf.kotlin.utils.multi_array._a
@@ -554,3 +554,7 @@ open class IterativeTaskCompilation<
         return Ok(unduplicatedTasks)
     }
 }
+
+
+
+

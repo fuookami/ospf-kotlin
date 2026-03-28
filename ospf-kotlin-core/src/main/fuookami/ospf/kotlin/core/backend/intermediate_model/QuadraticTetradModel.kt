@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.intermediate_model
+﻿package fuookami.ospf.kotlin.core.backend.intermediate_model
 
 import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.math.ordinary.min
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
@@ -1151,3 +1151,6 @@ suspend fun solveFarkasDual(
         }
     }
 }
+
+
+

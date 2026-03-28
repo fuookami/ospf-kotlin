@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.backend.solver.heuristic
+﻿package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 interface Migration<V> {
     operator fun <T : Individual<V>> invoke(
@@ -62,7 +62,7 @@ data class MigrationMigration<V>(
 //    /**
 //     * 迁移算子（岛屿模型）
 //     * @param migrationRate 迁移率（0~1，迁移个体比例）
-//     * @param topology 迁移拓扑（如环形、全连接）
+//     * @param topology 迁移拓扑（如环形、全连接�?
 //     */
 //    class MigrationOperator(
 //        private val migrationRate: Double,
@@ -74,7 +74,7 @@ data class MigrationMigration<V>(
 //
 //        /**
 //         * 执行迁移操作
-//         * @param subPopulations 多个子种群（每个子种群为 List<T>）
+//         * @param subPopulations 多个子种群（每个子种群为 List<T>�?
 //         * @return 迁移后的新子种群集合
 //         */
 //        fun <T> execute(subPopulations: List<List<T>>): List<List<T>> {
@@ -96,7 +96,7 @@ data class MigrationMigration<V>(
 //    }
 //
 //    enum class MigrationTopology {
-//        RING { // 环形拓扑：每个子种群迁移给下一个
+//        RING { // 环形拓扑：每个子种群迁移给下一�?
 //            override fun getSources(currentIndex: Int, total: Int): List<Int> {
 //                val prev = (currentIndex - 1 + total) % total
 //                return listOf(prev)
@@ -125,7 +125,7 @@ data class RingExchangeMigration<V>(
 
 //    /**
 //     * 环形拓扑个体交换
-//     * @param exchangeProb 交换概率（0~1）
+//     * @param exchangeProb 交换概率�?~1�?
 //     */
 //    class RingExchangeOperator(private val exchangeProb: Double) {
 //        fun <T> execute(population: List<T>): List<T> {
@@ -192,7 +192,7 @@ data class ElitistMigrationMigration<V>(
 //            subPopulations: List<List<T>>,
 //            fitnessFunc: (T) -> Double
 //        ): List<List<T>> {
-//            // 1. 提取每个子种群的精英和最差个体
+//            // 1. 提取每个子种群的精英和最差个�?
 //            val elites = subPopulations.map { pop ->
 //                pop.sortedByDescending(fitnessFunc).take(eliteCount)
 //            }
@@ -200,13 +200,13 @@ data class ElitistMigrationMigration<V>(
 //                pop.sortedBy(fitnessFunc).take(eliteCount)
 //            }
 //
-//            // 2. 将精英迁移到下一个子种群，替换最差个体
+//            // 2. 将精英迁移到下一个子种群，替换最差个�?
 //            return subPopulations.mapIndexed { index, pop ->
 //                val nextIndex = (index + 1) % subPopulations.size
 //                val newPop = pop.toMutableList()
-//                // 移除当前子种群的最差个体
+//                // 移除当前子种群的最差个�?
 //                newPop.removeAll(worsts[index])
-//                // 添加来自前一个子种群的精英
+//                // 添加来自前一个子种群的精�?
 //                newPop.addAll(elites[nextIndex])
 //                newPop.shuffled()
 //            }
@@ -231,9 +231,12 @@ data class PopulationMergeMigration<V>(
 //    class PopulationMergeOperator {
 //        fun <T> execute(subPopulations: List<List<T>>): List<List<T>> {
 //            val merged = subPopulations.flatten().shuffled()
-//            // 均等分割为与原数量相同的子种群
+//            // 均等分割为与原数量相同的子种�?
 //            val chunkSize = merged.size / subPopulations.size
 //            return merged.chunked(chunkSize)
 //        }
 //    }
 }
+
+
+

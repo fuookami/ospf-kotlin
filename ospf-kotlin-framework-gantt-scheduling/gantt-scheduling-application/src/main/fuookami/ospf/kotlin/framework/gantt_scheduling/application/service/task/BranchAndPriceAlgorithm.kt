@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.task
 
@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.apache.logging.log4j.kotlin.logger
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -416,7 +416,7 @@ class BranchAndPriceAlgorithm<
 
                     this.fixedTasks.clear()
                     this.fixedTasks.addAll(fixedTasks)
-                    // 所有生产设备已经有被固定的列（串）或者被隐藏，求解一次 IP 结束本次主迭代
+                    // 所有生产设备已经有被固定的列（串）或者被隐藏，求解一�?IP 结束本次主迭�?
                     val thisIpRet = when (val result = solver.solveMILP("${id}_${iteration}_ip", model)) {
                         is Ok -> {
                             model.setSolution(result.value.solution)
@@ -454,7 +454,7 @@ class BranchAndPriceAlgorithm<
                     }
                     heartBeat(id, iteration.optimalRate)
 
-                    // 结束一次主迭代后，刷新所有被固定的列（串）以及被隐藏的生产设备
+                    // 结束一次主迭代后，刷新所有被固定的列（串）以及被隐藏的生产设�?
                     flush(iteration.iteration)
                     iteration.halveStep()
 
@@ -896,3 +896,6 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 }
+
+
+

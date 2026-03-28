@@ -1,7 +1,7 @@
-package  fuookami.ospf.kotlin.core.frontend.variable
+﻿package  fuookami.ospf.kotlin.core.frontend.variable
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import kotlin.random.Random
 import kotlin.random.nextULong
 
@@ -84,3 +84,7 @@ data class Token(
 
     override fun toString() = "$name: ${result ?: "?"}"
 }
+
+
+
+

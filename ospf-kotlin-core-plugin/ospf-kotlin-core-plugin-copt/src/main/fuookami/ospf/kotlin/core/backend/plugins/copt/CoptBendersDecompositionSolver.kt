@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.copt
+﻿package fuookami.ospf.kotlin.core.backend.plugins.copt
 
 import copt.COPT
 import copt.get
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import kotlinx.coroutines.*
 
 class CplexLinearBendersDecompositionSolver(
@@ -518,3 +518,5 @@ class CoptLinearBendersDecompositionSolver(
         }
     }
 }
+
+

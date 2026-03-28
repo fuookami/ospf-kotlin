@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.frontend.model.mechanism
+﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.variable.Token
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 sealed interface Cell {
     fun evaluate(): Flt64?
@@ -90,3 +90,6 @@ class QuadraticCell(
         }
     }
 }
+
+
+

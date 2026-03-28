@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
@@ -13,16 +13,16 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 /**
- * 分时隙任务束编译类
+ * 分时隙任务束编译�?
  * Slot-based bunch compilation class
  *
- * 继承 BunchCompilation，增加时隙相关功能。
+ * 继承 BunchCompilation，增加时隙相关功能�?
  * Extends BunchCompilation with slot-related functionality.
  *
- * 每个 bunch 只能属于一个时隙，时隙对应关系由 bunch 生成器保证。
+ * 每个 bunch 只能属于一个时隙，时隙对应关系�?bunch 生成器保证�?
  * Each bunch can only belong to one time slot, ensured by the bunch generator.
  */
 open class SlotBasedBunchCompilation<
@@ -64,10 +64,10 @@ open class SlotBasedBunchCompilation<
      * 按时隙添加列
      * Add columns by slot
      *
-     * @param iteration Current iteration number / 当前迭代数
-     * @param newBunches New bunches to add / 要添加的新 bunch
+     * @param iteration Current iteration number / 当前迭代�?
+     * @param newBunches New bunches to add / 要添加的�?bunch
      * @param model Linear meta model / 线性元模型
-     * @return Added bunches grouped by slot / 按时隙分组的已添加 bunch
+     * @return Added bunches grouped by slot / 按时隙分组的已添�?bunch
      */
     open suspend fun addColumnsBySlot(
         iteration: UInt64,
@@ -75,7 +75,7 @@ open class SlotBasedBunchCompilation<
         model: AbstractLinearMetaModel
     ): Ret<Map<TimeSlot, List<B>>> {
         // First add columns using parent method
-        // 首先使用父类方法添加列
+        // 首先使用父类方法添加�?
         val unduplicatedBunches = when (val result = addColumns(iteration, newBunches, model)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
@@ -108,7 +108,7 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 获取指定时隙的所有 bunch
+     * 获取指定时隙的所�?bunch
      * Get all bunches for specified slot
      *
      * @param slot The time slot / 时隙
@@ -119,14 +119,17 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 获取指定时隙和执行器的所有 bunch
+     * 获取指定时隙和执行器的所�?bunch
      * Get all bunches for specified slot and executor
      *
      * @param slot The time slot / 时隙
-     * @param executor The executor / 执行器
+     * @param executor The executor / 执行�?
      * @return List of bunches in this slot for this executor / 该时隙该执行器的 bunch 列表
      */
     fun bunchesInSlot(slot: TimeSlot, executor: E): List<B> {
         return bunchesBySlot[slot]?.filter { it.executor == executor } ?: emptyList()
     }
 }
+
+
+

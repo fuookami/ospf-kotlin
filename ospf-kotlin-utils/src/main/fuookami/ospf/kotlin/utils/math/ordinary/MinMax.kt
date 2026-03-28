@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.operator.Ord
@@ -295,3 +298,6 @@ inline fun <T, U> Iterable<U>.minMaxOfWithOrNull(
     }
     return Pair(min, max)
 }
+
+
+

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
-import fuookami.ospf.kotlin.utils.math.FltX
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -39,3 +39,6 @@ data class SchemaDTO(
     val kpi: Map<String, String> = emptyMap(),
     val loadingPlans: List<RenderLoadingPlanDTO> = emptyList(),
 )
+
+
+

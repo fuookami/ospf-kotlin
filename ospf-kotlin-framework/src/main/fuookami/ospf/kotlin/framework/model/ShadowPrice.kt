@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.model
+﻿package fuookami.ospf.kotlin.framework.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toMeta
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import kotlin.reflect.KClass
 
 open class ShadowPriceKey(
@@ -105,3 +105,5 @@ fun <
 
     return ok
 }
+
+

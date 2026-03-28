@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.polynomial
+﻿package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsPolynomial
@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.math.BalancedTrivalent
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.math.Trivalent
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
@@ -2440,4 +2440,7 @@ fun <T> flatQtySum(
 ): Quantity<LinearPolynomial> {
     return qtySum(objs.flatMap(extractor).filterNotNull())
 }
+
+
+
 

@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
-import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -90,3 +90,6 @@ class CompileGenericTest {
         assertEquals(listOf(Int64(40L), Int64(11L)), gradient(values))
     }
 }
+
+
+

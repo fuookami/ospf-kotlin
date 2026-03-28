@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.orderOf
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -23,6 +26,52 @@ interface NumericUInteger<Self, I>
 
     override fun sqrt() = pow(Flt64.two.reciprocal())
     override fun cbrt() = pow(Flt64.three.reciprocal())
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.log: ${base.javaClass}")
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.pow: ${index.javaClass}")
+    }
+
+    override fun exp(): FloatingNumber<*> = toFlt64().exp()
+
+    override fun sin(): FloatingNumber<*> = toFlt64().sin()
+    override fun cos(): FloatingNumber<*> = toFlt64().cos()
+    override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+    override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+    override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+    override fun cot(): FloatingNumber<*>? = toFlt64().cot()
+
+    override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+    override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+    override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+    override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+    override fun atan(): FloatingNumber<*> = toFlt64().atan()
+    override fun acot(): FloatingNumber<*>? = toFlt64().acot()
+
+    override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+    override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+    override fun sech(): FloatingNumber<*> = toFlt64().sech()
+    override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+    override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+    override fun coth(): FloatingNumber<*>? = toFlt64().coth()
+
+    override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+    override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+    override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+    override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+    override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+    override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
 }
 
 abstract class NumericUIntegerConstants<Self, I>(
@@ -81,13 +130,6 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun rem(rhs: NUInt8) = NUInt8(value % rhs.value)
     override fun intDiv(rhs: NUInt8) = NUInt8(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt8.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): URtn8 {
         return if (index >= 1) {
@@ -99,43 +141,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt8.pow: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(
         start = copy(),
@@ -211,13 +217,6 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun rem(rhs: NUInt16) = NUInt16(value % rhs.value)
     override fun intDiv(rhs: NUInt16) = NUInt16(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt16.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): URtn16 {
         return if (index >= 1) {
@@ -229,43 +228,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt16.pow: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt16) = NumericUIntegerRange(
         start = copy(),
@@ -341,13 +304,6 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun rem(rhs: NUInt32) = NUInt32(value % rhs.value)
     override fun intDiv(rhs: NUInt32) = NUInt32(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt32.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): URtn32 {
         return if (index >= 1) {
@@ -359,42 +315,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt32.pow: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt32) = NumericUIntegerRange(
         start = copy(),
@@ -470,13 +391,6 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun rem(rhs: NUInt64) = NUInt64(value % rhs.value)
     override fun intDiv(rhs: NUInt64) = NUInt64(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt64().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt64.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): URtn64 {
         return if (index >= 1) {
@@ -488,43 +402,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt64().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NUInt64.pow: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun rangeTo(rhs: NUInt64) = NumericUIntegerRange(
         start = copy(),
@@ -696,3 +574,6 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun toFlt64() = value.toFlt64()
     override fun toFltX() = value.toFltX()
 }
+
+
+

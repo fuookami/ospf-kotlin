@@ -1,9 +1,11 @@
-package fuookami.ospf.kotlin.core.frontend.expression.monomial
+﻿package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
 import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -17,7 +19,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
+import kotlin.ConsistentCopyVisibility
 
+@ConsistentCopyVisibility
 data class LinearMonomialCell internal constructor(
     val cell: Either<LinearCellPair, Flt64>
 ) : MonomialCell<LinearMonomialCell> {
@@ -1216,4 +1220,6 @@ operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.times(rhs: Quantity<T>
 operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this.value / rhs.value, this.unit / rhs.unit)
 }
+
+
 

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 
 class Scheme(
     val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>> = emptyList(),
@@ -32,3 +32,7 @@ class Scheme(
 fun <T : Item> List<Triple<T, UInt64, UInt64>>.pack(): Map<T, UInt64> {
     return this.associate { Pair(it.first, it.second) }
 }
+
+
+
+

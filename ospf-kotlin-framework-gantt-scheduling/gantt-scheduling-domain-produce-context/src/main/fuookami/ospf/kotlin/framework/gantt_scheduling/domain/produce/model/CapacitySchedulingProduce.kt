@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -11,12 +11,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 
 /**
- * 产能调度场景的产品产量管理抽象基类
+ * 产能调度场景的产品产量管理抽象基�?
  * Abstract base class for produce management in Capacity Scheduling
  *
  * 提供产能调度场景下产品产量计算的通用框架
@@ -66,13 +66,13 @@ abstract class CapacitySchedulingProduce<
     }
 
     /**
-     * 注册变量到模型
+     * 注册变量到模�?
      * Register variables to model
      */
     abstract fun register(model: LinearMetaModel): Try
 
     /**
-     * 将 quantity 变量添加到模型
+     * �?quantity 变量添加到模�?
      * Add quantity variables to model
      */
     protected fun addQuantityToModel(model: LinearMetaModel): Try {
@@ -91,3 +91,7 @@ abstract class CapacitySchedulingProduce<
         return ok
     }
 }
+
+
+
+

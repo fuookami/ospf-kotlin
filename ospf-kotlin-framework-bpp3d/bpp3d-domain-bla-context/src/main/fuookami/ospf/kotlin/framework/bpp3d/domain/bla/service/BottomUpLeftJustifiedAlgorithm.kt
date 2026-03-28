@@ -1,13 +1,13 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.not
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.operator.Order
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
@@ -237,11 +237,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 val thisFeasiblePoints = if (projections[i].view == projections[i - 1].view && lastFeasiblePoints.isNotEmpty() && placements[i - 1] != null) {
                     val lastPlacement = placements[i - 1]!!
                     // 要去除的点：
-                    // 1. 和上一个放置的物料在相同位置的点
+                    // 1. 和上一个放置的物料在相同位置的�?
                     // 2. 被上一个放置的物料包住的点
                     val lastAvailablePoints = lastFeasiblePoints.filter {
-                        it != lastPlacement.position                                                                // 和上一个放置的物料在相同位置的点
-                                && !lastPlacement.contains(it, withUpperBound = false)                              // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面）
+                        it != lastPlacement.position                                                                // 和上一个放置的物料在相同位置的�?
+                                && !lastPlacement.contains(it, withUpperBound = false)                              // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面�?
                     }
                     (lastAvailablePoints + feasiblePoints(
                         targetPlacements = listOf(lastPlacement),
@@ -488,3 +488,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
     }
 }
+
+
+
+

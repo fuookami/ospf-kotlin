@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.backend.solver.heuristic
+﻿package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.operator.Order
 
 interface ObjectiveNormalization<V> {
@@ -45,3 +45,6 @@ data object SumNormalization : ObjectiveNormalization<Flt64> {
         }
     }
 }
+
+
+

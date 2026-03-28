@@ -1,12 +1,12 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.utils.math.geometry.point3
 import fuookami.ospf.kotlin.utils.math.ordinary.max
@@ -228,3 +228,6 @@ typealias ItemBin = Bin<Item>
 fun LayerBin.dump(): ItemBin {
     return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
 }
+
+
+

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gwo
+﻿package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gwo
 
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.SolutionWithFitness
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 typealias Wolf<V> = SolutionWithFitness<V>
 
@@ -18,3 +18,6 @@ val <V> AbstractPopulation<V>.delta: Wolf<V> get() = individuals[2]
 val <V> List<Wolf<V>>.alpha: Wolf<V> get() = this[0]
 val <V> List<Wolf<V>>.beta: Wolf<V> get() = this[1]
 val <V> List<Wolf<V>>.delta: Wolf<V> get() = this[2]
+
+
+

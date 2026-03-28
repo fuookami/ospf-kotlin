@@ -1,13 +1,14 @@
-package fuookami.ospf.kotlin.utils.multi_array
+﻿package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.math.Integer
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Integer
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import kotlin.ConsistentCopyVisibility
 import kotlin.reflect.KClass
 
 /**
- * 维度不匹配异常
+ * 维度不匹配异�?
  * Dimension mismatching exception
  */
 class DimensionMismatchingException(
@@ -43,9 +44,9 @@ class UnknownDummyIndexTypeException(
  * 存储顺序枚举
  * Storage order enum
  *
- * - RowMajor: 行主序（C 风格），最后一个维度变化最快
+ * - RowMajor: 行主序（C 风格），最后一个维度变化最�?
  *   Row-major (C style), last dimension varies fastest
- * - ColumnMajor: 列主序（Fortran 风格），第一个维度变化最快
+ * - ColumnMajor: 列主序（Fortran 风格），第一个维度变化最�?
  *   Column-major (Fortran style), first dimension varies fastest
  */
 enum class StorageOrder {
@@ -61,7 +62,7 @@ enum class StorageOrder {
  * 形状接口
  * Shape interface
  *
- * 定义多维数组形状的基本操作。
+ * 定义多维数组形状的基本操作�?
  * Defines basic operations for multi-dimensional array shapes.
  */
 interface Shape {
@@ -72,7 +73,7 @@ interface Shape {
     val dimension: Int
 
     /**
-     * 维度数量（无符号）
+     * 维度数量（无符号�?
      * Number of dimensions (unsigned)
      */
     val udimension: UInt64 get() = UInt64(dimension)
@@ -84,7 +85,7 @@ interface Shape {
     val size: Int
 
     /**
-     * 元素总数（无符号）
+     * 元素总数（无符号�?
      * Total number of elements (unsigned)
      */
     val usize: UInt64 get() = UInt64(size)
@@ -108,13 +109,13 @@ interface Shape {
     val offsets: IntArray
 
     /**
-     * 获取指定维度的长度
+     * 获取指定维度的长�?
      * Get the length of the specified dimension
      */
     operator fun get(index: Int): Int
 
     /**
-     * 将向量索引转换为线性索引
+     * 将向量索引转换为线性索�?
      * Convert vector index to linear index
      */
     fun index(vector: IntArray): Int
@@ -126,13 +127,13 @@ interface Shape {
     fun vector(index: Int): IntArray
 
     /**
-     * 检查是否为空
+     * 检查是否为�?
      * Check if empty
      */
     fun isEmpty(): Boolean = size == 0
 
     /**
-     * 获取下一个向量索引
+     * 获取下一个向量索�?
      * Get the next vector index
      *
      * @param vector 当前向量索引
@@ -154,7 +155,7 @@ interface Shape {
     }
 
     /**
-     * 获取指定维度的步长
+     * 获取指定维度的步�?
      * Get the stride for the specified dimension
      */
     fun offset(dimension: Int): Int {
@@ -168,7 +169,7 @@ interface Shape {
      * 计算实际索引
      * Calculate actual index
      *
-     * 处理负数索引（从末尾计数）。
+     * 处理负数索引（从末尾计数）�?
      * Handles negative indices (counting from the end).
      *
      * @param dimension 维度索引
@@ -190,13 +191,13 @@ interface Shape {
     }
 
     /**
-     * 创建零向量
+     * 创建零向�?
      * Create zero vector
      */
     fun zero(): IntArray = IntArray(dimension)
 
     /**
-     * 将虚拟索引转换为迭代器向量
+     * 将虚拟索引转换为迭代器向�?
      * Convert dummy vector to iterator vector
      */
     fun dummyToIteratorVector(dummyVector: DummyVector): IteratorVector {
@@ -214,7 +215,7 @@ interface Shape {
     }
 
     /**
-     * 将映射向量转换为迭代器向量
+     * 将映射向量转换为迭代器向�?
      * Convert map vector to iterator vector
      */
     fun mapToIteratorVector(mapVector: MapVector): IteratorVector {
@@ -222,7 +223,7 @@ interface Shape {
             when (mapIndex) {
                 is MapIndex.Dummy -> mapIndex.dummy.iteratorOf(this, i)
                 is MapIndex.Map -> {
-                    // 映射索引：创建全范围迭代器
+                    // 映射索引：创建全范围迭代�?
                     DummyIndexIterator.Continuous(0 until this[mapIndex.index])
                 }
             }
@@ -230,7 +231,7 @@ interface Shape {
     }
 
     /**
-     * 从任意类型数组创建虚拟向量
+     * 从任意类型数组创建虚拟向�?
      * Create dummy vector from any type array
      */
     fun dummyVector(vararg v: Any): DummyVector {
@@ -279,9 +280,10 @@ interface Shape {
 }
 
 /**
- * 一维形状
+ * 一维形�?
  * One-dimensional shape
  */
+@ConsistentCopyVisibility
 data class Shape1 private constructor(
     private val d1: Int,
     override val storageOrder: StorageOrder
@@ -344,6 +346,7 @@ data class Shape1 private constructor(
  * 二维形状
  * Two-dimensional shape
  */
+@ConsistentCopyVisibility
 data class Shape2 private constructor(
     private val d1: Int,
     private val d2: Int,
@@ -430,6 +433,7 @@ data class Shape2 private constructor(
  * 三维形状
  * Three-dimensional shape
  */
+@ConsistentCopyVisibility
 data class Shape3 private constructor(
     private val d1: Int,
     private val d2: Int,
@@ -531,6 +535,7 @@ data class Shape3 private constructor(
  * 四维形状
  * Four-dimensional shape
  */
+@ConsistentCopyVisibility
 data class Shape4 private constructor(
     private val d1: Int,
     private val d2: Int,
@@ -639,9 +644,10 @@ data class Shape4 private constructor(
 }
 
 /**
- * 动态维度形状
+ * 动态维度形�?
  * Dynamic dimension shape
  */
+@ConsistentCopyVisibility
 data class DynShape private constructor(
     private val shape: IntArray,
     override val storageOrder: StorageOrder
@@ -779,3 +785,6 @@ data class DynShape private constructor(
         return result
     }
 }
+
+
+

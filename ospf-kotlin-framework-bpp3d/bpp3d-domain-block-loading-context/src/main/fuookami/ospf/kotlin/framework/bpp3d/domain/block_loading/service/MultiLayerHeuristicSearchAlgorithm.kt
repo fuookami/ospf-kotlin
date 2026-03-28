@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3
 import fuookami.ospf.kotlin.utils.functional.minWithThreeWayComparatorOrNull
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.utils.operator.Order
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
@@ -366,3 +366,6 @@ class MultiLayerHeuristicSearchAlgorithm(
         promise.close()
     }
 }
+
+
+

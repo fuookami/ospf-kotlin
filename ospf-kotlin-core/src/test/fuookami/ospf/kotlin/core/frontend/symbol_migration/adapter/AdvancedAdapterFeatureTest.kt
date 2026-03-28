@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.adapter
+﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.adapter
 
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.compileEval
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.compileGradient
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluateOrdered
 import fuookami.ospf.kotlin.utils.math.symbol.operation.gradient
@@ -132,4 +132,7 @@ class AdvancedAdapterFeatureTest {
         )
     }
 }
+
+
+
 

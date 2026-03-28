@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.adapter
+﻿package fuookami.ospf.kotlin.core.frontend.expression.adapter
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial as CoreLinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialSymbol as CoreLinearMonomialSymbol
@@ -47,14 +48,14 @@ private fun unsupportedQuadraticSymbols(
     )
 }
 
-fun CoreLinearMonomial.toUtilsMonomial(): UtilsLinearMonomial {
+fun CoreLinearMonomial.toUtilsMonomial(): UtilsLinearMonomial<Flt64> {
     return UtilsLinearMonomial(
         coefficient = coefficient,
         symbol = coreLinearSymbolToCommonSymbol(symbol)
     )
 }
 
-fun CoreQuadraticMonomial.toUtilsMonomial(): UtilsQuadraticMonomial {
+fun CoreQuadraticMonomial.toUtilsMonomial(): UtilsQuadraticMonomial<Flt64> {
     return UtilsQuadraticMonomial(
         coefficient = coefficient,
         symbol1 = coreQuadraticUnitToCommonSymbol(symbol.symbol1),
@@ -62,7 +63,7 @@ fun CoreQuadraticMonomial.toUtilsMonomial(): UtilsQuadraticMonomial {
     )
 }
 
-fun UtilsLinearMonomial.toCoreMonomialRet(): Ret<CoreLinearMonomial> {
+fun UtilsLinearMonomial<Flt64>.toCoreMonomialRet(): Ret<CoreLinearMonomial> {
     val coreSymbol = symbol
     return when (coreSymbol) {
         is AbstractVariableItem<*, *> -> {
@@ -82,7 +83,7 @@ fun UtilsLinearMonomial.toCoreMonomialRet(): Ret<CoreLinearMonomial> {
 @Deprecated(
     message = "Use toCoreMonomialRet() to keep adapter failures explicit."
 )
-fun UtilsLinearMonomial.toCoreMonomialOrNull(): CoreLinearMonomial? {
+fun UtilsLinearMonomial<Flt64>.toCoreMonomialOrNull(): CoreLinearMonomial? {
     return when (val result = toCoreMonomialRet()) {
         is Ok -> result.value
         is Failed -> null
@@ -90,7 +91,7 @@ fun UtilsLinearMonomial.toCoreMonomialOrNull(): CoreLinearMonomial? {
     }
 }
 
-fun UtilsQuadraticMonomial.toCoreMonomialRet(): Ret<CoreQuadraticMonomial> {
+fun UtilsQuadraticMonomial<Flt64>.toCoreMonomialRet(): Ret<CoreQuadraticMonomial> {
     val coreSymbol1 = symbol1
     val coreSymbol2 = symbol2
 
@@ -149,10 +150,13 @@ fun UtilsQuadraticMonomial.toCoreMonomialRet(): Ret<CoreQuadraticMonomial> {
 @Deprecated(
     message = "Use toCoreMonomialRet() to keep adapter failures explicit."
 )
-fun UtilsQuadraticMonomial.toCoreMonomialOrNull(): CoreQuadraticMonomial? {
+fun UtilsQuadraticMonomial<Flt64>.toCoreMonomialOrNull(): CoreQuadraticMonomial? {
     return when (val result = toCoreMonomialRet()) {
         is Ok -> result.value
         is Failed -> null
         is Fatal -> null
     }
 }
+
+
+

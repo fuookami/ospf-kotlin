@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 
 class GCDTest {
@@ -16,3 +16,6 @@ class GCDTest {
         assert(gcd(listOf(UInt64(6), UInt64(9), UInt64(12))) == UInt64(3))
     }
 }
+
+
+

@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import kotlin.random.Random
 import kotlin.random.nextLong
@@ -17,3 +20,6 @@ fun Random.nextUInt64(lowerBound: UInt64, upperBound: UInt64) = UInt64(nextULong
 fun Random.nextFlt64() = Flt64(nextDouble())
 fun Random.nextFlt64(until: Flt64) = Flt64(nextDouble(until.value))
 fun Random.nextFlt64(lowerBound: Flt64, upperBound: Flt64) = Flt64(nextDouble(lowerBound.value, upperBound.value))
+
+
+

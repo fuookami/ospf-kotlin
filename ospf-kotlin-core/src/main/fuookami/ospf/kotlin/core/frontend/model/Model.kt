@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.model
+﻿package fuookami.ospf.kotlin.core.frontend.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
 
 typealias Solution = List<Flt64>
@@ -746,4 +746,7 @@ interface QuadraticModel : LinearModel {
         )
     }
 }
+
+
+
 

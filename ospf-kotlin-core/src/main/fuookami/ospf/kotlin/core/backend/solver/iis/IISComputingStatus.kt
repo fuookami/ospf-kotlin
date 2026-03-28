@@ -1,10 +1,10 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.iis
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Duration
 
 data class IISComputingStatus(
@@ -19,3 +19,6 @@ data class IISComputingStatus(
 }
 
 typealias IISComputingStatusCallBack = (Boolean, Duration, IISComputingStatus) -> Try
+
+
+

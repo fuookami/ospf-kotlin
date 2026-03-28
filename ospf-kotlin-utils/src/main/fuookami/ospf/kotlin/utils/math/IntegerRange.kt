@@ -1,4 +1,7 @@
-package  fuookami.ospf.kotlin.utils.math
+﻿package  fuookami.ospf.kotlin.utils.math
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.operator.Rem
 

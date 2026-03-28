@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -17,13 +17,13 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
     private val _removedColumns: MutableSet<CapacityColumn<E, A>> = HashSet()
 ) {
     /**
-     * 按迭代分组的列
+     * 按迭代分组的�?
      * Columns grouped by iteration
      */
     val columnsIteration: List<List<CapacityColumn<E, A>>> by ::_columnsIteration
 
     /**
-     * 所有列（扁平化）
+     * 所有列（扁平化�?
      * All columns (flattened)
      */
     val columns: List<CapacityColumn<E, A>> by ::_columns
@@ -32,7 +32,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
     val removedColumns: Set<CapacityColumn<E, A>> by ::_removedColumns
 
     /**
-     * 最新迭代的列
+     * 最新迭代的�?
      * Columns from last iteration
      */
     val lastIterationColumns: List<CapacityColumn<E, A>>
@@ -42,16 +42,16 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
      * 添加新列
      * Add new columns
      *
-     * @param iteration Iteration number / 迭代数
+     * @param iteration Iteration number / 迭代�?
      * @param newColumns New columns to add / 要添加的新列
-     * @return Unduplicated columns / 去重后的列
+     * @return Unduplicated columns / 去重后的�?
      */
     suspend fun addColumns(
         iteration: UInt64,
         newColumns: List<CapacityColumn<E, A>>
     ): List<CapacityColumn<E, A>> {
         // Deduplicate within new columns
-        // 在新列内部去重
+        // 在新列内部去�?
         val unduplicatedNewColumns = coroutineScope {
             val promises = ArrayList<Deferred<List<CapacityColumn<E, A>>>>()
             for (columnGroup in newColumns.groupBy { it.executor }.values) {
@@ -99,7 +99,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
     }
 
     /**
-     * 移除列
+     * 移除�?
      * Remove a column
      */
     fun removeColumn(column: CapacityColumn<E, A>) {
@@ -110,7 +110,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
     }
 
     /**
-     * 批量移除列
+     * 批量移除�?
      * Remove multiple columns
      */
     fun removeColumns(columns: List<CapacityColumn<E, A>>) {
@@ -130,7 +130,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
     }
 
     /**
-     * 列相等比较
+     * 列相等比�?
      * Column equality comparison
      */
     private infix fun CapacityColumn<E, A>.neq(other: CapacityColumn<E, A>): Boolean {
@@ -141,3 +141,6 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
         return false
     }
 }
+
+
+

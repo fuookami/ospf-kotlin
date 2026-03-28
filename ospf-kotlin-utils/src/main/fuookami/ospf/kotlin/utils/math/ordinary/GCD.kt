@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.Minus
@@ -96,8 +99,8 @@ fun gcd(numbers: Iterable<FltX>): FltX {
     return integerGCD / FltX.ten.pow(factor)
 }
 
-fun <F : FltX> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
-    return gcd(listOf(x, y, z) + numbers.toList())
+fun <F : FloatingNumber<*>> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
+    return gcd(listOf(x, y, z) + numbers.map { it.toFltX() })
 }
 
 fun gcd(x: RtnX, y: RtnX): RtnX {
@@ -114,3 +117,6 @@ fun gcd(numbers: Iterable<RtnX>): RtnX {
 fun gcd(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return gcd(listOf(x, y, z) + numbers.toList())
 }
+
+
+

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.FltX
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 
 class LCMTest {
@@ -29,3 +29,6 @@ class LCMTest {
         assert(lcm(listOf(FltX(0.6), FltX(0.9), FltX(1.2))) eq FltX(3.6))
     }
 }
+
+
+

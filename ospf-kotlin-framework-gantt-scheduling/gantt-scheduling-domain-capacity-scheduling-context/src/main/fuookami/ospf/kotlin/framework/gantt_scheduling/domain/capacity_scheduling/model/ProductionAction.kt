@@ -1,12 +1,12 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
 
@@ -15,15 +15,15 @@ import kotlin.time.Duration
  * Production Action Interface
  *
  * A production action represents a way to produce capacity.
- * 生产动作表示产能的生产方式。
+ * 生产动作表示产能的生产方式�?
  *
  * It can be:
  * - **Discrete**: Has fixed batch duration, decision variable represents batch count
  * - **Continuous**: No fixed batch duration, decision variable represents duration units
  *
- * 分为：
- * - **离散型**：有固定批次时长，决策变量表示批次数
- * - **连续型**：无固定批次时长，决策变量表示时长单位数
+ * 分为�?
+ * - **离散�?*：有固定批次时长，决策变量表示批次数
+ * - **连续�?*：无固定批次时长，决策变量表示时长单位数
  */
 interface ProductionAction {
     /**
@@ -40,7 +40,7 @@ interface ProductionAction {
     val displayName: String get() = name
 
     /**
-     * 执行器
+     * 执行�?
      * The executor that performs this action
      */
     val executor: Executor
@@ -52,8 +52,8 @@ interface ProductionAction {
      * - true: discrete, x represents batch count
      * - false: continuous, x represents duration units
      *
-     * - true: 离散型，x 表示批次数
-     * - false: 连续型，x 表示时长单位数
+     * - true: 离散型，x 表示批次�?
+     * - false: 连续型，x 表示时长单位�?
      */
     val discrete: Boolean
 
@@ -64,7 +64,7 @@ interface ProductionAction {
     val batchDuration: Duration? get() = null
 
     /**
-     * 每个单位 x 对应的产能
+     * 每个单位 x 对应的产�?
      * Unit capacity per x value
      *
      * @param timeWindow Time window / 时间窗口
@@ -76,18 +76,20 @@ interface ProductionAction {
      * 单位成本
      * Unit cost
      *
-     * @param time Time instant / 时间点
+     * @param time Time instant / 时间�?
      * @return Unit cost / 单位成本
      */
     fun unitCost(time: Instant): Flt64
 
     /**
-     * x 变量的上界
+     * x 变量的上�?
      * Upper bound for x variable
      *
      * @param slot Time slot / 时隙
      * @param timeWindow Time window / 时间窗口
-     * @return Upper bound value / 上界值
+     * @return Upper bound value / 上界�?
      */
     fun upperBound(slot: TimeSlot, timeWindow: TimeWindow): UInt64
 }
+
+

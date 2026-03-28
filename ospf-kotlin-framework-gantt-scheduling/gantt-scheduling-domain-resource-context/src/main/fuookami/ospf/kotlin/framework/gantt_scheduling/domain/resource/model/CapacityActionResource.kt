@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -6,11 +6,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 /**
- * 支持 ProductionAction 的资源接口
+ * 支持 ProductionAction 的资源接�?
  * Resource interface that supports ProductionAction
  *
  * 此接口定义了生产动作与资源消耗之间的关系
@@ -24,13 +24,13 @@ interface CapacityActionResource<out C : AbstractResourceCapacity> {
      *
      * @param action 生产动作 / Production action
      * @param time 时间范围 / Time range
-     * @return 单位操作时间的资源消耗 / Resource consumption per unit operation time
+     * @return 单位操作时间的资源消�?/ Resource consumption per unit operation time
      */
     fun <A : ProductionAction> usedBy(action: A, time: TimeRange): Flt64
 }
 
 /**
- * CapacityActionResource 的时隙
+ * CapacityActionResource 的时�?
  * Time slot for CapacityActionResource
  */
 data class CapacityActionResourceTimeSlot<
@@ -45,7 +45,7 @@ data class CapacityActionResourceTimeSlot<
         where R : Resource<C>, R : CapacityActionResource<C> {
 
     /**
-     * 计算动作在此时隙的资源消耗
+     * 计算动作在此时隙的资源消�?
      * Calculate resource consumption by action in this time slot
      */
     fun <A : ProductionAction> usedBy(action: A): Flt64 = resource.usedBy(action, time)
@@ -65,3 +65,6 @@ data class CapacityActionResourceTimeSlot<
         return "${resource}_${resourceCapacity}_${indexInRule}"
     }
 }
+
+
+

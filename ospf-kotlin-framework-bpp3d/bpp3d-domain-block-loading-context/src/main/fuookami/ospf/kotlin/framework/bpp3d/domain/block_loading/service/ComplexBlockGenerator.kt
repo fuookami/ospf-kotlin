@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ComplexBlock
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 class ComplexBlockGenerator(
     val config: Config
@@ -66,7 +66,7 @@ class ComplexBlockGenerator(
             /**
              * 通过上下文函数构造配置构造器
              *
-             * @param func  上下文函数
+             * @param func  上下文函�?
              * @return      配置构造器实例
              */
             operator fun invoke(func: ConfigBuilder.() -> Unit): ConfigBuilder {
@@ -85,7 +85,7 @@ class ComplexBlockGenerator(
         /**
          * 通过上下文函数构造配置构造器
          *
-         * @param builder   上下文函数
+         * @param builder   上下文函�?
          * @return          配置构造器实例
          */
         fun buildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
@@ -105,3 +105,6 @@ class ComplexBlockGenerator(
         return emptyList()
     }
 }
+
+
+

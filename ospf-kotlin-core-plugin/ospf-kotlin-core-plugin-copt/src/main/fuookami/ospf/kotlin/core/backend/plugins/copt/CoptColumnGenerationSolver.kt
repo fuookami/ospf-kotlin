@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.copt
+﻿package fuookami.ospf.kotlin.core.backend.plugins.copt
 
 import copt.COPT
 import copt.get
@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 import kotlin.math.min
 
@@ -285,3 +285,6 @@ class CoptColumnGenerationSolver(
         }
     }
 }
+
+
+

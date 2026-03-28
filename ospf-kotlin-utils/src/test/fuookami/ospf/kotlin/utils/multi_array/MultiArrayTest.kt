@@ -133,7 +133,6 @@ class MultiArrayTest {
         val mutable = MutableMultiArray.newWith(Shape2(2, 2), 5)
         val immutable = mutable.toImmutable()
 
-        assertTrue(immutable is MultiArray)
         assertEquals(5, immutable[0, 0])
         assertEquals(5, immutable[1, 1])
     }

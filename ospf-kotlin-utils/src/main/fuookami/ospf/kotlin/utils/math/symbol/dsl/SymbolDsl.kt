@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.dsl
+﻿package fuookami.ospf.kotlin.utils.math.symbol.dsl
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.symbol.parser.BinaryOperator
 import fuookami.ospf.kotlin.utils.math.symbol.parser.ComparisonOperator

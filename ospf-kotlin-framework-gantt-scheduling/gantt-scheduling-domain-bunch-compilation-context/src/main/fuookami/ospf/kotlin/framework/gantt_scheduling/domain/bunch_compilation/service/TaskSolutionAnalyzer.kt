@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.utils.concept.findOrGet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 data object TaskSolutionAnalyzer {
     operator fun <
@@ -76,3 +76,6 @@ data object TaskSolutionAnalyzer {
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 }
+
+
+

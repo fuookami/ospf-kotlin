@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.utils.math.value_range
+package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 import fuookami.ospf.kotlin.utils.operator.Order
 import fuookami.ospf.kotlin.utils.operator.PartialOrd

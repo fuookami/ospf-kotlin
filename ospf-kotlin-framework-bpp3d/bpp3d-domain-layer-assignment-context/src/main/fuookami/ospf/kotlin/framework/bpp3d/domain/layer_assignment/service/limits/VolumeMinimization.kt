@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeli
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 class VolumeMinimization<
         Args : AbstractBPP3DShadowPriceArguments<T>,
@@ -36,3 +36,6 @@ class VolumeMinimization<
         return ok
     }
 }
+
+
+

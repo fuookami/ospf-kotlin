@@ -1,7 +1,10 @@
-package fuookami.ospf.kotlin.utils.math.geometry
+﻿package fuookami.ospf.kotlin.utils.math.geometry
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 sealed interface Distance {
     operator fun <D : Dimension> invoke(lhs: Point<D>, rhs: Point<D>): Flt64
@@ -30,3 +33,9 @@ sealed interface Distance {
         }
     }
 }
+
+
+
+
+
+

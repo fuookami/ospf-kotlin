@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.physics.unit
+﻿package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import fuookami.ospf.kotlin.utils.math.Scale
 import fuookami.ospf.kotlin.utils.physics.dimension.Energy
 
@@ -8,15 +8,15 @@ import fuookami.ospf.kotlin.utils.physics.dimension.Energy
  * Energy units - 能量单位
  * Energy units - SI energy units
  *
- * 提供能量量纲的 SI 单位定义，包括焦耳、千焦、兆焦、吉焦、电子伏特、千瓦时等。
+ * 提供能量量纲�?SI 单位定义，包括焦耳、千焦、兆焦、吉焦、电子伏特、千瓦时等�?
  * Provides SI unit definitions for energy dimension, including joule, kilojoule, megajoule, gigajoule, electronvolt, kilowatt-hour, etc.
  */
 
 /**
- * 焦耳（基本单位）
+ * 焦耳（基本单位�?
  * Joule (base unit)
  *
- * 定义：1 焦耳 = 1 牛顿·米
+ * 定义�? 焦�?= 1 牛顿·�?
  * Definition: 1 joule = 1 newton-meter
  */
 object Joule : DerivedPhysicalUnit(Newton * Meter) {
@@ -63,7 +63,7 @@ object Gigajoule : DerivedPhysicalUnit(Joule * Scale.giga) {
  * 电子伏特
  * Electronvolt
  *
- * 定义：1 电子伏特 = 1.602176634×10⁻¹⁹ 焦耳
+ * 定义�? 电子伏特 = 1.602176634×10⁻¹⁹ 焦�?
  * Definition: 1 electronvolt = 1.602176634×10⁻¹⁹ joules
  */
 object Electronvolt : DerivedPhysicalUnit(Joule * FltX("1.602176634e-19")) {
@@ -74,7 +74,7 @@ object Electronvolt : DerivedPhysicalUnit(Joule * FltX("1.602176634e-19")) {
 }
 
 /**
- * 千电子伏特
+ * 千电子伏�?
  * Kiloelectronvolt
  */
 object Kiloelectronvolt : DerivedPhysicalUnit(Electronvolt * Scale.kilo) {
@@ -85,7 +85,7 @@ object Kiloelectronvolt : DerivedPhysicalUnit(Electronvolt * Scale.kilo) {
 }
 
 /**
- * 兆电子伏特
+ * 兆电子伏�?
  * Megaelectronvolt
  */
 object Megaelectronvolt : DerivedPhysicalUnit(Electronvolt * Scale.mega) {
@@ -96,7 +96,7 @@ object Megaelectronvolt : DerivedPhysicalUnit(Electronvolt * Scale.mega) {
 }
 
 /**
- * 吉电子伏特
+ * 吉电子伏�?
  * Gigaelectronvolt
  */
 object Gigaelectronvolt : DerivedPhysicalUnit(Electronvolt * Scale.giga) {
@@ -107,10 +107,10 @@ object Gigaelectronvolt : DerivedPhysicalUnit(Electronvolt * Scale.giga) {
 }
 
 /**
- * 千瓦时
+ * 千瓦�?
  * Kilowatt-hour
  *
- * 定义：1 千瓦时 = 1 千瓦 × 1 小时
+ * 定义�? 千瓦�?= 1 千瓦 × 1 小时
  * Definition: 1 kilowatt-hour = 1 kilowatt × 1 hour
  */
 object KilowattHour : DerivedPhysicalUnit(Kilowatt * Hour) {
@@ -121,7 +121,7 @@ object KilowattHour : DerivedPhysicalUnit(Kilowatt * Hour) {
 }
 
 /**
- * 兆瓦时
+ * 兆瓦�?
  * Megawatt-hour
  */
 object MegawattHour : DerivedPhysicalUnit(KilowattHour * Scale.kilo) {
@@ -132,7 +132,7 @@ object MegawattHour : DerivedPhysicalUnit(KilowattHour * Scale.kilo) {
 }
 
 /**
- * 吉瓦时
+ * 吉瓦�?
  * Gigawatt-hour
  */
 object GigawattHour : DerivedPhysicalUnit(KilowattHour * Scale.mega) {
@@ -154,10 +154,10 @@ object WattHour : DerivedPhysicalUnit(KilowattHour / Scale.kilo) {
 }
 
 /**
- * 卡路里（热化学卡）
+ * 卡路里（热化学卡�?
  * Calorie (thermochemical calorie)
  *
- * 定义：1 卡路里 = 4.184 焦耳
+ * 定义�? 卡路�?= 4.184 焦�?
  * Definition: 1 calorie = 4.184 joules
  */
 object Calorie : DerivedPhysicalUnit(Joule * FltX("4.184")) {
@@ -182,8 +182,8 @@ object Kilocalorie : DerivedPhysicalUnit(Calorie * Scale.kilo) {
  * 英热单位
  * British thermal unit (BTU)
  *
- * 定义：1 BTU ≈ 1055.06 焦耳
- * Definition: 1 BTU ≈ 1055.06 joules
+ * 定义�? BTU �?1055.06 焦�?
+ * Definition: 1 BTU �?1055.06 joules
  */
 object BritishThermalUnit : DerivedPhysicalUnit(Joule * FltX("1055.06")) {
     override val name = "british thermal unit"
@@ -196,7 +196,7 @@ object BritishThermalUnit : DerivedPhysicalUnit(Joule * FltX("1055.06")) {
  * 尔格
  * Erg
  *
- * 定义：1 尔格 = 10⁻⁷ 焦耳 (CGS 单位制)
+ * 定义�? 尔格 = 10⁻⁷ 焦�?(CGS 单位�?
  * Definition: 1 erg = 10⁻⁷ joules (CGS unit system)
  */
 object Erg : DerivedPhysicalUnit(Joule * FltX("1e-7")) {
@@ -205,3 +205,5 @@ object Erg : DerivedPhysicalUnit(Joule * FltX("1e-7")) {
 
     override val quantity = Energy
 }
+
+

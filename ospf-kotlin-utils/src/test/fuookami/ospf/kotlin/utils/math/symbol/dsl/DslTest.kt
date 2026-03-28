@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.dsl
+﻿package fuookami.ospf.kotlin.utils.math.symbol.dsl
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.serde.toCanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.serde.toCanonicalPolynomial
@@ -100,3 +100,6 @@ class DslTest {
         assertEquals(expression, restored)
     }
 }
+
+
+

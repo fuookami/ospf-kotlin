@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 import kotlin.time.Duration
 
@@ -39,16 +39,16 @@ abstract class CapacitySchedulingResourceUsage<
     abstract override var quantity: LinearExpressionSymbols1
 
     /**
-     * 注册变量到模型
+     * 注册变量到模�?
      * Register variables to model
      */
     abstract fun register(model: LinearMetaModel): Try
 
     /**
-     * 初始化 quantity 变量
+     * 初始�?quantity 变量
      * Initialize quantity variables
      *
-     * 子类应在 init 块中先计算 timeSlots，然后调用此方法初始化 quantity
+     * 子类应在 init 块中先计�?timeSlots，然后调用此方法初始�?quantity
      * Subclasses should calculate timeSlots first in init block, then call this method
      */
     protected fun initQuantity(timeSlots: List<S>) {
@@ -72,7 +72,7 @@ abstract class CapacitySchedulingResourceUsage<
     }
 
     /**
-     * 将 quantity 变量添加到模型
+     * �?quantity 变量添加到模�?
      * Add quantity variables to model
      */
     protected fun addQuantityToModel(model: LinearMetaModel, timeSlots: List<S>): Try {
@@ -91,3 +91,6 @@ abstract class CapacitySchedulingResourceUsage<
         return ok
     }
 }
+
+
+

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gwo
 
@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 import fuookami.ospf.kotlin.core.frontend.model.MulObj
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.nextFlt64
 import fuookami.ospf.kotlin.utils.math.ordinary.min
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -266,3 +266,5 @@ class GreyWolfOptimizer<Obj, V>(
 
 typealias GWO = GreyWolfOptimizer<Flt64, Flt64>
 typealias MulObjGWO = GreyWolfOptimizer<MulObj, List<Flt64>>
+
+

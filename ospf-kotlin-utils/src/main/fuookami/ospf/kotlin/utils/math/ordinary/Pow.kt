@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.*
 import java.math.RoundingMode
@@ -219,3 +222,5 @@ inline fun <reified T : FloatingNumber<T>> exp(
         precision = precision
     )
 }
+
+

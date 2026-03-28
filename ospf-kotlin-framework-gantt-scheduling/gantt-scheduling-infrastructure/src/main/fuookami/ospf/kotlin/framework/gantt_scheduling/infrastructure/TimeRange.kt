@@ -76,7 +76,7 @@ data class TimeRange(
     }
 
     fun withIntersection(ano: TimeRange): Boolean {
-        return start <= ano.end && ano.start < end
+        return start < ano.end && ano.start < end
     }
 
     infix fun intersect(ano: TimeRange): TimeRange? {

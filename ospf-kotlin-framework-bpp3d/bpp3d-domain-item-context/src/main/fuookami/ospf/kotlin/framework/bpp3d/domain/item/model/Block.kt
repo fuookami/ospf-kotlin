@@ -1,10 +1,10 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.geometry.point3
 import fuookami.ospf.kotlin.utils.math.geometry.y
 
@@ -250,3 +250,6 @@ class ComplexBlock(
 typealias BlockView = CuboidView<Block>
 typealias BlockPlacement2<P> = Placement2<Block, P>
 typealias BlockPlacement3 = Placement3<Block>
+
+
+

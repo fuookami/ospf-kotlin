@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
+﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymb
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AutoTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
@@ -325,4 +325,7 @@ class LinearPolynomialBaselineTest {
         assertTrue(valueFromTokenFallback eq Flt64(21.0))
     }
 }
+
+
+
 

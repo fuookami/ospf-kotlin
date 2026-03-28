@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.adapter
+﻿package fuookami.ospf.kotlin.core.frontend.expression.adapter
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.parser.parseSymbolExpression
 import fuookami.ospf.kotlin.utils.math.symbol.serde.SymbolExpr
@@ -125,4 +125,7 @@ fun <T> Ret<T>.requireOk(): T {
         is Fatal -> throw IllegalArgumentException(errors.joinToString { it.message })
     }
 }
+
+
+
 

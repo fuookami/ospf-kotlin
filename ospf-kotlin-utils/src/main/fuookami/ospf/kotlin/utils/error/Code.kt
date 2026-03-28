@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.utils.error
+﻿package fuookami.ospf.kotlin.utils.error
 
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.UInt8
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt8
 
 enum class ErrorCode(private val code: UInt8) {
     None(UInt8(0x00U)),
@@ -57,3 +57,6 @@ enum class ErrorCode(private val code: UInt8) {
 }
 
 // todo: find localize way to set default message
+
+
+

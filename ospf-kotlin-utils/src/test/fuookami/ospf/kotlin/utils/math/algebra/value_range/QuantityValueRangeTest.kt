@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.value_range
+﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.operator.eq
 import org.junit.jupiter.api.Test
 
@@ -156,3 +156,7 @@ class QuantityValueRangeTest {
         assert(!range.contains(ValueRange(Flt64.two, Flt64.ten).value!!))
     }
 }
+
+
+
+

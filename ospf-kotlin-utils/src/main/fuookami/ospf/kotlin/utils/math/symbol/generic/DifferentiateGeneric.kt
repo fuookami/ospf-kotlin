@@ -1,4 +1,7 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
@@ -112,3 +115,85 @@ fun <T> GenericQuadraticPolynomial<T>.gradient(
     return order.map { derivative(it, zero, combineTerms, isZero) }
 }
 
+fun <T> GenericCanonicalMonomial<T>.derivative(
+    symbol: Symbol,
+    zero: T,
+    combineTerms: Boolean = true,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): GenericCanonicalPolynomial<T> where T : Ring<T> {
+    val matchedAmount = factors.count { it == symbol }
+    if (matchedAmount == 0) {
+        return GenericCanonicalPolynomial(constant = zero)
+    }
+
+    val oneRemovedFactors = factors.toMutableList()
+    oneRemovedFactors.remove(symbol)
+    var scaledCoefficient = zero
+    repeat(matchedAmount) {
+        scaledCoefficient += coefficient
+    }
+
+    val derivative = GenericCanonicalPolynomial(
+        monomials = listOf(
+            GenericCanonicalMonomial(
+                coefficient = scaledCoefficient,
+                factors = oneRemovedFactors
+            )
+        ),
+        constant = zero
+    )
+    return if (combineTerms) {
+        derivative.combineTerms(zero, isZero, symbolComparator)
+    } else {
+        derivative
+    }
+}
+
+fun <T> GenericCanonicalPolynomial<T>.derivative(
+    symbol: Symbol,
+    zero: T,
+    combineTerms: Boolean = true,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): GenericCanonicalPolynomial<T> where T : Ring<T> {
+    val derivativeMonomials = ArrayList<GenericCanonicalMonomial<T>>()
+    for (monomial in monomials) {
+        derivativeMonomials.addAll(
+            monomial.derivative(
+                symbol = symbol,
+                zero = zero,
+                combineTerms = false,
+                isZero = isZero,
+                symbolComparator = symbolComparator
+            ).monomials
+        )
+    }
+    val derivative = GenericCanonicalPolynomial(
+        monomials = derivativeMonomials,
+        constant = zero
+    )
+    return if (combineTerms) {
+        derivative.combineTerms(zero, isZero, symbolComparator)
+    } else {
+        derivative
+    }
+}
+
+fun <T> GenericCanonicalPolynomial<T>.gradient(
+    order: List<Symbol>,
+    zero: T,
+    combineTerms: Boolean = true,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): List<GenericCanonicalPolynomial<T>> where T : Ring<T> {
+    return order.map {
+        derivative(
+            symbol = it,
+            zero = zero,
+            combineTerms = combineTerms,
+            isZero = isZero,
+            symbolComparator = symbolComparator
+        )
+    }
+}

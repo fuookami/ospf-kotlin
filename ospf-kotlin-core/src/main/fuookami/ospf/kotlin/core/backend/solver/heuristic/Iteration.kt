@@ -1,11 +1,11 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.math.UInt64
-import kotlinx.datetime.Instant
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 open class Iteration(
@@ -26,3 +26,6 @@ open class Iteration(
         }
     }
 }
+
+
+

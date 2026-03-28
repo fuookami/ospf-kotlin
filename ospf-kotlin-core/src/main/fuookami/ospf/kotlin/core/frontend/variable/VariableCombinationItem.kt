@@ -1,6 +1,8 @@
-package fuookami.ospf.kotlin.core.frontend.variable
+﻿package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.multi_array.*
 import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
 import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
@@ -298,3 +300,4 @@ typealias QuantityURealVariableView2 = QuantityVariableCombinationView2<Flt64, U
 typealias QuantityURealVariableView3 = QuantityVariableCombinationView3<Flt64, UContinuous>
 typealias QuantityURealVariableView4 = QuantityVariableCombinationView4<Flt64, UContinuous>
 typealias DynQuantityURealVariableView = DynQuantityVariableCombinationView<Flt64, UContinuous>
+

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.sca
 
@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 import fuookami.ospf.kotlin.core.frontend.model.MulObj
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.nextFlt64
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -310,3 +310,6 @@ class SineCosineAlgorithm<Obj, V>(
 
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64>
 typealias MulObjSCA = SineCosineAlgorithm<MulObj, List<Flt64>>
+
+
+

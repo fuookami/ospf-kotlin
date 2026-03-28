@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Duration
 
 /**
@@ -99,7 +99,7 @@ class PlanCapacitySchedulingResourceUsage<
         }
         this.timeSlots = timeSlots
 
-        // 初始化 quantity 变量
+        // 初始�?quantity 变量
         // Initialize quantity variables
         initQuantity(this.timeSlots)
 
@@ -130,3 +130,6 @@ class PlanCapacitySchedulingResourceUsage<
         return slot.indexInRule.toInt()
     }
 }
+
+
+

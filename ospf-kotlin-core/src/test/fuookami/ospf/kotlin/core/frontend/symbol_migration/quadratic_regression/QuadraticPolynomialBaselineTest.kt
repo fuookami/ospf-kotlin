@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
+﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynom
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AutoTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import org.junit.jupiter.api.Test
@@ -316,4 +316,7 @@ class QuadraticPolynomialBaselineTest {
         assertTrue(valueFromTokenFallback eq Flt64(28.0))
     }
 }
+
+
+
 

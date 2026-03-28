@@ -1,43 +1,21 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math.algebra.concept
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.math.algebra.concept.AbelianGroup
-import fuookami.ospf.kotlin.utils.math.algebra.concept.Field
-import fuookami.ospf.kotlin.utils.math.algebra.concept.MultiplicativeGroup
-import fuookami.ospf.kotlin.utils.math.algebra.concept.MultiplicativeSemigroup
-import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.utils.math.algebra.concept.Semigroup
-import fuookami.ospf.kotlin.utils.operator.*
-
-interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
-    val constants: ArithmeticConstants<Self>
-
-    infix fun equiv(rhs: Self): Boolean
-}
-
-interface ArithmeticConstants<Self> {
-    val zero: Self
-    val one: Self
-}
-
-interface Invariant<T> {
-    @Suppress("UNCHECKED_CAST")
-    fun value(): T = this as T
-}
-
-interface Variant<T> {
-    fun value(): T? = null
-}
-
-interface PlusSemiGroup<Self> : Semigroup<Self>, Plus<Self, Self>, Inc<Self>
-interface PlusGroup<Self> : AbelianGroup<Self>, PlusSemiGroup<Self>,
-    Neg<Self>, Minus<Self, Self>, Dec<Self>
-
-interface TimesSemiGroup<Self> : MultiplicativeSemigroup<Self>, Times<Self, Self>
-interface TimesGroup<Self> : MultiplicativeGroup<Self>, TimesSemiGroup<Self>,
-    Reciprocal<Self>, Div<Self, Self>, IntDiv<Self, Self>, Rem<Self, Self>
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.operator.Abs
+import fuookami.ospf.kotlin.utils.operator.Cross
+import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.utils.operator.Exp
+import fuookami.ospf.kotlin.utils.operator.Log
+import fuookami.ospf.kotlin.utils.operator.Ord
+import fuookami.ospf.kotlin.utils.operator.Pow
+import fuookami.ospf.kotlin.utils.operator.PowF
+import fuookami.ospf.kotlin.utils.operator.RangeTo
+import fuookami.ospf.kotlin.utils.operator.Trigonometry
 
 interface NumberRing<Self> : Ring<Self>, PlusGroup<Self>, TimesSemiGroup<Self>
+
 interface NumberField<Self> : Field<Self>, NumberRing<Self>, TimesGroup<Self>
 
 interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
@@ -47,10 +25,21 @@ interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
 }
 
 interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, Ord<Self>, Eq<Self>,
+    Bounded<Self>, Infinite<Self>, Fixed<Self>, Epsilon<Self>,
     Log<FloatingNumber<*>, FloatingNumber<*>>,
     PowF<FloatingNumber<*>, FloatingNumber<*>>,
     Exp<FloatingNumber<*>>, Trigonometry<FloatingNumber<*>> {
     override val constants: RealNumberConstants<Self>
+    override val isBounded: Boolean get() = true
+    override val minBound: Self? get() = constants.minimum
+    override val maxBound: Self? get() = constants.maximum
+    override val supportsInfinity: Boolean get() = constants.infinity != null || constants.negativeInfinity != null
+    override val positiveInfinity: Self? get() = constants.infinity
+    override val negativeInfinityValue: Self? get() = constants.negativeInfinity
+    override val isFixed: Boolean get() = constants.decimalDigits != null
+    override val fixedDigits: Int? get() = constants.decimalDigits
+    override val fixedPrecision: Self? get() = constants.decimalPrecision
+    override val precisionEpsilon: Self? get() = constants.epsilon
 
     fun isInfinity(): Boolean = this == constants.infinity
     fun isNegativeInfinity(): Boolean = this == constants.negativeInfinity
@@ -118,7 +107,9 @@ interface RealNumberConstants<Self : RealNumber<Self>> : ArithmeticConstants<Sel
 }
 
 interface Integer<Self : RealNumber<Self>> : RealNumber<Self>, RangeTo<Self, Self>
+
 interface IntegerNumber<Self : IntegerNumber<Self>> : Integer<Self>, NumberField<Self>, Pow<Self>
+
 interface UIntegerNumber<Self : UIntegerNumber<Self>> : Integer<Self>, NumberField<Self>, Pow<Self>
 
 interface RationalNumber<Self : RationalNumber<Self, I>, I> : RealNumber<Self>, NumberField<Self>, Pow<Self>
@@ -144,29 +135,21 @@ interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConst
 
 interface NumericIntegerNumber<Self : NumericIntegerNumber<Self, I>, I : IntegerNumber<I>> : Integer<Self>,
     PlusGroup<Self>, TimesSemiGroup<Self>,
-    Reciprocal<RationalNumber<*, I>>, Div<Self, RationalNumber<*, I>>, IntDiv<Self, Self>, Rem<Self, Self>,
+    fuookami.ospf.kotlin.utils.operator.Reciprocal<RationalNumber<*, I>>,
+    fuookami.ospf.kotlin.utils.operator.Div<Self, RationalNumber<*, I>>,
+    fuookami.ospf.kotlin.utils.operator.IntDiv<Self, Self>,
+    fuookami.ospf.kotlin.utils.operator.Rem<Self, Self>,
     Pow<RationalNumber<*, I>>
 
 interface NumericUIntegerNumber<Self : NumericUIntegerNumber<Self, I>, I : UIntegerNumber<I>> : Integer<Self>,
     PlusSemiGroup<Self>, TimesSemiGroup<Self>,
-    Dec<Self>, Neg<NumericIntegerNumber<*, *>>, Minus<Self, NumericIntegerNumber<*, *>>,
-    Reciprocal<RationalNumber<*, I>>, Div<Self, RationalNumber<*, I>>, IntDiv<Self, Self>, Rem<Self, Self>,
+    fuookami.ospf.kotlin.utils.operator.Dec<Self>,
+    fuookami.ospf.kotlin.utils.operator.Neg<NumericIntegerNumber<*, *>>,
+    fuookami.ospf.kotlin.utils.operator.Minus<Self, NumericIntegerNumber<*, *>>,
+    fuookami.ospf.kotlin.utils.operator.Reciprocal<RationalNumber<*, I>>,
+    fuookami.ospf.kotlin.utils.operator.Div<Self, RationalNumber<*, I>>,
+    fuookami.ospf.kotlin.utils.operator.IntDiv<Self, Self>,
+    fuookami.ospf.kotlin.utils.operator.Rem<Self, Self>,
     Pow<RationalNumber<*, I>>
-typealias NaturalNumber<Self, I> = NumericUIntegerNumber<Self, I>
 
-data object Infinity {
-    override fun toString() = "inf"
-}
 
-data object NegativeInfinity {
-    override fun toString() = "-inf"
-}
-
-val <T> Collection<T>.usize get() = UInt64(size)
-val <T> Collection<T>.uIndices get() = UInt64.zero until usize
-val <T> List<T>.lastUIndex get() = UInt64(lastIndex)
-val <K, V> Map<K, V>.usize get() = UInt64(size)
-operator fun <T> List<T>.get(index: UInt32) = get(index.toInt())
-operator fun <T> MutableList<T>.set(index: UInt32, element: T) = set(index.toInt(), element)
-operator fun <T> List<T>.get(index: UInt64) = get(index.toInt())
-operator fun <T> MutableList<T>.set(index: UInt64, element: T) = set(index.toInt(), element)

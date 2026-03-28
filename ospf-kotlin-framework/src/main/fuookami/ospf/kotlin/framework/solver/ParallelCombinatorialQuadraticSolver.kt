@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.solver
+﻿package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.backend.solver.AbstractQuadraticSolver
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
@@ -343,3 +343,6 @@ class ParallelCombinatorialQuadraticSolver(
         }
     }
 }
+
+
+

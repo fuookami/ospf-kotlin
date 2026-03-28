@@ -1,10 +1,10 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 interface AbstractGanttSchedulingShadowPriceArguments<
         out E : Executor,
@@ -105,3 +105,6 @@ typealias AbstractGanttSchedulingCGPipelineList<Args, E, A> = List<
 typealias GanttSchedulingCGPipelineList<E, A> = AbstractGanttSchedulingCGPipelineList<
         AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
         >
+
+
+

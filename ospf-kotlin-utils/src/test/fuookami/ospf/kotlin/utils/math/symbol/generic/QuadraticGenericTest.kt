@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.utils.math.symbol.generic
+﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
@@ -91,9 +91,10 @@ class QuadraticGenericTest {
         val y = TestSymbol("y")
         val original = QuadraticPolynomial<Flt64>(
             monomials = listOf(
-                QuadraticMonomial<Flt64>(symbol1 = x, symbol2 = y),
-                QuadraticMonomial<Flt64>(symbol1 = x, symbol2 = null)
-            )
+                QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x, symbol2 = y),
+                QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x, symbol2 = null)
+            ),
+            constant = Flt64.zero
         )
 
         val restored = original
@@ -103,4 +104,7 @@ class QuadraticGenericTest {
         assertEquals(original, restored)
     }
 }
+
+
+
 

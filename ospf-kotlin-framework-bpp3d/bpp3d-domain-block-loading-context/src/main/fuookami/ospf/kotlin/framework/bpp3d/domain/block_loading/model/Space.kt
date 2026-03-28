@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
 
@@ -282,3 +282,6 @@ data class Space(
         }
     }
 }
+
+
+

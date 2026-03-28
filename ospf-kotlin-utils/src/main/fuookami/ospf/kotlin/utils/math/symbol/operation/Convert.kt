@@ -1,10 +1,13 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.utils.math.symbol.generic.toCanonicalMonomial
@@ -338,3 +341,6 @@ fun CanonicalInequality.normalizeToLessEqualForm(
     }
     return lessLikeInequality.moveAllToLhs(combineTerms, symbolComparator)
 }
+
+
+

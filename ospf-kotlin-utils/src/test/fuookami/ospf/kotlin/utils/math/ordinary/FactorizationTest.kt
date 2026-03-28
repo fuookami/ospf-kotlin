@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.ordinary
+﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 
 class FactorizationTest {
@@ -11,3 +11,6 @@ class FactorizationTest {
         assert(factorize(UInt64(12)) == listOf(UInt64.two to 2, UInt64.three to 1))
     }
 }
+
+
+

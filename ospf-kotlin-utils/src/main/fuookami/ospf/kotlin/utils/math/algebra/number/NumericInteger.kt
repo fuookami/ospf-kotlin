@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math
+﻿package fuookami.ospf.kotlin.utils.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.orderOf
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -25,6 +28,52 @@ interface NumericInteger<Self, I>
 
     override fun sqrt() = pow(Flt64.two.reciprocal())
     override fun cbrt() = pow(Flt64.three.reciprocal())
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
+        is Flt32 -> toFlt32().log(base)
+        is Flt64 -> toFlt64().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to NumericInteger.log: ${base.javaClass}")
+    }
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFlt32().pow(index)
+        is Flt64 -> toFlt64().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to NumericInteger.pow: ${index.javaClass}")
+    }
+
+    override fun exp(): FloatingNumber<*> = toFlt64().exp()
+
+    override fun sin(): FloatingNumber<*> = toFlt64().sin()
+    override fun cos(): FloatingNumber<*> = toFlt64().cos()
+    override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+    override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+    override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+    override fun cot(): FloatingNumber<*>? = toFlt64().cot()
+
+    override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+    override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+    override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+    override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+    override fun atan(): FloatingNumber<*> = toFlt64().atan()
+    override fun acot(): FloatingNumber<*>? = toFlt64().acot()
+
+    override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+    override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+    override fun sech(): FloatingNumber<*> = toFlt64().sech()
+    override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+    override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+    override fun coth(): FloatingNumber<*>? = toFlt64().coth()
+
+    override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+    override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+    override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+    override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+    override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+    override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
 
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
@@ -84,13 +133,6 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun rem(rhs: NInt8) = NInt8(value % rhs.value)
     override fun intDiv(rhs: NInt8) = NInt8(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt8.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): Rtn8 {
         return if (index >= 1) {
@@ -102,43 +144,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt8.log: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -197,13 +203,6 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun rem(rhs: NInt16) = NInt16(value % rhs.value)
     override fun intDiv(rhs: NInt16) = NInt16(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt16.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): Rtn16 {
         return if (index >= 1) {
@@ -215,43 +214,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt16.log: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -310,13 +273,6 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun rem(rhs: NInt32) = NInt32(value % rhs.value)
     override fun intDiv(rhs: NInt32) = NInt32(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt32.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): Rtn32 {
         return if (index >= 1) {
@@ -328,43 +284,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt32.log: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -423,13 +343,6 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun rem(rhs: NInt64) = NInt64(value % rhs.value)
     override fun intDiv(rhs: NInt64) = NInt64(value / rhs.value)
 
-    @Throws(IllegalArgumentException::class)
-    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
-        is Flt32 -> toFlt32().log(base)
-        is Flt64 -> toFlt64().log(base)
-        is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt64.log: ${base.javaClass}")
-    }
 
     override fun pow(index: Int): Rtn64 {
         return if (index >= 1) {
@@ -441,43 +354,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
         }
     }
 
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
-        is Flt32 -> toFlt32().pow(index)
-        is Flt64 -> toFlt64().pow(index)
-        is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NInt64.log: ${index.javaClass}")
-    }
 
-    override fun exp() = toFlt64().exp()
-
-    override fun sin() = toFlt64().sin()
-    override fun cos() = toFlt64().cos()
-    override fun sec() = toFlt64().sec()
-    override fun csc() = toFlt64().csc()
-    override fun tan() = toFlt64().tan()
-    override fun cot() = toFlt64().cot()
-
-    override fun asin() = toFlt64().asin()
-    override fun acos() = toFlt64().acos()
-    override fun asec() = toFlt64().asec()
-    override fun acsc() = toFlt64().acsc()
-    override fun atan() = toFlt64().atan()
-    override fun acot() = toFlt64().acot()
-
-    override fun sinh() = toFlt64().sinh()
-    override fun cosh() = toFlt64().cosh()
-    override fun sech() = toFlt64().sech()
-    override fun csch() = toFlt64().csch()
-    override fun tanh() = toFlt64().tanh()
-    override fun coth() = toFlt64().coth()
-
-    override fun asinh() = toFlt64().asinh()
-    override fun acosh() = toFlt64().acosh()
-    override fun asech() = toFlt64().asech()
-    override fun acsch() = toFlt64().acsch()
-    override fun atanh() = toFlt64().atanh()
-    override fun acoth() = toFlt64().acoth()
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -614,3 +491,6 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun toFlt64() = value.toFlt64()
     override fun toFltX() = value.toFltX()
 }
+
+
+

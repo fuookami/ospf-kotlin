@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
@@ -16,21 +16,21 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.multi_array.Shape3
 import kotlin.time.Duration
 
 /**
- * 产能编译决策对象（带顺序）
+ * 产能编译决策对象（带顺序�?
  * Capacity Compilation Decision Object (With Order)
  *
  * Three-dimensional variables:
- * 三维变量：
+ * 三维变量�?
  * - x[action, slot, order] -> amount (integer)
  * - x[action, slot, order] -> 数量（整型）
  * - b[action, slot, order] -> is_selected (binary)
- * - b[action, slot, order] -> 是否选中（二进制）
+ * - b[action, slot, order] -> 是否选中（二进制�?
  */
 class CapacityOrderCompilation<A : ProductionAction>(
     private val actions: List<A>,
@@ -42,7 +42,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
 
     init {
         // Index actions if they implement ManualIndexed
-        // 如果动作实现了 ManualIndexed，则进行索引
+        // 如果动作实现�?ManualIndexed，则进行索引
         for (action in actions.filterIsInstance<ManualIndexed>()) {
             if (!action.indexed) {
                 action.setIndexed()
@@ -66,7 +66,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         private set
 
     /**
-     * 成本表达式
+     * 成本表达�?
      * Cost expression
      */
     lateinit var cost: LinearExpressionSymbol
@@ -79,7 +79,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         private set
 
     /**
-     * 注册到模型
+     * 注册到模�?
      * Register to model
      */
     fun register(model: LinearMetaModel): Try {
@@ -121,7 +121,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
         }
 
         // Register cost expression
-        // 注册成本表达式
+        // 注册成本表达�?
         if (!::cost.isInitialized) {
             val costPoly = MutableLinearPolynomial(name = "cost")
             for ((a, action) in actions.withIndex()) {
@@ -198,7 +198,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
     }
 
     /**
-     * 解析解
+     * 解析�?
      * Extract solution from model
      */
     override fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>> {
@@ -262,3 +262,6 @@ class CapacityOrderCompilation<A : ProductionAction>(
         )
     }
 }
+
+
+

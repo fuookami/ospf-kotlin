@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
 import fuookami.ospf.kotlin.core.frontend.inequality.leq
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskCompilation
 import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 class TaskConflictConstraint<
         T : AbstractTask<E, A>,
@@ -51,3 +51,6 @@ class TaskConflictConstraint<
         return ok
     }
 }
+
+
+

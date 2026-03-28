@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 data class CostItem(
     val tag: String,
@@ -106,3 +106,6 @@ data class ImmutableCost(
         return ImmutableCost(items.map { it.copy() }, sum)
     }
 }
+
+
+

@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.IdentifiedSymbol
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
@@ -87,3 +87,6 @@ class CombineTermsTest {
         assertEquals(listOf(x1, x2), merged.first().factors)
     }
 }
+
+
+

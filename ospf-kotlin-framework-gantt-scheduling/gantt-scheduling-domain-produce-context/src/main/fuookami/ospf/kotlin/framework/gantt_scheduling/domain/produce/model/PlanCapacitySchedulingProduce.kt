@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -9,16 +9,16 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 /**
- * Plan 模式的产能调度产品产量管理
+ * Plan 模式的产能调度产品产量管�?
  * Plan-mode produce management for Capacity Scheduling
  *
  * 用于非列生成场景，在构造时绑定 Capacity 编译对象
  * Used for non-column generation scenarios, binds to Capacity compilation object at construction
  *
- * @param products 产品列表及其需求 / Product list with demands
+ * @param products 产品列表及其需�?/ Product list with demands
  * @param compilation Capacity 编译对象 / Capacity compilation object
  */
 class PlanCapacitySchedulingProduce<
@@ -58,3 +58,6 @@ class PlanCapacitySchedulingProduce<
         return addQuantityToModel(model)
     }
 }
+
+
+

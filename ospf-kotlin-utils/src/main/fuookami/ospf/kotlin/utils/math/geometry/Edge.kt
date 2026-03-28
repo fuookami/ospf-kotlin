@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.geometry
+﻿package fuookami.ospf.kotlin.utils.math.geometry
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 data class Edge<P : Point<D>, D : Dimension>(
     val from: P,
@@ -22,3 +25,9 @@ data class Edge<P : Point<D>, D : Dimension>(
 
 typealias Edge2 = Edge<Point2, Dim2>
 typealias Edge3 = Edge<Point3, Dim3>
+
+
+
+
+
+

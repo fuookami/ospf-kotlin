@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.model.callback
+﻿package fuookami.ospf.kotlin.core.frontend.model.callback
 
 import fuookami.ospf.kotlin.core.frontend.expression.Expression
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.operator.Order
@@ -402,4 +402,7 @@ class CallBackModel internal constructor(
 
 // todo
 class MultiObjectCallBackModel
+
+
+
 

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
@@ -17,9 +17,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.multi_array.Shape1
 
 interface Produce {
@@ -132,8 +132,8 @@ abstract class AbstractProduce<
      * 提取影子价格
      * Extract shadow prices from slack variables
      *
-     * @param Map              影子价格表类型
-     * @param shadowPriceMap   影子价格表 / Shadow price map
+     * @param Map              影子价格表类�?
+     * @param shadowPriceMap   影子价格�?/ Shadow price map
      * @param shadowPrices     原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
      * @return                 成功与否 / Success or failure
      */
@@ -282,3 +282,7 @@ class BunchSchedulingProduce<
         return ok
     }
 }
+
+
+
+

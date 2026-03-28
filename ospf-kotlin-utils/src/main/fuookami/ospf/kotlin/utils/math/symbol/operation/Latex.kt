@@ -1,6 +1,9 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.generic.GenericLatexNumberOps
 import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalPolynomial
@@ -107,4 +110,7 @@ fun CanonicalInequality.toLatex(
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
+
+
+
 

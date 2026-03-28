@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.Int64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 typealias TotalCostCalculator<T, E> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost?
 
@@ -182,3 +182,6 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         )
     }
 }
+
+
+

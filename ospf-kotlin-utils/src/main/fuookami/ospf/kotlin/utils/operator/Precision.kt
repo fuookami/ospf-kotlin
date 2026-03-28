@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.utils.operator
+﻿package fuookami.ospf.kotlin.utils.operator
 
-import fuookami.ospf.kotlin.utils.math.PlusGroup
-import fuookami.ospf.kotlin.utils.math.RealNumber
-import fuookami.ospf.kotlin.utils.math.RealNumberConstants
+import fuookami.ospf.kotlin.utils.math.algebra.concept.PlusGroup
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumberConstants
 import kotlin.reflect.full.companionObjectInstance
 
 class Precision<T>(
@@ -51,3 +51,4 @@ class Precision<T>(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> withPrecision(precision: T = (T::class.companionObjectInstance!! as RealNumberConstants<T>).decimalPrecision)
         where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> = Precision(precision)
+

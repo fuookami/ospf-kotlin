@@ -1,12 +1,14 @@
-package fuookami.ospf.kotlin.core.frontend.variable
+﻿package fuookami.ospf.kotlin.core.frontend.variable
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.value_range.Bound
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.Bound
 import fuookami.ospf.kotlin.utils.operator.Ord
 import fuookami.ospf.kotlin.utils.operator.Order
 import fuookami.ospf.kotlin.utils.operator.ord
@@ -137,4 +139,6 @@ operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<Abstr
 operator fun AbstractVariableItem<*, *>.div(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
     return Quantity(this, rhs.reciprocal())
 }
+
+
 

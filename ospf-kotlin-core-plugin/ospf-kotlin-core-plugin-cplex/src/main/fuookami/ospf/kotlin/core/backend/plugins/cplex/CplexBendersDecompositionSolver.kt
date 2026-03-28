@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.cplex
+﻿package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import ilog.cplex.IloCplex
 import kotlinx.coroutines.*
 
@@ -545,3 +545,6 @@ class CplexQuadraticBendersDecompositionSolver(
         }
     }
 }
+
+
+

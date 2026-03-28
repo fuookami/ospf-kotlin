@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.physics.unit
+﻿package fuookami.ospf.kotlin.utils.physics.unit
 
-import fuookami.ospf.kotlin.utils.math.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import fuookami.ospf.kotlin.utils.math.Scale
 import fuookami.ospf.kotlin.utils.physics.dimension.PlaneAngle
 
@@ -35,21 +35,21 @@ object RightAngle : DerivedPhysicalUnit(Radian / FltX(4.0)) {
 
 object Degree : DerivedPhysicalUnit(RoundAngle / FltX(360.0)) {
     override val name = "degree"
-    override val symbol = "°"
+    override val symbol = "掳"
 
     override val quantity = PlaneAngle
 }
 
 object MinuteAngle : DerivedPhysicalUnit(Degree / FltX(60.0)) {
     override val name = "minute angle"
-    override val symbol = "′"
+    override val symbol = "'"
 
     override val quantity = PlaneAngle
 }
 
 object SecondAngle : DerivedPhysicalUnit(MinuteAngle / FltX(60.0)) {
     override val name = "second angle"
-    override val symbol = "″"
+    override val symbol = "''"
 
     override val quantity = PlaneAngle
 }
@@ -60,3 +60,6 @@ object Gradian : DerivedPhysicalUnit(RightAngle / FltX(100.0)) {
 
     override val quantity = PlaneAngle
 }
+
+
+

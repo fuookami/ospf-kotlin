@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.expression.symbol
+﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
 import fuookami.ospf.kotlin.core.frontend.expression.Expression
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
@@ -16,6 +16,8 @@ import fuookami.ospf.kotlin.core.frontend.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
@@ -1134,4 +1136,5 @@ typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol
 typealias QuantityFunctionSymbol = Quantity<FunctionSymbol>
 typealias QuantityLinearFunctionSymbol = Quantity<LinearFunctionSymbol>
 typealias QuantityQuadraticFunctionSymbol = Quantity<QuadraticFunctionSymbol>
+
 

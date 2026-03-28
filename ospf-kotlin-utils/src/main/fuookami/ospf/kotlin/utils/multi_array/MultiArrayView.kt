@@ -1,13 +1,13 @@
-package fuookami.ospf.kotlin.utils.multi_array
+﻿package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 /**
  * 多维数组视图
  * Multi-dimensional array view
  *
- * 提供对多维数组的切片、索引和视图操作。
+ * 提供对多维数组的切片、索引和视图操作�?
  * Provides slicing, indexing, and view operations for multi-dimensional arrays.
  *
  * @param T 元素类型
@@ -23,13 +23,13 @@ class MultiArrayView<out T : Any, S : Shape>(
     )
 
     /**
-     * 视图的形状
+     * 视图的形�?
      * Shape of the view
      */
     val shape: DynShape
 
     /**
-     * 迭代器向量
+     * 迭代器向�?
      * Iterator vector
      */
     private val iteratorVector: IteratorVector
@@ -77,7 +77,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过线性索引获取元素
+     * 通过线性索引获取元�?
      * Get element by linear index
      */
     operator fun get(i: Int): T {
@@ -85,7 +85,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过 UInt64 线性索引获取元素
+     * 通过 UInt64 线性索引获取元�?
      * Get element by UInt64 linear index
      */
     operator fun get(i: UInt64): T {
@@ -135,7 +135,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 通过任意类型数组创建子视图
+     * 通过任意类型数组创建子视�?
      * Create sub-view by any type array
      */
     operator fun get(vararg v: Any): MultiArrayView<T, S> {
@@ -145,7 +145,7 @@ class MultiArrayView<out T : Any, S : Shape>(
 
         for (i in origin.shape.indices) {
             if (i in dummyDimensions) {
-                // 这个维度在视图中保持为虚拟索引
+                // 这个维度在视图中保持为虚拟索�?
                 if (j < subDummyVector.size) {
                     newDummyVector.add(subDummyVector[j])
                 }
@@ -163,7 +163,7 @@ class MultiArrayView<out T : Any, S : Shape>(
      * 计算实际向量索引
      * Calculate actual vector index
      *
-     * 将视图索引转换为原数组的实际索引。
+     * 将视图索引转换为原数组的实际索引�?
      * Converts view indices to actual indices in the original array.
      */
     private fun actualVector(v: IntArray): IntArray {
@@ -175,7 +175,7 @@ class MultiArrayView<out T : Any, S : Shape>(
                 // 从迭代器向量获取实际索引
                 result[i] = iteratorVector[i].get(v[viewIndex++]) ?: 0
             } else {
-                // 维度已被固定，使用虚拟索引的值
+                // 维度已被固定，使用虚拟索引的�?
                 val iter = iteratorVector[i]
                 result[i] = when (iter) {
                     is DummyIndexIterator.Single -> iter.index
@@ -189,7 +189,7 @@ class MultiArrayView<out T : Any, S : Shape>(
     }
 
     /**
-     * 元素迭代器
+     * 元素迭代�?
      * Element iterator
      */
     private class ElementIterator<out T : Any, S : Shape>(
@@ -231,7 +231,7 @@ class MultiArrayView<out T : Any, S : Shape>(
  * 多维数组映射视图
  * Multi-dimensional array mapped view
  *
- * 用于维度转置和重映射操作。
+ * 用于维度转置和重映射操作�?
  * Used for dimension transposition and remapping operations.
  */
 class MappedMultiArrayView<out T : Any, S : Shape>(
@@ -349,3 +349,5 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         return result
     }
 }
+
+

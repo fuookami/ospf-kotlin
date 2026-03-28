@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.utils.math.symbol.operation
+﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
@@ -114,7 +114,8 @@ class CompileTest {
         val polynomial = QuadraticPolynomial<Flt64>(
             monomials = listOf(
                 QuadraticMonomial<Flt64>(Flt64.one, x, y)
-            )
+            ),
+            constant = Flt64.zero
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -131,7 +132,8 @@ class CompileTest {
         val polynomial = LinearPolynomial<Flt64>(
             monomials = listOf(
                 LinearMonomial<Flt64>(Flt64.one, x)
-            )
+            ),
+            constant = Flt64.zero
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -149,7 +151,8 @@ class CompileTest {
         val polynomial = CanonicalPolynomial<Flt64>(
             monomials = listOf(
                 CanonicalMonomial<Flt64>(Flt64.one, listOf(x, y))
-            )
+            ),
+            constant = Flt64.zero
         )
         val compiledEval = polynomial.compileEval(order = listOf(x, y))
         val compiledGradient = polynomial.compileGradient(order = listOf(x, y))
@@ -162,3 +165,6 @@ class CompileTest {
         }
     }
 }
+
+
+

@@ -6,6 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendIndexedPredicate
@@ -23,6 +24,12 @@ suspend inline fun <T : Any> Iterable<T>.tryFilterParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<List<T>> {
     return tryFilterToParallelly(ArrayList(), predicate)
+}
+
+suspend inline fun <T : Any> Iterable<T>.exTryFilterParallelly(
+    crossinline predicate: SuspendTryPredicate<T>
+): ExRet<List<T>> {
+    return exTryFilterToParallelly(ArrayList(), predicate)
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterToParallelly(
@@ -76,6 +83,38 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterT
     }
 }
 
+suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilterToParallelly(
+    destination: C,
+    crossinline predicate: SuspendTryPredicate<T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
+        for (element in this@exTryFilterToParallelly) {
+            promises.add(async(Dispatchers.Default) {
+                when (val ret = predicate(element)) {
+                    is Ok -> Ok(element to ret.value)
+                    is Failed -> Failed(ret.error)
+                    is Fatal -> Fatal(ret.errors)
+                }
+            })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (element, keep) = ret.value
+                    if (keep) {
+                        destination.add(element)
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <T : Any> Iterable<T?>.filterNotNullParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): List<T> {
@@ -86,6 +125,12 @@ suspend inline fun <T : Any> Iterable<T?>.tryFilterNotNullParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<List<T>> {
     return tryFilterNotNullToParallelly(ArrayList(), predicate)
+}
+
+suspend inline fun <T : Any> Iterable<T?>.exTryFilterNotNullParallelly(
+    crossinline predicate: SuspendTryPredicate<T>
+): ExRet<List<T>> {
+    return exTryFilterNotNullToParallelly(ArrayList(), predicate)
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.filterNotNullToParallelly(
@@ -143,6 +188,40 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.tryFilter
     }
 }
 
+suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.exTryFilterNotNullToParallelly(
+    destination: C,
+    crossinline predicate: SuspendTryPredicate<T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
+        for (element in this@exTryFilterNotNullToParallelly) {
+            if (element != null) {
+                promises.add(async(Dispatchers.Default) {
+                    when (val ret = predicate(element)) {
+                        is Ok -> Ok(element to ret.value)
+                        is Failed -> Failed(ret.error)
+                        is Fatal -> Fatal(ret.errors)
+                    }
+                })
+            }
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (element, keep) = ret.value
+                    if (keep) {
+                        destination.add(element)
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <T : Any> Iterable<T>.filterNotParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): List<T> {
@@ -153,6 +232,12 @@ suspend inline fun <T : Any> Iterable<T>.tryFilterNotParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<List<T>> {
     return tryFilterNotToParallelly(ArrayList(), predicate)
+}
+
+suspend inline fun <T : Any> Iterable<T>.exTryFilterNotParallelly(
+    crossinline predicate: SuspendTryPredicate<T>
+): ExRet<List<T>> {
+    return exTryFilterNotToParallelly(ArrayList(), predicate)
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterNotToParallelly(
@@ -206,6 +291,38 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterN
     }
 }
 
+suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilterNotToParallelly(
+    destination: C,
+    crossinline predicate: SuspendTryPredicate<T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
+        for (element in this@exTryFilterNotToParallelly) {
+            promises.add(async(Dispatchers.Default) {
+                when (val ret = predicate(element)) {
+                    is Ok -> Ok(element to !ret.value)
+                    is Failed -> Failed(ret.error)
+                    is Fatal -> Fatal(ret.errors)
+                }
+            })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (element, keep) = ret.value
+                    if (keep) {
+                        destination.add(element)
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <T : Any> Iterable<T>.filterIndexedParallelly(
     crossinline predicate: SuspendIndexedPredicate<T>
 ): List<T> {
@@ -216,6 +333,12 @@ suspend inline fun <T : Any> Iterable<T>.tryFilterIndexedParallelly(
     crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<List<T>> {
     return tryFilterIndexedToParallelly(ArrayList(), predicate)
+}
+
+suspend inline fun <T : Any> Iterable<T>.exTryFilterIndexedParallelly(
+    crossinline predicate: SuspendTryIndexedPredicate<T>
+): ExRet<List<T>> {
+    return exTryFilterIndexedToParallelly(ArrayList(), predicate)
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterIndexedToParallelly(
@@ -269,6 +392,38 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterI
     }
 }
 
+suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilterIndexedToParallelly(
+    destination: C,
+    crossinline predicate: SuspendTryIndexedPredicate<T>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
+        for ((index, element) in this@exTryFilterIndexedToParallelly.withIndex()) {
+            promises.add(async(Dispatchers.Default) {
+                when (val ret = predicate(index, element)) {
+                    is Ok -> Ok(element to ret.value)
+                    is Failed -> Failed(ret.error)
+                    is Fatal -> Fatal(ret.errors)
+                }
+            })
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (element, keep) = ret.value
+                    if (keep) {
+                        destination.add(element)
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
+    }
+}
+
 suspend inline fun <reified U : Any, T> Iterable<T>.filterIsInstanceParallelly(
     crossinline predicate: SuspendPredicate<U>
 ): List<U> {
@@ -279,6 +434,12 @@ suspend inline fun <reified U : Any, T> Iterable<T>.tryFilterIsInstanceParallell
     crossinline predicate: SuspendTryPredicate<U>
 ): Ret<List<U>> {
     return tryFilterIsInstanceToParallelly(ArrayList(), predicate)
+}
+
+suspend inline fun <reified U : Any, T> Iterable<T>.exTryFilterIsInstanceParallelly(
+    crossinline predicate: SuspendTryPredicate<U>
+): ExRet<List<U>> {
+    return exTryFilterIsInstanceToParallelly(ArrayList(), predicate)
 }
 
 suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.filterIsInstanceToParallelly(
@@ -333,5 +494,39 @@ suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.tr
             }
         }
         Ok(destination)
+    }
+}
+
+suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.exTryFilterIsInstanceToParallelly(
+    destination: C,
+    crossinline predicate: SuspendTryPredicate<U>
+): ExRet<C> {
+    return coroutineScope {
+        val promises = ArrayList<Deferred<Ret<Pair<U, Boolean>>>>()
+        for (element in this@exTryFilterIsInstanceToParallelly) {
+            if (element is U) {
+                promises.add(async(Dispatchers.Default) {
+                    when (val ret = predicate(element)) {
+                        is Ok -> Ok(element to ret.value)
+                        is Failed -> Failed(ret.error)
+                        is Fatal -> Fatal(ret.errors)
+                    }
+                })
+            }
+        }
+        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+        for (promise in promises) {
+            when (val ret = promise.await()) {
+                is Ok -> {
+                    val (element, keep) = ret.value
+                    if (keep) {
+                        destination.add(element)
+                    }
+                }
+
+                is Failed, is Fatal -> errors.appendFrom(ret)
+            }
+        }
+        exResultOf(destination, errors)
     }
 }

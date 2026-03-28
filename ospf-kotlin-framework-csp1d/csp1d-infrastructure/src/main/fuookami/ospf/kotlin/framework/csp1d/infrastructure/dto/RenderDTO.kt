@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
+﻿package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
 
-import fuookami.ospf.kotlin.utils.math.FltX
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.serialization.Serializable
 
 enum class RenderProductionType {
@@ -35,3 +35,6 @@ data class RenderSchemaDTO(
     val kpi: Map<String, String>,
     val cuttingPlans: List<RenderCuttingPlanDTO>,
 )
+
+
+

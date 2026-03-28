@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.utils.multi_array
+﻿package fuookami.ospf.kotlin.utils.multi_array
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
 import fuookami.ospf.kotlin.utils.functional.get
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 
 operator fun <K, T : Any> Map<K, T>.get(k: DummyIndex.All): Iterable<T> {
     return this.values
@@ -366,3 +366,6 @@ operator fun <K1, K2, K3, K4, T : Any, S : Shape> MultiMap4<K1, K2, K3, K4, Muta
 operator fun <K1, K2, K3, K4, T : Any, S : Shape> MultiMap4<K1, K2, K3, K4, MutableMultiArray<T, S>>.set(k1: K1, k2: K2, k3: K3, k4: K4, vararg v: Indexed, value: T) {
     this[k1, k2, k3, k4]!![v.map { it.index }.toIntArray()] = value
 }
+
+
+

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.solver.output
 
@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelView
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlin.time.Duration
 
 data class SolvingStatus(
@@ -27,3 +27,6 @@ data class SolvingStatus(
 )
 
 typealias SolvingStatusCallBack = (SolvingStatus) -> Try
+
+
+

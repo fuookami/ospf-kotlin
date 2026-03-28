@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaMode
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 
 class TaskCancelMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -49,3 +49,6 @@ class TaskCancelMinimization<
         return ok
     }
 }
+
+
+

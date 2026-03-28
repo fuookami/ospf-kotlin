@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.adapter
+﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.adapter
 
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCoreMonomialRet
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCorePolynomialRet
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
 import org.junit.jupiter.api.Test
@@ -151,4 +151,7 @@ class AdapterRoundTripTest {
         assertTrue(converted is Failed)
     }
 }
+
+
+
 

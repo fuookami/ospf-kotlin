@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
 
@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
 import fuookami.ospf.kotlin.core.frontend.model.MulObj
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.nextFlt64
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.utils.operator.Order
@@ -156,3 +156,5 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64>
 typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<MulObj, List<Flt64>>
+
+

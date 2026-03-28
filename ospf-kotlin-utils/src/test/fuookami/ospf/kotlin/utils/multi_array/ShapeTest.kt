@@ -372,7 +372,7 @@ class ShapeTest {
         // 测试动态形状克隆
         // Test dynamic shape clone
         val shape1 = DynShape(intArrayOf(2, 3, 4))
-        val shape2 = shape1.copy()
+        val shape2 = shape1.withStorageOrder(shape1.storageOrder)
 
         assertEquals(shape1, shape2)
         assertEquals(shape1.hashCode(), shape2.hashCode())

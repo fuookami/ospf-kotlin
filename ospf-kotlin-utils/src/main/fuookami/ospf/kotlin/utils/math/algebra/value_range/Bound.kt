@@ -1,9 +1,11 @@
-package fuookami.ospf.kotlin.utils.math.value_range
+﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 
-import fuookami.ospf.kotlin.utils.math.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 
 class Bound<T>(
@@ -85,3 +87,7 @@ operator fun Bound<Int64>.unaryMinus() = Bound(-value, interval)
 
 @JvmName("negBoundIntX")
 operator fun Bound<IntX>.unaryMinus() = Bound(-value, interval)
+
+
+
+

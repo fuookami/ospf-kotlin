@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.core.backend.solver.heuristic
+﻿package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.math.usize
-import fuookami.ospf.kotlin.utils.math.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.operator.Order
 
 interface Individual<V> {
@@ -63,3 +63,7 @@ fun <T : Individual<V>, V> refreshGoodIndividuals(
         )
     }
 }
+
+
+
+

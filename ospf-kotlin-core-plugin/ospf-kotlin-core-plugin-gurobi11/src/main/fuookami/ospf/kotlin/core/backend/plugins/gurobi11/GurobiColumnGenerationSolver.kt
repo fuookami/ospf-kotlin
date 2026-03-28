@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+﻿package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
 
 import com.gurobi.gurobi.GRB
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.Flt64
-import fuookami.ospf.kotlin.utils.math.UInt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 
 class GurobiColumnGenerationSolver(
@@ -285,3 +285,6 @@ class GurobiColumnGenerationSolver(
         }
     }
 }
+
+
+
