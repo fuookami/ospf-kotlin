@@ -2,13 +2,17 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.gap
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.gap
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -148,11 +152,12 @@ private class CplexLinearSolverImpl(
 
     private suspend fun dump(model: LinearTriadModelView): Try {
         logger.trace { "Dumping to cplex model for $model" }
+        warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
 
         cplexVars = model.variables.map {
             cplex.numVar(
-                it.lowerBound.toDouble(),
-                it.upperBound.toDouble(),
+                it.lowerBound.toSolverDouble("linear.variables[${it.name}].lowerBound"),
+                it.upperBound.toSolverDouble("linear.variables[${it.name}].upperBound"),
                 CplexVariable(it.type).toCplexVar()
             )
         }.toList()
@@ -160,7 +165,7 @@ private class CplexLinearSolverImpl(
         if (cplex.isMIP && model.variables.any { it.initialResult != null }) {
             val initialSolution = model.variables.withIndex()
                 .filter { it.value.initialResult != null }
-                .map { Pair(cplexVars[it.index], it.value.initialResult!!.toDouble()) }
+                .map { Pair(cplexVars[it.index], it.value.initialResult!!.toSolverDouble("linear.variables[${it.index}].initialResult")) }
             cplex.addMIPStart(
                 initialSolution.map { it.first }.toTypedArray(),
                 initialSolution.map { it.second }.toDoubleArray()
@@ -196,7 +201,7 @@ private class CplexLinearSolverImpl(
                             }
                             val lhs = cplex.linearNumExpr()
                             for (cell in model.constraints.lhs[ii]) {
-                                lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
+                                lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), cplexVars[cell.colIndex])
                             }
                             ii to Triple(lb, lhs, ub)
                         }
@@ -210,9 +215,9 @@ private class CplexLinearSolverImpl(
                     val result = promise.await().map {
                         val (lb, lhs, ub) = it.second
                         val constraint = cplex.range(
-                            lb.toDouble(),
+                            lb.toSolverDouble("linear.constraints.bounds[${it.first}].lower"),
                             lhs,
-                            ub.toDouble(),
+                            ub.toSolverDouble("linear.constraints.bounds[${it.first}].upper"),
                             model.constraints.names[it.first]
                         )
                         cplex.add(constraint)
@@ -243,12 +248,12 @@ private class CplexLinearSolverImpl(
                     }
                     val lhs = cplex.linearNumExpr()
                     for (cell in model.constraints.lhs[i]) {
-                        lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
+                        lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), cplexVars[cell.colIndex])
                     }
                     val constraint = cplex.range(
-                        lb.toDouble(),
+                        lb.toSolverDouble("linear.constraints.bounds[$i].lower"),
                         lhs,
-                        ub.toDouble(),
+                        ub.toSolverDouble("linear.constraints.bounds[$i].upper"),
                         model.constraints.names[i]
                     )
                     cplex.add(constraint)
@@ -261,7 +266,7 @@ private class CplexLinearSolverImpl(
 
         val objective = cplex.linearNumExpr()
         for (cell in model.objective.objective) {
-            objective.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex])
+            objective.addTerm(cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"), cplexVars[cell.colIndex])
         }
         when (model.objective.category) {
             ObjectCategory.Minimum -> {
@@ -297,7 +302,7 @@ private class CplexLinearSolverImpl(
 
     private suspend fun configure(model: LinearTriadModelView): Try {
         cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
-        cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toDouble())
+        cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toSolverDouble("linear.config.gap"))
         cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -352,6 +357,7 @@ private class CplexLinearSolverImpl(
                                 time = currentTime,
                                 obj = currentObj,
                                 possibleBestObj = currentBound,
+                                bestBound = currentBound,
                                 initialBestObj = initialBestObj ?: currentObj,
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                 currentBestSolution = currentBestSolution

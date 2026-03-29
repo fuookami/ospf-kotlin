@@ -67,13 +67,17 @@ class QuadraticConstraint(
     names: List<String>,
     sources: List<ConstraintSource>,
     origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null },
-    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
+    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null },
+    priorities: List<Int?> = (0 until lhs.size).map { null }
 ) : Constraint<QuadraticConstraintCell>(lhs, signs, rhs, names, sources) {
     private val _origins: MutableList<OriginQuadraticConstraint?> = origins.toMutableList()
     val origins: List<OriginQuadraticConstraint?> by ::_origins
 
     private val _froms: MutableList<Pair<IntermediateSymbol, Boolean>?> = froms.toMutableList()
     val froms: List<Pair<IntermediateSymbol, Boolean>?> by ::_froms
+
+    private val _priorities: MutableList<Int?> = priorities.toMutableList()
+    val priorities: List<Int?> by ::_priorities
 
     override fun copy() = QuadraticConstraint(
         lhs.map { line -> line.map { it.copy() } },
@@ -82,12 +86,14 @@ class QuadraticConstraint(
         names.toList(),
         sources.toList(),
         origins.toList(),
-        froms.toList()
+        froms.toList(),
+        priorities.toList()
     )
 
     override fun close() {
         _origins.clear()
         _froms.clear()
+        _priorities.clear()
         super.close()
     }
 }
@@ -540,6 +546,7 @@ data class QuadraticTetradModel(
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginQuadraticConstraint>()
             val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+            val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
@@ -548,6 +555,7 @@ data class QuadraticTetradModel(
                 sources.add(ConstraintSource.Origin)
                 origins.add(constraint)
                 froms.add(constraint.from)
+                priorities.add(constraint.origin?.priority)
             }
             return QuadraticConstraint(
                 lhs = lhs,
@@ -556,7 +564,8 @@ data class QuadraticTetradModel(
                 names = names,
                 sources = sources,
                 origins = origins,
-                froms = froms
+                froms = froms,
+                priorities = priorities
             )
         }
 
@@ -663,6 +672,7 @@ data class QuadraticTetradModel(
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginQuadraticConstraint>()
                     val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                    val priorities = ArrayList<Int?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -672,6 +682,7 @@ data class QuadraticTetradModel(
                         sources.add(ConstraintSource.Origin)
                         origins.add(constraint)
                         froms.add(constraint.from)
+                        priorities.add(constraint.origin?.priority)
                     }
                     System.gc()
                     QuadraticConstraint(
@@ -681,7 +692,8 @@ data class QuadraticTetradModel(
                         names = names,
                         sources = sources,
                         origins = origins,
-                        froms = froms
+                        froms = froms,
+                        priorities = priorities
                     )
                 }
             } else {
@@ -692,8 +704,10 @@ data class QuadraticTetradModel(
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginQuadraticConstraint>()
                 val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                val priorities = ArrayList<Int?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
+                    var thisRhs = constraint.rhs
                     for (cell in constraint.lhs) {
                         if (tokenIndexes.containsKey(cell.token1) && (cell.token2 == null || tokenIndexes.containsKey(cell.token2))) {
                             thisLhs.add(
@@ -751,17 +765,18 @@ data class QuadraticTetradModel(
                                 )
                             )
                         } else {
-                            rhs -= cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one) * (fixedVariables?.get(cell.token2?.variable)
+                            thisRhs -= cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one) * (fixedVariables?.get(cell.token2?.variable)
                                 ?: Flt64.one)
                         }
                     }
                     lhs.add(thisLhs)
                     signs.add(constraint.sign)
-                    rhs.add(constraint.rhs)
+                    rhs.add(thisRhs)
                     names.add(constraint.name)
                     sources.add(ConstraintSource.Origin)
                     origins.add(constraint)
                     froms.add(constraint.from)
+                    priorities.add(constraint.origin?.priority)
                 }
                 System.gc()
                 QuadraticConstraint(
@@ -771,7 +786,8 @@ data class QuadraticTetradModel(
                     names = names,
                     sources = sources,
                     origins = origins,
-                    froms = froms
+                    froms = froms,
+                    priorities = priorities
                 )
             }
         }
@@ -1029,6 +1045,9 @@ data class QuadraticTetradModel(
             },
             froms = this.constraints.indices.map {
                 this.constraints.froms[it]
+            },
+            priorities = this.constraints.indices.map {
+                this.constraints.priorities[it]
             }
         )
         val objective = artifactVariables.map {

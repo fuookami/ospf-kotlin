@@ -1,5 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.backend.intermediate_model
 
+import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStage
+import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStatus
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
@@ -12,6 +14,22 @@ data class IntermediateModelDumpingStatus(
 }
 
 typealias IntermediateModelDumpingStatusCallBack = (IntermediateModelDumpingStatus) -> Try
+
+fun IntermediateModelDumpingStatus.toModelBuildingStatus(
+    modelName: String,
+    quadratic: Boolean = false
+): ModelBuildingStatus {
+    return ModelBuildingStatus(
+        modelName = modelName,
+        stage = if (quadratic) {
+            ModelBuildingStage.FlattenQuadraticModel
+        } else {
+            ModelBuildingStage.FlattenLinearModel
+        },
+        ready = readyConstraintAmount,
+        total = totalConstraintAmount
+    )
+}
 
 
 

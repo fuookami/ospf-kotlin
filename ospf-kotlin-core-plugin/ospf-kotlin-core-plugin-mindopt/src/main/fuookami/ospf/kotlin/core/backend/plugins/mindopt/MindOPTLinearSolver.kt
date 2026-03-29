@@ -2,13 +2,17 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
-import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
+import com.alibaba.damo.mindopt.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
@@ -132,10 +136,12 @@ private class MindOPTLinearSolverImpl(
 
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
+            warnIgnoredConstraintPriority("mindopt", model.nonNullConstraintPriorityAmount())
+
             mindoptVars = model.variables.map {
                 mindoptModel.addVar(
-                    it.lowerBound.toDouble(),
-                    it.upperBound.toDouble(),
+                    it.lowerBound.toSolverDouble("linear.variables[${it.name}].lowerBound"),
+                    it.upperBound.toSolverDouble("linear.variables[${it.name}].upperBound"),
                     0.0,
                     MindOPTVariable(it.type).toMindOPTVar(),
                     it.name
@@ -144,7 +150,7 @@ private class MindOPTLinearSolverImpl(
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    mindoptVars[col].set(MDO.DoubleAttr.Start, it.toDouble())
+                    mindoptVars[col].set(MDO.DoubleAttr.Start, it.toSolverDouble("linear.variables[$col].initialResult"))
                 }
             }
 
@@ -161,7 +167,7 @@ private class MindOPTLinearSolverImpl(
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = MDOLinExpr()
                                 for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex])
+                                    lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), mindoptVars[cell.colIndex])
                                 }
                                 ii to lhs
                             }
@@ -176,7 +182,7 @@ private class MindOPTLinearSolverImpl(
                             mindoptModel.addConstr(
                                 it.second,
                                 MindOPTConstraintSign(model.constraints.signs[it.first]).toMindOPTConstraintSign(),
-                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.rhs[it.first].toSolverDouble("linear.constraints.rhs[${it.first}]"),
                                 model.constraints.names[it.first]
                             )
                         }
@@ -189,12 +195,12 @@ private class MindOPTLinearSolverImpl(
                     model.constraints.indices.map { i ->
                         val lhs = MDOLinExpr()
                         for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex])
+                            lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), mindoptVars[cell.colIndex])
                         }
                         mindoptModel.addConstr(
                             lhs,
                             MindOPTConstraintSign(model.constraints.signs[i]).toMindOPTConstraintSign(),
-                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.rhs[i].toSolverDouble("linear.constraints.rhs[$i]"),
                             model.constraints.names[i]
                         )
                     }
@@ -205,9 +211,9 @@ private class MindOPTLinearSolverImpl(
 
             val obj = MDOLinExpr()
             for (cell in model.objective.objective) {
-                obj.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex])
+                obj.addTerm(cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"), mindoptVars[cell.colIndex])
             }
-            obj.addConstant(model.objective.constant.toDouble())
+            obj.addConstant(model.objective.constant.toSolverDouble("linear.objective.constant"))
             mindoptModel.setObjective(
                 obj,
                 when (model.objective.category) {
@@ -253,7 +259,7 @@ private class MindOPTLinearSolverImpl(
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
-            mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toDouble())
+            mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toSolverDouble("linear.config.gap"))
             mindoptModel.set(MDO.IntParam.NumThreads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -305,6 +311,7 @@ private class MindOPTLinearSolverImpl(
                                         time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
+                                        bestBound = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                         currentBestSolution = currentBestSolution

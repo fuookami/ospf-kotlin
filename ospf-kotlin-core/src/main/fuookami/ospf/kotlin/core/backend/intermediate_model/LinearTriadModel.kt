@@ -68,13 +68,17 @@ class LinearConstraint(
     names: List<String>,
     sources: List<ConstraintSource>,
     origins: List<OriginLinearConstraint?> = (0 until lhs.size).map { null },
-    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null }
+    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null },
+    priorities: List<Int?> = (0 until lhs.size).map { null }
 ) : Constraint<LinearConstraintCell>(lhs, signs, rhs, names, sources) {
     private val _origins: MutableList<OriginLinearConstraint?> = origins.toMutableList()
     val origins: List<OriginLinearConstraint?> by ::_origins
 
     private val _froms: MutableList<Pair<IntermediateSymbol, Boolean>?> = froms.toMutableList()
     val froms: List<Pair<IntermediateSymbol, Boolean>?> by ::_froms
+
+    private val _priorities: MutableList<Int?> = priorities.toMutableList()
+    val priorities: List<Int?> by ::_priorities
 
     fun filter(condition: (Int) -> Boolean): LinearConstraint {
         return LinearConstraint(
@@ -84,7 +88,8 @@ class LinearConstraint(
             names = names.filterIndexed { i, _ -> condition(i) },
             sources = sources.filterIndexed { i, _ -> condition(i) },
             origins = origins.filterIndexed { i, _ -> condition(i) },
-            froms = froms.filterIndexed { i, _ -> condition(i) }
+            froms = froms.filterIndexed { i, _ -> condition(i) },
+            priorities = priorities.filterIndexed { i, _ -> condition(i) }
         )
     }
 
@@ -95,12 +100,14 @@ class LinearConstraint(
         names.toList(),
         sources.toList(),
         origins.toList(),
-        froms.toList()
+        froms.toList(),
+        priorities.toList()
     )
 
     override fun close() {
         _origins.clear()
         _froms.clear()
+        _priorities.clear()
         super.close()
     }
 }
@@ -505,6 +512,7 @@ data class LinearTriadModel(
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginLinearConstraint>()
             val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+            val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
                 signs.add(constraint.sign)
@@ -513,6 +521,7 @@ data class LinearTriadModel(
                 sources.add(ConstraintSource.Origin)
                 origins.add(constraint)
                 froms.add(constraint.from)
+                priorities.add(constraint.origin?.priority)
             }
             return LinearConstraint(
                 lhs = lhs,
@@ -521,7 +530,8 @@ data class LinearTriadModel(
                 names = names,
                 sources = sources,
                 origins = origins,
-                froms = froms
+                froms = froms,
+                priorities = priorities
             )
         }
 
@@ -588,6 +598,7 @@ data class LinearTriadModel(
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginLinearConstraint>()
                     val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                    val priorities = ArrayList<Int?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
                         lhs.add(thisLhs)
@@ -597,6 +608,7 @@ data class LinearTriadModel(
                         sources.add(ConstraintSource.Origin)
                         origins.add(constraint)
                         froms.add(constraint.from)
+                        priorities.add(constraint.origin?.priority)
                     }
                     LinearConstraint(
                         lhs = lhs,
@@ -605,7 +617,8 @@ data class LinearTriadModel(
                         names = names,
                         sources = sources,
                         origins = origins,
-                        froms = froms
+                        froms = froms,
+                        priorities = priorities
                     )
                 }
             } else {
@@ -616,6 +629,7 @@ data class LinearTriadModel(
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginLinearConstraint>()
                 val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                val priorities = ArrayList<Int?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<LinearConstraintCell>()
                     var thisRhs = constraint.rhs
@@ -647,6 +661,7 @@ data class LinearTriadModel(
                     sources.add(ConstraintSource.Origin)
                     origins.add(constraint)
                     froms.add(constraint.from)
+                    priorities.add(constraint.origin?.priority)
                 }
                 System.gc()
                 LinearConstraint(
@@ -656,7 +671,8 @@ data class LinearTriadModel(
                     names = names,
                     sources = sources,
                     origins = origins,
-                    froms = froms
+                    froms = froms,
+                    priorities = priorities
                 )
             }
         }
@@ -1482,6 +1498,9 @@ data class LinearTriadModel(
             },
             froms = this.constraints.indices.map {
                 this.constraints.froms[it]
+            },
+            priorities = this.constraints.indices.map {
+                this.constraints.priorities[it]
             }
         )
 
@@ -1979,6 +1998,34 @@ data class LinearTriadModel(
                     }
                 }
                 thisOrigins
+            } else {
+                emptyList()
+            },
+            priorities = this.constraints.priorities + this.variables.indices.flatMap { j ->
+                val jp = this.constraints.size + j
+                val thisPriorities = ArrayList<Int?>()
+                if (slackVariables[jp].first != null) {
+                    thisPriorities.add(null)
+                }
+                if (slackVariables[jp].second != null) {
+                    thisPriorities.add(null)
+                }
+                thisPriorities
+            } + if (minSlackAmount != null) {
+                slackBinVariables.flatMap { listOf(null, null) } + listOf(null)
+            } else {
+                emptyList()
+            } + if (minmaxSlack) {
+                val thisPriorities = ArrayList<Int?>()
+                for ((lbSlack, ubSlack) in slackVariables) {
+                    if (lbSlack != null) {
+                        thisPriorities.add(null)
+                    }
+                    if (ubSlack != null) {
+                        thisPriorities.add(null)
+                    }
+                }
+                thisPriorities
             } else {
                 emptyList()
             },

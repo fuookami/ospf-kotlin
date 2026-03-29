@@ -2,12 +2,17 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.backend.solver.gap
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -159,11 +164,13 @@ private class ScipLinearSolverImpl(
     }
 
     private suspend fun dump(model: LinearTriadModelView): Try {
+        warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
+
         scipVars = model.variables.map {
             scip.createVar(
                 it.name,
-                it.lowerBound.toDouble(),
-                it.upperBound.toDouble(),
+                it.lowerBound.toSolverDouble("linear.variables[${it.name}].lowerBound"),
+                it.upperBound.toSolverDouble("linear.variables[${it.name}].upperBound"),
                 0.0,
                 ScipVariable(it.type).toSCIPVar()
             )
@@ -172,13 +179,13 @@ private class ScipLinearSolverImpl(
         if (model.variables.all { it.initialResult != null }) {
             val initialSolution = scip.createSol()
             for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
-                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toSolverDouble("linear.variables[$col].initialResult"))
             }
             scip.addSolFree(initialSolution)
         } else if (model.variables.any { it.initialResult != null }) {
             val initialSolution = scip.createPartialSol()
             for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
-                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toSolverDouble("linear.variables[$col].initialResult"))
             }
             scip.addSolFree(initialSolution)
         }
@@ -214,7 +221,7 @@ private class ScipLinearSolverImpl(
                             val coefficients = ArrayList<Double>()
                             for (cell in model.constraints.lhs[ii]) {
                                 vars.add(scipVars[cell.colIndex])
-                                coefficients.add(cell.coefficient.toDouble())
+                                coefficients.add(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"))
                             }
                             ii to Triple(lb, coefficients to vars, ub)
                         }
@@ -232,8 +239,8 @@ private class ScipLinearSolverImpl(
                             model.constraints.names[it.first],
                             vars.toTypedArray(),
                             coefficients.toDoubleArray(),
-                            lb.toDouble(),
-                            ub.toDouble()
+                            lb.toSolverDouble("linear.constraints.bounds[${it.first}].lower"),
+                            ub.toSolverDouble("linear.constraints.bounds[${it.first}].upper")
                         )
                         scip.addCons(constraint)
                         constraint
@@ -265,14 +272,14 @@ private class ScipLinearSolverImpl(
                     val coefficients = ArrayList<Double>()
                     for (cell in model.constraints.lhs[i]) {
                         vars.add(scipVars[cell.colIndex])
-                        coefficients.add(cell.coefficient.toDouble())
+                        coefficients.add(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"))
                     }
                     val constraint = scip.createConsLinear(
                         model.constraints.names[i],
                         vars.toTypedArray(),
                         coefficients.toDoubleArray(),
-                        lb.toDouble(),
-                        ub.toDouble()
+                        lb.toSolverDouble("linear.constraints.bounds[$i].lower"),
+                        ub.toSolverDouble("linear.constraints.bounds[$i].upper")
                     )
                     scip.addCons(constraint)
                     constraint
@@ -283,7 +290,7 @@ private class ScipLinearSolverImpl(
         scipConstraints = constraints
 
         for (cell in model.objective.objective) {
-            scip.changeVarObj(scipVars[cell.colIndex], cell.coefficient.toDouble())
+            scip.changeVarObj(scipVars[cell.colIndex], cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"))
         }
         when (model.objective.category) {
             ObjectCategory.Minimum -> {
@@ -317,7 +324,7 @@ private class ScipLinearSolverImpl(
 
     private suspend fun configure(model: LinearTriadModelView): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
-        scip.setRealParam("limits/gap", config.gap.toDouble())
+        scip.setRealParam("limits/gap", config.gap.toSolverDouble("linear.config.gap"))
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -379,6 +386,7 @@ private class ScipLinearSolverImpl(
                                 time = currentTime,
                                 obj = currentObj,
                                 possibleBestObj = currentBound,
+                                bestBound = currentBound,
                                 initialBestObj = initialBestObj ?: currentObj,
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                 currentBestSolution = currentBestSolution

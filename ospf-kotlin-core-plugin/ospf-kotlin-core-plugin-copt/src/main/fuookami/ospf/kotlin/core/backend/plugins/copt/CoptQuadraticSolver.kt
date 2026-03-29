@@ -4,9 +4,12 @@ package fuookami.ospf.kotlin.core.backend.plugins.copt
 
 import copt.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.backend.solver.config.CoptSolverConfig
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
@@ -153,19 +156,21 @@ private class CoptQuadraticSolverImpl(
 
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
-            coptVars = model.variables.map {
+            warnIgnoredConstraintPriority("copt", model.nonNullConstraintPriorityAmount())
+
+            coptVars = model.variables.mapIndexed { index, variable ->
                 coptModel.addVar(
-                    it.lowerBound.toDouble(),
-                    it.upperBound.toDouble(),
+                    variable.lowerBound.toSolverDouble("quadratic.variables[$index].lowerBound"),
+                    variable.upperBound.toSolverDouble("quadratic.variables[$index].upperBound"),
                     0.0,
-                    CoptVariable(it.type).toCoptVar(),
-                    it.name
+                    CoptVariable(variable.type).toCoptVar(),
+                    variable.name
                 )
             }
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    coptModel.setMipStart(coptVars[col], it.toDouble())
+                    coptModel.setMipStart(coptVars[col], it.toSolverDouble("quadratic.variables[$col].initialResult"))
                 }
             }
 
@@ -183,9 +188,9 @@ private class CoptQuadraticSolverImpl(
                                 val lhs = QuadExpr()
                                 for (cell in model.constraints.lhs[ii]) {
                                     if (cell.colIndex2 != null) {
-                                        lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toDouble())
+                                        lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"))
                                     } else {
-                                        lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toDouble())
+                                        lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"))
                                     }
                                 }
                                 ii to lhs
@@ -201,7 +206,7 @@ private class CoptQuadraticSolverImpl(
                             coptModel.addQConstr(
                                 it.second,
                                 CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
-                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.rhs[it.first].toSolverDouble("quadratic.constraints.rhs[${it.first}]"),
                                 model.constraints.names[it.first]
                             )
                         }
@@ -215,15 +220,15 @@ private class CoptQuadraticSolverImpl(
                         val lhs = QuadExpr()
                         for (cell in model.constraints.lhs[i]) {
                             if (cell.colIndex2 != null) {
-                                lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toDouble())
+                                lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"))
                             } else {
-                                lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toDouble())
+                                lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"))
                             }
                         }
                         coptModel.addQConstr(
                             lhs,
                             CoptConstraintSign(model.constraints.signs[i]).toCoptConstraintSign(),
-                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.rhs[i].toSolverDouble("quadratic.constraints.rhs[$i]"),
                             model.constraints.names[i]
                         )
                     }
@@ -233,14 +238,14 @@ private class CoptQuadraticSolverImpl(
             coptConstraints = constraints
 
             val obj = QuadExpr()
-            for (cell in model.objective.objective) {
+            for ((index, cell) in model.objective.objective.withIndex()) {
                 if (cell.colIndex2 != null) {
-                    obj.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toDouble())
+                    obj.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toSolverDouble("quadratic.objective.cells[$index][${cell.colIndex1},${cell.colIndex2}].coefficient"))
                 } else {
-                    obj.addTerm(coptVars[cell.colIndex1], cell.coefficient.toDouble())
+                    obj.addTerm(coptVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.objective.cells[$index][${cell.colIndex1}].coefficient"))
                 }
             }
-            obj.addConstant(model.objective.constant.toDouble())
+            obj.addConstant(model.objective.constant.toSolverDouble("quadratic.objective.constant"))
             coptModel.setQuadObjective(
                 obj,
                 when (model.objective.category) {
@@ -286,7 +291,7 @@ private class CoptQuadraticSolverImpl(
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
-            coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toDouble())
+                coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toSolverDouble("quadratic.config.gap"))
             coptModel.set(COPT.IntParam.Threads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -341,6 +346,7 @@ private class CoptQuadraticSolverImpl(
                                     },
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
+                                    bestBound = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
                                     gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                     currentBestSolution = currentBestSolution

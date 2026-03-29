@@ -2,16 +2,20 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
 import com.hexaly.optimizer.HxCallbackType
 import com.hexaly.optimizer.HxException
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxObjectiveDirection
 import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -123,13 +127,15 @@ private class HexalyQuadraticSolverImpl(
 
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
+            warnIgnoredConstraintPriority("hexaly", model.nonNullConstraintPriorityAmount())
+
             hexalyVars = model.variables.map {
                 HexalyVariable(hexalyModel, it.type, it.lowerBound, it.upperBound).toHexalyVariable()
             }
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    hexalyVars[col].setValue(it.toDouble())
+                    hexalyVars[col].setValue(it.toSolverDouble("quadratic.variables[$col].initialResult"))
                 }
             }
 
@@ -149,13 +155,13 @@ private class HexalyQuadraticSolverImpl(
                                     if (cell.colIndex2 != null) {
                                         lhs.addOperands(
                                             hexalyModel.prod(
-                                                hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex1]),
+                                                hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"), hexalyVars[cell.colIndex1]),
                                                 hexalyVars[cell.colIndex2!!]
                                             )
                                         )
                                     } else {
                                         lhs.addOperands(
-                                            hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex1])
+                                            hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"), hexalyVars[cell.colIndex1])
                                         )
                                     }
                                 }
@@ -171,15 +177,15 @@ private class HexalyQuadraticSolverImpl(
                         val result = promise.await().map {
                             val constraint = when (model.constraints.signs[it.first]) {
                                 Sign.LessEqual -> {
-                                    hexalyModel.leq(it.second, model.constraints.rhs[it.first].toDouble())
+                                    hexalyModel.leq(it.second, model.constraints.rhs[it.first].toSolverDouble("quadratic.constraints.rhs[${it.first}]"))
                                 }
 
                                 Sign.Equal -> {
-                                    hexalyModel.eq(it.second, model.constraints.rhs[it.first].toDouble())
+                                    hexalyModel.eq(it.second, model.constraints.rhs[it.first].toSolverDouble("quadratic.constraints.rhs[${it.first}]"))
                                 }
 
                                 Sign.GreaterEqual -> {
-                                    hexalyModel.geq(it.second, model.constraints.rhs[it.first].toDouble())
+                                    hexalyModel.geq(it.second, model.constraints.rhs[it.first].toSolverDouble("quadratic.constraints.rhs[${it.first}]"))
                                 }
                             }
                             hexalyModel.constraint(constraint)
@@ -197,27 +203,27 @@ private class HexalyQuadraticSolverImpl(
                             if (cell.colIndex2 != null) {
                                 lhs.addOperands(
                                     hexalyModel.prod(
-                                        hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex1]),
+                                        hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"), hexalyVars[cell.colIndex1]),
                                         hexalyVars[cell.colIndex2!!]
                                     )
                                 )
                             } else {
                                 lhs.addOperands(
-                                    hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex1])
+                                    hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"), hexalyVars[cell.colIndex1])
                                 )
                             }
                         }
                         val constraint = when (model.constraints.signs[i]) {
                             Sign.LessEqual -> {
-                                hexalyModel.leq(lhs, model.constraints.rhs[i].toDouble())
+                                hexalyModel.leq(lhs, model.constraints.rhs[i].toSolverDouble("quadratic.constraints.rhs[$i]"))
                             }
 
                             Sign.Equal -> {
-                                hexalyModel.eq(lhs, model.constraints.rhs[i].toDouble())
+                                hexalyModel.eq(lhs, model.constraints.rhs[i].toSolverDouble("quadratic.constraints.rhs[$i]"))
                             }
 
                             Sign.GreaterEqual -> {
-                                hexalyModel.geq(lhs, model.constraints.rhs[i].toDouble())
+                                hexalyModel.geq(lhs, model.constraints.rhs[i].toSolverDouble("quadratic.constraints.rhs[$i]"))
                             }
                         }
                         hexalyModel.constraint(constraint)
@@ -233,17 +239,17 @@ private class HexalyQuadraticSolverImpl(
                 if (cell.colIndex2 != null) {
                     obj.addOperands(
                         hexalyModel.prod(
-                            hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex1]),
+                            hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1},${cell.colIndex2}].coefficient"), hexalyVars[cell.colIndex1]),
                             hexalyVars[cell.colIndex2!!]
                         )
                     )
                 } else {
                     obj.addOperands(
-                        hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex1])
+                        hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1}].coefficient"), hexalyVars[cell.colIndex1])
                     )
                 }
             }
-            obj.addOperand(model.objective.constant.toDouble())
+            obj.addOperand(model.objective.constant.toSolverDouble("quadratic.objective.constant"))
             when (model.objective.category) {
                 ObjectCategory.Maximum -> {
                     hexalyModel.maximize(obj)
@@ -285,7 +291,7 @@ private class HexalyQuadraticSolverImpl(
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)
             optimizer.param.nbThreads = config.threadNum.toInt()
-            optimizer.param.setDoubleObjectiveThreshold(0, config.gap.toDouble())
+            optimizer.param.setDoubleObjectiveThreshold(0, config.gap.toSolverDouble("quadratic.config.gap"))
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
                 optimizer.addCallback(HxCallbackType.IterationTicked) { optimizer, callBackType ->
@@ -340,6 +346,7 @@ private class HexalyQuadraticSolverImpl(
                                     time = currentTime,
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
+                                    bestBound = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
                                     gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                     currentBestSolution = currentBestSolution

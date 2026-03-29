@@ -664,6 +664,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
+        priority: Int? = null,
         withRangeSet: Boolean? = false
     ): Try
 
@@ -814,6 +815,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
+        priority: Int? = null,
         withRangeSet: Boolean? = null
     ): Try
 
@@ -1008,6 +1010,7 @@ class LinearMetaModel(
         name: String?,
         displayName: String?,
         args: Any?,
+        priority: Int?,
         withRangeSet: Boolean?
     ): Try {
         name?.let { constraint.name = it }
@@ -1017,7 +1020,8 @@ class LinearMetaModel(
                 constraint = constraint,
                 group = group,
                 lazy = lazy,
-                args = args
+                args = args,
+                priority = priority
             )
         )
 
@@ -1066,6 +1070,7 @@ class QuadraticMetaModel(
         name: String?,
         displayName: String?,
         args: Any?,
+        priority: Int?,
         withRangeSet: Boolean?
     ): Try {
         return addConstraint(
@@ -1075,6 +1080,7 @@ class QuadraticMetaModel(
             name = name,
             displayName = displayName,
             args = args,
+            priority = priority,
             withRangeSet = withRangeSet
         )
     }
@@ -1125,6 +1131,7 @@ class QuadraticMetaModel(
         name: String?,
         displayName: String?,
         args: Any?,
+        priority: Int?,
         withRangeSet: Boolean?
     ): Try {
         name?.let { constraint.name = it }
@@ -1134,7 +1141,8 @@ class QuadraticMetaModel(
                 constraint = constraint,
                 group = group,
                 lazy = lazy,
-                args = args
+                args = args,
+                priority = priority
             )
         )
 

@@ -1,5 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStage
+import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStatus
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
@@ -28,6 +30,15 @@ data class RegistrationStatus(
 }
 
 typealias RegistrationStatusCallBack = (RegistrationStatus) -> Try
+
+fun RegistrationStatus.toModelBuildingStatus(modelName: String): ModelBuildingStatus {
+    return ModelBuildingStatus(
+        modelName = modelName,
+        stage = ModelBuildingStage.RegisterTokens,
+        ready = readySymbolAmount,
+        total = totalSymbolAmount
+    )
+}
 
 
 

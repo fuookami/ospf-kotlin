@@ -4,9 +4,12 @@ package fuookami.ospf.kotlin.core.backend.plugins.copt
 
 import copt.*
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
 import fuookami.ospf.kotlin.core.backend.solver.config.CoptSolverConfig
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
@@ -154,19 +157,21 @@ private class CoptLinearSolverImpl(
 
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
-            coptVars = model.variables.map {
+            warnIgnoredConstraintPriority("copt", model.nonNullConstraintPriorityAmount())
+
+            coptVars = model.variables.mapIndexed { index, variable ->
                 coptModel.addVar(
-                    it.lowerBound.toDouble(),
-                    it.upperBound.toDouble(),
+                    variable.lowerBound.toSolverDouble("linear.variables[$index].lowerBound"),
+                    variable.upperBound.toSolverDouble("linear.variables[$index].upperBound"),
                     0.0,
-                    CoptVariable(it.type).toCoptVar(),
-                    it.name
+                    CoptVariable(variable.type).toCoptVar(),
+                    variable.name
                 )
             }
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    coptModel.setMipStart(coptVars[col], it.toDouble())
+                    coptModel.setMipStart(coptVars[col], it.toSolverDouble("linear.variables[$col].initialResult"))
                 }
             }
 
@@ -183,7 +188,7 @@ private class CoptLinearSolverImpl(
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = Expr()
                                 for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                                    lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"))
                                 }
                                 ii to lhs
                             }
@@ -198,7 +203,7 @@ private class CoptLinearSolverImpl(
                             coptModel.addConstr(
                                 it.second,
                                 CoptConstraintSign(model.constraints.signs[it.first]).toCoptConstraintSign(),
-                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.rhs[it.first].toSolverDouble("linear.constraints.rhs[${it.first}]"),
                                 model.constraints.names[it.first]
                             )
                         }
@@ -211,12 +216,12 @@ private class CoptLinearSolverImpl(
                     model.constraints.indices.map { i ->
                         val lhs = Expr()
                         for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+                            lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"))
                         }
                         coptModel.addConstr(
                             lhs,
                             CoptConstraintSign(model.constraints.signs[i]).toCoptConstraintSign(),
-                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.rhs[i].toSolverDouble("linear.constraints.rhs[$i]"),
                             model.constraints.names[i]
                         )
                     }
@@ -226,10 +231,10 @@ private class CoptLinearSolverImpl(
             coptConstraints = constraints
 
             val obj = Expr()
-            for (cell in model.objective.objective) {
-                obj.addTerm(coptVars[cell.colIndex], cell.coefficient.toDouble())
+            for ((index, cell) in model.objective.objective.withIndex()) {
+                obj.addTerm(coptVars[cell.colIndex], cell.coefficient.toSolverDouble("linear.objective.cells[$index].coefficient"))
             }
-            obj.addConstant(model.objective.constant.toDouble())
+            obj.addConstant(model.objective.constant.toSolverDouble("linear.objective.constant"))
             coptModel.setObjective(
                 obj,
                 when (model.objective.category) {
@@ -275,7 +280,7 @@ private class CoptLinearSolverImpl(
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
-            coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toDouble())
+                coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toSolverDouble("linear.config.gap"))
             coptModel.set(COPT.IntParam.Threads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -330,6 +335,7 @@ private class CoptLinearSolverImpl(
                                     },
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
+                                    bestBound = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
                                     gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                     currentBestSolution = currentBestSolution

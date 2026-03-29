@@ -7,7 +7,9 @@ import fuookami.ospf.kotlin.core.backend.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.backend.solver.iis.computeIIS
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.QuadraticInfeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.resolveInfeasibleUnifiedFields
 import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MechanismModelDumpingStatusCallBack
@@ -24,6 +26,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
+import kotlin.time.TimeSource
 
 interface AbstractQuadraticSolver {
     val name: String
@@ -38,7 +41,15 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        return when (val result = this(model, solvingStatusCallBack)) {
+        val solveStartedAt = TimeSource.Monotonic.markNow()
+        var latestSolvingStatus: SolvingStatus? = null
+        val bridgingSolvingStatusCallBack: SolvingStatusCallBack? = solvingStatusCallBack?.let { callback: SolvingStatusCallBack ->
+            { status: SolvingStatus ->
+                latestSolvingStatus = status
+                callback(status)
+            }
+        }
+        return when (val result = this(model, bridgingSolvingStatusCallBack)) {
             is Ok -> {
                 Ok(result.value)
             }
@@ -47,7 +58,20 @@ interface AbstractQuadraticSolver {
                 if (result.error.code == ErrorCode.ORModelInfeasible) {
                     when (val iisResult = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
-                            Ok(QuadraticInfeasibleSolverOutput(iisResult.value))
+                            val unifiedFields = resolveInfeasibleUnifiedFields(
+                                latestStatus = latestSolvingStatus,
+                                fallbackSolveTime = solveStartedAt.elapsedNow()
+                            )
+                            Ok(
+                                QuadraticInfeasibleSolverOutput(
+                                    iis = iisResult.value,
+                                    iterations = unifiedFields.iterations,
+                                    nodeCount = unifiedFields.nodeCount,
+                                    bestBound = unifiedFields.bestBound,
+                                    mipGap = unifiedFields.mipGap,
+                                    solveTime = unifiedFields.solveTime
+                                )
+                            )
                         }
 
                         is Failed -> {
@@ -115,10 +139,18 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
+        val solveStartedAt = TimeSource.Monotonic.markNow()
+        var latestSolvingStatus: SolvingStatus? = null
+        val bridgingSolvingStatusCallBack: SolvingStatusCallBack? = solvingStatusCallBack?.let { callback: SolvingStatusCallBack ->
+            { status: SolvingStatus ->
+                latestSolvingStatus = status
+                callback(status)
+            }
+        }
         return when (val result = this(
             model = model,
             solutionAmount = solutionAmount,
-            solvingStatusCallBack = solvingStatusCallBack
+            solvingStatusCallBack = bridgingSolvingStatusCallBack
         )) {
             is Ok -> {
                 Ok(result.value)
@@ -128,7 +160,20 @@ interface AbstractQuadraticSolver {
                 if (result.error.code == ErrorCode.ORModelInfeasible) {
                     when (val iisResult = computeIIS(model, this, iisConfig)) {
                         is Ok -> {
-                            Ok(QuadraticInfeasibleSolverOutput(iisResult.value) to emptyList())
+                            val unifiedFields = resolveInfeasibleUnifiedFields(
+                                latestStatus = latestSolvingStatus,
+                                fallbackSolveTime = solveStartedAt.elapsedNow()
+                            )
+                            Ok(
+                                QuadraticInfeasibleSolverOutput(
+                                    iis = iisResult.value,
+                                    iterations = unifiedFields.iterations,
+                                    nodeCount = unifiedFields.nodeCount,
+                                    bestBound = unifiedFields.bestBound,
+                                    mipGap = unifiedFields.mipGap,
+                                    solveTime = unifiedFields.solveTime
+                                ) to emptyList()
+                            )
                         }
 
                         is Failed -> {
@@ -192,12 +237,12 @@ interface AbstractQuadraticSolver {
         model: QuadraticMechanismModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
-        return dump(model).use { intermediateModel ->
-            this(
-                model = intermediateModel,
+        return solveWithOptions(
+            model = model,
+            options = SolveOptions(
                 solvingStatusCallBack = solvingStatusCallBack
             )
-        }
+        )
     }
 
     suspend operator fun invoke(
@@ -220,14 +265,13 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
-        return GlobalScope.future {
-            val result = this@AbstractQuadraticSolver.invoke(
-                model = model,
+        return solveAsync(
+            model = model,
+            options = SolveOptions(
                 solvingStatusCallBack = solvingStatusCallBack
-            )
-            callBack?.invoke(result)
-            result
-        }
+            ),
+            callBack = callBack
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -339,9 +383,11 @@ interface AbstractQuadraticSolver {
                 return Fatal(result.errors)
             }
         }.use {
-            this(
+            solveWithOptions(
                 model = it,
-                solvingStatusCallBack = solvingStatusCallBack
+                options = SolveOptions(
+                    solvingStatusCallBack = solvingStatusCallBack
+                )
             )
         }
     }

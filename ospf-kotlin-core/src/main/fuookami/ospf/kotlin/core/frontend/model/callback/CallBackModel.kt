@@ -4,6 +4,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.Expression
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.model.MulObj
+import fuookami.ospf.kotlin.core.frontend.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
@@ -400,8 +402,256 @@ class CallBackModel internal constructor(
     }
 }
 
-// todo
-class MultiObjectCallBackModel
+class MultiObjectCallBackModel internal constructor(
+    category: Category = Nonlinear,
+    override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
+    override val objectiveLocation: List<MultiObjectLocation>,
+    override val tokens: AbstractMutableTokenTable = ManualTokenTable(category),
+    private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
+    private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution>, String>> = ArrayList(),
+    private val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+) : MultiObjectiveModelInterface {
+    companion object {
+        operator fun invoke(
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            objectiveLocation: List<MultiObjectLocation> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
+            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+        ) = MultiObjectCallBackModel(
+            objectCategory = objectCategory,
+            objectiveLocation = objectiveLocation,
+            initialSolutionsGenerator = initialSolutionGenerator
+        )
+    }
+
+    init {
+        require(objectiveLocation.isNotEmpty()) {
+            "objectiveLocation can not be empty."
+        }
+    }
+
+    override val constraints by ::_constraints
+    override val objectiveFunctions by ::_objectiveFunctions
+
+    private val priorityToIndex = objectiveLocation
+        .withIndex()
+        .associate { (index, location) -> location.priority to index }
+
+    private val defaultLocation: MultiObjectLocation
+        get() = objectiveLocation.first()
+
+    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> {
+        return (UInt64.zero until initialSolutionAmount).map { solution ->
+            (UInt64.zero until UInt64(tokens.tokensInSolver.size)).map { variable ->
+                initialSolutionsGenerator(solution to variable)
+            }
+        }
+    }
+
+    override fun objectiveValue(obj: MulObj): List<Flt64> {
+        val value = MutableList(objectiveSize) { Flt64.zero }
+        for ((location, objective) in obj) {
+            val index = priorityToIndex[location.priority] ?: continue
+            value[index] = value[index] + objective * location.weight
+        }
+        return value
+    }
+
+    override fun compareObjective(lhs: List<Flt64>, rhs: List<Flt64>): Order? {
+        val size = minOf(lhs.size, rhs.size)
+        for (i in 0 until size) {
+            val l = lhs[i]
+            val r = rhs[i]
+            if (l eq r) {
+                continue
+            }
+
+            return when (objectCategory) {
+                ObjectCategory.Minimum -> {
+                    if (l ls r) {
+                        Order.Less()
+                    } else {
+                        Order.Greater()
+                    }
+                }
+
+                ObjectCategory.Maximum -> {
+                    if (l gr r) {
+                        Order.Less()
+                    } else {
+                        Order.Greater()
+                    }
+                }
+            }
+        }
+
+        return if (lhs.size < rhs.size) {
+            Order.Less()
+        } else if (lhs.size > rhs.size) {
+            Order.Greater()
+        } else {
+            Order.Equal
+        }
+    }
+
+    override fun add(item: AbstractVariableItem<*, *>): Try {
+        tokens.add(item)
+        return ok
+    }
+
+    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
+        tokens.add(items)
+        return ok
+    }
+
+    override fun remove(item: AbstractVariableItem<*, *>) {
+        tokens.remove(item)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun addConstraint(
+        inequality: Inequality<*, *>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        _constraints.add(
+            Pair(
+                { solution: Solution -> inequality.isTrue(solution, tokens) },
+                name ?: String()
+            )
+        )
+    }
+
+    override fun addObject(
+        category: ObjectCategory,
+        variable: AbstractVariableItem<*, *>,
+        name: String?,
+        displayName: String?
+    ): Try {
+        return addObject(
+            category = category,
+            expression = LinearPolynomial(variable),
+            location = defaultLocation,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    override fun <T : RealNumber<T>> addObject(
+        category: ObjectCategory,
+        constant: T,
+        name: String?,
+        displayName: String?
+    ): Try {
+        return addObject(
+            category = category,
+            expression = LinearPolynomial(constant),
+            location = defaultLocation,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun addObject(
+        category: ObjectCategory,
+        expression: Expression,
+        location: MultiObjectLocation,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = category,
+            func = { solution -> expression.evaluate(solution, tokens) },
+            location = location,
+            name = name
+        )
+    }
+
+    fun addObject(
+        category: ObjectCategory,
+        polynomial: Polynomial<*, *, *>,
+        location: MultiObjectLocation,
+        name: String? = null
+    ): Try {
+        return addObject(
+            category = category,
+            func = { solution -> polynomial.evaluate(solution, tokens) },
+            location = location,
+            name = name
+        )
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun addObject(
+        category: ObjectCategory,
+        func: Extractor<Flt64?, Solution>,
+        location: MultiObjectLocation,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        _objectiveFunctions.add(
+            Pair(
+                { solution: Solution ->
+                    func(solution)?.let {
+                        if (category == objectCategory) {
+                            listOf(location to it)
+                        } else {
+                            listOf(location to -it)
+                        }
+                    }
+                },
+                name ?: String()
+            )
+        )
+        return ok
+    }
+
+    fun maximize(
+        location: MultiObjectLocation,
+        expression: Expression,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            expression = expression,
+            location = location,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    fun minimize(
+        location: MultiObjectLocation,
+        expression: Expression,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            expression = expression,
+            location = location,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    override fun setSolution(solution: Solution) {
+        tokens.setSolution(solution)
+    }
+
+    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        tokens.setSolution(solution)
+    }
+
+    override fun flush() {
+        tokens.flush()
+    }
+
+    override fun clearSolution() {
+        tokens.clearSolution()
+    }
+}
 
 
 

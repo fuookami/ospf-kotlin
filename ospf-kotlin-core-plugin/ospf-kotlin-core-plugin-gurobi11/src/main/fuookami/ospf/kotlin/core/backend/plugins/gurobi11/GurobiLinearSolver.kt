@@ -2,14 +2,18 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
 
-import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
-import fuookami.ospf.kotlin.core.backend.solver.config.GurobiSolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
+import com.gurobi.gurobi.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.GurobiSolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
@@ -152,9 +156,11 @@ private class GurobiLinearSolverImpl(
 
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
+            warnIgnoredConstraintPriority("gurobi11", model.nonNullConstraintPriorityAmount())
+
             grbVars = grbModel.addVars(
-                model.variables.map { it.lowerBound.toDouble() }.toDoubleArray(),
-                model.variables.map { it.upperBound.toDouble() }.toDoubleArray(),
+                model.variables.mapIndexed { index, variable -> variable.lowerBound.toSolverDouble("linear.variables[$index].lowerBound") }.toDoubleArray(),
+                model.variables.mapIndexed { index, variable -> variable.upperBound.toSolverDouble("linear.variables[$index].upperBound") }.toDoubleArray(),
                 null,
                 model.variables.map { GurobiVariable(it.type).toGurobiVar() }.toCharArray(),
                 model.variables.map { it.name }.toTypedArray(),
@@ -164,7 +170,7 @@ private class GurobiLinearSolverImpl(
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    grbVars[col].set(GRB.DoubleAttr.Start, it.toDouble())
+                    grbVars[col].set(GRB.DoubleAttr.Start, it.toSolverDouble("linear.variables[$col].initialResult"))
                 }
             }
 
@@ -181,7 +187,7 @@ private class GurobiLinearSolverImpl(
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = GRBLinExpr()
                                 for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
+                                    lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), grbVars[cell.colIndex])
                                 }
                                 ii to lhs
                             }
@@ -196,7 +202,7 @@ private class GurobiLinearSolverImpl(
                             grbModel.addConstr(
                                 it.second,
                                 GurobiConstraintSign(model.constraints.signs[it.first]).toGurobiConstraintSign(),
-                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.rhs[it.first].toSolverDouble("linear.constraints.rhs[${it.first}]"),
                                 model.constraints.names[it.first]
                             )
                         }
@@ -209,12 +215,12 @@ private class GurobiLinearSolverImpl(
                     model.constraints.indices.map { i ->
                         val lhs = GRBLinExpr()
                         for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
+                            lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), grbVars[cell.colIndex])
                         }
                         grbModel.addConstr(
                             lhs,
                             GurobiConstraintSign(model.constraints.signs[i]).toGurobiConstraintSign(),
-                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.rhs[i].toSolverDouble("linear.constraints.rhs[$i]"),
                             model.constraints.names[i]
                         )
                     }
@@ -225,9 +231,9 @@ private class GurobiLinearSolverImpl(
 
             val obj = GRBLinExpr()
             for (cell in model.objective.objective) {
-                obj.addTerm(cell.coefficient.toDouble(), grbVars[cell.colIndex])
+                obj.addTerm(cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"), grbVars[cell.colIndex])
             }
-            obj.addConstant(model.objective.constant.toDouble())
+            obj.addConstant(model.objective.constant.toSolverDouble("linear.objective.constant"))
             grbModel.setObjective(
                 obj, when (model.objective.category) {
                     ObjectCategory.Minimum -> {
@@ -272,7 +278,7 @@ private class GurobiLinearSolverImpl(
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
-            grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toDouble())
+            grbModel.set(GRB.DoubleParam.MIPGap, config.gap.toSolverDouble("linear.config.gap"))
             grbModel.set(GRB.IntParam.Threads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -330,6 +336,7 @@ private class GurobiLinearSolverImpl(
                                         time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
+                                        bestBound = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                         currentBestSolution = bestSolution

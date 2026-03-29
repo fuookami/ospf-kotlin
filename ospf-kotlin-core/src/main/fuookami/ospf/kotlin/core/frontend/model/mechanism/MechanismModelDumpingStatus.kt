@@ -1,5 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStage
+import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStatus
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
@@ -47,6 +49,32 @@ data class MechanismModelDumpingStatus(
 }
 
 typealias MechanismModelDumpingStatusCallBack = (MechanismModelDumpingStatus) -> Try
+
+fun MechanismModelDumpingStatus.toModelBuildingStatus(
+    modelName: String,
+    quadratic: Boolean = false
+): ModelBuildingStatus {
+    val constraintStage = if (quadratic) {
+        ModelBuildingStage.RegisterQuadraticConstraints
+    } else {
+        ModelBuildingStage.RegisterLinearConstraints
+    }
+    return if (readyConstraintAmount ls totalConstraintAmount) {
+        ModelBuildingStatus(
+            modelName = modelName,
+            stage = constraintStage,
+            ready = readyConstraintAmount,
+            total = totalConstraintAmount
+        )
+    } else {
+        ModelBuildingStatus(
+            modelName = modelName,
+            stage = ModelBuildingStage.RegisterSymbols,
+            ready = readySymbolAmount,
+            total = totalSymbolAmount
+        )
+    }
+}
 
 
 

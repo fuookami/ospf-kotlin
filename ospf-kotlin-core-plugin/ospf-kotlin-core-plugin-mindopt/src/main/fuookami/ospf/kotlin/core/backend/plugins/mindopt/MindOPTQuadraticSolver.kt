@@ -2,13 +2,17 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.mindopt
 
-import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
+import com.alibaba.damo.mindopt.*
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
@@ -132,10 +136,12 @@ private class MindOPTQuadraticSolverImpl(
 
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
+            warnIgnoredConstraintPriority("mindopt", model.nonNullConstraintPriorityAmount())
+
             mindoptVars = model.variables.map {
                 mindoptModel.addVar(
-                    it.lowerBound.toDouble(),
-                    it.upperBound.toDouble(),
+                    it.lowerBound.toSolverDouble("quadratic.variables[${it.name}].lowerBound"),
+                    it.upperBound.toSolverDouble("quadratic.variables[${it.name}].upperBound"),
                     0.0,
                     MindOPTVariable(it.type).toMindOPTVar(),
                     it.name
@@ -144,7 +150,7 @@ private class MindOPTQuadraticSolverImpl(
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    mindoptVars[col].set(MDO.DoubleAttr.Start, it.toDouble())
+                    mindoptVars[col].set(MDO.DoubleAttr.Start, it.toSolverDouble("quadratic.variables[$col].initialResult"))
                 }
             }
 
@@ -158,9 +164,9 @@ private class MindOPTQuadraticSolverImpl(
                                 val lhs = MDOQuadExpr()
                                 for (cell in model.constraints.lhs[ii]) {
                                     if (cell.colIndex2 != null) {
-                                        lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
+                                        lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
                                     } else {
-                                        lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1])
+                                        lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"), mindoptVars[cell.colIndex1])
                                     }
                                 }
                                 ii to lhs
@@ -176,7 +182,7 @@ private class MindOPTQuadraticSolverImpl(
                             mindoptModel.addQConstr(
                                 it.second,
                                 MindOPTConstraintSign(model.constraints.signs[it.first]).toMindOPTConstraintSign(),
-                                model.constraints.rhs[it.first].toDouble(),
+                                model.constraints.rhs[it.first].toSolverDouble("quadratic.constraints.rhs[${it.first}]"),
                                 model.constraints.names[it.first]
                             )
                         }
@@ -190,15 +196,15 @@ private class MindOPTQuadraticSolverImpl(
                         val lhs = MDOQuadExpr()
                         for (cell in model.constraints.lhs[i]) {
                             if (cell.colIndex2 != null) {
-                                lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
+                                lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
                             } else {
-                                lhs.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1])
+                                lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"), mindoptVars[cell.colIndex1])
                             }
                         }
                         mindoptModel.addQConstr(
                             lhs,
                             MindOPTConstraintSign(model.constraints.signs[i]).toMindOPTConstraintSign(),
-                            model.constraints.rhs[i].toDouble(),
+                            model.constraints.rhs[i].toSolverDouble("quadratic.constraints.rhs[$i]"),
                             model.constraints.names[i]
                         )
                     }
@@ -210,12 +216,12 @@ private class MindOPTQuadraticSolverImpl(
             val obj = MDOQuadExpr()
             for (cell in model.objective.objective) {
                 if (cell.colIndex2 != null) {
-                    obj.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
+                    obj.addTerm(cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1},${cell.colIndex2}].coefficient"), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
                 } else {
-                    obj.addTerm(cell.coefficient.toDouble(), mindoptVars[cell.colIndex1])
+                    obj.addTerm(cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1}].coefficient"), mindoptVars[cell.colIndex1])
                 }
             }
-            obj.addConstant(model.objective.constant.toDouble())
+            obj.addConstant(model.objective.constant.toSolverDouble("quadratic.objective.constant"))
             mindoptModel.setObjective(
                 obj,
                 when (model.objective.category) {
@@ -261,7 +267,7 @@ private class MindOPTQuadraticSolverImpl(
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
-            mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toDouble())
+            mindoptModel.set(MDO.DoubleParam.MIP_GapAbs, config.gap.toSolverDouble("quadratic.config.gap"))
             mindoptModel.set(MDO.IntParam.NumThreads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -312,6 +318,7 @@ private class MindOPTQuadraticSolverImpl(
                                         time = currentTime,
                                         obj = currentObj,
                                         possibleBestObj = currentBound,
+                                        bestBound = currentBound,
                                         initialBestObj = initialBestObj ?: currentObj,
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision)
                                     )

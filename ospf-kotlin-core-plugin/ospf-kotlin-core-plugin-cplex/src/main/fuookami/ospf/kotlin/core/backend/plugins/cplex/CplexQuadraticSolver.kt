@@ -2,13 +2,17 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.cplex
 
-import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.gap
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
+import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.backend.solver.gap
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -144,10 +148,12 @@ private class CplexQuadraticSolverImpl(
     }
 
     private suspend fun dump(model: QuadraticTetradModelView): Try {
+        warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
+
         cplexVars = model.variables.map {
             cplex.numVar(
-                it.lowerBound.toDouble(),
-                it.upperBound.toDouble(),
+                it.lowerBound.toSolverDouble("quadratic.variables[${it.name}].lowerBound"),
+                it.upperBound.toSolverDouble("quadratic.variables[${it.name}].upperBound"),
                 CplexVariable(it.type).toCplexVar()
             )
         }.toList()
@@ -155,7 +161,7 @@ private class CplexQuadraticSolverImpl(
         if (cplex.isMIP && model.variables.any { it.initialResult != null }) {
             val initialSolution = model.variables.withIndex()
                 .filter { it.value.initialResult != null }
-                .map { Pair(cplexVars[it.index], it.value.initialResult!!.toDouble()) }
+                .map { Pair(cplexVars[it.index], it.value.initialResult!!.toSolverDouble("quadratic.variables[${it.index}].initialResult")) }
             cplex.addMIPStart(
                 initialSolution.map { it.first }.toTypedArray(),
                 initialSolution.map { it.second }.toDoubleArray()
@@ -192,9 +198,9 @@ private class CplexQuadraticSolverImpl(
                             val lhs = cplex.lqNumExpr()
                             for (cell in model.constraints.lhs[ii]) {
                                 if (cell.colIndex2 == null) {
-                                    lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex1])
+                                    lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"), cplexVars[cell.colIndex1])
                                 } else {
-                                    lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex1], cplexVars[cell.colIndex2!!])
+                                    lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"), cplexVars[cell.colIndex1], cplexVars[cell.colIndex2!!])
                                 }
                             }
                             ii to Triple(lb, lhs, ub)
@@ -209,9 +215,9 @@ private class CplexQuadraticSolverImpl(
                     val result = promise.await().map {
                         val (lb, lhs, ub) = it.second
                         val cplexConstraint = cplex.range(
-                            lb.toDouble(),
+                            lb.toSolverDouble("quadratic.constraints.bounds[${it.first}].lower"),
                             lhs,
-                            ub.toDouble(),
+                            ub.toSolverDouble("quadratic.constraints.bounds[${it.first}].upper"),
                             model.constraints.names[it.first]
                         )
                         cplex.add(cplexConstraint)
@@ -243,15 +249,15 @@ private class CplexQuadraticSolverImpl(
                     val lhs = cplex.lqNumExpr()
                     for (cell in model.constraints.lhs[i]) {
                         if (cell.colIndex2 == null) {
-                            lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex1])
+                            lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"), cplexVars[cell.colIndex1])
                         } else {
-                            lhs.addTerm(cell.coefficient.toDouble(), cplexVars[cell.colIndex1], cplexVars[cell.colIndex2!!])
+                            lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"), cplexVars[cell.colIndex1], cplexVars[cell.colIndex2!!])
                         }
                     }
                     val cplexConstraint = cplex.range(
-                        lb.toDouble(),
+                        lb.toSolverDouble("quadratic.constraints.bounds[$i].lower"),
                         lhs,
-                        ub.toDouble(),
+                        ub.toSolverDouble("quadratic.constraints.bounds[$i].upper"),
                         model.constraints.names[i]
                     )
                     cplex.add(cplexConstraint)
@@ -266,12 +272,12 @@ private class CplexQuadraticSolverImpl(
         for (cell in model.objective.objective) {
             if (cell.colIndex2 == null) {
                 objective.addTerm(
-                    cell.coefficient.toDouble(),
+                    cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1}].coefficient"),
                     cplexVars[cell.colIndex1]
                 )
             } else {
                 objective.addTerm(
-                    cell.coefficient.toDouble(),
+                    cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1},${cell.colIndex2}].coefficient"),
                     cplexVars[cell.colIndex1],
                     cplexVars[cell.colIndex2!!]
                 )
@@ -309,7 +315,7 @@ private class CplexQuadraticSolverImpl(
 
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
-        cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toDouble())
+        cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toSolverDouble("quadratic.config.gap"))
         cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
         cplex.setParam(IloCplex.IntParam.OptimalityTarget, IloCplex.OptimalityTarget.OptimalGlobal)
 
@@ -365,6 +371,7 @@ private class CplexQuadraticSolverImpl(
                                 time = currentTime,
                                 obj = currentObj,
                                 possibleBestObj = currentBound,
+                                bestBound = currentBound,
                                 initialBestObj = initialBestObj ?: currentObj,
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                 currentBestSolution = currentBestSolution

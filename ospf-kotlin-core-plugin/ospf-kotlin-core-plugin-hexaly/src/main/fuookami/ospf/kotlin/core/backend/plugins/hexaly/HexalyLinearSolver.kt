@@ -2,16 +2,20 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.hexaly
 
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
 import com.hexaly.optimizer.HxCallbackType
 import com.hexaly.optimizer.HxException
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxObjectiveDirection
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -123,13 +127,15 @@ private class HexalyLinearSolverImpl(
 
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
+            warnIgnoredConstraintPriority("hexaly", model.nonNullConstraintPriorityAmount())
+
             hexalyVars = model.variables.map {
                 HexalyVariable(hexalyModel, it.type, it.lowerBound, it.upperBound).toHexalyVariable()
             }
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    hexalyVars[col].setValue(it.toDouble())
+                    hexalyVars[col].setValue(it.toSolverDouble("linear.variables[$col].initialResult"))
                 }
             }
 
@@ -147,7 +153,7 @@ private class HexalyLinearSolverImpl(
                                 val lhs = hexalyModel.sum()
                                 for (cell in model.constraints.lhs[ii]) {
                                     lhs.addOperands(
-                                        hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex])
+                                        hexalyModel.prod(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), hexalyVars[cell.colIndex])
                                     )
                                 }
                                 ii to lhs
@@ -162,15 +168,15 @@ private class HexalyLinearSolverImpl(
                         val result = promise.await().map {
                             val constraint = when (model.constraints.signs[it.first]) {
                                 Sign.LessEqual -> {
-                                    hexalyModel.leq(it.second, model.constraints.rhs[it.first].toDouble())
+                                    hexalyModel.leq(it.second, model.constraints.rhs[it.first].toSolverDouble("linear.constraints.rhs[${it.first}]"))
                                 }
 
                                 Sign.Equal -> {
-                                    hexalyModel.eq(it.second, model.constraints.rhs[it.first].toDouble())
+                                    hexalyModel.eq(it.second, model.constraints.rhs[it.first].toSolverDouble("linear.constraints.rhs[${it.first}]"))
                                 }
 
                                 Sign.GreaterEqual -> {
-                                    hexalyModel.geq(it.second, model.constraints.rhs[it.first].toDouble())
+                                    hexalyModel.geq(it.second, model.constraints.rhs[it.first].toSolverDouble("linear.constraints.rhs[${it.first}]"))
                                 }
                             }
                             hexalyModel.constraint(constraint)
@@ -186,20 +192,20 @@ private class HexalyLinearSolverImpl(
                         val lhs = hexalyModel.sum()
                         for (cell in model.constraints.lhs[i]) {
                             lhs.addOperands(
-                                hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex])
+                                hexalyModel.prod(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), hexalyVars[cell.colIndex])
                             )
                         }
                         val constraint = when (model.constraints.signs[i]) {
                             Sign.LessEqual -> {
-                                hexalyModel.leq(lhs, model.constraints.rhs[i].toDouble())
+                                hexalyModel.leq(lhs, model.constraints.rhs[i].toSolverDouble("linear.constraints.rhs[$i]"))
                             }
 
                             Sign.Equal -> {
-                                hexalyModel.eq(lhs, model.constraints.rhs[i].toDouble())
+                                hexalyModel.eq(lhs, model.constraints.rhs[i].toSolverDouble("linear.constraints.rhs[$i]"))
                             }
 
                             Sign.GreaterEqual -> {
-                                hexalyModel.geq(lhs, model.constraints.rhs[i].toDouble())
+                                hexalyModel.geq(lhs, model.constraints.rhs[i].toSolverDouble("linear.constraints.rhs[$i]"))
                             }
                         }
                         hexalyModel.constraint(constraint)
@@ -212,9 +218,9 @@ private class HexalyLinearSolverImpl(
 
             val obj = hexalyModel.sum()
             for (cell in model.objective.objective) {
-                obj.addOperands(hexalyModel.prod(cell.coefficient.toDouble(), hexalyVars[cell.colIndex]))
+                obj.addOperands(hexalyModel.prod(cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"), hexalyVars[cell.colIndex]))
             }
-            obj.addOperand(model.objective.constant.toDouble())
+            obj.addOperand(model.objective.constant.toSolverDouble("linear.objective.constant"))
             when (model.objective.category) {
                 ObjectCategory.Maximum -> {
                     hexalyModel.maximize(obj)
@@ -260,7 +266,7 @@ private class HexalyLinearSolverImpl(
         return try {
             optimizer.param.timeLimit = config.time.toInt(DurationUnit.SECONDS)
             optimizer.param.nbThreads = config.threadNum.toInt()
-            optimizer.param.setDoubleObjectiveThreshold(0, config.gap.toDouble())
+            optimizer.param.setDoubleObjectiveThreshold(0, config.gap.toSolverDouble("linear.config.gap"))
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
                 optimizer.addCallback(HxCallbackType.IterationTicked) { optimizer, callBackType ->
@@ -315,6 +321,7 @@ private class HexalyLinearSolverImpl(
                                     time = currentTime,
                                     obj = currentObj,
                                     possibleBestObj = currentBound,
+                                    bestBound = currentBound,
                                     initialBestObj = initialBestObj ?: currentObj,
                                     gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                     currentBestSolution = currentBestSolution

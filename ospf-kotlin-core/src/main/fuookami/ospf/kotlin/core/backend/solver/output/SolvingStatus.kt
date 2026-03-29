@@ -23,7 +23,12 @@ data class SolvingStatus(
     val possibleBestObj: Flt64,
     val initialBestObj: Flt64,
     val gap: Flt64,
-    val currentBestSolution: List<Flt64>? = null
+    val currentBestSolution: List<Flt64>? = null,
+    val iterations: UInt64? = null,
+    val nodeCount: UInt64? = null,
+    val bestBound: Flt64? = null,
+    val mipGap: Flt64 = gap,
+    val solveTime: Duration = time
 )
 
 typealias SolvingStatusCallBack = (SolvingStatus) -> Try

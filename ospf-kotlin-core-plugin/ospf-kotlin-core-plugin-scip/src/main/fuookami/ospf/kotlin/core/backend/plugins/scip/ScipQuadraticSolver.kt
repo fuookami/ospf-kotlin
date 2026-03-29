@@ -2,12 +2,17 @@
 
 package fuookami.ospf.kotlin.core.backend.plugins.scip
 
+import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+
 import fuookami.ospf.kotlin.core.backend.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.backend.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.backend.solver.gap
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
@@ -167,11 +172,13 @@ private class ScipQuadraticSolverImpl(
     }
 
     private suspend fun dump(model: QuadraticTetradModelView): Try {
+        warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
+
         scipVars = model.variables.map {
             scip.createVar(
                 it.name,
-                it.lowerBound.toDouble(),
-                it.upperBound.toDouble(),
+                it.lowerBound.toSolverDouble("quadratic.variables[${it.name}].lowerBound"),
+                it.upperBound.toSolverDouble("quadratic.variables[${it.name}].upperBound"),
                 0.0,
                 ScipVariable(it.type).toSCIPVar()
             )
@@ -181,13 +188,13 @@ private class ScipQuadraticSolverImpl(
         if (withResultAmount == model.variables.size) {
             val initialSolution = scip.createSol()
             for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
-                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toSolverDouble("quadratic.variables[$col].initialResult"))
             }
             scip.addSolFree(initialSolution)
         } else if (withResultAmount > 0) {
             val initialSolution = scip.createPartialSol()
             for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
-                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toDouble())
+                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toSolverDouble("quadratic.variables[$col].initialResult"))
             }
             scip.addSolFree(initialSolution)
         }
@@ -227,11 +234,11 @@ private class ScipQuadraticSolverImpl(
                             for (cell in model.constraints.lhs[ii]) {
                                 if (cell.colIndex2 == null) {
                                     linearVars.add(scipVars[cell.colIndex1])
-                                    linerCoefficients.add(cell.coefficient.toDouble())
+                                    linerCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"))
                                 } else {
                                     quadraticVars1.add(scipVars[cell.colIndex1])
                                     quadraticVars2.add(scipVars[cell.colIndex2!!])
-                                    quadraticCoefficients.add(cell.coefficient.toDouble())
+                                    quadraticCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"))
                                 }
                             }
                             ii to Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
@@ -255,8 +262,8 @@ private class ScipQuadraticSolverImpl(
                             quadraticCoefficients.toDoubleArray(),
                             linearVars.toTypedArray(),
                             linerCoefficients.toDoubleArray(),
-                            lb.toDouble(),
-                            ub.toDouble()
+                            lb.toSolverDouble("quadratic.constraints.bounds[${it.first}].lower"),
+                            ub.toSolverDouble("quadratic.constraints.bounds[${it.first}].upper")
                         )
                         scip.addCons(constraint)
                         constraint
@@ -292,11 +299,11 @@ private class ScipQuadraticSolverImpl(
                     for (cell in model.constraints.lhs[i]) {
                         if (cell.colIndex2 == null) {
                             linearVars.add(scipVars[cell.colIndex1])
-                            linerCoefficients.add(cell.coefficient.toDouble())
+                            linerCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"))
                         } else {
                             quadraticVars1.add(scipVars[cell.colIndex1])
                             quadraticVars2.add(scipVars[cell.colIndex2!!])
-                            quadraticCoefficients.add(cell.coefficient.toDouble())
+                            quadraticCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"))
                         }
                     }
                     val constraint = scip.createConsQuadratic(
@@ -306,8 +313,8 @@ private class ScipQuadraticSolverImpl(
                         quadraticCoefficients.toDoubleArray(),
                         linearVars.toTypedArray(),
                         linerCoefficients.toDoubleArray(),
-                        lb.toDouble(),
-                        ub.toDouble()
+                        lb.toSolverDouble("quadratic.constraints.bounds[$i].lower"),
+                        ub.toSolverDouble("quadratic.constraints.bounds[$i].upper")
                     )
                     scip.addCons(constraint)
                     constraint
@@ -321,7 +328,7 @@ private class ScipQuadraticSolverImpl(
         val qocons = ArrayList<jscip.Constraint>()
         for (cell in model.objective.objective) {
             if (cell.colIndex2 == null) {
-                scip.changeVarObj(scipVars[cell.colIndex1], cell.coefficient.toDouble())
+                scip.changeVarObj(scipVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1}].coefficient"))
             } else {
                 val qovar = scip.createVar(
                     "${scipVars[cell.colIndex1].name}_${scipVars[cell.colIndex2!!]}",
@@ -341,7 +348,7 @@ private class ScipQuadraticSolverImpl(
                     0.0
                 )
                 scip.addCons(qocon)
-                scip.changeVarObj(qovar, cell.coefficient.toDouble())
+                scip.changeVarObj(qovar, cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1},${cell.colIndex2}].coefficient"))
                 qovars.add(qovar)
                 qocons.add(qocon)
             }
@@ -381,7 +388,7 @@ private class ScipQuadraticSolverImpl(
 
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
-        scip.setRealParam("limits/gap", config.gap.toDouble())
+        scip.setRealParam("limits/gap", config.gap.toSolverDouble("quadratic.config.gap"))
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
@@ -443,6 +450,7 @@ private class ScipQuadraticSolverImpl(
                                 time = currentTime,
                                 obj = currentObj,
                                 possibleBestObj = currentBound,
+                                bestBound = currentBound,
                                 initialBestObj = initialBestObj ?: currentObj,
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                 currentBestSolution = currentBestSolution

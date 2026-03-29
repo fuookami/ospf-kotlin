@@ -335,7 +335,8 @@ data class MetaConstraint<Ineq : Inequality<*, *>>(
     val constraint: Ineq,
     val group: MetaConstraintGroup? = null,
     val lazy: Boolean = false,
-    val args: Any? = null
+    val args: Any? = null,
+    val priority: Int? = null
 ) {
     override fun toString(): String {
         return constraint.toString()
