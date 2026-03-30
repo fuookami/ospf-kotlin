@@ -9,6 +9,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.to
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.adapter.mergeLinearMonomialsByUtils
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.functional.Either
@@ -31,39 +36,62 @@ class LinearInequality(
     name: String = "",
     displayName: String? = null
 ) : Inequality<LinearInequality, LinearMonomialCell>(lhs, rhs, sign, name, displayName), ToLinearInequality, ToQuadraticInequality {
+    private val flattenCacheKey = newTokenCacheKey(
+        category = lhs.category,
+        prefix = "__linear_inequality_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return (lhs.dependencies + rhs.dependencies)
+            .asSequence()
+            .mapNotNull { boundTokenTableContext(it) }
+            .firstOrNull()
+    }
+
     override val cells: List<LinearMonomialCell>
         get() {
-            if (_cells.isEmpty()) {
-                val cells = HashMap<VariableItemKey, LinearMonomialCell>()
-                var constant = Flt64.zero
-                for (cell in lhs.cells) {
-                    when (val symbol = cell.cell) {
-                        is Either.Left -> {
-                            cells[symbol.value.variable.key] = cells[symbol.value.variable.key]?.let { it + cell } ?: cell
-                        }
-
-                        is Either.Right -> {
-                            constant += symbol.value
-                        }
-                    }
-                }
-                for (cell in rhs.cells) {
-                    when (val symbol = cell.cell) {
-                        is Either.Left -> {
-                            cells[symbol.value.variable.key] = cells[symbol.value.variable.key]?.let { it - cell } ?: -cell
-                        }
-
-                        is Either.Right -> {
-                            constant -= symbol.value
-                        }
-                    }
-                }
-                val ret = cells.map { it.value }.toMutableList()
-                ret.add(LinearMonomialCell(constant))
-                _cells = ret
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
+            if (cachedFlatten != null) {
+                return cachedFlatten.toLinearMonomialCells()
             }
-            return _cells
+
+            val cells = HashMap<VariableItemKey, LinearMonomialCell>()
+            var constant = Flt64.zero
+            for (cell in lhs.cells) {
+                when (val symbol = cell.cell) {
+                    is Either.Left -> {
+                        cells[symbol.value.variable.key] = cells[symbol.value.variable.key]?.let { it + cell } ?: cell
+                    }
+
+                    is Either.Right -> {
+                        constant += symbol.value
+                    }
+                }
+            }
+            for (cell in rhs.cells) {
+                when (val symbol = cell.cell) {
+                    is Either.Left -> {
+                        cells[symbol.value.variable.key] = cells[symbol.value.variable.key]?.let { it - cell } ?: -cell
+                    }
+
+                    is Either.Right -> {
+                        constant -= symbol.value
+                    }
+                }
+            }
+            val ret = cells.map { it.value }.toMutableList()
+            ret.add(LinearMonomialCell(constant))
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, ret.toLinearFlattenData())
+            return ret
         }
+
+    override fun flush(force: Boolean) {
+        super.flush(force)
+        if (force || !lhs.cached || !rhs.cached) {
+            cacheTokenTable()?.clearLinearFlatten(flattenCacheKey)
+        }
+    }
 
     override fun reverse(name: String?, displayName: String?): LinearInequality {
         return LinearInequality(

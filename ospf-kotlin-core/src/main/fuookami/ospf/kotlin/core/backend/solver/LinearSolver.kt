@@ -4,19 +4,14 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
 import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.backend.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.backend.solver.iis.computeIIS
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.LinearInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.resolveInfeasibleUnifiedFields
 import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -26,7 +21,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
-import kotlin.time.TimeSource
 
 interface AbstractLinearSolver {
     val name: String
@@ -41,59 +35,13 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        val solveStartedAt = TimeSource.Monotonic.markNow()
-        var latestSolvingStatus: SolvingStatus? = null
-        val bridgingSolvingStatusCallBack: SolvingStatusCallBack? = solvingStatusCallBack?.let { callback: SolvingStatusCallBack ->
-            { status: SolvingStatus ->
-                latestSolvingStatus = status
-                callback(status)
-            }
-        }
-        return when (val result = this(
+        return solveWithOptionsAndIIS(
             model = model,
-            solvingStatusCallBack = bridgingSolvingStatusCallBack
-        )) {
-            is Ok -> {
-                Ok(result.value)
-            }
-
-            is Failed -> {
-                if (result.error.code == ErrorCode.ORModelInfeasible) {
-                    when (val iisResult = computeIIS(model, this, iisConfig)) {
-                        is Ok -> {
-                            val unifiedFields = resolveInfeasibleUnifiedFields(
-                                latestStatus = latestSolvingStatus,
-                                fallbackSolveTime = solveStartedAt.elapsedNow()
-                            )
-                            Ok(
-                                LinearInfeasibleSolverOutput(
-                                    iis = iisResult.value,
-                                    iterations = unifiedFields.iterations,
-                                    nodeCount = unifiedFields.nodeCount,
-                                    bestBound = unifiedFields.bestBound,
-                                    mipGap = unifiedFields.mipGap,
-                                    solveTime = unifiedFields.solveTime
-                                )
-                            )
-                        }
-
-                        is Failed -> {
-                            Failed(iisResult.error)
-                        }
-
-                        is Fatal -> {
-                            Fatal(iisResult.errors)
-                        }
-                    }
-                } else {
-                    Failed(result.error)
-                }
-            }
-
-            is Fatal -> {
-                Fatal(result.errors)
-            }
-        }
+            options = SolveOptions(
+                solvingStatusCallBack = solvingStatusCallBack
+            ),
+            iisConfig = iisConfig
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -142,60 +90,14 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        val solveStartedAt = TimeSource.Monotonic.markNow()
-        var latestSolvingStatus: SolvingStatus? = null
-        val bridgingSolvingStatusCallBack: SolvingStatusCallBack? = solvingStatusCallBack?.let { callback: SolvingStatusCallBack ->
-            { status: SolvingStatus ->
-                latestSolvingStatus = status
-                callback(status)
-            }
-        }
-        return when (val result = this(
+        return solveWithOptionsAndIISForSolutionPool(
             model = model,
-            solutionAmount = solutionAmount,
-            solvingStatusCallBack = bridgingSolvingStatusCallBack
-        )) {
-            is Ok -> {
-                Ok(result.value)
-            }
-
-            is Failed -> {
-                if (result.error.code == ErrorCode.ORModelInfeasible) {
-                    when (val iisResult = computeIIS(model, this, iisConfig)) {
-                        is Ok -> {
-                            val unifiedFields = resolveInfeasibleUnifiedFields(
-                                latestStatus = latestSolvingStatus,
-                                fallbackSolveTime = solveStartedAt.elapsedNow()
-                            )
-                            Ok(
-                                LinearInfeasibleSolverOutput(
-                                    iis = iisResult.value,
-                                    iterations = unifiedFields.iterations,
-                                    nodeCount = unifiedFields.nodeCount,
-                                    bestBound = unifiedFields.bestBound,
-                                    mipGap = unifiedFields.mipGap,
-                                    solveTime = unifiedFields.solveTime
-                                ) to emptyList()
-                            )
-                        }
-
-                        is Failed -> {
-                            Failed(iisResult.error)
-                        }
-
-                        is Fatal -> {
-                            Fatal(iisResult.errors)
-                        }
-                    }
-                } else {
-                    Failed(result.error)
-                }
-            }
-
-            is Fatal -> {
-                Fatal(result.errors)
-            }
-        }
+            options = SolveOptions(
+                solutionAmount = solutionAmount,
+                solvingStatusCallBack = solvingStatusCallBack
+            ),
+            iisConfig = iisConfig
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -253,13 +155,13 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        return dump(model).use { intermediateModel ->
-            this(
-                model = intermediateModel,
-                solvingStatusCallBack = solvingStatusCallBack,
-                iisConfig = iisConfig
-            )
-        }
+        return solveWithOptionsAndIIS(
+            model = model,
+            options = SolveOptions(
+                solvingStatusCallBack = solvingStatusCallBack
+            ),
+            iisConfig = iisConfig
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -315,14 +217,14 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        return dump(model).use { intermediateModel ->
-            this(
-                model = intermediateModel,
+        return solveWithOptionsAndIISForSolutionPool(
+            model = model,
+            options = SolveOptions(
                 solutionAmount = solutionAmount,
-                solvingStatusCallBack = solvingStatusCallBack,
-                iisConfig = iisConfig
-            )
-        }
+                solvingStatusCallBack = solvingStatusCallBack
+            ),
+            iisConfig = iisConfig
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -402,29 +304,15 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
-        return when (val result = dump(
+        return solveWithOptionsAndIIS(
             model = model,
+            options = SolveOptions(
+                solvingStatusCallBack = solvingStatusCallBack
+            ),
+            iisConfig = iisConfig,
             registrationStatusCallBack = registrationStatusCallBack,
             dumpingStatusCallBack = dumpingStatusCallBack
-        )) {
-            is Ok -> {
-                result.value
-            }
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }.use {
-            this(
-                model = it,
-                solvingStatusCallBack = solvingStatusCallBack,
-                iisConfig = iisConfig
-            )
-        }
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -509,30 +397,16 @@ interface AbstractLinearSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<Pair<SolverOutput, List<Solution>>> {
-        return when (val result = dump(
+        return solveWithOptionsAndIISForSolutionPool(
             model = model,
-            registrationStatusCallBack = registrationStatusCallBack,
-            dumpingStatusCallBack = dumpingStatusCallBack,
-        )) {
-            is Ok -> {
-                result.value
-            }
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }.use {
-            this(
-                model = it,
+            options = SolveOptions(
                 solutionAmount = solutionAmount,
-                solvingStatusCallBack = solvingStatusCallBack,
-                iisConfig = iisConfig
-            )
-        }
+                solvingStatusCallBack = solvingStatusCallBack
+            ),
+            iisConfig = iisConfig,
+            registrationStatusCallBack = registrationStatusCallBack,
+            dumpingStatusCallBack = dumpingStatusCallBack
+        )
     }
 
     @OptIn(DelicateCoroutinesApi::class)

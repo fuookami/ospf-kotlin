@@ -16,23 +16,16 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
     var name: String = "",
     var displayName: String? = null
 ) {
-    protected var _cells: List<Cell> = emptyList()
     open val cells: List<Cell>
         get() {
-            if (_cells.isEmpty()) {
-                val notConstantCells = lhs.cells.filter { !it.isConstant } + rhs.cells.filter { !it.isConstant }.map { -it }
-                val constant = lhs.cells.mapNotNull { it.constant }.sum() + rhs.cells.mapNotNull { it.constant }.sum()
-                _cells = notConstantCells + listOf(MonomialCell(constant, lhs.category))
-            }
-            return _cells
+            val notConstantCells = lhs.cells.filter { !it.isConstant } + rhs.cells.filter { !it.isConstant }.map { -it }
+            val constant = lhs.cells.mapNotNull { it.constant }.sum() + rhs.cells.mapNotNull { it.constant }.sum()
+            return notConstantCells + listOf(MonomialCell(constant, lhs.category))
         }
 
-    fun flush(force: Boolean = false) {
+    open fun flush(force: Boolean = false) {
         lhs.flush(force)
         rhs.flush(force)
-        if (force || !lhs.cached || !rhs.cached) {
-            _cells = emptyList()
-        }
     }
 
     fun isTrue(

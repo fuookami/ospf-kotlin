@@ -322,7 +322,6 @@ private suspend fun performElasticFiltering(
     return Ok(false to emptyMap())
 }
 
-@Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: LinearTriadModelView,
@@ -332,7 +331,69 @@ private suspend fun performDeletionFiltering(
     constraintAmount: UInt64,
     config: IISConfig
 ): Ret<Pair<Set<Variable>, Set<Variable>>> {
-    TODO("not implemented yet")
+    val slackVariables = elasticModel.variables.filter { it.slack != null }.sortedBy { it.index }
+    if (slackVariables.isEmpty()) {
+        return Ok(emptySet<Variable>() to emptySet())
+    }
+
+    val activeRelaxedComponents = slackVariables.toMutableSet()
+    for (candidate in slackVariables) {
+        if (candidate !in activeRelaxedComponents) {
+            continue
+        }
+
+        candidate._upperBound = Flt64.zero
+        val feasible = when (val result = solver(elasticModel)) {
+            is Ok -> {
+                true
+            }
+
+            is Failed -> {
+                if (result.error.code == ErrorCode.ORModelInfeasible || result.error.code == ErrorCode.ORModelInfeasibleOrUnbounded) {
+                    false
+                } else {
+                    return Failed(result.error)
+                }
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+        }
+
+        if (feasible) {
+            activeRelaxedComponents.remove(candidate)
+        } else {
+            candidate._upperBound = Flt64.infinity
+        }
+
+        when (val callbackResult = config.computingStatusCallBack?.invoke(
+            true,
+            Clock.System.now() - startTime,
+            IISComputingStatus(
+                restBoundAmount = UInt64(activeRelaxedComponents.count {
+                    it.slack?.lowerBound != null || it.slack?.upperBound != null
+                }),
+                totalBoundAmount = boundAmount,
+                restConstraintAmount = UInt64(activeRelaxedComponents.count {
+                    it.slack?.constraint != null
+                }),
+                totalConstraintAmount = constraintAmount,
+            )
+        )) {
+            null -> {}
+            is Ok -> {}
+            is Failed -> {
+                return Failed(callbackResult.error)
+            }
+
+            is Fatal -> {
+                return Fatal(callbackResult.errors)
+            }
+        }
+    }
+
+    return Ok(activeRelaxedComponents to emptySet())
 }
 
 private suspend fun relaxSpecificComponents(

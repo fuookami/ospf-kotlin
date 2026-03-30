@@ -64,7 +64,7 @@ interface IntermediateSymbol : Symbol, Expression {
         if (values.isNullOrEmpty()) {
             prepare(null, tokenTable)?.let {
                 tokenTable.cache(
-                    symbol = this,
+                    cacheKey = this,
                     solution = null,
                     value = it
                 )
@@ -72,7 +72,7 @@ interface IntermediateSymbol : Symbol, Expression {
         } else {
             prepare(values, tokenTable)?.let {
                 tokenTable.cache(
-                    symbol = this,
+                    cacheKey = this,
                     fixedValues = values,
                     value = it
                 )
@@ -221,7 +221,10 @@ private fun IntermediateSymbol.evaluateWithCachedTokenTable(
     calculator: () -> Flt64?
 ): Flt64? {
     return if (tokenTable.cachedSolution) {
-        tokenTable.cacheIfNotCached(this, null) {
+        tokenTable.cacheIfNotCached(
+            cacheKey = this,
+            solution = null
+        ) {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
                     dependency.evaluate(
@@ -233,7 +236,10 @@ private fun IntermediateSymbol.evaluateWithCachedTokenTable(
             calculator()
         }
     } else {
-        tokenTable.cachedValue(this, null)
+        tokenTable.cachedValue(
+            cacheKey = this,
+            solution = null
+        )
     }
 }
 
@@ -269,7 +275,7 @@ private fun IntermediateSymbol.evaluateWithCachedTokenTable(
 ): Flt64? {
     values[this]?.let { value ->
         tokenTable?.cache(
-            symbol = this,
+            cacheKey = this,
             fixedValues = values,
             value = value
         )

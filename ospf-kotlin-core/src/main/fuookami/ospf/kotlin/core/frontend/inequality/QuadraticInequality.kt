@@ -12,6 +12,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSy
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.adapter.mergeQuadraticMonomialsByUtils
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.functional.Either
@@ -34,6 +39,18 @@ class QuadraticInequality(
     name: String = "",
     displayName: String? = null
 ) : Inequality<QuadraticInequality, QuadraticMonomialCell>(lhs, rhs, sign, name, displayName), ToQuadraticInequality {
+    private val flattenCacheKey = newTokenCacheKey(
+        category = lhs.category,
+        prefix = "__quadratic_inequality_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return (lhs.dependencies + rhs.dependencies)
+            .asSequence()
+            .mapNotNull { boundTokenTableContext(it) }
+            .firstOrNull()
+    }
+
     companion object {
         operator fun invoke(inequality: LinearInequality): QuadraticInequality {
             return QuadraticInequality(
@@ -48,39 +65,50 @@ class QuadraticInequality(
 
     override val cells: List<QuadraticMonomialCell>
         get() {
-            if (_cells.isEmpty()) {
-                val cells = HashMap<Pair<VariableItemKey, VariableItemKey?>, QuadraticMonomialCell>()
-                var constant = Flt64.zero
-                for (cell in lhs.cells) {
-                    when (val symbol = cell.cell) {
-                        is Either.Left -> {
-                            val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
-                            cells[key] = cells[key]?.let { it + cell } ?: cell
-                        }
-
-                        is Either.Right -> {
-                            constant += symbol.value
-                        }
-                    }
-                }
-                for (cell in rhs.cells) {
-                    when (val symbol = cell.cell) {
-                        is Either.Left -> {
-                            val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
-                            cells[key] = cells[key]?.let { it - cell } ?: -cell
-                        }
-
-                        is Either.Right -> {
-                            constant -= symbol.value
-                        }
-                    }
-                }
-                val ret = cells.map { it.value }.toMutableList()
-                ret.add(QuadraticMonomialCell(constant))
-                _cells = ret
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
+            if (cachedFlatten != null) {
+                return cachedFlatten.toQuadraticMonomialCells()
             }
-            return _cells
+
+            val cells = HashMap<Pair<VariableItemKey, VariableItemKey?>, QuadraticMonomialCell>()
+            var constant = Flt64.zero
+            for (cell in lhs.cells) {
+                when (val symbol = cell.cell) {
+                    is Either.Left -> {
+                        val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
+                        cells[key] = cells[key]?.let { it + cell } ?: cell
+                    }
+
+                    is Either.Right -> {
+                        constant += symbol.value
+                    }
+                }
+            }
+            for (cell in rhs.cells) {
+                when (val symbol = cell.cell) {
+                    is Either.Left -> {
+                        val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
+                        cells[key] = cells[key]?.let { it - cell } ?: -cell
+                    }
+
+                    is Either.Right -> {
+                        constant -= symbol.value
+                    }
+                }
+            }
+            val ret = cells.map { it.value }.toMutableList()
+            ret.add(QuadraticMonomialCell(constant))
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, ret.toQuadraticFlattenData())
+            return ret
         }
+
+    override fun flush(force: Boolean) {
+        super.flush(force)
+        if (force || !lhs.cached || !rhs.cached) {
+            cacheTokenTable()?.clearQuadraticFlatten(flattenCacheKey)
+        }
+    }
 
     override fun reverse(name: String?, displayName: String?): QuadraticInequality {
         return QuadraticInequality(

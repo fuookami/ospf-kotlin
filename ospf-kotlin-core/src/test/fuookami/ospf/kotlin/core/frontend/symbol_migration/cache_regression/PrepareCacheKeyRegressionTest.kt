@@ -20,7 +20,7 @@ class PrepareCacheKeyRegressionTest {
         val x = RealVar("x")
         val values = mapOf<Symbol, Flt64>(x to Flt64(3.0))
 
-        tokenTable.cache(symbol = key, solution = null, value = Flt64.one)
+        tokenTable.cache(cacheKey = key, solution = null, value = Flt64.one)
 
         assertTrue(key.shouldPrepare(values, tokenTable))
         assertFalse(key.shouldPrepareWithFixedCacheKey(values, tokenTable))
@@ -36,7 +36,7 @@ class PrepareCacheKeyRegressionTest {
         val x = RealVar("x")
         val values = mapOf<Symbol, Flt64>(x to Flt64(1.0))
 
-        tokenTable.cache(symbol = key, solution = null, value = Flt64.one)
+        tokenTable.cache(cacheKey = key, solution = null, value = Flt64.one)
 
         var fixedBlockInvoked = false
         val fixedResult = key.prepareIfNotCachedWithFixedCacheKey(values, tokenTable) {

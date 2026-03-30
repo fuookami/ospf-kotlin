@@ -13,6 +13,10 @@ import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
@@ -78,13 +82,32 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     abstract override val monomials: List<LinearMonomial>
     override val category get() = Linear
 
-    private var _range: ExpressionRange<Flt64>? = null
+    private val rangeCacheKey = newTokenCacheKey(
+        category = Linear,
+        prefix = "__linear_polynomial_range_cache__"
+    )
+    private val flattenCacheKey = newTokenCacheKey(
+        category = Linear,
+        prefix = "__linear_polynomial_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return dependencies
+            .asSequence()
+            .mapNotNull { boundTokenTableContext(it) }
+            .firstOrNull()
+    }
+
     override val range: ExpressionRange<Flt64>
         get() {
-            if (_range == null) {
-                _range = ExpressionRange(possibleRange(monomials, constant), Flt64)
+            val tokenTable = cacheTokenTable()
+            val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+            if (cachedRange != null) {
+                return cachedRange
             }
-            return _range!!
+            val range = ExpressionRange(possibleRange(monomials, constant), Flt64)
+            tokenTable?.cacheRange(rangeCacheKey, range)
+            return range
         }
 
     override val dependencies: Set<IntermediateSymbol>
@@ -102,15 +125,19 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
             }.toSet()
         }
 
-    private var _cells: List<LinearMonomialCell> = emptyList()
     override val cells: List<LinearMonomialCell>
         get() {
-            if (_cells.isEmpty()) {
-                _cells = cells(monomials, constant)
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
+            if (cachedFlatten != null) {
+                return cachedFlatten.toLinearMonomialCells()
             }
-            return _cells
+            val cells = cells(monomials, constant)
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, cells.toLinearFlattenData())
+            return cells
         }
-    override val cached: Boolean = _cells.isNotEmpty()
+    override val cached: Boolean
+        get() = cacheTokenTable()?.cachedLinearFlatten(flattenCacheKey) == true
 
     abstract operator fun plus(rhs: LinearIntermediateSymbol): Self
     abstract operator fun plus(rhs: Iterable<LinearIntermediateSymbol>): Self
@@ -180,14 +207,16 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     }
 
     override fun flush(force: Boolean) {
-        if (force || _range?.set == false) {
-            _range = null
+        val tokenTable = cacheTokenTable()
+        val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+        if (force || cachedRange?.set == false) {
+            tokenTable?.clearRange(rangeCacheKey)
         }
         for (monomial in monomials) {
             monomial.flush(force)
         }
         if (force || monomials.any { !it.cached }) {
-            _cells = emptyList()
+            tokenTable?.clearLinearFlatten(flattenCacheKey)
         }
     }
 

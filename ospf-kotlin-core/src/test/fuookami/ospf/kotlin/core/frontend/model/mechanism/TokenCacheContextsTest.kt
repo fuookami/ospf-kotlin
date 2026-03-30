@@ -1,0 +1,136 @@
+package fuookami.ospf.kotlin.core.frontend.model.mechanism
+
+import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+class TokenCacheContextsTest {
+    @Test
+    fun valueCacheContextShouldSeparateSolutionAndFixedCacheKey() {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "value_context_symbol"
+        )
+        val context = ValueCacheContext()
+        val fixedValues = mapOf<Symbol, Flt64>(symbol to Flt64(3.0))
+
+        assertFalse(context.cached(symbol, null))
+        assertFalse(context.cached(symbol, fixedValues))
+
+        context.put(symbol, null, Flt64.one)
+        context.put(symbol, fixedValues, Flt64(2.0))
+
+        assertTrue(context.cached(symbol, null))
+        assertTrue(context.cached(symbol, fixedValues))
+        assertEquals(Flt64.one, context.value(symbol, null))
+        assertEquals(Flt64(2.0), context.value(symbol, fixedValues))
+    }
+
+    @Test
+    fun tokenCacheContextsShouldFlushIndependently() {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "context_flush_symbol"
+        )
+        val contexts = TokenCacheContexts()
+        val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
+
+        contexts.linearFlatten.put(symbol, symbol.cells.toLinearFlattenData())
+        contexts.value.put(symbol, null, Flt64.one)
+        contexts.range.put(symbol, range)
+
+        contexts.clearFlatten()
+        assertFalse(contexts.linearFlatten.contains(symbol))
+        assertTrue(contexts.value.cached(symbol, null))
+        assertTrue(contexts.range.contains(symbol))
+
+        contexts.clearValue()
+        assertFalse(contexts.value.cached(symbol, null))
+        assertTrue(contexts.range.contains(symbol))
+
+        contexts.clearRange()
+        assertFalse(contexts.range.contains(symbol))
+    }
+
+    @Test
+    fun tokenTableShouldExposeFlattenAndRangeContext() {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "table_context_symbol"
+        )
+        val tokenTable = AutoTokenTable(Linear, false)
+
+        tokenTable.cacheLinearFlatten(symbol, symbol.cells.toLinearFlattenData())
+        tokenTable.cacheRange(symbol, symbol.range)
+
+        assertEquals(true, tokenTable.cachedLinearFlatten(symbol))
+        assertEquals(true, tokenTable.cachedRange(symbol))
+
+        tokenTable.flush()
+
+        assertEquals(false, tokenTable.cachedLinearFlatten(symbol))
+        assertEquals(false, tokenTable.cachedRange(symbol))
+    }
+
+    @Test
+    fun registerShouldPopulateFlattenAndRangeContext() {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "register_context_symbol"
+        )
+        val tokenTable = AutoTokenTable(Linear, false)
+
+        listOf(symbol).register(tokenTable)
+
+        assertEquals(true, tokenTable.cachedLinearFlatten(symbol))
+        assertEquals(true, tokenTable.cachedRange(symbol))
+    }
+
+    @Test
+    fun closeShouldUnbindTokenTableContext() {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "close_context_symbol"
+        )
+        val tokenTable = AutoTokenTable(Linear, false)
+
+        listOf(symbol).register(tokenTable)
+        assertEquals(tokenTable, boundTokenTableContext(symbol))
+
+        tokenTable.close()
+        assertEquals(null, boundTokenTableContext(symbol))
+    }
+
+    @Test
+    fun contextsShouldSupportNonSymbolCacheKey() {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "nonsymbol_cache_key"
+        )
+        val monomialKey = newTokenCacheKey(Linear, "__monomial_cache_key__")
+        val polynomialKey = newTokenCacheKey(Linear, "__polynomial_cache_key__")
+        val tokenTable = AutoTokenTable(Linear, false)
+        val fixedValues = emptyMap<Symbol, Flt64>()
+        val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
+        val flattened = symbol.cells.toLinearFlattenData()
+
+        tokenTable.cacheLinearFlatten(monomialKey, flattened)
+        tokenTable.cacheRange(polynomialKey, range)
+        tokenTable.cache(monomialKey, null, Flt64.one)
+        tokenTable.cache(polynomialKey, fixedValues, Flt64(2.0))
+
+        assertEquals(true, tokenTable.cachedLinearFlatten(monomialKey))
+        assertEquals(flattened, tokenTable.cachedLinearFlattenValue(monomialKey))
+        assertEquals(range, tokenTable.cachedRangeValue(polynomialKey))
+        assertEquals(Flt64.one, tokenTable.cachedValue(monomialKey, null))
+        assertEquals(Flt64(2.0), tokenTable.cachedValue(polynomialKey, fixedValues))
+    }
+}

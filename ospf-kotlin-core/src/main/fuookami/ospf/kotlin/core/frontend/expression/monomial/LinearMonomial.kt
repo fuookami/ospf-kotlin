@@ -5,7 +5,6 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.physics.unit.*
 import fuookami.ospf.kotlin.utils.physics.quantity.*
 import fuookami.ospf.kotlin.utils.concept.*
@@ -758,37 +757,69 @@ data class LinearMonomial(
         (coefficient.round() eq coefficient) && symbol.discrete
     }
 
-    private var _range: ExpressionRange<Flt64>? = null
+    private val rangeCacheKey = newTokenCacheKey(
+        category = category,
+        prefix = "__linear_monomial_range_cache__"
+    )
+    private val flattenCacheKey = newTokenCacheKey(
+        category = category,
+        prefix = "__linear_monomial_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return when (val cacheSymbol = symbol.symbol) {
+            is Either.Right -> {
+                boundTokenTableContext(cacheSymbol.value)
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
     override val range: ExpressionRange<Flt64>
         get() {
-            if (_range == null) {
-                _range = if (symbol.range.range != null) {
-                    (coefficient * symbol.range.range!!.toFlt64())?.let {
-                        ExpressionRange(it, Flt64)
-                    } ?: ExpressionRange(null, Flt64)
-                } else {
+            val tokenTable = cacheTokenTable()
+            val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+            if (cachedRange != null) {
+                return cachedRange
+            }
+            val range = if (symbol.range.range != null) {
+                (coefficient * symbol.range.range!!.toFlt64())?.let {
+                    ExpressionRange(it, Flt64)
+                } ?: run {
                     ExpressionRange(null, Flt64)
                 }
+            } else {
+                ExpressionRange(null, Flt64)
             }
-            return _range!!
+            tokenTable?.cacheRange(rangeCacheKey, range)
+            return range
         }
 
-    private var _cells: List<LinearMonomialCell> = emptyList()
     override val cells: List<LinearMonomialCell>
         get() {
-            if (_cells.isEmpty()) {
-                _cells = symbol.cells.map { it * coefficient }
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
+            if (cachedFlatten != null) {
+                return cachedFlatten.toLinearMonomialCells()
             }
-            return _cells
+            val cells = symbol.cells.map { it * coefficient }
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, cells.toLinearFlattenData())
+            return cells
         }
-    override val cached: Boolean = _cells.isNotEmpty()
+    override val cached: Boolean
+        get() = cacheTokenTable()?.cachedLinearFlatten(flattenCacheKey) == true
 
     override fun flush(force: Boolean) {
-        if (force || _range?.set == false) {
-            _range = null
+        val tokenTable = cacheTokenTable()
+        val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+        if (force || cachedRange?.set == false) {
+            tokenTable?.clearRange(rangeCacheKey)
         }
         if (force || !symbol.cached) {
-            _cells = emptyList()
+            tokenTable?.clearLinearFlatten(flattenCacheKey)
         }
     }
 

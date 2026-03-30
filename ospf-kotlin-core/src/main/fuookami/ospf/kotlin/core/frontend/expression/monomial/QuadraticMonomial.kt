@@ -9,6 +9,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.ExpressionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -1670,37 +1674,89 @@ class QuadraticMonomial(
         (coefficient.round() eq coefficient) && symbol.discrete
     }
 
-    private var _range: ExpressionRange<Flt64>? = null
+    private val rangeCacheKey = newTokenCacheKey(
+        category = Quadratic,
+        prefix = "__quadratic_monomial_range_cache__"
+    )
+    private val flattenCacheKey = newTokenCacheKey(
+        category = Quadratic,
+        prefix = "__quadratic_monomial_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        val symbol1TokenTable = when (val symbol = this.symbol.symbol1) {
+            is Variant3.V2 -> {
+                boundTokenTableContext(symbol.value)
+            }
+
+            is Variant3.V3 -> {
+                boundTokenTableContext(symbol.value)
+            }
+
+            else -> {
+                null
+            }
+        }
+        if (symbol1TokenTable != null) {
+            return symbol1TokenTable
+        }
+        return when (val symbol = this.symbol.symbol2) {
+            is Variant3.V2 -> {
+                boundTokenTableContext(symbol.value)
+            }
+
+            is Variant3.V3 -> {
+                boundTokenTableContext(symbol.value)
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
     override val range: ExpressionRange<Flt64>
         get() {
-            if (_range == null) {
-                _range = if (symbol.range.range != null) {
-                    (coefficient * symbol.range.range!!.toFlt64())?.let {
-                        ExpressionRange(it, Flt64)
-                    } ?: ExpressionRange(null, Flt64)
-                } else {
+            val tokenTable = cacheTokenTable()
+            val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+            if (cachedRange != null) {
+                return cachedRange
+            }
+            val range = if (symbol.range.range != null) {
+                (coefficient * symbol.range.range!!.toFlt64())?.let {
+                    ExpressionRange(it, Flt64)
+                } ?: run {
                     ExpressionRange(null, Flt64)
                 }
+            } else {
+                ExpressionRange(null, Flt64)
             }
-            return _range!!
+            tokenTable?.cacheRange(rangeCacheKey, range)
+            return range
         }
 
-    private var _cells: List<QuadraticMonomialCell> = emptyList()
     override val cells: List<QuadraticMonomialCell>
         get() {
-            if (_cells.isEmpty()) {
-                _cells = symbol.cells.map { it * coefficient }
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
+            if (cachedFlatten != null) {
+                return cachedFlatten.toQuadraticMonomialCells()
             }
-            return _cells
+            val cells = symbol.cells.map { it * coefficient }
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, cells.toQuadraticFlattenData())
+            return cells
         }
-    override val cached: Boolean = _cells.isNotEmpty()
+    override val cached: Boolean
+        get() = cacheTokenTable()?.cachedQuadraticFlatten(flattenCacheKey) == true
 
     override fun flush(force: Boolean) {
-        if (force || _range?.set == false) {
-            _range = null
+        val tokenTable = cacheTokenTable()
+        val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+        if (force || cachedRange?.set == false) {
+            tokenTable?.clearRange(rangeCacheKey)
         }
         if (force || !symbol.cached) {
-            _cells = emptyList()
+            tokenTable?.clearQuadraticFlatten(flattenCacheKey)
         }
     }
 

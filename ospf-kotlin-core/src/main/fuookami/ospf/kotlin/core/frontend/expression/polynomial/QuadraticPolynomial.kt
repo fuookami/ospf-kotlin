@@ -11,6 +11,10 @@ import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.ToQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Variant3
@@ -83,13 +87,32 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
     abstract override val monomials: List<QuadraticMonomial>
     override val category: Category get() = monomials.map { it.category }.maxOrNull() ?: Linear
 
-    private var _range: ExpressionRange<Flt64>? = null
+    private val rangeCacheKey = newTokenCacheKey(
+        category = Quadratic,
+        prefix = "__quadratic_polynomial_range_cache__"
+    )
+    private val flattenCacheKey = newTokenCacheKey(
+        category = Quadratic,
+        prefix = "__quadratic_polynomial_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return dependencies
+            .asSequence()
+            .mapNotNull { boundTokenTableContext(it) }
+            .firstOrNull()
+    }
+
     override val range: ExpressionRange<Flt64>
         get() {
-            if (_range == null) {
-                _range = ExpressionRange(possibleRange(monomials, constant), Flt64)
+            val tokenTable = cacheTokenTable()
+            val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+            if (cachedRange != null) {
+                return cachedRange
             }
-            return _range!!
+            val range = ExpressionRange(possibleRange(monomials, constant), Flt64)
+            tokenTable?.cacheRange(rangeCacheKey, range)
+            return range
         }
 
     override val dependencies: Set<IntermediateSymbol>
@@ -122,15 +145,19 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
             }.toSet()
         }
 
-    private var _cells: List<QuadraticMonomialCell> = emptyList()
     override val cells: List<QuadraticMonomialCell>
         get() {
-            if (_cells.isEmpty()) {
-                _cells = cells(monomials, constant)
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
+            if (cachedFlatten != null) {
+                return cachedFlatten.toQuadraticMonomialCells()
             }
-            return _cells
+            val cells = cells(monomials, constant)
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, cells.toQuadraticFlattenData())
+            return cells
         }
-    override val cached: Boolean = _cells.isNotEmpty()
+    override val cached: Boolean
+        get() = cacheTokenTable()?.cachedQuadraticFlatten(flattenCacheKey) == true
 
     abstract operator fun plus(rhs: LinearIntermediateSymbol): Self
 
@@ -242,14 +269,16 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
     }
 
     override fun flush(force: Boolean) {
-        if (force || _range?.set == false) {
-            _range = null
+        val tokenTable = cacheTokenTable()
+        val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+        if (force || cachedRange?.set == false) {
+            tokenTable?.clearRange(rangeCacheKey)
         }
         for (monomial in monomials) {
             monomial.flush(force)
         }
         if (force || monomials.any { !it.cached }) {
-            _cells = emptyList()
+            tokenTable?.clearQuadraticFlatten(flattenCacheKey)
         }
     }
 
