@@ -11,8 +11,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediat
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -1406,7 +1406,7 @@ class QuadraticMonomial(
     override val symbol: QuadraticMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<QuadraticMonomial, QuadraticMonomialCell>, ToQuadraticPolynomial<QuadraticPolynomial> {
+) : Monomial<QuadraticMonomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
     companion object {
         operator fun invoke(item: AbstractVariableItem<*, *>): QuadraticMonomial {
             return QuadraticMonomial(
@@ -1735,16 +1735,16 @@ class QuadraticMonomial(
             return range
         }
 
-    override val cells: List<QuadraticMonomialCell>
+    val flattenData: QuadraticFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toQuadraticMonomialCells()
+                return cachedFlatten
             }
-            val cells = symbol.cells.map { it * coefficient }
-            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, cells.toQuadraticFlattenData())
-            return cells
+            val data = QuadraticFlattenData(emptyList(), Flt64.zero)
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, data)
+            return data
         }
     override val cached: Boolean
         get() = cacheTokenTable()?.cachedQuadraticFlatten(flattenCacheKey) == true
@@ -1764,9 +1764,9 @@ class QuadraticMonomial(
         return QuadraticMonomial(coefficient, symbol.copy())
     }
 
-    override fun unaryMinus() = QuadraticMonomial(-coefficient, symbol.copy())
+    override operator fun unaryMinus() = QuadraticMonomial(-coefficient, symbol.copy())
 
-    override fun times(rhs: Flt64): QuadraticMonomial {
+    override operator fun times(rhs: Flt64): QuadraticMonomial {
         return QuadraticMonomial(coefficient * rhs, symbol.copy())
     }
 
@@ -2037,7 +2037,7 @@ class QuadraticMonomial(
         }
     }
 
-    override fun div(rhs: Flt64): QuadraticMonomial {
+    override operator fun div(rhs: Flt64): QuadraticMonomial {
         return QuadraticMonomial(coefficient / rhs, symbol.copy())
     }
 

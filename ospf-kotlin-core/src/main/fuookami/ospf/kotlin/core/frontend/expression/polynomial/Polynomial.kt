@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.operator.*
 
-sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
+sealed interface Polynomial<Self : Polynomial<Self, M>, M : Monomial<M>>
     : Expression, Copyable<Self>, Neg<Self>,
     Plus<Flt64, Self>, Minus<Flt64, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
     val category: Category
@@ -26,7 +26,6 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     val constant: Flt64
     override val discrete: Boolean get() = monomials.all { it.discrete } && constant.round() eq constant
     val dependencies: Set<IntermediateSymbol>
-    val cells: List<Cell>
     val cached: Boolean
 
     override fun unaryMinus(): Self {
@@ -43,7 +42,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     @JvmName("plusVariables")
     operator fun plus(rhs: Iterable<AbstractVariableItem<*, *>>): Self
     operator fun plus(rhs: M): Self
-    operator fun plus(rhs: Polynomial<*, M, Cell>): Self
+    operator fun plus(rhs: Polynomial<*, M>): Self
 
     operator fun <T : RealNumber<T>> minus(rhs: T): Self {
         return this.minus(rhs.toFlt64())
@@ -55,7 +54,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     @JvmName("minusVariables")
     operator fun minus(rhs: Iterable<AbstractVariableItem<*, *>>): Self
     operator fun minus(rhs: M): Self
-    operator fun minus(rhs: Polynomial<*, M, Cell>): Self
+    operator fun minus(rhs: Polynomial<*, M>): Self
 
     operator fun times(rhs: Int): Self {
         return this.times(Flt64(rhs))
@@ -81,8 +80,8 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
         return this.div(rhs.toFlt64())
     }
 
-    fun toMutable(): MutablePolynomial<*, M, Cell>
-    fun asMutable(): MutablePolynomial<*, M, Cell>? {
+    fun toMutable(): MutablePolynomial<*, M>
+    fun asMutable(): MutablePolynomial<*, M>? {
         return null
     }
 
@@ -176,8 +175,8 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     }
 }
 
-sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
-    : Polynomial<Self, M, Cell>, PlusAssign<Flt64>, MinusAssign<Flt64>, TimesAssign<Flt64>, DivAssign<Flt64> {
+sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M>, M : Monomial<M>>
+    : Polynomial<Self, M>, PlusAssign<Flt64>, MinusAssign<Flt64>, TimesAssign<Flt64>, DivAssign<Flt64> {
     operator fun plusAssign(rhs: Int) {
         this.plusAssign(Flt64(rhs))
     }
@@ -196,7 +195,7 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : 
     @JvmName("plusAssignVariables")
     operator fun plusAssign(rhs: Iterable<AbstractVariableItem<*, *>>)
     operator fun plusAssign(rhs: M)
-    operator fun plusAssign(rhs: Polynomial<*, M, Cell>)
+    operator fun plusAssign(rhs: Polynomial<*, M>)
 
     operator fun minusAssign(rhs: Int) {
         this.minusAssign(Flt64(rhs))
@@ -216,7 +215,7 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : 
     @JvmName("minusAssignVariables")
     operator fun minusAssign(rhs: Iterable<AbstractVariableItem<*, *>>)
     operator fun minusAssign(rhs: M)
-    operator fun minusAssign(rhs: Polynomial<*, M, Cell>)
+    operator fun minusAssign(rhs: Polynomial<*, M>)
 
     operator fun timesAssign(rhs: Int) {
         this.timesAssign(Flt64(rhs))
@@ -243,8 +242,9 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : 
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 internal fun possibleRange(
-    monomials: List<Monomial<*, *>>,
+    monomials: List<Monomial<*>>,
     constant: Flt64
 ): ValueRange<Flt64>? {
     return if (monomials.isEmpty()) {
@@ -255,9 +255,9 @@ internal fun possibleRange(
             Interval.Closed
         ).value
     } else {
-        var ret = monomials[0].range.range ?: return null
+        var ret = (monomials[0] as Monomial<*>).range.range ?: return null
         for (i in 1..<monomials.size) {
-            val value = monomials[i].range.range ?: return null
+            val value = (monomials[i] as Monomial<*>).range.range ?: return null
             ret += value
         }
         ret += constant

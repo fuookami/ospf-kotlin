@@ -1,10 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
@@ -252,68 +249,3 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol): AbstractTokenTa
     return symbolTokenTableContext[symbol]
 }
 
-internal fun List<LinearMonomialCell>.toLinearFlattenData(): LinearFlattenData {
-    var constant = Flt64.zero
-    val monomials = mapNotNull { cell ->
-        if (cell.isConstant) {
-            constant += cell.constant!!
-            null
-        } else {
-            UtilsLinearMonomial(
-                coefficient = cell.pair!!.coefficient,
-                symbol = cell.pair!!.variable
-            )
-        }
-    }
-    return LinearFlattenData(
-        monomials = monomials,
-        constant = constant
-    )
-}
-
-internal fun LinearFlattenData.toLinearMonomialCells(): List<LinearMonomialCell> {
-    val cells = monomials.map {
-        LinearMonomialCell(
-            coefficient = it.coefficient,
-            variable = it.symbol as AbstractVariableItem<*, *>
-        )
-    }.toMutableList()
-    if (constant != Flt64.zero) {
-        cells.add(LinearMonomialCell(constant))
-    }
-    return cells
-}
-
-internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlattenData {
-    var constant = Flt64.zero
-    val monomials = mapNotNull { cell ->
-        if (cell.isConstant) {
-            constant += cell.constant!!
-            null
-        } else {
-            UtilsQuadraticMonomial(
-                coefficient = cell.triple!!.coefficient,
-                symbol1 = cell.triple!!.variable1,
-                symbol2 = cell.triple!!.variable2
-            )
-        }
-    }
-    return QuadraticFlattenData(
-        monomials = monomials,
-        constant = constant
-    )
-}
-
-internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMonomialCell> {
-    val cells = monomials.map {
-        QuadraticMonomialCell(
-            coefficient = it.coefficient,
-            variable1 = it.symbol1 as AbstractVariableItem<*, *>,
-            variable2 = it.symbol2 as AbstractVariableItem<*, *>?
-        )
-    }.toMutableList()
-    if (constant != Flt64.zero) {
-        cells.add(QuadraticMonomialCell(constant))
-    }
-    return cells
-}

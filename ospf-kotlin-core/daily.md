@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Daily
 
-日期：2026-03-30
+日期：2026-03-31
 交接目标：下一个执行环境
 Rust 对齐参考：`E:\workspace\ospf-rust`
 
@@ -72,3 +72,66 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - `mvn -pl ospf-kotlin-core -am test`
    - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`（8 plugin 联编）
 4. 完成后回写本文件：仅记录“新增完成项 + 剩余缺口 + 回归命令结果”。
+
+Task
+
+Current Work: 执行 ospf-kotlin-core 的 P0 级迁移任务，将 monomial/polynomial/inequality 从 Cell 数据结构迁移到 math.symbol.monomial 数据结构。
+
+Progress Summary:
+
+- Polynomial 接口已修改为 2 参数版本：`Polynomial<Self : Polynomial<Self, M>, M : Monomial<M>>`
+- LinearPolynomial.kt 已完成迁移
+- QuadraticPolynomial.kt 已重构（使用 write_to_file 完全重写）
+
+Key Issues Remaining (编译错误分析):
+
+1. LinearMonomial.kt:442 - flattenData 未解析（需检查第442行）
+2. QuadraticPolynomial.kt:128 - plus 操作符需要 AbstractVariableItem<*, *> 重载
+3. IntermediateSymbol.kt - 多处 Polynomial 类型参数错误（3参数→2参数）
+4. 多个 linear_function/*.kt 和 quadratic_function/*.kt 文件 - cells 未解析
+5. Inequality.kt - Polynomial 类型参数错误
+6. LinearInequality.kt - 内部函数 toLinearFlattenData/toLinearMonomialCells 访问问题
+7. QuadraticInequality.kt - 内部函数 toQuadraticFlattenData/toQuadraticMonomialCells 访问问题
+8. MetaModel.kt - Polynomial 类型参数错误，SubObject 创建问题
+9. SubObject.kt - cells 属性未解析，需要使用 monomials
+10. TokenTable.kt - 内部函数访问问题
+
+Relevant Files/Code (已修改):
+
+- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/polynomial/Polynomial.kt (已修改为2参数)
+- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/polynomial/LinearPolynomial.kt (已完成迁移)
+- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/polynomial/QuadraticPolynomial.kt (已重写)
+
+Files Needing Updates:
+
+1. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/monomial/LinearMonomial.kt:442
+2. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/symbol/IntermediateSymbol.kt
+3. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/model/mechanism/SubObject.kt
+4. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/model/mechanism/MetaModel.kt
+5. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/model/mechanism/TokenTable.kt
+6. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/inequality/Inequality.kt
+7. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/inequality/LinearInequality.kt
+8. ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/inequality/QuadraticInequality.kt
+9. 多个 linear_function/*.kt 文件（Abs.kt, And.kt, Binaryzation.kt 等）
+10. 多个 quadratic_function/*.kt 文件
+
+Problem Solving: 迁移核心变更：
+
+1. Polynomial 接口签名：`Polynomial<Self : Polynomial<Self, M>, M : Monomial<M>>`
+2. 移除 cells 概念，直接使用 monomials
+3. 移除对内部 flatten 函数的依赖
+4. 使用 FlattenData 类（LinearFlattenData, QuadraticFlattenData）
+
+Pending & Next: 建议执行顺序：
+
+1. 修复 LinearMonomial.kt:442 的 flattenData 引用问题
+2. 更新 IntermediateSymbol.kt - 修复 Polynomial 类型参数
+3. 更新 SubObject.kt - 使用 monomials 替代 cells
+4. 更新 MetaModel.kt - 修复 SubObject 创建
+5. 更新 TokenTable.kt - 移除对内部函数的调用
+6. 更新 Inequality.kt, LinearInequality.kt, QuadraticInequality.kt
+7. 更新 linear_function/*.kt 文件
+8. 更新 quadratic_function/*.kt 文件
+9. 运行测试验证修改
+
+Rust 对齐参考: E:\workspace\ospf-rust 回归命令: mvn -pl ospf-kotlin-core -am test
