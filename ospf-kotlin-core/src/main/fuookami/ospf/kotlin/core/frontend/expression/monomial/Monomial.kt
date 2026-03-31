@@ -90,12 +90,13 @@ sealed interface MonomialSymbol {
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
-sealed interface Monomial<Self : Monomial<Self>>
-    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self>>, Times<Flt64, Self>, Div<Flt64, Self> {
+sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>>
+    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, Cell>>, Times<Flt64, Self>, Div<Flt64, Self> {
     val coefficient: Flt64
     val symbol: MonomialSymbol
     val category: Category get() = symbol.category
     override val discrete: Boolean get() = (coefficient.round() eq coefficient) && symbol.discrete
+    val cells: List<Cell>
     val cached: Boolean
 
     operator fun times(rhs: Int): Self {

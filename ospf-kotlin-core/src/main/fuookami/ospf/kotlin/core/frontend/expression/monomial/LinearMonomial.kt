@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
 import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
 import kotlin.ConsistentCopyVisibility
@@ -429,17 +428,14 @@ data class LinearMonomialSymbol(
     val variable by symbol::left
     val exprSymbol by symbol::right
 
-    val flattenData: LinearFlattenData
+    val cells: List<LinearMonomialCell>
         get() = when (symbol) {
             is Either.Left -> {
-                LinearFlattenData(
-                    monomials = listOf(UtilsLinearMonomial(Flt64.one, symbol.value)),
-                    constant = Flt64.zero
-                )
+                listOf(LinearMonomialCell(Flt64.one, symbol.value))
             }
 
             is Either.Right -> {
-                symbol.value.flattenData
+                symbol.value.cells.map { it.copy() }
             }
         }
 
@@ -720,7 +716,7 @@ data class LinearMonomial(
     override val symbol: LinearMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<LinearMonomial>, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
+) : Monomial<LinearMonomial, LinearMonomialCell>, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
     companion object {
         operator fun invoke(item: AbstractVariableItem<*, *>): LinearMonomial {
             return LinearMonomial(Flt64.one, LinearMonomialSymbol(item))
@@ -802,19 +798,16 @@ data class LinearMonomial(
             return range
         }
 
-    val flattenData: LinearFlattenData
+    override val cells: List<LinearMonomialCell>
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten
+                return cachedFlatten.toLinearMonomialCells()
             }
-            val data = LinearFlattenData(
-                monomials = symbol.flattenData.monomials.map { UtilsLinearMonomial(it.coefficient * coefficient, it.symbol) },
-                constant = symbol.flattenData.constant * coefficient
-            )
-            tokenTable?.cacheLinearFlatten(flattenCacheKey, data)
-            return data
+            val cells = symbol.cells.map { it * coefficient }
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, cells.toLinearFlattenData())
+            return cells
         }
     override val cached: Boolean
         get() = cacheTokenTable()?.cachedLinearFlatten(flattenCacheKey) == true
@@ -834,13 +827,13 @@ data class LinearMonomial(
         return LinearMonomial(coefficient, symbol.copy())
     }
 
-    override operator fun unaryMinus() = LinearMonomial(-coefficient, symbol.copy())
+    override fun unaryMinus() = LinearMonomial(-coefficient, symbol.copy())
 
-    override operator fun times(rhs: Flt64): LinearMonomial {
+    override fun times(rhs: Flt64): LinearMonomial {
         return LinearMonomial(coefficient * rhs, symbol.copy())
     }
 
-    override operator fun div(rhs: Flt64): LinearMonomial {
+    override fun div(rhs: Flt64): LinearMonomial {
         return LinearMonomial(coefficient / rhs, symbol.copy())
     }
 
