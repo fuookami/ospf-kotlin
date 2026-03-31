@@ -40,7 +40,7 @@ fun QuadraticPolynomial<Flt64>.compileEval(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.compileEval(
+fun CanonicalPolynomial<Flt64, Int32>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null
@@ -80,7 +80,7 @@ fun QuadraticPolynomial<Flt64>.compileGradient(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.compileGradient(
+fun CanonicalPolynomial<Flt64, Int32>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null
@@ -93,6 +93,3 @@ fun CanonicalPolynomial<Flt64>.compileGradient(
         symbolComparator = symbolComparator
     )
 }
-
-
-

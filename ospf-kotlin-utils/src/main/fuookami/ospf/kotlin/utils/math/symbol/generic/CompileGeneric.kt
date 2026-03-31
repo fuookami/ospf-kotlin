@@ -19,7 +19,7 @@ private data class CompiledQuadraticMonomial<T>(
 
 private data class CompiledCanonicalMonomial<T>(
     val coefficient: T,
-    val factors: IntArray
+    val powers: List<Pair<Int, Int>>  // (symbolIndex, exponent)
 ) where T : Ring<T>
 
 private data class CompiledCanonicalGradientMonomial<T>(
@@ -121,12 +121,43 @@ fun <T> GenericQuadraticPolynomial<T>.compileEval(
     }
 }
 
+/**
+ * 计算幂次 value^power
+ * Compute power value^power
+ */
+private fun <T : Ring<T>> computePower(value: T, power: Int, one: T): T {
+    if (power == 0) return one
+    if (power == 1) return value
+    
+    // 对于负指数，需要 T 实现 TimesGroup（有 reciprocal）
+    // 这里我们只处理正指数
+    if (power < 0) {
+        throw IllegalArgumentException("Negative exponent requires TimesGroup implementation.")
+    }
+    
+    var result = one
+    var base = value
+    var exp = power
+    
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = result * base
+        }
+        if (exp > 1) {
+            base = base * base
+        }
+        exp /= 2
+    }
+    return result
+}
+
 fun <T> GenericCanonicalPolynomial<T>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
-    symbolComparator: Comparator<Symbol>? = null
+    symbolComparator: Comparator<Symbol>? = null,
+    one: T
 ): (List<T>) -> T where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
@@ -142,8 +173,8 @@ fun <T> GenericCanonicalPolynomial<T>.compileEval(
     val monomials = source.monomials.map { monomial ->
         CompiledCanonicalMonomial(
             coefficient = monomial.coefficient,
-            factors = IntArray(monomial.factors.size) { i ->
-                requireSymbolIndex(monomial.factors[i], indexOfSymbol)
+            powers = monomial.powers.map { (symbol, exp) ->
+                Pair(requireSymbolIndex(symbol, indexOfSymbol), exp)
             }
         )
     }
@@ -153,8 +184,8 @@ fun <T> GenericCanonicalPolynomial<T>.compileEval(
         var result = constant
         for (monomial in monomials) {
             var monomialValue = monomial.coefficient
-            for (symbolIndex in monomial.factors) {
-                monomialValue *= values[symbolIndex]
+            for ((symbolIndex, power) in monomial.powers) {
+                monomialValue *= computePower(values[symbolIndex], power, one)
             }
             result += monomialValue
         }
@@ -268,14 +299,11 @@ fun <T> GenericCanonicalPolynomial<T>.compileGradient(
     }
     val expectedSize = order.size
     val monomials = source.monomials.map { monomial ->
-        val factorAmount = LinkedHashMap<Int, Int>()
-        for (symbol in monomial.factors) {
-            val index = requireSymbolIndex(symbol, indexOfSymbol)
-            factorAmount[index] = (factorAmount[index] ?: 0) + 1
-        }
         CompiledCanonicalGradientMonomial(
             coefficient = monomial.coefficient,
-            factorCounts = factorAmount.entries.map { Pair(it.key, it.value) }
+            factorCounts = monomial.powers.entries.map { 
+                Pair(requireSymbolIndex(it.key, indexOfSymbol), it.value) 
+            }
         )
     }
     return { values ->

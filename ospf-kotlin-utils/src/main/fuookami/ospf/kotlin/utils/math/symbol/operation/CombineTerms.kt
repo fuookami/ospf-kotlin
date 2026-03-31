@@ -72,9 +72,9 @@ fun QuadraticPolynomial<Flt64>.combineTerms(
         .toQuadraticPolynomial()
 }
 
-fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
+fun Iterable<CanonicalMonomial<Flt64, Int32>>.combineCanonicalTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<CanonicalMonomial<Flt64>> {
+): List<CanonicalMonomial<Flt64, Int32>> {
     return map { it.toGenericCanonicalMonomial() }
         .combineGenericCanonicalMonomialTerms(
             zero = Flt64.zero,
@@ -84,9 +84,9 @@ fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
         .map { it.toCanonicalMonomial() }
 }
 
-fun CanonicalPolynomial<Flt64>.combineTerms(
+fun CanonicalPolynomial<Flt64, Int32>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<Flt64, Int32> {
     return this.toGenericCanonicalPolynomial()
         .combineGenericCanonicalTerms(
             zero = Flt64.zero,
@@ -95,6 +95,3 @@ fun CanonicalPolynomial<Flt64>.combineTerms(
         )
         .toCanonicalPolynomial()
 }
-
-
-

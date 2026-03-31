@@ -201,7 +201,7 @@ fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolyn
     )
 }
 
-fun CanonicalPolynomial<Flt64>.toMatrixForm(
+fun CanonicalPolynomial<Flt64, Int32>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
@@ -229,6 +229,3 @@ fun CanonicalPolynomial<Flt64>.toMatrixForm(
         }
     }
 }
-
-
-

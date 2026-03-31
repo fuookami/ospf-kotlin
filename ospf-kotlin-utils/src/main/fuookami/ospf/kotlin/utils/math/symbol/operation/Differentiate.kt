@@ -91,10 +91,10 @@ fun QuadraticPolynomial<Flt64>.hessian(
     }
 }
 
-fun CanonicalMonomial<Flt64>.derivative(
+fun CanonicalMonomial<Flt64, Int32>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<Flt64, Int32> {
     return toGenericCanonicalMonomial()
         .derivativeGeneric(
             symbol = symbol,
@@ -105,10 +105,10 @@ fun CanonicalMonomial<Flt64>.derivative(
         .toCanonicalPolynomialFromGeneric()
 }
 
-fun CanonicalPolynomial<Flt64>.derivative(
+fun CanonicalPolynomial<Flt64, Int32>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<Flt64, Int32> {
     return toGenericCanonicalPolynomial()
         .derivativeGeneric(
             symbol = symbol,
@@ -119,10 +119,10 @@ fun CanonicalPolynomial<Flt64>.derivative(
         .toCanonicalPolynomialFromGeneric()
 }
 
-fun CanonicalPolynomial<Flt64>.gradient(
+fun CanonicalPolynomial<Flt64, Int32>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<CanonicalPolynomial<Flt64>> {
+): List<CanonicalPolynomial<Flt64, Int32>> {
     return toGenericCanonicalPolynomial()
         .gradientGeneric(
             order = order,
@@ -133,7 +133,7 @@ fun CanonicalPolynomial<Flt64>.gradient(
         .map { it.toCanonicalPolynomialFromGeneric() }
 }
 
-fun CanonicalPolynomial<Flt64>.hessian(
+fun CanonicalPolynomial<Flt64, Int32>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
@@ -161,6 +161,3 @@ fun CanonicalPolynomial<Flt64>.hessian(
         }
     }
 }
-
-
-

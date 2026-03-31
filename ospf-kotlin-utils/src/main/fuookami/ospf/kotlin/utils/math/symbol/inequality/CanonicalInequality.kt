@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 
 data class CanonicalInequality(
-    val lhs: CanonicalPolynomial<Flt64>,
-    val rhs: CanonicalPolynomial<Flt64>,
+    val lhs: CanonicalPolynomial<Flt64, Int32>,
+    val rhs: CanonicalPolynomial<Flt64, Int32>,
     val comparison: Comparison
 ) {
     fun reverse(): CanonicalInequality {
@@ -19,6 +19,3 @@ data class CanonicalInequality(
         )
     }
 }
-
-
-

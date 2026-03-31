@@ -58,7 +58,7 @@ fun QuadraticMonomial<Flt64>.toLatex(
     return toGenericQuadraticMonomial().toLatexGeneric(flt64LatexOps, options)
 }
 
-fun CanonicalMonomial<Flt64>.toLatex(
+fun CanonicalMonomial<Flt64, Int32>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toGenericCanonicalMonomial().toLatexGeneric(flt64LatexOps, options)
@@ -76,7 +76,7 @@ fun QuadraticPolynomial<Flt64>.toLatex(
     return toGenericQuadraticPolynomial().toLatexGeneric(flt64LatexOps, options)
 }
 
-fun CanonicalPolynomial<Flt64>.toLatex(
+fun CanonicalPolynomial<Flt64, Int32>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toGenericCanonicalPolynomial().toLatexGeneric(flt64LatexOps, options)
@@ -110,7 +110,3 @@ fun CanonicalInequality.toLatex(
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
-
-
-
-

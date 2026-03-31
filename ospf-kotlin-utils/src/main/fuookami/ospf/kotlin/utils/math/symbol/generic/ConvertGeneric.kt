@@ -19,7 +19,7 @@ fun <T> GenericLinearMonomial<T>.toGenericCanonicalMonomial(): GenericCanonicalM
         where T : Ring<T> {
     return GenericCanonicalMonomial(
         coefficient = coefficient,
-        factors = listOf(symbol)
+        powers = mapOf(symbol to 1)
     )
 }
 
@@ -37,19 +37,14 @@ fun <T> GenericQuadraticMonomial<T>.toGenericLinearMonomialOrNull(): GenericLine
 fun <T> GenericQuadraticMonomial<T>.toGenericCanonicalMonomial(
     symbolComparator: Comparator<Symbol>? = null
 ): GenericCanonicalMonomial<T> where T : Ring<T> {
-    val factors = if (symbol2 == null) {
-        listOf(symbol1)
+    val powers = if (symbol2 == null) {
+        mapOf(symbol1 to 1)
     } else {
-        listOf(symbol1, symbol2)
-    }
-    val normalizedFactors = if (symbolComparator == null) {
-        factors
-    } else {
-        factors.sortedWith(symbolComparator)
+        mapOf(symbol1 to 1, symbol2 to 1)
     }
     return GenericCanonicalMonomial(
         coefficient = coefficient,
-        factors = normalizedFactors
+        powers = powers
     )
 }
 
@@ -58,9 +53,11 @@ fun <T> GenericCanonicalMonomial<T>.toGenericLinearMonomialOrNull(): GenericLine
     if (degree != 1) {
         return null
     }
+    // 找到指数为1的符号
+    val entry = powers.entries.firstOrNull { it.value == 1 } ?: return null
     return GenericLinearMonomial(
         coefficient = coefficient,
-        symbol = factors.first()
+        symbol = entry.key
     )
 }
 
@@ -68,25 +65,39 @@ fun <T> GenericCanonicalMonomial<T>.toGenericQuadraticMonomialOrNull(
     symbolComparator: Comparator<Symbol>? = null
 ): GenericQuadraticMonomial<T>? where T : Ring<T> {
     if (degree == 1) {
+        val entry = powers.entries.firstOrNull { it.value == 1 } ?: return null
         return GenericQuadraticMonomial(
             coefficient = coefficient,
-            symbol1 = factors.first(),
+            symbol1 = entry.key,
             symbol2 = null
         )
     }
     if (degree != 2) {
         return null
     }
-    val normalizedFactors = if (symbolComparator == null) {
-        factors
-    } else {
-        factors.sortedWith(symbolComparator)
+    // 处理 x^2 或 x*y 的情况
+    val entries = powers.entries.toList()
+    if (entries.size == 1 && entries[0].value == 2) {
+        // x^2 的情况
+        return GenericQuadraticMonomial(
+            coefficient = coefficient,
+            symbol1 = entries[0].key,
+            symbol2 = entries[0].key
+        )
+    } else if (entries.size == 2 && entries.all { it.value == 1 }) {
+        // x*y 的情况
+        val sortedEntries = if (symbolComparator != null) {
+            entries.sortedWith(compareBy { symbolComparator.compare(it.key, it.key) })
+        } else {
+            entries
+        }
+        return GenericQuadraticMonomial(
+            coefficient = coefficient,
+            symbol1 = sortedEntries[0].key,
+            symbol2 = sortedEntries[1].key
+        )
     }
-    return GenericQuadraticMonomial(
-        coefficient = coefficient,
-        symbol1 = normalizedFactors.first(),
-        symbol2 = normalizedFactors.last()
-    )
+    return null
 }
 
 fun <T> GenericLinearPolynomial<T>.toGenericQuadraticPolynomial(): GenericQuadraticPolynomial<T>
@@ -143,10 +154,11 @@ fun <T> GenericCanonicalPolynomial<T>.toGenericLinearPolynomialOrNull(
             }
 
             1 -> {
+                val entry = monomial.powers.entries.firstOrNull { it.value == 1 } ?: return null
                 linearMonomials.add(
                     GenericLinearMonomial(
                         coefficient = monomial.coefficient,
-                        symbol = monomial.factors.first()
+                        symbol = entry.key
                     )
                 )
             }
@@ -218,7 +230,7 @@ fun <T> GenericCanonicalPolynomial<T>.subtract(
         monomials = monomials + rhs.monomials.map {
             GenericCanonicalMonomial(
                 coefficient = -it.coefficient,
-                factors = it.factors
+                powers = it.powers
             )
         },
         constant = constant - rhs.constant
